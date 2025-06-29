@@ -1,0 +1,175 @@
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "oracledb-core-shared"
+version = "0.1.0"
+description = "Shared Oracle database utilities and core components for PyAuto framework"
+authors = ["PyAuto Team <dev@pyauto.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+homepage = "https://github.com/pyauto/oracledb-core-shared"
+repository = "https://github.com/pyauto/oracledb-core-shared"
+documentation = "https://pyauto.github.io/oracledb-core-shared"
+keywords = [
+    "oracle",
+    "database",
+    "sql",
+    "utilities",
+    "shared-library",
+    "pyauto-framework",
+    "enterprise-database"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Database",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+# Core Oracle connectivity
+oracledb = "^2.3.0"
+cx-Oracle = { version = "^8.3.0", optional = true }
+# SQL parsing and analysis
+sqlparse = "^0.5.0"
+sqlalchemy = { extras = ["mypy"], version = "^2.0.0" }
+# Data structures and validation
+pydantic = "^2.10.0"
+# Logging and monitoring
+structlog = "^24.4.0"
+# CLI and utilities
+click = "^8.1.0"
+rich = "^13.0.0"
+typer = "^0.12.0"
+# Date/time handling
+pendulum = "^3.0.0"
+# Data processing
+pandas = { version = "^2.2.0", optional = true }
+# Async support
+asyncio-pool = "^0.6.0"
+
+[tool.poetry.extras]
+legacy = ["cx-Oracle"]
+analytics = ["pandas", "numpy", "matplotlib"]
+full = ["cx-Oracle", "pandas", "numpy", "matplotlib"]
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+pytest-cov = "^6.0.0"
+pytest-mock = "^3.14.0"
+mypy = "^1.13.0"
+ruff = "^0.8.0"
+pre-commit = "^4.0.0"
+black = "^24.0.0"
+isort = "^5.13.0"
+bandit = "^1.7.0"
+safety = "^3.0.0"
+coverage = "^7.6.0"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6.0"
+mkdocs-material = "^9.5.0"
+mkdocstrings = { extras = ["python"], version = "^0.27.0" }
+mkdocs-gen-files = "^0.5.0"
+mkdocs-literate-nav = "^0.6.0"
+
+[tool.poetry.group.testing.dependencies]
+testcontainers = "^4.9.0"
+docker = "^7.1.0"
+
+[tool.poetry.scripts]
+oracle-utils = "oracledb_core_shared.cli:main"
+oracle-schema = "oracledb_core_shared.schema.cli:main"
+oracle-compare = "oracledb_core_shared.compare.cli:main"
+oracle-maintenance = "oracledb_core_shared.maintenance.cli:main"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ARG", # flake8-unused-arguments
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "ANN", # flake8-annotations
+    "S",   # bandit
+]
+ignore = [
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+    "S101",   # assert
+    "S603",   # subprocess-without-shell-equals-true
+    "S607",   # start-process-with-partial-path
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["S101", "ANN", "ARG"]
+"docs/**/*" = ["ANN"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_unreachable = true
+warn_unused_ignores = true
+show_error_codes = true
+plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "oracledb.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "cx_Oracle.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["oracledb_core_shared"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
