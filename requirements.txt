@@ -1,0 +1,43 @@
+# FLEXT DB Oracle - Database Integration Dependencies
+# Auto-generated for Docker builds
+
+# Oracle Database
+oracledb==2.0.0
+cx-Oracle==8.3.0
+
+# Database ORM & Migration
+sqlalchemy[asyncio]==2.0.23
+alembic==1.13.0
+
+# Connection Pooling
+sqlalchemy-pool==2.0.23
+
+# Async Database Support
+asyncpg==0.29.0
+aiopg==1.4.0
+
+# Data Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Schema Discovery & DDL
+sqlparse==0.4.4
+
+# Configuration
+python-dotenv==1.0.0
+dynaconf==3.2.4
+
+# Monitoring
+prometheus-client==0.19.0
+
+# CLI Interface
+click==8.1.7
+rich==13.7.0
+typer==0.9.0
+
+# Data Processing
+pandas==2.1.4
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1

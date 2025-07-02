@@ -88,7 +88,9 @@ class DDLGenerator:
         statements = []
 
         for constraint in table.constraints:
-            ddl = self._generate_constraint_ddl(table.schema_name, table.name, constraint)
+            ddl = self._generate_constraint_ddl(
+                table.schema_name, table.name, constraint
+            )
             if ddl:
                 statements.append(ddl)
 
@@ -147,7 +149,9 @@ class DDLGenerator:
 
         return "\n".join(ddl_parts)
 
-    def generate_drop_table_ddl(self, schema_name: str, table_name: str, cascade: bool = False) -> str:
+    def generate_drop_table_ddl(
+        self, schema_name: str, table_name: str, cascade: bool = False
+    ) -> str:
         """Generate DROP TABLE DDL statement.
 
         Args:
@@ -164,7 +168,9 @@ class DDLGenerator:
         ddl += ";"
         return ddl
 
-    def generate_schema_ddl(self, tables: list[TableMetadata], include_drops: bool = False) -> str:
+    def generate_schema_ddl(
+        self, tables: list[TableMetadata], include_drops: bool = False
+    ) -> str:
         """Generate DDL for multiple tables in proper dependency order.
 
         Args:
@@ -181,7 +187,11 @@ class DDLGenerator:
             sorted_tables = self._sort_tables_by_dependencies(tables, reverse=True)
             ddl_parts.append("-- Drop existing tables")
             for table in sorted_tables:
-                ddl_parts.append(self.generate_drop_table_ddl(table.schema_name, table.name, cascade=True))
+                ddl_parts.append(
+                    self.generate_drop_table_ddl(
+                        table.schema_name, table.name, cascade=True
+                    )
+                )
             ddl_parts.append("")
 
         # Create tables in dependency order
@@ -204,7 +214,11 @@ class DDLGenerator:
         # Add length/precision for applicable types
         if col.max_length and data_type in ("VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR"):
             data_type += f"({col.max_length})"
-        elif col.precision is not None and data_type in ("NUMBER", "DECIMAL", "NUMERIC"):
+        elif col.precision is not None and data_type in (
+            "NUMBER",
+            "DECIMAL",
+            "NUMERIC",
+        ):
             if col.scale is not None:
                 data_type += f"({col.precision},{col.scale})"
             else:
@@ -222,7 +236,9 @@ class DDLGenerator:
 
         return " ".join(parts)
 
-    def _generate_constraint_ddl(self, schema_name: str, table_name: str, constraint: ConstraintMetadata) -> str | None:
+    def _generate_constraint_ddl(
+        self, schema_name: str, table_name: str, constraint: ConstraintMetadata
+    ) -> str | None:
         """Generate DDL for a single constraint."""
         if constraint.constraint_type == "PRIMARY_KEY":
             columns = ", ".join(constraint.column_names)
@@ -230,7 +246,10 @@ class DDLGenerator:
 
         elif constraint.constraint_type == "FOREIGN_KEY":
             if not constraint.referenced_table or not constraint.referenced_columns:
-                logger.warning("Foreign key constraint %s missing reference information", constraint.name)
+                logger.warning(
+                    "Foreign key constraint %s missing reference information",
+                    constraint.name,
+                )
                 return None
 
             columns = ", ".join(constraint.column_names)
@@ -248,7 +267,9 @@ class DDLGenerator:
             return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.condition});"
 
         else:
-            logger.warning("Unsupported constraint type: %s", constraint.constraint_type)
+            logger.warning(
+                "Unsupported constraint type: %s", constraint.constraint_type
+            )
             return None
 
     def _generate_index_ddl(self, schema_name: str, index: IndexMetadata) -> str:
@@ -264,7 +285,9 @@ class DDLGenerator:
         ddl += ";"
         return ddl
 
-    def _sort_tables_by_dependencies(self, tables: list[TableMetadata], reverse: bool = False) -> list[TableMetadata]:
+    def _sort_tables_by_dependencies(
+        self, tables: list[TableMetadata], reverse: bool = False
+    ) -> list[TableMetadata]:
         """Sort tables by foreign key dependencies.
 
         Tables with no foreign keys come first, then tables that depend on them, etc.
@@ -279,9 +302,11 @@ class DDLGenerator:
             deps = set()
             if table.constraints:
                 for constraint in table.constraints:
-                    if (constraint.constraint_type == "FOREIGN_KEY" and
-                        constraint.referenced_table and
-                        constraint.referenced_table in table_map):
+                    if (
+                        constraint.constraint_type == "FOREIGN_KEY"
+                        and constraint.referenced_table
+                        and constraint.referenced_table in table_map
+                    ):
                         deps.add(constraint.referenced_table)
             dependencies[table.name] = deps
 

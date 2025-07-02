@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 class DataComparator:
     """Compares data between Oracle database tables."""
 
-    def __init__(self, source_conn: OracleConnection, target_conn: OracleConnection) -> None:
+    def __init__(
+        self, source_conn: OracleConnection, target_conn: OracleConnection
+    ) -> None:
         """Initialize data comparator.
 
         Args:
@@ -24,7 +26,9 @@ class DataComparator:
         self.source_conn = source_conn
         self.target_conn = target_conn
 
-    def compare_tables(self, table_name: str, schema_name: str | None = None) -> dict[str, Any]:
+    def compare_tables(
+        self, table_name: str, schema_name: str | None = None
+    ) -> dict[str, Any]:
         """Compare data between two tables.
 
         Args:
@@ -47,7 +51,9 @@ class DataComparator:
 class SchemaComparator:
     """Compares schemas between Oracle databases."""
 
-    def __init__(self, source_conn: OracleConnection, target_conn: OracleConnection) -> None:
+    def __init__(
+        self, source_conn: OracleConnection, target_conn: OracleConnection
+    ) -> None:
         """Initialize schema comparator.
 
         Args:

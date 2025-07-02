@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 try:
     import oracledb
+
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
@@ -55,8 +56,11 @@ class OracleConnection:
             params = self.config.to_connect_params()
             self._connection = oracledb.connect(**params)
             self._is_connected = True
-            logger.info("Connected to Oracle database: %s:%s",
-                       self.config.host, self.config.port)
+            logger.info(
+                "Connected to Oracle database: %s:%s",
+                self.config.host,
+                self.config.port,
+            )
         except Exception as e:
             logger.error("Failed to connect to Oracle database: %s", e)
             raise
@@ -163,7 +167,9 @@ class OracleConnection:
         finally:
             cursor.close()
 
-    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+    def fetch_all(
+        self, sql: str, parameters: dict[str, Any] | None = None
+    ) -> list[Any]:
         """Fetch all rows from query.
 
         Args:
@@ -249,7 +255,9 @@ class OracleConnection:
         results = self.fetch_all(sql, parameters)
         return [row[0] for row in results]
 
-    def get_column_info(self, table_name: str, schema: str | None = None) -> list[dict[str, Any]]:
+    def get_column_info(
+        self, table_name: str, schema: str | None = None
+    ) -> list[dict[str, Any]]:
         """Get column information for a table.
 
         Args:
@@ -278,15 +286,17 @@ class OracleConnection:
 
         columns = []
         for row in results:
-            columns.append({
-                "name": row[0],
-                "type": row[1],
-                "length": row[2],
-                "precision": row[3],
-                "scale": row[4],
-                "nullable": row[5] == "Y",
-                "default": row[6],
-            })
+            columns.append(
+                {
+                    "name": row[0],
+                    "type": row[1],
+                    "length": row[2],
+                    "precision": row[3],
+                    "scale": row[4],
+                    "nullable": row[5] == "Y",
+                    "default": row[6],
+                }
+            )
 
         return columns
 

@@ -119,17 +119,19 @@ def describe_table(args: Any) -> int:
                 print("-" * 75)
 
                 for col in columns:
-                    type_str = col['type']
-                    if col['length']:
+                    type_str = col["type"]
+                    if col["length"]:
                         type_str += f"({col['length']}"
-                        if col['precision'] and col['scale']:
+                        if col["precision"] and col["scale"]:
                             type_str += f",{col['scale']}"
                         type_str += ")"
 
-                    nullable = "YES" if col['nullable'] else "NO"
-                    default = str(col['default']) if col['default'] else ""
+                    nullable = "YES" if col["nullable"] else "NO"
+                    default = str(col["default"]) if col["default"] else ""
 
-                    print(f"{col['name']:<30} {type_str:<20} {nullable:<10} {default:<15}")
+                    print(
+                        f"{col['name']:<30} {type_str:<20} {nullable:<10} {default:<15}"
+                    )
             else:
                 logger.info("No columns found for table %s", args.table)
 
@@ -161,13 +163,21 @@ def main() -> int:
 
     # Connection options
     connection_group = parser.add_argument_group("Connection Options")
-    connection_group.add_argument("--url", help="Database URL (oracle://user:pass@host:port/service)")
+    connection_group.add_argument(
+        "--url", help="Database URL (oracle://user:pass@host:port/service)"
+    )
     connection_group.add_argument("--host", default="localhost", help="Database host")
-    connection_group.add_argument("--port", type=int, default=1521, help="Database port")
+    connection_group.add_argument(
+        "--port", type=int, default=1521, help="Database port"
+    )
     connection_group.add_argument("--sid", help="Database SID")
     connection_group.add_argument("--service-name", help="Database service name")
-    connection_group.add_argument("--username", default="user", help="Database username")
-    connection_group.add_argument("--password", default="password", help="Database password")
+    connection_group.add_argument(
+        "--username", default="user", help="Database username"
+    )
+    connection_group.add_argument(
+        "--password", default="password", help="Database password"
+    )
     connection_group.add_argument("--schema", help="Schema name (optional)")
 
     # Subcommands

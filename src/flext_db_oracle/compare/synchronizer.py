@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 class DataSynchronizer:
     """Synchronizes data between Oracle database tables."""
 
-    def __init__(self, source_conn: OracleConnection, target_conn: OracleConnection) -> None:
+    def __init__(
+        self, source_conn: OracleConnection, target_conn: OracleConnection
+    ) -> None:
         """Initialize data synchronizer.
 
         Args:
@@ -24,7 +26,9 @@ class DataSynchronizer:
         self.source_conn = source_conn
         self.target_conn = target_conn
 
-    def synchronize_table(self, table_name: str, schema_name: str | None = None) -> dict[str, Any]:
+    def synchronize_table(
+        self, table_name: str, schema_name: str | None = None
+    ) -> dict[str, Any]:
         """Synchronize data for a table.
 
         Args:

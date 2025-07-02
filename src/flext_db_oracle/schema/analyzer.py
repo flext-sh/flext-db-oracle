@@ -119,7 +119,9 @@ class SchemaAnalyzer:
 
         return tables
 
-    def get_table_columns(self, schema_name: str, table_name: str) -> list[ColumnMetadata]:
+    def get_table_columns(
+        self, schema_name: str, table_name: str
+    ) -> list[ColumnMetadata]:
         """Get column metadata for a table.
 
         Args:
@@ -149,10 +151,9 @@ class SchemaAnalyzer:
         """
 
         columns = []
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         # Get primary key columns
         pk_columns = set(self._get_primary_key_columns(schema_name, table_name))
@@ -182,7 +183,9 @@ class SchemaAnalyzer:
 
         return columns
 
-    def get_table_constraints(self, schema_name: str, table_name: str) -> list[ConstraintMetadata]:
+    def get_table_constraints(
+        self, schema_name: str, table_name: str
+    ) -> list[ConstraintMetadata]:
         """Get constraint metadata for a table.
 
         Args:
@@ -208,10 +211,9 @@ class SchemaAnalyzer:
         """
 
         constraints = []
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         for row in rows:
             constraint_name = row[0]
@@ -246,7 +248,9 @@ class SchemaAnalyzer:
 
         return constraints
 
-    def get_table_indexes(self, schema_name: str, table_name: str) -> list[IndexMetadata]:
+    def get_table_indexes(
+        self, schema_name: str, table_name: str
+    ) -> list[IndexMetadata]:
         """Get index metadata for a table.
 
         Args:
@@ -270,10 +274,9 @@ class SchemaAnalyzer:
         """
 
         indexes = []
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         for row in rows:
             index_name = row[0]
@@ -410,15 +413,16 @@ class SchemaAnalyzer:
                 AND table_name = UPPER(:table_name)
             """
 
-            result = self.connection.fetch_one(sql, {
-                "schema_name": schema_name,
-                "table_name": table_name
-            })
+            result = self.connection.fetch_one(
+                sql, {"schema_name": schema_name, "table_name": table_name}
+            )
 
             return result[0] if result and result[0] is not None else None
 
         except Exception as e:
-            logger.warning("Could not get row count for %s.%s: %s", schema_name, table_name, e)
+            logger.warning(
+                "Could not get row count for %s.%s: %s", schema_name, table_name, e
+            )
             return None
 
     def get_table_comments(self, schema_name: str, table_name: str) -> str | None:
@@ -430,10 +434,9 @@ class SchemaAnalyzer:
             AND table_name = UPPER(:table_name)
         """
 
-        result = self.connection.fetch_one(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        result = self.connection.fetch_one(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         return result[0] if result and result[0] else None
 
@@ -455,14 +458,15 @@ class SchemaAnalyzer:
         ORDER BY cc.position
         """
 
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         return [row[0] for row in rows]
 
-    def _get_foreign_key_info(self, schema_name: str, table_name: str) -> dict[str, dict[str, str]]:
+    def _get_foreign_key_info(
+        self, schema_name: str, table_name: str
+    ) -> dict[str, dict[str, str]]:
         """Get foreign key information for a table."""
         sql = """
         SELECT
@@ -483,20 +487,18 @@ class SchemaAnalyzer:
         """
 
         fk_info = {}
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "table_name": table_name}
+        )
 
         for row in rows:
-            fk_info[row[0]] = {
-                "table": row[1],
-                "column": row[2]
-            }
+            fk_info[row[0]] = {"table": row[1], "column": row[2]}
 
         return fk_info
 
-    def _get_constraint_columns(self, schema_name: str, constraint_name: str) -> list[str]:
+    def _get_constraint_columns(
+        self, schema_name: str, constraint_name: str
+    ) -> list[str]:
         """Get column names for a constraint."""
         sql = """
         SELECT column_name
@@ -506,14 +508,15 @@ class SchemaAnalyzer:
         ORDER BY position
         """
 
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "constraint_name": constraint_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "constraint_name": constraint_name}
+        )
 
         return [row[0] for row in rows]
 
-    def _get_referenced_info(self, ref_owner: str, ref_constraint_name: str) -> tuple[str | None, list[str] | None]:
+    def _get_referenced_info(
+        self, ref_owner: str, ref_constraint_name: str
+    ) -> tuple[str | None, list[str] | None]:
         """Get referenced table and columns for a foreign key constraint."""
         sql = """
         SELECT c.table_name
@@ -522,10 +525,9 @@ class SchemaAnalyzer:
             AND c.constraint_name = UPPER(:ref_constraint_name)
         """
 
-        result = self.connection.fetch_one(sql, {
-            "ref_owner": ref_owner,
-            "ref_constraint_name": ref_constraint_name
-        })
+        result = self.connection.fetch_one(
+            sql, {"ref_owner": ref_owner, "ref_constraint_name": ref_constraint_name}
+        )
 
         if not result:
             return None, None
@@ -547,14 +549,15 @@ class SchemaAnalyzer:
         ORDER BY column_position
         """
 
-        rows = self.connection.fetch_all(sql, {
-            "schema_name": schema_name,
-            "index_name": index_name
-        })
+        rows = self.connection.fetch_all(
+            sql, {"schema_name": schema_name, "index_name": index_name}
+        )
 
         return [row[0] for row in rows]
 
-    def _is_primary_key_index(self, schema_name: str, table_name: str, index_name: str) -> bool:
+    def _is_primary_key_index(
+        self, schema_name: str, table_name: str, index_name: str
+    ) -> bool:
         """Check if an index is created for a primary key constraint."""
         sql = """
         SELECT COUNT(*)
@@ -565,11 +568,14 @@ class SchemaAnalyzer:
             AND c.index_name = UPPER(:index_name)
         """
 
-        result = self.connection.fetch_one(sql, {
-            "schema_name": schema_name,
-            "table_name": table_name,
-            "index_name": index_name
-        })
+        result = self.connection.fetch_one(
+            sql,
+            {
+                "schema_name": schema_name,
+                "table_name": table_name,
+                "index_name": index_name,
+            },
+        )
 
         return bool(result and result[0] > 0)
 

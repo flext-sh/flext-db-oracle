@@ -21,7 +21,9 @@ class OracleDBCoreError(Exception):
 class ConnectionError(OracleDBCoreError):
     """Exception raised for database connection errors."""
 
-    def __init__(self, message: str, host: str | None = None, port: int | None = None) -> None:
+    def __init__(
+        self, message: str, host: str | None = None, port: int | None = None
+    ) -> None:
         """Initialize connection error.
 
         Args:
@@ -37,7 +39,12 @@ class ConnectionError(OracleDBCoreError):
 class SchemaError(OracleDBCoreError):
     """Exception raised for schema-related errors."""
 
-    def __init__(self, message: str, schema_name: str | None = None, object_name: str | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        schema_name: str | None = None,
+        object_name: str | None = None,
+    ) -> None:
         """Initialize schema error.
 
         Args:
@@ -53,7 +60,9 @@ class SchemaError(OracleDBCoreError):
 class SQLError(OracleDBCoreError):
     """Exception raised for SQL execution errors."""
 
-    def __init__(self, message: str, sql: str | None = None, oracle_code: str | None = None) -> None:
+    def __init__(
+        self, message: str, sql: str | None = None, oracle_code: str | None = None
+    ) -> None:
         """Initialize SQL error.
 
         Args:
@@ -69,7 +78,9 @@ class SQLError(OracleDBCoreError):
 class ValidationError(OracleDBCoreError):
     """Exception raised for data validation errors."""
 
-    def __init__(self, message: str, field: str | None = None, value: str | None = None) -> None:
+    def __init__(
+        self, message: str, field: str | None = None, value: str | None = None
+    ) -> None:
         """Initialize validation error.
 
         Args:
@@ -84,9 +95,11 @@ class ValidationError(OracleDBCoreError):
 
 class ConfigurationError(OracleDBCoreError):
     """Exception raised for configuration errors."""
+
     pass
 
 
 class PoolError(OracleDBCoreError):
     """Exception raised for connection pool errors."""
+
     pass

@@ -60,17 +60,19 @@ class QueryOptimizer:
 
             plan_steps = []
             for row in plan_rows:
-                plan_steps.append({
-                    "id": row[0],
-                    "operation": row[1],
-                    "options": row[2],
-                    "object_name": row[3],
-                    "cost": row[4],
-                    "cardinality": row[5],
-                    "bytes": row[6],
-                    "cpu_cost": row[7],
-                    "io_cost": row[8],
-                })
+                plan_steps.append(
+                    {
+                        "id": row[0],
+                        "operation": row[1],
+                        "options": row[2],
+                        "object_name": row[3],
+                        "cost": row[4],
+                        "cardinality": row[5],
+                        "bytes": row[6],
+                        "cpu_cost": row[7],
+                        "io_cost": row[8],
+                    }
+                )
 
             # Calculate total cost
             total_cost = sum(step["cost"] for step in plan_steps if step["cost"])
@@ -106,53 +108,69 @@ class QueryOptimizer:
         sql_upper = sql.upper()
 
         # Check for missing WHERE clause in UPDATE/DELETE
-        if ("UPDATE " in sql_upper or "DELETE " in sql_upper) and "WHERE " not in sql_upper:
-            suggestions.append({
-                "type": "warning",
-                "severity": "high",
-                "message": "UPDATE/DELETE without WHERE clause affects all rows",
-                "recommendation": "Add WHERE clause to limit affected rows",
-            })
+        if (
+            "UPDATE " in sql_upper or "DELETE " in sql_upper
+        ) and "WHERE " not in sql_upper:
+            suggestions.append(
+                {
+                    "type": "warning",
+                    "severity": "high",
+                    "message": "UPDATE/DELETE without WHERE clause affects all rows",
+                    "recommendation": "Add WHERE clause to limit affected rows",
+                }
+            )
 
         # Check for SELECT * usage
         if "SELECT *" in sql_upper:
-            suggestions.append({
-                "type": "performance",
-                "severity": "medium",
-                "message": "SELECT * retrieves all columns",
-                "recommendation": "Specify only needed columns for better performance",
-            })
-
-        # Check for potential cartesian products
-        if ("FROM " in sql_upper and
-            "," in sql_upper and
-            "WHERE " not in sql_upper and
-            "JOIN " not in sql_upper):
-            suggestions.append({
-                "type": "performance",
-                "severity": "high",
-                "message": "Potential cartesian product detected",
-                "recommendation": "Add WHERE clause or use explicit JOINs",
-            })
-
-        # Check for functions in WHERE clause
-        if any(func in sql_upper for func in ["UPPER(", "LOWER(", "SUBSTR(", "TO_CHAR("]):
-            if "WHERE " in sql_upper:
-                suggestions.append({
+            suggestions.append(
+                {
                     "type": "performance",
                     "severity": "medium",
-                    "message": "Functions in WHERE clause may prevent index usage",
-                    "recommendation": "Consider function-based indexes or query rewrite",
-                })
+                    "message": "SELECT * retrieves all columns",
+                    "recommendation": "Specify only needed columns for better performance",
+                }
+            )
+
+        # Check for potential cartesian products
+        if (
+            "FROM " in sql_upper
+            and "," in sql_upper
+            and "WHERE " not in sql_upper
+            and "JOIN " not in sql_upper
+        ):
+            suggestions.append(
+                {
+                    "type": "performance",
+                    "severity": "high",
+                    "message": "Potential cartesian product detected",
+                    "recommendation": "Add WHERE clause or use explicit JOINs",
+                }
+            )
+
+        # Check for functions in WHERE clause
+        if any(
+            func in sql_upper for func in ["UPPER(", "LOWER(", "SUBSTR(", "TO_CHAR("]
+        ):
+            if "WHERE " in sql_upper:
+                suggestions.append(
+                    {
+                        "type": "performance",
+                        "severity": "medium",
+                        "message": "Functions in WHERE clause may prevent index usage",
+                        "recommendation": "Consider function-based indexes or query rewrite",
+                    }
+                )
 
         # Check for OR conditions
         if " OR " in sql_upper and "WHERE " in sql_upper:
-            suggestions.append({
-                "type": "performance",
-                "severity": "medium",
-                "message": "OR conditions may prevent efficient index usage",
-                "recommendation": "Consider rewriting with UNION or separate queries",
-            })
+            suggestions.append(
+                {
+                    "type": "performance",
+                    "severity": "medium",
+                    "message": "OR conditions may prevent efficient index usage",
+                    "recommendation": "Consider rewriting with UNION or separate queries",
+                }
+            )
 
         return {
             "status": "completed",
@@ -187,10 +205,9 @@ class QueryOptimizer:
                 AND table_name = UPPER(:table_name)
             """
 
-            result = self.connection.fetch_one(sql, {
-                "schema_name": schema_name,
-                "table_name": table_name
-            })
+            result = self.connection.fetch_one(
+                sql, {"schema_name": schema_name, "table_name": table_name}
+            )
 
             if result:
                 return {
@@ -252,19 +269,20 @@ class QueryOptimizer:
                 )
             """
 
-            fk_results = self.connection.fetch_all(fk_sql, {
-                "schema_name": schema_name,
-                "table_name": table_name
-            })
+            fk_results = self.connection.fetch_all(
+                fk_sql, {"schema_name": schema_name, "table_name": table_name}
+            )
 
             for row in fk_results:
-                recommendations.append({
-                    "type": "foreign_key",
-                    "column": row[0],
-                    "priority": "high",
-                    "reason": "Foreign key column without index",
-                    "sql": f"CREATE INDEX idx_{table_name.lower()}_{row[0].lower()} ON {schema_name}.{table_name} ({row[0]})",
-                })
+                recommendations.append(
+                    {
+                        "type": "foreign_key",
+                        "column": row[0],
+                        "priority": "high",
+                        "reason": "Foreign key column without index",
+                        "sql": f"CREATE INDEX idx_{table_name.lower()}_{row[0].lower()} ON {schema_name}.{table_name} ({row[0]})",
+                    }
+                )
 
             return {
                 "status": "completed",

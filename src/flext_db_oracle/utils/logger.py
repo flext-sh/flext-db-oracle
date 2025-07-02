@@ -48,5 +48,5 @@ def configure_logging(level: str = "INFO", format_string: str | None = None) -> 
     logging.basicConfig(
         level=numeric_level,
         format=format_string,
-        handlers=[logging.StreamHandler(sys.stdout)]
+        handlers=[logging.StreamHandler(sys.stdout)],
     )

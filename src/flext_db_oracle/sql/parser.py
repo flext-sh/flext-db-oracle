@@ -100,7 +100,9 @@ class SQLParser:
             return []
 
         # Find the SELECT clause
-        select_match = re.search(r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL)
+        select_match = re.search(
+            r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL
+        )
         if not select_match:
             return []
 
@@ -158,7 +160,10 @@ class SQLParser:
             "has_where": "WHERE" in sql.upper(),
             "has_group_by": "GROUP BY" in sql.upper(),
             "has_order_by": "ORDER BY" in sql.upper(),
-            "has_join": any(join in sql.upper() for join in ["JOIN", "INNER JOIN", "LEFT JOIN", "RIGHT JOIN"]),
+            "has_join": any(
+                join in sql.upper()
+                for join in ["JOIN", "INNER JOIN", "LEFT JOIN", "RIGHT JOIN"]
+            ),
         }
 
     def _parse_insert_statement(self, sql: str) -> dict[str, Any]:

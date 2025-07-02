@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 try:
     import oracledb
+
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
@@ -59,7 +60,7 @@ class ConnectionPool:
                 min=self.config.pool_min,
                 max=self.config.pool_max,
                 increment=self.config.pool_increment,
-                **params
+                **params,
             )
 
             self._is_initialized = True
@@ -67,7 +68,7 @@ class ConnectionPool:
                 "Initialized Oracle connection pool: min=%d, max=%d, increment=%d",
                 self.config.pool_min,
                 self.config.pool_max,
-                self.config.pool_increment
+                self.config.pool_increment,
             )
 
         except Exception as e:
@@ -182,7 +183,9 @@ class ConnectionPool:
             finally:
                 cursor.close()
 
-    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+    def fetch_all(
+        self, sql: str, parameters: dict[str, Any] | None = None
+    ) -> list[Any]:
         """Fetch all rows using pool connection.
 
         Args:

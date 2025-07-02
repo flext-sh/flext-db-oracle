@@ -65,12 +65,14 @@ class HealthChecker:
 
             tablespaces = []
             for row in results:
-                tablespaces.append({
-                    "name": row[0],
-                    "status": row[1],
-                    "contents": row[2],
-                    "logging": row[3],
-                })
+                tablespaces.append(
+                    {
+                        "name": row[0],
+                        "status": row[1],
+                        "contents": row[2],
+                        "logging": row[3],
+                    }
+                )
 
             return {
                 "status": "completed",
@@ -108,13 +110,15 @@ class HealthChecker:
 
             sessions = []
             for row in results:
-                sessions.append({
-                    "username": row[0],
-                    "status": row[1],
-                    "machine": row[2],
-                    "program": row[3],
-                    "logon_time": str(row[4]) if row[4] else None,
-                })
+                sessions.append(
+                    {
+                        "username": row[0],
+                        "status": row[1],
+                        "machine": row[2],
+                        "program": row[3],
+                        "logon_time": str(row[4]) if row[4] else None,
+                    }
+                )
 
             return {
                 "status": "completed",

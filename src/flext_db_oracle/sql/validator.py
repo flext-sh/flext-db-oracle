@@ -74,58 +74,71 @@ class SQLValidator:
         sql_upper = sql.upper().strip()
 
         # Check for dangerous operations
-        if ("DROP " in sql_upper or "TRUNCATE " in sql_upper):
-            violations.append({
-                "severity": "critical",
-                "rule": "dangerous_operation",
-                "message": "DROP or TRUNCATE operations detected",
-                "recommendation": "Use with extreme caution",
-            })
+        if "DROP " in sql_upper or "TRUNCATE " in sql_upper:
+            violations.append(
+                {
+                    "severity": "critical",
+                    "rule": "dangerous_operation",
+                    "message": "DROP or TRUNCATE operations detected",
+                    "recommendation": "Use with extreme caution",
+                }
+            )
 
         # Check for UPDATE/DELETE without WHERE
-        if ("UPDATE " in sql_upper and "WHERE " not in sql_upper):
-            violations.append({
-                "severity": "high",
-                "rule": "update_without_where",
-                "message": "UPDATE statement without WHERE clause",
-                "recommendation": "Add WHERE clause to limit affected rows",
-            })
+        if "UPDATE " in sql_upper and "WHERE " not in sql_upper:
+            violations.append(
+                {
+                    "severity": "high",
+                    "rule": "update_without_where",
+                    "message": "UPDATE statement without WHERE clause",
+                    "recommendation": "Add WHERE clause to limit affected rows",
+                }
+            )
 
-        if ("DELETE " in sql_upper and "WHERE " not in sql_upper):
-            violations.append({
-                "severity": "high",
-                "rule": "delete_without_where",
-                "message": "DELETE statement without WHERE clause",
-                "recommendation": "Add WHERE clause to limit affected rows",
-            })
+        if "DELETE " in sql_upper and "WHERE " not in sql_upper:
+            violations.append(
+                {
+                    "severity": "high",
+                    "rule": "delete_without_where",
+                    "message": "DELETE statement without WHERE clause",
+                    "recommendation": "Add WHERE clause to limit affected rows",
+                }
+            )
 
         # Check for SELECT *
         if "SELECT *" in sql_upper:
-            warnings.append({
-                "severity": "medium",
-                "rule": "select_star",
-                "message": "SELECT * used instead of specific columns",
-                "recommendation": "Specify only needed columns for better performance",
-            })
+            warnings.append(
+                {
+                    "severity": "medium",
+                    "rule": "select_star",
+                    "message": "SELECT * used instead of specific columns",
+                    "recommendation": "Specify only needed columns for better performance",
+                }
+            )
 
         # Check for missing table aliases in joins
-        if ("JOIN " in sql_upper and
-            not re.search(r'\w+\s+[a-zA-Z]\w*\s+ON', sql, re.IGNORECASE)):
-            warnings.append({
-                "severity": "low",
-                "rule": "missing_table_aliases",
-                "message": "JOIN without table aliases",
-                "recommendation": "Use table aliases for better readability",
-            })
+        if "JOIN " in sql_upper and not re.search(
+            r"\w+\s+[a-zA-Z]\w*\s+ON", sql, re.IGNORECASE
+        ):
+            warnings.append(
+                {
+                    "severity": "low",
+                    "rule": "missing_table_aliases",
+                    "message": "JOIN without table aliases",
+                    "recommendation": "Use table aliases for better readability",
+                }
+            )
 
         # Check for hardcoded values
         if re.search(r"=\s*'[^']*'", sql):
-            warnings.append({
-                "severity": "low",
-                "rule": "hardcoded_values",
-                "message": "Hardcoded string values detected",
-                "recommendation": "Consider using bind variables for better performance",
-            })
+            warnings.append(
+                {
+                    "severity": "low",
+                    "rule": "hardcoded_values",
+                    "message": "Hardcoded string values detected",
+                    "recommendation": "Consider using bind variables for better performance",
+                }
+            )
 
         # Check for functions in WHERE clause
         function_patterns = [
@@ -138,31 +151,37 @@ class SQLValidator:
 
         for pattern in function_patterns:
             if re.search(pattern, sql_upper):
-                warnings.append({
-                    "severity": "medium",
-                    "rule": "function_in_where",
-                    "message": "Function used in WHERE clause",
-                    "recommendation": "Consider function-based indexes or query rewrite",
-                })
+                warnings.append(
+                    {
+                        "severity": "medium",
+                        "rule": "function_in_where",
+                        "message": "Function used in WHERE clause",
+                        "recommendation": "Consider function-based indexes or query rewrite",
+                    }
+                )
                 break
 
         # Check for OR conditions in WHERE
         if " OR " in sql_upper and "WHERE " in sql_upper:
-            warnings.append({
-                "severity": "medium",
-                "rule": "or_conditions",
-                "message": "OR conditions in WHERE clause",
-                "recommendation": "Consider rewriting with UNION for better performance",
-            })
+            warnings.append(
+                {
+                    "severity": "medium",
+                    "rule": "or_conditions",
+                    "message": "OR conditions in WHERE clause",
+                    "recommendation": "Consider rewriting with UNION for better performance",
+                }
+            )
 
         # Check for implicit data type conversions
         if re.search(r"=\s*\d+\s*", sql) and "VARCHAR" in sql_upper:
-            warnings.append({
-                "severity": "low",
-                "rule": "implicit_conversion",
-                "message": "Potential implicit data type conversion",
-                "recommendation": "Ensure data types match to avoid performance issues",
-            })
+            warnings.append(
+                {
+                    "severity": "low",
+                    "rule": "implicit_conversion",
+                    "message": "Potential implicit data type conversion",
+                    "recommendation": "Ensure data types match to avoid performance issues",
+                }
+            )
 
         return {
             "status": "completed",
@@ -174,7 +193,9 @@ class SQLValidator:
             "overall_score": self._calculate_score(violations, warnings),
         }
 
-    def validate_table_access(self, sql: str, allowed_schemas: list[str] | None = None) -> dict[str, Any]:
+    def validate_table_access(
+        self, sql: str, allowed_schemas: list[str] | None = None
+    ) -> dict[str, Any]:
         """Validate table access permissions.
 
         Args:
@@ -209,11 +230,13 @@ class SQLValidator:
                 schema_name = table_ref.split(".")[0]
 
                 if schema_name.upper() not in [s.upper() for s in allowed_schemas]:
-                    violations.append({
-                        "table": table_ref,
-                        "schema": schema_name,
-                        "message": f"Access to schema '{schema_name}' not allowed",
-                    })
+                    violations.append(
+                        {
+                            "table": table_ref,
+                            "schema": schema_name,
+                            "message": f"Access to schema '{schema_name}' not allowed",
+                        }
+                    )
 
         return {
             "status": "completed",
@@ -223,7 +246,9 @@ class SQLValidator:
             "access_allowed": len(violations) == 0,
         }
 
-    def _calculate_score(self, violations: list[dict[str, Any]], warnings: list[dict[str, Any]]) -> int:
+    def _calculate_score(
+        self, violations: list[dict[str, Any]], warnings: list[dict[str, Any]]
+    ) -> int:
         """Calculate overall quality score (0-100)."""
         score = 100
 

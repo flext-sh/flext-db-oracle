@@ -58,11 +58,13 @@ class PerformanceMonitor:
 
             components = []
             for row in results:
-                components.append({
-                    "name": row[0],
-                    "value": row[1],
-                    "unit": row[2],
-                })
+                components.append(
+                    {
+                        "name": row[0],
+                        "value": row[1],
+                        "unit": row[2],
+                    }
+                )
 
             return {
                 "status": "success",
@@ -93,13 +95,15 @@ class PerformanceMonitor:
 
             events = []
             for row in results:
-                events.append({
-                    "event": row[0],
-                    "total_waits": row[1],
-                    "total_timeouts": row[2],
-                    "time_waited": row[3],
-                    "average_wait": row[4],
-                })
+                events.append(
+                    {
+                        "event": row[0],
+                        "total_waits": row[1],
+                        "total_timeouts": row[2],
+                        "time_waited": row[3],
+                        "average_wait": row[4],
+                    }
+                )
 
             return {
                 "status": "success",
