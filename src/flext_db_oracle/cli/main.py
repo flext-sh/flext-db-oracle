@@ -6,9 +6,9 @@ import argparse
 import sys
 from typing import Any
 
-from ..connection.config import ConnectionConfig
-from ..connection.connection import OracleConnection
-from ..utils.logger import configure_logging, get_logger
+from flext_db_oracle.connection.config import ConnectionConfig
+from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.utils.logger import configure_logging, get_logger
 
 logger = get_logger(__name__)
 
@@ -21,6 +21,7 @@ def test_connection(args: Any) -> int:
 
     Returns:
         Exit code (0 for success, 1 for failure).
+
     """
     try:
         if args.url:
@@ -40,12 +41,11 @@ def test_connection(args: Any) -> int:
             if result:
                 logger.info("✅ Connection successful!")
                 return 0
-            else:
-                logger.error("❌ Connection test failed: No result from test query")
-                return 1
+            logger.error("❌ Connection test failed: No result from test query")
+            return 1
 
     except Exception as e:
-        logger.error("❌ Connection failed: %s", e)
+        logger.exception("❌ Connection failed: %s", e)
         return 1
 
 
@@ -57,6 +57,7 @@ def list_tables(args: Any) -> int:
 
     Returns:
         Exit code (0 for success, 1 for failure).
+
     """
     try:
         if args.url:
@@ -84,7 +85,7 @@ def list_tables(args: Any) -> int:
             return 0
 
     except Exception as e:
-        logger.error("❌ Failed to list tables: %s", e)
+        logger.exception("❌ Failed to list tables: %s", e)
         return 1
 
 
@@ -96,6 +97,7 @@ def describe_table(args: Any) -> int:
 
     Returns:
         Exit code (0 for success, 1 for failure).
+
     """
     try:
         if args.url:
@@ -138,7 +140,7 @@ def describe_table(args: Any) -> int:
             return 0
 
     except Exception as e:
-        logger.error("❌ Failed to describe table: %s", e)
+        logger.exception("❌ Failed to describe table: %s", e)
         return 1
 
 
@@ -147,6 +149,7 @@ def main() -> int:
 
     Returns:
         Exit code.
+
     """
     parser = argparse.ArgumentParser(
         description="Oracle Database Core Utilities",
@@ -205,9 +208,8 @@ def main() -> int:
     # Execute command
     if hasattr(args, "func"):
         return args.func(args)
-    else:
-        parser.print_help()
-        return 1
+    parser.print_help()
+    return 1
 
 
 if __name__ == "__main__":

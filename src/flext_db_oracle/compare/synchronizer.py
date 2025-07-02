@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class DataSynchronizer:
         Args:
             source_conn: Source database connection.
             target_conn: Target database connection.
+
         """
         self.source_conn = source_conn
         self.target_conn = target_conn
@@ -37,6 +38,7 @@ class DataSynchronizer:
 
         Returns:
             Synchronization results.
+
         """
         # Placeholder implementation
         return {

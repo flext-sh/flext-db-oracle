@@ -12,10 +12,10 @@ from .exceptions import (
 from .logger import get_logger
 
 __all__ = [
-    "OracleDBCoreError",
     "ConnectionError",
-    "SchemaError",
+    "OracleDBCoreError",
     "SQLError",
+    "SchemaError",
     "ValidationError",
     "get_logger",
 ]

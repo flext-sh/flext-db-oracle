@@ -14,7 +14,6 @@ class SQLParser:
 
     def __init__(self) -> None:
         """Initialize SQL parser."""
-        pass
 
     def parse_statement(self, sql: str) -> dict[str, Any]:
         """Parse a SQL statement and extract metadata.
@@ -24,6 +23,7 @@ class SQLParser:
 
         Returns:
             Parsed SQL metadata.
+
         """
         sql = sql.strip()
 
@@ -44,7 +44,7 @@ class SQLParser:
             components = self._parse_update_statement(sql)
         elif statement_type == "DELETE":
             components = self._parse_delete_statement(sql)
-        elif statement_type in ("CREATE", "ALTER", "DROP"):
+        elif statement_type in {"CREATE", "ALTER", "DROP"}:
             components = self._parse_ddl_statement(sql, statement_type)
 
         return {
@@ -62,6 +62,7 @@ class SQLParser:
 
         Returns:
             List of table names found in the statement.
+
         """
         # Simple regex-based extraction (would need more sophisticated parsing for production)
         table_patterns = [
@@ -94,6 +95,7 @@ class SQLParser:
 
         Returns:
             List of column names.
+
         """
         # Simplified extraction for demonstration
         if not sql.upper().strip().startswith("SELECT"):
@@ -133,24 +135,23 @@ class SQLParser:
 
         if sql_upper.startswith("SELECT"):
             return "SELECT"
-        elif sql_upper.startswith("INSERT"):
+        if sql_upper.startswith("INSERT"):
             return "INSERT"
-        elif sql_upper.startswith("UPDATE"):
+        if sql_upper.startswith("UPDATE"):
             return "UPDATE"
-        elif sql_upper.startswith("DELETE"):
+        if sql_upper.startswith("DELETE"):
             return "DELETE"
-        elif sql_upper.startswith("CREATE"):
+        if sql_upper.startswith("CREATE"):
             return "CREATE"
-        elif sql_upper.startswith("ALTER"):
+        if sql_upper.startswith("ALTER"):
             return "ALTER"
-        elif sql_upper.startswith("DROP"):
+        if sql_upper.startswith("DROP"):
             return "DROP"
-        elif sql_upper.startswith("TRUNCATE"):
+        if sql_upper.startswith("TRUNCATE"):
             return "TRUNCATE"
-        elif sql_upper.startswith("MERGE"):
+        if sql_upper.startswith("MERGE"):
             return "MERGE"
-        else:
-            return "UNKNOWN"
+        return "UNKNOWN"
 
     def _parse_select_statement(self, sql: str) -> dict[str, Any]:
         """Parse SELECT statement components."""

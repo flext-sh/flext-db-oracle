@@ -12,6 +12,7 @@ class OracleDBCoreError(Exception):
         Args:
             message: Error message.
             error_code: Optional error code.
+
         """
         super().__init__(message)
         self.message = message
@@ -30,6 +31,7 @@ class ConnectionError(OracleDBCoreError):
             message: Error message.
             host: Database host.
             port: Database port.
+
         """
         super().__init__(message, "CONNECTION_ERROR")
         self.host = host
@@ -51,6 +53,7 @@ class SchemaError(OracleDBCoreError):
             message: Error message.
             schema_name: Schema name.
             object_name: Database object name.
+
         """
         super().__init__(message, "SCHEMA_ERROR")
         self.schema_name = schema_name
@@ -69,6 +72,7 @@ class SQLError(OracleDBCoreError):
             message: Error message.
             sql: SQL statement that caused the error.
             oracle_code: Oracle error code.
+
         """
         super().__init__(message, oracle_code or "SQL_ERROR")
         self.sql = sql
@@ -87,6 +91,7 @@ class ValidationError(OracleDBCoreError):
             message: Error message.
             field: Field name that failed validation.
             value: Value that failed validation.
+
         """
         super().__init__(message, "VALIDATION_ERROR")
         self.field = field
@@ -96,10 +101,6 @@ class ValidationError(OracleDBCoreError):
 class ConfigurationError(OracleDBCoreError):
     """Exception raised for configuration errors."""
 
-    pass
-
 
 class PoolError(OracleDBCoreError):
     """Exception raised for connection pool errors."""
-
-    pass

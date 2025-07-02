@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 try:
     import oracledb
@@ -35,6 +35,7 @@ class OracleConnection:
 
         Args:
             config: Database connection configuration.
+
         """
         self.config = config
         self._connection = None
@@ -46,10 +47,12 @@ class OracleConnection:
         Raises:
             RuntimeError: If oracledb library is not available.
             Exception: If connection fails.
+
         """
         if not ORACLEDB_AVAILABLE:
+            msg = "oracledb library not available. Install with: pip install oracledb"
             raise RuntimeError(
-                "oracledb library not available. Install with: pip install oracledb"
+                msg
             )
 
         try:
@@ -62,7 +65,7 @@ class OracleConnection:
                 self.config.port,
             )
         except Exception as e:
-            logger.error("Failed to connect to Oracle database: %s", e)
+            logger.exception("Failed to connect to Oracle database: %s", e)
             raise
 
     def disconnect(self) -> None:
@@ -73,7 +76,7 @@ class OracleConnection:
                 self._is_connected = False
                 logger.info("Disconnected from Oracle database")
             except Exception as e:
-                logger.error("Error disconnecting from database: %s", e)
+                logger.exception("Error disconnecting from database: %s", e)
 
         self._connection = None
 
@@ -83,6 +86,7 @@ class OracleConnection:
 
         Returns:
             True if connected, False otherwise.
+
         """
         return self._is_connected and self._connection is not None
 
@@ -98,9 +102,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         cursor = self._connection.cursor()
         try:
@@ -112,9 +118,8 @@ class OracleConnection:
             # For SELECT statements, return fetchall()
             if sql.strip().upper().startswith("SELECT"):
                 return cursor.fetchall()
-            else:
-                # For DML statements, return row count
-                return cursor.rowcount
+            # For DML statements, return row count
+            return cursor.rowcount
         finally:
             cursor.close()
 
@@ -130,9 +135,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         cursor = self._connection.cursor()
         try:
@@ -153,9 +160,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         cursor = self._connection.cursor()
         try:
@@ -181,9 +190,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         cursor = self._connection.cursor()
         try:
@@ -200,9 +211,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         self._connection.commit()
 
@@ -211,9 +224,11 @@ class OracleConnection:
 
         Raises:
             RuntimeError: If not connected to database.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         self._connection.rollback()
 
@@ -225,9 +240,11 @@ class OracleConnection:
 
         Yields:
             The connection instance for use within the transaction.
+
         """
         if not self.is_connected:
-            raise RuntimeError("Not connected to database")
+            msg = "Not connected to database"
+            raise RuntimeError(msg)
 
         try:
             yield self
@@ -244,6 +261,7 @@ class OracleConnection:
 
         Returns:
             List of table names.
+
         """
         sql = "SELECT table_name FROM all_tables"
         if schema:
@@ -266,6 +284,7 @@ class OracleConnection:
 
         Returns:
             List of dictionaries containing column information.
+
         """
         sql = """
         SELECT column_name, data_type, data_length, data_precision,
@@ -284,10 +303,7 @@ class OracleConnection:
 
         results = self.fetch_all(sql, parameters)
 
-        columns = []
-        for row in results:
-            columns.append(
-                {
+        return [{
                     "name": row[0],
                     "type": row[1],
                     "length": row[2],
@@ -295,12 +311,9 @@ class OracleConnection:
                     "scale": row[4],
                     "nullable": row[5] == "Y",
                     "default": row[6],
-                }
-            )
+                } for row in results]
 
-        return columns
-
-    def __enter__(self) -> OracleConnection:
+    def __enter__(self) -> Self:
         """Context manager entry."""
         if not self.is_connected:
             self.connect()

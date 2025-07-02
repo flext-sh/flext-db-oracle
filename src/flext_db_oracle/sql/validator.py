@@ -7,7 +7,7 @@ import re
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ class SQLValidator:
 
         Args:
             connection: Optional database connection for syntax validation.
+
         """
         self.connection = connection
 
@@ -31,6 +32,7 @@ class SQLValidator:
 
         Returns:
             Syntax validation results.
+
         """
         if not self.connection:
             return {
@@ -67,6 +69,7 @@ class SQLValidator:
 
         Returns:
             Best practices validation results.
+
         """
         violations = []
         warnings = []
@@ -204,6 +207,7 @@ class SQLValidator:
 
         Returns:
             Table access validation results.
+
         """
         if not allowed_schemas:
             return {

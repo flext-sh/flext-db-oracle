@@ -24,6 +24,7 @@ class DDLGenerator:
 
         Args:
             include_comments: Whether to include comments in generated DDL.
+
         """
         self.include_comments = include_comments
 
@@ -35,9 +36,11 @@ class DDLGenerator:
 
         Returns:
             Complete CREATE TABLE DDL statement.
+
         """
         if not table.columns:
-            raise ValueError(f"Table {table.name} has no columns defined")
+            msg = f"Table {table.name} has no columns defined"
+            raise ValueError(msg)
 
         lines = []
 
@@ -50,8 +53,7 @@ class DDLGenerator:
             col_def = self._generate_column_definition(col)
             column_ddl.append(f"    {col_def}")
 
-        lines.append(",\n".join(column_ddl))
-        lines.append(")")
+        lines.extend((",\n".join(column_ddl), ")"))
 
         # Tablespace
         if table.tablespace:
@@ -81,6 +83,7 @@ class DDLGenerator:
 
         Returns:
             List of ALTER TABLE statements for constraints.
+
         """
         if not table.constraints:
             return []
@@ -104,6 +107,7 @@ class DDLGenerator:
 
         Returns:
             List of CREATE INDEX statements.
+
         """
         if not table.indexes:
             return []
@@ -129,6 +133,7 @@ class DDLGenerator:
 
         Returns:
             Complete DDL script for the table.
+
         """
         ddl_parts = []
 
@@ -161,6 +166,7 @@ class DDLGenerator:
 
         Returns:
             DROP TABLE DDL statement.
+
         """
         ddl = f"DROP TABLE {schema_name}.{table_name}"
         if cascade:
@@ -179,6 +185,7 @@ class DDLGenerator:
 
         Returns:
             Complete schema DDL script.
+
         """
         ddl_parts = []
 
@@ -186,12 +193,9 @@ class DDLGenerator:
             # Drop tables in reverse dependency order
             sorted_tables = self._sort_tables_by_dependencies(tables, reverse=True)
             ddl_parts.append("-- Drop existing tables")
-            for table in sorted_tables:
-                ddl_parts.append(
-                    self.generate_drop_table_ddl(
+            ddl_parts.extend(self.generate_drop_table_ddl(
                         table.schema_name, table.name, cascade=True
-                    )
-                )
+                    ) for table in sorted_tables)
             ddl_parts.append("")
 
         # Create tables in dependency order
@@ -199,8 +203,7 @@ class DDLGenerator:
 
         ddl_parts.append("-- Create tables")
         for table in sorted_tables:
-            ddl_parts.append(self.generate_complete_table_ddl(table))
-            ddl_parts.append("")
+            ddl_parts.extend((self.generate_complete_table_ddl(table), ""))
 
         return "\n".join(ddl_parts)
 
@@ -212,13 +215,13 @@ class DDLGenerator:
         data_type = col.data_type.upper()
 
         # Add length/precision for applicable types
-        if col.max_length and data_type in ("VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR"):
+        if col.max_length and data_type in {"VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR"}:
             data_type += f"({col.max_length})"
-        elif col.precision is not None and data_type in (
+        elif col.precision is not None and data_type in {
             "NUMBER",
             "DECIMAL",
             "NUMERIC",
-        ):
+        }:
             if col.scale is not None:
                 data_type += f"({col.precision},{col.scale})"
             else:
@@ -244,7 +247,7 @@ class DDLGenerator:
             columns = ", ".join(constraint.column_names)
             return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({columns});"
 
-        elif constraint.constraint_type == "FOREIGN_KEY":
+        if constraint.constraint_type == "FOREIGN_KEY":
             if not constraint.referenced_table or not constraint.referenced_columns:
                 logger.warning(
                     "Foreign key constraint %s missing reference information",
@@ -256,21 +259,20 @@ class DDLGenerator:
             ref_columns = ", ".join(constraint.referenced_columns)
             return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} FOREIGN KEY ({columns}) REFERENCES {constraint.referenced_table} ({ref_columns});"
 
-        elif constraint.constraint_type == "UNIQUE":
+        if constraint.constraint_type == "UNIQUE":
             columns = ", ".join(constraint.column_names)
             return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} UNIQUE ({columns});"
 
-        elif constraint.constraint_type == "CHECK":
+        if constraint.constraint_type == "CHECK":
             if not constraint.condition:
                 logger.warning("Check constraint %s missing condition", constraint.name)
                 return None
             return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.condition});"
 
-        else:
-            logger.warning(
-                "Unsupported constraint type: %s", constraint.constraint_type
-            )
-            return None
+        logger.warning(
+            "Unsupported constraint type: %s", constraint.constraint_type
+        )
+        return None
 
     def _generate_index_ddl(self, schema_name: str, index: IndexMetadata) -> str:
         """Generate DDL for a single index."""
@@ -316,10 +318,7 @@ class DDLGenerator:
 
         while remaining:
             # Find tables with no unresolved dependencies
-            ready = []
-            for name in remaining:
-                if not (dependencies[name] & remaining):
-                    ready.append(name)
+            ready = [name for name in remaining if not (dependencies[name] & remaining)]
 
             if not ready:
                 # Circular dependency - just add remaining tables

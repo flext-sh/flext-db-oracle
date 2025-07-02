@@ -14,6 +14,7 @@ def get_logger(name: str | None = None) -> logging.Logger:
 
     Returns:
         Configured logger instance.
+
     """
     if name is None:
         name = __name__
@@ -39,6 +40,7 @@ def configure_logging(level: str = "INFO", format_string: str | None = None) -> 
     Args:
         level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).
         format_string: Custom format string for log messages.
+
     """
     numeric_level = getattr(logging, level.upper(), logging.INFO)
 

@@ -58,46 +58,46 @@ from .utils.exceptions import (
 from .utils.logger import get_logger
 
 __all__ = [
-    # Version and metadata
-    "__version__",
+    "ColumnMetadata",
+    # Core connection
+    "ConnectionConfig",
+    "ConnectionError",
+    "ConnectionPool",
+    "ConstraintMetadata",
+    "DDLGenerator",
+    # Data operations
+    "DataComparator",
+    "DataDiffer",
+    "DataSynchronizer",
+    "DatabaseOptimizer",
+    # Maintenance
+    "HealthChecker",
+    "IndexMetadata",
+    "OracleConnection",
+    # Utilities
+    "OracleDBCoreError",
+    "PerformanceMonitor",
+    "QueryOptimizer",
+    "SQLError",
+    # SQL tools
+    "SQLParser",
+    "SQLValidator",
+    # Schema management
+    "SchemaAnalyzer",
+    "SchemaComparator",
+    "SchemaDiffer",
+    "SchemaError",
+    "SchemaMetadata",
+    "TableMetadata",
+    "ValidationError",
     "__author__",
     "__email__",
     "__license__",
-    # Core connection
-    "ConnectionConfig",
-    "OracleConnection",
-    "ConnectionPool",
-    # Schema management
-    "SchemaAnalyzer",
-    "DDLGenerator",
-    "ColumnMetadata",
-    "ConstraintMetadata",
-    "IndexMetadata",
-    "SchemaMetadata",
-    "TableMetadata",
-    # Data operations
-    "DataComparator",
-    "SchemaComparator",
-    "DataDiffer",
-    "SchemaDiffer",
-    "DataSynchronizer",
-    # SQL tools
-    "SQLParser",
-    "QueryOptimizer",
-    "SQLValidator",
-    # Maintenance
-    "HealthChecker",
-    "PerformanceMonitor",
-    "DatabaseOptimizer",
-    # Utilities
-    "OracleDBCoreError",
-    "ConnectionError",
-    "SchemaError",
-    "SQLError",
-    "ValidationError",
-    "get_logger",
+    # Version and metadata
+    "__version__",
     # CLI
     "cli_main",
+    "get_logger",
 ]
 
 

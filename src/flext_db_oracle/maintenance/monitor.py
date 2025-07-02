@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class PerformanceMonitor:
 
         Args:
             connection: Database connection.
+
         """
         self.connection = connection
 
@@ -27,6 +28,7 @@ class PerformanceMonitor:
 
         Returns:
             Performance metrics.
+
         """
         metrics = {}
 
@@ -56,15 +58,11 @@ class PerformanceMonitor:
 
             results = self.connection.fetch_all(sql)
 
-            components = []
-            for row in results:
-                components.append(
-                    {
+            components = [{
                         "name": row[0],
                         "value": row[1],
                         "unit": row[2],
-                    }
-                )
+                    } for row in results]
 
             return {
                 "status": "success",
@@ -72,7 +70,7 @@ class PerformanceMonitor:
             }
 
         except Exception as e:
-            logger.error("Failed to get SGA info: %s", e)
+            logger.exception("Failed to get SGA info: %s", e)
             return {"status": "failed", "error": str(e)}
 
     def _get_wait_events(self) -> dict[str, Any]:
@@ -93,17 +91,13 @@ class PerformanceMonitor:
 
             results = self.connection.fetch_all(sql)
 
-            events = []
-            for row in results:
-                events.append(
-                    {
+            events = [{
                         "event": row[0],
                         "total_waits": row[1],
                         "total_timeouts": row[2],
                         "time_waited": row[3],
                         "average_wait": row[4],
-                    }
-                )
+                    } for row in results]
 
             return {
                 "status": "success",
@@ -111,7 +105,7 @@ class PerformanceMonitor:
             }
 
         except Exception as e:
-            logger.error("Failed to get wait events: %s", e)
+            logger.exception("Failed to get wait events: %s", e)
             return {"status": "failed", "error": str(e)}
 
     def _get_session_stats(self) -> dict[str, Any]:
@@ -139,5 +133,5 @@ class PerformanceMonitor:
             return {"status": "no_data"}
 
         except Exception as e:
-            logger.error("Failed to get session stats: %s", e)
+            logger.exception("Failed to get session stats: %s", e)
             return {"status": "failed", "error": str(e)}

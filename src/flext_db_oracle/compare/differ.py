@@ -13,7 +13,6 @@ class DataDiffer:
 
     def __init__(self) -> None:
         """Initialize data differ."""
-        pass
 
     def analyze_differences(
         self, source_data: list[Any], target_data: list[Any]
@@ -26,6 +25,7 @@ class DataDiffer:
 
         Returns:
             Difference analysis results.
+
         """
         # Placeholder implementation
         return {
@@ -41,7 +41,6 @@ class SchemaDiffer:
 
     def __init__(self) -> None:
         """Initialize schema differ."""
-        pass
 
     def analyze_schema_differences(
         self, source_schema: dict[str, Any], target_schema: dict[str, Any]
@@ -54,6 +53,7 @@ class SchemaDiffer:
 
         Returns:
             Schema difference analysis.
+
         """
         # Placeholder implementation
         return {

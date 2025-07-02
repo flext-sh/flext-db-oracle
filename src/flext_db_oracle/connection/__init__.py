@@ -6,6 +6,6 @@ from .pool import ConnectionPool
 
 __all__ = [
     "ConnectionConfig",
-    "OracleConnection",
     "ConnectionPool",
+    "OracleConnection",
 ]

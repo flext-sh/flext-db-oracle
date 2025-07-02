@@ -39,33 +39,38 @@ class ConnectionConfig:
     def __post_init__(self) -> None:
         """Validate configuration after initialization."""
         if not self.sid and not self.service_name:
-            raise ValueError("Either sid or service_name must be provided")
+            msg = "Either sid or service_name must be provided"
+            raise ValueError(msg)
 
         if self.port < 1 or self.port > 65535:
-            raise ValueError("Port must be between 1 and 65535")
+            msg = "Port must be between 1 and 65535"
+            raise ValueError(msg)
 
         if self.pool_min < 1:
-            raise ValueError("pool_min must be at least 1")
+            msg = "pool_min must be at least 1"
+            raise ValueError(msg)
 
         if self.pool_max < self.pool_min:
-            raise ValueError("pool_max must be greater than or equal to pool_min")
+            msg = "pool_max must be greater than or equal to pool_min"
+            raise ValueError(msg)
 
     def to_dsn(self) -> str:
         """Generate Oracle DSN string from configuration.
 
         Returns:
             Oracle database DSN string for connection.
+
         """
         if self.sid:
             return f"{self.host}:{self.port}/{self.sid}"
-        else:
-            return f"{self.host}:{self.port}/{self.service_name}"
+        return f"{self.host}:{self.port}/{self.service_name}"
 
     def to_connect_params(self) -> dict[str, Any]:
         """Generate connection parameters dictionary.
 
         Returns:
             Dictionary of connection parameters for oracledb.connect().
+
         """
         params = {
             "host": self.host,
@@ -91,10 +96,12 @@ class ConnectionConfig:
 
         Returns:
             ConnectionConfig instance.
+
         """
         # Simple URL parsing - in production would use urllib.parse
         if not url.startswith("oracle://"):
-            raise ValueError("URL must start with oracle://")
+            msg = "URL must start with oracle://"
+            raise ValueError(msg)
 
         # Extract components (simplified)
         url = url[9:]  # Remove oracle://
@@ -126,7 +133,7 @@ class ConnectionConfig:
         return cls(
             host=host,
             port=port,
-            service_name=service if service else None,
+            service_name=service or None,
             username=username,
             password=password,
         )

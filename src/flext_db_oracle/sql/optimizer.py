@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class QueryOptimizer:
 
         Args:
             connection: Database connection for plan analysis.
+
         """
         self.connection = connection
 
@@ -30,6 +31,7 @@ class QueryOptimizer:
 
         Returns:
             Query execution plan analysis.
+
         """
         try:
             # Generate execution plan
@@ -58,10 +60,7 @@ class QueryOptimizer:
             # Clean up plan table
             self.connection.execute("DELETE FROM plan_table WHERE statement_id IS NULL")
 
-            plan_steps = []
-            for row in plan_rows:
-                plan_steps.append(
-                    {
+            plan_steps = [{
                         "id": row[0],
                         "operation": row[1],
                         "options": row[2],
@@ -71,8 +70,7 @@ class QueryOptimizer:
                         "bytes": row[6],
                         "cpu_cost": row[7],
                         "io_cost": row[8],
-                    }
-                )
+                    } for row in plan_rows]
 
             # Calculate total cost
             total_cost = sum(step["cost"] for step in plan_steps if step["cost"])
@@ -86,7 +84,7 @@ class QueryOptimizer:
             }
 
         except Exception as e:
-            logger.error("Failed to analyze query plan: %s", e)
+            logger.exception("Failed to analyze query plan: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),
@@ -101,6 +99,7 @@ class QueryOptimizer:
 
         Returns:
             Optimization suggestions.
+
         """
         suggestions = []
 
@@ -188,6 +187,7 @@ class QueryOptimizer:
 
         Returns:
             Table statistics.
+
         """
         try:
             sql = """
@@ -231,7 +231,7 @@ class QueryOptimizer:
             }
 
         except Exception as e:
-            logger.error("Failed to get table statistics: %s", e)
+            logger.exception("Failed to get table statistics: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),
@@ -246,6 +246,7 @@ class QueryOptimizer:
 
         Returns:
             Index recommendations.
+
         """
         recommendations = []
 
@@ -273,16 +274,13 @@ class QueryOptimizer:
                 fk_sql, {"schema_name": schema_name, "table_name": table_name}
             )
 
-            for row in fk_results:
-                recommendations.append(
-                    {
+            recommendations.extend({
                         "type": "foreign_key",
                         "column": row[0],
                         "priority": "high",
                         "reason": "Foreign key column without index",
                         "sql": f"CREATE INDEX idx_{table_name.lower()}_{row[0].lower()} ON {schema_name}.{table_name} ({row[0]})",
-                    }
-                )
+                    } for row in fk_results)
 
             return {
                 "status": "completed",
@@ -293,7 +291,7 @@ class QueryOptimizer:
             }
 
         except Exception as e:
-            logger.error("Failed to recommend indexes: %s", e)
+            logger.exception("Failed to recommend indexes: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),

@@ -5,7 +5,7 @@ from .monitor import PerformanceMonitor
 from .optimizer import DatabaseOptimizer
 
 __all__ = [
+    "DatabaseOptimizer",
     "HealthChecker",
     "PerformanceMonitor",
-    "DatabaseOptimizer",
 ]

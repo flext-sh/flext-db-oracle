@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class HealthChecker:
 
         Args:
             connection: Database connection.
+
         """
         self.connection = connection
 
@@ -27,6 +28,7 @@ class HealthChecker:
 
         Returns:
             Connection health status.
+
         """
         try:
             result = self.connection.fetch_one("SELECT 1 FROM DUAL")
@@ -37,7 +39,7 @@ class HealthChecker:
                 "result": result[0] if result else None,
             }
         except Exception as e:
-            logger.error("Health check failed: %s", e)
+            logger.exception("Health check failed: %s", e)
             return {
                 "status": "unhealthy",
                 "connection": "failed",
@@ -49,6 +51,7 @@ class HealthChecker:
 
         Returns:
             Tablespace health information.
+
         """
         try:
             sql = """
@@ -63,16 +66,12 @@ class HealthChecker:
 
             results = self.connection.fetch_all(sql)
 
-            tablespaces = []
-            for row in results:
-                tablespaces.append(
-                    {
+            tablespaces = [{
                         "name": row[0],
                         "status": row[1],
                         "contents": row[2],
                         "logging": row[3],
-                    }
-                )
+                    } for row in results]
 
             return {
                 "status": "completed",
@@ -81,7 +80,7 @@ class HealthChecker:
             }
 
         except Exception as e:
-            logger.error("Tablespace check failed: %s", e)
+            logger.exception("Tablespace check failed: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),
@@ -92,6 +91,7 @@ class HealthChecker:
 
         Returns:
             Session information.
+
         """
         try:
             sql = """
@@ -108,17 +108,13 @@ class HealthChecker:
 
             results = self.connection.fetch_all(sql)
 
-            sessions = []
-            for row in results:
-                sessions.append(
-                    {
+            sessions = [{
                         "username": row[0],
                         "status": row[1],
                         "machine": row[2],
                         "program": row[3],
                         "logon_time": str(row[4]) if row[4] else None,
-                    }
-                )
+                    } for row in results]
 
             return {
                 "status": "completed",
@@ -127,7 +123,7 @@ class HealthChecker:
             }
 
         except Exception as e:
-            logger.error("Session check failed: %s", e)
+            logger.exception("Session check failed: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),

@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ class DatabaseOptimizer:
 
         Args:
             connection: Database connection.
+
         """
         self.connection = connection
 
@@ -33,6 +34,7 @@ class DatabaseOptimizer:
 
         Returns:
             Table statistics analysis.
+
         """
         try:
             sql = """
@@ -74,7 +76,7 @@ class DatabaseOptimizer:
             }
 
         except Exception as e:
-            logger.error("Failed to analyze table statistics: %s", e)
+            logger.exception("Failed to analyze table statistics: %s", e)
             return {
                 "status": "failed",
                 "error": str(e),
@@ -88,6 +90,7 @@ class DatabaseOptimizer:
 
         Returns:
             Optimization recommendations.
+
         """
         recommendations = []
 
@@ -140,7 +143,7 @@ class DatabaseOptimizer:
             return [row[0] for row in results]
 
         except Exception as e:
-            logger.error("Failed to find tables without statistics: %s", e)
+            logger.exception("Failed to find tables without statistics: %s", e)
             return []
 
     def _find_potential_missing_indexes(self, schema_name: str) -> list[dict[str, Any]]:
@@ -170,19 +173,13 @@ class DatabaseOptimizer:
 
             results = self.connection.fetch_all(sql, {"schema_name": schema_name})
 
-            suggestions = []
-            for row in results:
-                suggestions.append(
-                    {
+            return [{
                         "table_name": row[0],
                         "column_name": row[1],
                         "constraint_name": row[2],
                         "reason": "Foreign key column without index",
-                    }
-                )
-
-            return suggestions
+                    } for row in results]
 
         except Exception as e:
-            logger.error("Failed to find potential missing indexes: %s", e)
+            logger.exception("Failed to find potential missing indexes: %s", e)
             return []

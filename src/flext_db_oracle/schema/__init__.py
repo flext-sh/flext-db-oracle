@@ -11,11 +11,11 @@ from .metadata import (
 )
 
 __all__ = [
-    "SchemaAnalyzer",
-    "DDLGenerator",
     "ColumnMetadata",
     "ConstraintMetadata",
+    "DDLGenerator",
     "IndexMetadata",
+    "SchemaAnalyzer",
     "SchemaMetadata",
     "TableMetadata",
 ]

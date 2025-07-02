@@ -6,8 +6,8 @@ from .synchronizer import DataSynchronizer
 
 __all__ = [
     "DataComparator",
-    "SchemaComparator",
     "DataDiffer",
-    "SchemaDiffer",
     "DataSynchronizer",
+    "SchemaComparator",
+    "SchemaDiffer",
 ]

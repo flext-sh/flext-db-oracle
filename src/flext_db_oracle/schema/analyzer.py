@@ -14,7 +14,7 @@ from .metadata import (
 )
 
 if TYPE_CHECKING:
-    from ..connection.connection import OracleConnection
+    from flext_db_oracle.connection.connection import OracleConnection
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class SchemaAnalyzer:
 
         Args:
             connection: Active Oracle database connection.
+
         """
         self.connection = connection
 
@@ -38,6 +39,7 @@ class SchemaAnalyzer:
 
         Returns:
             Complete schema metadata.
+
         """
         if schema_name is None:
             schema_name = self._get_current_schema()
@@ -76,6 +78,7 @@ class SchemaAnalyzer:
 
         Returns:
             List of table metadata.
+
         """
         sql = """
         SELECT
@@ -130,6 +133,7 @@ class SchemaAnalyzer:
 
         Returns:
             List of column metadata.
+
         """
         sql = """
         SELECT
@@ -194,6 +198,7 @@ class SchemaAnalyzer:
 
         Returns:
             List of constraint metadata.
+
         """
         sql = """
         SELECT
@@ -259,6 +264,7 @@ class SchemaAnalyzer:
 
         Returns:
             List of index metadata.
+
         """
         sql = """
         SELECT
@@ -310,6 +316,7 @@ class SchemaAnalyzer:
 
         Returns:
             List of view metadata.
+
         """
         sql = """
         SELECT view_name

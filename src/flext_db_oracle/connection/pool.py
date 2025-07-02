@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 try:
     import oracledb
@@ -35,6 +35,7 @@ class ConnectionPool:
 
         Args:
             config: Database connection configuration.
+
         """
         self.config = config
         self._pool = None
@@ -46,10 +47,12 @@ class ConnectionPool:
         Raises:
             RuntimeError: If oracledb library is not available.
             Exception: If pool initialization fails.
+
         """
         if not ORACLEDB_AVAILABLE:
+            msg = "oracledb library not available. Install with: pip install oracledb"
             raise RuntimeError(
-                "oracledb library not available. Install with: pip install oracledb"
+                msg
             )
 
         try:
@@ -72,7 +75,7 @@ class ConnectionPool:
             )
 
         except Exception as e:
-            logger.error("Failed to initialize connection pool: %s", e)
+            logger.exception("Failed to initialize connection pool: %s", e)
             raise
 
     def close(self) -> None:
@@ -83,7 +86,7 @@ class ConnectionPool:
                 self._is_initialized = False
                 logger.info("Closed Oracle connection pool")
             except Exception as e:
-                logger.error("Error closing connection pool: %s", e)
+                logger.exception("Error closing connection pool: %s", e)
 
         self._pool = None
 
@@ -93,6 +96,7 @@ class ConnectionPool:
 
         Returns:
             True if pool is initialized, False otherwise.
+
         """
         return self._is_initialized and self._pool is not None
 
@@ -105,9 +109,11 @@ class ConnectionPool:
 
         Raises:
             RuntimeError: If pool is not initialized.
+
         """
         if not self.is_initialized:
-            raise RuntimeError("Connection pool not initialized")
+            msg = "Connection pool not initialized"
+            raise RuntimeError(msg)
 
         connection = None
         try:
@@ -126,6 +132,7 @@ class ConnectionPool:
 
         Returns:
             Query results or row count.
+
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -138,9 +145,8 @@ class ConnectionPool:
                 # For SELECT statements, return fetchall()
                 if sql.strip().upper().startswith("SELECT"):
                     return cursor.fetchall()
-                else:
-                    # For DML statements, return row count
-                    return cursor.rowcount
+                # For DML statements, return row count
+                return cursor.rowcount
             finally:
                 cursor.close()
 
@@ -153,6 +159,7 @@ class ConnectionPool:
 
         Returns:
             Total number of affected rows.
+
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -171,6 +178,7 @@ class ConnectionPool:
 
         Returns:
             Single row result or None.
+
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -194,6 +202,7 @@ class ConnectionPool:
 
         Returns:
             List of all rows.
+
         """
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -214,6 +223,7 @@ class ConnectionPool:
 
         Yields:
             Database connection for use within the transaction.
+
         """
         with self.get_connection() as conn:
             try:
@@ -228,6 +238,7 @@ class ConnectionPool:
 
         Returns:
             Dictionary containing pool statistics.
+
         """
         if not self.is_initialized:
             return {"status": "not_initialized"}
@@ -250,10 +261,10 @@ class ConnectionPool:
             return stats
 
         except Exception as e:
-            logger.error("Error getting pool stats: %s", e)
+            logger.exception("Error getting pool stats: %s", e)
             return {"status": "error", "error": str(e)}
 
-    def __enter__(self) -> ConnectionPool:
+    def __enter__(self) -> Self:
         """Context manager entry."""
         if not self.is_initialized:
             self.initialize()
