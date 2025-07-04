@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .metadata import (
+    from flext_db_oracle.schema.metadata import (
         ColumnMetadata,
         ConstraintMetadata,
         IndexMetadata,

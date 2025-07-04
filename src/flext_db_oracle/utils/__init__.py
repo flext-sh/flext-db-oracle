@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from .exceptions import (
+from flext_db_oracle.utils.exceptions import (
     ConnectionError,
     OracleDBCoreError,
     SchemaError,
     SQLError,
     ValidationError,
 )
-from .logger import get_logger
+from flext_db_oracle.utils.logger import get_logger
 
 __all__ = [
     "ConnectionError",

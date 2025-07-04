@@ -1,8 +1,8 @@
 """Schema management and metadata modules."""
 
-from .analyzer import SchemaAnalyzer
-from .ddl import DDLGenerator
-from .metadata import (
+from flext_db_oracle.schema.analyzer import SchemaAnalyzer
+from flext_db_oracle.schema.ddl import DDLGenerator
+from flext_db_oracle.schema.metadata import (
     ColumnMetadata,
     ConstraintMetadata,
     IndexMetadata,

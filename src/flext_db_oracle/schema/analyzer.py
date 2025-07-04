@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from .metadata import (
+from flext_db_oracle.schema.metadata import (
     ColumnMetadata,
     ConstraintMetadata,
     IndexMetadata,

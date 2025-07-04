@@ -1,8 +1,8 @@
 """Data and schema comparison utilities for Oracle databases."""
 
-from .comparator import DataComparator, SchemaComparator
-from .differ import DataDiffer, SchemaDiffer
-from .synchronizer import DataSynchronizer
+from flext_db_oracle.compare.comparator import DataComparator, SchemaComparator
+from flext_db_oracle.compare.differ import DataDiffer, SchemaDiffer
+from flext_db_oracle.compare.synchronizer import DataSynchronizer
 
 __all__ = [
     "DataComparator",

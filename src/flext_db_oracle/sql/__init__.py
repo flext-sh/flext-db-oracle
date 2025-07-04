@@ -1,8 +1,8 @@
 """SQL parsing, optimization, and validation utilities."""
 
-from .optimizer import QueryOptimizer
-from .parser import SQLParser
-from .validator import SQLValidator
+from flext_db_oracle.sql.optimizer import QueryOptimizer
+from flext_db_oracle.sql.parser import SQLParser
+from flext_db_oracle.sql.validator import SQLValidator
 
 __all__ = [
     "QueryOptimizer",

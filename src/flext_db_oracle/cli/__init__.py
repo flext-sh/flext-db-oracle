@@ -1,5 +1,5 @@
 """Command-line interface for Oracle database operations."""
 
-from .main import main
+from flext_db_oracle.cli.main import main
 
 __all__ = ["main"]

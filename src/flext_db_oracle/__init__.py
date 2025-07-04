@@ -16,46 +16,46 @@ __license__ = "Apache-2.0"
 
 # Core connection and configuration
 # CLI entry points
-from .cli.main import main as cli_main
+from flext_db_oracle.cli.main import main as cli_main
 
 # Data comparison and synchronization
-from .compare.comparator import DataComparator, SchemaComparator
-from .compare.differ import DataDiffer, SchemaDiffer
-from .compare.synchronizer import DataSynchronizer
-from .connection.config import ConnectionConfig
-from .connection.connection import OracleConnection
-from .connection.pool import ConnectionPool
+from flext_db_oracle.compare.comparator import DataComparator, SchemaComparator
+from flext_db_oracle.compare.differ import DataDiffer, SchemaDiffer
+from flext_db_oracle.compare.synchronizer import DataSynchronizer
+from flext_db_oracle.connection.config import ConnectionConfig
+from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.connection.pool import ConnectionPool
 
 # Maintenance and monitoring
-from .maintenance.health import HealthChecker
-from .maintenance.monitor import PerformanceMonitor
-from .maintenance.optimizer import DatabaseOptimizer
+from flext_db_oracle.maintenance.health import HealthChecker
+from flext_db_oracle.maintenance.monitor import PerformanceMonitor
+from flext_db_oracle.maintenance.optimizer import DatabaseOptimizer
 
 # Schema management
-from .schema.analyzer import SchemaAnalyzer
-from .schema.ddl import DDLGenerator
-from .schema.metadata import (
+from flext_db_oracle.schema.analyzer import SchemaAnalyzer
+from flext_db_oracle.schema.ddl import DDLGenerator
+from flext_db_oracle.schema.metadata import (
     ColumnMetadata,
     ConstraintMetadata,
     IndexMetadata,
     SchemaMetadata,
     TableMetadata,
 )
-from .sql.optimizer import QueryOptimizer
+from flext_db_oracle.sql.optimizer import QueryOptimizer
 
 # SQL parsing and optimization
-from .sql.parser import SQLParser
-from .sql.validator import SQLValidator
+from flext_db_oracle.sql.parser import SQLParser
+from flext_db_oracle.sql.validator import SQLValidator
 
 # Utilities
-from .utils.exceptions import (
+from flext_db_oracle.utils.exceptions import (
     ConnectionError,
     OracleDBCoreError,
     SchemaError,
     SQLError,
     ValidationError,
 )
-from .utils.logger import get_logger
+from flext_db_oracle.utils.logger import get_logger
 
 __all__ = [
     "ColumnMetadata",

@@ -18,7 +18,7 @@ except ImportError:
 if TYPE_CHECKING:
     from collections.abc import Generator
 
-    from .config import ConnectionConfig
+    from flext_db_oracle.connection.config import ConnectionConfig
 
 logger = logging.getLogger(__name__)
 

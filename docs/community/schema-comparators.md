@@ -66,7 +66,7 @@ target_db = {
 # Perform comparison
 comparison_result = comparator.compare_schemas(source_db, target_db)
 
-# Print summary
+log.error summary
 print(f"Tables - Added: {len(comparison_result.tables.added)}")
 print(f"Tables - Modified: {len(comparison_result.tables.modified)}")
 print(f"Tables - Removed: {len(comparison_result.tables.removed)}")
