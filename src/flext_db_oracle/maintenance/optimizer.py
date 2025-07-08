@@ -115,7 +115,7 @@ class DatabaseOptimizer:
                     "type": "indexes",
                     "priority": "medium",
                     "description": "Potential missing indexes",
-                    "suggestions": missing_indexes,
+                    "suggestions": [f"{idx['table_name']}.{idx['column_name']}" for idx in missing_indexes],
                     "action": "Consider creating indexes on frequently queried columns",
                 }
             )

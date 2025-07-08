@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from flext_db_oracle.schema.metadata import (
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class DDLGenerator:
     """Generates Oracle DDL statements from metadata."""
 
-    def __init__(self, include_comments: bool = True) -> None:
+    def __init__(self: Self, include_comments: bool = True) -> None:
         """Initialize DDL generator.
 
         Args:

@@ -64,7 +64,8 @@ class SQLParser:
             List of table names found in the statement.
 
         """
-        # Simple regex-based extraction (would need more sophisticated parsing for production)
+        # Simple regex-based extraction
+        # (would need more sophisticated parsing for production)
         table_patterns = [
             r"FROM\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
             r"JOIN\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",

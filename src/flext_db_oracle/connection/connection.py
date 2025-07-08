@@ -12,7 +12,7 @@ try:
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
-    oracledb = None
+    oracledb = None  # type: ignore[assignment]
 
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ class OracleConnection:
 
         """
         self.config = config
-        self._connection = None
+        self._connection: Any = None
         self._is_connected = False
 
     def connect(self) -> None:
@@ -144,7 +144,7 @@ class OracleConnection:
         cursor = self._connection.cursor()
         try:
             cursor.executemany(sql, parameters_list)
-            return cursor.rowcount
+            return int(cursor.rowcount) if cursor.rowcount is not None else 0
         finally:
             cursor.close()
 
@@ -202,7 +202,8 @@ class OracleConnection:
                 cursor.execute(sql, parameters)
             else:
                 cursor.execute(sql)
-            return cursor.fetchall()
+            result = cursor.fetchall()
+            return list(result) if result is not None else []
         finally:
             cursor.close()
 
@@ -319,6 +320,6 @@ class OracleConnection:
             self.connect()
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
         """Context manager exit."""
         self.disconnect()

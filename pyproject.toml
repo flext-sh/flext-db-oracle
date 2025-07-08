@@ -4,12 +4,12 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "flext-db-oracle"
-version = "0.2.0"
+version = "0.6.0"
 description = "FLEXT DB Oracle - Enterprise Oracle Database Integration with Connection Pooling"
 authors = [{ name = "FLEXT Team", email = "team@flext.sh" }]
 license = { text = "MIT" }
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 keywords = [
     "flext",
     "oracle",
@@ -63,7 +63,6 @@ full = [
     "matplotlib>=3.8.0",
     "prometheus-client>=0.21.0",
     "testcontainers>=4.9.0"]
-
 [project.scripts]
 flext-oracle = "flext_db_oracle.cli:main"
 flext-oracle-schema = "flext_db_oracle.schema.cli:main"
@@ -79,33 +78,31 @@ Changelog = "https://github.com/flext-sh/flext-db-oracle/blob/main/CHANGELOG.md"
 
 [tool.poetry]
 packages = [{ include = "flext_db_oracle", from = "src" }]
-
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.0"
+pytest = "^8.4.0"
 pytest-asyncio = "^0.24.0"
-pytest-cov = "^6.0.0"
-pytest-xdist = "^3.6.0"
+pytest-cov = "^6.2.0"
+pytest-xdist = "^3.8.0"
 pytest-mock = "^3.14.0"
-pytest-timeout = "^2.3.0"
-ruff = "^0.8.4"
-mypy = "^1.13.0"
-black = "^24.10.0"
-isort = "^5.13.0"
+pytest-timeout = "^2.4.0"
+ruff = "^0.12.2"
+mypy = "^1.16.1"
+black = "^25.1.0"
+isort = "^6.0.1"
 types-python-dateutil = "^2.9.0"
-types-requests = "^2.32.0"
-types-setuptools = "^75.6.0"
-pre-commit = "^4.0.0"
-mkdocs = "^1.6.0"
-mkdocs-material = "^9.5.0"
-ipython = "^8.29.0"
+types-requests = "^2.32.4"
+types-setuptools = "^75.8.2"
+pre-commit = "^4.2.0"
+mkdocs = "^1.6.1"
+mkdocs-material = "^9.6.15"
+ipython = "^8.37.0"
 
 [tool.poetry.group.security.dependencies]
-bandit = { extras = ["toml"], version = "^1.7.0" }
-safety = "^3.2.0"
+bandit = {extras = ["toml"], version = "^1.8.0"}
 
 [tool.poetry.group.build.dependencies]
-build = "^1.2.0"
-twine = "^6.0.0"
+build = "^1.2.2"
+twine = "^6.1.0"
 
 [tool.poetry.group.test.dependencies]
 pytest-benchmark = "^4.0.0"
@@ -124,7 +121,6 @@ line-length = 88
 target-version = "py313"
 fix = true
 src = ["src", "tests"]
-
 [tool.ruff.lint]
 ignore = [
     # MANDATORY: Only formatter conflicts that cannot be auto-fixed
@@ -242,13 +238,11 @@ ignore = [
     "D401",    # docstring imperative mood (temporarily)
 ]
 select = ["ALL"]
-
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "PLR2004", "D", "ANN"]
 "examples/*" = ["T201", "D", "ERA001"]
 "__init__.py" = ["D104"]
 "conftest.py" = ["D"]
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -257,7 +251,6 @@ line-ending = "lf"
 [tool.black]
 line-length = 88
 target-version = ["py313"]
-
 [tool.isort]
 profile = "black"
 line_length = 88
@@ -277,7 +270,6 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 plugins = ["pydantic.mypy", "sqlalchemy.ext.mypy.plugin"]
-
 [[tool.mypy.overrides]]
 module = [
     "oracledb.*",
@@ -340,7 +332,6 @@ omit = [
     "*/build/*",
     "*/dist/*",
     "*/.eggs/*"]
-
 [tool.coverage.report]
 skip_empty = true
 skip_covered = false
@@ -358,15 +349,12 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
     "TYPE_CHECKING"]
-
 [tool.bandit]
 targets = ["src"]
 exclude_dirs = ["tests", "build", "dist"]
 skips = ["B101", "B601"]
-
 [tool.bandit.assert_used]
 skips = ["*/tests/*", "*/test_*.py"]
-
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 

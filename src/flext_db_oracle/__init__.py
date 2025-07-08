@@ -49,7 +49,7 @@ from flext_db_oracle.sql.validator import SQLValidator
 
 # Utilities
 from flext_db_oracle.utils.exceptions import (
-    ConnectionError,
+    OracleConnectionError,
     OracleDBCoreError,
     SchemaError,
     SQLError,
@@ -59,30 +59,24 @@ from flext_db_oracle.utils.logger import get_logger
 
 __all__ = [
     "ColumnMetadata",
-    # Core connection
     "ConnectionConfig",
-    "ConnectionError",
     "ConnectionPool",
     "ConstraintMetadata",
     "DDLGenerator",
-    # Data operations
     "DataComparator",
     "DataDiffer",
     "DataSynchronizer",
     "DatabaseOptimizer",
-    # Maintenance
     "HealthChecker",
     "IndexMetadata",
     "OracleConnection",
-    # Utilities
+    "OracleConnectionError",
     "OracleDBCoreError",
     "PerformanceMonitor",
     "QueryOptimizer",
     "SQLError",
-    # SQL tools
     "SQLParser",
     "SQLValidator",
-    # Schema management
     "SchemaAnalyzer",
     "SchemaComparator",
     "SchemaDiffer",
@@ -93,9 +87,7 @@ __all__ = [
     "__author__",
     "__email__",
     "__license__",
-    # Version and metadata
     "__version__",
-    # CLI
     "cli_main",
     "get_logger",
 ]

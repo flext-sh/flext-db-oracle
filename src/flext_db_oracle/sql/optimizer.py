@@ -248,7 +248,7 @@ class QueryOptimizer:
             Index recommendations.
 
         """
-        recommendations = []
+        recommendations: list[dict[str, Any]] = []
 
         try:
             # Check for foreign key columns without indexes

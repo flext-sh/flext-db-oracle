@@ -12,7 +12,7 @@ try:
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
-    oracledb = None
+    oracledb = None  # type: ignore[assignment]
 
 
 if TYPE_CHECKING:
@@ -38,7 +38,7 @@ class ConnectionPool:
 
         """
         self.config = config
-        self._pool = None
+        self._pool: Any = None
         self._is_initialized = False
 
     def initialize(self) -> None:
@@ -101,7 +101,7 @@ class ConnectionPool:
         return self._is_initialized and self._pool is not None
 
     @contextmanager
-    def get_connection(self) -> Generator[Any]:
+    def get_connection(self) -> Generator[Any]:  # type: ignore[misc]
         """Get a connection from the pool.
 
         Yields:
@@ -117,10 +117,10 @@ class ConnectionPool:
 
         connection = None
         try:
-            connection = self._pool.acquire()
+            connection = self._pool.acquire() if self._pool else None
             yield connection
         finally:
-            if connection:
+            if connection and self._pool:
                 self._pool.release(connection)
 
     def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
@@ -165,7 +165,7 @@ class ConnectionPool:
             cursor = conn.cursor()
             try:
                 cursor.executemany(sql, parameters_list)
-                return cursor.rowcount
+                return int(cursor.rowcount) if cursor.rowcount is not None else 0
             finally:
                 cursor.close()
 
@@ -211,12 +211,13 @@ class ConnectionPool:
                     cursor.execute(sql, parameters)
                 else:
                     cursor.execute(sql)
-                return cursor.fetchall()
+                result = cursor.fetchall()
+                return list(result) if result is not None else []
             finally:
                 cursor.close()
 
     @contextmanager
-    def transaction(self) -> Generator[Any]:
+    def transaction(self) -> Generator[Any]:  # type: ignore[misc]
         """Context manager for database transactions using pool.
 
         Automatically commits on success or rolls back on exception.
@@ -253,9 +254,9 @@ class ConnectionPool:
             }
 
             # Add actual pool stats if available
-            if hasattr(self._pool, "opened"):
+            if self._pool and hasattr(self._pool, "opened"):
                 stats["opened_connections"] = self._pool.opened
-            if hasattr(self._pool, "busy"):
+            if self._pool and hasattr(self._pool, "busy"):
                 stats["busy_connections"] = self._pool.busy
 
             return stats
@@ -270,6 +271,6 @@ class ConnectionPool:
             self.initialize()
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
         """Context manager exit."""
         self.close()

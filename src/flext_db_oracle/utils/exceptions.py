@@ -19,7 +19,7 @@ class OracleDBCoreError(Exception):
         self.error_code = error_code
 
 
-class ConnectionError(OracleDBCoreError):
+class OracleConnectionError(OracleDBCoreError):
     """Exception raised for database connection errors."""
 
     def __init__(

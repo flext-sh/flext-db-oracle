@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_db_oracle.utils.exceptions import (
-    ConnectionError,
+    OracleConnectionError,
     OracleDBCoreError,
     SchemaError,
     SQLError,
@@ -12,7 +12,7 @@ from flext_db_oracle.utils.exceptions import (
 from flext_db_oracle.utils.logger import get_logger
 
 __all__ = [
-    "ConnectionError",
+    "OracleConnectionError",
     "OracleDBCoreError",
     "SQLError",
     "SchemaError",
