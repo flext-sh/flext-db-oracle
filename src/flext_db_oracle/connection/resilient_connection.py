@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import time
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
+
+from oracledb import DatabaseError, InterfaceError, OperationalError
 
 from flext_observability.logging import get_logger
 
@@ -13,6 +16,10 @@ if TYPE_CHECKING:
     from .config import ConnectionConfig
 
 logger = get_logger(__name__)
+
+# Oracle port constants
+DEFAULT_ORACLE_SSL_PORT = 1522
+DEFAULT_ORACLE_PORT = 1521
 
 
 class ResilientOracleConnection(OracleConnection):
@@ -30,6 +37,7 @@ class ResilientOracleConnection(OracleConnection):
         config: ConnectionConfig,
         retry_attempts: int = 3,
         retry_delay: int = 5,
+        *,
         enable_fallback: bool = True,
     ) -> None:
         """Initialize resilient connection.
@@ -80,7 +88,12 @@ class ResilientOracleConnection(OracleConnection):
                 msg = "Connection validation failed"
                 raise RuntimeError(msg)
 
-            except Exception as e:
+            except (
+                DatabaseError,
+                InterfaceError,
+                OperationalError,
+                ConnectionError,
+            ) as e:
                 last_exception = e
                 logger.warning(
                     "Connection attempt failed",
@@ -90,13 +103,17 @@ class ResilientOracleConnection(OracleConnection):
                 )
 
                 # On last attempt, try fallback if enabled
-                if attempt == self.retry_attempts and self.enable_fallback and not self._fallback_applied:
-                    if self._apply_fallback():
-                        logger.info("Applying connection fallback strategy")
-                        # Reset attempts for fallback
-                        self._connection_attempts = 0
-                        # Recursive call with fallback config
-                        return self.connect()
+                if (
+                    attempt == self.retry_attempts
+                    and self.enable_fallback
+                    and not self._fallback_applied
+                    and self._apply_fallback()
+                ):
+                    logger.info("Applying connection fallback strategy")
+                    # Reset attempts for fallback
+                    self._connection_attempts = 0
+                    # Recursive call with fallback config
+                    return self.connect()
 
                 # Wait before retry (except on last attempt)
                 if attempt < self.retry_attempts:
@@ -120,7 +137,7 @@ class ResilientOracleConnection(OracleConnection):
             # Simple validation query
             result = self.fetch_one("SELECT 1 FROM DUAL")
             return result is not None and result[0] == 1
-        except Exception as e:
+        except (DatabaseError, InterfaceError, OperationalError) as e:
             logger.debug("Connection validation failed: %s", e)
             return False
 
@@ -142,16 +159,16 @@ class ResilientOracleConnection(OracleConnection):
             self._fallback_applied = True
 
             # Also try common Oracle port fallback
-            if self.config.port == 1522:
-                self.config.port = 1521
+            if self.config.port == DEFAULT_ORACLE_SSL_PORT:
+                self.config.port = DEFAULT_ORACLE_PORT
                 logger.info("Also applying port fallback: 1522 -> 1521")
 
             return True
 
         # Try port fallback only
-        if self.config.port == 1522:
+        if self.config.port == DEFAULT_ORACLE_SSL_PORT:
             logger.info("Attempting port fallback: 1522 -> 1521")
-            self.config.port = 1521
+            self.config.port = DEFAULT_ORACLE_PORT
             self._fallback_applied = True
             return True
 
@@ -159,9 +176,6 @@ class ResilientOracleConnection(OracleConnection):
 
     def test_connection(self) -> dict[str, Any]:
         """Test connection and return detailed results."""
-        import time
-        from datetime import UTC, datetime
-
         result: dict[str, Any] = {
             "success": False,
             "protocol_used": self.config.protocol,
@@ -196,15 +210,17 @@ class ResilientOracleConnection(OracleConnection):
             if user_result:
                 result["current_user"] = user_result[0]
 
-            result.update({
-                "success": True,
-                "connection_time_ms": round(connection_time, 2),
-                "tested_at": datetime.now(UTC).isoformat(),
-            })
+            result.update(
+                {
+                    "success": True,
+                    "connection_time_ms": round(connection_time, 2),
+                    "tested_at": datetime.now(UTC).isoformat(),
+                },
+            )
 
         except Exception as e:
             result["error"] = str(e)
-            logger.exception("Connection test failed", error=str(e))
+            logger.exception("Connection test failed")
 
         return result
 

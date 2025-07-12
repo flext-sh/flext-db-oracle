@@ -7,6 +7,7 @@ Uses ServiceResult pattern and modern Python 3.13 typing.
 from __future__ import annotations
 
 import re
+from re import error as regex_error
 from typing import TYPE_CHECKING, Any
 
 from pydantic import Field
@@ -21,6 +22,11 @@ logger = get_logger(__name__)
 
 # Constants
 MAX_REASONABLE_ISSUES = 5
+MIN_COMPOSITE_INDEX_CONDITIONS = 2
+MAX_ACCEPTABLE_SUBQUERIES = 3
+HIGH_COMPLEXITY_THRESHOLD = 50
+MAX_RECOMMENDED_TABLES = 5
+MAX_RECOMMENDED_JOINS = 3
 
 
 class ValidationRule(DomainValueObject):
@@ -72,6 +78,12 @@ class SQLValidator:
     """Validates Oracle SQL statements for syntax and best practices using flext-core patterns."""
 
     def __init__(self, sql_parser: SQLParser | None = None) -> None:
+        """Initialize the SQL validator.
+
+        Args:
+            sql_parser: Optional SQL parser for advanced analysis capabilities
+
+        """
         self.sql_parser = sql_parser
         self.validation_rules = self._initialize_rules()
 
@@ -142,13 +154,15 @@ class SQLValidator:
             # Basic syntax validation
             if not sql.strip():
                 errors.append("Empty SQL statement")
-                return ServiceResult.success(ValidationResult(
-                    is_valid=False,
-                    errors=errors,
-                    warnings=warnings,
-                    info=info,
-                    rules_checked=1,
-                ))
+                return ServiceResult.success(
+                    ValidationResult(
+                        is_valid=False,
+                        errors=errors,
+                        warnings=warnings,
+                        info=info,
+                        rules_checked=1,
+                    ),
+                )
 
             # Check each validation rule
             for rule in self.validation_rules:
@@ -177,20 +191,23 @@ class SQLValidator:
                 rules_checked=rules_checked,
             )
 
-            logger.info("SQL validation completed: %d issues found", result.total_issues)
+            logger.info(
+                "SQL validation completed: %d issues found", result.total_issues,
+            )
             return ServiceResult.success(result)
 
         except Exception as e:
-            logger.exception("SQL validation failed: %s", e)
+            logger.exception("SQL validation failed")
             return ServiceResult.failure(f"SQL validation failed: {e}")
 
     async def _check_rule(self, sql: str, rule: ValidationRule) -> str | None:
         """Check a specific validation rule."""
         try:
-            if rule.pattern:
+            if rule.pattern and re.search(
+                rule.pattern, sql, re.IGNORECASE | re.MULTILINE,
+            ):
                 # Pattern-based rule
-                if re.search(rule.pattern, sql, re.IGNORECASE | re.MULTILINE):
-                    return f"{rule.rule_name}: {rule.description}"
+                return f"{rule.rule_name}: {rule.description}"
 
             # Special logic for complex rules
             if rule.rule_id == "UNQUALIFIED_COLUMNS":
@@ -200,9 +217,7 @@ class SQLValidator:
             if rule.rule_id == "NESTED_SUBQUERIES":
                 return await self._check_nested_subqueries(sql)
 
-            return None
-
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, regex_error) as e:
             logger.warning("Rule check failed for %s: %s", rule.rule_id, e)
             return None
 
@@ -233,39 +248,47 @@ class SQLValidator:
         try:
             # Look for JOINs or multiple tables in FROM
             has_joins = bool(re.search(r"\bJOIN\b", sql, re.IGNORECASE))
-            from_tables = re.findall(r"\bFROM\s+([^,\s]+(?:\s*,\s*[^,\s]+)*)", sql, re.IGNORECASE)
+            from_tables = re.findall(
+                r"\bFROM\s+([^,\s]+(?:\s*,\s*[^,\s]+)*)", sql, re.IGNORECASE,
+            )
             has_multiple_tables = any("," in table_list for table_list in from_tables)
 
             if has_joins or has_multiple_tables:
                 # Look for unqualified columns (simple heuristic)
-                select_clause = re.search(r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL)
+                select_clause = re.search(
+                    r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL,
+                )
                 if select_clause:
                     columns = select_clause.group(1)
                     # Check for columns without table qualifiers
-                    unqualified = re.findall(r"\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!\s*\()", columns)
+                    unqualified = re.findall(
+                        r"\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!\s*\()", columns,
+                    )
                     if unqualified and not any("." in col for col in unqualified):
                         return "Consider qualifying column names with table aliases in multi-table queries"
 
-            return None
-
-        except Exception:
+        except (ValueError, TypeError, AttributeError, regex_error):
             return None
 
     async def _check_missing_indexes(self, sql: str) -> str | None:
         """Check for potential missing indexes."""
         try:
             # Look for WHERE clauses that might benefit from indexes
-            where_match = re.search(r"\bWHERE\s+(.*?)(?:\s+(?:GROUP|ORDER|HAVING|$))", sql, re.IGNORECASE | re.DOTALL)
+            where_match = re.search(
+                r"\bWHERE\s+(.*?)(?:\s+(?:GROUP|ORDER|HAVING|$))",
+                sql,
+                re.IGNORECASE | re.DOTALL,
+            )
             if where_match:
                 where_clause = where_match.group(1)
                 # Look for equality conditions
-                equality_conditions = re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=", where_clause, re.IGNORECASE)
-                if len(equality_conditions) > 2:
+                equality_conditions = re.findall(
+                    r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=", where_clause, re.IGNORECASE,
+                )
+                if len(equality_conditions) > MIN_COMPOSITE_INDEX_CONDITIONS:
                     return "Consider creating composite indexes for multiple WHERE conditions"
 
-            return None
-
-        except Exception:
+        except (ValueError, TypeError, AttributeError, regex_error):
             return None
 
     async def _check_nested_subqueries(self, sql: str) -> str | None:
@@ -273,20 +296,20 @@ class SQLValidator:
         try:
             # Count SELECT statements to detect nesting
             select_count = len(re.findall(r"\bSELECT\b", sql, re.IGNORECASE))
-            if select_count > 3:
+            if select_count > MAX_ACCEPTABLE_SUBQUERIES:
                 return "Consider using JOINs instead of deeply nested subqueries for better performance"
 
+        except (ValueError, TypeError, AttributeError, regex_error):
             return None
 
-        except Exception:
-            return None
-
-    async def validate_with_recommendations(self, sql: str) -> ServiceResult[dict[str, Any]]:
+    async def validate_with_recommendations(
+        self, sql: str,
+    ) -> ServiceResult[dict[str, Any]]:
         """Validate SQL and provide improvement recommendations."""
         try:
             # Perform validation
             validation_result = await self.validate_sql(sql)
-            if validation_result.is_failure:
+            if validation_result.is_success:
                 return validation_result
 
             validation = validation_result.value
@@ -298,7 +321,9 @@ class SQLValidator:
                 recommendations.append("Fix syntax errors before proceeding")
 
             if validation.has_warnings:
-                recommendations.append("Address performance and maintainability warnings")
+                recommendations.append(
+                    "Address performance and maintainability warnings",
+                )
 
             # Additional recommendations based on SQL analysis
             if self.sql_parser:
@@ -306,14 +331,20 @@ class SQLValidator:
                 if parse_result.is_success:
                     parsed = parse_result.value
 
-                    if parsed.complexity_score > 50:
-                        recommendations.append("Consider breaking down complex query into simpler parts")
+                    if parsed.complexity_score > HIGH_COMPLEXITY_THRESHOLD:
+                        recommendations.append(
+                            "Consider breaking down complex query into simpler parts",
+                        )
 
-                    if len(parsed.tables) > 5:
-                        recommendations.append("Review if all tables are necessary for this query")
+                    if len(parsed.tables) > MAX_RECOMMENDED_TABLES:
+                        recommendations.append(
+                            "Review if all tables are necessary for this query",
+                        )
 
-                    if len(parsed.joins) > 3:
-                        recommendations.append("Verify that all JOINs are using appropriate indexes")
+                    if len(parsed.joins) > MAX_RECOMMENDED_JOINS:
+                        recommendations.append(
+                            "Verify that all JOINs are using appropriate indexes",
+                        )
 
             result = {
                 "validation": validation.model_dump(),
@@ -333,25 +364,40 @@ class SQLValidator:
             return ServiceResult.success(result)
 
         except Exception as e:
-            logger.exception("SQL validation with recommendations failed: %s", e)
+            logger.exception("SQL validation with recommendations failed")
             return ServiceResult.failure(f"Validation with recommendations failed: {e}")
 
-    async def get_best_practices_report(self, sql: str) -> ServiceResult[dict[str, Any]]:
+    async def get_best_practices_report(
+        self, sql: str,
+    ) -> ServiceResult[dict[str, Any]]:
         """Generate a comprehensive best practices report."""
         try:
             validation_result = await self.validate_with_recommendations(sql)
-            if validation_result.is_failure:
+            if validation_result.is_success:
                 return validation_result
 
             validation_data = validation_result.value
 
             # Best practices checklist
             checklist = {
-                "uses_specific_columns": not bool(re.search(r"SELECT\s+\*", sql, re.IGNORECASE)),
+                "uses_specific_columns": not bool(
+                    re.search(r"SELECT\s+\*", sql, re.IGNORECASE),
+                ),
                 "has_where_clause": bool(re.search(r"\bWHERE\b", sql, re.IGNORECASE)),
-                "uses_table_aliases": bool(re.search(r"\b[a-zA-Z_][a-zA-Z0-9_]*\s+[a-zA-Z_][a-zA-Z0-9_]*\s+ON\b", sql, re.IGNORECASE)),
-                "avoids_functions_in_where": not bool(re.search(r"WHERE.*\w+\s*\(", sql, re.IGNORECASE)),
-                "has_reasonable_complexity": validation_data.get("summary", {}).get("total_issues", 0) < MAX_REASONABLE_ISSUES,
+                "uses_table_aliases": bool(
+                    re.search(
+                        r"\b[a-zA-Z_][a-zA-Z0-9_]*\s+[a-zA-Z_][a-zA-Z0-9_]*\s+ON\b",
+                        sql,
+                        re.IGNORECASE,
+                    ),
+                ),
+                "avoids_functions_in_where": not bool(
+                    re.search(r"WHERE.*\w+\s*\(", sql, re.IGNORECASE),
+                ),
+                "has_reasonable_complexity": validation_data.get("summary", {}).get(
+                    "total_issues", 0,
+                )
+                < MAX_REASONABLE_ISSUES,
             }
 
             score = sum(checklist.values()) / len(checklist) * 100
@@ -368,24 +414,24 @@ class SQLValidator:
             return ServiceResult.success(report)
 
         except Exception as e:
-            logger.exception("Best practices report generation failed: %s", e)
+            logger.exception("Best practices report generation failed")
             return ServiceResult.failure(f"Best practices report failed: {e}")
 
     def _get_grade(self, score: float) -> str:
         """Get letter grade based on score."""
         # Grade thresholds
-        GRADE_A_THRESHOLD = 90
-        GRADE_B_THRESHOLD = 80
-        GRADE_C_THRESHOLD = 70
-        GRADE_D_THRESHOLD = 60
+        grade_a_threshold = 90
+        grade_b_threshold = 80
+        grade_c_threshold = 70
+        grade_d_threshold = 60
 
-        if score >= GRADE_A_THRESHOLD:
+        if score >= grade_a_threshold:
             return "A"
-        if score >= GRADE_B_THRESHOLD:
+        if score >= grade_b_threshold:
             return "B"
-        if score >= GRADE_C_THRESHOLD:
+        if score >= grade_c_threshold:
             return "C"
-        if score >= GRADE_D_THRESHOLD:
+        if score >= grade_d_threshold:
             return "D"
         return "F"
 

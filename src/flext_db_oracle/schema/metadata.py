@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
+from uuid import uuid4
 
 from pydantic import Field
 
@@ -39,7 +40,9 @@ class ColumnMetadata(DomainValueObject):
 
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
-    nullable: bool = Field(default=True, description="Whether column allows NULL values")
+    nullable: bool = Field(
+        default=True, description="Whether column allows NULL values",
+    )
     default_value: str | None = Field(None, description="Default value")
     max_length: int | None = Field(None, description="Maximum length", ge=0)
     precision: int | None = Field(None, description="Numeric precision", ge=0)
@@ -55,15 +58,22 @@ class ColumnMetadata(DomainValueObject):
     def is_numeric(self) -> bool:
         """Check if column is numeric type."""
         return self.data_type.upper() in {
-            "NUMBER", "DECIMAL", "FLOAT", "BINARY_FLOAT", "BINARY_DOUBLE",
+            "NUMBER",
+            "DECIMAL",
+            "FLOAT",
+            "BINARY_FLOAT",
+            "BINARY_DOUBLE",
         }
 
     @property
     def is_date(self) -> bool:
         """Check if column is date/time type."""
         return self.data_type.upper() in {
-            "DATE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE",
-            "TIMESTAMP WITH LOCAL TIME ZONE", "INTERVAL YEAR TO MONTH",
+            "DATE",
+            "TIMESTAMP",
+            "TIMESTAMP WITH TIME ZONE",
+            "TIMESTAMP WITH LOCAL TIME ZONE",
+            "INTERVAL YEAR TO MONTH",
             "INTERVAL DAY TO SECOND",
         }
 
@@ -81,7 +91,9 @@ class ConstraintMetadata(DomainValueObject):
     table_name: str = Field(..., description="Table name")
     column_names: list[str] = Field(..., description="Constrained column names")
     referenced_table: str | None = Field(None, description="Referenced table (FK only)")
-    referenced_columns: list[str] = Field(default_factory=list, description="Referenced columns (FK only)")
+    referenced_columns: list[str] = Field(
+        default_factory=list, description="Referenced columns (FK only)",
+    )
     check_condition: str | None = Field(None, description="Check constraint condition")
     status: ObjectStatus = Field(ObjectStatus.ENABLED, description="Constraint status")
     deferrable: bool = Field(default=False, description="Is constraint deferrable")
@@ -126,7 +138,7 @@ class IndexMetadata(DomainValueObject):
 class TableMetadata(DomainEntity):
     """Metadata for an Oracle database table."""
 
-    id: EntityId = Field(default_factory=EntityId.generate)
+    id: EntityId = Field(default_factory=uuid4)
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema/owner name")
     tablespace_name: str | None = Field(None, description="Tablespace name")
@@ -138,9 +150,15 @@ class TableMetadata(DomainEntity):
     degree: int = Field(1, description="Parallel degree", ge=1)
 
     # Related metadata
-    columns: list[ColumnMetadata] = Field(default_factory=list, description="Table columns")
-    constraints: list[ConstraintMetadata] = Field(default_factory=list, description="Table constraints")
-    indexes: list[IndexMetadata] = Field(default_factory=list, description="Table indexes")
+    columns: list[ColumnMetadata] = Field(
+        default_factory=list, description="Table columns",
+    )
+    constraints: list[ConstraintMetadata] = Field(
+        default_factory=list, description="Table constraints",
+    )
+    indexes: list[IndexMetadata] = Field(
+        default_factory=list, description="Table indexes",
+    )
 
     # Timestamps
     created: datetime | None = Field(None, description="Creation timestamp")
@@ -183,7 +201,7 @@ class TableMetadata(DomainEntity):
 class ViewMetadata(DomainEntity):
     """Metadata for an Oracle database view."""
 
-    id: EntityId = Field(default_factory=EntityId.generate)
+    id: EntityId = Field(default_factory=uuid4)
     name: str = Field(..., description="View name")
     schema_name: str = Field(..., description="Schema/owner name")
     text_length: int = Field(0, description="View definition length", ge=0)
@@ -191,7 +209,9 @@ class ViewMetadata(DomainEntity):
     status: ObjectStatus = Field(ObjectStatus.VALID, description="View status")
 
     # Related metadata
-    columns: list[ColumnMetadata] = Field(default_factory=list, description="View columns")
+    columns: list[ColumnMetadata] = Field(
+        default_factory=list, description="View columns",
+    )
 
     # Timestamps
     created: datetime | None = Field(None, description="Creation timestamp")
@@ -207,20 +227,28 @@ class ViewMetadata(DomainEntity):
 class SchemaMetadata(DomainEntity):
     """Complete metadata for an Oracle database schema."""
 
-    id: EntityId = Field(default_factory=EntityId.generate)
+    id: EntityId = Field(default_factory=uuid4)
     name: str = Field(..., description="Schema name")
     default_tablespace: str | None = Field(None, description="Default tablespace")
     temporary_tablespace: str | None = Field(None, description="Temporary tablespace")
     status: ObjectStatus = Field(ObjectStatus.VALID, description="Schema status")
 
     # Schema objects
-    tables: list[TableMetadata] = Field(default_factory=list, description="Schema tables")
+    tables: list[TableMetadata] = Field(
+        default_factory=list, description="Schema tables",
+    )
     views: list[ViewMetadata] = Field(default_factory=list, description="Schema views")
-    sequences: list[dict[str, Any]] = Field(default_factory=list, description="Schema sequences")
-    procedures: list[dict[str, Any]] = Field(default_factory=list, description="Schema procedures/functions")
+    sequences: list[dict[str, Any]] = Field(
+        default_factory=list, description="Schema sequences",
+    )
+    procedures: list[dict[str, Any]] = Field(
+        default_factory=list, description="Schema procedures/functions",
+    )
 
     # Analysis metadata
-    analyzed_at: datetime = Field(default_factory=datetime.now, description="Analysis timestamp")
+    analyzed_at: datetime = Field(
+        default_factory=datetime.now, description="Analysis timestamp",
+    )
     total_objects: int = Field(0, description="Total object count", ge=0)
     total_size_mb: float = Field(0.0, description="Total estimated size in MB", ge=0.0)
 

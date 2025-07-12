@@ -6,7 +6,7 @@ Following flext-core application layer patterns with ServiceResult for error han
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import oracledb
@@ -41,6 +41,7 @@ class OracleConnectionService:
         """
         self.config = config
         self._pool: oracledb.ConnectionPool | None = None
+        self._query_service: OracleQueryService | None = None
 
     async def initialize_pool(self) -> ServiceResult[None]:
         """Initialize the connection pool."""
@@ -82,6 +83,8 @@ class OracleConnectionService:
                 conn_params["ssl_server_cert_dn"] = None
 
             self._pool = oracledb.create_pool(**conn_params)
+            # Initialize query service after pool is ready
+            self._query_service = OracleQueryService(self)
             logger.info("Oracle connection pool initialized: %s", self.config.connection_string)
             return ServiceResult.success(None)
 
@@ -147,7 +150,7 @@ class OracleConnectionService:
                         last_check=datetime.now(UTC),
                         error_message="Test query returned unexpected result",
                     )
-                    return ServiceResult.failure("Connection test failed", status)
+                    return ServiceResult.failure("Connection test failed")
 
         except Exception as e:
             logger.exception("Oracle connection test failed")
@@ -160,18 +163,50 @@ class OracleConnectionService:
                 last_check=datetime.now(UTC),
                 error_message=str(e),
             )
-            return ServiceResult.failure(f"Connection test failed: {e}", status)
+            return ServiceResult.failure(f"Connection test failed: {e}")
+
+    @property
+    def is_pool_initialized(self) -> bool:
+        """Check if connection pool is initialized."""
+        return self._pool is not None
+
+    @property
+    def is_query_service_initialized(self) -> bool:
+        """Check if query service is initialized."""
+        return self._query_service is not None
+
+    def get_pool_status(self) -> dict[str, Any]:
+        """Get connection pool status information."""
+        if not self._pool:
+            return {"initialized": False, "pool": None}
+        return {"initialized": True, "pool": self._pool}
+
+    async def execute_query(self, sql: str, parameters: dict[str, Any] | None = None) -> ServiceResult[OracleQueryResult]:
+        """Execute a query using the internal query service."""
+        if not self._query_service:
+            # Initialize pool and query service if not already done
+            init_result = await self.initialize_pool()
+            if not init_result.is_success:
+                return init_result
+
+        return await self._query_service.execute_query(sql, parameters)
 
 
 class OracleQueryService:
     """Service for executing Oracle database queries."""
 
     def __init__(self, connection_service: OracleConnectionService) -> None:
+        """Initialize the Oracle query service.
+
+        Args:
+            connection_service: Oracle connection service for database operations
+
+        """
         self.connection_service = connection_service
 
     async def execute_query(self, sql: str, parameters: dict[str, Any] | None = None) -> ServiceResult[OracleQueryResult]:
         """Execute a SELECT query and return results."""
-        start_time = datetime.now()
+        start_time = datetime.now(UTC)
 
         try:
             async with self.connection_service.get_connection() as conn:
@@ -182,10 +217,10 @@ class OracleQueryService:
                     # Get column names
                     columns = [desc[0] for desc in cursor.description] if cursor.description else []
 
-                    # Convert rows to list of dictionaries
-                    result_rows = [dict(zip(columns, row, strict=False)) for row in rows]
+                    # Keep rows as tuples for compatibility with existing code
+                    result_rows = list(rows)
 
-                    execution_time = (datetime.now() - start_time).total_seconds() * 1000
+                    execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
                     result = OracleQueryResult(
                         rows=result_rows,
@@ -194,12 +229,12 @@ class OracleQueryService:
                         execution_time_ms=execution_time,
                     )
 
-                    logger.info(f"Query executed successfully: {len(result_rows)} rows, {execution_time:.2f}ms")
+                    logger.info("Query executed successfully: %d rows, %.2fms", len(result_rows), execution_time)
                     return ServiceResult.success(result)
 
         except Exception as e:
-            execution_time = (datetime.now() - start_time).total_seconds() * 1000
-            logger.exception(f"Query execution failed after {execution_time:.2f}ms: {e}")
+            execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+            logger.exception("Query execution failed after %.2fms", execution_time)
             return ServiceResult.failure(f"Query execution failed: {e}")
 
     async def execute_scalar(self, sql: str, parameters: dict[str, Any] | None = None) -> ServiceResult[Any]:
@@ -208,12 +243,12 @@ class OracleQueryService:
             result = await self.execute_query(sql, parameters)
             if result.is_success and result.value.row_count > 0:
                 first_row = result.value.rows[0]
-                first_value = next(iter(first_row.values())) if first_row else None
+                first_value = first_row[0] if first_row else None
                 return ServiceResult.success(first_value)
             return ServiceResult.success(None)
 
         except Exception as e:
-            logger.exception(f"Scalar query execution failed: {e}")
+            logger.exception("Scalar query execution failed")
             return ServiceResult.failure(f"Scalar query failed: {e}")
 
 
@@ -221,6 +256,12 @@ class OracleSchemaService:
     """Service for Oracle schema operations."""
 
     def __init__(self, query_service: OracleQueryService) -> None:
+        """Initialize the Oracle schema service.
+
+        Args:
+            query_service: Oracle query service for executing database queries
+
+        """
         self.query_service = query_service
 
     async def get_schema_info(self, schema_name: str) -> ServiceResult[OracleSchemaInfo]:
@@ -235,13 +276,13 @@ class OracleSchemaService:
                 name=schema_name,
                 tables=tables_result.value,
                 table_count=len(tables_result.value),
-                created_date=datetime.now(),  # Would need actual query for real creation date
+                created_date=datetime.now(UTC),  # Would need actual query for real creation date
             )
 
             return ServiceResult.success(schema_info)
 
         except Exception as e:
-            logger.exception(f"Failed to get schema info for {schema_name}: {e}")
+            logger.exception("Failed to get schema info for %s", schema_name)
             return ServiceResult.failure(f"Schema info retrieval failed: {e}")
 
     async def get_schema_tables(self, schema_name: str) -> ServiceResult[list[OracleTableMetadata]]:
@@ -277,7 +318,7 @@ class OracleSchemaService:
             return ServiceResult.success(tables)
 
         except Exception as e:
-            logger.exception(f"Failed to get tables for schema {schema_name}: {e}")
+            logger.exception("Failed to get tables for schema %s", schema_name)
             return ServiceResult.failure(f"Schema tables retrieval failed: {e}")
 
     async def get_table_columns(self, schema_name: str, table_name: str) -> ServiceResult[list[OracleColumnInfo]]:
@@ -322,5 +363,5 @@ class OracleSchemaService:
             return ServiceResult.success(columns)
 
         except Exception as e:
-            logger.exception(f"Failed to get columns for {schema_name}.{table_name}: {e}")
+            logger.exception("Failed to get columns for %s.%s", schema_name, table_name)
             return ServiceResult.failure(f"Table columns retrieval failed: {e}")

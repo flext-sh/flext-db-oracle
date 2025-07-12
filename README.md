@@ -1,298 +1,257 @@
-# Oracle Database Core Shared Library
+# FLEXT DB Oracle
+
+Oracle Database adapter para o framework FLEXT - Ferramentas empresariais para análise, comparação e manutenção de bancos Oracle.
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![FLEXT Framework](https://img.shields.io/badge/framework-FLEXT-green.svg)](https://github.com/flext/flext-core)
 
-Shared Oracle database utilities and core components for the PyAuto framework. This library provides enterprise-grade Oracle database connectivity, schema management, SQL parsing, data comparison, and maintenance tools.
+## Visão Geral
 
-## Features
+O `flext-db-oracle` é um componente do ecossistema FLEXT que fornece funcionalidades avançadas para trabalhar com bancos de dados Oracle. Utiliza a arquitetura limpa do flext-core e oferece ferramentas para análise de schema, comparação de dados, otimização de consultas e monitoramento de saúde.
 
-### 🔌 Database Connectivity
+## Funcionalidades
 
-- **Modern Oracle Support**: Uses `oracledb` (new Oracle Python driver) with optional `cx_Oracle` legacy support
-- **Connection Pooling**: Enterprise connection pool management
-- **Async Support**: Full async/await support for high-performance applications
-- **Security**: Built-in credential management and secure connection handling
+### 🔍 Análise de Schema
 
-### 📊 Schema Management
+- Extração completa de metadados Oracle (tabelas, views, sequences, procedures)
+- Análise de dependências e estruturas complexas
+- Geração automática de DDL
 
-- **Schema Analysis**: Complete Oracle schema introspection and metadata extraction
-- **DDL Generation**: Automated DDL script generation for tables, indexes, constraints
-- **Schema Comparison**: Advanced schema diff and synchronization tools
-- **Migration Support**: Database migration planning and execution utilities
+### 📊 Comparação de Dados
 
-### 🔍 SQL Tools
+- Comparação eficiente entre tabelas e schemas
+- Suporte a grandes volumes com processamento em lotes
+- Detecção de diferenças com algoritmos otimizados
 
-- **SQL Parsing**: Advanced SQL statement parsing and analysis using `sqlparse`
-- **Query Optimization**: SQL performance analysis and optimization suggestions
-- **Execution Plans**: Explain plan analysis and visualization
-- **Statement Validation**: SQL syntax validation and best practices checking
+### ⚡ Otimização de Performance
 
-### 📈 Data Operations
+- Análise de planos de execução Oracle
+- Estatísticas de performance com v$views
+- Sugestões de otimização e índices
 
-- **Data Comparison**: Row-level data comparison between tables/schemas
-- **Bulk Operations**: High-performance bulk insert/update/delete operations
-- **ETL Support**: Extract, Transform, Load utilities for data migration
-- **Data Validation**: Comprehensive data quality and integrity checks
+### 🔧 Monitoramento de Saúde
 
-### 🛠️ Maintenance Tools
+- Verificação de saúde do banco Oracle
+- Análise de tablespaces e sessões
+- Métricas de performance em tempo real
 
-- **Health Monitoring**: Database health checks and performance monitoring
-- **Space Management**: Tablespace and storage analysis
-- **Index Analysis**: Index usage statistics and optimization recommendations
-- **Backup Utilities**: Backup validation and restore testing tools
-
-## Installation
+## Instalação
 
 ```bash
-# Basic installation
-pip install oracledb-core-shared
+# Clone do repositório FLEXT
+git clone https://github.com/flext/flext-db-oracle.git
+cd flext-db-oracle
 
-# With legacy cx_Oracle support
-pip install oracledb-core-shared[legacy]
+# Instalação com Poetry
+poetry install
 
-# With analytics capabilities
-pip install oracledb-core-shared[analytics]
-
-# Full installation with all features
-pip install oracledb-core-shared[full]
-```
-
-## Quick Start
-
-### Basic Connection
-
-```python
-from oracledb_core_shared import OracleConnection, ConnectionConfig
-
-# Configure connection
-config = ConnectionConfig(
-    host="oracle-server.company.com",
-    port=1521,
-    service_name="ORCL",
-    user="app_user",
-    password="secure_password"
-)
-
-# Create connection
-async with OracleConnection(config) as conn:
-    result = await conn.execute("SELECT * FROM user_tables")
-    print(result.fetchall())
-```
-
-### Schema Analysis
-
-```python
-from oracledb_core_shared.schema import SchemaAnalyzer
-
-analyzer = SchemaAnalyzer(connection)
-
-# Get complete schema metadata
-schema_info = await analyzer.analyze_schema("HR")
-
-# Generate DDL for specific table
-ddl = await analyzer.generate_table_ddl("HR", "EMPLOYEES")
-print(ddl)
-```
-
-### Data Comparison
-
-```python
-from oracledb_core_shared.compare import DataComparator
-
-comparator = DataComparator(source_conn, target_conn)
-
-# Compare table data
-differences = await comparator.compare_tables(
-    "HR.EMPLOYEES",
-    "HR_BACKUP.EMPLOYEES"
-)
-
-# Generate sync script
-sync_script = comparator.generate_sync_sql(differences)
-```
-
-## CLI Tools
-
-The library includes several command-line utilities:
-
-```bash
-# Schema operations
-oracle-schema analyze --schema HR --output schema_report.json
-oracle-schema compare --source-schema HR --target-schema HR_BACKUP
-
-# Data comparison
-oracle-compare tables --source HR.EMPLOYEES --target HR_BACKUP.EMPLOYEES
-oracle-compare schemas --source HR --target HR_TEST
-
-# Maintenance operations
-oracle-maintenance health-check --output health_report.json
-oracle-maintenance analyze-indexes --schema HR
-oracle-maintenance cleanup-temp-objects
-```
-
-## Documentation
-
-Comprehensive documentation is available in the `/docs` directory:
-
-- **[Getting Started](docs/getting-started.md)**: Installation and basic usage
-- **[API Reference](docs/api-reference/)**: Complete API documentation
-- **[Schema Tools](docs/schema-tools.md)**: Schema management and analysis
-- **[Data Operations](docs/data-operations.md)**: Data comparison and migration
-- **[Maintenance](docs/maintenance.md)**: Database maintenance utilities
-- **[Oracle Resources](docs/oracle-resources/)**: Official Oracle documentation and tools
-
-### Oracle Official Documentation
-
-The `docs/oracle-resources/` directory contains:
-
-- Oracle Database documentation (HTML downloads)
-- SQL Language Reference
-- PL/SQL Developer's Guide
-- Database Administrator's Guide
-- Performance Tuning Guide
-- Security Guide
-
-## Configuration
-
-### Environment Variables
-
-```bash
-# Database connection
-ORACLE_HOST=oracle-server.company.com
-ORACLE_PORT=1521
-ORACLE_SERVICE_NAME=ORCL
-ORACLE_USER=app_user
-ORACLE_PASSWORD=secure_password
-
-# Connection pool settings
-ORACLE_POOL_MIN=5
-ORACLE_POOL_MAX=20
-ORACLE_POOL_INCREMENT=5
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FORMAT=json
-```
-
-### Configuration File
-
-```yaml
-# oracle-config.yaml
-database:
-  host: oracle-server.company.com
-  port: 1521
-  service_name: ORCL
-  user: app_user
-  password_env: ORACLE_PASSWORD
-
-connection_pool:
-  min_connections: 5
-  max_connections: 20
-  increment: 5
-
-schema_analysis:
-  include_system_objects: false
-  analyze_dependencies: true
-  generate_statistics: true
-
-comparison:
-  batch_size: 10000
-  ignore_columns: ["CREATED_DATE", "MODIFIED_DATE"]
-  case_sensitive: true
-```
-
-## Development
-
-### Setup Development Environment
-
-```bash
-git clone https://github.com/pyauto/oracledb-core-shared.git
-cd oracledb-core-shared
-poetry install --with dev,docs,testing
+# Ativação do ambiente
 poetry shell
 ```
 
-### Running Tests
+## Uso Básico
+
+### Configuração
+
+```python
+from flext_db_oracle.config import OracleConfig
+
+config = OracleConfig(
+    username="usuario",
+    password="senha",
+    service_name="ORCL",
+    host="localhost",
+    port=1521
+)
+```
+
+### Análise de Schema
+
+```python
+from flext_db_oracle.application.services import OracleConnectionService
+from flext_db_oracle.schema.analyzer import SchemaAnalyzer
+
+# Conectar ao Oracle
+connection_service = OracleConnectionService(config)
+analyzer = SchemaAnalyzer(connection_service)
+
+# Analisar schema
+result = await analyzer.analyze_schema("HR")
+if result.is_success:
+    schema_data = result.value
+    print(f"Encontradas {len(schema_data['tables'])} tabelas")
+```
+
+### Comparação de Dados
+
+```python
+from flext_db_oracle.compare.differ import DataDiffer
+
+differ = DataDiffer()
+
+# Comparar dados entre tabelas
+result = await differ.compare_table_data(
+    source_connection, 
+    target_connection, 
+    "EMPLOYEES", 
+    ["EMPLOYEE_ID"]
+)
+
+if result.is_success:
+    differences = result.value
+    print(f"Encontradas {len(differences)} diferenças")
+```
+
+### Geração de DDL
+
+```python
+from flext_db_oracle.schema.ddl import DDLGenerator
+
+generator = DDLGenerator(include_comments=True)
+
+# Gerar DDL para tabela
+result = await generator.generate_table_ddl(table_metadata)
+if result.is_success:
+    ddl_script = result.value
+    print(ddl_script)
+```
+
+### Monitoramento de Saúde
+
+```python
+from flext_db_oracle.maintenance.health import HealthChecker
+
+health_checker = HealthChecker(connection_service)
+
+# Verificar saúde geral
+result = await health_checker.check_overall_health()
+if result.is_success:
+    health = result.value
+    print(f"Status: {health.overall_status}")
+```
+
+## API Simples
+
+Para uso direto sem configuração complexa:
+
+```python
+from flext_db_oracle.simple_api import setup_oracle_db
+
+# Configuração automática
+result = setup_oracle_db()
+if result.is_success:
+    config = result.value
+    print("Oracle configurado com sucesso")
+```
+
+## CLI
+
+Ferramentas de linha de comando para operações rápidas:
 
 ```bash
-# Unit tests
-pytest tests/unit
+# Verificar conexão
+python -m flext_db_oracle.cli.main test-connection
 
-# Integration tests (requires Oracle database)
-pytest tests/integration
+# Analisar schema
+python -m flext_db_oracle.cli.main analyze-schema --schema HR
 
-# All tests with coverage
-pytest --cov=oracledb_core_shared --cov-report=html
+# Verificar saúde do banco
+python -m flext_db_oracle.cli.main health-check
 ```
 
-### Code Quality
+## Estrutura do Projeto
+
+```
+src/flext_db_oracle/
+├── application/          # Serviços de aplicação
+├── cli/                 # Interface de linha de comando
+├── compare/             # Ferramentas de comparação
+├── connection/          # Gerenciamento de conexões
+├── domain/              # Modelos de domínio
+├── maintenance/         # Ferramentas de manutenção
+├── schema/              # Análise e DDL de schema
+├── sql/                 # Otimização e parsing SQL
+└── utils/               # Utilitários compartilhados
+```
+
+## Integração FLEXT
+
+Este projeto utiliza:
+
+- **flext-core**: Fundação com ServiceResult e patterns DDD
+- **flext-observability**: Logging estruturado e métricas
+- **Arquitetura limpa**: Separação clara entre domínio e infraestrutura
+
+## Configuração de Ambiente
 
 ```bash
-# Linting and formatting
-ruff check src tests
-black src tests
-mypy src
+# Variáveis Oracle
+export ORACLE_USERNAME=usuario
+export ORACLE_PASSWORD=senha
+export ORACLE_SERVICE_NAME=ORCL
+export ORACLE_HOST=localhost
+export ORACLE_PORT=1521
 
-# Security scan
-bandit -r src
-
-# Pre-commit hooks
-pre-commit run --all-files
+# Configurações FLEXT
+export FLEXT_LOG_LEVEL=INFO
+export FLEXT_ENVIRONMENT=development
 ```
 
-## Contributing
+## Desenvolvimento
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### Executar Testes
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+```bash
+# Testes unitários
+pytest tests/unit/ -v
 
-## Architecture
+# Testes de integração (requer Oracle)
+export ORACLE_INTEGRATION_TESTS=1
+pytest tests/integration/ -v
 
-The library follows a modular architecture:
-
-```
-oracledb_core_shared/
-├── connection/          # Database connection management
-├── schema/             # Schema analysis and DDL generation
-├── compare/            # Data and schema comparison tools
-├── maintenance/        # Database maintenance utilities
-├── sql/               # SQL parsing and optimization
-├── utils/             # Common utilities and helpers
-└── cli/               # Command-line interfaces
+# Cobertura
+pytest --cov=flext_db_oracle --cov-report=html
 ```
 
-## Performance
+### Qualidade de Código
 
-- **Connection Pooling**: Supports up to 100 concurrent connections
-- **Bulk Operations**: Optimized for large dataset operations (1M+ rows)
-- **Memory Efficient**: Streaming data processing for minimal memory footprint
-- **Async Support**: Non-blocking operations for high-throughput applications
+```bash
+# Linting
+ruff check src/ tests/
 
-## Security
+# Verificação de tipos
+mypy src/
 
-- **Credential Management**: Secure credential storage and rotation
-- **SQL Injection Prevention**: Parameterized queries and input validation
-- **Connection Encryption**: TLS/SSL support for secure connections
-- **Audit Logging**: Comprehensive audit trail for all operations
+# Formatação
+ruff format src/ tests/
+```
 
-## License
+### Requisitos
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+- Python 3.13+
+- Oracle Database 19c+ ou Oracle XE
+- Driver `oracledb` (moderno Python driver da Oracle)
+- Dependências FLEXT (flext-core, flext-observability)
 
-## Support
+## Contribuição
 
-- **Documentation**: [https://pyauto.github.io/oracledb-core-shared](https://pyauto.github.io/oracledb-core-shared)
-- **Issues**: [GitHub Issues](https://github.com/pyauto/oracledb-core-shared/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/pyauto/oracledb-core-shared/discussions)
+1. Faça fork do repositório
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
+3. Implemente seguindo os padrões FLEXT
+4. Adicione testes apropriados
+5. Execute verificações de qualidade
+6. Submeta um pull request
 
-## Acknowledgments
+## Licença
 
-- Oracle Corporation for the official `oracledb` Python driver
-- The Python community for excellent database and async libraries
-- Contributors and maintainers of the PyAuto framework
+Este projeto é parte do framework FLEXT e segue a mesma licença.
+
+## Suporte
+
+- **Issues**: [GitHub Issues](https://github.com/flext/flext-db-oracle/issues)
+- **Documentação FLEXT**: Framework principal
+- **Oracle Docs**: Documentação oficial Oracle disponível em `docs/oracle-resources/`
+
+---
+
+**Parte do ecossistema FLEXT** - Ferramentas empresariais para desenvolvimento e integração.

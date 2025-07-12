@@ -9,7 +9,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from argparse import Namespace
 
 from flext_db_oracle.connection.config import ConnectionConfig
 from flext_db_oracle.connection.connection import OracleConnection
@@ -19,7 +22,7 @@ from flext_observability.logging import get_logger
 logger = get_logger(__name__)
 
 
-def test_connection(args: Any) -> int:
+def test_connection(args: Namespace) -> int:
     """Test Oracle database connection."""
     logger.info("🔍 Testing Oracle database connection...")
 
@@ -39,26 +42,30 @@ def test_connection(args: Any) -> int:
         conn = OracleConnection(config)
         conn.connect()
 
-        if conn.is_connected:
-            result = conn.fetch_one("SELECT 1 FROM DUAL")
-            if result:
-                logger.info("✅ Connection successful!")
-                logger.info("📊 Connection details:")
-                logger.info(f"   Host: {config.host}:{config.port}")
-                logger.info(f"   Service: {config.service_name or config.sid}")
-                logger.info(f"   User: {config.username}")
-                conn.disconnect()
-                return 0
+        if not conn.is_connected:
+            logger.error("❌ Connection test failed: Could not establish connection")
+            return 1
 
-        logger.error("❌ Connection test failed: No result from test query")
+        result = conn.fetch_one("SELECT 1 FROM DUAL")
+        if not result:
+            logger.error("❌ Connection test failed: No result from test query")
+            return 1
+
+        logger.info("✅ Connection successful!")
+        logger.info("📊 Connection details:")
+        logger.info("   Host: %s:%d", config.host, config.port)
+        logger.info("   Service: %s", config.service_name or config.sid)
+        logger.info("   User: %s", config.username)
+        conn.disconnect()
+
+    except Exception:
+        logger.exception("❌ Connection failed")
         return 1
-
-    except Exception as e:
-        logger.exception("❌ Connection failed: %s", e)
-        return 1
+    else:
+        return 0
 
 
-def list_tables(args: Any) -> int:
+def list_tables(args: Namespace) -> int:
     """List tables in Oracle database."""
     try:
         logger.info("📋 Listing database tables...")
@@ -90,6 +97,10 @@ def list_tables(args: Any) -> int:
 
         results = conn.fetch_all(sql, {"schema": schema})
 
+    except Exception:
+        logger.exception("❌ Failed to list tables")
+        return 1
+    else:
         if results:
             logger.info("📋 Found %d tables in schema %s:", len(results), schema)
             logger.info("%-30s %-15s %s", "TABLE NAME", "ROWS", "TABLESPACE")
@@ -106,12 +117,8 @@ def list_tables(args: Any) -> int:
         conn.disconnect()
         return 0
 
-    except Exception as e:
-        logger.exception("❌ Failed to list tables: %s", e)
-        return 1
 
-
-def describe_table(args: Any) -> int:
+def describe_table(args: Namespace) -> int:
     """Describe table structure."""
     try:
         logger.info("📊 Describing table structure...")
@@ -145,6 +152,10 @@ def describe_table(args: Any) -> int:
 
         results = conn.fetch_all(sql, {"table_name": table_name, "schema": schema})
 
+    except Exception:
+        logger.exception("❌ Failed to describe table")
+        return 1
+    else:
         if results:
             logger.info("📊 Table structure for %s.%s:", schema, table_name)
             logger.info("%-30s %-15s %-10s %-8s %-10s",
@@ -177,13 +188,9 @@ def describe_table(args: Any) -> int:
         conn.disconnect()
         return 0
 
-    except Exception as e:
-        logger.exception("❌ Failed to describe table: %s", e)
-        return 1
-
 
 def setup_parser() -> argparse.ArgumentParser:
-    """Setup command line argument parser."""
+    """Set up command line argument parser."""
     parser = argparse.ArgumentParser(
         description="FLEXT DB Oracle - Enterprise Oracle Database Utilities",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -219,7 +226,7 @@ def setup_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Main CLI entry point."""
+    """Run main CLI entry point."""
     try:
         parser = setup_parser()
         args = parser.parse_args()
@@ -242,8 +249,8 @@ def main() -> int:
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")
         return 130
-    except Exception as e:
-        logger.exception("❌ Unexpected error: %s", e)
+    except Exception:
+        logger.exception("❌ Unexpected error")
         return 1
 
 

@@ -7,10 +7,13 @@ All models extend flext-core base classes for consistency.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from pydantic import Field, field_validator
+
+if TYPE_CHECKING:
+    from pydantic import ValidationInfo
 
 from flext_core import (
     DomainEntity,
@@ -31,9 +34,14 @@ class OracleConnectionInfo(DomainValueObject):
 
     @field_validator("service_name", "sid")
     @classmethod
-    def validate_service_or_sid(cls, v, info):
+    def validate_service_or_sid(cls, v: str | None, info: ValidationInfo) -> str | None:
         """At least one of service_name or sid must be provided."""
-        if info.data and not v and not info.data.get("service_name") and not info.data.get("sid"):
+        if (
+            info.data
+            and not v
+            and not info.data.get("service_name")
+            and not info.data.get("sid")
+        ):
             msg = "Either service_name or sid must be provided"
             raise ValueError(msg)
         return v
@@ -55,8 +63,12 @@ class OracleColumnInfo(DomainValueObject):
     max_length: int | None = Field(None, description="Maximum character length")
     precision: int | None = Field(None, description="Numeric precision")
     scale: int | None = Field(None, description="Numeric scale")
-    is_primary_key: bool = Field(default=False, description="Whether column is primary key")
-    is_foreign_key: bool = Field(default=False, description="Whether column is foreign key")
+    is_primary_key: bool = Field(
+        default=False, description="Whether column is primary key",
+    )
+    is_foreign_key: bool = Field(
+        default=False, description="Whether column is foreign key",
+    )
     comments: str | None = Field(None, description="Column comments")
 
 
@@ -66,7 +78,9 @@ class OracleTableMetadata(DomainEntity):
     id: EntityId = Field(default_factory=uuid4)
     schema_name: str = Field(..., description="Schema name")
     table_name: str = Field(..., description="Table name")
-    columns: list[OracleColumnInfo] = Field(default_factory=list, description="Table columns")
+    columns: list[OracleColumnInfo] = Field(
+        default_factory=list, description="Table columns",
+    )
     row_count: int | None = Field(None, ge=0, description="Approximate row count")
     tablespace: str | None = Field(None, description="Tablespace name")
     comments: str | None = Field(None, description="Table comments")
@@ -87,7 +101,9 @@ class OracleSchemaInfo(DomainValueObject):
     """Oracle schema information."""
 
     name: str = Field(..., description="Schema name")
-    tables: list[OracleTableMetadata] = Field(default_factory=list, description="Schema tables")
+    tables: list[OracleTableMetadata] = Field(
+        default_factory=list, description="Schema tables",
+    )
     table_count: int = Field(0, ge=0, description="Number of tables")
     created_date: datetime | None = Field(None, description="Schema creation date")
 
@@ -100,19 +116,25 @@ class OracleSchemaInfo(DomainValueObject):
 class OracleQueryResult(DomainValueObject):
     """Result of Oracle query execution."""
 
-    rows: list[dict[str, Any]] = Field(default_factory=list, description="Query result rows")
+    rows: list[tuple[Any, ...]] = Field(
+        default_factory=list, description="Query result rows as tuples",
+    )
     row_count: int = Field(0, ge=0, description="Number of rows returned")
     columns: list[str] = Field(default_factory=list, description="Column names")
-    execution_time_ms: float = Field(0.0, ge=0, description="Query execution time in milliseconds")
+    execution_time_ms: float = Field(
+        0.0, ge=0, description="Query execution time in milliseconds",
+    )
 
     @property
     def is_empty(self) -> bool:
         """Check if query returned no rows."""
         return self.row_count == 0
 
-    def get_column_values(self, column_name: str) -> list[Any]:
-        """Get all values for a specific column."""
-        return [row.get(column_name) for row in self.rows if column_name in row]
+    def get_column_values(self, column_index: int) -> list[Any]:
+        """Get all values for a specific column by index."""
+        return [
+            row[column_index] if column_index < len(row) else None for row in self.rows
+        ]
 
 
 class OracleConnectionStatus(DomainValueObject):
@@ -123,8 +145,12 @@ class OracleConnectionStatus(DomainValueObject):
     port: int = Field(..., description="Database port")
     database: str = Field(..., description="Database name/service")
     username: str = Field(..., description="Connected username")
-    last_check: datetime = Field(default_factory=datetime.now, description="Last status check")
-    error_message: str | None = Field(None, description="Error message if connection failed")
+    last_check: datetime = Field(
+        default_factory=datetime.now, description="Last status check",
+    )
+    error_message: str | None = Field(
+        None, description="Error message if connection failed",
+    )
 
     @property
     def connection_info(self) -> str:

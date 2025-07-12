@@ -25,6 +25,12 @@ class ConnectionPool:
     """
 
     def __init__(self, config: ConnectionConfig) -> None:
+        """Initialize the connection pool.
+
+        Args:
+            config: Oracle database connection configuration
+
+        """
         self.config = config
         self._pool: Any = None
         self._is_initialized = False
@@ -50,8 +56,8 @@ class ConnectionPool:
                 self.config.pool_increment,
             )
 
-        except Exception as e:
-            logger.exception("Failed to initialize connection pool: %s", e)
+        except Exception:
+            logger.exception("Failed to initialize connection pool")
             raise
 
     def close(self) -> None:
@@ -61,8 +67,8 @@ class ConnectionPool:
                 self._pool.close()
                 self._is_initialized = False
                 logger.info("Closed Oracle connection pool")
-            except Exception as e:
-                logger.exception("Error closing connection pool: %s", e)
+            except Exception:
+                logger.exception("Error closing connection pool")
 
         self._pool = None
 
@@ -94,7 +100,7 @@ class ConnectionPool:
             if connection and self._pool:
                 self._pool.release(connection)
 
-    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
+    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any] | int:
         """Execute SQL statement."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -122,7 +128,7 @@ class ConnectionPool:
             finally:
                 cursor.close()
 
-    def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
+    def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> tuple[Any, ...] | None:
         """Fetch one row from SQL query."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -188,8 +194,8 @@ class ConnectionPool:
                     "busy": self._pool.busy,
                 })
 
-            return stats
-
         except Exception as e:
-            logger.exception("Error getting pool stats: %s", e)
+            logger.exception("Error getting pool stats")
             return {"status": "error", "error": str(e)}
+        else:
+            return stats

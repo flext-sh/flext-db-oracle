@@ -5,9 +5,14 @@ Using flext-core BaseConfig patterns for consistent configuration management.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import ConfigDict, Field, field_validator
 
 from flext_core import BaseConfig
+
+if TYPE_CHECKING:
+    from pydantic import ValidationInfo
 
 
 class OracleConfig(BaseConfig):
@@ -29,29 +34,34 @@ class OracleConfig(BaseConfig):
 
     # Query settings
     query_timeout: int = Field(30, ge=1, description="Query timeout in seconds")
-    fetch_size: int = Field(1000, ge=1, description="Default fetch size for large queries")
+    fetch_size: int = Field(
+        1000, ge=1, description="Default fetch size for large queries",
+    )
 
     # Connection settings
     connect_timeout: int = Field(10, ge=1, description="Connection timeout in seconds")
     retry_attempts: int = Field(3, ge=0, description="Connection retry attempts")
-    retry_delay: float = Field(1.0, ge=0, description="Delay between retries in seconds")
+    retry_delay: float = Field(
+        1.0, ge=0, description="Delay between retries in seconds",
+    )
 
-    @field_validator("service_name", "sid", mode="before")
+    @field_validator("service_name", mode="after")
     @classmethod
-    def validate_service_or_sid(cls, v, info):
+    def validate_service_or_sid(cls, v: str | None, info: ValidationInfo) -> str | None:
         """Ensure either service_name or sid is provided."""
         if info.data:
-            service_name = info.data.get("service_name")
+            service_name = v  # Current field being validated
             sid = info.data.get("sid")
 
-            if not service_name and not sid and not v:
+            # If neither service_name nor sid has a value, raise error
+            if not service_name and not sid:
                 msg = "Either service_name or sid must be provided"
                 raise ValueError(msg)
         return v
 
     @field_validator("pool_max_size")
     @classmethod
-    def validate_pool_max_greater_than_min(cls, v, info):
+    def validate_pool_max_greater_than_min(cls, v: int, info: ValidationInfo) -> int:
         """Ensure max pool size is greater than or equal to min."""
         if info.data:
             min_size = info.data.get("pool_min_size", 1)

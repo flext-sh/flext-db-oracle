@@ -7,14 +7,16 @@ from __future__ import annotations
 
 from typing import Any
 
-from flext_core.domain.types import ServiceResult
+from oracledb import DatabaseError, InterfaceError, OperationalError
+
+from flext_core import ServiceResult
 from flext_db_oracle.application.services import OracleConnectionService
 from flext_db_oracle.config import OracleConfig
 from flext_observability.logging import setup_logging
 
 
 def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleConfig]:
-    """Setup Oracle database configuration using flext-core patterns.
+    """Set up Oracle database configuration using flext-core patterns.
 
     Args:
         config: Optional OracleConfig instance. If None, creates default config.
@@ -32,11 +34,13 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleC
 
         return ServiceResult.success(config)
 
-    except Exception as e:
+    except (ValueError, TypeError, ImportError) as e:
         return ServiceResult.failure(f"Failed to setup Oracle DB: {e}")
 
 
-def create_connection_service(config: OracleConfig) -> ServiceResult[OracleConnectionService]:
+def create_connection_service(
+    config: OracleConfig,
+) -> ServiceResult[OracleConnectionService]:
     """Create Oracle connection service from config.
 
     Args:
@@ -50,7 +54,7 @@ def create_connection_service(config: OracleConfig) -> ServiceResult[OracleConne
         service = OracleConnectionService(config)
         return ServiceResult.success(service)
 
-    except Exception as e:
+    except (ValueError, TypeError, AttributeError) as e:
         return ServiceResult.failure(f"Failed to create connection service: {e}")
 
 
@@ -67,14 +71,16 @@ def test_connection(config: OracleConfig) -> ServiceResult[bool]:
     try:
         service_result = create_connection_service(config)
         if not service_result.is_success:
-            return ServiceResult.failure(f"Connection test failed: {service_result.error}")
+            return ServiceResult.failure(
+                f"Connection test failed: {service_result.error}",
+            )
 
         service = service_result.value
 
         # Test connection using service
         return service.test_connection()
 
-    except Exception as e:
+    except (DatabaseError, InterfaceError, OperationalError) as e:
         return ServiceResult.failure(f"Connection test failed: {e}")
 
 
@@ -91,12 +97,14 @@ def get_database_info(config: OracleConfig) -> ServiceResult[dict[str, Any]]:
     try:
         service_result = create_connection_service(config)
         if not service_result.is_success:
-            return ServiceResult.failure(f"Failed to get DB info: {service_result.error}")
+            return ServiceResult.failure(
+                f"Failed to get DB info: {service_result.error}",
+            )
 
         service = service_result.value
 
         # Get database info using service
         return service.get_database_info()
 
-    except Exception as e:
+    except (DatabaseError, InterfaceError, OperationalError) as e:
         return ServiceResult.failure(f"Failed to get database info: {e}")

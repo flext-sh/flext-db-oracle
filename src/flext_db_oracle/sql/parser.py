@@ -16,6 +16,9 @@ from flext_observability.logging import get_logger
 
 logger = get_logger(__name__)
 
+# Constants
+MAX_SQL_LENGTH_WARNING = 10000
+
 
 class ParsedStatement(DomainValueObject):
     """Represents a parsed SQL statement."""
@@ -23,9 +26,15 @@ class ParsedStatement(DomainValueObject):
     statement_type: str = Field(..., description="Type of SQL statement")
     sql_text: str = Field(..., description="Original SQL text")
     is_valid: bool = Field(default=True, description="Whether the SQL is valid")
-    tables: list[str] = Field(default_factory=list, description="Referenced table names")
-    columns: list[str] = Field(default_factory=list, description="Referenced column names")
-    where_conditions: list[str] = Field(default_factory=list, description="WHERE clause conditions")
+    tables: list[str] = Field(
+        default_factory=list, description="Referenced table names",
+    )
+    columns: list[str] = Field(
+        default_factory=list, description="Referenced column names",
+    )
+    where_conditions: list[str] = Field(
+        default_factory=list, description="WHERE clause conditions",
+    )
     joins: list[str] = Field(default_factory=list, description="JOIN clauses")
     complexity_score: int = Field(0, description="Statement complexity score", ge=0)
 
@@ -49,6 +58,10 @@ class SQLParser:
     """Parses and analyzes Oracle SQL statements using flext-core patterns."""
 
     def __init__(self) -> None:
+        """Initialize the SQL parser.
+
+        Sets up regex patterns for parsing SQL statements and extracting components.
+        """
         # SQL keyword patterns
         self.statement_patterns = {
             "SELECT": re.compile(r"^\s*SELECT\s+", re.IGNORECASE),
@@ -62,10 +75,22 @@ class SQLParser:
 
         # Table name extraction patterns
         self.table_patterns = {
-            "FROM": re.compile(r"\bFROM\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)", re.IGNORECASE),
-            "JOIN": re.compile(r"\bJOIN\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)", re.IGNORECASE),
-            "UPDATE": re.compile(r"^\s*UPDATE\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)", re.IGNORECASE),
-            "INSERT": re.compile(r"^\s*INSERT\s+INTO\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)", re.IGNORECASE),
+            "FROM": re.compile(
+                r"\bFROM\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
+                re.IGNORECASE,
+            ),
+            "JOIN": re.compile(
+                r"\bJOIN\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
+                re.IGNORECASE,
+            ),
+            "UPDATE": re.compile(
+                r"^\s*UPDATE\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
+                re.IGNORECASE,
+            ),
+            "INSERT": re.compile(
+                r"^\s*INSERT\s+INTO\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)?)",
+                re.IGNORECASE,
+            ),
         }
 
     async def parse_statement(self, sql: str) -> ServiceResult[ParsedStatement]:
@@ -90,7 +115,9 @@ class SQLParser:
             joins = self._extract_joins(sql)
 
             # Calculate complexity
-            complexity = self._calculate_complexity(sql, tables, joins, where_conditions)
+            complexity = self._calculate_complexity(
+                sql, tables, joins, where_conditions,
+            )
 
             parsed = ParsedStatement(
                 statement_type=statement_type,
@@ -135,17 +162,23 @@ class SQLParser:
         columns = []
 
         # Extract from SELECT clause
-        select_match = re.search(r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL)
+        select_match = re.search(
+            r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL,
+        )
         if select_match:
             select_clause = select_match.group(1)
             # Simple column extraction (would need more sophisticated parsing)
             column_parts = select_clause.split(",")
             for part in column_parts:
-                part = part.strip()
-                if part and part != "*":
+                clean_part = part.strip()
+                if clean_part and clean_part != "*":
                     # Extract just the column name (remove aliases, functions)
-                    column_name = re.sub(r"\s+AS\s+.*", "", part, flags=re.IGNORECASE)
-                    column_name = re.sub(r".*\.", "", column_name)  # Remove table prefix
+                    column_name = re.sub(
+                        r"\s+AS\s+.*", "", clean_part, flags=re.IGNORECASE,
+                    )
+                    column_name = re.sub(
+                        r".*\.", "", column_name,
+                    )  # Remove table prefix
                     columns.append(column_name.strip())
 
         return columns
@@ -155,11 +188,17 @@ class SQLParser:
         conditions = []
 
         # Extract WHERE clause
-        where_match = re.search(r"\bWHERE\s+(.*?)(?:\s+(?:GROUP\s+BY|ORDER\s+BY|HAVING|$))", sql, re.IGNORECASE | re.DOTALL)
+        where_match = re.search(
+            r"\bWHERE\s+(.*?)(?:\s+(?:GROUP\s+BY|ORDER\s+BY|HAVING|$))",
+            sql,
+            re.IGNORECASE | re.DOTALL,
+        )
         if where_match:
             where_clause = where_match.group(1).strip()
             # Split on AND/OR (simple approach)
-            condition_parts = re.split(r"\s+(?:AND|OR)\s+", where_clause, flags=re.IGNORECASE)
+            condition_parts = re.split(
+                r"\s+(?:AND|OR)\s+", where_clause, flags=re.IGNORECASE,
+            )
             conditions = [cond.strip() for cond in condition_parts if cond.strip()]
 
         return conditions
@@ -253,15 +292,16 @@ class SQLParser:
                 validation_result["errors"].append("Invalid SQL statement type")
 
             # Check for required clauses
-            if statement_type == "SELECT":
-                if not re.search(r"\bFROM\b", sql, re.IGNORECASE):
-                    validation_result["warnings"].append("SELECT without FROM clause")
+            if statement_type == "SELECT" and not re.search(
+                r"\bFROM\b", sql, re.IGNORECASE,
+            ):
+                validation_result["warnings"].append("SELECT without FROM clause")
 
             # Check for potential issues
             if re.search(r"SELECT\s+\*", sql, re.IGNORECASE):
                 validation_result["warnings"].append("SELECT * may impact performance")
 
-            if len(sql) > 10000:
+            if len(sql) > MAX_SQL_LENGTH_WARNING:
                 validation_result["warnings"].append("Very long SQL statement")
 
             logger.info("SQL syntax validation completed")
@@ -276,7 +316,7 @@ class SQLParser:
         try:
             # Parse the statement
             parse_result = await self.parse_statement(sql)
-            if parse_result.is_failure:
+            if parse_result.is_success:
                 return parse_result
 
             parsed = parse_result.value

@@ -6,7 +6,7 @@ Uses ServiceResult pattern and modern Python 3.13 typing.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from flext_core import ServiceResult
 from flext_observability.logging import get_logger
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
         ColumnMetadata,
         ConstraintMetadata,
         IndexMetadata,
+        SchemaMetadata,
         TableMetadata,
     )
 
@@ -25,14 +26,22 @@ logger = get_logger(__name__)
 class DDLGenerator:
     """Generates Oracle DDL statements from metadata using flext-core patterns."""
 
-    def __init__(self, include_comments: bool = True) -> None:
+    def __init__(self, *, include_comments: bool = True) -> None:
+        """Initialize the DDL generator.
+
+        Args:
+            include_comments: Whether to include table and column comments in generated DDL
+
+        """
         self.include_comments = include_comments
 
     async def generate_table_ddl(self, table: TableMetadata) -> ServiceResult[str]:
         """Generate CREATE TABLE DDL statement."""
         try:
             if not table.columns:
-                return ServiceResult.failure(f"Table {table.name} has no columns defined")
+                return ServiceResult.failure(
+                    f"Table {table.name} has no columns defined",
+                )
 
             lines = []
 
@@ -44,7 +53,7 @@ class DDLGenerator:
             column_ddl = []
             for col in table.columns:
                 col_def_result = await self._generate_column_definition(col)
-                if col_def_result.is_failure:
+                if not col_def_result.is_success:
                     return col_def_result
                 column_ddl.append(f"    {col_def_result.value}")
 
@@ -76,10 +85,12 @@ class DDLGenerator:
             return ServiceResult.success(ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate table DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate table DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate table DDL: {e}")
 
-    async def generate_constraints_ddl(self, table: TableMetadata) -> ServiceResult[list[str]]:
+    async def generate_constraints_ddl(
+        self, table: TableMetadata,
+    ) -> ServiceResult[list[str]]:
         """Generate constraint DDL statements."""
         try:
             if not table.constraints:
@@ -92,16 +103,24 @@ class DDLGenerator:
                 if ddl_result.is_success:
                     statements.append(ddl_result.value)
                 else:
-                    logger.warning("Failed to generate constraint DDL: %s", ddl_result.error)
+                    logger.warning(
+                        "Failed to generate constraint DDL: %s", ddl_result.error,
+                    )
 
-            logger.info("Generated %d constraint DDL statements for table: %s", len(statements), table.name)
+            logger.info(
+                "Generated %d constraint DDL statements for table: %s",
+                len(statements),
+                table.name,
+            )
             return ServiceResult.success(statements)
 
         except Exception as e:
-            logger.exception("Failed to generate constraints DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate constraints DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate constraints DDL: {e}")
 
-    async def generate_indexes_ddl(self, table: TableMetadata) -> ServiceResult[list[str]]:
+    async def generate_indexes_ddl(
+        self, table: TableMetadata,
+    ) -> ServiceResult[list[str]]:
         """Generate index DDL statements."""
         try:
             if not table.indexes:
@@ -120,11 +139,15 @@ class DDLGenerator:
                 else:
                     logger.warning("Failed to generate index DDL: %s", ddl_result.error)
 
-            logger.info("Generated %d index DDL statements for table: %s", len(statements), table.name)
+            logger.info(
+                "Generated %d index DDL statements for table: %s",
+                len(statements),
+                table.name,
+            )
             return ServiceResult.success(statements)
 
         except Exception as e:
-            logger.exception("Failed to generate indexes DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate indexes DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate indexes DDL: {e}")
 
     async def generate_complete_ddl(self, table: TableMetadata) -> ServiceResult[str]:
@@ -134,7 +157,7 @@ class DDLGenerator:
 
             # Table DDL
             table_result = await self.generate_table_ddl(table)
-            if table_result.is_failure:
+            if not table_result.is_success:
                 return table_result
             all_ddl.append(table_result.value)
 
@@ -154,10 +177,12 @@ class DDLGenerator:
             return ServiceResult.success(complete_ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate complete DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate complete DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate complete DDL: {e}")
 
-    async def _generate_column_definition(self, column: ColumnMetadata) -> ServiceResult[str]:
+    async def _generate_column_definition(
+        self, column: ColumnMetadata,
+    ) -> ServiceResult[str]:
         """Generate column definition part of DDL."""
         try:
             parts = [column.name]
@@ -178,7 +203,9 @@ class DDLGenerator:
             # Default value
             if column.default_value is not None:
                 if column.data_type.upper() in {"VARCHAR2", "CHAR", "CLOB"}:
-                    parts.append(f"DEFAULT '{self._escape_string(column.default_value)}'")
+                    parts.append(
+                        f"DEFAULT '{self._escape_string(column.default_value)}'",
+                    )
                 else:
                     parts.append(f"DEFAULT {column.default_value}")
 
@@ -190,7 +217,7 @@ class DDLGenerator:
             return ServiceResult.success(column_def)
 
         except Exception as e:
-            logger.exception("Failed to generate column definition for %s: %s", column.name, e)
+            logger.exception("Failed to generate column definition for %s", column.name)
             return ServiceResult.failure(f"Failed to generate column definition: {e}")
 
     async def _generate_constraint_ddl(
@@ -202,24 +229,26 @@ class DDLGenerator:
         try:
             table_name = f"{table.schema_name}.{table.name}"
 
-            if constraint.constraint_type.value == "PRIMARY_KEY":
+            if constraint.constraint_type == "PRIMARY_KEY":
                 columns = ", ".join(constraint.column_names)
                 ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({columns})"
 
-            elif constraint.constraint_type.value == "FOREIGN_KEY":
+            elif constraint.constraint_type == "FOREIGN_KEY":
                 columns = ", ".join(constraint.column_names)
                 ref_columns = ", ".join(constraint.referenced_columns)
                 ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} FOREIGN KEY ({columns}) REFERENCES {constraint.referenced_table} ({ref_columns})"
 
-            elif constraint.constraint_type.value == "UNIQUE":
+            elif constraint.constraint_type == "UNIQUE":
                 columns = ", ".join(constraint.column_names)
                 ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} UNIQUE ({columns})"
 
-            elif constraint.constraint_type.value == "CHECK":
+            elif constraint.constraint_type == "CHECK":
                 ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.check_condition})"
 
             else:
-                return ServiceResult.failure(f"Unsupported constraint type: {constraint.constraint_type}")
+                return ServiceResult.failure(
+                    f"Unsupported constraint type: {constraint.constraint_type}",
+                )
 
             # Add deferrable clause if needed
             if constraint.deferrable:
@@ -232,7 +261,9 @@ class DDLGenerator:
             return ServiceResult.success(ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate constraint DDL for %s: %s", constraint.name, e)
+            logger.exception(
+                "Failed to generate constraint DDL for %s", constraint.name,
+            )
             return ServiceResult.failure(f"Failed to generate constraint DDL: {e}")
 
     async def _generate_index_ddl(
@@ -275,18 +306,18 @@ class DDLGenerator:
             return ServiceResult.success(ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate index DDL for %s: %s", index.name, e)
+            logger.exception("Failed to generate index DDL for %s", index.name)
             return ServiceResult.failure(f"Failed to generate index DDL: {e}")
 
-    async def _generate_table_comments(self, table: TableMetadata) -> ServiceResult[str]:
+    async def _generate_table_comments(
+        self, table: TableMetadata,
+    ) -> ServiceResult[str]:
         """Generate table and column comments."""
         try:
             comments = []
             table_name = f"{table.schema_name}.{table.name}"
 
-            # Table comment (placeholder - would need table comment field in metadata)
-            # if table.comments:
-            #     comments.append(f"COMMENT ON TABLE {table_name} IS '{self._escape_string(table.comments)}';")
+            # Table comment would be added here if table metadata included comments field
 
             # Column comments
             for col in table.columns:
@@ -297,14 +328,16 @@ class DDLGenerator:
             return ServiceResult.success("\n".join(comments))
 
         except Exception as e:
-            logger.exception("Failed to generate comments for table %s: %s", table.name, e)
+            logger.exception("Failed to generate comments for table %s", table.name)
             return ServiceResult.failure(f"Failed to generate comments: {e}")
 
     def _escape_string(self, value: str) -> str:
         """Escape string for SQL."""
         return value.replace("'", "''")
 
-    async def generate_drop_table_ddl(self, table: TableMetadata, cascade: bool = False) -> ServiceResult[str]:
+    async def generate_drop_table_ddl(
+        self, table: TableMetadata, *, cascade: bool = False,
+    ) -> ServiceResult[str]:
         """Generate DROP TABLE DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
@@ -319,10 +352,12 @@ class DDLGenerator:
             return ServiceResult.success(ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate DROP TABLE DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate DROP TABLE DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate DROP TABLE DDL: {e}")
 
-    async def generate_truncate_table_ddl(self, table: TableMetadata) -> ServiceResult[str]:
+    async def generate_truncate_table_ddl(
+        self, table: TableMetadata,
+    ) -> ServiceResult[str]:
         """Generate TRUNCATE TABLE DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
@@ -332,5 +367,223 @@ class DDLGenerator:
             return ServiceResult.success(ddl)
 
         except Exception as e:
-            logger.exception("Failed to generate TRUNCATE TABLE DDL for %s: %s", table.name, e)
+            logger.exception("Failed to generate TRUNCATE TABLE DDL for %s", table.name)
             return ServiceResult.failure(f"Failed to generate TRUNCATE TABLE DDL: {e}")
+
+    async def generate_sequence_ddl(
+        self, sequence_data: dict[str, Any], schema_name: str,
+    ) -> ServiceResult[str]:
+        """Generate CREATE SEQUENCE DDL statement."""
+        try:
+            sequence_name = f"{schema_name}.{sequence_data['name']}"
+
+            ddl_parts = [f"CREATE SEQUENCE {sequence_name}"]
+
+            if sequence_data.get("min_value") is not None:
+                ddl_parts.append(f"MINVALUE {sequence_data['min_value']}")
+
+            if sequence_data.get("max_value") is not None:
+                ddl_parts.append(f"MAXVALUE {sequence_data['max_value']}")
+
+            if sequence_data.get("increment_by"):
+                ddl_parts.append(f"INCREMENT BY {sequence_data['increment_by']}")
+
+            if sequence_data.get("cycle_flag") == "Y":
+                ddl_parts.append("CYCLE")
+            else:
+                ddl_parts.append("NOCYCLE")
+
+            ddl_parts.append("CACHE 20")  # Default cache size
+
+            ddl = " ".join(ddl_parts) + ";"
+
+            logger.info("Generated CREATE SEQUENCE DDL for: %s", sequence_data["name"])
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception(
+                "Failed to generate SEQUENCE DDL for %s",
+                sequence_data.get("name", "unknown"),
+            )
+            return ServiceResult.failure(f"Failed to generate SEQUENCE DDL: {e}")
+
+    async def generate_view_ddl(
+        self, view_data: dict[str, Any], schema_name: str,
+    ) -> ServiceResult[str]:
+        """Generate CREATE VIEW DDL statement."""
+        try:
+            view_name = f"{schema_name}.{view_data['name']}"
+
+            if not view_data.get("text"):
+                return ServiceResult.failure(
+                    f"View {view_data['name']} has no definition text",
+                )
+
+            ddl = f"CREATE OR REPLACE VIEW {view_name} AS\n{view_data['text']}"
+
+            # Add semicolon if not present
+            if not ddl.rstrip().endswith(";"):
+                ddl += ";"
+
+            logger.info("Generated CREATE VIEW DDL for: %s", view_data["name"])
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception(
+                "Failed to generate VIEW DDL for %s", view_data.get("name", "unknown"),
+            )
+            return ServiceResult.failure(f"Failed to generate VIEW DDL: {e}")
+
+    async def generate_schema_ddl(
+        self, schema_metadata: SchemaMetadata,
+    ) -> ServiceResult[str]:
+        """Generate complete schema DDL including all objects."""
+        try:
+            all_ddl = []
+
+            # Header comment
+            all_ddl.append(f"-- DDL Script for Schema: {schema_metadata.name}")
+            all_ddl.append(f"-- Generated at: {schema_metadata.analyzed_at}")
+            all_ddl.append(f"-- Total Objects: {schema_metadata.total_objects}")
+            all_ddl.append("")
+
+            # Generate sequences first (tables may depend on them)
+            all_ddl.append("-- ===== SEQUENCES =====")
+            for sequence in schema_metadata.sequences:
+                seq_result = await self.generate_sequence_ddl(
+                    sequence, schema_metadata.name,
+                )
+                if seq_result.is_success:
+                    all_ddl.extend((seq_result.value, ""))
+
+            # Generate tables
+            all_ddl.append("-- ===== TABLES =====")
+            for table in schema_metadata.tables:
+                table_result = await self.generate_complete_ddl(table)
+                if table_result.is_success:
+                    all_ddl.extend((table_result.value, ""))
+
+            # Generate views (depend on tables)
+            all_ddl.append("-- ===== VIEWS =====")
+            for view_data in schema_metadata.views:
+                # Convert ViewMetadata to dict for compatibility
+                view_dict = {
+                    "name": view_data.name,
+                    "text": view_data.text,
+                }
+                view_result = await self.generate_view_ddl(
+                    view_dict, schema_metadata.name,
+                )
+                if view_result.is_success:
+                    all_ddl.extend((view_result.value, ""))
+
+            complete_ddl = "\n".join(all_ddl)
+
+            logger.info(
+                "Generated complete schema DDL for: %s (%d objects)",
+                schema_metadata.name,
+                schema_metadata.total_objects,
+            )
+            return ServiceResult.success(complete_ddl)
+
+        except Exception as e:
+            logger.exception(
+                "Failed to generate schema DDL for %s", schema_metadata.name,
+            )
+            return ServiceResult.failure(f"Failed to generate schema DDL: {e}")
+
+    async def generate_partitioned_table_ddl(
+        self, table: TableMetadata, partition_info: dict[str, Any],
+    ) -> ServiceResult[str]:
+        """Generate DDL for partitioned table (advanced Oracle feature)."""
+        try:
+            # Start with basic table DDL
+            basic_result = await self.generate_table_ddl(table)
+            if not basic_result.is_success:
+                return basic_result
+
+            ddl = basic_result.value
+
+            # Remove the final semicolon to add partitioning
+            ddl = ddl.removesuffix(";")
+
+            # Add partition clause
+            partition_type = partition_info.get("type", "RANGE")
+            partition_columns = partition_info.get("columns", [])
+
+            if partition_columns:
+                ddl += (
+                    f"\nPARTITION BY {partition_type} ({', '.join(partition_columns)})"
+                )
+
+                # Add partition definitions if provided
+                partitions = partition_info.get("partitions", [])
+                if partitions:
+                    ddl += " ("
+                    partition_ddl = []
+                    for partition in partitions:
+                        part_name = partition.get("name")
+                        part_values = partition.get("values")
+                        if part_name and part_values:
+                            partition_ddl.append(
+                                f"  PARTITION {part_name} VALUES LESS THAN ({part_values})",
+                            )
+
+                    ddl += ",\n".join(partition_ddl)
+                    ddl += "\n)"
+
+            ddl += ";"
+
+            logger.info("Generated partitioned table DDL for: %s", table.name)
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception(
+                "Failed to generate partitioned table DDL for %s", table.name,
+            )
+            return ServiceResult.failure(
+                f"Failed to generate partitioned table DDL: {e}",
+            )
+
+    async def generate_tablespace_ddl(
+        self, tablespace_info: dict[str, Any],
+    ) -> ServiceResult[str]:
+        """Generate CREATE TABLESPACE DDL statement."""
+        try:
+            tablespace_name = tablespace_info["name"]
+            datafile = tablespace_info.get(
+                "datafile", f"/oracle/oradata/{tablespace_name}.dbf",
+            )
+            size = tablespace_info.get("size", "100M")
+            autoextend = tablespace_info.get("autoextend", True)
+
+            ddl_parts = [
+                f"CREATE TABLESPACE {tablespace_name}",
+                f"DATAFILE '{datafile}'",
+                f"SIZE {size}",
+            ]
+
+            if autoextend:
+                ddl_parts.append("AUTOEXTEND ON")
+                next_size = tablespace_info.get("next", "10M")
+                max_size = tablespace_info.get("maxsize", "UNLIMITED")
+                ddl_parts.extend((f"NEXT {next_size}", f"MAXSIZE {max_size}"))
+
+            # Add extent management
+            ddl_parts.append("EXTENT MANAGEMENT LOCAL")
+            ddl_parts.append("AUTOALLOCATE")
+
+            # Add segment space management
+            ddl_parts.append("SEGMENT SPACE MANAGEMENT AUTO")
+
+            ddl = " ".join(ddl_parts) + ";"
+
+            logger.info("Generated CREATE TABLESPACE DDL for: %s", tablespace_name)
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception(
+                "Failed to generate TABLESPACE DDL for %s",
+                tablespace_info.get("name", "unknown"),
+            )
+            return ServiceResult.failure(f"Failed to generate TABLESPACE DDL: {e}")

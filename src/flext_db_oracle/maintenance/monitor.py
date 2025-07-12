@@ -41,8 +41,12 @@ class WaitEvent(DomainValueObject):
     event: str = Field(..., description="Wait event name")
     total_waits: int = Field(0, description="Total number of waits", ge=0)
     total_timeouts: int = Field(0, description="Total number of timeouts", ge=0)
-    time_waited: float = Field(0.0, description="Total time waited in centiseconds", ge=0.0)
-    average_wait: float = Field(0.0, description="Average wait time in centiseconds", ge=0.0)
+    time_waited: float = Field(
+        0.0, description="Total time waited in centiseconds", ge=0.0,
+    )
+    average_wait: float = Field(
+        0.0, description="Average wait time in centiseconds", ge=0.0,
+    )
 
     @property
     def time_waited_seconds(self) -> float:
@@ -75,12 +79,24 @@ class SessionStatistics(DomainValueObject):
 class DatabaseMetrics(DomainValueObject):
     """Complete database performance metrics."""
 
-    timestamp: datetime = Field(default_factory=datetime.now, description="Metrics timestamp")
-    sga_components: list[SGAComponent] = Field(default_factory=list, description="SGA components")
-    wait_events: list[WaitEvent] = Field(default_factory=list, description="Wait events")
-    session_stats: SessionStatistics | None = Field(None, description="Session statistics")
-    buffer_cache_hit_ratio: float | None = Field(None, description="Buffer cache hit ratio", ge=0.0, le=100.0)
-    library_cache_hit_ratio: float | None = Field(None, description="Library cache hit ratio", ge=0.0, le=100.0)
+    timestamp: datetime = Field(
+        default_factory=datetime.now, description="Metrics timestamp",
+    )
+    sga_components: list[SGAComponent] = Field(
+        default_factory=list, description="SGA components",
+    )
+    wait_events: list[WaitEvent] = Field(
+        default_factory=list, description="Wait events",
+    )
+    session_stats: SessionStatistics | None = Field(
+        None, description="Session statistics",
+    )
+    buffer_cache_hit_ratio: float | None = Field(
+        None, description="Buffer cache hit ratio", ge=0.0, le=100.0,
+    )
+    library_cache_hit_ratio: float | None = Field(
+        None, description="Library cache hit ratio", ge=0.0, le=100.0,
+    )
 
     @property
     def total_sga_size_mb(self) -> float:
@@ -97,6 +113,12 @@ class PerformanceMonitor:
     """Monitors Oracle database performance metrics using flext-core patterns."""
 
     def __init__(self, connection_service: OracleConnectionService) -> None:
+        """Initialize the performance monitor.
+
+        Args:
+            connection_service: Oracle connection service for database operations
+
+        """
         self.connection_service = connection_service
 
     async def get_performance_metrics(self) -> ServiceResult[DatabaseMetrics]:
@@ -113,8 +135,14 @@ class PerformanceMonitor:
             # Build metrics object
             metrics = DatabaseMetrics(
                 sga_components=sga_result.value if sga_result.is_success else [],
-                wait_events=wait_events_result.value if wait_events_result.is_success else [],
-                session_stats=session_stats_result.value if session_stats_result.is_success else None,
+                wait_events=(
+                    wait_events_result.value if wait_events_result.is_success else []
+                ),
+                session_stats=(
+                    session_stats_result.value
+                    if session_stats_result.is_success
+                    else None
+                ),
             )
 
             # Add cache hit ratios if available
@@ -127,7 +155,7 @@ class PerformanceMonitor:
             return ServiceResult.success(metrics)
 
         except Exception as e:
-            logger.exception("Failed to get performance metrics: %s", e)
+            logger.exception("Failed to get performance metrics")
             return ServiceResult.failure(f"Failed to get performance metrics: {e}")
 
     async def get_sga_info(self) -> ServiceResult[list[SGAComponent]]:
@@ -146,7 +174,7 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             components = []
@@ -163,7 +191,7 @@ class PerformanceMonitor:
             return ServiceResult.success(components)
 
         except Exception as e:
-            logger.exception("Failed to get SGA info: %s", e)
+            logger.exception("Failed to get SGA info")
             return ServiceResult.failure(f"Failed to get SGA info: {e}")
 
     async def get_wait_events(self, limit: int = 10) -> ServiceResult[list[WaitEvent]]:
@@ -188,7 +216,7 @@ class PerformanceMonitor:
                 {"limit": limit},
             )
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             events = []
@@ -206,7 +234,7 @@ class PerformanceMonitor:
             return ServiceResult.success(events)
 
         except Exception as e:
-            logger.exception("Failed to get wait events: %s", e)
+            logger.exception("Failed to get wait events")
             return ServiceResult.failure(f"Failed to get wait events: {e}")
 
     async def get_session_stats(self) -> ServiceResult[SessionStatistics]:
@@ -224,7 +252,7 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             if not result.value.rows:
@@ -239,11 +267,15 @@ class PerformanceMonitor:
                 system_sessions=row[4],
             )
 
-            logger.info("Retrieved session statistics: %d total, %d active", stats.total_sessions, stats.active_sessions)
+            logger.info(
+                "Retrieved session statistics: %d total, %d active",
+                stats.total_sessions,
+                stats.active_sessions,
+            )
             return ServiceResult.success(stats)
 
         except Exception as e:
-            logger.exception("Failed to get session stats: %s", e)
+            logger.exception("Failed to get session stats")
             return ServiceResult.failure(f"Failed to get session stats: {e}")
 
     async def get_cache_hit_ratios(self) -> ServiceResult[dict[str, float]]:
@@ -272,8 +304,12 @@ class PerformanceMonitor:
                 AND gets > 0
             """
 
-            buffer_result = await self.connection_service.execute_query(buffer_cache_query)
-            library_result = await self.connection_service.execute_query(library_cache_query)
+            buffer_result = await self.connection_service.execute_query(
+                buffer_cache_query,
+            )
+            library_result = await self.connection_service.execute_query(
+                library_cache_query,
+            )
 
             ratios = {}
 
@@ -287,7 +323,7 @@ class PerformanceMonitor:
             return ServiceResult.success(ratios)
 
         except Exception as e:
-            logger.exception("Failed to get cache hit ratios: %s", e)
+            logger.exception("Failed to get cache hit ratios")
             return ServiceResult.failure(f"Failed to get cache hit ratios: {e}")
 
     async def get_tablespace_usage(self) -> ServiceResult[list[dict[str, Any]]]:
@@ -322,7 +358,7 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             tablespaces = []
@@ -343,10 +379,12 @@ class PerformanceMonitor:
             return ServiceResult.success(tablespaces)
 
         except Exception as e:
-            logger.exception("Failed to get tablespace usage: %s", e)
+            logger.exception("Failed to get tablespace usage")
             return ServiceResult.failure(f"Failed to get tablespace usage: {e}")
 
-    async def get_active_sessions(self, limit: int = 20) -> ServiceResult[list[dict[str, Any]]]:
+    async def get_active_sessions(
+        self, limit: int = 20,
+    ) -> ServiceResult[list[dict[str, Any]]]:
         """Get information about active sessions."""
         try:
             query = """
@@ -375,7 +413,7 @@ class PerformanceMonitor:
                 {"limit": limit},
             )
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             sessions = []
@@ -400,7 +438,7 @@ class PerformanceMonitor:
             return ServiceResult.success(sessions)
 
         except Exception as e:
-            logger.exception("Failed to get active sessions: %s", e)
+            logger.exception("Failed to get active sessions")
             return ServiceResult.failure(f"Failed to get active sessions: {e}")
 
     async def generate_performance_report(self) -> ServiceResult[dict[str, Any]]:
@@ -411,7 +449,7 @@ class PerformanceMonitor:
             tablespace_result = await self.get_tablespace_usage()
             active_sessions_result = await self.get_active_sessions()
 
-            if metrics_result.is_failure:
+            if metrics_result.is_success:
                 return metrics_result
 
             metrics = metrics_result.value
@@ -420,21 +458,33 @@ class PerformanceMonitor:
                 "timestamp": metrics.timestamp.isoformat(),
                 "sga": {
                     "total_size_mb": metrics.total_sga_size_mb,
-                    "components": [comp.model_dump() for comp in metrics.sga_components[:10]],
+                    "components": [
+                        comp.model_dump() for comp in metrics.sga_components[:10]
+                    ],
                 },
-                "sessions": metrics.session_stats.model_dump() if metrics.session_stats else {},
+                "sessions": (
+                    metrics.session_stats.model_dump() if metrics.session_stats else {}
+                ),
                 "cache_hit_ratios": {
                     "buffer_cache": metrics.buffer_cache_hit_ratio,
                     "library_cache": metrics.library_cache_hit_ratio,
                 },
-                "top_wait_events": [event.model_dump() for event in metrics.top_wait_events],
-                "tablespaces": tablespace_result.value if tablespace_result.is_success else [],
-                "active_sessions_count": len(active_sessions_result.value) if active_sessions_result.is_success else 0,
+                "top_wait_events": [
+                    event.model_dump() for event in metrics.top_wait_events
+                ],
+                "tablespaces": (
+                    tablespace_result.value if tablespace_result.is_success else []
+                ),
+                "active_sessions_count": (
+                    len(active_sessions_result.value)
+                    if active_sessions_result.is_success
+                    else 0
+                ),
             }
 
             logger.info("Generated performance report")
             return ServiceResult.success(report)
 
         except Exception as e:
-            logger.exception("Failed to generate performance report: %s", e)
+            logger.exception("Failed to generate performance report")
             return ServiceResult.failure(f"Failed to generate performance report: {e}")

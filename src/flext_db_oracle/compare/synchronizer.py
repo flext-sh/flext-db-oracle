@@ -63,6 +63,13 @@ class DatabaseSynchronizer:
         source_service: OracleConnectionService,
         target_service: OracleConnectionService,
     ) -> None:
+        """Initialize the database synchronizer.
+
+        Args:
+            source_service: Connection service for source database
+            target_service: Connection service for target database
+
+        """
         self.source_service = source_service
         self.target_service = target_service
 
@@ -114,7 +121,7 @@ class DatabaseSynchronizer:
             if tables is None:
                 # Get all tables in schema
                 tables_result = await self._get_schema_tables(schema_name)
-                if tables_result.is_failure:
+                if not tables_result.is_success:
                     return tables_result
                 tables = tables_result.value
 
@@ -164,7 +171,7 @@ class DatabaseSynchronizer:
                 {"schema_name": schema_name.upper()},
             )
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             tables = [row[0] for row in result.value.rows]
@@ -192,7 +199,7 @@ class DatabaseSynchronizer:
 
             # Check for primary key
             pk_result = await self._get_primary_key_columns(table_name)
-            if pk_result.is_failure:
+            if not pk_result.is_success:
                 return ServiceResult.failure(f"Cannot determine primary key for {table_name}")
 
             validation_info = {
@@ -227,7 +234,8 @@ class DatabaseSynchronizer:
 
             return result.is_success and len(result.value.rows) > 0
 
-        except Exception:
+        except (ValueError, TypeError, AttributeError) as e:
+            logger.warning("Failed to validate synchronization requirements: %s", e)
             return False
 
     async def _get_primary_key_columns(self, table_name: str) -> ServiceResult[list[str]]:
@@ -250,7 +258,7 @@ class DatabaseSynchronizer:
                 {"table_name": table_name.upper()},
             )
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             pk_columns = [row[0] for row in result.value.rows]
@@ -259,3 +267,56 @@ class DatabaseSynchronizer:
         except Exception as e:
             logger.exception("Failed to get primary key columns")
             return ServiceResult.failure(f"Failed to get primary key columns: {e}")
+
+
+class DataSynchronizer:
+    """Simplified data synchronization interface for backward compatibility."""
+
+    def __init__(
+        self,
+        source_service: OracleConnectionService,
+        target_service: OracleConnectionService,
+    ) -> None:
+        """Initialize data synchronizer with connection services."""
+        self.source_service = source_service
+        self.target_service = target_service
+        self._sync_engine = DatabaseSynchronizer(source_service, target_service)
+
+    async def synchronize_table_data(
+        self,
+        table_name: str,
+        strategy: str = "upsert",
+    ) -> ServiceResult[dict[str, Any]]:
+        """Synchronize data for a specific table."""
+        try:
+            result = await self._sync_engine.synchronize_table(table_name, strategy)
+            if not result.is_success:
+                return result
+
+            # Convert to simplified format
+            sync_summary = {
+                "table_name": table_name,
+                "strategy": strategy,
+                "records_synced": result.value.total_records_synced,
+                "operations": len(result.value.operations),
+                "success": result.value.success,
+            }
+
+            return ServiceResult.success(sync_summary)
+
+        except Exception as e:
+            logger.exception("Data synchronization failed")
+            return ServiceResult.failure(f"Data synchronization failed: {e}")
+
+    async def validate_synchronization_requirements(
+        self,
+        table_name: str,
+    ) -> ServiceResult[bool]:
+        """Validate that synchronization can be performed."""
+        try:
+            validation_result = await self._sync_engine.validate_sync_requirements(table_name)
+            return ServiceResult.success(validation_result.is_success)
+
+        except Exception as e:
+            logger.exception("Synchronization validation failed")
+            return ServiceResult.failure(f"Synchronization validation failed: {e}")

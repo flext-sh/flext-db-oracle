@@ -18,8 +18,13 @@ if TYPE_CHECKING:
     from flext_db_oracle.compare.differ import (
         ComparisonResult,
         DataDiffer,
+        DifferenceType,
         SchemaDiffer,
     )
+    from flext_db_oracle.schema.analyzer import SchemaAnalyzer
+else:
+    from flext_db_oracle.compare.differ import DataDiffer, DifferenceType
+    from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 
 logger = get_logger(__name__)
 
@@ -48,6 +53,15 @@ class DatabaseComparator:
         schema_differ: SchemaDiffer,
         data_differ: DataDiffer | None = None,
     ) -> None:
+        """Initialize the database comparator.
+
+        Args:
+            source_service: Connection service for source database
+            target_service: Connection service for target database
+            schema_differ: Service for performing schema comparisons
+            data_differ: Optional service for performing data comparisons
+
+        """
         self.source_service = source_service
         self.target_service = target_service
         self.schema_differ = schema_differ
@@ -75,7 +89,7 @@ class DatabaseComparator:
                     target_schema,
                     config,
                 )
-                if schema_result.is_failure:
+                if not schema_result.is_success:
                     return schema_result
                 comparison_result = schema_result.value
 
@@ -86,7 +100,7 @@ class DatabaseComparator:
                     config,
                     comparison_result,
                 )
-                if data_result.is_failure:
+                if not data_result.is_success:
                     return data_result
                 # Data comparison would update the comparison_result
 
@@ -125,7 +139,7 @@ class DatabaseComparator:
                 config,
             )
 
-            if source_metadata.is_failure or target_metadata.is_failure:
+            if not source_metadata.is_success or not target_metadata.is_success:
                 return ServiceResult.failure("Failed to retrieve schema metadata")
 
             # Perform schema comparison
@@ -159,7 +173,7 @@ class DatabaseComparator:
                 schema_comparison,
             )
 
-            if tables_to_compare.is_failure:
+            if not tables_to_compare.is_success:
                 return tables_to_compare
 
             data_differences = []
@@ -167,7 +181,7 @@ class DatabaseComparator:
             for table_name in tables_to_compare.value:
                 # Get primary key columns for the table
                 pk_result = await self._get_primary_key_columns(source_schema, table_name)
-                if pk_result.is_failure:
+                if not pk_result.is_success:
                     logger.warning("Skipping table %s: no primary key found", table_name)
                     continue
 
@@ -205,16 +219,25 @@ class DatabaseComparator:
     ) -> ServiceResult[Any]:
         """Get comprehensive schema metadata."""
         try:
-            # This would use the SchemaAnalyzer to get complete metadata
-            # For now, return a placeholder
-            metadata = {
-                "name": schema_name,
-                "tables": [],
-                "views": [],
-                "sequences": [],
-                "procedures": [],
-            }
+            # Use the connection service to actually get schema metadata
+            analyzer = SchemaAnalyzer(connection_service)
+            schema_result = await analyzer.analyze_schema(schema_name)
 
+            if not schema_result.is_success:
+                return schema_result
+
+            # Convert the analyzed data based on config requirements
+            metadata = schema_result.value
+
+            # Filter based on config if needed
+            if config.schema_objects == ["tables"] and "tables" in metadata:
+                metadata = {
+                    "name": schema_name,
+                    "tables": metadata["tables"],
+                    "total_objects": len(metadata["tables"]),
+                }
+
+            logger.info("Retrieved metadata for schema: %s", schema_name)
             return ServiceResult.success(metadata)
 
         except Exception as e:
@@ -229,48 +252,80 @@ class DatabaseComparator:
     ) -> ServiceResult[list[str]]:
         """Get list of tables that can be compared."""
         try:
-            # Get all tables in schema
-            query = """
-                SELECT table_name
-                FROM all_tables
-                WHERE owner = :schema_name
-                ORDER BY table_name
-            """
+            # Get all tables from database
+            all_tables_result = await self._fetch_schema_tables(schema_name)
+            if not all_tables_result.is_success:
+                return all_tables_result
 
-            result = await self.source_service.execute_query(
-                query,
-                {"schema_name": schema_name.upper()},
-            )
+            all_tables = all_tables_result.value
 
-            if result.is_failure:
-                return result
+            # Filter based on schema comparison results
+            if schema_comparison is not None:
+                all_tables = self._filter_common_tables(all_tables, schema_comparison)
 
-            all_tables = [row[0] for row in result.value.rows]
+            # Apply configuration filters
+            filtered_tables = self._apply_table_filters(all_tables, config)
 
-            # Apply filters
-            filtered_tables = []
-            for table_name in all_tables:
-                # Check exclude list
-                if table_name in config.exclude_tables:
-                    continue
-
-                # Check include filters
-                if config.table_filters:
-                    include = False
-                    for pattern in config.table_filters:
-                        if pattern.upper() in table_name.upper():
-                            include = True
-                            break
-                    if not include:
-                        continue
-
-                filtered_tables.append(table_name)
-
+            logger.info("Found %d comparable tables after filtering", len(filtered_tables))
             return ServiceResult.success(filtered_tables)
 
         except Exception as e:
             logger.exception("Failed to get comparable tables")
             return ServiceResult.failure(f"Failed to get comparable tables: {e}")
+
+    async def _fetch_schema_tables(self, schema_name: str) -> ServiceResult[list[str]]:
+        """Fetch all tables from schema."""
+        query = """
+            SELECT table_name
+            FROM all_tables
+            WHERE owner = :schema_name
+            ORDER BY table_name
+        """
+
+        result = await self.source_service.execute_query(
+            query,
+            {"schema_name": schema_name.upper()},
+        )
+
+        if not result.is_success:
+            return result
+
+        return ServiceResult.success([row[0] for row in result.value.rows])
+
+    def _filter_common_tables(self, all_tables: list[str], schema_comparison: ComparisonResult) -> list[str]:
+        """Filter tables based on schema comparison results."""
+        existing_tables = set(all_tables)
+
+        # Remove tables that have schema differences (ADDED/REMOVED)
+        for diff in schema_comparison.schema_differences:
+            if (diff.object_type.lower() == "table" and
+                diff.difference_type in {DifferenceType.ADDED, DifferenceType.REMOVED}):
+                existing_tables.discard(diff.object_name)
+
+        logger.info("Filtered to %d common tables based on schema comparison", len(existing_tables))
+        return list(existing_tables)
+
+    def _apply_table_filters(self, all_tables: list[str], config: ComparisonConfig) -> list[str]:
+        """Apply configuration filters to table list."""
+        filtered_tables = []
+
+        for table_name in all_tables:
+            # Check exclude list
+            if table_name in config.exclude_tables:
+                continue
+
+            # Check include filters
+            if config.table_filters:
+                include = any(
+                    pattern.upper() in table_name.upper()
+                    for pattern in config.table_filters
+                )
+                if not include:
+                    continue
+
+            filtered_tables.append(table_name)
+
+        return filtered_tables
 
     async def _get_primary_key_columns(
         self,
@@ -302,7 +357,7 @@ class DatabaseComparator:
                 },
             )
 
-            if result.is_failure:
+            if not result.is_success:
                 return result
 
             pk_columns = [row[0] for row in result.value.rows]
@@ -347,3 +402,100 @@ class DatabaseComparator:
         except Exception as e:
             logger.exception("Failed to generate comparison summary")
             return ServiceResult.failure(f"Failed to generate summary: {e}")
+
+
+class DataComparator:
+    """Simplified data comparison interface for backward compatibility."""
+
+    def __init__(self, source_service: OracleConnectionService, target_service: OracleConnectionService) -> None:
+        """Initialize data comparator with connection services."""
+        self.source_service = source_service
+        self.target_service = target_service
+
+    async def compare_table_data(
+        self,
+        table_name: str,
+        primary_key_columns: list[str],
+    ) -> ServiceResult[list[Any]]:
+        """Compare data between tables in source and target databases."""
+        try:
+            differ = DataDiffer()
+            return await differ.compare_table_data(
+                self.source_service,
+                self.target_service,
+                table_name,
+                primary_key_columns,
+            )
+        except Exception as e:
+            logger.exception("Data comparison failed")
+            return ServiceResult.failure(f"Data comparison failed: {e}")
+
+
+class SchemaComparator:
+    """Simplified schema comparison interface for backward compatibility."""
+
+    def __init__(self, source_service: OracleConnectionService, target_service: OracleConnectionService) -> None:
+        """Initialize schema comparator with connection services."""
+        self.source_service = source_service
+        self.target_service = target_service
+
+    async def compare_schemas(
+        self,
+        source_schema: str,
+        target_schema: str,
+    ) -> ServiceResult[dict[str, Any]]:
+        """Compare schemas between source and target databases."""
+        try:
+            source_analyzer = SchemaAnalyzer(self.source_service)
+            target_analyzer = SchemaAnalyzer(self.target_service)
+
+            # Get schema analysis for both
+            source_result = await source_analyzer.analyze_schema(source_schema)
+            target_result = await target_analyzer.analyze_schema(target_schema)
+
+            if not source_result.is_success or not target_result.is_success:
+                return ServiceResult.failure("Failed to analyze schemas")
+
+            # Basic comparison - return structured differences
+            comparison = {
+                "source_schema": source_schema,
+                "target_schema": target_schema,
+                "source_analysis": source_result.value,
+                "target_analysis": target_result.value,
+                "differences": self._calculate_differences(
+                    source_result.value,
+                    target_result.value,
+                ),
+            }
+
+            return ServiceResult.success(comparison)
+
+        except Exception as e:
+            logger.exception("Schema comparison failed")
+            return ServiceResult.failure(f"Schema comparison failed: {e}")
+
+    def _calculate_differences(self, source: dict[str, Any], target: dict[str, Any]) -> dict[str, Any]:
+        """Calculate basic differences between schema analyses."""
+        differences = {}
+
+        # Compare table counts
+        source_tables = len(source.get("tables", []))
+        target_tables = len(target.get("tables", []))
+        differences["table_count_diff"] = target_tables - source_tables
+
+        # Compare view counts
+        source_views = len(source.get("views", []))
+        target_views = len(target.get("views", []))
+        differences["view_count_diff"] = target_views - source_views
+
+        # Compare sequence counts
+        source_sequences = len(source.get("sequences", []))
+        target_sequences = len(target.get("sequences", []))
+        differences["sequence_count_diff"] = target_sequences - source_sequences
+
+        # Compare procedure counts
+        source_procedures = len(source.get("procedures", []))
+        target_procedures = len(target.get("procedures", []))
+        differences["procedure_count_diff"] = target_procedures - source_procedures
+
+        return differences

@@ -8,7 +8,7 @@ class OracleDBCoreError(Exception):
 
     def __init__(self, message: str, error_code: str | None = None) -> None:
         """Initialize the base Oracle exception.
-        
+
         Args:
             message: Error message
             error_code: Optional error code
@@ -22,9 +22,11 @@ class OracleDBCoreError(Exception):
 class OracleConnectionError(OracleDBCoreError):
     """Exception raised for database connection errors."""
 
-    def __init__(self, message: str, host: str | None = None, port: int | None = None) -> None:
+    def __init__(
+        self, message: str, host: str | None = None, port: int | None = None,
+    ) -> None:
         """Initialize connection error.
-        
+
         Args:
             message: Error message
             host: Database host
@@ -39,9 +41,14 @@ class OracleConnectionError(OracleDBCoreError):
 class SchemaError(OracleDBCoreError):
     """Exception raised for schema-related errors."""
 
-    def __init__(self, message: str, schema_name: str | None = None, object_name: str | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        schema_name: str | None = None,
+        object_name: str | None = None,
+    ) -> None:
         """Initialize schema error.
-        
+
         Args:
             message: Error message
             schema_name: Schema name
@@ -56,9 +63,11 @@ class SchemaError(OracleDBCoreError):
 class SQLError(OracleDBCoreError):
     """Exception raised for SQL execution errors."""
 
-    def __init__(self, message: str, sql: str | None = None, oracle_code: str | None = None) -> None:
+    def __init__(
+        self, message: str, sql: str | None = None, oracle_code: str | None = None,
+    ) -> None:
         """Initialize SQL error.
-        
+
         Args:
             message: Error message
             sql: SQL statement that caused the error
@@ -73,9 +82,11 @@ class SQLError(OracleDBCoreError):
 class ValidationError(OracleDBCoreError):
     """Exception raised for data validation errors."""
 
-    def __init__(self, message: str, field: str | None = None, value: str | None = None) -> None:
+    def __init__(
+        self, message: str, field: str | None = None, value: str | None = None,
+    ) -> None:
         """Initialize validation error.
-        
+
         Args:
             message: Error message
             field: Field that failed validation
@@ -92,7 +103,7 @@ class ConfigurationError(OracleDBCoreError):
 
     def __init__(self, message: str, config_key: str | None = None) -> None:
         """Initialize configuration error.
-        
+
         Args:
             message: Error message
             config_key: Configuration key that caused the error
@@ -107,7 +118,7 @@ class PoolError(OracleDBCoreError):
 
     def __init__(self, message: str, pool_name: str | None = None) -> None:
         """Initialize pool error.
-        
+
         Args:
             message: Error message
             pool_name: Name of the connection pool

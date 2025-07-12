@@ -6,10 +6,13 @@ from typing import TYPE_CHECKING, Any
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 
-from flext_core.config import BaseConfig
+from flext_core import BaseConfig
+from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
+
+logger = get_logger(__name__)
 
 
 class ConnectionConfig(BaseConfig):
@@ -71,7 +74,6 @@ class ConnectionConfig(BaseConfig):
             "port": self.port,
             "user": self.username,
             "password": self.password.get_secret_value(),
-            # "encoding": self.encoding,  # Not supported in modern oracledb
         }
 
         # Add SID or service_name
@@ -106,9 +108,11 @@ class ConnectionConfig(BaseConfig):
         """Validate connection parameters."""
         try:
             self.to_connect_params()
-            return True
-        except Exception:
+        except (ValueError, TypeError, KeyError) as e:
+            logger.warning("Configuration validation failed: %s", e)
             return False
+        else:
+            return True
 
     @classmethod
     def from_url(cls, url: str) -> ConnectionConfig:
@@ -122,8 +126,9 @@ class ConnectionConfig(BaseConfig):
             raise ValueError(msg)
 
         # Basic parsing for now - this could be made more robust
+        expected_url_parts = 2
         url_parts = url[9:].split("@")  # Remove oracle://
-        if len(url_parts) != 2:
+        if len(url_parts) != expected_url_parts:
             msg = "Invalid URL format"
             raise ValueError(msg)
 
