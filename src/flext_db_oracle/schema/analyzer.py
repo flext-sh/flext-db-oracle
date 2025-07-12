@@ -9,9 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flext_core import ServiceResult
-
 from flext_observability.logging import get_logger
-
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService

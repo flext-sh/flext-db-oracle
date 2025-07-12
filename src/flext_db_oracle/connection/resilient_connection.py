@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from flext_observability.logging import get_logger
 
-from .config import ConnectionConfig
 from .connection import OracleConnection
+
+if TYPE_CHECKING:
+    from .config import ConnectionConfig
 
 logger = get_logger(__name__)
 
 
 class ResilientOracleConnection(OracleConnection):
     """Oracle connection with retry logic and automatic fallback.
-    
+
     Extends the base OracleConnection with enterprise resilience features:
     - Automatic retry with configurable attempts and delays
     - TCPS to TCP fallback
@@ -31,7 +33,7 @@ class ResilientOracleConnection(OracleConnection):
         enable_fallback: bool = True,
     ) -> None:
         """Initialize resilient connection.
-        
+
         Args:
             config: Connection configuration
             retry_attempts: Number of connection retry attempts
@@ -75,7 +77,8 @@ class ResilientOracleConnection(OracleConnection):
                         fallback_applied=self._fallback_applied,
                     )
                     return None
-                raise RuntimeError("Connection validation failed")
+                msg = "Connection validation failed"
+                raise RuntimeError(msg)
 
             except Exception as e:
                 last_exception = e
@@ -123,7 +126,7 @@ class ResilientOracleConnection(OracleConnection):
 
     def _apply_fallback(self) -> bool:
         """Apply fallback strategy to connection config.
-        
+
         Returns:
             True if fallback was applied, False if no fallback available
 
@@ -201,7 +204,7 @@ class ResilientOracleConnection(OracleConnection):
 
         except Exception as e:
             result["error"] = str(e)
-            logger.error("Connection test failed", error=str(e))
+            logger.exception("Connection test failed", error=str(e))
 
         return result
 

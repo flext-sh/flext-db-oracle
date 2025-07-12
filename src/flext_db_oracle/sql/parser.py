@@ -12,7 +12,6 @@ from typing import Any
 from pydantic import Field
 
 from flext_core import DomainValueObject, ServiceResult
-
 from flext_observability.logging import get_logger
 
 logger = get_logger(__name__)

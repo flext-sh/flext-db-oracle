@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any
 from pydantic import Field
 
 from flext_core import DomainValueObject, ServiceResult
-
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:

@@ -8,11 +8,9 @@ from __future__ import annotations
 from typing import Any
 
 from flext_core.domain.types import ServiceResult
-
-from flext_observability.logging import setup_logging
-
 from flext_db_oracle.application.services import OracleConnectionService
 from flext_db_oracle.config import OracleConfig
+from flext_observability.logging import setup_logging
 
 
 def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleConfig]:
@@ -30,7 +28,7 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleC
             config = OracleConfig()
 
         # Setup logging using flext-observability
-        setup_logging(level="INFO", format="text")
+        setup_logging()
 
         return ServiceResult.success(config)
 

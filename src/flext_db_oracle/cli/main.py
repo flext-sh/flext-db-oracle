@@ -13,7 +13,6 @@ from typing import Any
 
 from flext_db_oracle.connection.config import ConnectionConfig
 from flext_db_oracle.connection.connection import OracleConnection
-
 from flext_observability.logging import get_logger
 
 # Use flext-observability for all logging

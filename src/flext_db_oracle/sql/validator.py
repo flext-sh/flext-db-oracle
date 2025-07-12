@@ -12,13 +12,15 @@ from typing import TYPE_CHECKING, Any
 from pydantic import Field
 
 from flext_core import DomainValueObject, ServiceResult
-
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.sql.parser import SQLParser
 
 logger = get_logger(__name__)
+
+# Constants
+MAX_REASONABLE_ISSUES = 5
 
 
 class ValidationRule(DomainValueObject):
@@ -349,7 +351,7 @@ class SQLValidator:
                 "has_where_clause": bool(re.search(r"\bWHERE\b", sql, re.IGNORECASE)),
                 "uses_table_aliases": bool(re.search(r"\b[a-zA-Z_][a-zA-Z0-9_]*\s+[a-zA-Z_][a-zA-Z0-9_]*\s+ON\b", sql, re.IGNORECASE)),
                 "avoids_functions_in_where": not bool(re.search(r"WHERE.*\w+\s*\(", sql, re.IGNORECASE)),
-                "has_reasonable_complexity": validation_data.get("summary", {}).get("total_issues", 0) < 5,
+                "has_reasonable_complexity": validation_data.get("summary", {}).get("total_issues", 0) < MAX_REASONABLE_ISSUES,
             }
 
             score = sum(checklist.values()) / len(checklist) * 100
@@ -371,13 +373,19 @@ class SQLValidator:
 
     def _get_grade(self, score: float) -> str:
         """Get letter grade based on score."""
-        if score >= 90:
+        # Grade thresholds
+        GRADE_A_THRESHOLD = 90
+        GRADE_B_THRESHOLD = 80
+        GRADE_C_THRESHOLD = 70
+        GRADE_D_THRESHOLD = 60
+
+        if score >= GRADE_A_THRESHOLD:
             return "A"
-        if score >= 80:
+        if score >= GRADE_B_THRESHOLD:
             return "B"
-        if score >= 70:
+        if score >= GRADE_C_THRESHOLD:
             return "C"
-        if score >= 60:
+        if score >= GRADE_D_THRESHOLD:
             return "D"
         return "F"
 

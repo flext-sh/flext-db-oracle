@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_core import ServiceResult
-
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:

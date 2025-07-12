@@ -6,15 +6,12 @@ Following flext-core application layer patterns with ServiceResult for error han
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone, UTC
 from typing import TYPE_CHECKING, Any
 
 import oracledb
 
 from flext_core import ServiceResult
-
-from flext_observability.logging import get_logger
-
 from flext_db_oracle.domain.models import (
     OracleColumnInfo,
     OracleConnectionStatus,
@@ -22,6 +19,7 @@ from flext_db_oracle.domain.models import (
     OracleSchemaInfo,
     OracleTableMetadata,
 )
+from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -35,6 +33,12 @@ class OracleConnectionService:
     """Service for managing Oracle database connections."""
 
     def __init__(self, config: OracleConfig) -> None:
+        """Initialize the Oracle connection service.
+
+        Args:
+            config: Oracle database configuration
+
+        """
         self.config = config
         self._pool: oracledb.ConnectionPool | None = None
 
@@ -78,11 +82,11 @@ class OracleConnectionService:
                 conn_params["ssl_server_cert_dn"] = None
 
             self._pool = oracledb.create_pool(**conn_params)
-            logger.info(f"Oracle connection pool initialized: {self.config.connection_string}")
+            logger.info("Oracle connection pool initialized: %s", self.config.connection_string)
             return ServiceResult.success(None)
 
         except Exception as e:
-            logger.exception(f"Failed to initialize Oracle connection pool: {e}")
+            logger.exception("Failed to initialize Oracle connection pool")
             return ServiceResult.failure(f"Connection pool initialization failed: {e}")
 
     async def close_pool(self) -> ServiceResult[None]:
@@ -95,7 +99,7 @@ class OracleConnectionService:
             return ServiceResult.success(None)
 
         except Exception as e:
-            logger.exception(f"Failed to close Oracle connection pool: {e}")
+            logger.exception("Failed to close Oracle connection pool")
             return ServiceResult.failure(f"Connection pool closure failed: {e}")
 
     @asynccontextmanager
@@ -131,7 +135,7 @@ class OracleConnectionService:
                             port=self.config.port,
                             database=self.config.database_identifier,
                             username=self.config.username,
-                            last_check=datetime.now(),
+                            last_check=datetime.now(UTC),
                         )
                         return ServiceResult.success(status)
                     status = OracleConnectionStatus(
@@ -140,20 +144,20 @@ class OracleConnectionService:
                         port=self.config.port,
                         database=self.config.database_identifier,
                         username=self.config.username,
-                        last_check=datetime.now(),
+                        last_check=datetime.now(UTC),
                         error_message="Test query returned unexpected result",
                     )
                     return ServiceResult.failure("Connection test failed", status)
 
         except Exception as e:
-            logger.exception(f"Oracle connection test failed: {e}")
+            logger.exception("Oracle connection test failed")
             status = OracleConnectionStatus(
                 is_connected=False,
                 host=self.config.host,
                 port=self.config.port,
                 database=self.config.database_identifier,
                 username=self.config.username,
-                last_check=datetime.now(),
+                last_check=datetime.now(UTC),
                 error_message=str(e),
             )
             return ServiceResult.failure(f"Connection test failed: {e}", status)

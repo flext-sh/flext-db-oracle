@@ -5,14 +5,9 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
-from flext_observability.logging import get_logger
+import oracledb
 
-try:
-    import oracledb
-    ORACLEDB_AVAILABLE = True
-except ImportError:
-    ORACLEDB_AVAILABLE = False
-    oracledb = None  # type: ignore[assignment]
+from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -36,13 +31,6 @@ class OracleConnection:
 
     def connect(self) -> None:
         """Connect to Oracle database."""
-        if not ORACLEDB_AVAILABLE:
-            msg = (
-                "oracledb library not available. Install with: "
-                "pip install oracledb"
-            )
-            raise RuntimeError(msg)
-
         try:
             params = self.config.to_connect_params()
             self._connection = oracledb.connect(**params)
