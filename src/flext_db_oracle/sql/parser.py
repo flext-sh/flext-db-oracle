@@ -22,7 +22,7 @@ class ParsedStatement(DomainValueObject):
 
     statement_type: str = Field(..., description="Type of SQL statement")
     sql_text: str = Field(..., description="Original SQL text")
-    is_valid: bool = Field(True, description="Whether the SQL is valid")
+    is_valid: bool = Field(default=True, description="Whether the SQL is valid")
     tables: list[str] = Field(default_factory=list, description="Referenced table names")
     columns: list[str] = Field(default_factory=list, description="Referenced column names")
     where_conditions: list[str] = Field(default_factory=list, description="WHERE clause conditions")
@@ -107,7 +107,7 @@ class SQLParser:
             return ServiceResult.success(parsed)
 
         except Exception as e:
-            logger.exception("SQL parsing failed: %s", e)
+            logger.exception("SQL parsing failed")
             return ServiceResult.failure(f"SQL parsing failed: {e}")
 
     def _get_statement_type(self, sql: str) -> str | None:
@@ -268,7 +268,7 @@ class SQLParser:
             return ServiceResult.success(validation_result)
 
         except Exception as e:
-            logger.exception("SQL syntax validation failed: %s", e)
+            logger.exception("SQL syntax validation failed")
             return ServiceResult.failure(f"Syntax validation failed: {e}")
 
     async def analyze_statement(self, sql: str) -> ServiceResult[dict[str, Any]]:
@@ -303,5 +303,5 @@ class SQLParser:
             return ServiceResult.success(analysis)
 
         except Exception as e:
-            logger.exception("SQL statement analysis failed: %s", e)
+            logger.exception("SQL statement analysis failed")
             return ServiceResult.failure(f"Statement analysis failed: {e}")

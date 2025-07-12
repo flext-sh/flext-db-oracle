@@ -26,7 +26,7 @@ class SyncOperation(DomainValueObject):
     table_name: str = Field(..., description="Table being synchronized")
     records_affected: int = Field(0, description="Number of records affected", ge=0)
     execution_time_ms: float = Field(0.0, description="Execution time in milliseconds", ge=0.0)
-    success: bool = Field(True, description="Whether operation succeeded")
+    success: bool = Field(default=True, description="Whether operation succeeded")
     error_message: str | None = Field(None, description="Error message if failed")
 
 
@@ -37,7 +37,7 @@ class SyncResult(DomainValueObject):
     target_name: str = Field(..., description="Target database identifier")
     operations: list[SyncOperation] = Field(default_factory=list, description="Sync operations performed")
     total_records_synced: int = Field(0, description="Total records synchronized", ge=0)
-    success: bool = Field(True, description="Overall success status")
+    success: bool = Field(default=True, description="Overall success status")
 
     @property
     def total_operations(self) -> int:
@@ -99,7 +99,7 @@ class DatabaseSynchronizer:
             return ServiceResult.success(result)
 
         except Exception as e:
-            logger.exception("Table synchronization failed for %s: %s", table_name, e)
+            logger.exception("Table synchronization failed for %s", table_name)
             return ServiceResult.failure(f"Table synchronization failed: {e}")
 
     async def synchronize_schema(
@@ -146,7 +146,7 @@ class DatabaseSynchronizer:
             return ServiceResult.success(result)
 
         except Exception as e:
-            logger.exception("Schema synchronization failed for %s: %s", schema_name, e)
+            logger.exception("Schema synchronization failed for %s", schema_name)
             return ServiceResult.failure(f"Schema synchronization failed: {e}")
 
     async def _get_schema_tables(self, schema_name: str) -> ServiceResult[list[str]]:
@@ -171,7 +171,7 @@ class DatabaseSynchronizer:
             return ServiceResult.success(tables)
 
         except Exception as e:
-            logger.exception("Failed to get schema tables: %s", e)
+            logger.exception("Failed to get schema tables")
             return ServiceResult.failure(f"Failed to get schema tables: {e}")
 
     async def validate_sync_requirements(
@@ -205,7 +205,7 @@ class DatabaseSynchronizer:
             return ServiceResult.success(validation_info)
 
         except Exception as e:
-            logger.exception("Sync validation failed for %s: %s", table_name, e)
+            logger.exception("Sync validation failed for %s", table_name)
             return ServiceResult.failure(f"Sync validation failed: {e}")
 
     async def _table_exists(
@@ -257,5 +257,5 @@ class DatabaseSynchronizer:
             return ServiceResult.success(pk_columns)
 
         except Exception as e:
-            logger.exception("Failed to get primary key columns: %s", e)
+            logger.exception("Failed to get primary key columns")
             return ServiceResult.failure(f"Failed to get primary key columns: {e}")

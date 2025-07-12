@@ -27,8 +27,8 @@ logger = get_logger(__name__)
 class ComparisonConfig(DomainValueObject):
     """Configuration for database comparison operations."""
 
-    include_schema: bool = Field(True, description="Include schema comparison")
-    include_data: bool = Field(False, description="Include data comparison")
+    include_schema: bool = Field(default=True, description="Include schema comparison")
+    include_data: bool = Field(default=False, description="Include data comparison")
     schema_objects: list[str] = Field(
         default_factory=lambda: ["tables", "views", "sequences", "procedures"],
         description="Schema object types to compare",
@@ -100,7 +100,7 @@ class DatabaseComparator:
             return ServiceResult.success(comparison_result)
 
         except Exception as e:
-            logger.exception("Database comparison failed: %s", e)
+            logger.exception("Database comparison failed")
             return ServiceResult.failure(f"Database comparison failed: {e}")
 
     async def _compare_schemas(
@@ -135,7 +135,7 @@ class DatabaseComparator:
             )
 
         except Exception as e:
-            logger.exception("Schema comparison failed: %s", e)
+            logger.exception("Schema comparison failed")
             return ServiceResult.failure(f"Schema comparison failed: {e}")
 
     async def _compare_data(
@@ -194,7 +194,7 @@ class DatabaseComparator:
             return ServiceResult.success(result)
 
         except Exception as e:
-            logger.exception("Data comparison failed: %s", e)
+            logger.exception("Data comparison failed")
             return ServiceResult.failure(f"Data comparison failed: {e}")
 
     async def _get_schema_metadata(
@@ -218,7 +218,7 @@ class DatabaseComparator:
             return ServiceResult.success(metadata)
 
         except Exception as e:
-            logger.exception("Failed to get schema metadata for %s: %s", schema_name, e)
+            logger.exception("Failed to get schema metadata for %s", schema_name)
             return ServiceResult.failure(f"Failed to get schema metadata: {e}")
 
     async def _get_comparable_tables(
@@ -269,7 +269,7 @@ class DatabaseComparator:
             return ServiceResult.success(filtered_tables)
 
         except Exception as e:
-            logger.exception("Failed to get comparable tables: %s", e)
+            logger.exception("Failed to get comparable tables")
             return ServiceResult.failure(f"Failed to get comparable tables: {e}")
 
     async def _get_primary_key_columns(
@@ -313,7 +313,7 @@ class DatabaseComparator:
             return ServiceResult.success(pk_columns)
 
         except Exception as e:
-            logger.exception("Failed to get primary key columns: %s", e)
+            logger.exception("Failed to get primary key columns")
             return ServiceResult.failure(f"Failed to get primary key columns: {e}")
 
     async def get_comparison_summary(
@@ -345,5 +345,5 @@ class DatabaseComparator:
             return ServiceResult.success(summary)
 
         except Exception as e:
-            logger.exception("Failed to generate comparison summary: %s", e)
+            logger.exception("Failed to generate comparison summary")
             return ServiceResult.failure(f"Failed to generate summary: {e}")

@@ -50,13 +50,13 @@ class OracleColumnInfo(DomainValueObject):
 
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
-    nullable: bool = Field(True, description="Whether column allows NULL")
+    nullable: bool = Field(default=True, description="Whether column allows NULL")
     default_value: str | None = Field(None, description="Default value")
     max_length: int | None = Field(None, description="Maximum character length")
     precision: int | None = Field(None, description="Numeric precision")
     scale: int | None = Field(None, description="Numeric scale")
-    is_primary_key: bool = Field(False, description="Whether column is primary key")
-    is_foreign_key: bool = Field(False, description="Whether column is foreign key")
+    is_primary_key: bool = Field(default=False, description="Whether column is primary key")
+    is_foreign_key: bool = Field(default=False, description="Whether column is foreign key")
     comments: str | None = Field(None, description="Column comments")
 
 

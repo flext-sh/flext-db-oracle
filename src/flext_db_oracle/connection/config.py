@@ -35,14 +35,14 @@ class ConnectionConfig(BaseConfig):
 
     # Connection options
     timeout: int = Field(30, description="Connection timeout", ge=1)
-    autocommit: bool = Field(False, description="Auto-commit transactions")
+    autocommit: bool = Field(default=False, description="Auto-commit transactions")
     encoding: str = Field("UTF-8", description="Character encoding")
 
     # SSL/Security options
-    ssl_enabled: bool = Field(False, description="Enable SSL connection")
+    ssl_enabled: bool = Field(default=False, description="Enable SSL connection")
     ssl_cert_path: str | None = Field(None, description="SSL certificate path")
     ssl_key_path: str | None = Field(None, description="SSL key path")
-    ssl_server_dn_match: bool = Field(True, description="Verify SSL server DN")
+    ssl_server_dn_match: bool = Field(default=True, description="Verify SSL server DN")
     protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")  # For Oracle Cloud
 
     @field_validator("pool_max")
