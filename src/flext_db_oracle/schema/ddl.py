@@ -1,9 +1,16 @@
-"""Oracle DDL (Data Definition Language) generation utilities."""
+"""Oracle DDL (Data Definition Language) generation utilities.
+
+Built on flext-core foundation for robust DDL generation.
+Uses ServiceResult pattern and modern Python 3.13 typing.
+"""
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
+
+from flext_core import ServiceResult
+
+from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.schema.metadata import (
@@ -13,331 +20,318 @@ if TYPE_CHECKING:
         TableMetadata,
     )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DDLGenerator:
-    """Generates Oracle DDL statements from metadata."""
+    """Generates Oracle DDL statements from metadata using flext-core patterns."""
 
-    def __init__(self: Self, include_comments: bool = True) -> None:
-        """Initialize DDL generator.
-
-        Args:
-            include_comments: Whether to include comments in generated DDL.
-
-        """
+    def __init__(self, include_comments: bool = True) -> None:
         self.include_comments = include_comments
 
-    def generate_table_ddl(self, table: TableMetadata) -> str:
-        """Generate CREATE TABLE DDL statement.
+    async def generate_table_ddl(self, table: TableMetadata) -> ServiceResult[str]:
+        """Generate CREATE TABLE DDL statement."""
+        try:
+            if not table.columns:
+                return ServiceResult.failure(f"Table {table.name} has no columns defined")
 
-        Args:
-            table: Table metadata.
+            lines = []
 
-        Returns:
-            Complete CREATE TABLE DDL statement.
+            # Table creation
+            table_name = f"{table.schema_name}.{table.name}"
+            lines.append(f"CREATE TABLE {table_name} (")
 
-        """
-        if not table.columns:
-            msg = f"Table {table.name} has no columns defined"
-            raise ValueError(msg)
+            # Generate column definitions
+            column_ddl = []
+            for col in table.columns:
+                col_def_result = await self._generate_column_definition(col)
+                if col_def_result.is_failure:
+                    return col_def_result
+                column_ddl.append(f"    {col_def_result.value}")
 
-        lines = []
+            lines.extend((",\n".join(column_ddl), ")"))
 
-        # Table creation
-        lines.append(f"CREATE TABLE {table.schema_name}.{table.name} (")
+            # Tablespace clause
+            if table.tablespace_name:
+                lines.append(f"TABLESPACE {table.tablespace_name}")
 
-        # Columns
-        column_ddl = []
-        for col in table.columns:
-            col_def = self._generate_column_definition(col)
-            column_ddl.append(f"    {col_def}")
+            # Parallel degree
+            if table.degree > 1:
+                lines.append(f"PARALLEL {table.degree}")
 
-        lines.extend((",\n".join(column_ddl), ")"))
+            # Compression
+            if table.compression:
+                lines.append(f"COMPRESS FOR {table.compression}")
 
-        # Tablespace
-        if table.tablespace:
-            lines.append(f"TABLESPACE {table.tablespace}")
+            lines.append(";")
 
-        lines.append(";")
+            ddl = "\n".join(lines)
 
-        ddl = "\n".join(lines)
+            # Add table comments
+            if self.include_comments:
+                comments_result = await self._generate_table_comments(table)
+                if comments_result.is_success:
+                    ddl += "\n" + comments_result.value
 
-        # Add table comments
-        if self.include_comments and table.comments:
-            ddl += f"\n\nCOMMENT ON TABLE {table.schema_name}.{table.name} IS '{self._escape_comment(table.comments)}';"
+            logger.info("Generated DDL for table: %s", table.name)
+            return ServiceResult.success(ddl)
 
-        # Add column comments
-        if self.include_comments and table.columns:
+        except Exception as e:
+            logger.exception("Failed to generate table DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate table DDL: {e}")
+
+    async def generate_constraints_ddl(self, table: TableMetadata) -> ServiceResult[list[str]]:
+        """Generate constraint DDL statements."""
+        try:
+            if not table.constraints:
+                return ServiceResult.success([])
+
+            statements = []
+
+            for constraint in table.constraints:
+                ddl_result = await self._generate_constraint_ddl(table, constraint)
+                if ddl_result.is_success:
+                    statements.append(ddl_result.value)
+                else:
+                    logger.warning("Failed to generate constraint DDL: %s", ddl_result.error)
+
+            logger.info("Generated %d constraint DDL statements for table: %s", len(statements), table.name)
+            return ServiceResult.success(statements)
+
+        except Exception as e:
+            logger.exception("Failed to generate constraints DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate constraints DDL: {e}")
+
+    async def generate_indexes_ddl(self, table: TableMetadata) -> ServiceResult[list[str]]:
+        """Generate index DDL statements."""
+        try:
+            if not table.indexes:
+                return ServiceResult.success([])
+
+            statements = []
+
+            for index in table.indexes:
+                # Skip primary key indexes (automatically created)
+                if index.is_primary:
+                    continue
+
+                ddl_result = await self._generate_index_ddl(table, index)
+                if ddl_result.is_success:
+                    statements.append(ddl_result.value)
+                else:
+                    logger.warning("Failed to generate index DDL: %s", ddl_result.error)
+
+            logger.info("Generated %d index DDL statements for table: %s", len(statements), table.name)
+            return ServiceResult.success(statements)
+
+        except Exception as e:
+            logger.exception("Failed to generate indexes DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate indexes DDL: {e}")
+
+    async def generate_complete_ddl(self, table: TableMetadata) -> ServiceResult[str]:
+        """Generate complete DDL including table, constraints, and indexes."""
+        try:
+            all_ddl = []
+
+            # Table DDL
+            table_result = await self.generate_table_ddl(table)
+            if table_result.is_failure:
+                return table_result
+            all_ddl.append(table_result.value)
+
+            # Constraints DDL
+            constraints_result = await self.generate_constraints_ddl(table)
+            if constraints_result.is_success:
+                all_ddl.extend(constraints_result.value)
+
+            # Indexes DDL
+            indexes_result = await self.generate_indexes_ddl(table)
+            if indexes_result.is_success:
+                all_ddl.extend(indexes_result.value)
+
+            complete_ddl = "\n\n".join(all_ddl)
+
+            logger.info("Generated complete DDL for table: %s", table.name)
+            return ServiceResult.success(complete_ddl)
+
+        except Exception as e:
+            logger.exception("Failed to generate complete DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate complete DDL: {e}")
+
+    async def _generate_column_definition(self, column: ColumnMetadata) -> ServiceResult[str]:
+        """Generate column definition part of DDL."""
+        try:
+            parts = [column.name]
+
+            # Data type with precision/scale
+            data_type = column.data_type.upper()
+
+            if column.is_numeric and column.precision is not None:
+                if column.scale is not None and column.scale > 0:
+                    data_type += f"({column.precision},{column.scale})"
+                else:
+                    data_type += f"({column.precision})"
+            elif column.max_length is not None:
+                data_type += f"({column.max_length})"
+
+            parts.append(data_type)
+
+            # Default value
+            if column.default_value is not None:
+                if column.data_type.upper() in {"VARCHAR2", "CHAR", "CLOB"}:
+                    parts.append(f"DEFAULT '{self._escape_string(column.default_value)}'")
+                else:
+                    parts.append(f"DEFAULT {column.default_value}")
+
+            # NOT NULL constraint
+            if not column.nullable:
+                parts.append("NOT NULL")
+
+            column_def = " ".join(parts)
+            return ServiceResult.success(column_def)
+
+        except Exception as e:
+            logger.exception("Failed to generate column definition for %s: %s", column.name, e)
+            return ServiceResult.failure(f"Failed to generate column definition: {e}")
+
+    async def _generate_constraint_ddl(
+        self,
+        table: TableMetadata,
+        constraint: ConstraintMetadata,
+    ) -> ServiceResult[str]:
+        """Generate constraint DDL statement."""
+        try:
+            table_name = f"{table.schema_name}.{table.name}"
+
+            if constraint.constraint_type.value == "PRIMARY_KEY":
+                columns = ", ".join(constraint.column_names)
+                ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({columns})"
+
+            elif constraint.constraint_type.value == "FOREIGN_KEY":
+                columns = ", ".join(constraint.column_names)
+                ref_columns = ", ".join(constraint.referenced_columns)
+                ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} FOREIGN KEY ({columns}) REFERENCES {constraint.referenced_table} ({ref_columns})"
+
+            elif constraint.constraint_type.value == "UNIQUE":
+                columns = ", ".join(constraint.column_names)
+                ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} UNIQUE ({columns})"
+
+            elif constraint.constraint_type.value == "CHECK":
+                ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.check_condition})"
+
+            else:
+                return ServiceResult.failure(f"Unsupported constraint type: {constraint.constraint_type}")
+
+            # Add deferrable clause if needed
+            if constraint.deferrable:
+                ddl += " DEFERRABLE"
+                if constraint.initially_deferred:
+                    ddl += " INITIALLY DEFERRED"
+
+            ddl += ";"
+
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception("Failed to generate constraint DDL for %s: %s", constraint.name, e)
+            return ServiceResult.failure(f"Failed to generate constraint DDL: {e}")
+
+    async def _generate_index_ddl(
+        self,
+        table: TableMetadata,
+        index: IndexMetadata,
+    ) -> ServiceResult[str]:
+        """Generate index DDL statement."""
+        try:
+            table_name = f"{table.schema_name}.{table.name}"
+            columns = ", ".join(index.column_names)
+
+            # Start with CREATE
+            ddl_parts = ["CREATE"]
+
+            # Add UNIQUE if applicable
+            if index.is_unique:
+                ddl_parts.append("UNIQUE")
+
+            # Add index type if bitmap
+            if index.is_bitmap:
+                ddl_parts.append("BITMAP")
+
+            ddl_parts.extend(["INDEX", index.name, "ON", table_name, f"({columns})"])
+
+            # Add tablespace
+            if index.tablespace_name:
+                ddl_parts.extend(["TABLESPACE", index.tablespace_name])
+
+            # Add parallel degree
+            if index.degree > 1:
+                ddl_parts.extend(["PARALLEL", str(index.degree)])
+
+            # Add compression
+            if index.compression:
+                ddl_parts.extend(["COMPRESS", index.compression])
+
+            ddl = " ".join(ddl_parts) + ";"
+
+            return ServiceResult.success(ddl)
+
+        except Exception as e:
+            logger.exception("Failed to generate index DDL for %s: %s", index.name, e)
+            return ServiceResult.failure(f"Failed to generate index DDL: {e}")
+
+    async def _generate_table_comments(self, table: TableMetadata) -> ServiceResult[str]:
+        """Generate table and column comments."""
+        try:
+            comments = []
+            table_name = f"{table.schema_name}.{table.name}"
+
+            # Table comment (placeholder - would need table comment field in metadata)
+            # if table.comments:
+            #     comments.append(f"COMMENT ON TABLE {table_name} IS '{self._escape_string(table.comments)}';")
+
+            # Column comments
             for col in table.columns:
                 if col.comments:
-                    ddl += f"\nCOMMENT ON COLUMN {table.schema_name}.{table.name}.{col.name} IS '{self._escape_comment(col.comments)}';"
+                    comment_sql = f"COMMENT ON COLUMN {table_name}.{col.name} IS '{self._escape_string(col.comments)}';"
+                    comments.append(comment_sql)
 
-        return ddl
+            return ServiceResult.success("\n".join(comments))
 
-    def generate_constraints_ddl(self, table: TableMetadata) -> list[str]:
-        """Generate DDL for table constraints.
+        except Exception as e:
+            logger.exception("Failed to generate comments for table %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate comments: {e}")
 
-        Args:
-            table: Table metadata.
+    def _escape_string(self, value: str) -> str:
+        """Escape string for SQL."""
+        return value.replace("'", "''")
 
-        Returns:
-            List of ALTER TABLE statements for constraints.
+    async def generate_drop_table_ddl(self, table: TableMetadata, cascade: bool = False) -> ServiceResult[str]:
+        """Generate DROP TABLE DDL statement."""
+        try:
+            table_name = f"{table.schema_name}.{table.name}"
+            ddl = f"DROP TABLE {table_name}"
 
-        """
-        if not table.constraints:
-            return []
+            if cascade:
+                ddl += " CASCADE CONSTRAINTS"
 
-        statements = []
+            ddl += ";"
 
-        for constraint in table.constraints:
-            ddl = self._generate_constraint_ddl(
-                table.schema_name, table.name, constraint
-            )
-            if ddl:
-                statements.append(ddl)
+            logger.info("Generated DROP TABLE DDL for: %s", table.name)
+            return ServiceResult.success(ddl)
 
-        return statements
+        except Exception as e:
+            logger.exception("Failed to generate DROP TABLE DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate DROP TABLE DDL: {e}")
 
-    def generate_indexes_ddl(self, table: TableMetadata) -> list[str]:
-        """Generate DDL for table indexes.
+    async def generate_truncate_table_ddl(self, table: TableMetadata) -> ServiceResult[str]:
+        """Generate TRUNCATE TABLE DDL statement."""
+        try:
+            table_name = f"{table.schema_name}.{table.name}"
+            ddl = f"TRUNCATE TABLE {table_name};"
 
-        Args:
-            table: Table metadata.
+            logger.info("Generated TRUNCATE TABLE DDL for: %s", table.name)
+            return ServiceResult.success(ddl)
 
-        Returns:
-            List of CREATE INDEX statements.
-
-        """
-        if not table.indexes:
-            return []
-
-        statements = []
-
-        for index in table.indexes:
-            # Skip primary key indexes (created automatically)
-            if index.is_primary:
-                continue
-
-            ddl = self._generate_index_ddl(table.schema_name, index)
-            if ddl:
-                statements.append(ddl)
-
-        return statements
-
-    def generate_complete_table_ddl(self, table: TableMetadata) -> str:
-        """Generate complete DDL for a table including constraints and indexes.
-
-        Args:
-            table: Table metadata.
-
-        Returns:
-            Complete DDL script for the table.
-
-        """
-        ddl_parts = []
-
-        # Main table DDL
-        ddl_parts.append(self.generate_table_ddl(table))
-
-        # Constraints
-        constraint_ddls = self.generate_constraints_ddl(table)
-        if constraint_ddls:
-            ddl_parts.append("")  # Empty line
-            ddl_parts.extend(constraint_ddls)
-
-        # Indexes
-        index_ddls = self.generate_indexes_ddl(table)
-        if index_ddls:
-            ddl_parts.append("")  # Empty line
-            ddl_parts.extend(index_ddls)
-
-        return "\n".join(ddl_parts)
-
-    def generate_drop_table_ddl(
-        self, schema_name: str, table_name: str, cascade: bool = False
-    ) -> str:
-        """Generate DROP TABLE DDL statement.
-
-        Args:
-            schema_name: Schema name.
-            table_name: Table name.
-            cascade: Whether to include CASCADE CONSTRAINTS.
-
-        Returns:
-            DROP TABLE DDL statement.
-
-        """
-        ddl = f"DROP TABLE {schema_name}.{table_name}"
-        if cascade:
-            ddl += " CASCADE CONSTRAINTS"
-        ddl += ";"
-        return ddl
-
-    def generate_schema_ddl(
-        self, tables: list[TableMetadata], include_drops: bool = False
-    ) -> str:
-        """Generate DDL for multiple tables in proper dependency order.
-
-        Args:
-            tables: List of table metadata.
-            include_drops: Whether to include DROP statements.
-
-        Returns:
-            Complete schema DDL script.
-
-        """
-        ddl_parts = []
-
-        if include_drops:
-            # Drop tables in reverse dependency order
-            sorted_tables = self._sort_tables_by_dependencies(tables, reverse=True)
-            ddl_parts.append("-- Drop existing tables")
-            ddl_parts.extend(self.generate_drop_table_ddl(
-                        table.schema_name, table.name, cascade=True
-                    ) for table in sorted_tables)
-            ddl_parts.append("")
-
-        # Create tables in dependency order
-        sorted_tables = self._sort_tables_by_dependencies(tables)
-
-        ddl_parts.append("-- Create tables")
-        for table in sorted_tables:
-            ddl_parts.extend((self.generate_complete_table_ddl(table), ""))
-
-        return "\n".join(ddl_parts)
-
-    def _generate_column_definition(self, col: ColumnMetadata) -> str:
-        """Generate column definition for CREATE TABLE."""
-        parts = [col.name]
-
-        # Data type
-        data_type = col.data_type.upper()
-
-        # Add length/precision for applicable types
-        if col.max_length and data_type in {"VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR"}:
-            data_type += f"({col.max_length})"
-        elif col.precision is not None and data_type in {
-            "NUMBER",
-            "DECIMAL",
-            "NUMERIC",
-        }:
-            if col.scale is not None:
-                data_type += f"({col.precision},{col.scale})"
-            else:
-                data_type += f"({col.precision})"
-
-        parts.append(data_type)
-
-        # Default value
-        if col.default_value:
-            parts.append(f"DEFAULT {col.default_value}")
-
-        # Nullable
-        if not col.nullable:
-            parts.append("NOT NULL")
-
-        return " ".join(parts)
-
-    def _generate_constraint_ddl(
-        self, schema_name: str, table_name: str, constraint: ConstraintMetadata
-    ) -> str | None:
-        """Generate DDL for a single constraint."""
-        if constraint.constraint_type == "PRIMARY_KEY":
-            columns = ", ".join(constraint.column_names)
-            return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} PRIMARY KEY ({columns});"
-
-        if constraint.constraint_type == "FOREIGN_KEY":
-            if not constraint.referenced_table or not constraint.referenced_columns:
-                logger.warning(
-                    "Foreign key constraint %s missing reference information",
-                    constraint.name,
-                )
-                return None
-
-            columns = ", ".join(constraint.column_names)
-            ref_columns = ", ".join(constraint.referenced_columns)
-            return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} FOREIGN KEY ({columns}) REFERENCES {constraint.referenced_table} ({ref_columns});"
-
-        if constraint.constraint_type == "UNIQUE":
-            columns = ", ".join(constraint.column_names)
-            return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} UNIQUE ({columns});"
-
-        if constraint.constraint_type == "CHECK":
-            if not constraint.condition:
-                logger.warning("Check constraint %s missing condition", constraint.name)
-                return None
-            return f"ALTER TABLE {schema_name}.{table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.condition});"
-
-        logger.warning(
-            "Unsupported constraint type: %s", constraint.constraint_type
-        )
-        return None
-
-    def _generate_index_ddl(self, schema_name: str, index: IndexMetadata) -> str:
-        """Generate DDL for a single index."""
-        index_type = "UNIQUE " if index.is_unique else ""
-        columns = ", ".join(index.column_names)
-
-        ddl = f"CREATE {index_type}INDEX {index.name} ON {schema_name}.{index.table_name} ({columns})"
-
-        if index.tablespace:
-            ddl += f" TABLESPACE {index.tablespace}"
-
-        ddl += ";"
-        return ddl
-
-    def _sort_tables_by_dependencies(
-        self, tables: list[TableMetadata], reverse: bool = False
-    ) -> list[TableMetadata]:
-        """Sort tables by foreign key dependencies.
-
-        Tables with no foreign keys come first, then tables that depend on them, etc.
-        If reverse=True, returns tables in reverse dependency order (for drops).
-        """
-        # Simple topological sort based on foreign key dependencies
-        table_map = {table.name: table for table in tables}
-        dependencies = {}
-
-        # Build dependency graph
-        for table in tables:
-            deps = set()
-            if table.constraints:
-                for constraint in table.constraints:
-                    if (
-                        constraint.constraint_type == "FOREIGN_KEY"
-                        and constraint.referenced_table
-                        and constraint.referenced_table in table_map
-                    ):
-                        deps.add(constraint.referenced_table)
-            dependencies[table.name] = deps
-
-        # Topological sort
-        sorted_names = []
-        remaining = set(table_map.keys())
-
-        while remaining:
-            # Find tables with no unresolved dependencies
-            ready = [name for name in remaining if not (dependencies[name] & remaining)]
-
-            if not ready:
-                # Circular dependency - just add remaining tables
-                ready = list(remaining)
-                logger.warning("Circular dependencies detected in tables: %s", ready)
-
-            # Sort ready tables alphabetically for consistent output
-            ready.sort()
-            sorted_names.extend(ready)
-            remaining -= set(ready)
-
-        # Get sorted table objects
-        sorted_tables = [table_map[name] for name in sorted_names]
-
-        if reverse:
-            sorted_tables.reverse()
-
-        return sorted_tables
-
-    def _escape_comment(self, comment: str) -> str:
-        """Escape single quotes in comments."""
-        return comment.replace("'", "''") if comment else ""
+        except Exception as e:
+            logger.exception("Failed to generate TRUNCATE TABLE DDL for %s: %s", table.name, e)
+            return ServiceResult.failure(f"Failed to generate TRUNCATE TABLE DDL: {e}")

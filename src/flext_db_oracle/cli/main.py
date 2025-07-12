@@ -1,4 +1,9 @@
-"""Main CLI entry point for Oracle database operations."""
+"""FLEXT DB Oracle CLI - Enterprise Oracle Database Utilities.
+
+REFACTORED:
+    Uses flext-core patterns with proper logging and configuration.
+Provides comprehensive Oracle database management tools via command line.
+"""
 
 from __future__ import annotations
 
@@ -8,41 +13,46 @@ from typing import Any
 
 from flext_db_oracle.connection.config import ConnectionConfig
 from flext_db_oracle.connection.connection import OracleConnection
-from flext_db_oracle.utils.logger import configure_logging, get_logger
 
+from flext_observability.logging import get_logger
+
+# Use flext-observability for all logging
 logger = get_logger(__name__)
 
 
 def test_connection(args: Any) -> int:
-    """Test database connection.
+    """Test Oracle database connection."""
+    logger.info("🔍 Testing Oracle database connection...")
 
-    Args:
-        args: Command line arguments.
+    if args.url:
+        config = ConnectionConfig.from_url(args.url)
+    else:
+        config = ConnectionConfig(
+            host=args.host,
+            port=args.port,
+            sid=args.sid,
+            service_name=args.service_name or "XE",
+            username=args.username,
+            password=args.password,
+        )
 
-    Returns:
-        Exit code (0 for success, 1 for failure).
-
-    """
     try:
-        if args.url:
-            config = ConnectionConfig.from_url(args.url)
-        else:
-            config = ConnectionConfig(
-                host=args.host,
-                port=args.port,
-                sid=args.sid,
-                service_name=args.service_name,
-                username=args.username,
-                password=args.password,
-            )
+        conn = OracleConnection(config)
+        conn.connect()
 
-        with OracleConnection(config) as conn:
+        if conn.is_connected:
             result = conn.fetch_one("SELECT 1 FROM DUAL")
             if result:
                 logger.info("✅ Connection successful!")
+                logger.info("📊 Connection details:")
+                logger.info(f"   Host: {config.host}:{config.port}")
+                logger.info(f"   Service: {config.service_name or config.sid}")
+                logger.info(f"   User: {config.username}")
+                conn.disconnect()
                 return 0
-            logger.error("❌ Connection test failed: No result from test query")
-            return 1
+
+        logger.error("❌ Connection test failed: No result from test query")
+        return 1
 
     except Exception as e:
         logger.exception("❌ Connection failed: %s", e)
@@ -50,16 +60,10 @@ def test_connection(args: Any) -> int:
 
 
 def list_tables(args: Any) -> int:
-    """List database tables.
-
-    Args:
-        args: Command line arguments.
-
-    Returns:
-        Exit code (0 for success, 1 for failure).
-
-    """
+    """List tables in Oracle database."""
     try:
+        logger.info("📋 Listing database tables...")
+
         if args.url:
             config = ConnectionConfig.from_url(args.url)
         else:
@@ -67,22 +71,41 @@ def list_tables(args: Any) -> int:
                 host=args.host,
                 port=args.port,
                 sid=args.sid,
-                service_name=args.service_name,
+                service_name=args.service_name or "XE",
                 username=args.username,
                 password=args.password,
             )
 
-        with OracleConnection(config) as conn:
-            tables = conn.get_table_names(args.schema)
+        conn = OracleConnection(config)
+        conn.connect()
 
-            if tables:
-                logger.info("📋 Found %d tables:", len(tables))
-                for table in tables:
-                    print(f"  • {table}")
-            else:
-                logger.info("No tables found")
+        schema = args.schema or config.username.upper()
 
-            return 0
+        # Query to get tables
+        sql = """
+            SELECT table_name, num_rows, tablespace_name
+            FROM all_tables
+            WHERE owner = :schema
+            ORDER BY table_name
+        """
+
+        results = conn.fetch_all(sql, {"schema": schema})
+
+        if results:
+            logger.info("📋 Found %d tables in schema %s:", len(results), schema)
+            logger.info("%-30s %-15s %s", "TABLE NAME", "ROWS", "TABLESPACE")
+            logger.info("-" * 60)
+
+            for row in results:
+                table_name = row[0]
+                num_rows = row[1] if row[1] is not None else "Unknown"
+                tablespace = row[2] if row[2] is not None else "Default"
+                logger.info("%-30s %-15s %s", table_name, num_rows, tablespace)
+        else:
+            logger.info("No tables found in schema %s", schema)
+
+        conn.disconnect()
+        return 0
 
     except Exception as e:
         logger.exception("❌ Failed to list tables: %s", e)
@@ -90,16 +113,10 @@ def list_tables(args: Any) -> int:
 
 
 def describe_table(args: Any) -> int:
-    """Describe table structure.
-
-    Args:
-        args: Command line arguments.
-
-    Returns:
-        Exit code (0 for success, 1 for failure).
-
-    """
+    """Describe table structure."""
     try:
+        logger.info("📊 Describing table structure...")
+
         if args.url:
             config = ConnectionConfig.from_url(args.url)
         else:
@@ -107,81 +124,81 @@ def describe_table(args: Any) -> int:
                 host=args.host,
                 port=args.port,
                 sid=args.sid,
-                service_name=args.service_name,
+                service_name=args.service_name or "XE",
                 username=args.username,
                 password=args.password,
             )
 
-        with OracleConnection(config) as conn:
-            columns = conn.get_column_info(args.table, args.schema)
+        conn = OracleConnection(config)
+        conn.connect()
 
-            if columns:
-                logger.info("📋 Table %s structure:", args.table)
-                print(f"{'Column':<30} {'Type':<20} {'Nullable':<10} {'Default':<15}")
-                print("-" * 75)
+        schema = args.schema or config.username.upper()
+        table_name = args.table.upper()
 
-                for col in columns:
-                    type_str = col["type"]
-                    if col["length"]:
-                        type_str += f"({col['length']}"
-                        if col["precision"] and col["scale"]:
-                            type_str += f",{col['scale']}"
-                        type_str += ")"
+        # Query to get column information
+        sql = """
+            SELECT column_name, data_type, data_length, data_precision,
+                   data_scale, nullable, data_default
+            FROM all_tab_columns
+            WHERE table_name = :table_name AND owner = :schema
+            ORDER BY column_id
+        """
 
-                    nullable = "YES" if col["nullable"] else "NO"
-                    default = str(col["default"]) if col["default"] else ""
+        results = conn.fetch_all(sql, {"table_name": table_name, "schema": schema})
 
-                    print(
-                        f"{col['name']:<30} {type_str:<20} {nullable:<10} {default:<15}"
-                    )
-            else:
-                logger.info("No columns found for table %s", args.table)
+        if results:
+            logger.info("📊 Table structure for %s.%s:", schema, table_name)
+            logger.info("%-30s %-15s %-10s %-8s %-10s",
+                       "COLUMN NAME", "DATA TYPE", "LENGTH", "NULL?", "DEFAULT")
+            logger.info("-" * 80)
 
-            return 0
+            for row in results:
+                col_name = row[0]
+                data_type = row[1]
+                length = row[2] or ""
+                precision = row[3] or ""
+                scale = row[4] or ""
+                nullable = "YES" if row[5] == "Y" else "NO"
+                default = row[6] or ""
+
+                # Format data type with length/precision
+                if precision and scale:
+                    type_str = f"{data_type}({precision},{scale})"
+                elif length and data_type in {"VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR"}:
+                    type_str = f"{data_type}({length})"
+                else:
+                    type_str = data_type
+
+                logger.info("%-30s %-15s %-10s %-8s %-10s",
+                           col_name, type_str, str(length), nullable, str(default)[:10])
+        else:
+            logger.error("Table %s.%s not found", schema, table_name)
+            return 1
+
+        conn.disconnect()
+        return 0
 
     except Exception as e:
         logger.exception("❌ Failed to describe table: %s", e)
         return 1
 
 
-def main() -> int:
-    """Main CLI entry point.
-
-    Returns:
-        Exit code.
-
-    """
+def setup_parser() -> argparse.ArgumentParser:
+    """Setup command line argument parser."""
     parser = argparse.ArgumentParser(
-        description="Oracle Database Core Utilities",
+        description="FLEXT DB Oracle - Enterprise Oracle Database Utilities",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    # Global options
-    parser.add_argument(
-        "--log-level",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
-        default="INFO",
-        help="Set logging level",
-    )
-
-    # Connection options
-    connection_group = parser.add_argument_group("Connection Options")
-    connection_group.add_argument(
-        "--url", help="Database URL (oracle://user:pass@host:port/service)"
-    )
-    connection_group.add_argument("--host", default="localhost", help="Database host")
-    connection_group.add_argument(
-        "--port", type=int, default=1521, help="Database port"
-    )
-    connection_group.add_argument("--sid", help="Database SID")
-    connection_group.add_argument("--service-name", help="Database service name")
-    connection_group.add_argument(
-        "--username", default="user", help="Database username"
-    )
-    connection_group.add_argument(
-        "--password", default="password", help="Database password"
-    )
-    connection_group.add_argument("--schema", help="Schema name (optional)")
+    # Global connection options
+    parser.add_argument("--url", help="Oracle connection URL (oracle://user:pass@host:port/service)")
+    parser.add_argument("--host", default="localhost", help="Database host (default: localhost)")
+    parser.add_argument("--port", type=int, default=1521, help="Database port (default: 1521)")
+    parser.add_argument("--sid", help="Oracle SID")
+    parser.add_argument("--service-name", help="Oracle service name (default: XE)")
+    parser.add_argument("--username", help="Database username")
+    parser.add_argument("--password", help="Database password")
+    parser.add_argument("--schema", help="Schema name (default: username)")
 
     # Subcommands
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -191,26 +208,44 @@ def main() -> int:
     test_parser.set_defaults(func=test_connection)
 
     # List tables command
-    tables_parser = subparsers.add_parser("tables", help="List database tables")
+    tables_parser = subparsers.add_parser("tables", help="List tables in schema")
     tables_parser.set_defaults(func=list_tables)
 
     # Describe table command
-    describe_parser = subparsers.add_parser("describe", help="Describe table structure")
-    describe_parser.add_argument("table", help="Table name to describe")
-    describe_parser.set_defaults(func=describe_table)
+    desc_parser = subparsers.add_parser("describe", help="Describe table structure")
+    desc_parser.add_argument("table", help="Table name to describe")
+    desc_parser.set_defaults(func=describe_table)
 
-    # Parse arguments
-    args = parser.parse_args()
+    return parser
 
-    # Configure logging
-    configure_logging(args.log_level)
 
-    # Execute command
-    if hasattr(args, "func"):
-        result = args.func(args)
-        return int(result) if result is not None else 0
-    parser.print_help()
-    return 1
+def main() -> int:
+    """Main CLI entry point."""
+    try:
+        parser = setup_parser()
+        args = parser.parse_args()
+
+        if not args.command:
+            parser.print_help()
+            return 1
+
+        # Validate required connection parameters
+        if not args.url:
+            if not all([args.username, args.password]):
+                logger.error("❌ Username and password are required when not using --url")
+                return 1
+
+            if not args.sid and not args.service_name:
+                logger.warning("⚠️  Neither SID nor service-name specified, using default service 'XE'")
+
+        return args.func(args)
+
+    except KeyboardInterrupt:
+        logger.info("Operation cancelled by user")
+        return 130
+    except Exception as e:
+        logger.exception("❌ Unexpected error: %s", e)
+        return 1
 
 
 if __name__ == "__main__":

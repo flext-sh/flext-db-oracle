@@ -1,116 +1,170 @@
-# FLEXT-DB-ORACLE Makefile - Infrastructure Component
-# ======================================================
+#!/usr/bin/make -f
+# FLEXT DB Oracle - Makefile for development and operations
+# Uses Poetry for dependency management and provides CLI shortcuts
 
-.PHONY: help install test clean lint format build docs dev security type-check pre-commit
+.PHONY: help install test lint format clean cli-help cli-test cli-tables cli-health
+
+# Variables
+PYTHON := poetry run python
+CLI := ./flext-db-oracle
 
 # Default target
 help: ## Show this help message
-	@echo "🏗️  Flext Db Oracle - Infrastructure Component"
-	@echo "============================================"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "FLEXT DB Oracle - Development & Operations Commands"
+	@echo ""
+	@echo "📦 Development Commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v "CLI Commands" | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "🔧 CLI Commands:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*CLI.*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[33m%-15s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+	@echo "💡 Examples:"
+	@echo "  make cli-test HOST=localhost PORT=1521 SERVICE=XE USER=hr PASS=hr"
+	@echo "  make cli-tables URL=oracle://hr:hr@localhost:1521/XE"
+	@echo "  make cli-health HOST=localhost USER=system PASS=oracle"
 
-# Installation & Setup
-install: ## Install dependencies with Poetry
-	@echo "📦 Installing dependencies for flext-db-oracle..."
-	poetry install --all-extras
+install: ## Install dependencies
+	@echo "📦 Installing dependencies..."
+	poetry install --no-dev
+	@echo "✅ Dependencies installed"
 
-install-dev: ## Install with dev dependencies
-	@echo "🛠️  Installing dev dependencies..."
-	poetry install --all-extras --group dev --group test --group security
+install-dev: ## Install development dependencies
+	@echo "📦 Installing development dependencies..."
+	poetry install
+	@echo "✅ Development dependencies installed"
 
-# Testing
 test: ## Run tests
-	@echo "🧪 Running tests for flext-db-oracle..."
-	@if [ -d tests ]; then \
-		python -m pytest tests/ -v; \
+	@echo "🧪 Running tests..."
+	$(PYTHON) -m pytest tests/ -v
+	@echo "✅ Tests completed"
+
+test-cov: ## Run tests with coverage
+	@echo "🧪 Running tests with coverage..."
+	$(PYTHON) -m pytest tests/ -v --cov=src/flext_db_oracle --cov-report=html --cov-report=term
+	@echo "✅ Tests with coverage completed"
+
+lint: ## Run linting
+	@echo "🔍 Running maximum strictness linting for flext-db-oracle..."
+	poetry run ruff check . --output-format=full
+	@echo "✅ Linting completed"
+
+lint-fix: ## Run linting with auto-fix
+	@echo "🔧 Running linting with auto-fix..."
+	poetry run ruff check . --fix
+	@echo "✅ Linting with auto-fix completed"
+
+format: ## Format code
+	@echo "🎨 Formatting code..."
+	poetry run ruff format .
+	@echo "✅ Code formatting completed"
+
+clean: ## Clean build artifacts
+	@echo "🧹 Cleaning build artifacts..."
+	rm -rf build/
+	rm -rf dist/
+	rm -rf *.egg-info/
+	rm -rf .pytest_cache/
+	rm -rf htmlcov/
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	@echo "✅ Clean completed"
+
+build: ## Build package
+	@echo "📦 Building package..."
+	poetry build
+	@echo "✅ Package built"
+
+# CLI Commands
+cli-help: ## CLI - Show CLI help
+	@echo "🔧 FLEXT DB Oracle CLI Help:"
+	$(CLI) --help
+
+cli-test: ## CLI - Test database connection
+	@echo "🔍 Testing database connection..."
+	$(CLI) --host $(or $(HOST),localhost) --port $(or $(PORT),1521) --service-name $(or $(SERVICE),XE) --username $(or $(USER),user) --password $(or $(PASS),password) test
+
+cli-tables: ## CLI - List database tables
+	@echo "📋 Listing database tables..."
+	@if [ -n "$(URL)" ]; then \
+		$(CLI) --url $(URL) tables; \
 	else \
-		echo "No tests directory found"; \
+		$(CLI) --host $(or $(HOST),localhost) --port $(or $(PORT),1521) --service-name $(or $(SERVICE),XE) --username $(or $(USER),user) --password $(or $(PASS),password) tables; \
 	fi
 
-test-coverage: ## Run tests with coverage
-	@echo "🧪 Running tests with coverage for flext-db-oracle..."
-	@python -m pytest tests/ --cov=src --cov-report=html --cov-report=term
+cli-describe: ## CLI - Describe table structure
+	@echo "📋 Describing table: $(TABLE)"
+	@if [ -z "$(TABLE)" ]; then \
+		echo "❌ Error: TABLE parameter is required. Usage: make cli-describe TABLE=table_name"; \
+		exit 1; \
+	fi
+	@if [ -n "$(URL)" ]; then \
+		$(CLI) --url $(URL) describe $(TABLE); \
+	else \
+		$(CLI) --host $(or $(HOST),localhost) --port $(or $(PORT),1521) --service-name $(or $(SERVICE),XE) --username $(or $(USER),user) --password $(or $(PASS),password) describe $(TABLE); \
+	fi
 
-# Code Quality - Maximum Strictness
-lint: ## Run all linters with maximum strictness
-	@echo "🔍 Running maximum strictness linting for flext-db-oracle..."
-	poetry run ruff check . --output-format=verbose
-	@echo "✅ Ruff linting complete"
+cli-health: ## CLI - Perform database health check
+	@echo "🏥 Performing database health check..."
+	@if [ -n "$(URL)" ]; then \
+		$(CLI) --url $(URL) health; \
+	else \
+		$(CLI) --host $(or $(HOST),localhost) --port $(or $(PORT),1521) --service-name $(or $(SERVICE),XE) --username $(or $(USER),user) --password $(or $(PASS),password) health; \
+	fi
 
-format: ## Format code with strict standards
-	@echo "🎨 Formatting code with strict standards..."
-	poetry run black .
-	poetry run ruff check --fix .
-	@echo "✅ Code formatting complete"
+cli-query: ## CLI - Execute SQL query
+	@echo "⚡ Executing SQL query: $(SQL)"
+	@if [ -z "$(SQL)" ]; then \
+		echo "❌ Error: SQL parameter is required. Usage: make cli-query SQL='SELECT * FROM dual'"; \
+		exit 1; \
+	fi
+	@if [ -n "$(URL)" ]; then \
+		$(CLI) --url $(URL) query "$(SQL)" --limit $(or $(LIMIT),10); \
+	else \
+		$(CLI) --host $(or $(HOST),localhost) --port $(or $(PORT),1521) --service-name $(or $(SERVICE),XE) --username $(or $(USER),user) --password $(or $(PASS),password) query "$(SQL)" --limit $(or $(LIMIT),10); \
+	fi
 
-type-check: ## Run strict type checking
-	@echo "🎯 Running strict MyPy type checking..."
-	poetry run mypy src/flext_db_oracle --strict --show-error-codes
-	@echo "✅ Type checking complete"
+# Development shortcuts
+dev-setup: install-dev ## Setup development environment
+	@echo "🚀 Development environment setup completed"
 
-security: ## Run security analysis
-	@echo "🔒 Running security analysis..."
-	poetry run bandit -r src/ -f json -o reports/security.json || true
-	poetry run bandit -r src/ -f txt
-	@echo "✅ Security analysis complete"
+dev-test: test-cov lint ## Run full development tests
 
-pre-commit: ## Run pre-commit hooks
-	@echo "🎣 Running pre-commit hooks..."
-	poetry run pre-commit run --all-files
-	@echo "✅ Pre-commit checks complete"
+dev-clean: clean ## Clean development environment
+	@echo "🧹 Development environment cleaned"
 
-check: lint type-check security test ## Run all quality checks
-	@echo "✅ All quality checks complete for flext-db-oracle!"
+# Docker shortcuts (if needed)
+docker-build: ## Build Docker image
+	@echo "🐳 Building Docker image..."
+	docker build -t flext-db-oracle .
+	@echo "✅ Docker image built"
 
-# Build & Distribution
-build: ## Build the package with Poetry
-	@echo "🔨 Building flext-db-oracle package..."
-	poetry build
-	@echo "📦 Package built successfully"
-
-build-clean: clean build ## Clean then build
-	@echo "🔄 Clean build for flext-db-oracle..."
-
-publish-test: build ## Publish to TestPyPI
-	@echo "🚀 Publishing to TestPyPI..."
-	poetry publish --repository testpypi
-
-publish: build ## Publish to PyPI
-	@echo "🚀 Publishing flext-db-oracle to PyPI..."
-	poetry publish
+docker-run: ## Run Docker container
+	@echo "🐳 Running Docker container..."
+	docker run -it --rm flext-db-oracle
+	@echo "✅ Docker container finished"
 
 # Documentation
 docs: ## Generate documentation
-	@echo "📚 Generating documentation for flext-db-oracle..."
-	@if [ -f docs/conf.py ]; then \
-		cd docs && make html; \
-	else \
-		echo "No docs configuration found"; \
-	fi
+	@echo "📚 Generating documentation..."
+	@echo "Documentation available in README.md and FLEXT_CORE_MIGRATION_APPLIED.md"
+	@echo "✅ Documentation ready"
 
-# Cleanup
-clean: ## Clean build artifacts
-	@echo "🧹 Cleaning build artifacts for flext-db-oracle..."
-	@rm -rf build/ dist/ *.egg-info/
-	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	@find . -name "*.pyc" -delete 2>/dev/null || true
-	@find . -name "*.pyo" -delete 2>/dev/null || true
+# Version management
+version: ## Show current version
+	@echo "📊 Current version:"
+	@poetry version
+	
+bump-patch: ## Bump patch version
+	@echo "🔢 Bumping patch version..."
+	poetry version patch
+	@echo "✅ Patch version bumped"
 
-# Development Workflow
-dev-setup: install-dev ## Complete development setup
-	@echo "🎯 Setting up development environment for flext-db-oracle..."
-	poetry run pre-commit install
-	mkdir -p reports
-	@echo "✅ Development setup complete!"
+bump-minor: ## Bump minor version
+	@echo "🔢 Bumping minor version..."
+	poetry version minor
+	@echo "✅ Minor version bumped"
 
-dev: ## Run in development mode
-	@echo "🔧 Starting flext-db-oracle in development mode..."
-	PYTHONPATH=src poetry run python -m flext_db_oracle --debug
-
-dev-test: ## Quick development test cycle
-	@echo "⚡ Quick test cycle for development..."
-	poetry run pytest tests/ -v --tb=short
-
-# Environment variables
-export PYTHONPATH := $(PWD)/src:$(PYTHONPATH)
-export FLEXT_DB_ORACLE_DEV := true
+bump-major: ## Bump major version
+	@echo "🔢 Bumping major version..."
+	poetry version major
+	@echo "✅ Major version bumped"

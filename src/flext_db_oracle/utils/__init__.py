@@ -9,7 +9,6 @@ from flext_db_oracle.utils.exceptions import (
     SQLError,
     ValidationError,
 )
-from flext_db_oracle.utils.logger import get_logger
 
 __all__ = [
     "OracleConnectionError",
@@ -17,5 +16,4 @@ __all__ = [
     "SQLError",
     "SchemaError",
     "ValidationError",
-    "get_logger",
 ]

@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-import logging
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
+
+from flext_observability.logging import get_logger
 
 try:
     import oracledb
-
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
     oracledb = None  # type: ignore[assignment]
-
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from flext_db_oracle.connection.config import ConnectionConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class OracleConnection:
@@ -31,29 +30,18 @@ class OracleConnection:
     """
 
     def __init__(self, config: ConnectionConfig) -> None:
-        """Initialize Oracle connection.
-
-        Args:
-            config: Database connection configuration.
-
-        """
         self.config = config
         self._connection: Any = None
         self._is_connected = False
 
     def connect(self) -> None:
-        """Establish database connection.
-
-        Raises:
-            RuntimeError: If oracledb library is not available.
-            Exception: If connection fails.
-
-        """
+        """Connect to Oracle database."""
         if not ORACLEDB_AVAILABLE:
-            msg = "oracledb library not available. Install with: pip install oracledb"
-            raise RuntimeError(
-                msg
+            msg = (
+                "oracledb library not available. Install with: "
+                "pip install oracledb"
             )
+            raise RuntimeError(msg)
 
         try:
             params = self.config.to_connect_params()
@@ -69,7 +57,7 @@ class OracleConnection:
             raise
 
     def disconnect(self) -> None:
-        """Close database connection."""
+        """Disconnect from Oracle database."""
         if self._connection and self._is_connected:
             try:
                 self._connection.close()
@@ -82,28 +70,11 @@ class OracleConnection:
 
     @property
     def is_connected(self) -> bool:
-        """Check if connection is active.
-
-        Returns:
-            True if connected, False otherwise.
-
-        """
+        """Check if connected to database."""
         return self._is_connected and self._connection is not None
 
     def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
-        """Execute SQL statement.
-
-        Args:
-            sql: SQL statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            Cursor result for SELECT statements, row count for DML.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+        """Execute SQL statement."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -124,19 +95,7 @@ class OracleConnection:
             cursor.close()
 
     def execute_many(self, sql: str, parameters_list: list[dict[str, Any]]) -> int:
-        """Execute SQL statement with multiple parameter sets.
-
-        Args:
-            sql: SQL statement to execute.
-            parameters_list: List of parameter dictionaries.
-
-        Returns:
-            Total number of affected rows.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+        """Execute SQL statement with multiple parameter sets."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -149,19 +108,7 @@ class OracleConnection:
             cursor.close()
 
     def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
-        """Fetch a single row from query.
-
-        Args:
-            sql: SELECT statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            Single row result or None.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+        """Fetch one row from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -176,22 +123,8 @@ class OracleConnection:
         finally:
             cursor.close()
 
-    def fetch_all(
-        self, sql: str, parameters: dict[str, Any] | None = None
-    ) -> list[Any]:
-        """Fetch all rows from query.
-
-        Args:
-            sql: SELECT statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            List of all rows.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+        """Fetch all rows from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -208,12 +141,7 @@ class OracleConnection:
             cursor.close()
 
     def commit(self) -> None:
-        """Commit current transaction.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+        """Commit current transaction."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -221,12 +149,7 @@ class OracleConnection:
         self._connection.commit()
 
     def rollback(self) -> None:
-        """Rollback current transaction.
-
-        Raises:
-            RuntimeError: If not connected to database.
-
-        """
+        """Rollback current transaction."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -235,14 +158,7 @@ class OracleConnection:
 
     @contextmanager
     def transaction(self) -> Generator[OracleConnection]:
-        """Context manager for database transactions.
-
-        Automatically commits on success or rolls back on exception.
-
-        Yields:
-            The connection instance for use within the transaction.
-
-        """
+        """Context manager for database transactions."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
@@ -255,15 +171,7 @@ class OracleConnection:
             raise
 
     def get_table_names(self, schema: str | None = None) -> list[str]:
-        """Get list of table names in the database.
-
-        Args:
-            schema: Optional schema name to filter tables.
-
-        Returns:
-            List of table names.
-
-        """
+        """Get table names from database."""
         sql = "SELECT table_name FROM all_tables"
         if schema:
             sql += " WHERE owner = :schema"
@@ -274,19 +182,8 @@ class OracleConnection:
         results = self.fetch_all(sql, parameters)
         return [row[0] for row in results]
 
-    def get_column_info(
-        self, table_name: str, schema: str | None = None
-    ) -> list[dict[str, Any]]:
-        """Get column information for a table.
-
-        Args:
-            table_name: Name of the table.
-            schema: Optional schema name.
-
-        Returns:
-            List of dictionaries containing column information.
-
-        """
+    def get_column_info(self, table_name: str, schema: str | None = None) -> list[dict[str, Any]]:
+        """Get column information for a table."""
         sql = """
         SELECT column_name, data_type, data_length, data_precision,
                data_scale, nullable, data_default
@@ -304,22 +201,28 @@ class OracleConnection:
 
         results = self.fetch_all(sql, parameters)
 
-        return [{
-                    "name": row[0],
-                    "type": row[1],
-                    "length": row[2],
-                    "precision": row[3],
-                    "scale": row[4],
-                    "nullable": row[5] == "Y",
-                    "default": row[6],
-                } for row in results]
+        return [
+            {
+                "name": row[0],
+                "type": row[1],
+                "length": row[2],
+                "precision": row[3],
+                "scale": row[4],
+                "nullable": row[5] == "Y",
+                "default": row[6],
+            }
+            for row in results
+        ]
 
-    def __enter__(self) -> Self:
-        """Context manager entry."""
-        if not self.is_connected:
-            self.connect()
-        return self
+    def get_version(self) -> str:
+        """Get Oracle database version."""
+        result = self.fetch_one("SELECT * FROM v$version WHERE rownum = 1")
+        return str(result[0]) if result else "Unknown"
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
-        """Context manager exit."""
-        self.disconnect()
+    def test_connection(self) -> bool:
+        """Test database connection."""
+        try:
+            self.fetch_one("SELECT 1 FROM dual")
+            return True
+        except Exception:
+            return False

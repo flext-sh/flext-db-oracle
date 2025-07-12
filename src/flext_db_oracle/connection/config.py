@@ -1,139 +1,152 @@
-"""Oracle Database Connection Configuration."""
+"""Oracle Database Connection Configuration - Modern Python 3.13 + flext-core patterns."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+from pydantic import Field, SecretStr, field_validator, model_validator
+
+from flext_core.config import BaseConfig
+
+if TYPE_CHECKING:
+    from pydantic import ValidationInfo
 
 
-@dataclass
-class ConnectionConfig:
+class ConnectionConfig(BaseConfig):
     """Oracle database connection configuration.
 
+    REFACTORED:
+        Uses flext-core BaseConfig with modern validation patterns.
     Provides secure and validated configuration for Oracle database connections
     with support for various connection modes and security features.
     """
 
-    host: str = "localhost"
-    port: int = 1521
-    sid: str | None = None
-    service_name: str | None = None
-    username: str = "user"
-    password: str = "password"
+    host: str = Field("localhost", description="Database host")
+    port: int = Field(1521, description="Database port", ge=1, le=65535)
+    sid: str | None = Field(None, description="Oracle SID")
+    service_name: str | None = Field(None, description="Oracle service name")
+    username: str = Field("user", description="Database username")
+    password: SecretStr = Field(SecretStr("password"), description="Database password")
 
     # Connection pool settings
-    pool_min: int = 1
-    pool_max: int = 10
-    pool_increment: int = 1
+    pool_min: int = Field(1, description="Minimum pool connections", ge=1)
+    pool_max: int = Field(10, description="Maximum pool connections", ge=1)
+    pool_increment: int = Field(1, description="Pool increment", ge=1)
 
     # Connection options
-    timeout: int = 30
-    autocommit: bool = False
-    encoding: str = "UTF-8"
+    timeout: int = Field(30, description="Connection timeout", ge=1)
+    autocommit: bool = Field(False, description="Auto-commit transactions")
+    encoding: str = Field("UTF-8", description="Character encoding")
 
     # SSL/Security options
-    ssl_enabled: bool = False
-    ssl_cert_path: str | None = None
-    ssl_key_path: str | None = None
+    ssl_enabled: bool = Field(False, description="Enable SSL connection")
+    ssl_cert_path: str | None = Field(None, description="SSL certificate path")
+    ssl_key_path: str | None = Field(None, description="SSL key path")
+    ssl_server_dn_match: bool = Field(True, description="Verify SSL server DN")
+    protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")  # For Oracle Cloud
 
-    def __post_init__(self) -> None:
-        """Validate configuration after initialization."""
+    @field_validator("pool_max")
+    @classmethod
+    def validate_pool_max(cls, v: int, info: ValidationInfo) -> int:
+        """Validate that pool_max >= pool_min."""
+        if hasattr(info, "data") and "pool_min" in info.data:
+            pool_min = info.data.get("pool_min", 1)
+            if v < pool_min:
+                msg = f"pool_max ({v}) must be >= pool_min ({pool_min})"
+                raise ValueError(msg)
+        return v
+
+    @model_validator(mode="after")
+    def validate_connection_identifier(self) -> ConnectionConfig:
+        """Validate that either SID or service_name is provided."""
         if not self.sid and not self.service_name:
-            msg = "Either sid or service_name must be provided"
+            msg = "Either 'service_name' or 'sid' must be provided"
             raise ValueError(msg)
-
-        if self.port < 1 or self.port > 65535:
-            msg = "Port must be between 1 and 65535"
-            raise ValueError(msg)
-
-        if self.pool_min < 1:
-            msg = "pool_min must be at least 1"
-            raise ValueError(msg)
-
-        if self.pool_max < self.pool_min:
-            msg = "pool_max must be greater than or equal to pool_min"
-            raise ValueError(msg)
-
-    def to_dsn(self) -> str:
-        """Generate Oracle DSN string from configuration.
-
-        Returns:
-            Oracle database DSN string for connection.
-
-        """
-        if self.sid:
-            return f"{self.host}:{self.port}/{self.sid}"
-        return f"{self.host}:{self.port}/{self.service_name}"
+        return self
 
     def to_connect_params(self) -> dict[str, Any]:
-        """Generate connection parameters dictionary.
-
-        Returns:
-            Dictionary of connection parameters for oracledb.connect().
-
-        """
+        """Convert configuration to oracledb connection parameters."""
         params = {
             "host": self.host,
             "port": self.port,
             "user": self.username,
-            "password": self.password,
-            "encoding": self.encoding,
+            "password": self.password.get_secret_value(),
+            # "encoding": self.encoding,  # Not supported in modern oracledb
         }
 
-        if self.sid:
-            params["sid"] = self.sid
-        elif self.service_name:
+        # Add SID or service_name
+        if self.service_name:
             params["service_name"] = self.service_name
+        elif self.sid:
+            params["sid"] = self.sid
+
+        # Add protocol (tcp/tcps for SSL)
+        if self.protocol:
+            params["protocol"] = self.protocol
+
+        # Add SSL parameters if enabled
+        if self.ssl_enabled:
+            if self.ssl_cert_path:
+                params["wallet_location"] = self.ssl_cert_path
+            if not self.ssl_server_dn_match:
+                params["ssl_server_dn_match"] = False
 
         return params
 
+    def get_dsn(self) -> str:
+        """Get Oracle DSN string."""
+        if self.service_name:
+            return f"{self.host}:{self.port}/{self.service_name}"
+        if self.sid:
+            return f"{self.host}:{self.port}:{self.sid}"
+        msg = "Either service_name or sid must be configured"
+        raise ValueError(msg)
+
+    def test_connection_params(self) -> bool:
+        """Validate connection parameters."""
+        try:
+            self.to_connect_params()
+            return True
+        except Exception:
+            return False
+
     @classmethod
     def from_url(cls, url: str) -> ConnectionConfig:
-        """Create configuration from database URL.
+        """Create configuration from Oracle connection URL.
 
-        Args:
-            url: Database URL in format oracle://user:pass@host:port/service
-
-        Returns:
-            ConnectionConfig instance.
-
+        Example: oracle://user:pass@host:port/service_name
         """
-        # Simple URL parsing - in production would use urllib.parse
+        # Simple URL parsing - could be enhanced with urllib.parse
         if not url.startswith("oracle://"):
-            msg = "URL must start with oracle://"
+            msg = "URL must start with 'oracle://'"
             raise ValueError(msg)
 
-        # Extract components (simplified)
-        url = url[9:]  # Remove oracle://
-        if "@" in url:
-            auth, location = url.split("@", 1)
-            if ":" in auth:
-                username, password = auth.split(":", 1)
-            else:
-                username = auth
-                password = ""
-        else:
-            username = ""
-            password = ""
-            location = url
+        # Basic parsing for now - this could be made more robust
+        url_parts = url[9:].split("@")  # Remove oracle://
+        if len(url_parts) != 2:
+            msg = "Invalid URL format"
+            raise ValueError(msg)
 
-        if "/" in location:
-            host_port, service = location.split("/", 1)
-        else:
-            host_port = location
-            service = ""
-
-        if ":" in host_port:
-            host, port_str = host_port.split(":", 1)
-            port = int(port_str)
-        else:
-            host = host_port
-            port = 1521
+        credentials, connection_part = url_parts
+        user, password = credentials.split(":")
+        host_part, service_name = connection_part.split("/")
+        host, port = host_part.split(":")
 
         return cls(
             host=host,
-            port=port,
-            service_name=service or None,
-            username=username,
-            password=password,
+            port=int(port),
+            username=user,
+            password=SecretStr(password),
+            service_name=service_name,
         )
+
+    def __repr__(self) -> str:
+        """Safe representation without password."""
+        return (
+            f"ConnectionConfig(host={self.host}, port={self.port}, "
+            f"username={self.username}, service_name={self.service_name})"
+        )
+
+
+# Alias for backward compatibility
+OracleConnectionConfig = ConnectionConfig

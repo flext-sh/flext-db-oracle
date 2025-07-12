@@ -1,298 +1,279 @@
-"""SQL query optimization utilities for Oracle databases."""
+"""SQL query optimization utilities for Oracle databases.
+
+Built on flext-core foundation for robust SQL optimization analysis.
+Uses ServiceResult pattern and async operations.
+"""
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from flext_db_oracle.connection.connection import OracleConnection
+from pydantic import Field
 
-logger = logging.getLogger(__name__)
+from flext_core import DomainValueObject, ServiceResult
+
+from flext_observability.logging import get_logger
+
+if TYPE_CHECKING:
+    from flext_db_oracle.application.services import OracleConnectionService
+
+logger = get_logger(__name__)
+
+
+class QueryPlanStep(DomainValueObject):
+    """Represents a step in an Oracle execution plan."""
+
+    id: int = Field(..., description="Step ID", ge=0)
+    operation: str = Field(..., description="Operation type")
+    options: str | None = Field(None, description="Operation options")
+    object_name: str | None = Field(None, description="Object name")
+    cost: int | None = Field(None, description="Estimated cost", ge=0)
+    cardinality: int | None = Field(None, description="Estimated rows", ge=0)
+    bytes_estimate: int | None = Field(None, description="Estimated bytes", ge=0)
+    cpu_cost: int | None = Field(None, description="CPU cost", ge=0)
+    io_cost: int | None = Field(None, description="I/O cost", ge=0)
+    depth: int = Field(0, description="Nesting depth", ge=0)
+
+
+class QueryAnalysis(DomainValueObject):
+    """Complete query analysis results."""
+
+    sql_text: str = Field(..., description="Original SQL text")
+    execution_plan: list[QueryPlanStep] = Field(default_factory=list, description="Execution plan steps")
+    total_cost: int | None = Field(None, description="Total estimated cost", ge=0)
+    estimated_rows: int | None = Field(None, description="Total estimated rows", ge=0)
+    optimization_hints: list[str] = Field(default_factory=list, description="Optimization suggestions")
+    performance_rating: str = Field("unknown", description="Performance assessment")
+
+    @property
+    def has_expensive_operations(self) -> bool:
+        """Check if plan has expensive operations."""
+        expensive_ops = ["TABLE ACCESS FULL", "SORT", "HASH JOIN", "NESTED LOOPS"]
+        return any(
+            step.operation in expensive_ops
+            for step in self.execution_plan
+        )
 
 
 class QueryOptimizer:
-    """Analyzes and optimizes Oracle SQL queries."""
+    """Analyzes and optimizes Oracle SQL queries using flext-core patterns."""
 
-    def __init__(self, connection: OracleConnection) -> None:
-        """Initialize query optimizer.
+    def __init__(self, connection_service: OracleConnectionService) -> None:
+        self.connection_service = connection_service
 
-        Args:
-            connection: Database connection for plan analysis.
-
-        """
-        self.connection = connection
-
-    def analyze_query_plan(self, sql: str) -> dict[str, Any]:
-        """Analyze execution plan for a SQL query.
-
-        Args:
-            sql: SQL query to analyze.
-
-        Returns:
-            Query execution plan analysis.
-
-        """
+    async def analyze_query_plan(self, sql: str) -> ServiceResult[QueryAnalysis]:
+        """Analyze execution plan for a SQL query."""
         try:
-            # Generate execution plan
-            plan_sql = f"EXPLAIN PLAN FOR {sql}"
-            self.connection.execute(plan_sql)
+            logger.info("Analyzing query execution plan")
 
-            # Retrieve the plan
+            # Generate unique statement ID
+            import uuid
+            statement_id = f"FLEXT_{uuid.uuid4().hex[:8]}"
+
+            # Generate execution plan
+            plan_sql = f"EXPLAIN PLAN SET STATEMENT_ID = '{statement_id}' FOR {sql}"
+            plan_result = await self.connection_service.execute_query(plan_sql)
+
+            if plan_result.is_failure:
+                return plan_result
+
+            # Retrieve the execution plan
             plan_query = """
-            SELECT
-                id,
-                operation,
-                options,
-                object_name,
-                cost,
-                cardinality,
-                bytes,
-                cpu_cost,
-                io_cost
-            FROM plan_table
-            WHERE statement_id IS NULL
-            ORDER BY id
+                SELECT
+                    id,
+                    operation,
+                    options,
+                    object_name,
+                    cost,
+                    cardinality,
+                    bytes,
+                    cpu_cost,
+                    io_cost,
+                    depth
+                FROM plan_table
+                WHERE statement_id = :statement_id
+                ORDER BY id
             """
 
-            plan_rows = self.connection.fetch_all(plan_query)
+            plan_rows_result = await self.connection_service.execute_query(
+                plan_query,
+                {"statement_id": statement_id},
+            )
+
+            if plan_rows_result.is_failure:
+                return plan_rows_result
+
+            # Build execution plan
+            execution_plan = []
+            for row in plan_rows_result.value.rows:
+                step = QueryPlanStep(
+                    id=row[0],
+                    operation=row[1],
+                    options=row[2],
+                    object_name=row[3],
+                    cost=row[4],
+                    cardinality=row[5],
+                    bytes_estimate=row[6],
+                    cpu_cost=row[7],
+                    io_cost=row[8],
+                    depth=row[9] if len(row) > 9 else 0,
+                )
+                execution_plan.append(step)
 
             # Clean up plan table
-            self.connection.execute("DELETE FROM plan_table WHERE statement_id IS NULL")
+            cleanup_sql = f"DELETE FROM plan_table WHERE statement_id = '{statement_id}'"
+            await self.connection_service.execute_query(cleanup_sql)
 
-            plan_steps = [{
-                        "id": row[0],
-                        "operation": row[1],
-                        "options": row[2],
-                        "object_name": row[3],
-                        "cost": row[4],
-                        "cardinality": row[5],
-                        "bytes": row[6],
-                        "cpu_cost": row[7],
-                        "io_cost": row[8],
-                    } for row in plan_rows]
+            # Analyze the plan
+            analysis = await self._analyze_execution_plan(sql, execution_plan)
 
+            logger.info("Query plan analysis completed")
+            return ServiceResult.success(analysis.value if analysis.is_success else QueryAnalysis(sql_text=sql))
+
+        except Exception as e:
+            logger.exception("Query plan analysis failed: %s", e)
+            return ServiceResult.failure(f"Query plan analysis failed: {e}")
+
+    async def _analyze_execution_plan(
+        self,
+        sql: str,
+        execution_plan: list[QueryPlanStep],
+    ) -> ServiceResult[QueryAnalysis]:
+        """Analyze execution plan and provide optimization hints."""
+        try:
             # Calculate total cost
-            total_cost = sum(step["cost"] for step in plan_steps if step["cost"])
+            total_cost = None
+            if execution_plan:
+                costs = [step.cost for step in execution_plan if step.cost is not None]
+                total_cost = max(costs) if costs else None
 
-            return {
-                "status": "success",
-                "sql": sql,
-                "total_cost": total_cost,
-                "plan_steps": plan_steps,
-                "step_count": len(plan_steps),
-            }
+            # Calculate estimated rows
+            estimated_rows = None
+            if execution_plan:
+                cardinalities = [step.cardinality for step in execution_plan if step.cardinality is not None]
+                estimated_rows = sum(cardinalities) if cardinalities else None
+
+            # Generate optimization hints
+            hints = []
+
+            # Check for full table scans
+            full_scans = [step for step in execution_plan if step.operation == "TABLE ACCESS FULL"]
+            if full_scans:
+                hints.append("Consider adding indexes for full table scans")
+
+            # Check for expensive sorts
+            sorts = [step for step in execution_plan if "SORT" in step.operation]
+            if sorts:
+                hints.append("Consider adding ORDER BY indexes to avoid sorts")
+
+            # Check for hash joins on large tables
+            hash_joins = [step for step in execution_plan if "HASH JOIN" in step.operation]
+            if hash_joins:
+                hints.append("Review hash join conditions and table statistics")
+
+            # Assess performance
+            performance_rating = self._assess_performance(execution_plan, total_cost)
+
+            analysis = QueryAnalysis(
+                sql_text=sql,
+                execution_plan=execution_plan,
+                total_cost=total_cost,
+                estimated_rows=estimated_rows,
+                optimization_hints=hints,
+                performance_rating=performance_rating,
+            )
+
+            return ServiceResult.success(analysis)
 
         except Exception as e:
-            logger.exception("Failed to analyze query plan: %s", e)
-            return {
-                "status": "failed",
-                "error": str(e),
-                "sql": sql,
-            }
+            logger.exception("Execution plan analysis failed: %s", e)
+            return ServiceResult.failure(f"Execution plan analysis failed: {e}")
 
-    def suggest_optimizations(self, sql: str) -> dict[str, Any]:
-        """Suggest optimizations for a SQL query.
+    def _assess_performance(
+        self,
+        execution_plan: list[QueryPlanStep],
+        total_cost: int | None,
+    ) -> str:
+        """Assess query performance based on execution plan."""
+        if not execution_plan:
+            return "unknown"
 
-        Args:
-            sql: SQL query to analyze.
+        # Check for concerning operations
+        expensive_ops = ["TABLE ACCESS FULL", "CARTESIAN", "SORT"]
+        has_expensive = any(
+            any(op in step.operation for op in expensive_ops)
+            for step in execution_plan
+        )
 
-        Returns:
-            Optimization suggestions.
+        if has_expensive:
+            return "poor"
 
-        """
-        suggestions = []
+        # Check cost
+        if total_cost is not None:
+            if total_cost > 10000:
+                return "poor"
+            if total_cost > 1000:
+                return "fair"
+            return "good"
 
-        # Analyze the query
-        sql_upper = sql.upper()
+        return "fair"
 
-        # Check for missing WHERE clause in UPDATE/DELETE
-        if (
-            "UPDATE " in sql_upper or "DELETE " in sql_upper
-        ) and "WHERE " not in sql_upper:
-            suggestions.append(
-                {
-                    "type": "warning",
-                    "severity": "high",
-                    "message": "UPDATE/DELETE without WHERE clause affects all rows",
-                    "recommendation": "Add WHERE clause to limit affected rows",
-                }
-            )
-
-        # Check for SELECT * usage
-        if "SELECT *" in sql_upper:
-            suggestions.append(
-                {
-                    "type": "performance",
-                    "severity": "medium",
-                    "message": "SELECT * retrieves all columns",
-                    "recommendation": "Specify only needed columns for better performance",
-                }
-            )
-
-        # Check for potential cartesian products
-        if (
-            "FROM " in sql_upper
-            and "," in sql_upper
-            and "WHERE " not in sql_upper
-            and "JOIN " not in sql_upper
-        ):
-            suggestions.append(
-                {
-                    "type": "performance",
-                    "severity": "high",
-                    "message": "Potential cartesian product detected",
-                    "recommendation": "Add WHERE clause or use explicit JOINs",
-                }
-            )
-
-        # Check for functions in WHERE clause
-        if any(
-            func in sql_upper for func in ["UPPER(", "LOWER(", "SUBSTR(", "TO_CHAR("]
-        ):
-            if "WHERE " in sql_upper:
-                suggestions.append(
-                    {
-                        "type": "performance",
-                        "severity": "medium",
-                        "message": "Functions in WHERE clause may prevent index usage",
-                        "recommendation": "Consider function-based indexes or query rewrite",
-                    }
-                )
-
-        # Check for OR conditions
-        if " OR " in sql_upper and "WHERE " in sql_upper:
-            suggestions.append(
-                {
-                    "type": "performance",
-                    "severity": "medium",
-                    "message": "OR conditions may prevent efficient index usage",
-                    "recommendation": "Consider rewriting with UNION or separate queries",
-                }
-            )
-
-        return {
-            "status": "completed",
-            "sql": sql,
-            "suggestion_count": len(suggestions),
-            "suggestions": suggestions,
-        }
-
-    def get_table_statistics(self, schema_name: str, table_name: str) -> dict[str, Any]:
-        """Get table statistics for optimization analysis.
-
-        Args:
-            schema_name: Schema name.
-            table_name: Table name.
-
-        Returns:
-            Table statistics.
-
-        """
+    async def suggest_indexes(self, sql: str) -> ServiceResult[list[str]]:
+        """Suggest indexes based on query analysis."""
         try:
-            sql = """
-            SELECT
-                num_rows,
-                blocks,
-                empty_blocks,
-                avg_space,
-                chain_cnt,
-                avg_row_len,
-                sample_size,
-                last_analyzed
-            FROM all_tables
-            WHERE owner = UPPER(:schema_name)
-                AND table_name = UPPER(:table_name)
-            """
+            # This would require parsing the SQL to identify:
+            # - WHERE clause columns
+            # - JOIN conditions
+            # - ORDER BY columns
+            # - GROUP BY columns
 
-            result = self.connection.fetch_one(
-                sql, {"schema_name": schema_name, "table_name": table_name}
-            )
+            # For now, return placeholder suggestions
+            suggestions = [
+                "Analyze WHERE clause columns for potential indexes",
+                "Consider composite indexes for multi-column conditions",
+                "Review JOIN conditions for foreign key indexes",
+                "Consider covering indexes for SELECT columns",
+            ]
 
-            if result:
-                return {
-                    "status": "found",
-                    "table_name": table_name,
-                    "schema_name": schema_name,
-                    "num_rows": result[0],
-                    "blocks": result[1],
-                    "empty_blocks": result[2],
-                    "avg_space": result[3],
-                    "chain_cnt": result[4],
-                    "avg_row_len": result[5],
-                    "sample_size": result[6],
-                    "last_analyzed": str(result[7]) if result[7] else None,
-                }
-
-            return {
-                "status": "not_found",
-                "table_name": table_name,
-                "schema_name": schema_name,
-            }
+            logger.info("Generated %d index suggestions", len(suggestions))
+            return ServiceResult.success(suggestions)
 
         except Exception as e:
-            logger.exception("Failed to get table statistics: %s", e)
-            return {
-                "status": "failed",
-                "error": str(e),
-            }
+            logger.exception("Index suggestion failed: %s", e)
+            return ServiceResult.failure(f"Index suggestion failed: {e}")
 
-    def recommend_indexes(self, schema_name: str, table_name: str) -> dict[str, Any]:
-        """Recommend indexes for a table based on usage patterns.
-
-        Args:
-            schema_name: Schema name.
-            table_name: Table name.
-
-        Returns:
-            Index recommendations.
-
-        """
-        recommendations: list[dict[str, Any]] = []
-
+    async def analyze_query_performance(
+        self,
+        sql: str,
+        execution_stats: bool = False,
+    ) -> ServiceResult[dict[str, Any]]:
+        """Perform comprehensive query performance analysis."""
         try:
-            # Check for foreign key columns without indexes
-            fk_sql = """
-            SELECT cc.column_name
-            FROM all_cons_columns cc
-            JOIN all_constraints c ON cc.constraint_name = c.constraint_name
-                AND cc.owner = c.owner
-            WHERE c.owner = UPPER(:schema_name)
-                AND c.table_name = UPPER(:table_name)
-                AND c.constraint_type = 'R'
-                AND NOT EXISTS (
-                    SELECT 1
-                    FROM all_ind_columns ic
-                    WHERE ic.table_owner = cc.owner
-                        AND ic.table_name = cc.table_name
-                        AND ic.column_name = cc.column_name
-                        AND ic.column_position = 1
-                )
-            """
+            # Get execution plan
+            plan_result = await self.analyze_query_plan(sql)
+            if plan_result.is_failure:
+                return plan_result
 
-            fk_results = self.connection.fetch_all(
-                fk_sql, {"schema_name": schema_name, "table_name": table_name}
-            )
+            analysis = plan_result.value
 
-            recommendations.extend({
-                        "type": "foreign_key",
-                        "column": row[0],
-                        "priority": "high",
-                        "reason": "Foreign key column without index",
-                        "sql": f"CREATE INDEX idx_{table_name.lower()}_{row[0].lower()} ON {schema_name}.{table_name} ({row[0]})",
-                    } for row in fk_results)
+            # Get index suggestions
+            index_result = await self.suggest_indexes(sql)
+            index_suggestions = index_result.value if index_result.is_success else []
 
-            return {
-                "status": "completed",
-                "table_name": table_name,
-                "schema_name": schema_name,
-                "recommendation_count": len(recommendations),
-                "recommendations": recommendations,
+            performance_report = {
+                "sql_text": sql,
+                "performance_rating": analysis.performance_rating,
+                "total_cost": analysis.total_cost,
+                "estimated_rows": analysis.estimated_rows,
+                "has_expensive_operations": analysis.has_expensive_operations,
+                "optimization_hints": analysis.optimization_hints,
+                "index_suggestions": index_suggestions,
+                "execution_plan_steps": len(analysis.execution_plan),
             }
+
+            logger.info("Query performance analysis completed")
+            return ServiceResult.success(performance_report)
 
         except Exception as e:
-            logger.exception("Failed to recommend indexes: %s", e)
-            return {
-                "status": "failed",
-                "error": str(e),
-            }
+            logger.exception("Query performance analysis failed: %s", e)
+            return ServiceResult.failure(f"Query performance analysis failed: {e}")

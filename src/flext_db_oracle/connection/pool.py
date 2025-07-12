@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-import logging
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
+
+from flext_observability.logging import get_logger
 
 try:
     import oracledb
-
     ORACLEDB_AVAILABLE = True
 except ImportError:
     ORACLEDB_AVAILABLE = False
     oracledb = None  # type: ignore[assignment]
-
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from flext_db_oracle.connection.config import ConnectionConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ConnectionPool:
@@ -31,29 +30,18 @@ class ConnectionPool:
     """
 
     def __init__(self, config: ConnectionConfig) -> None:
-        """Initialize connection pool.
-
-        Args:
-            config: Database connection configuration.
-
-        """
         self.config = config
         self._pool: Any = None
         self._is_initialized = False
 
     def initialize(self) -> None:
-        """Initialize the connection pool.
-
-        Raises:
-            RuntimeError: If oracledb library is not available.
-            Exception: If pool initialization fails.
-
-        """
+        """Initialize the connection pool."""
         if not ORACLEDB_AVAILABLE:
-            msg = "oracledb library not available. Install with: pip install oracledb"
-            raise RuntimeError(
-                msg
+            msg = (
+                "oracledb library not available. Install with: "
+                "pip install oracledb"
             )
+            raise RuntimeError(msg)
 
         try:
             params = self.config.to_connect_params()
@@ -79,7 +67,7 @@ class ConnectionPool:
             raise
 
     def close(self) -> None:
-        """Close the connection pool and all connections."""
+        """Close the connection pool."""
         if self._pool and self._is_initialized:
             try:
                 self._pool.close()
@@ -92,16 +80,11 @@ class ConnectionPool:
 
     @property
     def is_initialized(self) -> bool:
-        """Check if pool is initialized.
-
-        Returns:
-            True if pool is initialized, False otherwise.
-
-        """
+        """Check if pool is initialized."""
         return self._is_initialized and self._pool is not None
 
     @contextmanager
-    def get_connection(self) -> Generator[Any]:  # type: ignore[misc]
+    def get_connection(self) -> Generator[Any]:
         """Get a connection from the pool.
 
         Yields:
@@ -124,16 +107,7 @@ class ConnectionPool:
                 self._pool.release(connection)
 
     def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
-        """Execute SQL statement using a pool connection.
-
-        Args:
-            sql: SQL statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            Query results or row count.
-
-        """
+        """Execute SQL statement."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
@@ -151,16 +125,7 @@ class ConnectionPool:
                 cursor.close()
 
     def execute_many(self, sql: str, parameters_list: list[dict[str, Any]]) -> int:
-        """Execute SQL statement with multiple parameter sets using pool.
-
-        Args:
-            sql: SQL statement to execute.
-            parameters_list: List of parameter dictionaries.
-
-        Returns:
-            Total number of affected rows.
-
-        """
+        """Execute SQL statement with multiple parameter sets."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
@@ -170,16 +135,7 @@ class ConnectionPool:
                 cursor.close()
 
     def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> Any:
-        """Fetch a single row using pool connection.
-
-        Args:
-            sql: SELECT statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            Single row result or None.
-
-        """
+        """Fetch one row from SQL query."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
@@ -191,19 +147,8 @@ class ConnectionPool:
             finally:
                 cursor.close()
 
-    def fetch_all(
-        self, sql: str, parameters: dict[str, Any] | None = None
-    ) -> list[Any]:
-        """Fetch all rows using pool connection.
-
-        Args:
-            sql: SELECT statement to execute.
-            parameters: Optional parameters for the SQL statement.
-
-        Returns:
-            List of all rows.
-
-        """
+    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+        """Fetch all rows from SQL query."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             try:
@@ -217,7 +162,7 @@ class ConnectionPool:
                 cursor.close()
 
     @contextmanager
-    def transaction(self) -> Generator[Any]:  # type: ignore[misc]
+    def transaction(self) -> Generator[Any]:
         """Context manager for database transactions using pool.
 
         Automatically commits on success or rolls back on exception.
@@ -235,12 +180,7 @@ class ConnectionPool:
                 raise
 
     def get_pool_stats(self) -> dict[str, Any]:
-        """Get connection pool statistics.
-
-        Returns:
-            Dictionary containing pool statistics.
-
-        """
+        """Get pool statistics."""
         if not self.is_initialized:
             return {"status": "not_initialized"}
 
@@ -255,22 +195,13 @@ class ConnectionPool:
 
             # Add actual pool stats if available
             if self._pool and hasattr(self._pool, "opened"):
-                stats["opened_connections"] = self._pool.opened
-            if self._pool and hasattr(self._pool, "busy"):
-                stats["busy_connections"] = self._pool.busy
+                stats.update({
+                    "opened": self._pool.opened,
+                    "busy": self._pool.busy,
+                })
 
             return stats
 
         except Exception as e:
             logger.exception("Error getting pool stats: %s", e)
             return {"status": "error", "error": str(e)}
-
-    def __enter__(self) -> Self:
-        """Context manager entry."""
-        if not self.is_initialized:
-            self.initialize()
-        return self
-
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: object) -> None:
-        """Context manager exit."""
-        self.close()
