@@ -20,7 +20,6 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -48,6 +47,10 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+cover/
+reports/
+pytest.xml
+pytest-*.xml
 
 # Translations
 *.mo
@@ -70,6 +73,7 @@ instance/
 docs/_build/
 
 # PyBuilder
+.pybuilder/
 target/
 
 # Jupyter Notebook
@@ -84,6 +88,12 @@ ipython_config.py
 
 # pipenv
 Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
 
 # PEP 582
 __pypackages__/
@@ -122,11 +132,168 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Project specific
-*.sqlite3
-analysis_outputs/
-logs/
-.benchmarks/
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Cursor
+.cursor/
+
+# Claude
+.claude/
+
+# Oracle specific
+*.ora
+*.dmp
+*.log
+*.aud
+*.trm
+*.trc
+alert_*.log
+listener.log
+sqlnet.log
+tnsnames.ora.bak
+init.ora.bak
+
+# Oracle SQL Developer
+sqldeveloper/
+*.sdsql
+
+# Oracle Data Pump
+datapump/
+*.dpdmp
+*.dplog
+
+# Oracle wallet
+wallet/
+cwallet.sso
+ewallet.p12
+ewallet.p12.lck
+
+# Database backups
+*.bak
+*.backup
+backup/
+backups/
+db_backup/
+db_backups/
+
+# SQL scripts temporary files
+*.sql.tmp
+*.sql.temp
+*.sql.bak
+*.sql.swp
+
+# Performance tuning
+awr/
+addm/
+ash/
+statspack/
+*.html
+*.lst
+
+# Oracle trace files
+udump/
+bdump/
+cdump/
+
+# Test data
+test_data/
+test_output/
+test_results/
+e2e_results/
+
+# Temporary files
 *.tmp
 *.temp
 .DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Local configuration
+internal.invalid.json
+.internal.invalid
+.env.*.local
+*.local.yml
+*.local.yaml
+
+# Documentation work files
+docs/drafts/
+docs/.obsidian/
+*.draft.md
+
+# Migration and maintenance
+migration_state/
+maintenance_logs/
+optimization_reports/
+health_check_reports/
+
+# Development dependencies
+requirements.txt
+requirements-dev.txt
+.dev_deps_backup_*
+
+# Linting and formatting
+.ruff_cache/
+.pylint.d/
+.pyre/
+.pytype/
+
+# Archive directories
+archive/
+
+# Junk documentation files
+CONFIG_MIGRATION*.md
+FLEXT_*_MIGRATION*.md
+*_REPORT*.md
+DEVELOPMENT*.md
+DUPLICATION*.md
+fix_*.py
+*_fix.py
+*_validation.*
+validate_*.*
+LOGGING_MIGRATION.md
+
+# Legacy and backup files
+.gitignore copy
+*.old
+*.orig
+*.rej
+
+# Oracle connection files (keep templates only)
+*.ora
+!*.ora.template
+!*.ora.example
+
+# Benchmarking
+.benchmarks/
+benchmark_results/
+performance_tests/
+
+# Analysis outputs
+analysis_outputs/
+logs/
+*.sqlite3
