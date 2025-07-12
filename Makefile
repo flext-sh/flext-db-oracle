@@ -74,6 +74,15 @@ build: ## Build package
 	poetry build
 	@echo "✅ Package built"
 
+# Quality Check Targets
+check: lint type-check test ## Run all quality checks (lint, type-check, test)
+	@echo "✅ All quality checks passed!"
+
+type-check: ## Run type checking with mypy
+	@echo "🔍 Running type checking for flext-db-oracle..."
+	poetry run mypy src/flext_db_oracle --strict
+	@echo "✅ Type checking completed"
+
 # CLI Commands
 cli-help: ## CLI - Show CLI help
 	@echo "🔧 FLEXT DB Oracle CLI Help:"
