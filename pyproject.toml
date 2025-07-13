@@ -203,6 +203,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
     "S101",    # Use of assert
+    "S106",    # hardcoded-password-possible - Test configurations
     "PLR2004", # Magic value used in comparison
     "ANN201",  # Missing return type annotation for public function
     "D",       # Docstring rules
@@ -214,6 +215,7 @@ ignore = [
 
 "**/tests/*.py" = [
     "S101",
+    "S106",    # hardcoded-password-possible - Test configurations
     "D102",
     "N801",
     "N802",
@@ -226,6 +228,7 @@ ignore = [
 ]
 "test_*.py" = [
     "S101",
+    "S106",    # hardcoded-password-possible - Test configurations
     "D102",
     "N801",
     "N802",
@@ -238,6 +241,7 @@ ignore = [
 ]
 "**/test_*.py" = [
     "S101",
+    "S106",    # hardcoded-password-possible - Test configurations
     "D102",
     "N801",
     "N802",

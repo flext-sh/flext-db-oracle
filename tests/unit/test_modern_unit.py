@@ -19,7 +19,7 @@ def test_oracle_config_creation():
     """Test Oracle configuration creation with valid parameters."""
     config = OracleConfig(
         username="test_user",
-        password="test_password",  # noqa: S106
+        password="test_password",
         service_name="XE",
     )
 
@@ -35,7 +35,7 @@ def test_oracle_config_validation_missing_service_and_sid():
     with pytest.raises(ValidationError):
         OracleConfig(
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
         )
 
 
@@ -43,7 +43,7 @@ def test_oracle_config_connection_string():
     """Test connection string generation for logging."""
     config = OracleConfig(
         username="test_user",
-        password="test_password",  # noqa: S106
+        password="test_password",
         service_name="XE",
         host="oracle.example.com",
         port=1521,
@@ -58,7 +58,7 @@ def test_oracle_config_pool_validation():
     with pytest.raises(ValidationError):
         OracleConfig(
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
             service_name="XE",
             pool_min_size=10,
             pool_max_size=5,  # Invalid: max < min

@@ -31,7 +31,7 @@ class TestOracleConnectionService:
         """Test service can be initialized with valid config."""
         config = OracleConfig(
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
             service_name="XE",
         )
         service = OracleConnectionService(config)
@@ -45,7 +45,7 @@ class TestOracleConnectionService:
         """Test pool initialization creates proper configuration."""
         config = OracleConfig(
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
             service_name="XE",
             pool_min_size=2,
             pool_max_size=10,
@@ -190,7 +190,7 @@ class TestOracleConnectionInfo:
             port=1521,
             service_name="XE",
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
         )
 
         assert connection_info.host == "localhost"
@@ -250,7 +250,7 @@ class TestConfigurationParsing:
         """Test Oracle config creation with valid values."""
         config = OracleConfig(
             username="test_user",
-            password="test_password",  # noqa: S106
+            password="test_password",
             service_name="ORCL",
             host="localhost",
             port=1521,
@@ -265,7 +265,7 @@ class TestConfigurationParsing:
         """Test connection string generation."""
         config = OracleConfig(
             username="user",
-            password="pass",  # noqa: S106
+            password="pass",
             service_name="ORCL",
             host="dbserver",
             port=1521,
@@ -283,7 +283,7 @@ class TestConfigurationParsing:
         """Test connection pool configuration."""
         config = OracleConfig(
             username="user",
-            password="pass",  # noqa: S106
+            password="pass",
             service_name="ORCL",
             pool_min_size=10,
             pool_max_size=50,
