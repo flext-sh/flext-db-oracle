@@ -297,3 +297,8 @@ performance_tests/
 analysis_outputs/
 logs/
 *.sqlite3
+# AI Assistant Files
+CLAUDE.md
+internal.invalid.md
+.claude/
+.cursor/
