@@ -99,7 +99,7 @@ class DatabaseComparator:
                 )
                 if not schema_result.is_success:
                     return schema_result
-                comparison_result = schema_result.value
+                comparison_result = schema_result.data
 
             if config.include_data and self.data_differ:
                 data_result = await self._compare_data(
@@ -152,13 +152,13 @@ class DatabaseComparator:
             if not source_metadata.is_success or not target_metadata.is_success:
                 return ServiceResult.fail("Failed to retrieve schema metadata")
 
-            if not source_metadata.value or not target_metadata.value:
+            if not source_metadata.data or not target_metadata.data:
                 return ServiceResult.fail("Schema metadata is empty")
 
             # Perform schema comparison
             return await self.schema_differ.compare_schemas(
-                source_metadata.value,
-                target_metadata.value,
+                source_metadata.data,
+                target_metadata.data,
             )
 
         except Exception as e:
@@ -193,7 +193,7 @@ class DatabaseComparator:
 
             data_differences = []
 
-            tables_list = tables_to_compare.value
+            tables_list = tables_to_compare.data
             if not tables_list:
                 return ServiceResult.ok({"data_differences": []})
 
@@ -215,16 +215,16 @@ class DatabaseComparator:
                     self.source_service,
                     self.target_service,
                     table_name,
-                    pk_result.value or [],
+                    pk_result.data or [],
                 )
 
-                if table_diff_result.is_success and table_diff_result.value:
-                    data_differences.extend(table_diff_result.value)
+                if table_diff_result.is_success and table_diff_result.data:
+                    data_differences.extend(table_diff_result.data)
                 else:
                     logger.error("Data comparison failed for table %s", table_name)
 
             result = {
-                "tables_compared": len(tables_to_compare.value or []),
+                "tables_compared": len(tables_to_compare.data or []),
                 "total_differences": len(data_differences),
                 "differences": data_differences,
             }
@@ -255,7 +255,7 @@ class DatabaseComparator:
                 return schema_result
 
             # Convert the analyzed data based on config requirements
-            metadata = schema_result.value
+            metadata = schema_result.data
             if not metadata:
                 return ServiceResult.fail("Schema analysis returned no metadata")
 
@@ -288,7 +288,7 @@ class DatabaseComparator:
             if not all_tables_result.is_success:
                 return all_tables_result
 
-            all_tables = all_tables_result.value or []
+            all_tables = all_tables_result.data or []
 
             # Filter based on schema comparison results
             if schema_comparison is not None:
@@ -326,10 +326,10 @@ class DatabaseComparator:
                 result.error or "Failed to fetch schema tables",
             )
 
-        if not result.value or not result.value.rows:
+        if not result.data or not result.data.rows:
             return ServiceResult.ok([])
 
-        return ServiceResult.ok([row[0] for row in result.value.rows])
+        return ServiceResult.ok([row[0] for row in result.data.rows])
 
     def _filter_common_tables(
         self,
@@ -414,12 +414,12 @@ class DatabaseComparator:
                     result.error or "Failed to get primary key columns",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.fail(
                     f"No primary key found for table {table_name}",
                 )
 
-            pk_columns = [row[0] for row in result.value.rows]
+            pk_columns = [row[0] for row in result.data.rows]
 
             if not pk_columns:
                 return ServiceResult.fail(
@@ -525,18 +525,18 @@ class SchemaComparator:
             if not source_result.is_success or not target_result.is_success:
                 return ServiceResult.fail("Failed to analyze schemas")
 
-            if not source_result.value or not target_result.value:
+            if not source_result.data or not target_result.data:
                 return ServiceResult.fail("Schema analysis returned empty results")
 
             # Basic comparison - return structured differences
             comparison = {
                 "source_schema": source_schema,
                 "target_schema": target_schema,
-                "source_analysis": source_result.value,
-                "target_analysis": target_result.value,
+                "source_analysis": source_result.data,
+                "target_analysis": target_result.data,
                 "differences": self._calculate_differences(
-                    source_result.value,
-                    target_result.value,
+                    source_result.data,
+                    target_result.data,
                 ),
             }
 

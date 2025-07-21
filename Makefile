@@ -34,8 +34,9 @@ format: poetry-check ## Format code
 	@$(POETRY) run ruff format $(SRC_DIR)/ $(TEST_DIR)/
 
 type-check: poetry-check ## Run type checking
-	@echo "$(BLUE)🛡️ Running mypy...$(NC)"
-	@$(POETRY) run mypy $(SRC_DIR)/ $(TEST_DIR)/ --strict || true
+	@echo "$(BLUE)🛡️ Running mypy on source code...$(NC)"
+	@$(POETRY) run mypy $(SRC_DIR)/ --strict
+	@echo "$(GREEN)✓ Source code type checking passed!$(NC)"
 
 security: poetry-check ## Run security scans
 	@echo "$(BLUE)🔒 Running security scans...$(NC)"

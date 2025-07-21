@@ -131,7 +131,7 @@ class DatabaseSynchronizer:
                     return ServiceResult.fail(
                         tables_result.error or "Failed to get schema tables",
                     )
-                tables = tables_result.value or []
+                tables = tables_result.data or []
 
             all_operations: list[SyncOperation] = []
             total_synced = 0
@@ -139,9 +139,9 @@ class DatabaseSynchronizer:
 
             for table_name in tables:
                 table_result = await self.synchronize_table(table_name)
-                if table_result.is_success and table_result.value:
-                    all_operations.extend(table_result.value.operations)
-                    total_synced += table_result.value.total_records_synced
+                if table_result.is_success and table_result.data:
+                    all_operations.extend(table_result.data.operations)
+                    total_synced += table_result.data.total_records_synced
                 else:
                     overall_success = False
                     logger.error(
@@ -188,10 +188,10 @@ class DatabaseSynchronizer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
-            tables = [row[0] for row in result.value.rows]
+            tables = [row[0] for row in result.data.rows]
             return ServiceResult.ok(tables)
 
         except Exception as e:
@@ -228,7 +228,7 @@ class DatabaseSynchronizer:
             validation_info = {
                 "source_exists": source_exists,
                 "target_exists": target_exists,
-                "primary_key_columns": pk_result.value,
+                "primary_key_columns": pk_result.data,
                 "sync_ready": True,
             }
 
@@ -254,9 +254,9 @@ class DatabaseSynchronizer:
                 {"table_name": table_name.upper()},
             )
 
-            if not result.is_success or not result.value or not result.value.rows:
+            if not result.is_success or not result.data or not result.data.rows:
                 return False
-            return len(result.value.rows) > 0
+            return len(result.data.rows) > 0
 
         except (ValueError, TypeError, AttributeError) as e:
             logger.warning("Failed to validate synchronization requirements: %s", e)
@@ -288,10 +288,10 @@ class DatabaseSynchronizer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
-            pk_columns = [row[0] for row in result.value.rows]
+            pk_columns = [row[0] for row in result.data.rows]
             return ServiceResult.ok(pk_columns)
 
         except Exception as e:
@@ -323,16 +323,16 @@ class DataSynchronizer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Synchronization failed")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Synchronization returned no data")
 
             # Convert to simplified format
             sync_summary = {
                 "table_name": table_name,
                 "strategy": strategy,
-                "records_synced": result.value.total_records_synced,
-                "operations": len(result.value.operations),
-                "success": result.value.success,
+                "records_synced": result.data.total_records_synced,
+                "operations": len(result.data.operations),
+                "success": result.data.success,
             }
 
             return ServiceResult.ok(sync_summary)

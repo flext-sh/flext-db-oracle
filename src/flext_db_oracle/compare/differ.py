@@ -411,7 +411,7 @@ class DataDiffer:
                     row_count_result.error or "Row count comparison failed",
                 )
 
-            counts = row_count_result.value
+            counts = row_count_result.data
             if not counts:
                 return ServiceResult.fail("Row count result is empty")
 
@@ -469,10 +469,10 @@ class DataDiffer:
         if not data_result.is_success:
             return ServiceResult.fail(data_result.error or "Failed to fetch table data")
 
-        if not data_result.value:
+        if not data_result.data:
             return ServiceResult.fail("Table data result is empty")
 
-        source_rows, target_rows = data_result.value
+        source_rows, target_rows = data_result.data
 
         # Build dictionaries for efficient comparison
         source_dict, target_dict = self._build_row_dictionaries(
@@ -505,11 +505,11 @@ class DataDiffer:
         oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
 
         if not oracle_identifier_pattern.match(table_name):
-            return ServiceResult.fail(f"Invalid table name: {table_name}")
+            return ServiceResult.fail(f"Invalid table name: {table_name}")  # type: ignore[unreachable]
 
         for pk_col in primary_key_columns:
             if not oracle_identifier_pattern.match(pk_col):
-                return ServiceResult.fail(f"Invalid column name: {pk_col}")
+                return ServiceResult.fail(f"Invalid column name: {pk_col}")  # type: ignore[unreachable]
 
         return ServiceResult.ok(None)
 
@@ -533,13 +533,13 @@ class DataDiffer:
         if not source_data_result.is_success or not target_data_result.is_success:
             return ServiceResult.fail("Failed to retrieve table data for comparison")
 
-        if not source_data_result.value or not target_data_result.value:
+        if not source_data_result.data or not target_data_result.data:
             return ServiceResult.fail("Query results are empty")
 
         return ServiceResult.ok(
             (
-                source_data_result.value.rows,
-                target_data_result.value.rows,
+                source_data_result.data.rows,
+                target_data_result.data.rows,
             ),
         )
 
@@ -701,14 +701,14 @@ class DataDiffer:
             if not source_result.is_success or not target_result.is_success:
                 return ServiceResult.fail("Failed to get row counts")
 
-            if not source_result.value or not source_result.value.rows:
+            if not source_result.data or not source_result.data.rows:
                 return ServiceResult.fail("Source count query returned no results")
-            if not target_result.value or not target_result.value.rows:
+            if not target_result.data or not target_result.data.rows:
                 return ServiceResult.fail("Target count query returned no results")
 
             counts = {
-                "source_count": source_result.value.rows[0][0],
-                "target_count": target_result.value.rows[0][0],
+                "source_count": source_result.data.rows[0][0],
+                "target_count": target_result.data.rows[0][0],
             }
 
             return ServiceResult.ok(counts)
@@ -745,7 +745,7 @@ class DataDiffer:
                     row_count_result.error or "Failed to get row counts",
                 )
 
-            counts = row_count_result.value
+            counts = row_count_result.data
             if not counts:
                 return ServiceResult.fail("Row count result is empty")
 
@@ -824,8 +824,8 @@ class DataDiffer:
                 return ServiceResult.fail("Hash comparison not supported")
 
             # Check if results have value and rows
-            source_result = source_hashes_result.value
-            target_result = target_hashes_result.value
+            source_result = source_hashes_result.data
+            target_result = target_hashes_result.data
             if not source_result or not target_result:
                 return ServiceResult.fail("Query results are empty")
 
@@ -908,12 +908,8 @@ class DataDiffer:
             count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
             count_result = await source_connection_service.execute_query(count_query)
             total_rows = 0
-            if (
-                count_result.is_success
-                and count_result.value
-                and count_result.value.rows
-            ):
-                total_rows = count_result.value.rows[0][0]
+            if count_result.is_success and count_result.data and count_result.data.rows:
+                total_rows = count_result.data.rows[0][0]
 
             all_differences = []
             offset = 0
@@ -943,8 +939,8 @@ class DataDiffer:
                     return ServiceResult.fail("Failed to fetch batch data")
 
                 # Check if batch results have value and rows
-                source_result = source_batch_result.value
-                target_result = target_batch_result.value
+                source_result = source_batch_result.data
+                target_result = target_batch_result.data
                 if not source_result or not target_result:
                     return ServiceResult.fail("Batch query results are empty")
 

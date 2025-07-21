@@ -52,7 +52,7 @@ class SchemaAnalyzer:
                     return ServiceResult.fail(
                         schema_result.error or "Failed to get current schema",
                     )
-                schema_name = schema_result.value
+                schema_name = schema_result.data
                 if not schema_name:
                     return ServiceResult.fail("Empty schema name returned")
 
@@ -77,15 +77,15 @@ class SchemaAnalyzer:
 
             schema_analysis = {
                 "schema_name": schema_name,
-                "tables": tables_result.value,
-                "views": views_result.value,
-                "sequences": sequences_result.value,
-                "procedures": procedures_result.value,
+                "tables": tables_result.data,
+                "views": views_result.data,
+                "sequences": sequences_result.data,
+                "procedures": procedures_result.data,
                 "total_objects": (
-                    len(tables_result.value or [])
-                    + len(views_result.value or [])
-                    + len(sequences_result.value or [])
-                    + len(procedures_result.value or [])
+                    len(tables_result.data or [])
+                    + len(views_result.data or [])
+                    + len(sequences_result.data or [])
+                    + len(procedures_result.data or [])
                 ),
             }
 
@@ -117,7 +117,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             tables = [
@@ -129,7 +129,7 @@ class SchemaAnalyzer:
                     "blocks": row[4],
                     "avg_row_len": row[5],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info("Found %d tables in schema %s", len(tables), schema_name)
@@ -157,7 +157,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             views = [
@@ -166,7 +166,7 @@ class SchemaAnalyzer:
                     "text_length": row[1],
                     "type_text": row[2],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info("Found %d views in schema %s", len(views), schema_name)
@@ -197,7 +197,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             sequences = [
@@ -208,7 +208,7 @@ class SchemaAnalyzer:
                     "increment_by": row[3],
                     "cycle_flag": row[4],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info("Found %d sequences in schema %s", len(sequences), schema_name)
@@ -240,7 +240,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             procedures = [
@@ -251,7 +251,7 @@ class SchemaAnalyzer:
                     "created": row[3],
                     "last_ddl_time": row[4],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info(
@@ -292,7 +292,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             columns = [
@@ -306,7 +306,7 @@ class SchemaAnalyzer:
                     "column_id": row[6],
                     "default_value": row[7],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info(
@@ -331,10 +331,10 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.fail("No current schema found")
 
-            schema_name = result.value.rows[0][0]
+            schema_name = result.data.rows[0][0]
             return ServiceResult.ok(schema_name)
 
         except Exception as e:
@@ -368,7 +368,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             constraints = [
@@ -380,7 +380,7 @@ class SchemaAnalyzer:
                     "delete_rule": row[4],
                     "status": row[5],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info(
@@ -422,7 +422,7 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
             indexes = [
@@ -436,7 +436,7 @@ class SchemaAnalyzer:
                     "leaf_blocks": row[6],
                     "distinct_keys": row[7],
                 }
-                for row in result.value.rows
+                for row in result.data.rows
             ]
 
             logger.info(
@@ -465,13 +465,13 @@ class SchemaAnalyzer:
                     tables_result.error or "Failed to get table list",
                 )
 
-            if not tables_result.value:
+            if not tables_result.data:
                 return ServiceResult.fail("Table list is empty")
 
             table_info = next(
                 (
                     t
-                    for t in tables_result.value
+                    for t in tables_result.data
                     if t["name"].upper() == table_name.upper()
                 ),
                 None,
@@ -498,12 +498,12 @@ class SchemaAnalyzer:
 
             detailed_info = {
                 **table_info,
-                "columns": columns_result.value,
-                "constraints": constraints_result.value,
-                "indexes": indexes_result.value,
-                "column_count": len(columns_result.value or []),
-                "constraint_count": len(constraints_result.value or []),
-                "index_count": len(indexes_result.value or []),
+                "columns": columns_result.data,
+                "constraints": constraints_result.data,
+                "indexes": indexes_result.data,
+                "column_count": len(columns_result.data or []),
+                "constraint_count": len(constraints_result.data or []),
+                "index_count": len(indexes_result.data or []),
             }
 
             logger.info(
@@ -561,7 +561,7 @@ class SchemaAnalyzer:
                     )
                 result = fallback_result
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Schema size analysis result is empty")
 
             size_analysis = {
@@ -572,12 +572,12 @@ class SchemaAnalyzer:
                         "total_mb": float(row[0]) if row[0] else 0.0,
                         "count": row[1],
                     }
-                    for row in result.value.rows
+                    for row in result.data.rows
                 ],
                 "total_size_mb": sum(
-                    float(row[0]) if row[0] else 0.0 for row in result.value.rows
+                    float(row[0]) if row[0] else 0.0 for row in result.data.rows
                 ),
-                "total_segments": sum(row[1] for row in result.value.rows),
+                "total_segments": sum(row[1] for row in result.data.rows),
             }
 
             logger.info(
@@ -603,7 +603,7 @@ class SchemaAnalyzer:
                     return ServiceResult.fail(
                         schema_result.error or "Failed to get current schema",
                     )
-                schema_name = schema_result.value
+                schema_name = schema_result.data
                 if not schema_name:
                     return ServiceResult.fail("Empty schema name returned")
 
@@ -616,7 +616,7 @@ class SchemaAnalyzer:
                     analysis_result.error or "Failed to analyze schema",
                 )
 
-            analysis = analysis_result.value
+            analysis = analysis_result.data
             if not analysis:
                 return ServiceResult.fail("Schema analysis returned no data")
 
@@ -632,7 +632,7 @@ class SchemaAnalyzer:
                 if not table_detail_result.is_success:
                     continue
 
-                table_detail = table_detail_result.value
+                table_detail = table_detail_result.data
                 if not table_detail:
                     continue
 
@@ -744,8 +744,8 @@ class SchemaAnalyzer:
             # Get schema size analysis
             size_result = await self.analyze_schema_size(schema_name)
             total_size_mb = 0.0
-            if size_result.is_success and size_result.value:
-                total_size_mb = size_result.value.get("total_size_mb", 0.0)
+            if size_result.is_success and size_result.data:
+                total_size_mb = size_result.data.get("total_size_mb", 0.0)
 
             # Create complete schema metadata
             schema_metadata = SchemaMetadata(
@@ -800,10 +800,10 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
-            columns = [row[0] for row in result.value.rows]
+            columns = [row[0] for row in result.data.rows]
             return ServiceResult.ok(columns)
 
         except Exception as e:
@@ -836,10 +836,10 @@ class SchemaAnalyzer:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to execute query")
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
-            columns = [row[0] for row in result.value.rows]
+            columns = [row[0] for row in result.data.rows]
             return ServiceResult.ok(columns)
 
         except Exception as e:

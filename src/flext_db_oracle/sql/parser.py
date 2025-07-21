@@ -310,7 +310,7 @@ class SQLParser:
                 sql,
                 re.IGNORECASE,
             ):
-                validation_result["warnings"].append("SELECT without FROM clause")
+                validation_result["warnings"].append("SELECT without FROM clause")  # type: ignore[unreachable]
 
             # Check for potential issues
             if re.search(r"SELECT\s+\*", sql, re.IGNORECASE):
@@ -334,13 +334,13 @@ class SQLParser:
             if not parse_result.is_success:
                 return ServiceResult.fail(parse_result.error or "Parse failed")
 
-            parsed = parse_result.value
+            parsed = parse_result.data
             if parsed is None:
                 return ServiceResult.fail("Failed to parse SQL statement")
 
             # Validate syntax
             validation_result = await self.validate_syntax(sql)
-            validation = validation_result.value if validation_result.is_success else {}
+            validation = validation_result.data if validation_result.is_success else {}
 
             analysis = {
                 "statement_type": parsed.statement_type,

@@ -125,15 +125,15 @@ class HealthChecker:
                 overall_status=overall_status,
                 details={
                     "connection": (
-                        connection_result.value
+                        connection_result.data
                         if connection_result.is_success
                         else connection_result.error
                     ),
                     "tablespaces": (
-                        tablespace_result.value if tablespace_result.is_success else []
+                        tablespace_result.data if tablespace_result.is_success else []
                     ),
                     "sessions": (
-                        session_result.value if session_result.is_success else []
+                        session_result.data if session_result.is_success else []
                     ),
                 },
             )
@@ -155,13 +155,13 @@ class HealthChecker:
                     result.error or "Connection health check failed",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.fail("Connection test query returned no data")
 
             connection_info = {
                 "status": "active",
                 "test_query": "passed",
-                "result": result.value.rows[0][0] if result.value.rows else None,
+                "result": result.data.rows[0][0] if result.data.rows else None,
             }
 
             logger.info("Connection health check passed")
@@ -207,11 +207,11 @@ class HealthChecker:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to check tablespaces")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             tablespaces = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 tablespace = TablespaceInfo(
                     name=row[0],
                     status=row[1],
@@ -255,11 +255,11 @@ class HealthChecker:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to check sessions")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             sessions = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 session = SessionInfo(
                     username=row[0],
                     status=row[1],
@@ -287,7 +287,7 @@ class HealthChecker:
                     health_result.error or "Failed to check overall health",
                 )
 
-            health = health_result.value
+            health = health_result.data
             if not health:
                 return ServiceResult.fail("Health check data is empty")
 
@@ -317,7 +317,7 @@ class HealthChecker:
             # Get buffer cache hit ratio
             buffer_cache_query = """
                 SELECT
-                    (1 - (phy.value / (cur.value + con.value))) * 100
+                    (1 - (phy.data / (cur.data + con.data))) * 100
                     as buffer_hit_ratio
                 FROM
                     v$sysstat phy,
@@ -333,10 +333,10 @@ class HealthChecker:
                 buffer_cache_query,
             )
             buffer_hit_ratio = (
-                buffer_result.value.rows[0][0]
+                buffer_result.data.rows[0][0]
                 if buffer_result.is_success
-                and buffer_result.value
-                and buffer_result.value.rows
+                and buffer_result.data
+                and buffer_result.data.rows
                 else 0
             )
 
@@ -352,10 +352,10 @@ class HealthChecker:
                 library_cache_query,
             )
             library_hit_ratio = (
-                library_result.value.rows[0][0]
+                library_result.data.rows[0][0]
                 if library_result.is_success
-                and library_result.value
-                and library_result.value.rows
+                and library_result.data
+                and library_result.data.rows
                 else 0
             )
 
@@ -376,10 +376,10 @@ class HealthChecker:
                 shared_pool_query,
             )
             shared_pool_used = (
-                shared_pool_result.value.rows[0][0]
+                shared_pool_result.data.rows[0][0]
                 if shared_pool_result.is_success
-                and shared_pool_result.value
-                and shared_pool_result.value.rows
+                and shared_pool_result.data
+                and shared_pool_result.data.rows
                 else 0
             )
 
@@ -393,8 +393,8 @@ class HealthChecker:
 
             pga_result = await self.connection_service.execute_query(pga_query)
             pga_used_mb = (
-                pga_result.value.rows[0][0]
-                if pga_result.is_success and pga_result.value and pga_result.value.rows
+                pga_result.data.rows[0][0]
+                if pga_result.is_success and pga_result.data and pga_result.data.rows
                 else 0
             )
 
@@ -411,10 +411,10 @@ class HealthChecker:
                 sessions_query,
             )
             active_sessions = (
-                sessions_result.value.rows[0][0]
+                sessions_result.data.rows[0][0]
                 if sessions_result.is_success
-                and sessions_result.value
-                and sessions_result.value.rows
+                and sessions_result.data
+                and sessions_result.data.rows
                 else 0
             )
 
@@ -439,11 +439,9 @@ class HealthChecker:
                         "total_waits": row[1],
                         "time_waited": row[2],
                     }
-                    for row in wait_result.value.rows
+                    for row in wait_result.data.rows
                 ]
-                if wait_result.is_success
-                and wait_result.value
-                and wait_result.value.rows
+                if wait_result.is_success and wait_result.data and wait_result.data.rows
                 else []
             )
 
@@ -533,8 +531,8 @@ class HealthChecker:
             blocking_sessions = []
             if (
                 blocking_result.is_success
-                and blocking_result.value
-                and blocking_result.value.rows
+                and blocking_result.data
+                and blocking_result.data.rows
             ):
                 blocking_sessions = [
                     {
@@ -548,7 +546,7 @@ class HealthChecker:
                         "mode_held": row[7],
                         "mode_requested": row[8],
                     }
-                    for row in blocking_result.value.rows
+                    for row in blocking_result.data.rows
                 ]
 
             # Get total locks count
@@ -557,10 +555,10 @@ class HealthChecker:
                 locks_count_query,
             )
             total_locks = (
-                locks_result.value.rows[0][0]
+                locks_result.data.rows[0][0]
                 if locks_result.is_success
-                and locks_result.value
-                and locks_result.value.rows
+                and locks_result.data
+                and locks_result.data.rows
                 else 0
             )
 
@@ -603,15 +601,15 @@ class HealthChecker:
             log_switches = []
             if (
                 switches_result.is_success
-                and switches_result.value
-                and switches_result.value.rows
+                and switches_result.data
+                and switches_result.data.rows
             ):
                 log_switches = [
                     {
                         "hour": row[0],
                         "switches": row[1],
                     }
-                    for row in switches_result.value.rows
+                    for row in switches_result.data.rows
                 ]
 
             # Get current redo log status
@@ -632,8 +630,8 @@ class HealthChecker:
             redo_logs = []
             if (
                 status_result.is_success
-                and status_result.value
-                and status_result.value.rows
+                and status_result.data
+                and status_result.data.rows
             ):
                 redo_logs = [
                     {
@@ -642,7 +640,7 @@ class HealthChecker:
                         "archived": row[2],
                         "size_mb": round(row[3], 2),
                     }
-                    for row in status_result.value.rows
+                    for row in status_result.data.rows
                 ]
 
             # Calculate average switches per hour
@@ -684,18 +682,16 @@ class HealthChecker:
             report = {
                 "report_timestamp": str(logger.info),
                 "basic_health": (
-                    basic_health_result.value
-                    if basic_health_result.is_success
-                    else None
+                    basic_health_result.data if basic_health_result.is_success else None
                 ),
                 "performance_metrics": (
-                    performance_result.value if performance_result.is_success else None
+                    performance_result.data if performance_result.is_success else None
                 ),
                 "lock_analysis": (
-                    locks_result.value if locks_result.is_success else None
+                    locks_result.data if locks_result.is_success else None
                 ),
                 "redo_log_analysis": (
-                    redo_result.value if redo_result.is_success else None
+                    redo_result.data if redo_result.is_success else None
                 ),
                 "overall_assessment": self._calculate_overall_assessment(
                     basic_health_result,

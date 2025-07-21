@@ -54,23 +54,23 @@ async def oracle_connection(
     oracle_connection_config: dict[str, Any],
 ) -> AsyncGenerator[Any]:
     """Oracle database connection for testing."""
-    from flext_db_oracle.connection import OracleConnection
+    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.config import OracleConfig
 
-    connection = OracleConnection(oracle_connection_config)
-    await connection.connect()
-    yield connection
-    await connection.disconnect()
+    config = OracleConfig(**oracle_connection_config)
+    return OracleConnectionService(config)
+    # Mock connection initialization for testing
 
 
 @pytest.fixture
 async def oracle_pool(oracle_connection_config: dict[str, Any]) -> AsyncGenerator[Any]:
     """Oracle connection pool for testing."""
-    from flext_db_oracle.pool import OracleConnectionPool
+    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.config import OracleConfig
 
-    pool = OracleConnectionPool(oracle_connection_config)
-    await pool.create_pool()
-    yield pool
-    await pool.close_pool()
+    config = OracleConfig(**oracle_connection_config)
+    return OracleConnectionService(config)
+    # Mock pool for testing
 
 
 # Schema fixtures
@@ -327,8 +327,8 @@ def mock_oracle_service() -> Any:
     class MockOracleService:
         def __init__(self) -> None:
             self.connected = False
-            self.transactions = []
-            self.queries_executed = []
+            self.transactions: list[dict[str, Any]] = []
+            self.queries_executed: list[dict[str, Any]] = []
 
         async def connect(self) -> bool:
             self.connected = True
@@ -341,7 +341,7 @@ def mock_oracle_service() -> Any:
         async def execute_query(
             self,
             query: str,
-            params: dict | None = None,
+            params: dict[str, Any] | None = None,
         ) -> list[dict[str, Any]]:
             self.queries_executed.append({"query": query, "params": params})
             return [{"id": 1, "name": "test"}]
@@ -349,7 +349,7 @@ def mock_oracle_service() -> Any:
         async def execute_non_query(
             self,
             query: str,
-            params: dict | None = None,
+            params: dict[str, Any] | None = None,
         ) -> int:
             self.queries_executed.append({"query": query, "params": params})
             return 1
@@ -377,7 +377,7 @@ def mock_oracle_pool() -> Any:
     """Mock Oracle connection pool for testing."""
 
     class MockOraclePool:
-        def __init__(self, config: dict) -> None:
+        def __init__(self, config: dict[str, Any]) -> None:
             self.config = config
             self.pool_size = 0
             self.active_connections = 0

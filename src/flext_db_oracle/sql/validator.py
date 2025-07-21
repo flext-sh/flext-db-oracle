@@ -341,10 +341,10 @@ class SQLValidator:
             return recommendations
 
         parse_result = await self.sql_parser.parse_statement(sql)
-        if not (parse_result.is_success and parse_result.value):
+        if not (parse_result.is_success and parse_result.data):
             return recommendations
 
-        parsed = parse_result.value
+        parsed = parse_result.data
 
         if parsed.complexity_score > HIGH_COMPLEXITY_THRESHOLD:
             recommendations.append(
@@ -396,7 +396,7 @@ class SQLValidator:
                     validation_result.error or "Validation failed",
                 )
 
-            validation = validation_result.value
+            validation = validation_result.data
             if not validation:
                 return ServiceResult.fail("Validation result is empty")
 
@@ -420,7 +420,7 @@ class SQLValidator:
                 validation_result.error or "SQL validation failed",
             )
 
-        if not validation_result.value:
+        if not validation_result.data:
             return ServiceResult.fail("Validation result is empty")
 
         return validation_result
@@ -448,7 +448,7 @@ class SQLValidator:
                     validation_result.error or "Validation failed",
                 )
 
-            validation_data = validation_result.value
+            validation_data = validation_result.data
             if not validation_data:
                 return ServiceResult.fail("Validation data is empty")
 

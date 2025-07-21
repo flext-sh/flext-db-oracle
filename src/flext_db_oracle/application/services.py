@@ -129,7 +129,7 @@ class OracleConnectionService:
             init_result = await self.initialize_pool()
             if not init_result.is_success:
                 msg = f"Failed to initialize connection pool: {init_result.error}"
-            raise ValueError(msg)
+                raise ValueError(msg)
 
         if not self._pool:
             msg = "Connection pool not initialized"
@@ -332,8 +332,8 @@ class OracleQueryService:
         """Execute a query and return a single scalar value."""
         try:
             result = await self.execute_query(sql, parameters)
-            if result.is_success and result.value and result.value.row_count > 0:
-                first_row = result.value.rows[0]
+            if result.is_success and result.data and result.data.row_count > 0:
+                first_row = result.data.rows[0]
                 first_value = first_row[0] if first_row else None
                 return ServiceResult.ok(first_value)
             return ServiceResult.ok(None)
@@ -368,7 +368,7 @@ class OracleSchemaService:
                     f"Failed to get schema tables: {tables_result.error}",
                 )
 
-            tables = tables_result.value or []
+            tables = tables_result.data or []
             schema_info = OracleSchemaInfo(
                 name=schema_name,
                 tables=tables,
@@ -406,13 +406,13 @@ class OracleSchemaService:
                     f"Failed to query schema tables: {result.error}",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail(
                     "No result data returned from schema query",
                 )
 
             tables = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 table_meta = OracleTableMetadata(
                     schema_name=schema_name,
                     table_name=row[0],  # table_name
@@ -424,8 +424,8 @@ class OracleSchemaService:
 
                 # Get column information for each table
                 columns_result = await self.get_table_columns(schema_name, row[0])
-                if columns_result.is_success and columns_result.value:
-                    table_meta.columns = columns_result.value
+                if columns_result.is_success and columns_result.data:
+                    table_meta.columns = columns_result.data
 
                 tables.append(table_meta)
 
@@ -470,13 +470,13 @@ class OracleSchemaService:
                     f"Failed to query table columns: {result.error}",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail(
                     "No result data returned from columns query",
                 )
 
             columns = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 column_info = OracleColumnInfo(
                     name=row[0],  # column_name
                     data_type=row[1],  # data_type

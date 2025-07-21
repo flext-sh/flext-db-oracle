@@ -16,11 +16,11 @@ __version__ = "0.7.0"
 # Core imports from flext-core (our foundation)
 from flext_core import (
     BaseConfig,
-    ConfigurationError,
     DomainBaseModel,
     DomainValueObject,
     ServiceResult,
 )
+from flext_core.config.base import ConfigurationError
 
 # Connection and configuration services
 from flext_db_oracle.application.services import (

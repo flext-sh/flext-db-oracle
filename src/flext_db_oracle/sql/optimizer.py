@@ -125,12 +125,12 @@ class QueryOptimizer:
                     f"Failed to retrieve execution plan: {plan_rows_result.error}",
                 )
 
-            if not plan_rows_result.value:
+            if not plan_rows_result.data:
                 return ServiceResult.fail("Execution plan result is empty")
 
             # Build execution plan
             execution_plan = []
-            for row in plan_rows_result.value.rows:
+            for row in plan_rows_result.data.rows:
                 step = QueryPlanStep(
                     id=row[0],
                     operation=row[1],
@@ -160,8 +160,8 @@ class QueryOptimizer:
             analysis = await self._analyze_execution_plan(sql, execution_plan)
 
             logger.info("Query plan analysis completed")
-            if analysis.is_success and analysis.value:
-                return ServiceResult.ok(analysis.value)
+            if analysis.is_success and analysis.data:
+                return ServiceResult.ok(analysis.data)
             return ServiceResult.ok(
                 QueryAnalysis(
                     sql_text=sql,
@@ -347,13 +347,13 @@ class QueryOptimizer:
                     plan_result.error or "Failed to generate execution plan",
                 )
 
-            analysis = plan_result.value
+            analysis = plan_result.data
             if not analysis:
                 return ServiceResult.fail("Query analysis result is empty")
 
             # Get index suggestions
             index_result = await self.suggest_indexes(sql)
-            index_suggestions = index_result.value if index_result.is_success else []
+            index_suggestions = index_result.data if index_result.is_success else []
 
             performance_report = {
                 "sql_text": sql,
@@ -417,13 +417,13 @@ class QueryOptimizer:
 
             if (
                 not stats_result.is_success
-                or not stats_result.value
-                or not stats_result.value.rows
+                or not stats_result.data
+                or not stats_result.data.rows
             ):
                 # Fallback to basic analysis
                 return await self.analyze_query_performance(sql_text)
 
-            row = stats_result.value.rows[0]
+            row = stats_result.data.rows[0]
 
             statistics = {
                 "sql_id": row[0],
@@ -502,10 +502,10 @@ class QueryOptimizer:
                     result.error or "Failed to get session statistics",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Session statistics result is empty")
 
-            statistics = {row[0]: row[1] for row in result.value.rows}
+            statistics = {row[0]: row[1] for row in result.data.rows}
 
             # Calculate ratios
             if statistics.get("session logical reads", 0) > 0:
@@ -549,13 +549,13 @@ class QueryOptimizer:
                     result.error or "Failed to analyze wait events",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Wait events result is empty")
 
             wait_events = []
             total_wait_time = 0
 
-            for row in result.value.rows:
+            for row in result.data.rows:
                 event_data = {
                     "event": row[0],
                     "wait_class": row[1],
@@ -615,14 +615,14 @@ class QueryOptimizer:
                     result.error or "Failed to get SQL plan statistics",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("SQL plan statistics result is empty")
 
             plan_steps = []
             total_time = 0
             total_buffer_gets = 0
 
-            for row in result.value.rows:
+            for row in result.data.rows:
                 step = {
                     "operation": row[0],
                     "options": row[1],

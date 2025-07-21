@@ -55,7 +55,7 @@ class DDLGenerator:
                 col_def_result = await self._generate_column_definition(col)
                 if not col_def_result.is_success:
                     return col_def_result
-                column_ddl.append(f"    {col_def_result.value}")
+                column_ddl.append(f"    {col_def_result.data}")
 
             lines.extend((",\n".join(column_ddl), ")"))
 
@@ -78,8 +78,8 @@ class DDLGenerator:
             # Add table comments
             if self.include_comments:
                 comments_result = await self._generate_table_comments(table)
-                if comments_result.is_success and comments_result.value:
-                    ddl += "\n" + comments_result.value
+                if comments_result.is_success and comments_result.data:
+                    ddl += "\n" + comments_result.data
 
             logger.info("Generated DDL for table: %s", table.name)
             return ServiceResult.ok(ddl)
@@ -101,8 +101,8 @@ class DDLGenerator:
 
             for constraint in table.constraints:
                 ddl_result = await self._generate_constraint_ddl(table, constraint)
-                if ddl_result.is_success and ddl_result.value:
-                    statements.append(ddl_result.value)
+                if ddl_result.is_success and ddl_result.data:
+                    statements.append(ddl_result.data)
                 else:
                     logger.warning(
                         "Failed to generate constraint DDL: %s",
@@ -137,8 +137,8 @@ class DDLGenerator:
                     continue
 
                 ddl_result = await self._generate_index_ddl(table, index)
-                if ddl_result.is_success and ddl_result.value:
-                    statements.append(ddl_result.value)
+                if ddl_result.is_success and ddl_result.data:
+                    statements.append(ddl_result.data)
                 else:
                     logger.warning("Failed to generate index DDL: %s", ddl_result.error)
 
@@ -162,18 +162,18 @@ class DDLGenerator:
             table_result = await self.generate_table_ddl(table)
             if not table_result.is_success:
                 return table_result
-            if table_result.value:
-                all_ddl.append(table_result.value)
+            if table_result.data:
+                all_ddl.append(table_result.data)
 
             # Constraints DDL
             constraints_result = await self.generate_constraints_ddl(table)
-            if constraints_result.is_success and constraints_result.value:
-                all_ddl.extend(constraints_result.value)
+            if constraints_result.is_success and constraints_result.data:
+                all_ddl.extend(constraints_result.data)
 
             # Indexes DDL
             indexes_result = await self.generate_indexes_ddl(table)
-            if indexes_result.is_success and indexes_result.value:
-                all_ddl.extend(indexes_result.value)
+            if indexes_result.is_success and indexes_result.data:
+                all_ddl.extend(indexes_result.data)
 
             complete_ddl = "\n\n".join(all_ddl)
 
@@ -471,15 +471,15 @@ class DDLGenerator:
                     sequence,
                     schema_metadata.name,
                 )
-                if seq_result.is_success and seq_result.value:
-                    all_ddl.extend((seq_result.value, ""))
+                if seq_result.is_success and seq_result.data:
+                    all_ddl.extend((seq_result.data, ""))
 
             # Generate tables
             all_ddl.append("-- ===== TABLES =====")
             for table in schema_metadata.tables:
                 table_result = await self.generate_complete_ddl(table)
-                if table_result.is_success and table_result.value:
-                    all_ddl.extend((table_result.value, ""))
+                if table_result.is_success and table_result.data:
+                    all_ddl.extend((table_result.data, ""))
 
             # Generate views (depend on tables)
             all_ddl.append("-- ===== VIEWS =====")
@@ -493,8 +493,8 @@ class DDLGenerator:
                     view_dict,
                     schema_metadata.name,
                 )
-                if view_result.is_success and view_result.value:
-                    all_ddl.extend((view_result.value, ""))
+                if view_result.is_success and view_result.data:
+                    all_ddl.extend((view_result.data, ""))
 
             complete_ddl = "\n".join(all_ddl)
 
@@ -524,7 +524,7 @@ class DDLGenerator:
             if not basic_result.is_success:
                 return basic_result
 
-            ddl = basic_result.value
+            ddl = basic_result.data
             if not ddl:
                 return ServiceResult.fail("No DDL generated for partitioned table")
 

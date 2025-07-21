@@ -147,23 +147,21 @@ class PerformanceMonitor:
             # Get cache hit ratios if available
             buffer_cache_hit_ratio = None
             library_cache_hit_ratio = None
-            if cache_hit_ratios_result.is_success and cache_hit_ratios_result.value:
-                cache_ratios = cache_hit_ratios_result.value
+            if cache_hit_ratios_result.is_success and cache_hit_ratios_result.data:
+                cache_ratios = cache_hit_ratios_result.data
                 buffer_cache_hit_ratio = cache_ratios.get("buffer_cache")
                 library_cache_hit_ratio = cache_ratios.get("library_cache")
 
             # Build metrics object with all values
             metrics = DatabaseMetrics(
-                sga_components=(sga_result.value or [])
-                if sga_result.is_success
-                else [],
+                sga_components=(sga_result.data or []) if sga_result.is_success else [],
                 wait_events=(
-                    (wait_events_result.value or [])
+                    (wait_events_result.data or [])
                     if wait_events_result.is_success
                     else []
                 ),
                 session_stats=(
-                    session_stats_result.value
+                    session_stats_result.data
                     if session_stats_result.is_success
                     else None
                 ),
@@ -197,11 +195,11 @@ class PerformanceMonitor:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to get SGA info")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             components = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 component = SGAComponent(
                     name=row[0],
                     current_size=row[1],
@@ -243,11 +241,11 @@ class PerformanceMonitor:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to get wait events")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             events = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 event = WaitEvent(
                     event=row[0],
                     total_waits=row[1],
@@ -284,10 +282,10 @@ class PerformanceMonitor:
             if not result.is_success:
                 return ServiceResult.fail(result.error or "Failed to get session stats")
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.fail("No session data found")
 
-            row = result.value.rows[0]
+            row = result.data.rows[0]
             stats = SessionStatistics(
                 total_sessions=row[0],
                 active_sessions=row[1],
@@ -313,7 +311,7 @@ class PerformanceMonitor:
             # Buffer cache hit ratio
             buffer_cache_query = """
                 SELECT
-                    ROUND((1 - (phy.value / (db.value + cons.value))) * 100, 2)
+                    ROUND((1 - (phy.data / (db.data + cons.data))) * 100, 2)
                     as hit_ratio
                 FROM
                     v$sysstat phy,
@@ -345,17 +343,17 @@ class PerformanceMonitor:
 
             if (
                 buffer_result.is_success
-                and buffer_result.value
-                and buffer_result.value.rows
+                and buffer_result.data
+                and buffer_result.data.rows
             ):
-                ratios["buffer_cache"] = buffer_result.value.rows[0][0]
+                ratios["buffer_cache"] = buffer_result.data.rows[0][0]
 
             if (
                 library_result.is_success
-                and library_result.value
-                and library_result.value.rows
+                and library_result.data
+                and library_result.data.rows
             ):
-                ratios["library_cache"] = library_result.value.rows[0][0]
+                ratios["library_cache"] = library_result.data.rows[0][0]
 
             logger.info("Retrieved cache hit ratios: %s", ratios)
             return ServiceResult.ok(ratios)
@@ -402,11 +400,11 @@ class PerformanceMonitor:
                     result.error or "Failed to get tablespace usage",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             tablespaces = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 tablespace = {
                     "name": row[0],
                     "total_size_bytes": row[1],
@@ -463,11 +461,11 @@ class PerformanceMonitor:
                     result.error or "Failed to get active sessions",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
             sessions = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 session = {
                     "sid": row[0],
                     "serial": row[1],
@@ -504,7 +502,7 @@ class PerformanceMonitor:
                     metrics_result.error or "Failed to get performance metrics",
                 )
 
-            metrics = metrics_result.value
+            metrics = metrics_result.data
             if not metrics:
                 return ServiceResult.fail("Performance metrics data is empty")
 
@@ -527,10 +525,10 @@ class PerformanceMonitor:
                     event.model_dump() for event in metrics.top_wait_events
                 ],
                 "tablespaces": (
-                    tablespace_result.value if tablespace_result.is_success else []
+                    tablespace_result.data if tablespace_result.is_success else []
                 ),
                 "active_sessions_count": (
-                    len(active_sessions_result.value or [])
+                    len(active_sessions_result.data or [])
                     if active_sessions_result.is_success
                     else 0
                 ),

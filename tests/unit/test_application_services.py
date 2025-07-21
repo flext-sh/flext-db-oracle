@@ -81,6 +81,7 @@ class TestOracleConnectionService:
             mock_get_conn.side_effect = RuntimeError("Connection pool not initialized")
             connection_result = await service.test_connection()
             assert not connection_result.is_success
+            assert connection_result.error is not None
             assert "Connection pool not initialized" in connection_result.error
 
     @patch("oracledb.create_pool")
@@ -124,6 +125,7 @@ class TestOracleConnectionService:
         result = await service.initialize_pool()
 
         assert not result.is_success
+        assert result.error
         assert "Pool creation failed" in result.error
         # Verify pool was not initialized by testing functionality
         connection_result = await service.test_connection()
@@ -167,6 +169,7 @@ class TestOracleConnectionService:
             result = await service.close_pool()
 
             assert not result.is_success
+            assert result.error
             assert "Close failed" in result.error
 
     @patch("oracledb.create_pool")
@@ -197,8 +200,8 @@ class TestOracleConnectionService:
             result = await service.test_connection()
 
             assert result.is_success
-            assert isinstance(result.value, OracleConnectionStatus)
-            assert result.value.is_connected
+            assert isinstance(result.data, OracleConnectionStatus)
+            assert result.data.is_connected
 
     async def test_test_connection_no_pool(self, oracle_config: OracleConfig) -> None:
         """Test connection test without initialized pool."""
@@ -211,6 +214,7 @@ class TestOracleConnectionService:
             result = await service.test_connection()
 
             assert not result.is_success
+            assert result.error
             assert "Connection pool not initialized" in result.error
 
     @patch("oracledb.create_pool")
@@ -241,7 +245,7 @@ class TestOracleConnectionService:
             result = await service.execute_query("SELECT 1 FROM dual")
 
             assert result.is_success
-            assert isinstance(result.value, OracleQueryResult)
+            assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_no_pool(self, oracle_config: OracleConfig) -> None:
         """Test query execution without initialized pool."""
@@ -254,6 +258,7 @@ class TestOracleConnectionService:
             result = await service.execute_query("SELECT 1 FROM dual")
 
             assert not result.is_success
+            assert result.error
             assert "Connection pool not initialized" in result.error
 
     @patch("oracledb.create_pool")
@@ -288,7 +293,7 @@ class TestOracleConnectionService:
             result = await service.get_database_info()
 
             assert result.is_success
-            assert isinstance(result.value, dict)
+            assert isinstance(result.data, dict)
 
     async def test_get_database_info_no_pool(self, oracle_config: OracleConfig) -> None:
         """Test database info retrieval without initialized pool."""
@@ -301,6 +306,7 @@ class TestOracleConnectionService:
             result = await service.get_database_info()
 
             assert not result.is_success
+            assert result.error
             assert "Connection pool not initialized" in result.error
 
 
@@ -335,7 +341,7 @@ class TestOracleQueryService:
             result = await query_service.execute_query("SELECT 1 FROM dual")
 
             assert result.is_success
-            assert isinstance(result.value, OracleQueryResult)
+            assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_with_parameters(
         self,
@@ -365,7 +371,7 @@ class TestOracleQueryService:
             )
 
             assert result.is_success
-            assert isinstance(result.value, OracleQueryResult)
+            assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_database_error(
         self,
@@ -387,6 +393,7 @@ class TestOracleQueryService:
             result = await query_service.execute_query("INVALID SQL")
 
             assert not result.is_success
+            assert result.error
             assert "DB Error" in result.error
 
 

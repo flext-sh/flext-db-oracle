@@ -110,6 +110,7 @@ class TestOracleConnectionService:
             result = await service.close_pool()
 
             assert not result.is_success
+            assert result.error
             assert "Connection pool closure failed" in result.error
 
 

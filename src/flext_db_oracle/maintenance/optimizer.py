@@ -154,12 +154,12 @@ class DatabaseOptimizer:
                     result.error or "Failed to analyze table statistics",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.fail(
                     f"Table {schema_name}.{table_name} not found",
                 )
 
-            row = result.value.rows[0]
+            row = result.data.rows[0]
             stats = TableStatistics(
                 table_name=row[0],
                 schema_name=row[1],
@@ -220,11 +220,11 @@ class DatabaseOptimizer:
                     result.error or "Failed to analyze index statistics",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Index statistics result is empty")
 
             statistics = []
-            for row in result.value.rows:
+            for row in result.data.rows:
                 stats = IndexStatistics(
                     index_name=row[0],
                     table_name=row[1],
@@ -300,7 +300,7 @@ class DatabaseOptimizer:
 
             # Check for tables without statistics
             tables_result = await self._get_tables_without_stats(schema_name)
-            if tables_result.is_success and tables_result.value:
+            if tables_result.is_success and tables_result.data:
                 recommendations.extend(
                     OptimizationRecommendation(
                         recommendation_type="STATISTICS",
@@ -311,12 +311,12 @@ class DatabaseOptimizer:
                         estimated_improvement="Query performance improvement up to 50%",
                         implementation_sql=f"EXEC DBMS_STATS.GATHER_TABLE_STATS('{schema_name.upper()}', '{table_name.upper()}')",
                     )
-                    for table_name in tables_result.value
+                    for table_name in tables_result.data
                 )
 
             # Check for unused indexes
             unused_indexes_result = await self._get_unused_indexes(schema_name)
-            if unused_indexes_result.is_success and unused_indexes_result.value:
+            if unused_indexes_result.is_success and unused_indexes_result.data:
                 recommendations.extend(
                     OptimizationRecommendation(
                         recommendation_type="INDEX_CLEANUP",
@@ -327,12 +327,12 @@ class DatabaseOptimizer:
                         estimated_improvement="Storage savings and reduced maintenance overhead",
                         implementation_sql=f"DROP INDEX {schema_name.upper()}.{index_name}",
                     )
-                    for index_name in unused_indexes_result.value
+                    for index_name in unused_indexes_result.data
                 )
 
             # Check for tables with high chain count
             chained_tables_result = await self._get_chained_tables(schema_name)
-            if chained_tables_result.is_success and chained_tables_result.value:
+            if chained_tables_result.is_success and chained_tables_result.data:
                 recommendations.extend(
                     OptimizationRecommendation(
                         recommendation_type="REORGANIZATION",
@@ -343,7 +343,7 @@ class DatabaseOptimizer:
                         estimated_improvement="I/O reduction and query performance improvement",
                         implementation_sql=f"ALTER TABLE {schema_name.upper()}.{table_name} MOVE",
                     )
-                    for table_name in chained_tables_result.value
+                    for table_name in chained_tables_result.data
                 )
 
             logger.info(
@@ -381,10 +381,10 @@ class DatabaseOptimizer:
                     result.error or "Failed to get tables without statistics",
                 )
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
-            tables = [row[0] for row in result.value.rows]
+            tables = [row[0] for row in result.data.rows]
             return ServiceResult.ok(tables)
 
         except Exception as e:
@@ -441,10 +441,10 @@ class DatabaseOptimizer:
                         or "Failed to get unused indexes (fallback)",
                     )
 
-                if not fallback_result.value:
+                if not fallback_result.data:
                     return ServiceResult.fail("Fallback query result is empty")
 
-                unused_indexes = [row[0] for row in fallback_result.value.rows]
+                unused_indexes = [row[0] for row in fallback_result.data.rows]
                 logger.info(
                     "Found %d potentially unused indexes (fallback method) in schema %s",
                     len(unused_indexes),
@@ -452,10 +452,10 @@ class DatabaseOptimizer:
                 )
                 return ServiceResult.ok(unused_indexes)
 
-            if not result.value:
+            if not result.data:
                 return ServiceResult.fail("Query result is empty")
 
-            unused_indexes = [row[0] for row in result.value.rows]
+            unused_indexes = [row[0] for row in result.data.rows]
             logger.info(
                 "Found %d unused indexes in schema %s",
                 len(unused_indexes),
@@ -489,10 +489,10 @@ class DatabaseOptimizer:
                     result.error or "Failed to get chained tables",
                 )
 
-            if not result.value or not result.value.rows:
+            if not result.data or not result.data.rows:
                 return ServiceResult.ok([])
 
-            tables = [row[0] for row in result.value.rows]
+            tables = [row[0] for row in result.data.rows]
             return ServiceResult.ok(tables)
 
         except Exception as e:
@@ -513,7 +513,7 @@ class DatabaseOptimizer:
                     or "Failed to analyze schema optimization",
                 )
 
-            recommendations = recommendations_result.value or []
+            recommendations = recommendations_result.data or []
 
             # Group recommendations by priority
             high_priority = [r for r in recommendations if r.priority == "HIGH"]

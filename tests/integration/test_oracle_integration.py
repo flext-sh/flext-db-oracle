@@ -7,6 +7,7 @@ connection. They demonstrate the full functionality of the flext-infrastructure.
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
@@ -18,6 +19,9 @@ from flext_db_oracle.maintenance.health import HealthChecker
 from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 from flext_db_oracle.schema.ddl import DDLGenerator
 from flext_db_oracle.sql.optimizer import QueryOptimizer
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 # These tests demonstrate Oracle integration patterns using comprehensive mocking
 # All functionality is tested without requiring actual Oracle database connections
@@ -42,7 +46,7 @@ class TestOracleIntegration:
     async def connection_service(
         self,
         oracle_config: OracleConfig,
-    ) -> OracleConnectionService:
+    ) -> AsyncGenerator[OracleConnectionService]:
         """Create connection service for testing."""
         service = OracleConnectionService(oracle_config)
         # Mock the connection pool initialization and test connection
@@ -119,7 +123,8 @@ class TestOracleIntegration:
             result = await analyzer.analyze_schema("HR")
 
             assert result.is_success
-            schema_data = result.value
+            schema_data = result.data
+            assert schema_data is not None
             assert schema_data["schema_name"] == "HR"
             assert len(schema_data["tables"]) == 2
             assert len(schema_data["views"]) == 1
@@ -255,7 +260,8 @@ class TestOracleIntegration:
         result = await generator.generate_complete_ddl(table)
 
         assert result.is_success
-        ddl = result.value
+        ddl = result.data
+        assert ddl is not None
 
         # Verify key components are present
         assert "CREATE TABLE HR.EMPLOYEES" in ddl
@@ -400,7 +406,8 @@ class TestOracleIntegration:
             result = await health_checker.check_overall_health()
 
             assert result.is_success
-            health = result.value
+            health = result.data
+            assert health is not None
             assert health.is_healthy
             assert health.connection_status == "healthy"
             assert health.tablespace_status == "healthy"
@@ -501,7 +508,8 @@ class TestOracleIntegration:
                 result = await optimizer.analyze_query_performance(sql)
 
                 assert result.is_success
-                analysis = result.value
+                analysis = result.data
+                assert analysis is not None
                 assert analysis["sql_text"] == sql
                 assert "performance_rating" in analysis
                 assert "total_cost" in analysis
@@ -543,7 +551,8 @@ class TestOracleIntegration:
             )
 
             assert result.is_success
-            differences = result.value
+            differences = result.data
+            assert differences is not None
             assert (
                 len(differences) == 0
             )  # Equal row counts, no detailed comparison needed
@@ -570,6 +579,7 @@ class TestOracleIntegration:
         ):
             # Mock schema metadata
             from flext_db_oracle.schema.metadata import (
+                ObjectStatus,
                 SchemaMetadata,
                 TableMetadata,
                 ViewMetadata,
@@ -583,7 +593,7 @@ class TestOracleIntegration:
                             name="EMPLOYEES",
                             schema_name="HR",
                             tablespace_name="USERS",
-                            status="VALID",
+                            status=ObjectStatus.VALID,
                             num_rows=107,
                             blocks=8,
                             avg_row_len=69,
@@ -640,9 +650,13 @@ class TestOracleIntegration:
             assert query_result.is_success
 
             # Verify data consistency
-            schema = schema_result.value
-            health = health_result.value
-            query_analysis = query_result.value
+            schema = schema_result.data
+            health = health_result.data
+            query_analysis = query_result.data
+
+            assert schema is not None
+            assert health is not None
+            assert query_analysis is not None
 
             assert schema.name == "HR"
             assert len(schema.tables) == 1
@@ -713,6 +727,7 @@ class TestOracleIntegration:
             result = await analyzer.get_tables("NONEXISTENT_SCHEMA")
 
             assert result.is_failure
+            assert result.error
             assert "ORA-00942" in result.error
 
         # Test with partial failures
@@ -732,10 +747,11 @@ class TestOracleIntegration:
                 ),  # Sessions OK
             ]
 
-            result = await health_checker.check_overall_health()
+            result = await health_checker.check_overall_health()  # type: ignore[assignment]
 
             assert result.is_success  # Overall health check succeeds
-            health = result.value
+            health = result.data  # type: ignore[assignment]
+            assert health is not None
             assert health.connection_status == "healthy"
             assert health.tablespace_status == "unhealthy"  # This component failed
             assert health.session_status == "healthy"

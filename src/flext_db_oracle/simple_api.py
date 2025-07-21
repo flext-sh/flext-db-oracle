@@ -94,7 +94,7 @@ async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
                 f"Connection test failed: {service_result.error}",
             )
 
-        service = service_result.value
+        service = service_result.data
         if not service:
             return ServiceResult.fail("Failed to create connection service")
 
@@ -104,7 +104,7 @@ async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
             return ServiceResult.fail(test_result.error or "Connection test failed")
 
         # Return boolean based on connection status
-        status = test_result.value
+        status = test_result.data
         if not status:
             return ServiceResult.fail("Connection test returned no status")
 
@@ -135,7 +135,7 @@ async def get_database_info(config: OracleConfig) -> ServiceResult[dict[str, Any
                 f"Failed to get DB info: {service_result.error}",
             )
 
-        service = service_result.value
+        service = service_result.data
         if not service:
             return ServiceResult.fail("Failed to create connection service")
 
