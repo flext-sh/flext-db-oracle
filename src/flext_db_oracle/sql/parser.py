@@ -310,7 +310,7 @@ class SQLParser:
                 sql,
                 re.IGNORECASE,
             ):
-                validation_result["warnings"].append("SELECT without FROM clause")  # type: ignore[unreachable]
+                validation_result["warnings"].append("SELECT without FROM clause")
 
             # Check for potential issues
             if re.search(r"SELECT\s+\*", sql, re.IGNORECASE):

@@ -505,11 +505,11 @@ class DataDiffer:
         oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
 
         if not oracle_identifier_pattern.match(table_name):
-            return ServiceResult.fail(f"Invalid table name: {table_name}")  # type: ignore[unreachable]
+            return ServiceResult.fail(f"Invalid table name: {table_name}")
 
         for pk_col in primary_key_columns:
             if not oracle_identifier_pattern.match(pk_col):
-                return ServiceResult.fail(f"Invalid column name: {pk_col}")  # type: ignore[unreachable]
+                return ServiceResult.fail(f"Invalid column name: {pk_col}")
 
         return ServiceResult.ok(None)
 
