@@ -1,13 +1,12 @@
-"""Oracle Database Connection Configuration - Modern Python 3.13 + flext-core patterns."""
+"""Oracle Database Connection Configuration - Modern Python 3.13 + flext-core."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from pydantic import Field, SecretStr, field_validator, model_validator
-
-from flext_core import BaseConfig
+from flext_core import BaseConfig, Field
 from flext_observability.logging import get_logger
+from pydantic import SecretStr, field_validator, model_validator
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
@@ -46,7 +45,10 @@ class ConnectionConfig(BaseConfig):
     ssl_cert_path: str | None = Field(None, description="SSL certificate path")
     ssl_key_path: str | None = Field(None, description="SSL key path")
     ssl_server_dn_match: bool = Field(default=True, description="Verify SSL server DN")
-    protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")  # For Oracle Cloud
+    protocol: str = Field(
+        "tcp",
+        description="Connection protocol (tcp/tcps)",
+    )  # For Oracle Cloud
 
     @field_validator("pool_max")
     @classmethod
@@ -55,7 +57,7 @@ class ConnectionConfig(BaseConfig):
         if hasattr(info, "data") and "pool_min" in info.data:
             pool_min = info.data.get("pool_min", 1)
             if v < pool_min:
-                msg = f"pool_max ({v}) must be >= pool_min ({pool_min})"
+                msg = f"pool_max ({v}) must be greater than or equal to pool_min ({pool_min})"
                 raise ValueError(msg)
         return v
 
@@ -63,7 +65,7 @@ class ConnectionConfig(BaseConfig):
     def validate_connection_identifier(self) -> ConnectionConfig:
         """Validate that either SID or service_name is provided."""
         if not self.sid and not self.service_name:
-            msg = "Either 'service_name' or 'sid' must be provided"
+            msg = "Either SID or service_name must be provided"
             raise ValueError(msg)
         return self
 
@@ -101,11 +103,10 @@ class ConnectionConfig(BaseConfig):
             return f"{self.host}:{self.port}/{self.service_name}"
         if self.sid:
             return f"{self.host}:{self.port}:{self.sid}"
-        msg = "Either service_name or sid must be configured"
+        msg = "Either SID or service_name must be provided"
         raise ValueError(msg)
 
     def test_connection_params(self) -> bool:
-        """Validate connection parameters."""
         try:
             self.to_connect_params()
         except (ValueError, TypeError, KeyError) as e:
@@ -129,7 +130,7 @@ class ConnectionConfig(BaseConfig):
         expected_url_parts = 2
         url_parts = url[9:].split("@")  # Remove oracle://
         if len(url_parts) != expected_url_parts:
-            msg = "Invalid URL format"
+            msg = f"Invalid URL format. Expected {expected_url_parts} parts after '@'"
             raise ValueError(msg)
 
         credentials, connection_part = url_parts
@@ -143,6 +144,15 @@ class ConnectionConfig(BaseConfig):
             username=user,
             password=SecretStr(password),
             service_name=service_name,
+            sid=None,
+            pool_min=1,
+            pool_max=10,
+            pool_increment=1,
+            timeout=30,
+            encoding="UTF-8",
+            ssl_cert_path=None,
+            ssl_key_path=None,
+            protocol="tcp",
         )
 
     def __repr__(self) -> str:

@@ -1,9 +1,19 @@
-# Byte-compiled / optimized / DLL files
+# ============================================================================
+# FLEXT PYTHON PROJECT STANDARD .gitignore TEMPLATE
+# Python 3.13 | Poetry | Testing | Development Tools
+# ============================================================================
+
+# ============================================================================
+# PYTHON BUILD AND RUNTIME ARTIFACTS
+# ============================================================================
+
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
+*.pyc
+*.pyo
+*.pyd
 *.so
 
 # Distribution / packaging
@@ -25,6 +35,8 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+pip-wheel-metadata/
+*.dist-info/
 
 # PyInstaller
 *.manifest
@@ -33,6 +45,10 @@ MANIFEST
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
+
+# ============================================================================
+# TESTING AND COVERAGE
+# ============================================================================
 
 # Unit test / coverage reports
 htmlcov/
@@ -48,33 +64,260 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-reports/
-pytest.xml
-pytest-*.xml
+.coverage_html/
+junit.xml
+coverage.json
+.benchmarks/
 
-# Translations
-*.mo
-*.pot
+# ============================================================================
+# DEVELOPMENT TOOLS AND CACHE
+# ============================================================================
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
-# Flask stuff:
-instance/
-.webassets-cache
+# Pyre type checker
+.pyre/
 
-# Scrapy stuff:
-.scrapy
+# pytype static type analyzer
+.pytype/
+
+# Ruff
+.ruff_cache/
+
+# Bandit
+.bandit
+
+# pylint
+.pylint.d/
+
+# ============================================================================
+# VIRTUAL ENVIRONMENTS AND DEPENDENCIES
+# ============================================================================
+
+# virtualenv
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Poetry - keep lock file for reproducible builds
+# poetry.lock  # KEEP THIS FILE COMMENTED OUT
+
+# Pipenv
+Pipfile.lock.bak
+
+# PDM
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# ============================================================================
+# IDEs AND EDITORS
+# ============================================================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================================================
+# SYSTEM FILES
+# ============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ============================================================================
+# DOCUMENTATION AND REPORTS
+# ============================================================================
 
 # Sphinx documentation
 docs/_build/
+docs/build/
+.buildinfo
 
-# PyBuilder
-.pybuilder/
+# MkDocs
+site/
+
+# Reports
+reports/
+*.report
+*.json.report
+
+# ============================================================================
+# LOGS AND TEMPORARY FILES
+# ============================================================================
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+.tmp/
+tmp/
+
+# ============================================================================
+# DATABASE AND DATA FILES
+# ============================================================================
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+
+# Data files
+*.csv.bak
+*.json.bak
+*.xml.bak
+data/
+*.data
+
+# ============================================================================
+# SINGER/MELTANO SPECIFIC
+# ============================================================================
+
+# Meltano
+.meltano/
+.secrets/
+catalog.json
+tap_done
+target_done
+state.json
+output/
+
+# DBT
 target/
+dbt_packages/
+logs/
+
+# ============================================================================
+# DOCKER AND CONTAINERS
+# ============================================================================
+
+# Docker
+.dockerignore.bak
+docker-compose.override.yml
+
+# ============================================================================
+# CONFIGURATION AND SECRETS
+# ============================================================================
+
+# Environment variables
+.env
+.internal.invalid
+.env.*.local
+.envrc
+
+# Secrets and credentials
+.secrets
+*.key
+*.pem
+*.crt
+*.csr
+*_key
+*_secret
+.credentials
+secrets/
+
+# Configuration backups
+*.conf.bak
+*.config.bak
+*.toml.bak
+
+# ============================================================================
+# PROJECT SPECIFIC - FORBID ANTI-PATTERNS
+# ============================================================================
+
+# Archive directory (for moved junk files)
+archive/
+
+# Reports directory (for metrics, coverage, etc.)
+reports/
+
+# Old requirements.txt (use pyproject.toml)
+requirements.txt
+
+# Manual fix scripts - FORBIDDEN
+fix_*.py
+*_fix.py
+*_validation.py
+validate_*.py
+
+# AI-generated reports and migration files - FORBIDDEN
+*_REPORT.md
+*_REPORT_*.md
+CONFIG_MIGRATION*.md
+FLEXT_*_MIGRATION*.md
+DEVELOPMENT_STANDARDS.md
+FLEXT_*_PATTERNS.md
+LOGGING_MIGRATION.md
+STRICT_COMPLIANCE.md
+LEVEL1_*.md
+DUPLICATION_REPORT.md
+
+# ============================================================================
+# MISCELLANEOUS
+# ============================================================================
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -89,30 +332,15 @@ ipython_config.py
 # pipenv
 Pipfile.lock
 
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
 # PEP 582
 __pypackages__/
 
-# Celery stuff
+# Celery
 celerybeat-schedule
 celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -124,181 +352,25 @@ venv.bak/
 # mkdocs documentation
 /site
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Custom additions
+*.local
+*.user 
 
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm / JetBrains
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# VS Code
-.vscode/
-*.code-workspace
-
-# Cursor
-.cursor/
-
-# Claude
-.claude/
-
-# Oracle specific
-*.ora
-*.dmp
-*.log
-*.aud
-*.trm
-*.trc
-alert_*.log
-listener.log
-sqlnet.log
-tnsnames.ora.bak
-init.ora.bak
-
-# Oracle SQL Developer
-sqldeveloper/
-*.sdsql
-
-# Oracle Data Pump
-datapump/
-*.dpdmp
-*.dplog
-
-# Oracle wallet
-wallet/
-cwallet.sso
-ewallet.p12
-ewallet.p12.lck
-
-# Database backups
-*.bak
-*.backup
-backup/
-backups/
-db_backup/
-db_backups/
-
-# SQL scripts temporary files
-*.sql.tmp
-*.sql.temp
-*.sql.bak
-*.sql.swp
-
-# Performance tuning
-awr/
-addm/
-ash/
-statspack/
-*.html
-*.lst
-
-# Oracle trace files
-udump/
-bdump/
-cdump/
-
-# Test data
-test_data/
-test_output/
-test_results/
-e2e_results/
-
-# Temporary files
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
-*~
-*.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Desktop.ini
-
-# Local configuration
-internal.invalid.json
-.internal.invalid
-.env.*.local
-*.local.yml
-*.local.yaml
-
-# Documentation work files
-docs/drafts/
-docs/.obsidian/
-*.draft.md
-
-# Migration and maintenance
-migration_state/
-maintenance_logs/
-optimization_reports/
-health_check_reports/
-
-# Development dependencies
-requirements.txt
-requirements-dev.txt
-.dev_deps_backup_*
-
-# Linting and formatting
-.ruff_cache/
-.pylint.d/
-.pyre/
-.pytype/
-
-# Archive directories
-archive/
-
-# Junk documentation files
-CONFIG_MIGRATION*.md
-FLEXT_*_MIGRATION*.md
-*_REPORT*.md
-DEVELOPMENT*.md
-DUPLICATION*.md
-fix_*.py
-*_fix.py
-*_validation.*
-validate_*.*
-LOGGING_MIGRATION.md
-
-# Legacy and backup files
-.gitignore copy
-*.old
-*.orig
-*.rej
-
-# Oracle connection files (keep templates only)
-*.ora
-!*.ora.template
-!*.ora.example
-
-# Benchmarking
-.benchmarks/
-benchmark_results/
-performance_tests/
-
-# Analysis outputs
-analysis_outputs/
-logs/
-*.sqlite3
-# AI Assistant Files
+# ============================================================================
+# AI ASSISTANT FILES
+# ============================================================================
 CLAUDE.md
 internal.invalid.md
 .claude/
 .cursor/
+
+# ============================================================================
+# ALWAYS INCLUDE EXCEPTIONS
+# ============================================================================
+
+# Important: Force include critical files
+!pyproject.toml
+!Makefile
+!README.md
+!.pre-commit-config.yaml
+!.env.example

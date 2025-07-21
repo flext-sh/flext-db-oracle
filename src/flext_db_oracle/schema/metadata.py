@@ -11,9 +11,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
-from pydantic import Field
-
-from flext_core import DomainEntity, DomainValueObject, EntityId
+from flext_core import DomainEntity, DomainValueObject, EntityId, Field
 
 
 class ConstraintType(StrEnum):
@@ -41,7 +39,8 @@ class ColumnMetadata(DomainValueObject):
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
     nullable: bool = Field(
-        default=True, description="Whether column allows NULL values",
+        default=True,
+        description="Whether column allows NULL values",
     )
     default_value: str | None = Field(None, description="Default value")
     max_length: int | None = Field(None, description="Maximum length", ge=0)
@@ -92,7 +91,8 @@ class ConstraintMetadata(DomainValueObject):
     column_names: list[str] = Field(..., description="Constrained column names")
     referenced_table: str | None = Field(None, description="Referenced table (FK only)")
     referenced_columns: list[str] = Field(
-        default_factory=list, description="Referenced columns (FK only)",
+        default_factory=list,
+        description="Referenced columns (FK only)",
     )
     check_condition: str | None = Field(None, description="Check constraint condition")
     status: ObjectStatus = Field(ObjectStatus.ENABLED, description="Constraint status")
@@ -151,13 +151,16 @@ class TableMetadata(DomainEntity):
 
     # Related metadata
     columns: list[ColumnMetadata] = Field(
-        default_factory=list, description="Table columns",
+        default_factory=list,
+        description="Table columns",
     )
     constraints: list[ConstraintMetadata] = Field(
-        default_factory=list, description="Table constraints",
+        default_factory=list,
+        description="Table constraints",
     )
     indexes: list[IndexMetadata] = Field(
-        default_factory=list, description="Table indexes",
+        default_factory=list,
+        description="Table indexes",
     )
 
     # Timestamps
@@ -210,7 +213,8 @@ class ViewMetadata(DomainEntity):
 
     # Related metadata
     columns: list[ColumnMetadata] = Field(
-        default_factory=list, description="View columns",
+        default_factory=list,
+        description="View columns",
     )
 
     # Timestamps
@@ -235,19 +239,23 @@ class SchemaMetadata(DomainEntity):
 
     # Schema objects
     tables: list[TableMetadata] = Field(
-        default_factory=list, description="Schema tables",
+        default_factory=list,
+        description="Schema tables",
     )
     views: list[ViewMetadata] = Field(default_factory=list, description="Schema views")
     sequences: list[dict[str, Any]] = Field(
-        default_factory=list, description="Schema sequences",
+        default_factory=list,
+        description="Schema sequences",
     )
     procedures: list[dict[str, Any]] = Field(
-        default_factory=list, description="Schema procedures/functions",
+        default_factory=list,
+        description="Schema procedures/functions",
     )
 
     # Analysis metadata
     analyzed_at: datetime = Field(
-        default_factory=datetime.now, description="Analysis timestamp",
+        default_factory=datetime.now,
+        description="Analysis timestamp",
     )
     total_objects: int = Field(0, description="Total object count", ge=0)
     total_size_mb: float = Field(0.0, description="Total estimated size in MB", ge=0.0)

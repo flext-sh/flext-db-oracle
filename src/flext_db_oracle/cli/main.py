@@ -14,11 +14,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from argparse import Namespace
 
-from flext_db_oracle.connection.config import ConnectionConfig
-from flext_db_oracle.connection.connection import OracleConnection
 from flext_observability.logging import get_logger
 
-# Use flext-observability for all logging
+from flext_db_oracle.connection.config import ConnectionConfig
+from flext_db_oracle.connection.connection import OracleConnection
+
+# Use flext-infrastructure.monitoring.flext-observability for all logging
 logger = get_logger(__name__)
 
 
@@ -36,6 +37,14 @@ def test_connection(args: Namespace) -> int:
             service_name=args.service_name or "XE",
             username=args.username,
             password=args.password,
+            pool_min=1,
+            pool_max=10,
+            pool_increment=1,
+            timeout=30,
+            encoding="UTF-8",
+            ssl_cert_path=None,
+            ssl_key_path=None,
+            protocol="tcp",
         )
 
     try:
@@ -66,7 +75,6 @@ def test_connection(args: Namespace) -> int:
 
 
 def list_tables(args: Namespace) -> int:
-    """List tables in Oracle database."""
     try:
         logger.info("📋 Listing database tables...")
 
@@ -80,6 +88,14 @@ def list_tables(args: Namespace) -> int:
                 service_name=args.service_name or "XE",
                 username=args.username,
                 password=args.password,
+                pool_min=1,
+                pool_max=10,
+                pool_increment=1,
+                timeout=30,
+                encoding="UTF-8",
+                ssl_cert_path=None,
+                ssl_key_path=None,
+                protocol="tcp",
             )
 
         conn = OracleConnection(config)
@@ -119,7 +135,6 @@ def list_tables(args: Namespace) -> int:
 
 
 def describe_table(args: Namespace) -> int:
-    """Describe table structure."""
     try:
         logger.info("📊 Describing table structure...")
 
@@ -133,6 +148,14 @@ def describe_table(args: Namespace) -> int:
                 service_name=args.service_name or "XE",
                 username=args.username,
                 password=args.password,
+                pool_min=1,
+                pool_max=10,
+                pool_increment=1,
+                timeout=30,
+                encoding="UTF-8",
+                ssl_cert_path=None,
+                ssl_key_path=None,
+                protocol="tcp",
             )
 
         conn = OracleConnection(config)
@@ -158,8 +181,14 @@ def describe_table(args: Namespace) -> int:
     else:
         if results:
             logger.info("📊 Table structure for %s.%s:", schema, table_name)
-            logger.info("%-30s %-15s %-10s %-8s %-10s",
-                       "COLUMN NAME", "DATA TYPE", "LENGTH", "NULL?", "DEFAULT")
+            logger.info(
+                "%-30s %-15s %-10s %-8s %-10s",
+                "COLUMN NAME",
+                "DATA TYPE",
+                "LENGTH",
+                "NULL?",
+                "DEFAULT",
+            )
             logger.info("-" * 80)
 
             for row in results:
@@ -179,8 +208,14 @@ def describe_table(args: Namespace) -> int:
                 else:
                     type_str = data_type
 
-                logger.info("%-30s %-15s %-10s %-8s %-10s",
-                           col_name, type_str, str(length), nullable, str(default)[:10])
+                logger.info(
+                    "%-30s %-15s %-10s %-8s %-10s",
+                    col_name,
+                    type_str,
+                    str(length),
+                    nullable,
+                    str(default)[:10],
+                )
         else:
             logger.error("Table %s.%s not found", schema, table_name)
             return 1
@@ -197,9 +232,21 @@ def setup_parser() -> argparse.ArgumentParser:
     )
 
     # Global connection options
-    parser.add_argument("--url", help="Oracle connection URL (oracle://user:pass@host:port/service)")
-    parser.add_argument("--host", default="localhost", help="Database host (default: localhost)")
-    parser.add_argument("--port", type=int, default=1521, help="Database port (default: 1521)")
+    parser.add_argument(
+        "--url",
+        help="Oracle connection URL (oracle://user:pass@host:port/service)",
+    )
+    parser.add_argument(
+        "--host",
+        default="localhost",
+        help="Database host (default: localhost)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=1521,
+        help="Database port (default: 1521)",
+    )
     parser.add_argument("--sid", help="Oracle SID")
     parser.add_argument("--service-name", help="Oracle service name (default: XE)")
     parser.add_argument("--username", help="Database username")
@@ -226,7 +273,6 @@ def setup_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
-    """Run main CLI entry point."""
     try:
         parser = setup_parser()
         args = parser.parse_args()
@@ -238,13 +284,19 @@ def main() -> int:
         # Validate required connection parameters
         if not args.url:
             if not all([args.username, args.password]):
-                logger.error("❌ Username and password are required when not using --url")
+                logger.error(
+                    "❌ Username and password are required when not using --url",
+                )
                 return 1
 
             if not args.sid and not args.service_name:
-                logger.warning("⚠️  Neither SID nor service-name specified, using default service 'XE'")
+                logger.warning(
+                    "⚠️  Neither SID nor service-name specified, "
+                    "using default service 'XE'",
+                )
 
-        return args.func(args)
+        result = args.func(args)
+        return result if isinstance(result, int) else 0
 
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")

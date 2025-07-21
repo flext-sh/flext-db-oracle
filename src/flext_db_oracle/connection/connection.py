@@ -6,9 +6,8 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from oracledb import DatabaseError, InterfaceError, OperationalError
-
 from flext_observability.logging import get_logger
+from oracledb import DatabaseError, InterfaceError, OperationalError
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -37,7 +36,6 @@ class OracleConnection:
         self._is_connected = False
 
     def connect(self) -> None:
-        """Connect to Oracle database."""
         try:
             params = self.config.to_connect_params()
             self._connection = oracledb.connect(**params)
@@ -53,13 +51,12 @@ class OracleConnection:
 
     def disconnect(self) -> None:
         """Disconnect from Oracle database."""
-        if self._connection and self._is_connected:
-            try:
-                self._connection.close()
-                self._is_connected = False
-                logger.info("Disconnected from Oracle database")
-            except Exception:
-                logger.exception("Error disconnecting from database")
+        try:
+            self._connection.close()
+            self._is_connected = False
+            logger.info("Disconnected from Oracle database")
+        except Exception:
+            logger.exception("Error disconnecting from database")
 
         self._connection = None
 
@@ -68,7 +65,11 @@ class OracleConnection:
         """Check if connected to database."""
         return self._is_connected and self._connection is not None
 
-    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any] | int:
+    def execute(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> list[Any] | int:
         """Execute SQL statement."""
         if not self.is_connected:
             msg = "Not connected to database"
@@ -83,9 +84,9 @@ class OracleConnection:
 
             # For SELECT statements, return fetchall()
             if sql.strip().upper().startswith("SELECT"):
-                return cursor.fetchall()
+                return cursor.fetchall()  # type: ignore[no-any-return]
             # For DML statements, return row count
-            return cursor.rowcount
+            return cursor.rowcount  # type: ignore[no-any-return]
         finally:
             cursor.close()
 
@@ -102,7 +103,11 @@ class OracleConnection:
         finally:
             cursor.close()
 
-    def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> tuple[Any, ...] | None:
+    def fetch_one(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> tuple[Any, ...] | None:
         """Fetch one row from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
@@ -114,11 +119,15 @@ class OracleConnection:
                 cursor.execute(sql, parameters)
             else:
                 cursor.execute(sql)
-            return cursor.fetchone()
+            return cursor.fetchone()  # type: ignore[no-any-return]
         finally:
             cursor.close()
 
-    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+    def fetch_all(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> list[Any]:
         """Fetch all rows from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
@@ -177,7 +186,11 @@ class OracleConnection:
         results = self.fetch_all(sql, parameters)
         return [row[0] for row in results]
 
-    def get_column_info(self, table_name: str, schema: str | None = None) -> list[dict[str, Any]]:
+    def get_column_info(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Get column information for a table."""
         sql = """
         SELECT column_name, data_type, data_length, data_precision,
@@ -215,7 +228,6 @@ class OracleConnection:
         return str(result[0]) if result else "Unknown"
 
     def test_connection(self) -> bool:
-        """Test database connection."""
         try:
             self.fetch_one("SELECT 1 FROM dual")
         except (DatabaseError, InterfaceError, OperationalError) as e:

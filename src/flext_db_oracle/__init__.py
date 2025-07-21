@@ -40,17 +40,16 @@ from flext_db_oracle.domain.models import (
     OracleTableMetadata,
 )
 
+# Utilities
+from flext_db_oracle.utils import run_async_in_sync_context
+
 __all__ = [
     "BaseConfig",
     "ConfigurationError",
-    # Re-exported from flext-core
     "DomainBaseModel",
     "DomainValueObject",
-    # Configuration
     "OracleConfig",
-    # Core domain models
     "OracleConnectionInfo",
-    # Application services
     "OracleConnectionService",
     "OracleQueryResult",
     "OracleQueryService",
@@ -59,4 +58,5 @@ __all__ = [
     "OracleTableMetadata",
     "ServiceResult",
     "__version__",
+    "run_async_in_sync_context",
 ]

@@ -11,9 +11,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from pydantic import Field
-
-from flext_core import DomainValueObject, ServiceResult
+from flext_core import DomainValueObject, Field, ServiceResult
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
@@ -40,18 +38,33 @@ class SchemaDifference(DomainValueObject):
     difference_type: DifferenceType = Field(..., description="Type of difference")
     source_value: Any = Field(None, description="Value in source schema")
     target_value: Any = Field(None, description="Value in target schema")
-    details: dict[str, Any] = Field(default_factory=dict, description="Additional details")
+    details: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional details",
+    )
 
 
 class DataDifference(DomainValueObject):
     """Represents a difference in table data."""
 
     table_name: str = Field(..., description="Table name")
-    row_identifier: dict[str, Any] = Field(..., description="Primary key or unique identifier")
+    row_identifier: dict[str, Any] = Field(
+        ...,
+        description="Primary key or unique identifier",
+    )
     difference_type: DifferenceType = Field(..., description="Type of difference")
-    changed_columns: list[str] = Field(default_factory=list, description="Changed column names")
-    old_values: dict[str, Any] = Field(default_factory=dict, description="Old column values")
-    new_values: dict[str, Any] = Field(default_factory=dict, description="New column values")
+    changed_columns: list[str] = Field(
+        default_factory=list,
+        description="Changed column names",
+    )
+    old_values: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Old column values",
+    )
+    new_values: dict[str, Any] = Field(
+        default_factory=dict,
+        description="New column values",
+    )
 
 
 class ComparisonResult(DomainValueObject):
@@ -75,7 +88,7 @@ class ComparisonResult(DomainValueObject):
 
 
 class SchemaDiffer:
-    """Analyzes differences between Oracle database schemas using flext-core patterns."""
+    """Analyzes differences between Oracle database schemas using flext-core."""
 
     def __init__(self) -> None:
         """Initialize the schema differ.
@@ -99,19 +112,31 @@ class SchemaDiffer:
             differences = []
 
             # Compare tables
-            table_diffs = await self._compare_tables(source_schema.tables, target_schema.tables)
+            table_diffs = await self._compare_tables(
+                source_schema.tables,
+                target_schema.tables,
+            )
             differences.extend(table_diffs)
 
             # Compare views
-            view_diffs = await self._compare_views(source_schema.views, target_schema.views)
+            view_diffs = await self._compare_views(
+                source_schema.views,
+                target_schema.views,
+            )
             differences.extend(view_diffs)
 
             # Compare sequences
-            seq_diffs = await self._compare_sequences(source_schema.sequences, target_schema.sequences)
+            seq_diffs = await self._compare_sequences(
+                source_schema.sequences,
+                target_schema.sequences,
+            )
             differences.extend(seq_diffs)
 
             # Compare procedures
-            proc_diffs = await self._compare_procedures(source_schema.procedures, target_schema.procedures)
+            proc_diffs = await self._compare_procedures(
+                source_schema.procedures,
+                target_schema.procedures,
+            )
             differences.extend(proc_diffs)
 
             result = ComparisonResult(
@@ -120,12 +145,15 @@ class SchemaDiffer:
                 schema_differences=differences,
             )
 
-            logger.info("Schema comparison complete: %d differences found", len(differences))
-            return ServiceResult.success(result)
+            logger.info(
+                "Schema comparison complete: %d differences found",
+                len(differences),
+            )
+            return ServiceResult.ok(result)
 
         except Exception as e:
             logger.exception("Schema comparison failed")
-            return ServiceResult.failure(f"Schema comparison failed: {e}")
+            return ServiceResult.fail(f"Schema comparison failed: {e}")
 
     async def _compare_tables(
         self,
@@ -141,22 +169,28 @@ class SchemaDiffer:
         # Find added tables
         for name in target_names - source_names:
             target_table = next(t for t in target_tables if t.name.upper() == name)
-            differences.append(SchemaDifference(
-                object_type="TABLE",
-                object_name=name,
-                difference_type=DifferenceType.ADDED,
-                target_value=target_table.model_dump(),
-            ))
+            differences.append(
+                SchemaDifference(
+                    object_type="TABLE",
+                    object_name=name,
+                    difference_type=DifferenceType.ADDED,
+                    source_value=None,
+                    target_value=target_table.model_dump(),
+                ),
+            )
 
         # Find removed tables
         for name in source_names - target_names:
             source_table = next(t for t in source_tables if t.name.upper() == name)
-            differences.append(SchemaDifference(
-                object_type="TABLE",
-                object_name=name,
-                difference_type=DifferenceType.REMOVED,
-                source_value=source_table.model_dump(),
-            ))
+            differences.append(
+                SchemaDifference(
+                    object_type="TABLE",
+                    object_name=name,
+                    difference_type=DifferenceType.REMOVED,
+                    source_value=source_table.model_dump(),
+                    target_value=None,
+                ),
+            )
 
         # Find modified tables
         for name in source_names & target_names:
@@ -178,105 +212,165 @@ class SchemaDiffer:
 
         # Compare column count
         if len(source_table.columns) != len(target_table.columns):
-            differences.append(SchemaDifference(
-                object_type="TABLE",
-                object_name=source_table.name,
-                difference_type=DifferenceType.MODIFIED,
-                details={
-                    "change": "column_count",
-                    "source_count": len(source_table.columns),
-                    "target_count": len(target_table.columns),
-                },
-            ))
+            differences.append(
+                SchemaDifference(
+                    object_type="TABLE",
+                    object_name=source_table.name,
+                    difference_type=DifferenceType.MODIFIED,
+                    source_value=len(source_table.columns),
+                    target_value=len(target_table.columns),
+                    details={
+                        "change": "column_count",
+                        "source_count": len(source_table.columns),
+                        "target_count": len(target_table.columns),
+                    },
+                ),
+            )
 
         # Compare constraints
         if len(source_table.constraints) != len(target_table.constraints):
-            differences.append(SchemaDifference(
-                object_type="TABLE",
-                object_name=source_table.name,
-                difference_type=DifferenceType.MODIFIED,
-                details={
-                    "change": "constraint_count",
-                    "source_count": len(source_table.constraints),
-                    "target_count": len(target_table.constraints),
-                },
-            ))
+            differences.append(
+                SchemaDifference(
+                    object_type="TABLE",
+                    object_name=source_table.name,
+                    difference_type=DifferenceType.MODIFIED,
+                    source_value=len(source_table.constraints),
+                    target_value=len(target_table.constraints),
+                    details={
+                        "change": "constraint_count",
+                        "source_count": len(source_table.constraints),
+                        "target_count": len(target_table.constraints),
+                    },
+                ),
+            )
 
         # Compare indexes
         if len(source_table.indexes) != len(target_table.indexes):
-            differences.append(SchemaDifference(
-                object_type="TABLE",
-                object_name=source_table.name,
-                difference_type=DifferenceType.MODIFIED,
-                details={
-                    "change": "index_count",
-                    "source_count": len(source_table.indexes),
-                    "target_count": len(target_table.indexes),
-                },
-            ))
+            differences.append(
+                SchemaDifference(
+                    object_type="TABLE",
+                    object_name=source_table.name,
+                    difference_type=DifferenceType.MODIFIED,
+                    source_value=len(source_table.indexes),
+                    target_value=len(target_table.indexes),
+                    details={
+                        "change": "index_count",
+                        "source_count": len(source_table.indexes),
+                        "target_count": len(target_table.indexes),
+                    },
+                ),
+            )
 
         return differences
 
-    async def _compare_views(self, source_views: list, target_views: list) -> list[SchemaDifference]:
+    async def _compare_views(
+        self,
+        source_views: list[Any],
+        target_views: list[Any],
+    ) -> list[SchemaDifference]:
         """Compare views between schemas."""
-        source_names = {v.get("name", "").upper() if isinstance(v, dict) else v.name.upper() for v in source_views}
-        target_names = {v.get("name", "").upper() if isinstance(v, dict) else v.name.upper() for v in target_views}
+        source_names = {
+            v.get("name", "").upper() if isinstance(v, dict) else v.name.upper()
+            for v in source_views
+        }
+        target_names = {
+            v.get("name", "").upper() if isinstance(v, dict) else v.name.upper()
+            for v in target_views
+        }
 
         # Find added views
-        differences = [SchemaDifference(
+        differences = [
+            SchemaDifference(
                 object_type="VIEW",
                 object_name=name,
                 difference_type=DifferenceType.ADDED,
-            ) for name in target_names - source_names]
+                source_value=None,
+                target_value=None,
+            )
+            for name in target_names - source_names
+        ]
 
         # Find removed views
-        differences.extend(SchemaDifference(
+        differences.extend(
+            SchemaDifference(
                 object_type="VIEW",
                 object_name=name,
                 difference_type=DifferenceType.REMOVED,
-            ) for name in source_names - target_names)
+                source_value=None,
+                target_value=None,
+            )
+            for name in source_names - target_names
+        )
 
         return differences
 
-    async def _compare_sequences(self, source_sequences: list, target_sequences: list) -> list[SchemaDifference]:
+    async def _compare_sequences(
+        self,
+        source_sequences: list[Any],
+        target_sequences: list[Any],
+    ) -> list[SchemaDifference]:
         """Compare sequences between schemas."""
         source_names = {s.get("name", "").upper() for s in source_sequences}
         target_names = {s.get("name", "").upper() for s in target_sequences}
 
         # Find added sequences
-        differences = [SchemaDifference(
+        differences = [
+            SchemaDifference(
                 object_type="SEQUENCE",
                 object_name=name,
                 difference_type=DifferenceType.ADDED,
-            ) for name in target_names - source_names]
+                source_value=None,
+                target_value=None,
+            )
+            for name in target_names - source_names
+        ]
 
         # Find removed sequences
-        differences.extend(SchemaDifference(
+        differences.extend(
+            SchemaDifference(
                 object_type="SEQUENCE",
                 object_name=name,
                 difference_type=DifferenceType.REMOVED,
-            ) for name in source_names - target_names)
+                source_value=None,
+                target_value=None,
+            )
+            for name in source_names - target_names
+        )
 
         return differences
 
-    async def _compare_procedures(self, source_procedures: list, target_procedures: list) -> list[SchemaDifference]:
+    async def _compare_procedures(
+        self,
+        source_procedures: list[Any],
+        target_procedures: list[Any],
+    ) -> list[SchemaDifference]:
         """Compare procedures/functions between schemas."""
         source_names = {p.get("name", "").upper() for p in source_procedures}
         target_names = {p.get("name", "").upper() for p in target_procedures}
 
         # Find added procedures
-        differences = [SchemaDifference(
+        differences = [
+            SchemaDifference(
                 object_type="PROCEDURE",
                 object_name=name,
                 difference_type=DifferenceType.ADDED,
-            ) for name in target_names - source_names]
+                source_value=None,
+                target_value=None,
+            )
+            for name in target_names - source_names
+        ]
 
         # Find removed procedures
-        differences.extend(SchemaDifference(
+        differences.extend(
+            SchemaDifference(
                 object_type="PROCEDURE",
                 object_name=name,
                 difference_type=DifferenceType.REMOVED,
-            ) for name in source_names - target_names)
+                source_value=None,
+                target_value=None,
+            )
+            for name in source_names - target_names
+        )
 
         return differences
 
@@ -299,7 +393,11 @@ class DataDiffer:
     ) -> ServiceResult[list[DataDifference]]:
         """Compare data between two tables using primary key columns."""
         try:
-            logger.info("Comparing data for table: %s using PK: %s", table_name, primary_key_columns)
+            logger.info(
+                "Comparing data for table: %s using PK: %s",
+                table_name,
+                primary_key_columns,
+            )
 
             # First, compare row counts
             row_count_result = await self._compare_row_counts(
@@ -309,13 +407,22 @@ class DataDiffer:
             )
 
             if not row_count_result.is_success:
-                return row_count_result
+                return ServiceResult.fail(
+                    row_count_result.error or "Row count comparison failed",
+                )
 
             counts = row_count_result.value
+            if not counts:
+                return ServiceResult.fail("Row count result is empty")
+
             source_count = counts["source_count"]
             target_count = counts["target_count"]
 
-            logger.info("Row counts - Source: %d, Target: %d", source_count, target_count)
+            logger.info(
+                "Row counts - Source: %d, Target: %d",
+                source_count,
+                target_count,
+            )
 
             # If counts differ, perform detailed comparison
             if source_count != target_count:
@@ -328,11 +435,11 @@ class DataDiffer:
 
             # Counts are equal, return no differences
             logger.info("Data comparison complete for %s: 0 differences", table_name)
-            return ServiceResult.success([])
+            return ServiceResult.ok([])
 
         except Exception as e:
             logger.exception("Data comparison failed for %s", table_name)
-            return ServiceResult.failure(f"Data comparison failed: {e}")
+            return ServiceResult.fail(f"Data comparison failed: {e}")
 
     async def _perform_detailed_comparison(
         self,
@@ -345,9 +452,12 @@ class DataDiffer:
         logger.info("Row count mismatch detected, performing detailed comparison")
 
         # Validate identifiers first
-        validation_result = await self._validate_identifiers(table_name, primary_key_columns)
+        validation_result = await self._validate_identifiers(
+            table_name,
+            primary_key_columns,
+        )
         if not validation_result.is_success:
-            return validation_result
+            return ServiceResult.fail(validation_result.error or "Validation failed")
 
         # Get data from both tables
         data_result = await self._fetch_table_data(
@@ -357,22 +467,34 @@ class DataDiffer:
             primary_key_columns,
         )
         if not data_result.is_success:
-            return data_result
+            return ServiceResult.fail(data_result.error or "Failed to fetch table data")
+
+        if not data_result.value:
+            return ServiceResult.fail("Table data result is empty")
 
         source_rows, target_rows = data_result.value
 
         # Build dictionaries for efficient comparison
         source_dict, target_dict = self._build_row_dictionaries(
-            source_rows, target_rows, primary_key_columns,
+            source_rows,
+            target_rows,
+            primary_key_columns,
         )
 
         # Find and categorize differences
         differences = self._find_row_differences(
-            source_dict, target_dict, table_name, primary_key_columns,
+            source_dict,
+            target_dict,
+            table_name,
+            primary_key_columns,
         )
 
-        logger.info("Data comparison complete for %s: %d differences", table_name, len(differences))
-        return ServiceResult.success(differences)
+        logger.info(
+            "Data comparison complete for %s: %d differences",
+            table_name,
+            len(differences),
+        )
+        return ServiceResult.ok(differences)
 
     async def _validate_identifiers(
         self,
@@ -383,13 +505,13 @@ class DataDiffer:
         oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
 
         if not oracle_identifier_pattern.match(table_name):
-            return ServiceResult.failure(f"Invalid table name: {table_name}")
+            return ServiceResult.fail(f"Invalid table name: {table_name}")
 
         for pk_col in primary_key_columns:
             if not oracle_identifier_pattern.match(pk_col):
-                return ServiceResult.failure(f"Invalid column name: {pk_col}")
+                return ServiceResult.fail(f"Invalid column name: {pk_col}")
 
-        return ServiceResult.success(None)
+        return ServiceResult.ok(None)
 
     async def _fetch_table_data(
         self,
@@ -397,7 +519,7 @@ class DataDiffer:
         target_connection_service: OracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[tuple[list[tuple], list[tuple]]]:
+    ) -> ServiceResult[tuple[list[tuple[Any, ...]], list[tuple[Any, ...]]]]:
         """Fetch ordered data from both tables."""
         pk_columns_str = ", ".join(primary_key_columns)
 
@@ -409,19 +531,27 @@ class DataDiffer:
         target_data_result = await target_connection_service.execute_query(target_query)
 
         if not source_data_result.is_success or not target_data_result.is_success:
-            return ServiceResult.failure("Failed to retrieve table data for comparison")
+            return ServiceResult.fail("Failed to retrieve table data for comparison")
 
-        return ServiceResult.success((
-            source_data_result.value.rows,
-            target_data_result.value.rows,
-        ))
+        if not source_data_result.value or not target_data_result.value:
+            return ServiceResult.fail("Query results are empty")
+
+        return ServiceResult.ok(
+            (
+                source_data_result.value.rows,
+                target_data_result.value.rows,
+            ),
+        )
 
     def _build_row_dictionaries(
         self,
-        source_rows: list[tuple],
-        target_rows: list[tuple],
+        source_rows: list[tuple[Any, ...]],
+        target_rows: list[tuple[Any, ...]],
         primary_key_columns: list[str],
-    ) -> tuple[dict[tuple, tuple], dict[tuple, tuple]]:
+    ) -> tuple[
+        dict[tuple[Any, ...], tuple[Any, ...]],
+        dict[tuple[Any, ...], tuple[Any, ...]],
+    ]:
         """Build dictionaries using primary key as index for efficient comparison."""
         source_dict = {}
         target_dict = {}
@@ -438,8 +568,8 @@ class DataDiffer:
 
     def _find_row_differences(
         self,
-        source_dict: dict[tuple, tuple],
-        target_dict: dict[tuple, tuple],
+        source_dict: dict[tuple[Any, ...], tuple[Any, ...]],
+        target_dict: dict[tuple[Any, ...], tuple[Any, ...]],
         table_name: str,
         primary_key_columns: list[str],
     ) -> list[DataDifference]:
@@ -448,25 +578,47 @@ class DataDiffer:
         all_keys = set(source_dict.keys()) | set(target_dict.keys())
 
         for pk_key in all_keys:
-            pk_dict = {pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)}
+            pk_dict = {
+                pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
+            }
 
             if pk_key in source_dict and pk_key not in target_dict:
                 # Row removed
-                differences.append(self._create_removed_difference(table_name, pk_dict, source_dict[pk_key]))
+                differences.append(
+                    self._create_removed_difference(
+                        table_name,
+                        pk_dict,
+                        source_dict[pk_key],
+                    ),
+                )
             elif pk_key not in source_dict and pk_key in target_dict:
                 # Row added
-                differences.append(self._create_added_difference(table_name, pk_dict, target_dict[pk_key]))
+                differences.append(
+                    self._create_added_difference(
+                        table_name,
+                        pk_dict,
+                        target_dict[pk_key],
+                    ),
+                )
             elif source_dict[pk_key] != target_dict[pk_key]:
                 # Row modified
                 modified_diff = self._create_modified_difference(
-                    table_name, pk_dict, source_dict[pk_key], target_dict[pk_key],
+                    table_name,
+                    pk_dict,
+                    source_dict[pk_key],
+                    target_dict[pk_key],
                 )
                 if modified_diff:
                     differences.append(modified_diff)
 
         return differences
 
-    def _create_removed_difference(self, table_name: str, pk_dict: dict, source_row: tuple) -> DataDifference:
+    def _create_removed_difference(
+        self,
+        table_name: str,
+        pk_dict: dict[str, Any],
+        source_row: tuple[Any, ...],
+    ) -> DataDifference:
         """Create a DataDifference for a removed row."""
         return DataDifference(
             table_name=table_name,
@@ -476,7 +628,12 @@ class DataDiffer:
             new_values={},
         )
 
-    def _create_added_difference(self, table_name: str, pk_dict: dict, target_row: tuple) -> DataDifference:
+    def _create_added_difference(
+        self,
+        table_name: str,
+        pk_dict: dict[str, Any],
+        target_row: tuple[Any, ...],
+    ) -> DataDifference:
         """Create a DataDifference for an added row."""
         return DataDifference(
             table_name=table_name,
@@ -487,14 +644,20 @@ class DataDiffer:
         )
 
     def _create_modified_difference(
-        self, table_name: str, pk_dict: dict, source_row: tuple, target_row: tuple,
+        self,
+        table_name: str,
+        pk_dict: dict[str, Any],
+        source_row: tuple[Any, ...],
+        target_row: tuple[Any, ...],
     ) -> DataDifference | None:
         """Create a DataDifference for a modified row."""
         changed_columns = []
         old_values = {}
         new_values = {}
 
-        for i, (source_val, target_val) in enumerate(zip(source_row, target_row, strict=True)):
+        for i, (source_val, target_val) in enumerate(
+            zip(source_row, target_row, strict=True),
+        ):
             if source_val != target_val:
                 col_name = f"col_{i}"
                 changed_columns.append(col_name)
@@ -525,7 +688,7 @@ class DataDiffer:
             oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
 
             if not oracle_identifier_pattern.match(table_name):
-                return ServiceResult.failure(f"Invalid table name: {table_name}")
+                return ServiceResult.fail(f"Invalid table name: {table_name}")
 
             # Safe to use f-string since we validated the identifier
             source_result = await source_connection_service.execute_query(
@@ -536,18 +699,23 @@ class DataDiffer:
             )
 
             if not source_result.is_success or not target_result.is_success:
-                return ServiceResult.failure("Failed to get row counts")
+                return ServiceResult.fail("Failed to get row counts")
+
+            if not source_result.value or not source_result.value.rows:
+                return ServiceResult.fail("Source count query returned no results")
+            if not target_result.value or not target_result.value.rows:
+                return ServiceResult.fail("Target count query returned no results")
 
             counts = {
                 "source_count": source_result.value.rows[0][0],
                 "target_count": target_result.value.rows[0][0],
             }
 
-            return ServiceResult.success(counts)
+            return ServiceResult.ok(counts)
 
         except Exception as e:
             logger.exception("Row count comparison failed")
-            return ServiceResult.failure(f"Row count comparison failed: {e}")
+            return ServiceResult.fail(f"Row count comparison failed: {e}")
 
     async def compare_large_table_data(
         self,
@@ -559,7 +727,11 @@ class DataDiffer:
     ) -> ServiceResult[list[DataDifference]]:
         """Compare data between two large tables using batched approach."""
         try:
-            logger.info("Starting large table comparison for: %s (batch size: %d)", table_name, batch_size)
+            logger.info(
+                "Starting large table comparison for: %s (batch size: %d)",
+                table_name,
+                batch_size,
+            )
 
             # Get total row counts first
             row_count_result = await self._compare_row_counts(
@@ -569,13 +741,22 @@ class DataDiffer:
             )
 
             if not row_count_result.is_success:
-                return row_count_result
+                return ServiceResult.fail(
+                    row_count_result.error or "Failed to get row counts",
+                )
 
             counts = row_count_result.value
+            if not counts:
+                return ServiceResult.fail("Row count result is empty")
+
             source_count = counts["source_count"]
             target_count = counts["target_count"]
 
-            logger.info("Large table comparison - Source: %d rows, Target: %d rows", source_count, target_count)
+            logger.info(
+                "Large table comparison - Source: %d rows, Target: %d rows",
+                source_count,
+                target_count,
+            )
 
             # If counts are equal and tables are large, use hash-based comparison
             if source_count == target_count and source_count > batch_size:
@@ -600,7 +781,7 @@ class DataDiffer:
 
         except Exception as e:
             logger.exception("Large table comparison failed for %s", table_name)
-            return ServiceResult.failure(f"Large table comparison failed: {e}")
+            return ServiceResult.fail(f"Large table comparison failed: {e}")
 
     async def _compare_using_hashes(
         self,
@@ -609,7 +790,7 @@ class DataDiffer:
         table_name: str,
         primary_key_columns: list[str],
         *,
-        batch_size: int,  # noqa: ARG002  # Used for fallback decision in calling method
+        batch_size: int,  # Used for fallback decision in calling method
     ) -> ServiceResult[list[DataDifference]]:
         """Compare tables using hash-based approach for performance."""
         try:
@@ -628,15 +809,28 @@ class DataDiffer:
             """  # noqa: S608
 
             # Get hashes from both tables
-            source_hashes_result = await source_connection_service.execute_query(hash_query)
-            target_hashes_result = await target_connection_service.execute_query(hash_query)
+            source_hashes_result = await source_connection_service.execute_query(
+                hash_query,
+            )
+            target_hashes_result = await target_connection_service.execute_query(
+                hash_query,
+            )
 
-            if not source_hashes_result.is_success or not target_hashes_result.is_success:
+            if (
+                not source_hashes_result.is_success
+                or not target_hashes_result.is_success
+            ):
                 logger.warning("Hash comparison failed, falling back to row comparison")
-                return ServiceResult.failure("Hash comparison not supported")
+                return ServiceResult.fail("Hash comparison not supported")
 
-            source_hashes = {tuple(row[:-1]): row[-1] for row in source_hashes_result.value.rows}
-            target_hashes = {tuple(row[:-1]): row[-1] for row in target_hashes_result.value.rows}
+            # Check if results have value and rows
+            source_result = source_hashes_result.value
+            target_result = target_hashes_result.value
+            if not source_result or not target_result:
+                return ServiceResult.fail("Query results are empty")
+
+            source_hashes = {tuple(row[:-1]): row[-1] for row in source_result.rows}
+            target_hashes = {tuple(row[:-1]): row[-1] for row in target_result.rows}
 
             differences = []
 
@@ -644,45 +838,56 @@ class DataDiffer:
             all_keys = set(source_hashes.keys()) | set(target_hashes.keys())
 
             for pk_key in all_keys:
-                pk_dict = {pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)}
+                pk_dict = {
+                    pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
+                }
 
                 if pk_key in source_hashes and pk_key not in target_hashes:
                     # Row removed
-                    differences.append(DataDifference(
-                        table_name=table_name,
-                        row_identifier=pk_dict,
-                        difference_type=DifferenceType.REMOVED,
-                        changed_columns=["*"],
-                        old_values={"status": "exists_in_source"},
-                        new_values={},
-                    ))
+                    differences.append(
+                        DataDifference(
+                            table_name=table_name,
+                            row_identifier=pk_dict,
+                            difference_type=DifferenceType.REMOVED,
+                            changed_columns=["*"],
+                            old_values={"status": "exists_in_source"},
+                            new_values={},
+                        ),
+                    )
                 elif pk_key not in source_hashes and pk_key in target_hashes:
                     # Row added
-                    differences.append(DataDifference(
-                        table_name=table_name,
-                        row_identifier=pk_dict,
-                        difference_type=DifferenceType.ADDED,
-                        changed_columns=["*"],
-                        old_values={},
-                        new_values={"status": "exists_in_target"},
-                    ))
+                    differences.append(
+                        DataDifference(
+                            table_name=table_name,
+                            row_identifier=pk_dict,
+                            difference_type=DifferenceType.ADDED,
+                            changed_columns=["*"],
+                            old_values={},
+                            new_values={"status": "exists_in_target"},
+                        ),
+                    )
                 elif source_hashes[pk_key] != target_hashes[pk_key]:
                     # Row modified (hashes differ)
-                    differences.append(DataDifference(
-                        table_name=table_name,
-                        row_identifier=pk_dict,
-                        difference_type=DifferenceType.MODIFIED,
-                        changed_columns=["*"],
-                        old_values={"hash": str(source_hashes[pk_key])},
-                        new_values={"hash": str(target_hashes[pk_key])},
-                    ))
+                    differences.append(
+                        DataDifference(
+                            table_name=table_name,
+                            row_identifier=pk_dict,
+                            difference_type=DifferenceType.MODIFIED,
+                            changed_columns=["*"],
+                            old_values={"hash": str(source_hashes[pk_key])},
+                            new_values={"hash": str(target_hashes[pk_key])},
+                        ),
+                    )
 
-            logger.info("Hash-based comparison complete: %d differences found", len(differences))
-            return ServiceResult.success(differences)
+            logger.info(
+                "Hash-based comparison complete: %d differences found",
+                len(differences),
+            )
+            return ServiceResult.ok(differences)
 
         except Exception as e:
             logger.exception("Hash-based comparison failed")
-            return ServiceResult.failure(f"Hash-based comparison failed: {e}")
+            return ServiceResult.fail(f"Hash-based comparison failed: {e}")
 
     async def _compare_in_batches(
         self,
@@ -702,7 +907,13 @@ class DataDiffer:
             # NOTE: table_name is validated in calling method
             count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
             count_result = await source_connection_service.execute_query(count_query)
-            total_rows = count_result.value.rows[0][0] if count_result.is_success else 0
+            total_rows = 0
+            if (
+                count_result.is_success
+                and count_result.value
+                and count_result.value.rows
+            ):
+                total_rows = count_result.value.rows[0][0]
 
             all_differences = []
             offset = 0
@@ -718,14 +929,27 @@ class DataDiffer:
                     ORDER BY {pk_columns_str}
                 """  # noqa: S608
 
-                source_batch_result = await source_connection_service.execute_query(batch_query)
-                target_batch_result = await target_connection_service.execute_query(batch_query)
+                source_batch_result = await source_connection_service.execute_query(
+                    batch_query,
+                )
+                target_batch_result = await target_connection_service.execute_query(
+                    batch_query,
+                )
 
-                if not source_batch_result.is_success or not target_batch_result.is_success:
-                    return ServiceResult.failure("Failed to fetch batch data")
+                if (
+                    not source_batch_result.is_success
+                    or not target_batch_result.is_success
+                ):
+                    return ServiceResult.fail("Failed to fetch batch data")
 
-                source_rows = source_batch_result.value.rows
-                target_rows = target_batch_result.value.rows
+                # Check if batch results have value and rows
+                source_result = source_batch_result.value
+                target_result = target_batch_result.value
+                if not source_result or not target_result:
+                    return ServiceResult.fail("Batch query results are empty")
+
+                source_rows = source_result.rows
+                target_rows = target_result.rows
 
                 # No more data to process
                 if not source_rows and not target_rows:
@@ -741,8 +965,13 @@ class DataDiffer:
 
                 all_differences.extend(batch_differences)
 
-                logger.info("Processed batch %d-%d of %d rows (%d differences found)",
-                           offset + 1, offset + len(source_rows), total_rows, len(batch_differences))
+                logger.info(
+                    "Processed batch %d-%d of %d rows (%d differences found)",
+                    offset + 1,
+                    offset + len(source_rows),
+                    total_rows,
+                    len(batch_differences),
+                )
 
                 offset += batch_size
 
@@ -750,27 +979,35 @@ class DataDiffer:
                 if len(source_rows) < batch_size:
                     break
 
-            logger.info("Batched comparison complete: %d total differences", len(all_differences))
-            return ServiceResult.success(all_differences)
+            logger.info(
+                "Batched comparison complete: %d total differences",
+                len(all_differences),
+            )
+            return ServiceResult.ok(all_differences)
 
         except Exception as e:
             logger.exception("Batched comparison failed")
-            return ServiceResult.failure(f"Batched comparison failed: {e}")
+            return ServiceResult.fail(f"Batched comparison failed: {e}")
 
     def _compare_batch_data(
         self,
-        source_rows: list[tuple],
-        target_rows: list[tuple],
+        source_rows: list[tuple[Any, ...]],
+        target_rows: list[tuple[Any, ...]],
         table_name: str,
         primary_key_columns: list[str],
     ) -> list[DataDifference]:
         """Compare a batch of rows efficiently."""
         # Build dictionaries for this batch
         source_dict, target_dict = self._build_row_dictionaries(
-            source_rows, target_rows, primary_key_columns,
+            source_rows,
+            target_rows,
+            primary_key_columns,
         )
 
         # Find differences in this batch
         return self._find_row_differences(
-            source_dict, target_dict, table_name, primary_key_columns,
+            source_dict,
+            target_dict,
+            table_name,
+            primary_key_columns,
         )

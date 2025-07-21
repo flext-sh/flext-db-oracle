@@ -1,1 +1,1 @@
-"""Integration tests for flext-db-oracle."""
+"""Integration tests for flext-infrastructure.databases.flext-db-oracle."""

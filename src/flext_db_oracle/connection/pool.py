@@ -6,7 +6,6 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
@@ -36,7 +35,6 @@ class ConnectionPool:
         self._is_initialized = False
 
     def initialize(self) -> None:
-        """Initialize the connection pool."""
         try:
             params = self.config.to_connect_params()
 
@@ -62,13 +60,12 @@ class ConnectionPool:
 
     def close(self) -> None:
         """Close the connection pool."""
-        if self._pool and self._is_initialized:
-            try:
-                self._pool.close()
-                self._is_initialized = False
-                logger.info("Closed Oracle connection pool")
-            except Exception:
-                logger.exception("Error closing connection pool")
+        try:
+            self._pool.close()
+            self._is_initialized = False
+            logger.info("Closed Oracle connection pool")
+        except Exception:
+            logger.exception("Error closing connection pool")
 
         self._pool = None
 
@@ -89,10 +86,9 @@ class ConnectionPool:
 
         """
         if not self.is_initialized:
-            msg = "Connection pool not initialized"
+            msg = "Connection pool is not initialized"
             raise RuntimeError(msg)
 
-        connection = None
         try:
             connection = self._pool.acquire() if self._pool else None
             yield connection
@@ -100,7 +96,11 @@ class ConnectionPool:
             if connection and self._pool:
                 self._pool.release(connection)
 
-    def execute(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any] | int:
+    def execute(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> list[Any] | int:
         """Execute SQL statement."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -112,9 +112,9 @@ class ConnectionPool:
 
                 # For SELECT statements, return fetchall()
                 if sql.strip().upper().startswith("SELECT"):
-                    return cursor.fetchall()
+                    return cursor.fetchall()  # type: ignore[no-any-return]
                 # For DML statements, return row count
-                return cursor.rowcount
+                return cursor.rowcount  # type: ignore[no-any-return]
             finally:
                 cursor.close()
 
@@ -128,7 +128,11 @@ class ConnectionPool:
             finally:
                 cursor.close()
 
-    def fetch_one(self, sql: str, parameters: dict[str, Any] | None = None) -> tuple[Any, ...] | None:
+    def fetch_one(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> tuple[Any, ...] | None:
         """Fetch one row from SQL query."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -137,11 +141,15 @@ class ConnectionPool:
                     cursor.execute(sql, parameters)
                 else:
                     cursor.execute(sql)
-                return cursor.fetchone()
+                return cursor.fetchone()  # type: ignore[no-any-return]
             finally:
                 cursor.close()
 
-    def fetch_all(self, sql: str, parameters: dict[str, Any] | None = None) -> list[Any]:
+    def fetch_all(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> list[Any]:
         """Fetch all rows from SQL query."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -189,13 +197,15 @@ class ConnectionPool:
 
             # Add actual pool stats if available
             if self._pool and hasattr(self._pool, "opened"):
-                stats.update({
-                    "opened": self._pool.opened,
-                    "busy": self._pool.busy,
-                })
+                stats.update(
+                    {
+                        "opened": self._pool.opened,
+                        "busy": self._pool.busy,
+                    },
+                )
+
+            return stats
 
         except Exception as e:
             logger.exception("Error getting pool stats")
             return {"status": "error", "error": str(e)}
-        else:
-            return stats

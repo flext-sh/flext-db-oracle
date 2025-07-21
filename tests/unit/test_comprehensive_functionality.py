@@ -1,4 +1,4 @@
-"""Comprehensive functionality tests for flext-db-oracle.
+"""Comprehensive functionality tests for flext-infrastructure.databases.flext-db-oracle.
 
 These tests exercise real code paths without requiring Oracle database connections.
 They focus on testing business logic, configuration validation, and error handling.
@@ -6,12 +6,10 @@ They focus on testing business logic, configuration validation, and error handli
 
 from __future__ import annotations
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from flext_core import ServiceResult
 from flext_db_oracle.application.services import (
     OracleConnectionService,
     OracleQueryService,
@@ -74,7 +72,9 @@ class TestOracleConnectionService:
     async def test_close_pool_success(self) -> None:
         """Test successful pool closure."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         service = OracleConnectionService(config)
 
@@ -94,7 +94,9 @@ class TestOracleConnectionService:
     async def test_close_pool_error_handling(self) -> None:
         """Test pool closure error handling."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         service = OracleConnectionService(config)
 
@@ -117,7 +119,9 @@ class TestOracleQueryService:
     def test_query_service_initialization(self) -> None:
         """Test query service initialization."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
         query_service = OracleQueryService(conn_service)
@@ -131,7 +135,9 @@ class TestSchemaAnalyzer:
     def test_analyzer_initialization(self) -> None:
         """Test analyzer can be initialized."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
         analyzer = SchemaAnalyzer(conn_service)
@@ -157,7 +163,9 @@ class TestHealthChecker:
     def test_health_checker_initialization(self) -> None:
         """Test health checker initialization."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
         health_checker = HealthChecker(conn_service)
@@ -171,7 +179,9 @@ class TestOracleSchemaService:
     def test_schema_service_initialization(self) -> None:
         """Test schema service initialization."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
         query_service = OracleQueryService(conn_service)
@@ -197,7 +207,7 @@ class TestOracleConnectionInfo:
         assert connection_info.port == 1521
         assert connection_info.service_name == "XE"
         assert connection_info.username == "test_user"
-        assert connection_info.password == "test_password"  # noqa: S105
+        assert connection_info.password == "test_password"
 
 
 class TestServiceIntegration:
@@ -207,7 +217,9 @@ class TestServiceIntegration:
     async def test_connection_service_with_query_service(self) -> None:
         """Test connection service integration with query service."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
 
@@ -226,7 +238,9 @@ class TestServiceIntegration:
     def test_all_services_can_be_created_together(self) -> None:
         """Test that all services can be created together."""
         config = OracleConfig(
-            username="test", password="test", service_name="XE",
+            username="test",
+            password="test",
+            service_name="XE",
         )
         conn_service = OracleConnectionService(config)
 

@@ -9,9 +9,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from pydantic import Field
-
-from flext_core import DomainValueObject, ServiceResult
+from flext_core import DomainValueObject, Field, ServiceResult
 from flext_observability.logging import get_logger
 
 logger = get_logger(__name__)
@@ -27,13 +25,16 @@ class ParsedStatement(DomainValueObject):
     sql_text: str = Field(..., description="Original SQL text")
     is_valid: bool = Field(default=True, description="Whether the SQL is valid")
     tables: list[str] = Field(
-        default_factory=list, description="Referenced table names",
+        default_factory=list,
+        description="Referenced table names",
     )
     columns: list[str] = Field(
-        default_factory=list, description="Referenced column names",
+        default_factory=list,
+        description="Referenced column names",
     )
     where_conditions: list[str] = Field(
-        default_factory=list, description="WHERE clause conditions",
+        default_factory=list,
+        description="WHERE clause conditions",
     )
     joins: list[str] = Field(default_factory=list, description="JOIN clauses")
     complexity_score: int = Field(0, description="Statement complexity score", ge=0)
@@ -99,14 +100,14 @@ class SQLParser:
             sql = sql.strip()
 
             if not sql:
-                return ServiceResult.failure("Empty SQL statement")
+                return ServiceResult.fail("Empty SQL statement")
 
             logger.info("Parsing SQL statement")
 
             # Determine statement type
             statement_type = self._get_statement_type(sql)
             if not statement_type:
-                return ServiceResult.failure("Could not determine statement type")
+                return ServiceResult.fail("Could not determine statement type")
 
             # Extract components
             tables = self._extract_table_names(sql)
@@ -116,7 +117,10 @@ class SQLParser:
 
             # Calculate complexity
             complexity = self._calculate_complexity(
-                sql, tables, joins, where_conditions,
+                sql,
+                tables,
+                joins,
+                where_conditions,
             )
 
             parsed = ParsedStatement(
@@ -131,11 +135,11 @@ class SQLParser:
             )
 
             logger.info("SQL statement parsed successfully: %s", statement_type)
-            return ServiceResult.success(parsed)
+            return ServiceResult.ok(parsed)
 
         except Exception as e:
             logger.exception("SQL parsing failed")
-            return ServiceResult.failure(f"SQL parsing failed: {e}")
+            return ServiceResult.fail(f"SQL parsing failed: {e}")
 
     def _get_statement_type(self, sql: str) -> str | None:
         """Determine the type of SQL statement."""
@@ -163,7 +167,9 @@ class SQLParser:
 
         # Extract from SELECT clause
         select_match = re.search(
-            r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL,
+            r"SELECT\s+(.*?)\s+FROM",
+            sql,
+            re.IGNORECASE | re.DOTALL,
         )
         if select_match:
             select_clause = select_match.group(1)
@@ -174,10 +180,15 @@ class SQLParser:
                 if clean_part and clean_part != "*":
                     # Extract just the column name (remove aliases, functions)
                     column_name = re.sub(
-                        r"\s+AS\s+.*", "", clean_part, flags=re.IGNORECASE,
+                        r"\s+AS\s+.*",
+                        "",
+                        clean_part,
+                        flags=re.IGNORECASE,
                     )
                     column_name = re.sub(
-                        r".*\.", "", column_name,
+                        r".*\.",
+                        "",
+                        column_name,
                     )  # Remove table prefix
                     columns.append(column_name.strip())
 
@@ -197,7 +208,9 @@ class SQLParser:
             where_clause = where_match.group(1).strip()
             # Split on AND/OR (simple approach)
             condition_parts = re.split(
-                r"\s+(?:AND|OR)\s+", where_clause, flags=re.IGNORECASE,
+                r"\s+(?:AND|OR)\s+",
+                where_clause,
+                flags=re.IGNORECASE,
             )
             conditions = [cond.strip() for cond in condition_parts if cond.strip()]
 
@@ -268,7 +281,7 @@ class SQLParser:
     async def validate_syntax(self, sql: str) -> ServiceResult[dict[str, Any]]:
         """Perform basic SQL syntax validation."""
         try:
-            validation_result = {
+            validation_result: dict[str, Any] = {
                 "is_valid": True,
                 "errors": [],
                 "warnings": [],
@@ -278,7 +291,7 @@ class SQLParser:
             if not sql.strip():
                 validation_result["is_valid"] = False
                 validation_result["errors"].append("Empty SQL statement")
-                return ServiceResult.success(validation_result)
+                return ServiceResult.ok(validation_result)
 
             # Check for balanced parentheses
             if sql.count("(") != sql.count(")"):
@@ -293,7 +306,9 @@ class SQLParser:
 
             # Check for required clauses
             if statement_type == "SELECT" and not re.search(
-                r"\bFROM\b", sql, re.IGNORECASE,
+                r"\bFROM\b",
+                sql,
+                re.IGNORECASE,
             ):
                 validation_result["warnings"].append("SELECT without FROM clause")
 
@@ -305,21 +320,23 @@ class SQLParser:
                 validation_result["warnings"].append("Very long SQL statement")
 
             logger.info("SQL syntax validation completed")
-            return ServiceResult.success(validation_result)
+            return ServiceResult.ok(validation_result)
 
         except Exception as e:
             logger.exception("SQL syntax validation failed")
-            return ServiceResult.failure(f"Syntax validation failed: {e}")
+            return ServiceResult.fail(f"Syntax validation failed: {e}")
 
     async def analyze_statement(self, sql: str) -> ServiceResult[dict[str, Any]]:
         """Perform comprehensive SQL statement analysis."""
         try:
             # Parse the statement
             parse_result = await self.parse_statement(sql)
-            if parse_result.is_success:
-                return parse_result
+            if not parse_result.is_success:
+                return ServiceResult.fail(parse_result.error or "Parse failed")
 
             parsed = parse_result.value
+            if parsed is None:
+                return ServiceResult.fail("Failed to parse SQL statement")
 
             # Validate syntax
             validation_result = await self.validate_syntax(sql)
@@ -340,8 +357,8 @@ class SQLParser:
             }
 
             logger.info("SQL statement analysis completed")
-            return ServiceResult.success(analysis)
+            return ServiceResult.ok(analysis)
 
         except Exception as e:
             logger.exception("SQL statement analysis failed")
-            return ServiceResult.failure(f"Statement analysis failed: {e}")
+            return ServiceResult.fail(f"Statement analysis failed: {e}")

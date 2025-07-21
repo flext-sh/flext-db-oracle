@@ -10,7 +10,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from pydantic import Field, field_validator
+from flext_core import Field
+from pydantic import field_validator
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
@@ -64,10 +65,12 @@ class OracleColumnInfo(DomainValueObject):
     precision: int | None = Field(None, description="Numeric precision")
     scale: int | None = Field(None, description="Numeric scale")
     is_primary_key: bool = Field(
-        default=False, description="Whether column is primary key",
+        default=False,
+        description="Whether column is primary key",
     )
     is_foreign_key: bool = Field(
-        default=False, description="Whether column is foreign key",
+        default=False,
+        description="Whether column is foreign key",
     )
     comments: str | None = Field(None, description="Column comments")
 
@@ -79,7 +82,8 @@ class OracleTableMetadata(DomainEntity):
     schema_name: str = Field(..., description="Schema name")
     table_name: str = Field(..., description="Table name")
     columns: list[OracleColumnInfo] = Field(
-        default_factory=list, description="Table columns",
+        default_factory=list,
+        description="Table columns",
     )
     row_count: int | None = Field(None, ge=0, description="Approximate row count")
     tablespace: str | None = Field(None, description="Tablespace name")
@@ -102,7 +106,8 @@ class OracleSchemaInfo(DomainValueObject):
 
     name: str = Field(..., description="Schema name")
     tables: list[OracleTableMetadata] = Field(
-        default_factory=list, description="Schema tables",
+        default_factory=list,
+        description="Schema tables",
     )
     table_count: int = Field(0, ge=0, description="Number of tables")
     created_date: datetime | None = Field(None, description="Schema creation date")
@@ -117,12 +122,15 @@ class OracleQueryResult(DomainValueObject):
     """Result of Oracle query execution."""
 
     rows: list[tuple[Any, ...]] = Field(
-        default_factory=list, description="Query result rows as tuples",
+        default_factory=list,
+        description="Query result rows as tuples",
     )
     row_count: int = Field(0, ge=0, description="Number of rows returned")
     columns: list[str] = Field(default_factory=list, description="Column names")
     execution_time_ms: float = Field(
-        0.0, ge=0, description="Query execution time in milliseconds",
+        0.0,
+        ge=0,
+        description="Query execution time in milliseconds",
     )
 
     @property
@@ -146,10 +154,12 @@ class OracleConnectionStatus(DomainValueObject):
     database: str = Field(..., description="Database name/service")
     username: str = Field(..., description="Connected username")
     last_check: datetime = Field(
-        default_factory=datetime.now, description="Last status check",
+        default_factory=datetime.now,
+        description="Last status check",
     )
     error_message: str | None = Field(
-        None, description="Error message if connection failed",
+        None,
+        description="Error message if connection failed",
     )
 
     @property

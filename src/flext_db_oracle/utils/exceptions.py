@@ -23,7 +23,10 @@ class OracleConnectionError(OracleDBCoreError):
     """Exception raised for database connection errors."""
 
     def __init__(
-        self, message: str, host: str | None = None, port: int | None = None,
+        self,
+        message: str,
+        host: str | None = None,
+        port: int | None = None,
     ) -> None:
         """Initialize connection error.
 
@@ -64,7 +67,10 @@ class SQLError(OracleDBCoreError):
     """Exception raised for SQL execution errors."""
 
     def __init__(
-        self, message: str, sql: str | None = None, oracle_code: str | None = None,
+        self,
+        message: str,
+        sql: str | None = None,
+        oracle_code: str | None = None,
     ) -> None:
         """Initialize SQL error.
 
@@ -79,11 +85,34 @@ class SQLError(OracleDBCoreError):
         self.oracle_code = oracle_code
 
 
+class OracleQueryError(SQLError):
+    """Exception raised for Oracle query execution errors."""
+
+    def __init__(
+        self,
+        message: str,
+        sql: str | None = None,
+        oracle_code: str | None = None,
+    ) -> None:
+        """Initialize Oracle query error.
+
+        Args:
+            message: Error message
+            sql: SQL statement that caused the error
+            oracle_code: Oracle error code
+
+        """
+        super().__init__(message, sql, oracle_code or "QUERY_ERROR")
+
+
 class ValidationError(OracleDBCoreError):
     """Exception raised for data validation errors."""
 
     def __init__(
-        self, message: str, field: str | None = None, value: str | None = None,
+        self,
+        message: str,
+        field: str | None = None,
+        value: str | None = None,
     ) -> None:
         """Initialize validation error.
 
@@ -126,3 +155,25 @@ class PoolError(OracleDBCoreError):
         """
         super().__init__(message, "POOL_ERROR")
         self.pool_name = pool_name
+
+
+class OraclePerformanceError(OracleDBCoreError):
+    """Exception raised for Oracle performance-related errors."""
+
+    def __init__(
+        self,
+        message: str,
+        operation: str | None = None,
+        duration: float | None = None,
+    ) -> None:
+        """Initialize performance error.
+
+        Args:
+            message: Error message
+            operation: Operation that caused the performance issue
+            duration: Duration of the operation in seconds
+
+        """
+        super().__init__(message, "PERFORMANCE_ERROR")
+        self.operation = operation
+        self.duration = duration

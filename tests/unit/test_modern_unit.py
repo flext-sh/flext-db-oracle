@@ -1,4 +1,4 @@
-"""Modern unit tests for flext-db-oracle.
+"""Modern unit tests for flext-infrastructure.databases.flext-db-oracle.
 
 These tests demonstrate modern pytest patterns that pass strict linting:
 - ruff with ALL rules enabled
@@ -15,7 +15,7 @@ from pydantic import ValidationError
 from flext_db_oracle.config import OracleConfig
 
 
-def test_oracle_config_creation():
+def test_oracle_config_creation() -> None:
     """Test Oracle configuration creation with valid parameters."""
     config = OracleConfig(
         username="test_user",
@@ -24,13 +24,13 @@ def test_oracle_config_creation():
     )
 
     assert config.username == "test_user"
-    assert config.password == "test_password"  # noqa: S105
+    assert config.password == "test_password"
     assert config.service_name == "XE"
     assert config.host == "localhost"
     assert config.port == 1521
 
 
-def test_oracle_config_validation_missing_service_and_sid():
+def test_oracle_config_validation_missing_service_and_sid() -> None:
     """Test that validation fails when both service_name and sid are missing."""
     with pytest.raises(ValidationError):
         OracleConfig(
@@ -39,7 +39,7 @@ def test_oracle_config_validation_missing_service_and_sid():
         )
 
 
-def test_oracle_config_connection_string():
+def test_oracle_config_connection_string() -> None:
     """Test connection string generation for logging."""
     config = OracleConfig(
         username="test_user",
@@ -53,7 +53,7 @@ def test_oracle_config_connection_string():
     assert config.connection_string == expected
 
 
-def test_oracle_config_pool_validation():
+def test_oracle_config_pool_validation() -> None:
     """Test pool size validation."""
     with pytest.raises(ValidationError):
         OracleConfig(

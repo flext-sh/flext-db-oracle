@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import ConfigDict, Field, field_validator
-
-from flext_core import BaseConfig
+from flext_core import BaseConfig, Field
+from pydantic import field_validator
+from pydantic_settings import SettingsConfigDict
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
@@ -35,14 +35,18 @@ class OracleConfig(BaseConfig):
     # Query settings
     query_timeout: int = Field(30, ge=1, description="Query timeout in seconds")
     fetch_size: int = Field(
-        1000, ge=1, description="Default fetch size for large queries",
+        1000,
+        ge=1,
+        description="Default fetch size for large queries",
     )
 
     # Connection settings
     connect_timeout: int = Field(10, ge=1, description="Connection timeout in seconds")
     retry_attempts: int = Field(3, ge=0, description="Connection retry attempts")
     retry_delay: float = Field(
-        1.0, ge=0, description="Delay between retries in seconds",
+        1.0,
+        ge=0,
+        description="Delay between retries in seconds",
     )
 
     @field_validator("service_name", mode="after")
@@ -66,7 +70,7 @@ class OracleConfig(BaseConfig):
         if info.data:
             min_size = info.data.get("pool_min_size", 1)
             if v < min_size:
-                msg = "pool_max_size must be >= pool_min_size"
+                msg = f"pool_max_size ({v}) must be greater than or equal to pool_min_size ({min_size})"
                 raise ValueError(msg)
         return v
 
@@ -80,7 +84,7 @@ class OracleConfig(BaseConfig):
         """Generate safe connection string for logging."""
         return f"oracle://{self.username}:***@{self.host}:{self.port}/{self.database_identifier}"
 
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_prefix="FLEXT_TARGET_ORACLE_",
         case_sensitive=False,
     )

@@ -6,14 +6,13 @@ import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
+from flext_observability.logging import get_logger
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
-from flext_observability.logging import get_logger
-
-from .connection import OracleConnection
+from flext_db_oracle.connection.connection import OracleConnection
 
 if TYPE_CHECKING:
-    from .config import ConnectionConfig
+    from flext_db_oracle.connection.config import ConnectionConfig
 
 logger = get_logger(__name__)
 
@@ -63,15 +62,14 @@ class ResilientOracleConnection(OracleConnection):
 
         for attempt in range(1, self.retry_attempts + 1):
             self._connection_attempts = attempt
-
             try:
                 logger.info(
-                    "Attempting Oracle connection",
-                    attempt=attempt,
-                    max_attempts=self.retry_attempts,
-                    protocol=self.config.protocol,
-                    host=self.config.host,
-                    port=self.config.port,
+                    "Attempting Oracle connection (attempt %d/%d): %s://%s:%d",
+                    attempt,
+                    self.retry_attempts,
+                    self.config.protocol,
+                    self.config.host,
+                    self.config.port,
                 )
 
                 # Try to connect with current config
@@ -80,13 +78,12 @@ class ResilientOracleConnection(OracleConnection):
                 # Validate connection
                 if self._validate_connection():
                     logger.info(
-                        "Connection established successfully",
-                        attempts=attempt,
-                        fallback_applied=self._fallback_applied,
+                        "Connection established successfully "
+                        "(attempts: %d, fallback: %s)",
+                        attempt,
+                        self._fallback_applied,
                     )
                     return None
-                msg = "Connection validation failed"
-                raise RuntimeError(msg)
 
             except (
                 DatabaseError,
@@ -96,10 +93,10 @@ class ResilientOracleConnection(OracleConnection):
             ) as e:
                 last_exception = e
                 logger.warning(
-                    "Connection attempt failed",
-                    attempt=attempt,
-                    error=str(e),
-                    will_retry=attempt < self.retry_attempts,
+                    "Connection attempt %d failed: %s (will_retry: %s)",
+                    attempt,
+                    str(e),
+                    attempt < self.retry_attempts,
                 )
 
                 # On last attempt, try fallback if enabled
@@ -122,17 +119,15 @@ class ResilientOracleConnection(OracleConnection):
 
         # All attempts exhausted
         error_msg = (
-            f"Could not establish Oracle connection after {self.retry_attempts} attempts. "
-            f"Last error: {last_exception}"
+            f"Could not establish Oracle connection after "
+            f"{self.retry_attempts} attempts. Last error: {last_exception}"
         )
         if self._fallback_applied:
             error_msg += " (fallback was attempted)"
 
-        logger.error(error_msg)
         raise ConnectionError(error_msg) from last_exception
 
     def _validate_connection(self) -> bool:
-        """Validate the connection is working."""
         try:
             # Simple validation query
             result = self.fetch_one("SELECT 1 FROM DUAL")
@@ -174,7 +169,16 @@ class ResilientOracleConnection(OracleConnection):
 
         return False
 
-    def test_connection(self) -> dict[str, Any]:
+    def test_connection(self) -> bool:
+        try:
+            # Use the detailed test but return only success status
+            detailed_result = self.test_connection_detailed()
+            return bool(detailed_result["success"])
+        except Exception:
+            logger.exception("Connection test failed")
+            return False
+
+    def test_connection_detailed(self) -> dict[str, Any]:
         """Test connection and return detailed results."""
         result: dict[str, Any] = {
             "success": False,
@@ -190,7 +194,6 @@ class ResilientOracleConnection(OracleConnection):
         }
 
         start_time = time.time()
-
         try:
             # Connect if not already connected
             if not self.is_connected:
@@ -200,7 +203,8 @@ class ResilientOracleConnection(OracleConnection):
 
             # Get Oracle version
             version_result = self.fetch_one(
-                "SELECT banner FROM v$version WHERE banner LIKE 'Oracle%' AND ROWNUM = 1",
+                "SELECT banner FROM v$version WHERE "
+                "banner LIKE 'Oracle%' AND ROWNUM = 1",
             )
             if version_result:
                 result["oracle_version"] = version_result[0]

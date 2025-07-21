@@ -10,9 +10,7 @@ import re
 from re import error as regex_error
 from typing import TYPE_CHECKING, Any
 
-from pydantic import Field
-
-from flext_core import DomainValueObject, ServiceResult
+from flext_core import DomainValueObject, Field, ServiceResult
 from flext_observability.logging import get_logger
 
 if TYPE_CHECKING:
@@ -75,7 +73,7 @@ class ValidationResult(DomainValueObject):
 
 
 class SQLValidator:
-    """Validates Oracle SQL statements for syntax and best practices using flext-core patterns."""
+    """Validates Oracle SQL statements for syntax and best practices using flext-core."""
 
     def __init__(self, sql_parser: SQLParser | None = None) -> None:
         """Initialize the SQL validator.
@@ -146,15 +144,15 @@ class SQLValidator:
         try:
             logger.info("Starting SQL validation")
 
-            errors = []
-            warnings = []
-            info = []
+            errors: list[str] = []
+            warnings: list[str] = []
+            info: list[str] = []
             rules_checked = 0
 
             # Basic syntax validation
             if not sql.strip():
                 errors.append("Empty SQL statement")
-                return ServiceResult.success(
+                return ServiceResult.ok(
                     ValidationResult(
                         is_valid=False,
                         errors=errors,
@@ -192,19 +190,21 @@ class SQLValidator:
             )
 
             logger.info(
-                "SQL validation completed: %d issues found", result.total_issues,
+                "SQL validation completed: %d issues found",
+                result.total_issues,
             )
-            return ServiceResult.success(result)
+            return ServiceResult.ok(result)
 
         except Exception as e:
             logger.exception("SQL validation failed")
-            return ServiceResult.failure(f"SQL validation failed: {e}")
+            return ServiceResult.fail(f"SQL validation failed: {e}")
 
     async def _check_rule(self, sql: str, rule: ValidationRule) -> str | None:
-        """Check a specific validation rule."""
         try:
             if rule.pattern and re.search(
-                rule.pattern, sql, re.IGNORECASE | re.MULTILINE,
+                rule.pattern,
+                sql,
+                re.IGNORECASE | re.MULTILINE,
             ):
                 # Pattern-based rule
                 return f"{rule.rule_name}: {rule.description}"
@@ -220,6 +220,8 @@ class SQLValidator:
         except (ValueError, TypeError, AttributeError, regex_error) as e:
             logger.warning("Rule check failed for %s: %s", rule.rule_id, e)
             return None
+
+        return None
 
     async def _check_basic_syntax(self, sql: str) -> list[str]:
         """Check basic SQL syntax issues."""
@@ -244,25 +246,29 @@ class SQLValidator:
         return errors
 
     async def _check_unqualified_columns(self, sql: str) -> str | None:
-        """Check for unqualified column names in multi-table queries."""
         try:
             # Look for JOINs or multiple tables in FROM
             has_joins = bool(re.search(r"\bJOIN\b", sql, re.IGNORECASE))
             from_tables = re.findall(
-                r"\bFROM\s+([^,\s]+(?:\s*,\s*[^,\s]+)*)", sql, re.IGNORECASE,
+                r"\bFROM\s+([^,\s]+(?:\s*,\s*[^,\s]+)*)",
+                sql,
+                re.IGNORECASE,
             )
             has_multiple_tables = any("," in table_list for table_list in from_tables)
 
             if has_joins or has_multiple_tables:
                 # Look for unqualified columns (simple heuristic)
                 select_clause = re.search(
-                    r"SELECT\s+(.*?)\s+FROM", sql, re.IGNORECASE | re.DOTALL,
+                    r"SELECT\s+(.*?)\s+FROM",
+                    sql,
+                    re.IGNORECASE | re.DOTALL,
                 )
                 if select_clause:
                     columns = select_clause.group(1)
                     # Check for columns without table qualifiers
                     unqualified = re.findall(
-                        r"\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!\s*\()", columns,
+                        r"\b[a-zA-Z_][a-zA-Z0-9_]*\b(?!\s*\()",
+                        columns,
                     )
                     if unqualified and not any("." in col for col in unqualified):
                         return "Consider qualifying column names with table aliases in multi-table queries"
@@ -270,8 +276,10 @@ class SQLValidator:
         except (ValueError, TypeError, AttributeError, regex_error):
             return None
 
+        return None
+
     async def _check_missing_indexes(self, sql: str) -> str | None:
-        """Check for potential missing indexes."""
+        """Check for missing indexes in WHERE clauses."""
         try:
             # Look for WHERE clauses that might benefit from indexes
             where_match = re.search(
@@ -283,13 +291,17 @@ class SQLValidator:
                 where_clause = where_match.group(1)
                 # Look for equality conditions
                 equality_conditions = re.findall(
-                    r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=", where_clause, re.IGNORECASE,
+                    r"([a-zA-Z_][a-zA-Z0-9_]*)\s*=",
+                    where_clause,
+                    re.IGNORECASE,
                 )
                 if len(equality_conditions) > MIN_COMPOSITE_INDEX_CONDITIONS:
                     return "Consider creating composite indexes for multiple WHERE conditions"
 
         except (ValueError, TypeError, AttributeError, regex_error):
             return None
+
+        return None
 
     async def _check_nested_subqueries(self, sql: str) -> str | None:
         """Check for deeply nested subqueries."""
@@ -302,81 +314,143 @@ class SQLValidator:
         except (ValueError, TypeError, AttributeError, regex_error):
             return None
 
+        return None
+
+    def _generate_basic_recommendations(
+        self,
+        validation: ValidationResult,
+    ) -> list[str]:
+        """Generate basic recommendations based on validation results."""
+        recommendations = []
+
+        if validation.has_errors:
+            recommendations.append("Fix syntax errors before proceeding")
+
+        if validation.has_warnings:
+            recommendations.append(
+                "Address performance and maintainability warnings",
+            )
+
+        return recommendations
+
+    async def _generate_parser_recommendations(self, sql: str) -> list[str]:
+        """Generate recommendations based on SQL parser analysis."""
+        recommendations: list[str] = []
+
+        if not self.sql_parser:
+            return recommendations
+
+        parse_result = await self.sql_parser.parse_statement(sql)
+        if not (parse_result.is_success and parse_result.value):
+            return recommendations
+
+        parsed = parse_result.value
+
+        if parsed.complexity_score > HIGH_COMPLEXITY_THRESHOLD:
+            recommendations.append(
+                "Consider breaking down complex query into simpler parts",
+            )
+
+        if len(parsed.tables) > MAX_RECOMMENDED_TABLES:
+            recommendations.append(
+                "Review if all tables are necessary for this query",
+            )
+
+        if len(parsed.joins) > MAX_RECOMMENDED_JOINS:
+            recommendations.append(
+                "Verify that all JOINs are using appropriate indexes",
+            )
+
+        return recommendations
+
+    def _build_validation_result(
+        self,
+        validation: ValidationResult,
+        recommendations: list[str],
+    ) -> dict[str, Any]:
+        """Build the final validation result dictionary."""
+        return {
+            "validation": validation.model_dump(),
+            "recommendations": recommendations,
+            "summary": {
+                "is_valid": validation.is_valid,
+                "total_issues": validation.total_issues,
+                "severity_breakdown": {
+                    "errors": len(validation.errors),
+                    "warnings": len(validation.warnings),
+                    "info": len(validation.info),
+                },
+            },
+        }
+
     async def validate_with_recommendations(
-        self, sql: str,
+        self,
+        sql: str,
     ) -> ServiceResult[dict[str, Any]]:
         """Validate SQL and provide improvement recommendations."""
         try:
             # Perform validation
-            validation_result = await self.validate_sql(sql)
-            if validation_result.is_success:
-                return validation_result
-
-            validation = validation_result.value
-
-            # Generate recommendations
-            recommendations = []
-
-            if validation.has_errors:
-                recommendations.append("Fix syntax errors before proceeding")
-
-            if validation.has_warnings:
-                recommendations.append(
-                    "Address performance and maintainability warnings",
+            validation_result = await self._perform_sql_validation(sql)
+            if not validation_result.is_success:
+                return ServiceResult.fail(
+                    validation_result.error or "Validation failed",
                 )
 
-            # Additional recommendations based on SQL analysis
-            if self.sql_parser:
-                parse_result = await self.sql_parser.parse_statement(sql)
-                if parse_result.is_success:
-                    parsed = parse_result.value
+            validation = validation_result.value
+            if not validation:
+                return ServiceResult.fail("Validation result is empty")
 
-                    if parsed.complexity_score > HIGH_COMPLEXITY_THRESHOLD:
-                        recommendations.append(
-                            "Consider breaking down complex query into simpler parts",
-                        )
-
-                    if len(parsed.tables) > MAX_RECOMMENDED_TABLES:
-                        recommendations.append(
-                            "Review if all tables are necessary for this query",
-                        )
-
-                    if len(parsed.joins) > MAX_RECOMMENDED_JOINS:
-                        recommendations.append(
-                            "Verify that all JOINs are using appropriate indexes",
-                        )
-
-            result = {
-                "validation": validation.model_dump(),
-                "recommendations": recommendations,
-                "summary": {
-                    "is_valid": validation.is_valid,
-                    "total_issues": validation.total_issues,
-                    "severity_breakdown": {
-                        "errors": len(validation.errors),
-                        "warnings": len(validation.warnings),
-                        "info": len(validation.info),
-                    },
-                },
-            }
-
+            # Generate recommendations and build result
+            result = await self._create_recommendations_result(sql, validation)
             logger.info("SQL validation with recommendations completed")
-            return ServiceResult.success(result)
+            return ServiceResult.ok(result)
 
         except Exception as e:
             logger.exception("SQL validation with recommendations failed")
-            return ServiceResult.failure(f"Validation with recommendations failed: {e}")
+            return ServiceResult.fail(f"Validation with recommendations failed: {e}")
+
+    async def _perform_sql_validation(
+        self,
+        sql: str,
+    ) -> ServiceResult[ValidationResult]:
+        """Perform SQL validation and validate result."""
+        validation_result = await self.validate_sql(sql)
+        if not validation_result.is_success:
+            return ServiceResult.fail(
+                validation_result.error or "SQL validation failed",
+            )
+
+        if not validation_result.value:
+            return ServiceResult.fail("Validation result is empty")
+
+        return validation_result
+
+    async def _create_recommendations_result(
+        self,
+        sql: str,
+        validation: ValidationResult,
+    ) -> dict[str, Any]:
+        """Generate recommendations and build final validation result."""
+        basic_recommendations = self._generate_basic_recommendations(validation)
+        parser_recommendations = await self._generate_parser_recommendations(sql)
+        recommendations = basic_recommendations + parser_recommendations
+        return self._build_validation_result(validation, recommendations)
 
     async def get_best_practices_report(
-        self, sql: str,
+        self,
+        sql: str,
     ) -> ServiceResult[dict[str, Any]]:
         """Generate a comprehensive best practices report."""
         try:
             validation_result = await self.validate_with_recommendations(sql)
-            if validation_result.is_success:
-                return validation_result
+            if not validation_result.is_success:
+                return ServiceResult.fail(
+                    validation_result.error or "Validation failed",
+                )
 
             validation_data = validation_result.value
+            if not validation_data:
+                return ServiceResult.fail("Validation data is empty")
 
             # Best practices checklist
             checklist = {
@@ -394,8 +468,9 @@ class SQLValidator:
                 "avoids_functions_in_where": not bool(
                     re.search(r"WHERE.*\w+\s*\(", sql, re.IGNORECASE),
                 ),
-                "has_reasonable_complexity": validation_data.get("summary", {}).get(
-                    "total_issues", 0,
+                "has_reasonable_complexity": (validation_data.get("summary") or {}).get(
+                    "total_issues",
+                    0,
                 )
                 < MAX_REASONABLE_ISSUES,
             }
@@ -411,11 +486,11 @@ class SQLValidator:
             }
 
             logger.info("Best practices report generated with score: %.1f", score)
-            return ServiceResult.success(report)
+            return ServiceResult.ok(report)
 
         except Exception as e:
             logger.exception("Best practices report generation failed")
-            return ServiceResult.failure(f"Best practices report failed: {e}")
+            return ServiceResult.fail(f"Best practices report failed: {e}")
 
     def _get_grade(self, score: float) -> str:
         """Get letter grade based on score."""
