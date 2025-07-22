@@ -9,7 +9,7 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_core import ServiceResult
+from flext_core.domain.shared_types import ServiceResult
 
 from flext_db_oracle.application.services import (
     OracleConnectionService,
@@ -80,7 +80,7 @@ class TestOracleConnectionService:
         with patch.object(service, "get_connection") as mock_get_conn:
             mock_get_conn.side_effect = RuntimeError("Connection pool not initialized")
             connection_result = await service.test_connection()
-            assert not connection_result.is_success
+            assert not connection_result.success
             assert connection_result.error is not None
             assert "Connection pool not initialized" in connection_result.error
 
@@ -102,14 +102,14 @@ class TestOracleConnectionService:
 
         result = await service.initialize_pool()
 
-        assert result.is_success
+        assert result.success
         # Verify pool initialization by testing functionality with proper mocking
         with patch.object(service, "test_connection") as mock_test:
             mock_test.return_value = ServiceResult.ok(
                 type("MockStatus", (), {"is_connected": True})(),
             )
             connection_result = await service.test_connection()
-            assert connection_result.is_success
+            assert connection_result.success
         mock_create_pool.assert_called_once()
 
     @patch("oracledb.create_pool")
@@ -124,12 +124,12 @@ class TestOracleConnectionService:
 
         result = await service.initialize_pool()
 
-        assert not result.is_success
+        assert not result.success
         assert result.error
         assert "Pool creation failed" in result.error
         # Verify pool was not initialized by testing functionality
         connection_result = await service.test_connection()
-        assert not connection_result.is_success
+        assert not connection_result.success
 
     async def test_close_pool_success(
         self,
@@ -142,7 +142,7 @@ class TestOracleConnectionService:
         with patch.object(service, "_pool", mock_pool):
             result = await service.close_pool()
 
-            assert result.is_success
+            assert result.success
             mock_pool.close.assert_called_once()
 
     async def test_close_pool_no_pool(self, oracle_config: OracleConfig) -> None:
@@ -151,10 +151,10 @@ class TestOracleConnectionService:
 
         result = await service.close_pool()
 
-        assert result.is_success
+        assert result.success
         # Verify no pool exists by testing functionality
         connection_result = await service.test_connection()
-        assert not connection_result.is_success
+        assert not connection_result.success
 
     async def test_close_pool_error(
         self,
@@ -168,7 +168,7 @@ class TestOracleConnectionService:
         with patch.object(service, "_pool", mock_pool):
             result = await service.close_pool()
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "Close failed" in result.error
 
@@ -199,7 +199,7 @@ class TestOracleConnectionService:
 
             result = await service.test_connection()
 
-            assert result.is_success
+            assert result.success
             assert isinstance(result.data, OracleConnectionStatus)
             assert result.data.is_connected
 
@@ -213,7 +213,7 @@ class TestOracleConnectionService:
 
             result = await service.test_connection()
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "Connection pool not initialized" in result.error
 
@@ -244,7 +244,7 @@ class TestOracleConnectionService:
 
             result = await service.execute_query("SELECT 1 FROM dual")
 
-            assert result.is_success
+            assert result.success
             assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_no_pool(self, oracle_config: OracleConfig) -> None:
@@ -257,7 +257,7 @@ class TestOracleConnectionService:
 
             result = await service.execute_query("SELECT 1 FROM dual")
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "Connection pool not initialized" in result.error
 
@@ -292,7 +292,7 @@ class TestOracleConnectionService:
 
             result = await service.get_database_info()
 
-            assert result.is_success
+            assert result.success
             assert isinstance(result.data, dict)
 
     async def test_get_database_info_no_pool(self, oracle_config: OracleConfig) -> None:
@@ -305,7 +305,7 @@ class TestOracleConnectionService:
 
             result = await service.get_database_info()
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "Connection pool not initialized" in result.error
 
@@ -340,7 +340,7 @@ class TestOracleQueryService:
 
             result = await query_service.execute_query("SELECT 1 FROM dual")
 
-            assert result.is_success
+            assert result.success
             assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_with_parameters(
@@ -370,7 +370,7 @@ class TestOracleQueryService:
                 {"user_id": 123},
             )
 
-            assert result.is_success
+            assert result.success
             assert isinstance(result.data, OracleQueryResult)
 
     async def test_execute_query_database_error(
@@ -392,7 +392,7 @@ class TestOracleQueryService:
 
             result = await query_service.execute_query("INVALID SQL")
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "DB Error" in result.error
 

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from flext_core import BaseConfig, Field
-from flext_observability.logging import get_logger
 from pydantic import SecretStr, field_validator, model_validator
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
@@ -22,6 +23,8 @@ class ConnectionConfig(BaseConfig):
     Provides secure and validated configuration for Oracle database connections
     with support for various connection modes and security features.
     """
+
+    model_config: ClassVar[dict[str, str]] = {"extra": "forbid"}
 
     host: str = Field("localhost", description="Database host")
     port: int = Field(1521, description="Database port", ge=1, le=65535)
@@ -88,10 +91,11 @@ class ConnectionConfig(BaseConfig):
         if self.protocol:
             params["protocol"] = self.protocol
 
-        # Add SSL parameters if enabled
-        if self.ssl_enabled:
+        # Add SSL parameters if enabled or using tcps protocol
+        if self.ssl_enabled or (self.protocol and self.protocol.lower() == "tcps"):
             if self.ssl_cert_path:
                 params["wallet_location"] = self.ssl_cert_path
+            # For tcps connections or when explicitly disabled, set ssl_server_dn_match
             if not self.ssl_server_dn_match:
                 params["ssl_server_dn_match"] = False
 

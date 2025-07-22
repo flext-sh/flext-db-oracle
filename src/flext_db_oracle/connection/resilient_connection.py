@@ -6,10 +6,10 @@ import time
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from flext_observability.logging import get_logger
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
 from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.connection.config import ConnectionConfig

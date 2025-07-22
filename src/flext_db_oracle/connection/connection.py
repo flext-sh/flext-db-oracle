@@ -6,20 +6,19 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from flext_observability.logging import get_logger
 from oracledb import DatabaseError, InterfaceError, OperationalError
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from flext_db_oracle.connection.config import ConnectionConfig
-
 logger = get_logger(__name__)
 
 
 class OracleConnection:
     """Oracle database connection wrapper with enterprise features.
-
     Provides a high-level interface for Oracle database operations with
     proper connection management, error handling, and transaction support.
     """
@@ -57,7 +56,6 @@ class OracleConnection:
             logger.info("Disconnected from Oracle database")
         except Exception:
             logger.exception("Error disconnecting from database")
-
         self._connection = None
 
     @property
@@ -74,19 +72,17 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         cursor = self._connection.cursor()
         try:
             if parameters:
                 cursor.execute(sql, parameters)
             else:
                 cursor.execute(sql)
-
             # For SELECT statements, return fetchall()
             if sql.strip().upper().startswith("SELECT"):
-                return cursor.fetchall()  # type: ignore[no-any-return]
+                return cursor.fetchall()
             # For DML statements, return row count
-            return cursor.rowcount  # type: ignore[no-any-return]
+            return cursor.rowcount
         finally:
             cursor.close()
 
@@ -95,7 +91,6 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         cursor = self._connection.cursor()
         try:
             cursor.executemany(sql, parameters_list)
@@ -112,14 +107,13 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         cursor = self._connection.cursor()
         try:
             if parameters:
                 cursor.execute(sql, parameters)
             else:
                 cursor.execute(sql)
-            return cursor.fetchone()  # type: ignore[no-any-return]
+            return cursor.fetchone()
         finally:
             cursor.close()
 
@@ -132,7 +126,6 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         cursor = self._connection.cursor()
         try:
             if parameters:
@@ -149,7 +142,6 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         self._connection.commit()
 
     def rollback(self) -> None:
@@ -157,7 +149,6 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         self._connection.rollback()
 
     @contextmanager
@@ -166,7 +157,6 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-
         try:
             yield self
             self.commit()
@@ -182,7 +172,6 @@ class OracleConnection:
             parameters = {"schema": schema.upper()}
         else:
             parameters = None
-
         results = self.fetch_all(sql, parameters)
         return [row[0] for row in results]
 
@@ -198,17 +187,12 @@ class OracleConnection:
         FROM all_tab_columns
         WHERE table_name = :table_name
         """
-
         parameters = {"table_name": table_name.upper()}
-
         if schema:
             sql += " AND owner = :schema"
             parameters["schema"] = schema.upper()
-
         sql += " ORDER BY column_id"
-
         results = self.fetch_all(sql, parameters)
-
         return [
             {
                 "name": row[0],

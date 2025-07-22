@@ -56,7 +56,7 @@ class TestOracleConnectionService:
 
             result = await service.initialize_pool()
 
-            assert result.is_success
+            assert result.success
             pool_status = service.get_pool_status()
             assert pool_status["initialized"]
             assert pool_status["pool"] == mock_pool
@@ -86,7 +86,7 @@ class TestOracleConnectionService:
 
             result = await service.close_pool()
 
-            assert result.is_success
+            assert result.success
             mock_pool.close.assert_called_once()
             assert not service.is_pool_initialized
 
@@ -109,7 +109,7 @@ class TestOracleConnectionService:
             await service.initialize_pool()
             result = await service.close_pool()
 
-            assert not result.is_success
+            assert not result.success
             assert result.error
             assert "Connection pool closure failed" in result.error
 
@@ -230,7 +230,7 @@ class TestServiceIntegration:
             mock_create_pool.return_value = mock_pool
 
             result = await conn_service.initialize_pool()
-            assert result.is_success
+            assert result.success
 
             # Test that query service can be created after pool initialization
             query_service = OracleQueryService(conn_service)

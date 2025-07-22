@@ -6,9 +6,8 @@ Built on flext-core foundation following enterprise patterns.
 from __future__ import annotations
 
 import os
-from typing import Any
 
-from flext_core import ServiceResult
+from flext_core.domain.shared_types import ServiceResult
 from flext_observability.logging import setup_logging
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
@@ -16,7 +15,7 @@ from flext_db_oracle.application.services import OracleConnectionService
 from flext_db_oracle.config import OracleConfig
 
 
-def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleConfig]:
+def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[Any]:
     """Set up Oracle database configuration using flext-core patterns.
 
     Args:
@@ -59,7 +58,7 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[OracleC
 
 def create_connection_service(
     config: OracleConfig,
-) -> ServiceResult[OracleConnectionService]:
+) -> ServiceResult[Any]:
     """Create Oracle connection service from config.
 
     Args:
@@ -77,7 +76,7 @@ def create_connection_service(
         return ServiceResult.fail(f"Failed to create connection service: {e}")
 
 
-async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
+async def test_connection(config: OracleConfig) -> ServiceResult[Any]:
     """Test Oracle database connection using flext-core service.
 
     Args:
@@ -89,10 +88,8 @@ async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
     """
     try:
         service_result = create_connection_service(config)
-        if not service_result.is_success:
-            return ServiceResult.fail(
-                f"Connection test failed: {service_result.error}",
-            )
+        if not service_result.success:
+            return ServiceResult.fail(f"Connection test failed: {service_result.error}")
 
         service = service_result.data
         if not service:
@@ -100,7 +97,7 @@ async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
 
         # Test connection using service
         test_result = await service.test_connection()
-        if not test_result.is_success:
+        if not test_result.success:
             return ServiceResult.fail(test_result.error or "Connection test failed")
 
         # Return boolean based on connection status
@@ -118,7 +115,7 @@ async def test_connection(config: OracleConfig) -> ServiceResult[bool]:
         return ServiceResult.fail(f"Connection test failed: {e}")
 
 
-async def get_database_info(config: OracleConfig) -> ServiceResult[dict[str, Any]]:
+async def get_database_info(config: OracleConfig) -> ServiceResult[Any]:
     """Get Oracle database information using flext-core service.
 
     Args:
@@ -130,10 +127,8 @@ async def get_database_info(config: OracleConfig) -> ServiceResult[dict[str, Any
     """
     try:
         service_result = create_connection_service(config)
-        if not service_result.is_success:
-            return ServiceResult.fail(
-                f"Failed to get DB info: {service_result.error}",
-            )
+        if not service_result.success:
+            return ServiceResult.fail(f"Failed to get DB info: {service_result.error}")
 
         service = service_result.data
         if not service:

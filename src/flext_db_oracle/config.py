@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_core import BaseConfig, Field
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import SettingsConfigDict
 
 if TYPE_CHECKING:
@@ -49,19 +49,13 @@ class OracleConfig(BaseConfig):
         description="Delay between retries in seconds",
     )
 
-    @field_validator("service_name", mode="after")
-    @classmethod
-    def validate_service_or_sid(cls, v: str | None, info: ValidationInfo) -> str | None:
+    @model_validator(mode="after")
+    def validate_service_or_sid(self) -> OracleConfig:
         """Ensure either service_name or sid is provided."""
-        if info.data:
-            service_name = v  # Current field being validated
-            sid = info.data.get("sid")
-
-            # If neither service_name nor sid has a value, raise error
-            if not service_name and not sid:
-                msg = "Either service_name or sid must be provided"
-                raise ValueError(msg)
-        return v
+        if not self.service_name and not self.sid:
+            msg = "Either service_name or sid must be provided"
+            raise ValueError(msg)
+        return self
 
     @field_validator("pool_max_size")
     @classmethod

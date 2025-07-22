@@ -9,10 +9,12 @@ from __future__ import annotations
 import operator
 import re
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService
@@ -80,7 +82,7 @@ class QueryOptimizer:
         """
         self.connection_service = connection_service
 
-    async def analyze_query_plan(self, sql: str) -> ServiceResult[QueryAnalysis]:
+    async def analyze_query_plan(self, sql: str) -> ServiceResult[Any]:
         """Analyze execution plan for a SQL query."""
         try:
             logger.info("Analyzing query execution plan")
@@ -92,9 +94,8 @@ class QueryOptimizer:
             plan_sql = f"EXPLAIN PLAN SET STATEMENT_ID = '{statement_id}' FOR {sql}"
             plan_result = await self.connection_service.execute_query(plan_sql)
 
-            if not plan_result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to generate execution plan: {plan_result.error}",
+            if not plan_result.success:
+                return ServiceResult.fail(f"Failed to generate execution plan: {plan_result.error}",
                 )
 
             # Retrieve the execution plan
@@ -120,13 +121,13 @@ class QueryOptimizer:
                 {"statement_id": statement_id},
             )
 
-            if not plan_rows_result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to retrieve execution plan: {plan_rows_result.error}",
+            if not plan_rows_result.success:
+                return ServiceResult.fail(f"Failed to retrieve execution plan: {plan_rows_result.error}",
                 )
 
             if not plan_rows_result.data:
-                return ServiceResult.fail("Execution plan result is empty")
+                return ServiceResult.fail("Execution plan result is empty",
+                )
 
             # Build execution plan
             execution_plan = []
@@ -162,8 +163,7 @@ class QueryOptimizer:
             logger.info("Query plan analysis completed")
             if analysis.is_success and analysis.data:
                 return ServiceResult.ok(analysis.data)
-            return ServiceResult.ok(
-                QueryAnalysis(
+            return ServiceResult.ok(QueryAnalysis(
                     sql_text=sql,
                     total_cost=None,
                     estimated_rows=None,
@@ -173,13 +173,14 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Query plan analysis failed")
-            return ServiceResult.fail(f"Query plan analysis failed: {e}")
+            return ServiceResult.fail(f"Query plan analysis failed: {e}",
+            )
 
     async def _analyze_execution_plan(
         self,
         sql: str,
         execution_plan: list[QueryPlanStep],
-    ) -> ServiceResult[QueryAnalysis]:
+    ) -> ServiceResult[Any]:
         """Analyze execution plan and provide optimization hints."""
         try:
             # Calculate total cost
@@ -236,7 +237,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Execution plan analysis failed")
-            return ServiceResult.fail(f"Execution plan analysis failed: {e}")
+            return ServiceResult.fail(f"Execution plan analysis failed: {e}",
+            )
 
     def _assess_performance(
         self,
@@ -266,7 +268,7 @@ class QueryOptimizer:
 
         return "fair"
 
-    async def suggest_indexes(self, sql: str) -> ServiceResult[list[str]]:
+    async def suggest_indexes(self, sql: str) -> ServiceResult[Any]:
         """Suggest indexes based on query analysis."""
         try:
             suggestions = []
@@ -337,23 +339,23 @@ class QueryOptimizer:
         sql: str,
         *,
         execution_stats: bool = False,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Perform comprehensive query performance analysis."""
         try:
             # Get execution plan
             plan_result = await self.analyze_query_plan(sql)
-            if not plan_result.is_success:
-                return ServiceResult.fail(
-                    plan_result.error or "Failed to generate execution plan",
+            if not plan_result.success:
+                return ServiceResult.fail(plan_result.error or "Failed to generate execution plan",
                 )
 
             analysis = plan_result.data
             if not analysis:
-                return ServiceResult.fail("Query analysis result is empty")
+                return ServiceResult.fail("Query analysis result is empty",
+                )
 
             # Get index suggestions
             index_result = await self.suggest_indexes(sql)
-            index_suggestions = index_result.data if index_result.is_success else []
+            index_suggestions = index_result.data if index_result.success else []
 
             performance_report = {
                 "sql_text": sql,
@@ -382,19 +384,19 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Query performance analysis failed")
-            return ServiceResult.fail(f"Query performance analysis failed: {e}")
+            return ServiceResult.fail(f"Query performance analysis failed: {e}",
+            )
 
     async def analyze_sql_performance_statistics(
         self,
         sql_text: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Analyze SQL performance using Oracle's v$sql statistics."""
         try:
             # First, execute the query to get it into v$sql
             explain_result = await self.analyze_query_plan(sql_text)
-            if not explain_result.is_success:
-                return ServiceResult.fail(
-                    explain_result.error or "Failed to explain query plan",
+            if not explain_result.success:
+                return ServiceResult.fail(explain_result.error or "Failed to explain query plan",
                 )
 
             # Get SQL statistics from v$sql
@@ -416,7 +418,7 @@ class QueryOptimizer:
             )
 
             if (
-                not stats_result.is_success
+                not stats_result.success
                 or not stats_result.data
                 or not stats_result.data.rows
             ):
@@ -468,11 +470,10 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze SQL performance statistics")
-            return ServiceResult.fail(
-                f"Failed to analyze SQL performance statistics: {e}",
+            return ServiceResult.fail(f"Failed to analyze SQL performance statistics: {e}",
             )
 
-    async def get_session_statistics(self) -> ServiceResult[dict[str, Any]]:
+    async def get_session_statistics(self) -> ServiceResult[Any]:
         """Get current session performance statistics."""
         try:
             # Get session statistics from v$sesstat
@@ -497,13 +498,13 @@ class QueryOptimizer:
 
             result = await self.connection_service.execute_query(session_query)
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to get session statistics",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to get session statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Session statistics result is empty")
+                return ServiceResult.fail("Session statistics result is empty",
+                )
 
             statistics = {row[0]: row[1] for row in result.data.rows}
 
@@ -527,9 +528,10 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get session statistics")
-            return ServiceResult.fail(f"Failed to get session statistics: {e}")
+            return ServiceResult.fail(f"Failed to get session statistics: {e}",
+            )
 
-    async def analyze_wait_events(self) -> ServiceResult[dict[str, Any]]:
+    async def analyze_wait_events(self) -> ServiceResult[Any]:
         """Analyze current session wait events."""
         try:
             # Get wait events from v$session_wait
@@ -544,9 +546,8 @@ class QueryOptimizer:
 
             result = await self.connection_service.execute_query(wait_query)
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to analyze wait events",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to analyze wait events",
                 )
 
             if not result.data:
@@ -587,12 +588,13 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze wait events")
-            return ServiceResult.fail(f"Failed to analyze wait events: {e}")
+            return ServiceResult.fail(f"Failed to analyze wait events: {e}",
+            )
 
     async def get_sql_plan_statistics(
         self,
         sql_id: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Get detailed execution plan statistics for a specific SQL."""
         try:
             # Get plan statistics from v$sql_plan_statistics_all
@@ -610,13 +612,13 @@ class QueryOptimizer:
                 {"sql_id": sql_id},
             )
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to get SQL plan statistics",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to get SQL plan statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("SQL plan statistics result is empty")
+                return ServiceResult.fail("SQL plan statistics result is empty",
+                )
 
             plan_steps = []
             total_time = 0
@@ -676,4 +678,5 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get SQL plan statistics")
-            return ServiceResult.fail(f"Failed to get SQL plan statistics: {e}")
+            return ServiceResult.fail(f"Failed to get SQL plan statistics: {e}",
+            )

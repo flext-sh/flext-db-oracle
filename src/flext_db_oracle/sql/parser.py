@@ -9,8 +9,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -94,7 +96,7 @@ class SQLParser:
             ),
         }
 
-    async def parse_statement(self, sql: str) -> ServiceResult[ParsedStatement]:
+    async def parse_statement(self, sql: str) -> ServiceResult[Any]:
         """Parse a SQL statement and extract components."""
         try:
             sql = sql.strip()
@@ -278,7 +280,7 @@ class SQLParser:
 
         return score
 
-    async def validate_syntax(self, sql: str) -> ServiceResult[dict[str, Any]]:
+    async def validate_syntax(self, sql: str) -> ServiceResult[Any]:
         """Perform basic SQL syntax validation."""
         try:
             validation_result: dict[str, Any] = {
@@ -326,12 +328,12 @@ class SQLParser:
             logger.exception("SQL syntax validation failed")
             return ServiceResult.fail(f"Syntax validation failed: {e}")
 
-    async def analyze_statement(self, sql: str) -> ServiceResult[dict[str, Any]]:
+    async def analyze_statement(self, sql: str) -> ServiceResult[Any]:
         """Perform comprehensive SQL statement analysis."""
         try:
             # Parse the statement
             parse_result = await self.parse_statement(sql)
-            if not parse_result.is_success:
+            if not parse_result.success:
                 return ServiceResult.fail(parse_result.error or "Parse failed")
 
             parsed = parse_result.data
@@ -340,7 +342,7 @@ class SQLParser:
 
             # Validate syntax
             validation_result = await self.validate_syntax(sql)
-            validation = validation_result.data if validation_result.is_success else {}
+            validation = validation_result.data if validation_result.success else {}
 
             analysis = {
                 "statement_type": parsed.statement_type,

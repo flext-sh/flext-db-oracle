@@ -10,8 +10,10 @@ import re
 from re import error as regex_error
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.sql.parser import SQLParser
@@ -139,7 +141,7 @@ class SQLValidator:
             ),
         ]
 
-    async def validate_sql(self, sql: str) -> ServiceResult[ValidationResult]:
+    async def validate_sql(self, sql: str) -> ServiceResult[Any]:
         """Validate SQL statement against all rules."""
         try:
             logger.info("Starting SQL validation")
@@ -159,7 +161,7 @@ class SQLValidator:
                         warnings=warnings,
                         info=info,
                         rules_checked=1,
-                    ),
+                    )
                 )
 
             # Check each validation rule
@@ -341,7 +343,7 @@ class SQLValidator:
             return recommendations
 
         parse_result = await self.sql_parser.parse_statement(sql)
-        if not (parse_result.is_success and parse_result.data):
+        if not (parse_result.success and parse_result.data):
             return recommendations
 
         parsed = parse_result.data
@@ -386,14 +388,14 @@ class SQLValidator:
     async def validate_with_recommendations(
         self,
         sql: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Validate SQL and provide improvement recommendations."""
         try:
             # Perform validation
             validation_result = await self._perform_sql_validation(sql)
-            if not validation_result.is_success:
+            if not validation_result.success:
                 return ServiceResult.fail(
-                    validation_result.error or "Validation failed",
+                    validation_result.error or "Validation failed"
                 )
 
             validation = validation_result.data
@@ -412,12 +414,12 @@ class SQLValidator:
     async def _perform_sql_validation(
         self,
         sql: str,
-    ) -> ServiceResult[ValidationResult]:
+    ) -> ServiceResult[Any]:
         """Perform SQL validation and validate result."""
         validation_result = await self.validate_sql(sql)
-        if not validation_result.is_success:
+        if not validation_result.success:
             return ServiceResult.fail(
-                validation_result.error or "SQL validation failed",
+                validation_result.error or "SQL validation failed"
             )
 
         if not validation_result.data:
@@ -439,13 +441,13 @@ class SQLValidator:
     async def get_best_practices_report(
         self,
         sql: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Generate a comprehensive best practices report."""
         try:
             validation_result = await self.validate_with_recommendations(sql)
-            if not validation_result.is_success:
+            if not validation_result.success:
                 return ServiceResult.fail(
-                    validation_result.error or "Validation failed",
+                    validation_result.error or "Validation failed"
                 )
 
             validation_data = validation_result.data
