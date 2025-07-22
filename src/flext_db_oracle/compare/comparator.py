@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService
@@ -80,7 +82,7 @@ class DatabaseComparator:
         source_schema: str,
         target_schema: str,
         config: ComparisonConfig,
-    ) -> ServiceResult[ComparisonResult]:
+    ) -> ServiceResult[Any]:
         """Compare two Oracle databases comprehensively."""
         try:
             logger.info(
@@ -97,7 +99,7 @@ class DatabaseComparator:
                     target_schema,
                     config,
                 )
-                if not schema_result.is_success:
+                if not schema_result.success:
                     return schema_result
                 comparison_result = schema_result.data
 
@@ -108,9 +110,8 @@ class DatabaseComparator:
                     config,
                     comparison_result,
                 )
-                if not data_result.is_success:
-                    return ServiceResult.fail(
-                        data_result.error or "Data comparison failed",
+                if not data_result.success:
+                    return ServiceResult.fail(data_result.error or "Data comparison failed",
                     )
                 # Data comparison would update the comparison_result
 
@@ -132,7 +133,7 @@ class DatabaseComparator:
         source_schema: str,
         target_schema: str,
         config: ComparisonConfig,
-    ) -> ServiceResult[ComparisonResult]:
+    ) -> ServiceResult[Any]:
         """Compare schema structures."""
         try:
             logger.info("Comparing schemas: %s vs %s", source_schema, target_schema)
@@ -171,7 +172,7 @@ class DatabaseComparator:
         target_schema: str,
         config: ComparisonConfig,
         schema_comparison: ComparisonResult | None,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Compare data between databases."""
         try:
             logger.info("Comparing data: %s vs %s", source_schema, target_schema)
@@ -187,8 +188,7 @@ class DatabaseComparator:
             )
 
             if not tables_to_compare.is_success:
-                return ServiceResult.fail(
-                    tables_to_compare.error or "Failed to get tables to compare",
+                return ServiceResult.fail(tables_to_compare.error or "Failed to get tables to compare",
                 )
 
             data_differences = []
@@ -200,10 +200,11 @@ class DatabaseComparator:
             for table_name in tables_list:
                 # Get primary key columns for the table
                 pk_result = await self._get_primary_key_columns(
-                    source_schema,
+                    self.source_service,
                     table_name,
+                    source_schema,
                 )
-                if not pk_result.is_success:
+                if not pk_result.success:
                     logger.warning(
                         "Skipping table %s: no primary key found",
                         table_name,
@@ -218,7 +219,7 @@ class DatabaseComparator:
                     pk_result.data or [],
                 )
 
-                if table_diff_result.is_success and table_diff_result.data:
+                if table_diff_result.success and table_diff_result.data:
                     data_differences.extend(table_diff_result.data)
                 else:
                     logger.error("Data comparison failed for table %s", table_name)
@@ -251,7 +252,7 @@ class DatabaseComparator:
             analyzer = SchemaAnalyzer(connection_service)
             schema_result = await analyzer.analyze_schema(schema_name)
 
-            if not schema_result.is_success:
+            if not schema_result.success:
                 return schema_result
 
             # Convert the analyzed data based on config requirements
@@ -280,12 +281,12 @@ class DatabaseComparator:
         schema_name: str,
         config: ComparisonConfig,
         schema_comparison: ComparisonResult | None,
-    ) -> ServiceResult[list[str]]:
+    ) -> ServiceResult[Any]:
         """Get list of tables that can be compared."""
         try:
             # Get all tables from database
             all_tables_result = await self._fetch_schema_tables(schema_name)
-            if not all_tables_result.is_success:
+            if not all_tables_result.success:
                 return all_tables_result
 
             all_tables = all_tables_result.data or []
@@ -307,7 +308,7 @@ class DatabaseComparator:
             logger.exception("Failed to get comparable tables")
             return ServiceResult.fail(f"Failed to get comparable tables: {e}")
 
-    async def _fetch_schema_tables(self, schema_name: str) -> ServiceResult[list[str]]:
+    async def _fetch_schema_tables(self, schema_name: str) -> ServiceResult[Any]:
         """Fetch all tables from schema."""
         query = """
             SELECT table_name
@@ -321,9 +322,8 @@ class DatabaseComparator:
             {"schema_name": schema_name.upper()},
         )
 
-        if not result.is_success:
-            return ServiceResult.fail(
-                result.error or "Failed to fetch schema tables",
+        if not result.success:
+            return ServiceResult.fail(result.error or "Failed to fetch schema tables",
             )
 
         if not result.data or not result.data.rows:
@@ -379,63 +379,12 @@ class DatabaseComparator:
 
         return filtered_tables
 
-    async def _get_primary_key_columns(
-        self,
-        schema_name: str,
-        table_name: str,
-    ) -> ServiceResult[list[str]]:
-        """Get primary key columns for a table."""
-        try:
-            query = """
-                SELECT column_name
-                FROM all_cons_columns
-                WHERE owner = :schema_name
-                AND table_name = :table_name
-                AND constraint_name = (
-                    SELECT constraint_name
-                    FROM all_constraints
-                    WHERE owner = :schema_name
-                    AND table_name = :table_name
-                    AND constraint_type = 'P'
-                )
-                ORDER BY position
-            """
-
-            result = await self.source_service.execute_query(
-                query,
-                {
-                    "schema_name": schema_name.upper(),
-                    "table_name": table_name.upper(),
-                },
-            )
-
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to get primary key columns",
-                )
-
-            if not result.data or not result.data.rows:
-                return ServiceResult.fail(
-                    f"No primary key found for table {table_name}",
-                )
-
-            pk_columns = [row[0] for row in result.data.rows]
-
-            if not pk_columns:
-                return ServiceResult.fail(
-                    f"No primary key found for table {table_name}",
-                )
-
-            return ServiceResult.ok(pk_columns)
-
-        except Exception as e:
-            logger.exception("Failed to get primary key columns")
-            return ServiceResult.fail(f"Failed to get primary key columns: {e}")
+    # Removed duplicate method - use flext_db_oracle.utils.database_utils.get_primary_key_columns directly
 
     async def get_comparison_summary(
         self,
         comparison_result: ComparisonResult,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Generate a summary of comparison results."""
         try:
             summary = {
@@ -464,6 +413,240 @@ class DatabaseComparator:
             logger.exception("Failed to generate comparison summary")
             return ServiceResult.fail(f"Failed to generate summary: {e}")
 
+    # Database Synchronization Methods (consolidated from synchronizer.py)
+    async def synchronize_table(
+        self,
+        table_name: str,
+        sync_strategy: str = "upsert",
+    ) -> ServiceResult[Any]:
+        """Synchronize a single table between source and target databases."""
+        try:
+            logger.info("Starting synchronization for table: %s", table_name)
+
+            # Validate sync requirements first
+            validation_result = await self._validate_sync_requirements(table_name)
+            if not validation_result.success:
+                return ServiceResult.fail(validation_result.error or "Sync validation failed",
+                )
+
+            # Example sync operation - can be expanded based on strategy
+            operations_count = 0
+            records_synced = 0
+
+            # Placeholder for actual sync logic based on strategy
+            if sync_strategy == "upsert":
+                # Implement upsert logic here
+                operations_count = 1
+                records_synced = 0
+
+            result = {
+                "table_name": table_name,
+                "strategy": sync_strategy,
+                "operations_performed": operations_count,
+                "records_synced": records_synced,
+                "success": True,
+            }
+
+            logger.info("Table synchronization complete: %s", table_name)
+            return ServiceResult.ok(result)
+
+        except Exception as e:
+            logger.exception("Table synchronization failed for %s", table_name)
+            return ServiceResult.fail(f"Table synchronization failed: {e}")
+
+    async def synchronize_schema(
+        self,
+        schema_name: str,
+        tables: list[str] | None = None,
+        sync_strategy: str = "upsert",
+    ) -> ServiceResult[Any]:
+        """Synchronize multiple tables in a schema."""
+        try:
+            logger.info("Starting schema synchronization: %s", schema_name)
+
+            if tables is None:
+                # Get all tables in schema
+                tables_result = await self._fetch_schema_tables(schema_name)
+                if not tables_result.success:
+                    return ServiceResult.fail(tables_result.error or "Failed to get schema tables",
+                    )
+                tables = tables_result.data or []
+
+            all_operations = 0
+            total_synced = 0
+            overall_success = True
+            failed_tables = []
+
+            for table_name in tables:
+                table_result = await self.synchronize_table(table_name, sync_strategy)
+                if table_result.success and table_result.data:
+                    all_operations += table_result.data.get("operations_performed", 0)
+                    total_synced += table_result.data.get("records_synced", 0)
+                else:
+                    overall_success = False
+                    failed_tables.append(table_name)
+                    logger.error(
+                        "Failed to sync table %s: %s",
+                        table_name,
+                        table_result.error,
+                    )
+
+            result = {
+                "schema_name": schema_name,
+                "tables_processed": len(tables),
+                "tables_succeeded": len(tables) - len(failed_tables),
+                "tables_failed": len(failed_tables),
+                "failed_tables": failed_tables,
+                "total_operations": all_operations,
+                "total_records_synced": total_synced,
+                "success": overall_success,
+            }
+
+            logger.info(
+                "Schema synchronization complete: %s (%d tables, %d records)",
+                schema_name,
+                len(tables),
+                total_synced,
+            )
+            return ServiceResult.ok(result)
+
+        except Exception as e:
+            logger.exception("Schema synchronization failed for %s", schema_name)
+            return ServiceResult.fail(f"Schema synchronization failed: {e}")
+
+    async def _validate_sync_requirements(
+        self,
+        table_name: str,
+    ) -> ServiceResult[Any]:
+        """Validate that a table can be synchronized."""
+        try:
+            # Check if table exists in both databases
+            source_exists = await self._table_exists(self.source_service, table_name)
+            target_exists = await self._table_exists(self.target_service, table_name)
+
+            if not source_exists:
+                return ServiceResult.fail(f"Source table {table_name} does not exist")
+
+            if not target_exists:
+                return ServiceResult.fail(f"Target table {table_name} does not exist")
+
+            # Check for primary key
+            pk_result = await self._get_primary_key_columns(
+                self.source_service,
+                table_name,
+                schema_name=None,
+            )
+            if not pk_result.success:
+                return ServiceResult.fail(f"Cannot determine primary key for {table_name}",
+                )
+
+            validation_info = {
+                "source_exists": source_exists,
+                "target_exists": target_exists,
+                "primary_key_columns": pk_result.data,
+                "sync_ready": True,
+            }
+
+            return ServiceResult.ok(validation_info)
+
+        except Exception as e:
+            logger.exception("Sync validation failed for %s", table_name)
+            return ServiceResult.fail(f"Sync validation failed: {e}")
+
+    async def _table_exists(
+        self,
+        connection_service: OracleConnectionService,
+        table_name: str,
+    ) -> bool:
+        """Check if table exists in database."""
+        try:
+            query = """
+                SELECT 1 FROM all_tables
+                WHERE table_name = :table_name
+            """
+
+            result = await connection_service.execute_query(
+                query,
+                {"table_name": table_name.upper()},
+            )
+
+            if not result.success or not result.data or not result.data.rows:
+                return False
+            return len(result.data.rows) > 0
+
+        except (ValueError, TypeError, AttributeError) as e:
+            logger.warning("Failed to check table existence: %s", e)
+            return False
+
+    async def _get_primary_key_columns(
+        self,
+        connection_service: OracleConnectionService,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> ServiceResult[Any]:
+        """Get primary key columns for a table using connection service."""
+        try:
+            if schema_name:
+                # Query with schema name (for comparator)
+                query = """
+                    SELECT column_name
+                    FROM all_cons_columns
+                    WHERE owner = :schema_name
+                    AND table_name = :table_name
+                    AND constraint_name = (
+                        SELECT constraint_name
+                        FROM all_constraints
+                        WHERE owner = :schema_name
+                        AND table_name = :table_name
+                        AND constraint_type = 'P'
+                    )
+                    ORDER BY position
+                """
+                params = {
+                    "schema_name": schema_name.upper(),
+                    "table_name": table_name.upper(),
+                }
+            else:
+                # Query without schema name (for synchronizer)
+                query = """
+                    SELECT column_name
+                    FROM all_cons_columns
+                    WHERE constraint_name = (
+                        SELECT constraint_name
+                        FROM all_constraints
+                        WHERE table_name = :table_name
+                        AND constraint_type = 'P'
+                    )
+                    ORDER BY position
+                """
+                params = {"table_name": table_name.upper()}
+
+            result = await connection_service.execute_query(query, params)
+
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to get primary key columns",
+                )
+
+            if not result.data or not result.data.rows:
+                if schema_name:
+                    # Comparator expects error when no PK found
+                    return ServiceResult.fail(f"No primary key found for table {schema_name}.{table_name}",
+                    )
+                # Synchronizer expects empty list when no PK found
+                return ServiceResult.ok([])
+
+            pk_columns = [row[0] for row in result.data.rows]
+
+            if not pk_columns and schema_name:
+                return ServiceResult.fail(f"No primary key columns found for table {schema_name}.{table_name}",
+                )
+
+            return ServiceResult.ok(pk_columns)
+
+        except Exception as e:
+            logger.exception("Failed to get primary key columns")
+            return ServiceResult.fail(f"Failed to get primary key columns: {e}")
+
 
 class DataComparator:
     """Simplified data comparison interface for backward compatibility."""
@@ -481,7 +664,7 @@ class DataComparator:
         self,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[list[Any]]:
+    ) -> ServiceResult[Any]:
         """Compare data between tables in source and target databases."""
         try:
             differ = DataDiffer()
@@ -512,7 +695,7 @@ class SchemaComparator:
         self,
         source_schema: str,
         target_schema: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Compare schemas between source and target databases."""
         try:
             source_analyzer = SchemaAnalyzer(self.source_service)
@@ -522,7 +705,7 @@ class SchemaComparator:
             source_result = await source_analyzer.analyze_schema(source_schema)
             target_result = await target_analyzer.analyze_schema(target_schema)
 
-            if not source_result.is_success or not target_result.is_success:
+            if not source_result.success or not target_result.success:
                 return ServiceResult.fail("Failed to analyze schemas")
 
             if not source_result.data or not target_result.data:

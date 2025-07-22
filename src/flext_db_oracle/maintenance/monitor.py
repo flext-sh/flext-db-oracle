@@ -7,10 +7,12 @@ Uses ServiceResult pattern and async operations for robust monitoring.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService
@@ -133,7 +135,7 @@ class PerformanceMonitor:
         """
         self.connection_service = connection_service
 
-    async def get_performance_metrics(self) -> ServiceResult[DatabaseMetrics]:
+    async def get_performance_metrics(self) -> ServiceResult[Any]:
         """Get comprehensive performance metrics."""
         try:
             logger.info("Collecting performance metrics")
@@ -147,23 +149,21 @@ class PerformanceMonitor:
             # Get cache hit ratios if available
             buffer_cache_hit_ratio = None
             library_cache_hit_ratio = None
-            if cache_hit_ratios_result.is_success and cache_hit_ratios_result.data:
+            if cache_hit_ratios_result.success and cache_hit_ratios_result.data:
                 cache_ratios = cache_hit_ratios_result.data
                 buffer_cache_hit_ratio = cache_ratios.get("buffer_cache")
                 library_cache_hit_ratio = cache_ratios.get("library_cache")
 
             # Build metrics object with all values
             metrics = DatabaseMetrics(
-                sga_components=(sga_result.data or []) if sga_result.is_success else [],
+                sga_components=(sga_result.data or []) if sga_result.success else [],
                 wait_events=(
                     (wait_events_result.data or [])
-                    if wait_events_result.is_success
+                    if wait_events_result.success
                     else []
                 ),
                 session_stats=(
-                    session_stats_result.data
-                    if session_stats_result.is_success
-                    else None
+                    session_stats_result.data if session_stats_result.success else None
                 ),
                 buffer_cache_hit_ratio=buffer_cache_hit_ratio,
                 library_cache_hit_ratio=library_cache_hit_ratio,
@@ -176,7 +176,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get performance metrics")
             return ServiceResult.fail(f"Failed to get performance metrics: {e}")
 
-    async def get_sga_info(self) -> ServiceResult[list[SGAComponent]]:
+    async def get_sga_info(self) -> ServiceResult[Any]:
         """Get SGA component information."""
         try:
             query = """
@@ -192,7 +192,7 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if not result.is_success:
+            if not result.success:
                 return ServiceResult.fail(result.error or "Failed to get SGA info")
 
             if not result.data or not result.data.rows:
@@ -216,7 +216,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get SGA info")
             return ServiceResult.fail(f"Failed to get SGA info: {e}")
 
-    async def get_wait_events(self, limit: int = 10) -> ServiceResult[list[WaitEvent]]:
+    async def get_wait_events(self, limit: int = 10) -> ServiceResult[Any]:
         """Get top wait events by time waited."""
         try:
             query = """
@@ -238,7 +238,7 @@ class PerformanceMonitor:
                 {"limit": limit},
             )
 
-            if not result.is_success:
+            if not result.success:
                 return ServiceResult.fail(result.error or "Failed to get wait events")
 
             if not result.data or not result.data.rows:
@@ -262,7 +262,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get wait events")
             return ServiceResult.fail(f"Failed to get wait events: {e}")
 
-    async def get_session_stats(self) -> ServiceResult[SessionStatistics]:
+    async def get_session_stats(self) -> ServiceResult[Any]:
         """Get session statistics."""
         try:
             query = """
@@ -279,7 +279,7 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if not result.is_success:
+            if not result.success:
                 return ServiceResult.fail(result.error or "Failed to get session stats")
 
             if not result.data or not result.data.rows:
@@ -305,7 +305,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get session stats")
             return ServiceResult.fail(f"Failed to get session stats: {e}")
 
-    async def get_cache_hit_ratios(self) -> ServiceResult[dict[str, float]]:
+    async def get_cache_hit_ratios(self) -> ServiceResult[Any]:
         """Get cache hit ratios."""
         try:
             # Buffer cache hit ratio
@@ -341,15 +341,11 @@ class PerformanceMonitor:
 
             ratios = {}
 
-            if (
-                buffer_result.is_success
-                and buffer_result.data
-                and buffer_result.data.rows
-            ):
+            if buffer_result.success and buffer_result.data and buffer_result.data.rows:
                 ratios["buffer_cache"] = buffer_result.data.rows[0][0]
 
             if (
-                library_result.is_success
+                library_result.success
                 and library_result.data
                 and library_result.data.rows
             ):
@@ -362,7 +358,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get cache hit ratios")
             return ServiceResult.fail(f"Failed to get cache hit ratios: {e}")
 
-    async def get_tablespace_usage(self) -> ServiceResult[list[dict[str, Any]]]:
+    async def get_tablespace_usage(self) -> ServiceResult[Any]:
         """Get tablespace usage information."""
         try:
             query = """
@@ -395,9 +391,8 @@ class PerformanceMonitor:
 
             result = await self.connection_service.execute_query(query)
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to get tablespace usage",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to get tablespace usage",
                 )
 
             if not result.data or not result.data.rows:
@@ -427,7 +422,7 @@ class PerformanceMonitor:
     async def get_active_sessions(
         self,
         limit: int = 20,
-    ) -> ServiceResult[list[dict[str, Any]]]:
+    ) -> ServiceResult[Any]:
         """Get information about active sessions."""
         try:
             query = """
@@ -456,9 +451,8 @@ class PerformanceMonitor:
                 {"limit": limit},
             )
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Failed to get active sessions",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Failed to get active sessions",
                 )
 
             if not result.data or not result.data.rows:
@@ -489,7 +483,7 @@ class PerformanceMonitor:
             logger.exception("Failed to get active sessions")
             return ServiceResult.fail(f"Failed to get active sessions: {e}")
 
-    async def generate_performance_report(self) -> ServiceResult[dict[str, Any]]:
+    async def generate_performance_report(self) -> ServiceResult[Any]:
         """Generate comprehensive performance report."""
         try:
             # Get all performance data
@@ -497,9 +491,8 @@ class PerformanceMonitor:
             tablespace_result = await self.get_tablespace_usage()
             active_sessions_result = await self.get_active_sessions()
 
-            if not metrics_result.is_success:
-                return ServiceResult.fail(
-                    metrics_result.error or "Failed to get performance metrics",
+            if not metrics_result.success:
+                return ServiceResult.fail(metrics_result.error or "Failed to get performance metrics",
                 )
 
             metrics = metrics_result.data
@@ -525,11 +518,11 @@ class PerformanceMonitor:
                     event.model_dump() for event in metrics.top_wait_events
                 ],
                 "tablespaces": (
-                    tablespace_result.data if tablespace_result.is_success else []
+                    tablespace_result.data if tablespace_result.success else []
                 ),
                 "active_sessions_count": (
                     len(active_sessions_result.data or [])
-                    if active_sessions_result.is_success
+                    if active_sessions_result.success
                     else 0
                 ),
             }

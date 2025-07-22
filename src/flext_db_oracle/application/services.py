@@ -10,8 +10,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from flext_core import ServiceResult
-from flext_observability.logging import get_logger
+from flext_core.domain.shared_types import ServiceResult
 
 from flext_db_oracle.domain.models import (
     OracleColumnInfo,
@@ -20,6 +19,7 @@ from flext_db_oracle.domain.models import (
     OracleSchemaInfo,
     OracleTableMetadata,
 )
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -43,7 +43,7 @@ class OracleConnectionService:
         self._pool: oracledb.ConnectionPool | None = None
         self._query_service: OracleQueryService | None = None
 
-    async def initialize_pool(self) -> ServiceResult[None]:
+    async def initialize_pool(self) -> ServiceResult[Any]:
         """Initialize the connection pool."""
         try:
             # Build DSN with protocol support
@@ -109,7 +109,7 @@ class OracleConnectionService:
             logger.exception("Failed to initialize Oracle connection pool")
             return ServiceResult.fail(f"Connection pool initialization failed: {e}")
 
-    async def close_pool(self) -> ServiceResult[None]:
+    async def close_pool(self) -> ServiceResult[Any]:
         """Close the connection pool."""
         try:
             if self._pool:
@@ -127,7 +127,7 @@ class OracleConnectionService:
         """Get a connection from the pool."""
         if not self._pool:
             init_result = await self.initialize_pool()
-            if not init_result.is_success:
+            if not init_result.success:
                 msg = f"Failed to initialize connection pool: {init_result.error}"
                 raise ValueError(msg)
 
@@ -143,7 +143,7 @@ class OracleConnectionService:
             if connection and self._pool:
                 self._pool.release(connection)
 
-    async def test_connection(self) -> ServiceResult[OracleConnectionStatus]:
+    async def test_connection(self) -> ServiceResult[Any]:
         """Test the database connection."""
         try:
             async with self.get_connection() as conn:
@@ -203,7 +203,7 @@ class OracleConnectionService:
             return {"initialized": False, "pool": None}
         return {"initialized": True, "pool": self._pool}
 
-    async def get_database_info(self) -> ServiceResult[dict[str, Any]]:
+    async def get_database_info(self) -> ServiceResult[Any]:
         """Get Oracle database information."""
         try:
             async with self.get_connection() as conn:
@@ -249,14 +249,13 @@ class OracleConnectionService:
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> ServiceResult[OracleQueryResult]:
+    ) -> ServiceResult[Any]:
         """Execute a query using the internal query service."""
         if not self._query_service:
             # Initialize pool and query service if not already done
             init_result = await self.initialize_pool()
-            if not init_result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to initialize pool: {init_result.error}",
+            if not init_result.success:
+                return ServiceResult.fail(f"Failed to initialize pool: {init_result.error}",
                 )
 
         if not self._query_service:
@@ -281,7 +280,7 @@ class OracleQueryService:
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> ServiceResult[OracleQueryResult]:
+    ) -> ServiceResult[Any]:
         """Execute a SELECT query and return results."""
         start_time = datetime.now(UTC)
 
@@ -332,7 +331,7 @@ class OracleQueryService:
         """Execute a query and return a single scalar value."""
         try:
             result = await self.execute_query(sql, parameters)
-            if result.is_success and result.data and result.data.row_count > 0:
+            if result.success and result.data and result.data.row_count > 0:
                 first_row = result.data.rows[0]
                 first_value = first_row[0] if first_row else None
                 return ServiceResult.ok(first_value)
@@ -358,14 +357,13 @@ class OracleSchemaService:
     async def get_schema_info(
         self,
         schema_name: str,
-    ) -> ServiceResult[OracleSchemaInfo]:
+    ) -> ServiceResult[Any]:
         """Get comprehensive schema information."""
         try:
             # Get schema tables
             tables_result = await self.get_schema_tables(schema_name)
-            if not tables_result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to get schema tables: {tables_result.error}",
+            if not tables_result.success:
+                return ServiceResult.fail(f"Failed to get schema tables: {tables_result.error}",
                 )
 
             tables = tables_result.data or []
@@ -387,7 +385,7 @@ class OracleSchemaService:
     async def get_schema_tables(
         self,
         schema_name: str,
-    ) -> ServiceResult[list[OracleTableMetadata]]:
+    ) -> ServiceResult[Any]:
         """Get all tables in a schema."""
         sql = """
         SELECT table_name, tablespace_name, num_rows
@@ -401,14 +399,12 @@ class OracleSchemaService:
                 sql,
                 {"schema_name": schema_name},
             )
-            if not result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to query schema tables: {result.error}",
+            if not result.success:
+                return ServiceResult.fail(f"Failed to query schema tables: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail(
-                    "No result data returned from schema query",
+                return ServiceResult.fail("No result data returned from schema query",
                 )
 
             tables = []
@@ -424,7 +420,7 @@ class OracleSchemaService:
 
                 # Get column information for each table
                 columns_result = await self.get_table_columns(schema_name, row[0])
-                if columns_result.is_success and columns_result.data:
+                if columns_result.success and columns_result.data:
                     table_meta.columns = columns_result.data
 
                 tables.append(table_meta)
@@ -439,7 +435,7 @@ class OracleSchemaService:
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[list[OracleColumnInfo]]:
+    ) -> ServiceResult[Any]:
         """Get column information for a specific table."""
         sql = """
         SELECT
@@ -465,14 +461,12 @@ class OracleSchemaService:
                 },
             )
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    f"Failed to query table columns: {result.error}",
+            if not result.success:
+                return ServiceResult.fail(f"Failed to query table columns: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail(
-                    "No result data returned from columns query",
+                return ServiceResult.fail("No result data returned from columns query",
                 )
 
             columns = []

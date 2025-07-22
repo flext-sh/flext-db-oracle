@@ -6,19 +6,18 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from flext_observability.logging import get_logger
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from flext_db_oracle.connection.config import ConnectionConfig
-
 logger = get_logger(__name__)
 
 
 class ConnectionPool:
     """Oracle database connection pool for high-performance applications.
-
     Manages a pool of database connections to improve performance and
     resource utilization in multi-threaded applications.
     """
@@ -37,7 +36,6 @@ class ConnectionPool:
     def initialize(self) -> None:
         try:
             params = self.config.to_connect_params()
-
             # Create connection pool
             self._pool = oracledb.create_pool(
                 min=self.config.pool_min,
@@ -45,7 +43,6 @@ class ConnectionPool:
                 increment=self.config.pool_increment,
                 **params,
             )
-
             self._is_initialized = True
             logger.info(
                 "Initialized Oracle connection pool: min=%d, max=%d, increment=%d",
@@ -53,7 +50,6 @@ class ConnectionPool:
                 self.config.pool_max,
                 self.config.pool_increment,
             )
-
         except Exception:
             logger.exception("Failed to initialize connection pool")
             raise
@@ -66,7 +62,6 @@ class ConnectionPool:
             logger.info("Closed Oracle connection pool")
         except Exception:
             logger.exception("Error closing connection pool")
-
         self._pool = None
 
     @property
@@ -88,7 +83,6 @@ class ConnectionPool:
         if not self.is_initialized:
             msg = "Connection pool is not initialized"
             raise RuntimeError(msg)
-
         try:
             connection = self._pool.acquire() if self._pool else None
             yield connection
@@ -109,12 +103,11 @@ class ConnectionPool:
                     cursor.execute(sql, parameters)
                 else:
                     cursor.execute(sql)
-
                 # For SELECT statements, return fetchall()
                 if sql.strip().upper().startswith("SELECT"):
-                    return cursor.fetchall()  # type: ignore[no-any-return]
+                    return cursor.fetchall()
                 # For DML statements, return row count
-                return cursor.rowcount  # type: ignore[no-any-return]
+                return cursor.rowcount
             finally:
                 cursor.close()
 
@@ -141,7 +134,7 @@ class ConnectionPool:
                     cursor.execute(sql, parameters)
                 else:
                     cursor.execute(sql)
-                return cursor.fetchone()  # type: ignore[no-any-return]
+                return cursor.fetchone()
             finally:
                 cursor.close()
 
@@ -166,7 +159,6 @@ class ConnectionPool:
     @contextmanager
     def transaction(self) -> Generator[Any]:
         """Context manager for database transactions using pool.
-
         Automatically commits on success or rolls back on exception.
 
         Yields:
@@ -185,7 +177,6 @@ class ConnectionPool:
         """Get pool statistics."""
         if not self.is_initialized:
             return {"status": "not_initialized"}
-
         try:
             # Get pool statistics (if available in oracledb)
             stats = {
@@ -194,7 +185,6 @@ class ConnectionPool:
                 "max_connections": self.config.pool_max,
                 "increment": self.config.pool_increment,
             }
-
             # Add actual pool stats if available
             if self._pool and hasattr(self._pool, "opened"):
                 stats.update(
@@ -203,9 +193,7 @@ class ConnectionPool:
                         "busy": self._pool.busy,
                     },
                 )
-
             return stats
-
         except Exception as e:
             logger.exception("Error getting pool stats")
             return {"status": "error", "error": str(e)}

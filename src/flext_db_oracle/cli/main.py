@@ -14,10 +14,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from argparse import Namespace
 
-from flext_observability.logging import get_logger
+from pydantic import SecretStr
 
 from flext_db_oracle.connection.config import ConnectionConfig
 from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.logging_utils import get_logger
 
 # Use flext-infrastructure.monitoring.flext-observability for all logging
 logger = get_logger(__name__)
@@ -87,7 +88,7 @@ def list_tables(args: Namespace) -> int:
                 sid=args.sid,
                 service_name=args.service_name or "XE",
                 username=args.username,
-                password=args.password,
+                password=SecretStr(args.password),
                 pool_min=1,
                 pool_max=10,
                 pool_increment=1,
@@ -147,7 +148,7 @@ def describe_table(args: Namespace) -> int:
                 sid=args.sid,
                 service_name=args.service_name or "XE",
                 username=args.username,
-                password=args.password,
+                password=SecretStr(args.password),
                 pool_min=1,
                 pool_max=10,
                 pool_increment=1,

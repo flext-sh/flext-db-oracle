@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService
@@ -95,7 +97,7 @@ class HealthChecker:
         """
         self.connection_service = connection_service
 
-    async def check_overall_health(self) -> ServiceResult[DatabaseHealth]:
+    async def check_overall_health(self) -> ServiceResult[Any]:
         """Perform comprehensive health check."""
         try:
             logger.info("Starting comprehensive health check")
@@ -108,33 +110,31 @@ class HealthChecker:
             # Determine overall status
             overall_status = "healthy"
             if (
-                not connection_result.is_success
-                or not tablespace_result.is_success
-                or not session_result.is_success
+                not connection_result.success
+                or not tablespace_result.success
+                or not session_result.success
             ):
                 overall_status = "unhealthy"
 
             health = DatabaseHealth(
                 connection_status=(
-                    "healthy" if connection_result.is_success else "unhealthy"
+                    "healthy" if connection_result.success else "unhealthy"
                 ),
                 tablespace_status=(
-                    "healthy" if tablespace_result.is_success else "unhealthy"
+                    "healthy" if tablespace_result.success else "unhealthy"
                 ),
-                session_status="healthy" if session_result.is_success else "unhealthy",
+                session_status="healthy" if session_result.success else "unhealthy",
                 overall_status=overall_status,
                 details={
                     "connection": (
                         connection_result.data
-                        if connection_result.is_success
+                        if connection_result.success
                         else connection_result.error
                     ),
                     "tablespaces": (
-                        tablespace_result.data if tablespace_result.is_success else []
+                        tablespace_result.data if tablespace_result.success else []
                     ),
-                    "sessions": (
-                        session_result.data if session_result.is_success else []
-                    ),
+                    "sessions": (session_result.data if session_result.success else []),
                 },
             )
 
@@ -145,14 +145,13 @@ class HealthChecker:
             logger.exception("Health check failed")
             return ServiceResult.fail(f"Health check failed: {e}")
 
-    async def check_connection(self) -> ServiceResult[dict[str, Any]]:
+    async def check_connection(self) -> ServiceResult[Any]:
         """Check database connection health."""
         try:
             result = await self.connection_service.execute_query("SELECT 1 FROM DUAL")
 
-            if not result.is_success:
-                return ServiceResult.fail(
-                    result.error or "Connection health check failed",
+            if not result.success:
+                return ServiceResult.fail(result.error or "Connection health check failed",
                 )
 
             if not result.data or not result.data.rows:
@@ -171,7 +170,7 @@ class HealthChecker:
             logger.exception("Connection health check failed")
             return ServiceResult.fail(f"Connection check failed: {e}")
 
-    async def check_tablespaces(self) -> ServiceResult[list[TablespaceInfo]]:
+    async def check_tablespaces(self) -> ServiceResult[Any]:
         """Check tablespace health and usage."""
         try:
             query = """
@@ -204,7 +203,7 @@ class HealthChecker:
 
             result = await self.connection_service.execute_query(query)
 
-            if not result.is_success:
+            if not result.success:
                 return ServiceResult.fail(result.error or "Failed to check tablespaces")
 
             if not result.data or not result.data.rows:
@@ -230,7 +229,7 @@ class HealthChecker:
             logger.exception("Tablespace health check failed")
             return ServiceResult.fail(f"Tablespace check failed: {e}")
 
-    async def check_sessions(self, limit: int = 50) -> ServiceResult[list[SessionInfo]]:
+    async def check_sessions(self, limit: int = 50) -> ServiceResult[Any]:
         """Check active database sessions."""
         try:
             query = """
@@ -252,7 +251,7 @@ class HealthChecker:
                 {"limit": limit},
             )
 
-            if not result.is_success:
+            if not result.success:
                 return ServiceResult.fail(result.error or "Failed to check sessions")
 
             if not result.data or not result.data.rows:
@@ -277,14 +276,13 @@ class HealthChecker:
             logger.exception("Session health check failed")
             return ServiceResult.fail(f"Session check failed: {e}")
 
-    async def generate_health_report(self) -> ServiceResult[dict[str, Any]]:
+    async def generate_health_report(self) -> ServiceResult[Any]:
         """Generate comprehensive health report."""
         try:
             health_result = await self.check_overall_health()
 
-            if not health_result.is_success:
-                return ServiceResult.fail(
-                    health_result.error or "Failed to check overall health",
+            if not health_result.success:
+                return ServiceResult.fail(health_result.error or "Failed to check overall health",
                 )
 
             health = health_result.data
@@ -311,7 +309,7 @@ class HealthChecker:
             logger.exception("Failed to generate health report")
             return ServiceResult.fail(f"Health report generation failed: {e}")
 
-    async def check_database_performance_metrics(self) -> ServiceResult[dict[str, Any]]:
+    async def check_database_performance_metrics(self) -> ServiceResult[Any]:
         """Check key Oracle database performance metrics."""
         try:
             # Get buffer cache hit ratio
@@ -334,7 +332,7 @@ class HealthChecker:
             )
             buffer_hit_ratio = (
                 buffer_result.data.rows[0][0]
-                if buffer_result.is_success
+                if buffer_result.success
                 and buffer_result.data
                 and buffer_result.data.rows
                 else 0
@@ -353,7 +351,7 @@ class HealthChecker:
             )
             library_hit_ratio = (
                 library_result.data.rows[0][0]
-                if library_result.is_success
+                if library_result.success
                 and library_result.data
                 and library_result.data.rows
                 else 0
@@ -377,7 +375,7 @@ class HealthChecker:
             )
             shared_pool_used = (
                 shared_pool_result.data.rows[0][0]
-                if shared_pool_result.is_success
+                if shared_pool_result.success
                 and shared_pool_result.data
                 and shared_pool_result.data.rows
                 else 0
@@ -394,7 +392,7 @@ class HealthChecker:
             pga_result = await self.connection_service.execute_query(pga_query)
             pga_used_mb = (
                 pga_result.data.rows[0][0]
-                if pga_result.is_success and pga_result.data and pga_result.data.rows
+                if pga_result.success and pga_result.data and pga_result.data.rows
                 else 0
             )
 
@@ -412,7 +410,7 @@ class HealthChecker:
             )
             active_sessions = (
                 sessions_result.data.rows[0][0]
-                if sessions_result.is_success
+                if sessions_result.success
                 and sessions_result.data
                 and sessions_result.data.rows
                 else 0
@@ -441,7 +439,7 @@ class HealthChecker:
                     }
                     for row in wait_result.data.rows
                 ]
-                if wait_result.is_success and wait_result.data and wait_result.data.rows
+                if wait_result.success and wait_result.data and wait_result.data.rows
                 else []
             )
 
@@ -493,7 +491,7 @@ class HealthChecker:
             return "acceptable"
         return "poor"
 
-    async def check_database_locks(self) -> ServiceResult[dict[str, Any]]:
+    async def check_database_locks(self) -> ServiceResult[Any]:
         """Check for database locks and blocking sessions."""
         try:
             # Get blocking sessions
@@ -530,7 +528,7 @@ class HealthChecker:
 
             blocking_sessions = []
             if (
-                blocking_result.is_success
+                blocking_result.success
                 and blocking_result.data
                 and blocking_result.data.rows
             ):
@@ -556,9 +554,7 @@ class HealthChecker:
             )
             total_locks = (
                 locks_result.data.rows[0][0]
-                if locks_result.is_success
-                and locks_result.data
-                and locks_result.data.rows
+                if locks_result.success and locks_result.data and locks_result.data.rows
                 else 0
             )
 
@@ -580,7 +576,7 @@ class HealthChecker:
             logger.exception("Failed to check database locks")
             return ServiceResult.fail(f"Failed to check database locks: {e}")
 
-    async def check_redo_log_activity(self) -> ServiceResult[dict[str, Any]]:
+    async def check_redo_log_activity(self) -> ServiceResult[Any]:
         """Check redo log activity and switches."""
         try:
             # Get redo log switches in last 24 hours
@@ -600,7 +596,7 @@ class HealthChecker:
 
             log_switches = []
             if (
-                switches_result.is_success
+                switches_result.success
                 and switches_result.data
                 and switches_result.data.rows
             ):
@@ -628,11 +624,7 @@ class HealthChecker:
             )
 
             redo_logs = []
-            if (
-                status_result.is_success
-                and status_result.data
-                and status_result.data.rows
-            ):
+            if status_result.success and status_result.data and status_result.data.rows:
                 redo_logs = [
                     {
                         "group_number": row[0],
@@ -668,7 +660,7 @@ class HealthChecker:
 
     async def generate_comprehensive_health_report(
         self,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> ServiceResult[Any]:
         """Generate comprehensive health report with all metrics."""
         try:
             logger.info("Generating comprehensive health report")
@@ -682,16 +674,14 @@ class HealthChecker:
             report = {
                 "report_timestamp": str(logger.info),
                 "basic_health": (
-                    basic_health_result.data if basic_health_result.is_success else None
+                    basic_health_result.data if basic_health_result.success else None
                 ),
                 "performance_metrics": (
-                    performance_result.data if performance_result.is_success else None
+                    performance_result.data if performance_result.success else None
                 ),
-                "lock_analysis": (
-                    locks_result.data if locks_result.is_success else None
-                ),
+                "lock_analysis": (locks_result.data if locks_result.success else None),
                 "redo_log_analysis": (
-                    redo_result.data if redo_result.is_success else None
+                    redo_result.data if redo_result.success else None
                 ),
                 "overall_assessment": self._calculate_overall_assessment(
                     basic_health_result,
@@ -706,13 +696,12 @@ class HealthChecker:
 
         except Exception as e:
             logger.exception("Failed to generate comprehensive health report")
-            return ServiceResult.fail(
-                f"Failed to generate comprehensive health report: {e}",
+            return ServiceResult.fail(f"Failed to generate comprehensive health report: {e}",
             )
 
     def _calculate_overall_assessment(self, *results: ServiceResult[Any]) -> str:
         """Calculate overall database assessment."""
-        failure_count = sum(1 for result in results if not result.is_success)
+        failure_count = sum(1 for result in results if not result.success)
 
         if failure_count == 0:
             return "excellent"

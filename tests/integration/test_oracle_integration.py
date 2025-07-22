@@ -1,5 +1,4 @@
 """Integration tests that would run against a real Oracle database.
-
 These tests are designed to be comprehensive but require a real Oracle database
 connection. They demonstrate the full functionality of the flext-infrastructure.databases.flext-db-oracle package.
 """
@@ -11,7 +10,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from flext_core import ServiceResult
+from flext_core.domain.shared_types import ServiceResult
 
 from flext_db_oracle.application.services import OracleConnectionService
 from flext_db_oracle.config import OracleConfig
@@ -23,11 +22,10 @@ from flext_db_oracle.sql.optimizer import QueryOptimizer
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
+
 # These tests demonstrate Oracle integration patterns using comprehensive mocking
 # All functionality is tested without requiring actual Oracle database connections
 # Following zero tolerance approach - 100% functional testing with proper mocks
-
-
 class TestOracleIntegration:
     """Integration tests for Oracle database functionality."""
 
@@ -65,7 +63,6 @@ class TestOracleIntegration:
     ) -> None:
         """Test complete schema analysis workflow."""
         analyzer = SchemaAnalyzer(connection_service)
-
         # This would normally analyze a real schema
         # For demonstration, we'll test the workflow structure
         with patch.object(analyzer, "analyze_schema") as mock_analyze:
@@ -119,10 +116,8 @@ class TestOracleIntegration:
                     "total_objects": 5,
                 },
             )
-
             result = await analyzer.analyze_schema("HR")
-
-            assert result.is_success
+            assert result.success
             schema_data = result.data
             assert schema_data is not None
             assert schema_data["schema_name"] == "HR"
@@ -145,7 +140,6 @@ class TestOracleIntegration:
         )
 
         generator = DDLGenerator(include_comments=True)
-
         # Create realistic table metadata
         table = TableMetadata(
             name="EMPLOYEES",
@@ -255,14 +249,11 @@ class TestOracleIntegration:
                 ),
             ],
         )
-
         # Test complete DDL generation
         result = await generator.generate_complete_ddl(table)
-
-        assert result.is_success
+        assert result.success
         ddl = result.data
         assert ddl is not None
-
         # Verify key components are present
         assert "CREATE TABLE HR.EMPLOYEES" in ddl
         assert "EMPLOYEE_ID NUMBER(6) NOT NULL" in ddl
@@ -286,7 +277,6 @@ class TestOracleIntegration:
     ) -> None:
         """Test comprehensive health monitoring workflow."""
         health_checker = HealthChecker(connection_service)
-
         # Mock realistic health check responses
         with patch.object(connection_service, "execute_query") as mock_query:
             # Mock sequence of health check queries
@@ -402,10 +392,8 @@ class TestOracleIntegration:
                     )(),
                 ),
             ]
-
             result = await health_checker.check_overall_health()
-
-            assert result.is_success
+            assert result.success
             health = result.data
             assert health is not None
             assert health.is_healthy
@@ -413,7 +401,6 @@ class TestOracleIntegration:
             assert health.tablespace_status == "healthy"
             assert health.session_status == "healthy"
             assert health.overall_status == "healthy"
-
             # Verify details contain expected data
             assert len(health.details["tablespaces"]) == 4
             assert len(health.details["sessions"]) == 3
@@ -425,13 +412,11 @@ class TestOracleIntegration:
     ) -> None:
         """Test SQL query optimization workflow."""
         optimizer = QueryOptimizer(connection_service)
-
         test_queries = [
             "SELECT * FROM employees WHERE employee_id = 100",
             "SELECT e.*, d.department_name FROM employees e JOIN departments d ON e.department_id = d.department_id WHERE e.salary > 50000",
             "SELECT department_id, COUNT(*), AVG(salary) FROM employees GROUP BY department_id ORDER BY AVG(salary) DESC",
         ]
-
         for sql in test_queries:
             with patch.object(connection_service, "execute_query") as mock_query:
                 # Mock execution plan analysis
@@ -504,10 +489,8 @@ class TestOracleIntegration:
                         type("QueryResult", (), {"rows": [], "columns": []})(),
                     ),
                 ]
-
                 result = await optimizer.analyze_query_performance(sql)
-
-                assert result.is_success
+                assert result.success
                 analysis = result.data
                 assert analysis is not None
                 assert analysis["sql_text"] == sql
@@ -526,11 +509,9 @@ class TestOracleIntegration:
         from flext_db_oracle.compare.differ import DataDiffer
 
         differ = DataDiffer()
-
         # Create two mock connection services for source and target
         source_service = connection_service
         target_service = connection_service  # In real tests, these would be different
-
         with (
             patch.object(source_service, "execute_query") as mock_source,
             patch.object(target_service, "execute_query") as mock_target,
@@ -542,15 +523,13 @@ class TestOracleIntegration:
             mock_target.return_value = ServiceResult.ok(
                 type("QueryResult", (), {"rows": [(100,)], "columns": ["COUNT"]})(),
             )
-
             result = await differ.compare_table_data(
                 source_service,
                 target_service,
                 "EMPLOYEES",
                 ["EMPLOYEE_ID"],
             )
-
-            assert result.is_success
+            assert result.success
             differences = result.data
             assert differences is not None
             assert (
@@ -567,7 +546,6 @@ class TestOracleIntegration:
         analyzer = SchemaAnalyzer(connection_service)
         health_checker = HealthChecker(connection_service)
         optimizer = QueryOptimizer(connection_service)
-
         # Mock a complete schema analysis
         with (
             patch.object(analyzer, "get_complete_schema_metadata") as mock_schema,
@@ -616,7 +594,6 @@ class TestOracleIntegration:
                     total_size_mb=125.5,
                 ),
             )
-
             # Mock health report
             mock_health.return_value = ServiceResult.ok(
                 {
@@ -627,7 +604,6 @@ class TestOracleIntegration:
                     "redo_log_analysis": {"redo_activity_level": "normal"},
                 },
             )
-
             # Mock query optimization
             mock_optimizer.return_value = ServiceResult.ok(
                 {
@@ -636,36 +612,29 @@ class TestOracleIntegration:
                     "optimization_hints": ["Consider using index"],
                 },
             )
-
             # Execute end-to-end analysis
             schema_result = await analyzer.get_complete_schema_metadata("HR")
             health_result = await health_checker.generate_comprehensive_health_report()
             query_result = await optimizer.analyze_query_performance(
                 "SELECT * FROM employees",
             )
-
             # Verify all components worked
-            assert schema_result.is_success
-            assert health_result.is_success
-            assert query_result.is_success
-
+            assert schema_result.success
+            assert health_result.success
+            assert query_result.success
             # Verify data consistency
             schema = schema_result.data
             health = health_result.data
             query_analysis = query_result.data
-
             assert schema is not None
             assert health is not None
             assert query_analysis is not None
-
             assert schema.name == "HR"
             assert len(schema.tables) == 1
             assert len(schema.views) == 1
             assert schema.total_objects == 2
-
             assert health["overall_assessment"] == "excellent"
             assert health["basic_health"]["overall_status"] == "healthy"
-
             assert query_analysis["performance_rating"] == "good"
             assert query_analysis["total_cost"] == 5
 
@@ -680,7 +649,6 @@ class TestOracleIntegration:
         assert oracle_config.service_name == os.getenv("ORACLE_SERVICE_NAME", "XE")
         assert oracle_config.host == os.getenv("ORACLE_HOST", "localhost")
         assert oracle_config.port == int(os.getenv("ORACLE_PORT", "1521"))
-
         # Test connection string generation (for logging)
         connection_string = oracle_config.connection_string
         assert "oracle://" in connection_string
@@ -688,11 +656,9 @@ class TestOracleIntegration:
         assert "***" in connection_string  # Password should be masked
         assert oracle_config.host in connection_string
         assert str(oracle_config.port) in connection_string
-
         # Test connection service creation
         service = OracleConnectionService(oracle_config)
         assert service.config == oracle_config
-
         # In real integration tests, we would test actual connection
         # For demonstration, we'll mock the connection pool initialization and test
         with (
@@ -701,14 +667,12 @@ class TestOracleIntegration:
         ):
             mock_init.return_value = ServiceResult.ok(None)
             mock_test.return_value = ServiceResult.ok(None)
-
             # Test pool initialization
             init_result = await service.initialize_pool()
-            assert init_result.is_success
-
+            assert init_result.success
             # Test connection
             test_result = await service.test_connection()
-            assert test_result.is_success
+            assert test_result.success
 
     @pytest.mark.asyncio
     async def test_error_handling_and_resilience(
@@ -717,22 +681,17 @@ class TestOracleIntegration:
     ) -> None:
         """Test error handling and resilience across components."""
         analyzer = SchemaAnalyzer(connection_service)
-
         # Test with connection failure
         with patch.object(connection_service, "execute_query") as mock_query:
             mock_query.return_value = ServiceResult.fail(
                 "ORA-00942: table or view does not exist",
             )
-
             result = await analyzer.get_tables("NONEXISTENT_SCHEMA")
-
             assert result.is_failure
             assert result.error
             assert "ORA-00942" in result.error
-
         # Test with partial failures
         health_checker = HealthChecker(connection_service)
-
         with patch.object(connection_service, "execute_query") as mock_query:
             # Mock mixed success/failure responses
             mock_query.side_effect = [
@@ -746,11 +705,9 @@ class TestOracleIntegration:
                     type("QueryResult", (), {"rows": [], "columns": []})(),
                 ),  # Sessions OK
             ]
-
-            result = await health_checker.check_overall_health()  # type: ignore[assignment]
-
-            assert result.is_success  # Overall health check succeeds
-            health = result.data  # type: ignore[assignment]
+            result = await health_checker.check_overall_health()
+            assert result.success  # Overall health check succeeds
+            health = result.data
             assert health is not None
             assert health.connection_status == "healthy"
             assert health.tablespace_status == "unhealthy"  # This component failed

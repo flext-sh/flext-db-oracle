@@ -1,5 +1,4 @@
 """Difference analysis for Oracle database objects.
-
 Built on flext-core foundation for comprehensive schema and data comparison.
 Uses ServiceResult pattern for robust error handling.
 """
@@ -11,14 +10,70 @@ from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import DomainValueObject, Field
+from flext_core.domain.shared_types import ServiceResult
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import OracleConnectionService
     from flext_db_oracle.schema.metadata import SchemaMetadata, TableMetadata
-
 logger = get_logger(__name__)
+
+
+def validate_sql_identifier(identifier: str) -> bool:
+    """Validate SQL identifier to prevent injection attacks.
+    Oracle identifiers must:
+    - Start with a letter
+    - Contain only alphanumeric characters and underscores
+    - Be 128 characters or less
+    - Not be a reserved word.
+    """
+    if not identifier or len(identifier) > 128:
+        return False
+    # Check pattern: starts with letter, contains only valid characters
+    if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", identifier):
+        return False
+    # Basic reserved words check (not exhaustive but covers most common)
+    reserved_words = {
+        "SELECT",
+        "FROM",
+        "WHERE",
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "DROP",
+        "CREATE",
+        "ALTER",
+        "INDEX",
+        "TABLE",
+        "VIEW",
+        "SEQUENCE",
+        "TRIGGER",
+        "PROCEDURE",
+        "FUNCTION",
+        "PACKAGE",
+        "UNION",
+        "ORDER",
+        "GROUP",
+        "HAVING",
+    }
+    return identifier.upper() not in reserved_words
+
+
+def validate_table_name(table_name: str) -> ServiceResult[Any]:
+    """Validate table name for safe SQL construction."""
+    if not validate_sql_identifier(table_name):
+        return ServiceResult.fail(f"Invalid table name: {table_name}")
+    return ServiceResult.ok(table_name)
+
+
+def validate_column_names(column_names: list[str]) -> ServiceResult[Any]:
+    """Validate column names for safe SQL construction."""
+    for column_name in column_names:
+        if not validate_sql_identifier(column_name):
+            return ServiceResult.fail(f"Invalid column name: {column_name}")
+    return ServiceResult.ok(column_names)
 
 
 class DifferenceType(StrEnum):
@@ -92,7 +147,6 @@ class SchemaDiffer:
 
     def __init__(self) -> None:
         """Initialize the schema differ.
-
         No parameters required for this service.
         """
 
@@ -100,7 +154,7 @@ class SchemaDiffer:
         self,
         source_schema: SchemaMetadata,
         target_schema: SchemaMetadata,
-    ) -> ServiceResult[ComparisonResult]:
+    ) -> ServiceResult[Any]:
         """Compare two schemas and return differences."""
         try:
             logger.info(
@@ -108,49 +162,41 @@ class SchemaDiffer:
                 source_schema.name,
                 target_schema.name,
             )
-
             differences = []
-
             # Compare tables
             table_diffs = await self._compare_tables(
                 source_schema.tables,
                 target_schema.tables,
             )
             differences.extend(table_diffs)
-
             # Compare views
             view_diffs = await self._compare_views(
                 source_schema.views,
                 target_schema.views,
             )
             differences.extend(view_diffs)
-
             # Compare sequences
             seq_diffs = await self._compare_sequences(
                 source_schema.sequences,
                 target_schema.sequences,
             )
             differences.extend(seq_diffs)
-
             # Compare procedures
             proc_diffs = await self._compare_procedures(
                 source_schema.procedures,
                 target_schema.procedures,
             )
             differences.extend(proc_diffs)
-
             result = ComparisonResult(
                 source_name=source_schema.name,
                 target_name=target_schema.name,
                 schema_differences=differences,
             )
-
             logger.info(
                 "Schema comparison complete: %d differences found",
                 len(differences),
             )
             return ServiceResult.ok(result)
-
         except Exception as e:
             logger.exception("Schema comparison failed")
             return ServiceResult.fail(f"Schema comparison failed: {e}")
@@ -162,10 +208,8 @@ class SchemaDiffer:
     ) -> list[SchemaDifference]:
         """Compare tables between schemas."""
         differences = []
-
         source_names = {t.name.upper() for t in source_tables}
         target_names = {t.name.upper() for t in target_tables}
-
         # Find added tables
         for name in target_names - source_names:
             target_table = next(t for t in target_tables if t.name.upper() == name)
@@ -178,7 +222,6 @@ class SchemaDiffer:
                     target_value=target_table.model_dump(),
                 ),
             )
-
         # Find removed tables
         for name in source_names - target_names:
             source_table = next(t for t in source_tables if t.name.upper() == name)
@@ -191,15 +234,12 @@ class SchemaDiffer:
                     target_value=None,
                 ),
             )
-
         # Find modified tables
         for name in source_names & target_names:
             source_table = next(t for t in source_tables if t.name.upper() == name)
             target_table = next(t for t in target_tables if t.name.upper() == name)
-
             table_diffs = await self._compare_table_details(source_table, target_table)
             differences.extend(table_diffs)
-
         return differences
 
     async def _compare_table_details(
@@ -209,7 +249,6 @@ class SchemaDiffer:
     ) -> list[SchemaDifference]:
         """Compare detailed table properties."""
         differences = []
-
         # Compare column count
         if len(source_table.columns) != len(target_table.columns):
             differences.append(
@@ -226,7 +265,6 @@ class SchemaDiffer:
                     },
                 ),
             )
-
         # Compare constraints
         if len(source_table.constraints) != len(target_table.constraints):
             differences.append(
@@ -243,7 +281,6 @@ class SchemaDiffer:
                     },
                 ),
             )
-
         # Compare indexes
         if len(source_table.indexes) != len(target_table.indexes):
             differences.append(
@@ -260,7 +297,6 @@ class SchemaDiffer:
                     },
                 ),
             )
-
         return differences
 
     async def _compare_views(
@@ -277,7 +313,6 @@ class SchemaDiffer:
             v.get("name", "").upper() if isinstance(v, dict) else v.name.upper()
             for v in target_views
         }
-
         # Find added views
         differences = [
             SchemaDifference(
@@ -289,7 +324,6 @@ class SchemaDiffer:
             )
             for name in target_names - source_names
         ]
-
         # Find removed views
         differences.extend(
             SchemaDifference(
@@ -301,7 +335,6 @@ class SchemaDiffer:
             )
             for name in source_names - target_names
         )
-
         return differences
 
     async def _compare_sequences(
@@ -312,7 +345,6 @@ class SchemaDiffer:
         """Compare sequences between schemas."""
         source_names = {s.get("name", "").upper() for s in source_sequences}
         target_names = {s.get("name", "").upper() for s in target_sequences}
-
         # Find added sequences
         differences = [
             SchemaDifference(
@@ -324,7 +356,6 @@ class SchemaDiffer:
             )
             for name in target_names - source_names
         ]
-
         # Find removed sequences
         differences.extend(
             SchemaDifference(
@@ -336,7 +367,6 @@ class SchemaDiffer:
             )
             for name in source_names - target_names
         )
-
         return differences
 
     async def _compare_procedures(
@@ -347,7 +377,6 @@ class SchemaDiffer:
         """Compare procedures/functions between schemas."""
         source_names = {p.get("name", "").upper() for p in source_procedures}
         target_names = {p.get("name", "").upper() for p in target_procedures}
-
         # Find added procedures
         differences = [
             SchemaDifference(
@@ -359,7 +388,6 @@ class SchemaDiffer:
             )
             for name in target_names - source_names
         ]
-
         # Find removed procedures
         differences.extend(
             SchemaDifference(
@@ -371,7 +399,6 @@ class SchemaDiffer:
             )
             for name in source_names - target_names
         )
-
         return differences
 
 
@@ -380,7 +407,6 @@ class DataDiffer:
 
     def __init__(self) -> None:
         """Initialize the data differ.
-
         No parameters required for this service.
         """
 
@@ -390,7 +416,7 @@ class DataDiffer:
         target_connection_service: OracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[list[DataDifference]]:
+    ) -> ServiceResult[Any]:
         """Compare data between two tables using primary key columns."""
         try:
             logger.info(
@@ -398,32 +424,25 @@ class DataDiffer:
                 table_name,
                 primary_key_columns,
             )
-
             # First, compare row counts
             row_count_result = await self._compare_row_counts(
                 source_connection_service,
                 target_connection_service,
                 table_name,
             )
-
-            if not row_count_result.is_success:
-                return ServiceResult.fail(
-                    row_count_result.error or "Row count comparison failed",
+            if not row_count_result.success:
+                return ServiceResult.fail(row_count_result.error or "Row count comparison failed",
                 )
-
             counts = row_count_result.data
             if not counts:
                 return ServiceResult.fail("Row count result is empty")
-
             source_count = counts["source_count"]
             target_count = counts["target_count"]
-
             logger.info(
                 "Row counts - Source: %d, Target: %d",
                 source_count,
                 target_count,
             )
-
             # If counts differ, perform detailed comparison
             if source_count != target_count:
                 return await self._perform_detailed_comparison(
@@ -432,11 +451,9 @@ class DataDiffer:
                     table_name,
                     primary_key_columns,
                 )
-
             # Counts are equal, return no differences
             logger.info("Data comparison complete for %s: 0 differences", table_name)
             return ServiceResult.ok([])
-
         except Exception as e:
             logger.exception("Data comparison failed for %s", table_name)
             return ServiceResult.fail(f"Data comparison failed: {e}")
@@ -447,18 +464,16 @@ class DataDiffer:
         target_connection_service: OracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[list[DataDifference]]:
+    ) -> ServiceResult[Any]:
         """Perform detailed row-by-row comparison when row counts differ."""
         logger.info("Row count mismatch detected, performing detailed comparison")
-
         # Validate identifiers first
         validation_result = await self._validate_identifiers(
             table_name,
             primary_key_columns,
         )
-        if not validation_result.is_success:
+        if not validation_result.success:
             return ServiceResult.fail(validation_result.error or "Validation failed")
-
         # Get data from both tables
         data_result = await self._fetch_table_data(
             source_connection_service,
@@ -466,21 +481,17 @@ class DataDiffer:
             table_name,
             primary_key_columns,
         )
-        if not data_result.is_success:
+        if not data_result.success:
             return ServiceResult.fail(data_result.error or "Failed to fetch table data")
-
         if not data_result.data:
             return ServiceResult.fail("Table data result is empty")
-
         source_rows, target_rows = data_result.data
-
         # Build dictionaries for efficient comparison
         source_dict, target_dict = self._build_row_dictionaries(
             source_rows,
             target_rows,
             primary_key_columns,
         )
-
         # Find and categorize differences
         differences = self._find_row_differences(
             source_dict,
@@ -488,7 +499,6 @@ class DataDiffer:
             table_name,
             primary_key_columns,
         )
-
         logger.info(
             "Data comparison complete for %s: %d differences",
             table_name,
@@ -500,17 +510,14 @@ class DataDiffer:
         self,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[None]:
+    ) -> ServiceResult[Any]:
         """Validate table and column names to prevent SQL injection."""
         oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
-
         if not oracle_identifier_pattern.match(table_name):
-            return ServiceResult.fail(f"Invalid table name: {table_name}")  # type: ignore[unreachable]
-
+            return ServiceResult.fail(f"Invalid table name: {table_name}")
         for pk_col in primary_key_columns:
             if not oracle_identifier_pattern.match(pk_col):
-                return ServiceResult.fail(f"Invalid column name: {pk_col}")  # type: ignore[unreachable]
-
+                return ServiceResult.fail(f"Invalid column name: {pk_col}")
         return ServiceResult.ok(None)
 
     async def _fetch_table_data(
@@ -519,25 +526,28 @@ class DataDiffer:
         target_connection_service: OracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[tuple[list[tuple[Any, ...]], list[tuple[Any, ...]]]]:
+    ) -> ServiceResult[Any]:
         """Fetch ordered data from both tables."""
+        # Validate identifiers to prevent SQL injection
+        table_validation = validate_table_name(table_name)
+        if not table_validation.success:
+            return ServiceResult.fail(table_validation.error or "Table validation failed",
+            )
+        column_validation = validate_column_names(primary_key_columns)
+        if not column_validation.success:
+            return ServiceResult.fail(column_validation.error or "Column validation failed",
+            )
+        # Now safe to construct queries with validated identifiers
         pk_columns_str = ", ".join(primary_key_columns)
-
-        # Safe to use f-strings since we validated the identifiers
-        source_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # noqa: S608
-        target_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # noqa: S608
-
+        source_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # nosec: B608 - identifiers validated aboveS608
+        target_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # nosec: B608 - identifiers validated aboveS608
         source_data_result = await source_connection_service.execute_query(source_query)
         target_data_result = await target_connection_service.execute_query(target_query)
-
-        if not source_data_result.is_success or not target_data_result.is_success:
+        if not source_data_result.success or not target_data_result.success:
             return ServiceResult.fail("Failed to retrieve table data for comparison")
-
         if not source_data_result.data or not target_data_result.data:
             return ServiceResult.fail("Query results are empty")
-
-        return ServiceResult.ok(
-            (
+        return ServiceResult.ok((
                 source_data_result.data.rows,
                 target_data_result.data.rows,
             ),
@@ -555,15 +565,12 @@ class DataDiffer:
         """Build dictionaries using primary key as index for efficient comparison."""
         source_dict = {}
         target_dict = {}
-
         for row in source_rows:
             pk_key = tuple(row[i] for i in range(len(primary_key_columns)))
             source_dict[pk_key] = row
-
         for row in target_rows:
             pk_key = tuple(row[i] for i in range(len(primary_key_columns)))
             target_dict[pk_key] = row
-
         return source_dict, target_dict
 
     def _find_row_differences(
@@ -576,12 +583,10 @@ class DataDiffer:
         """Find and categorize differences between source and target data."""
         differences = []
         all_keys = set(source_dict.keys()) | set(target_dict.keys())
-
         for pk_key in all_keys:
             pk_dict = {
                 pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
             }
-
             if pk_key in source_dict and pk_key not in target_dict:
                 # Row removed
                 differences.append(
@@ -610,7 +615,6 @@ class DataDiffer:
                 )
                 if modified_diff:
                     differences.append(modified_diff)
-
         return differences
 
     def _create_removed_difference(
@@ -654,7 +658,6 @@ class DataDiffer:
         changed_columns = []
         old_values = {}
         new_values = {}
-
         for i, (source_val, target_val) in enumerate(
             zip(source_row, target_row, strict=True),
         ):
@@ -663,10 +666,8 @@ class DataDiffer:
                 changed_columns.append(col_name)
                 old_values[col_name] = source_val
                 new_values[col_name] = target_val
-
         if not changed_columns:
             return None
-
         return DataDifference(
             table_name=table_name,
             row_identifier=pk_dict,
@@ -681,38 +682,29 @@ class DataDiffer:
         source_connection_service: OracleConnectionService,
         target_connection_service: OracleConnectionService,
         table_name: str,
-    ) -> ServiceResult[dict[str, int]]:
+    ) -> ServiceResult[Any]:
         """Compare row counts between tables."""
         try:
             # Validate table name to prevent SQL injection
-            oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
-
-            if not oracle_identifier_pattern.match(table_name):
-                return ServiceResult.fail(f"Invalid table name: {table_name}")
-
-            # Safe to use f-string since we validated the identifier
-            source_result = await source_connection_service.execute_query(
-                f"SELECT COUNT(*) FROM {table_name}",  # noqa: S608
-            )
-            target_result = await target_connection_service.execute_query(
-                f"SELECT COUNT(*) FROM {table_name}",  # noqa: S608
-            )
-
-            if not source_result.is_success or not target_result.is_success:
+            table_validation = validate_table_name(table_name)
+            if not table_validation.success:
+                return ServiceResult.fail(table_validation.error or "Table validation failed",
+                )
+            # Now safe to construct queries with validated identifier
+            count_query = f"SELECT COUNT(*) FROM {table_name}"  # nosec: B608 - table name validated aboveS608
+            source_result = await source_connection_service.execute_query(count_query)
+            target_result = await target_connection_service.execute_query(count_query)
+            if not source_result.success or not target_result.success:
                 return ServiceResult.fail("Failed to get row counts")
-
             if not source_result.data or not source_result.data.rows:
                 return ServiceResult.fail("Source count query returned no results")
             if not target_result.data or not target_result.data.rows:
                 return ServiceResult.fail("Target count query returned no results")
-
             counts = {
                 "source_count": source_result.data.rows[0][0],
                 "target_count": target_result.data.rows[0][0],
             }
-
             return ServiceResult.ok(counts)
-
         except Exception as e:
             logger.exception("Row count comparison failed")
             return ServiceResult.fail(f"Row count comparison failed: {e}")
@@ -724,7 +716,7 @@ class DataDiffer:
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int = 10000,
-    ) -> ServiceResult[list[DataDifference]]:
+    ) -> ServiceResult[Any]:
         """Compare data between two large tables using batched approach."""
         try:
             logger.info(
@@ -732,32 +724,25 @@ class DataDiffer:
                 table_name,
                 batch_size,
             )
-
             # Get total row counts first
             row_count_result = await self._compare_row_counts(
                 source_connection_service,
                 target_connection_service,
                 table_name,
             )
-
-            if not row_count_result.is_success:
-                return ServiceResult.fail(
-                    row_count_result.error or "Failed to get row counts",
+            if not row_count_result.success:
+                return ServiceResult.fail(row_count_result.error or "Failed to get row counts",
                 )
-
             counts = row_count_result.data
             if not counts:
                 return ServiceResult.fail("Row count result is empty")
-
             source_count = counts["source_count"]
             target_count = counts["target_count"]
-
             logger.info(
                 "Large table comparison - Source: %d rows, Target: %d rows",
                 source_count,
                 target_count,
             )
-
             # If counts are equal and tables are large, use hash-based comparison
             if source_count == target_count and source_count > batch_size:
                 hash_result = await self._compare_using_hashes(
@@ -767,9 +752,8 @@ class DataDiffer:
                     primary_key_columns,
                     batch_size=batch_size,
                 )
-                if hash_result.is_success:
+                if hash_result.success:
                     return hash_result
-
             # Fall back to batched row-by-row comparison
             return await self._compare_in_batches(
                 source_connection_service,
@@ -778,7 +762,6 @@ class DataDiffer:
                 primary_key_columns,
                 batch_size,
             )
-
         except Exception as e:
             logger.exception("Large table comparison failed for %s", table_name)
             return ServiceResult.fail(f"Large table comparison failed: {e}")
@@ -791,23 +774,27 @@ class DataDiffer:
         primary_key_columns: list[str],
         *,
         batch_size: int,  # Used for fallback decision in calling method
-    ) -> ServiceResult[list[DataDifference]]:
+    ) -> ServiceResult[Any]:
         """Compare tables using hash-based approach for performance."""
         try:
             logger.info("Using hash-based comparison for table: %s", table_name)
-
+            # Validate identifiers to prevent SQL injection
+            table_validation = validate_table_name(table_name)
+            if not table_validation.success:
+                return ServiceResult.fail(table_validation.error or "Table validation failed",
+                )
+            column_validation = validate_column_names(primary_key_columns)
+            if not column_validation.success:
+                return ServiceResult.fail(column_validation.error or "Column validation failed",
+                )
             pk_columns_str = ", ".join(primary_key_columns)
-
-            # Create hash query that combines all non-PK columns
-            # This query gets hash of each row along with PK for identification
-            # NOTE: table_name and pk_columns_str are validated in calling method
+            # Create hash query with validated identifiers
             hash_query = f"""
                 SELECT {pk_columns_str},
                        ORA_HASH(CONCAT_WS('|', *)) as row_hash
                 FROM {table_name}
                 ORDER BY {pk_columns_str}
-            """  # noqa: S608
-
+            """  # nosec: B608 - identifiers validated aboveS608
             # Get hashes from both tables
             source_hashes_result = await source_connection_service.execute_query(
                 hash_query,
@@ -815,33 +802,23 @@ class DataDiffer:
             target_hashes_result = await target_connection_service.execute_query(
                 hash_query,
             )
-
-            if (
-                not source_hashes_result.is_success
-                or not target_hashes_result.is_success
-            ):
+            if not source_hashes_result.success or not target_hashes_result.success:
                 logger.warning("Hash comparison failed, falling back to row comparison")
                 return ServiceResult.fail("Hash comparison not supported")
-
             # Check if results have value and rows
             source_result = source_hashes_result.data
             target_result = target_hashes_result.data
             if not source_result or not target_result:
                 return ServiceResult.fail("Query results are empty")
-
             source_hashes = {tuple(row[:-1]): row[-1] for row in source_result.rows}
             target_hashes = {tuple(row[:-1]): row[-1] for row in target_result.rows}
-
             differences = []
-
             # Find differences by comparing hashes
             all_keys = set(source_hashes.keys()) | set(target_hashes.keys())
-
             for pk_key in all_keys:
                 pk_dict = {
                     pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
                 }
-
                 if pk_key in source_hashes and pk_key not in target_hashes:
                     # Row removed
                     differences.append(
@@ -878,13 +855,11 @@ class DataDiffer:
                             new_values={"hash": str(target_hashes[pk_key])},
                         ),
                     )
-
             logger.info(
                 "Hash-based comparison complete: %d differences found",
                 len(differences),
             )
             return ServiceResult.ok(differences)
-
         except Exception as e:
             logger.exception("Hash-based comparison failed")
             return ServiceResult.fail(f"Hash-based comparison failed: {e}")
@@ -896,61 +871,55 @@ class DataDiffer:
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int,
-    ) -> ServiceResult[list[DataDifference]]:
+    ) -> ServiceResult[Any]:
         """Compare tables in batches for memory efficiency."""
         try:
             logger.info("Using batched comparison for table: %s", table_name)
-
+            # Validate identifiers to prevent SQL injection
+            table_validation = validate_table_name(table_name)
+            if not table_validation.success:
+                return ServiceResult.fail(table_validation.error or "Table validation failed",
+                )
+            column_validation = validate_column_names(primary_key_columns)
+            if not column_validation.success:
+                return ServiceResult.fail(column_validation.error or "Column validation failed",
+                )
             pk_columns_str = ", ".join(primary_key_columns)
-
-            # Get total row count for progress tracking
-            # NOTE: table_name is validated in calling method
-            count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
+            # Get total row count for progress tracking with validated identifier
+            count_query = f"SELECT COUNT(*) FROM {table_name}"  # nosec: B608 - table name validated aboveS608
             count_result = await source_connection_service.execute_query(count_query)
             total_rows = 0
-            if count_result.is_success and count_result.data and count_result.data.rows:
+            if count_result.success and count_result.data and count_result.data.rows:
                 total_rows = count_result.data.rows[0][0]
-
             all_differences = []
             offset = 0
-
             while True:
-                # Fetch batch from both tables
-                # NOTE: table_name and pk_columns_str are validated in calling method
+                # Fetch batch from both tables with validated identifiers
                 batch_query = f"""
                     SELECT * FROM (
                         SELECT t.*, ROW_NUMBER() OVER (ORDER BY {pk_columns_str}) as rn
                         FROM {table_name} t
                     ) WHERE rn > {offset} AND rn <= {offset + batch_size}
                     ORDER BY {pk_columns_str}
-                """  # noqa: S608
-
+                """  # nosec: B608 - identifiers validated aboveS608
                 source_batch_result = await source_connection_service.execute_query(
                     batch_query,
                 )
                 target_batch_result = await target_connection_service.execute_query(
                     batch_query,
                 )
-
-                if (
-                    not source_batch_result.is_success
-                    or not target_batch_result.is_success
-                ):
+                if not source_batch_result.success or not target_batch_result.success:
                     return ServiceResult.fail("Failed to fetch batch data")
-
                 # Check if batch results have value and rows
                 source_result = source_batch_result.data
                 target_result = target_batch_result.data
                 if not source_result or not target_result:
                     return ServiceResult.fail("Batch query results are empty")
-
                 source_rows = source_result.rows
                 target_rows = target_result.rows
-
                 # No more data to process
                 if not source_rows and not target_rows:
                     break
-
                 # Process this batch
                 batch_differences = self._compare_batch_data(
                     source_rows,
@@ -958,9 +927,7 @@ class DataDiffer:
                     table_name,
                     primary_key_columns,
                 )
-
                 all_differences.extend(batch_differences)
-
                 logger.info(
                     "Processed batch %d-%d of %d rows (%d differences found)",
                     offset + 1,
@@ -968,19 +935,15 @@ class DataDiffer:
                     total_rows,
                     len(batch_differences),
                 )
-
                 offset += batch_size
-
                 # If we got less than batch_size, we're done
                 if len(source_rows) < batch_size:
                     break
-
             logger.info(
                 "Batched comparison complete: %d total differences",
                 len(all_differences),
             )
             return ServiceResult.ok(all_differences)
-
         except Exception as e:
             logger.exception("Batched comparison failed")
             return ServiceResult.fail(f"Batched comparison failed: {e}")
@@ -999,7 +962,6 @@ class DataDiffer:
             target_rows,
             primary_key_columns,
         )
-
         # Find differences in this batch
         return self._find_row_differences(
             source_dict,
