@@ -10,6 +10,8 @@ Usage:
 
 import asyncio
 import gc
+import json
+import subprocess
 import sys
 import time
 import traceback
@@ -17,7 +19,7 @@ import tracemalloc
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from statistics import mean, median
-from typing import Any
+from typing import Any, AsyncIterator
 
 from flext_db_oracle.application.services import FlextDbOracleConnectionService
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -43,7 +45,7 @@ class SimplifiedPerformanceBenchmark:
         self.results: dict[str, Any] = {}
 
     @asynccontextmanager
-    async def measure_performance(self, test_name: str):
+    async def measure_performance(self, test_name: str) -> AsyncIterator[None]:
         """Context manager to measure performance metrics."""
         tracemalloc.start()
         gc.collect()

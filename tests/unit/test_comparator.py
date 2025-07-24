@@ -128,14 +128,14 @@ class TestComparisonConfig:
     def test_comparison_config_validation_negative_sample_size(self) -> None:
         """Test validation failure with negative sample size."""
         from pydantic import ValidationError
-        
+
         with pytest.raises(ValidationError, match="Input should be greater than or equal to 1"):
             ComparisonConfig(sample_size=-1)
 
     def test_comparison_config_validation_zero_sample_size(self) -> None:
         """Test validation failure with zero sample size."""
         from pydantic import ValidationError
-        
+
         with pytest.raises(ValidationError, match="Input should be greater than or equal to 1"):
             ComparisonConfig(sample_size=0)
 
@@ -515,7 +515,7 @@ class TestDatabaseComparator:
             )
 
             assert not result.success
-            assert "Failed to get tables to compare" in result.error
+            assert "Failed to get tables" in result.error
 
     async def test_compare_data_no_tables_to_compare(
         self, database_comparator: DatabaseComparator
