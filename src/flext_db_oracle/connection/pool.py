@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 import oracledb
 
+from flext_db_oracle.connection.base import FlextDbOracleBaseOperations
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
@@ -16,8 +17,9 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class ConnectionPool:
+class FlextDbOracleConnectionPool(FlextDbOracleBaseOperations):
     """Oracle database connection pool for high-performance applications.
+
     Manages a pool of database connections to improve performance and
     resource utilization in multi-threaded applications.
     """
@@ -26,7 +28,7 @@ class ConnectionPool:
         """Initialize the connection pool.
 
         Args:
-            config: Oracle database connection configuration
+            config: FlextDbOracle database connection configuration
 
         """
         self.config = config
@@ -94,71 +96,47 @@ class ConnectionPool:
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> list[Any] | int:
-        """Execute SQL statement."""
+    ) -> list[tuple[Any, ...]] | int:
+        """Execute SQL statement using pooled connection."""
         with self.get_connection() as conn:
-            cursor = conn.cursor()
-            try:
-                if parameters:
-                    cursor.execute(sql, parameters)
-                else:
-                    cursor.execute(sql)
-                # For SELECT statements, return fetchall()
-                if sql.strip().upper().startswith("SELECT"):
-                    return cursor.fetchall()
-                # For DML statements, return row count
-                return cursor.rowcount
-            finally:
-                cursor.close()
+            return self._execute_with_connection(conn, sql, parameters)
 
     def execute_many(self, sql: str, parameters_list: list[dict[str, Any]]) -> int:
-        """Execute SQL statement with multiple parameter sets."""
+        """Execute SQL statement with multiple parameter sets using pooled connection.
+
+        Args:
+            sql: SQL statement to execute
+            parameters_list: List of parameter dictionaries
+
+        Returns:
+            Number of rows affected
+
+        """
         with self.get_connection() as conn:
-            cursor = conn.cursor()
-            try:
-                cursor.executemany(sql, parameters_list)
-                return int(cursor.rowcount) if cursor.rowcount is not None else 0
-            finally:
-                cursor.close()
+            return self._execute_many_with_connection(conn, sql, parameters_list)
 
     def fetch_one(
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
     ) -> tuple[Any, ...] | None:
-        """Fetch one row from SQL query."""
+        """Fetch one row from SQL query using pooled connection."""
         with self.get_connection() as conn:
-            cursor = conn.cursor()
-            try:
-                if parameters:
-                    cursor.execute(sql, parameters)
-                else:
-                    cursor.execute(sql)
-                return cursor.fetchone()
-            finally:
-                cursor.close()
+            return self._fetch_one_with_connection(conn, sql, parameters)
 
     def fetch_all(
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> list[Any]:
-        """Fetch all rows from SQL query."""
+    ) -> list[tuple[Any, ...]]:
+        """Fetch all rows from SQL query using pooled connection."""
         with self.get_connection() as conn:
-            cursor = conn.cursor()
-            try:
-                if parameters:
-                    cursor.execute(sql, parameters)
-                else:
-                    cursor.execute(sql)
-                result = cursor.fetchall()
-                return list(result) if result is not None else []
-            finally:
-                cursor.close()
+            return self._fetch_all_with_connection(conn, sql, parameters)
 
     @contextmanager
     def transaction(self) -> Generator[Any]:
         """Context manager for database transactions using pool.
+
         Automatically commits on success or rolls back on exception.
 
         Yields:
@@ -197,3 +175,7 @@ class ConnectionPool:
         except Exception as e:
             logger.exception("Error getting pool stats")
             return {"status": "error", "error": str(e)}
+
+
+# Backward compatibility alias
+ConnectionPool = FlextDbOracleConnectionPool

@@ -9,15 +9,15 @@ from unittest.mock import patch
 
 import pytest
 
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.config import FlextDbOracleConfig
 
 
-class TestOracleConfig:
-    """Test Oracle configuration functionality."""
+class TestFlextDbOracleConfig:
+    """Test FlextDbOracle configuration functionality."""
 
     def test_create_config_with_required_params(self) -> None:
         """Test creating config with required parameters."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             port=1521,
             service_name="testdb",
@@ -33,7 +33,7 @@ class TestOracleConfig:
 
     def test_create_config_with_sid(self) -> None:
         """Test creating config with SID instead of service name."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             port=1521,
             sid="ORCL",
@@ -50,7 +50,7 @@ class TestOracleConfig:
 
     def test_config_default_values(self) -> None:
         """Test configuration default values."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -66,19 +66,23 @@ class TestOracleConfig:
     def test_config_validation_requires_username(self) -> None:
         """Test config validation requires username."""
         with pytest.raises((ValueError, TypeError)):
-            OracleConfig(
-                host="testhost",
-                service_name="testdb",
-                password="testpass",
+            FlextDbOracleConfig.model_validate(
+                {
+                    "host": "testhost",
+                    "service_name": "testdb",
+                    "password": "testpass",
+                }
             )
 
     def test_config_validation_requires_password(self) -> None:
         """Test config validation requires password."""
         with pytest.raises((ValueError, TypeError)):
-            OracleConfig(
-                host="testhost",
-                service_name="testdb",
-                username="testuser",
+            FlextDbOracleConfig.model_validate(
+                {
+                    "host": "testhost",
+                    "service_name": "testdb",
+                    "username": "testuser",
+                }
             )
 
     def test_config_validation_requires_service_name_or_sid(self) -> None:
@@ -87,7 +91,7 @@ class TestOracleConfig:
             ValueError,
             match="Either service_name or sid must be provided",
         ):
-            OracleConfig(
+            FlextDbOracleConfig(
                 host="testhost",
                 username="testuser",
                 password="testpass",
@@ -95,7 +99,7 @@ class TestOracleConfig:
 
     def test_config_protocol_settings(self) -> None:
         """Test protocol configuration settings."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -107,7 +111,7 @@ class TestOracleConfig:
 
     def test_config_pool_settings(self) -> None:
         """Test connection pool configuration settings."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -123,7 +127,7 @@ class TestOracleConfig:
 
     def test_config_timeout_settings(self) -> None:
         """Test timeout configuration settings."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -137,7 +141,7 @@ class TestOracleConfig:
 
     def test_config_retry_settings(self) -> None:
         """Test retry configuration settings."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -151,7 +155,7 @@ class TestOracleConfig:
 
     def test_config_string_representation(self) -> None:
         """Test string representation works correctly."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -177,7 +181,7 @@ class TestOracleConfig:
         """Test creating config from environment variables."""
         # This would test a from_env class method if it exists
         # For now, test that we can create config with env-like values
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="envhost",
             port=1522,
             service_name="envdb",
@@ -193,7 +197,7 @@ class TestOracleConfig:
 
     def test_config_dsn_construction(self) -> None:
         """Test DSN construction for Oracle connection."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             port=1521,
             service_name="testdb",
@@ -209,21 +213,21 @@ class TestOracleConfig:
 
     def test_config_equality(self) -> None:
         """Test configuration equality comparison."""
-        config1 = OracleConfig(
+        config1 = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
             password="testpass",
         )
 
-        config2 = OracleConfig(
+        config2 = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
             password="testpass",
         )
 
-        config3 = OracleConfig(
+        config3 = FlextDbOracleConfig(
             host="otherhost",
             service_name="testdb",
             username="testuser",
@@ -235,7 +239,7 @@ class TestOracleConfig:
 
     def test_config_copy(self) -> None:
         """Test configuration copying."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -256,7 +260,7 @@ class TestOracleConfig:
     def test_database_identifier_property(self) -> None:
         """Test database identifier property."""
         # Test with service_name
-        config1 = OracleConfig(
+        config1 = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -265,7 +269,7 @@ class TestOracleConfig:
         assert config1.database_identifier == "testdb"
 
         # Test with SID
-        config2 = OracleConfig(
+        config2 = FlextDbOracleConfig(
             host="testhost",
             sid="ORCL",
             username="testuser",
@@ -275,7 +279,7 @@ class TestOracleConfig:
 
     def test_connection_string_property(self) -> None:
         """Test connection string property doesn't expose password."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             port=1522,
             service_name="testdb",
@@ -295,7 +299,7 @@ class TestOracleConfig:
     def test_pool_size_validation(self) -> None:
         """Test pool size validation."""
         # This should work fine
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             service_name="testdb",
             username="testuser",
@@ -311,7 +315,7 @@ class TestOracleConfig:
             ValueError,
             match="pool_max_size.*must be greater than or equal to pool_min_size",
         ):
-            OracleConfig(
+            FlextDbOracleConfig(
                 host="testhost",
                 service_name="testdb",
                 username="testuser",

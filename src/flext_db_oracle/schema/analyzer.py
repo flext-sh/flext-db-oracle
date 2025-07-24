@@ -6,9 +6,9 @@ Uses flext-infrastructure.databases.flext-db-oracle domain models for consistenc
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import FlextResult as ServiceResult
 
 from flext_db_oracle.logging_utils import get_logger
 from flext_db_oracle.schema.metadata import (
@@ -23,7 +23,7 @@ from flext_db_oracle.schema.metadata import (
 )
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -31,11 +31,11 @@ logger = get_logger(__name__)
 class SchemaAnalyzer:
     """Analyzes Oracle database schemas using flext-core patterns."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the schema analyzer.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
@@ -49,11 +49,13 @@ class SchemaAnalyzer:
             if schema_name is None:
                 schema_result = await self._get_current_schema()
                 if not schema_result.success:
-                    return ServiceResult.fail(schema_result.error or "Failed to get current schema",
+                    return ServiceResult.fail(
+                        schema_result.error or "Failed to get current schema",
                     )
                 schema_name = schema_result.data
                 if not schema_name:
-                    return ServiceResult.fail("Empty schema name returned",
+                    return ServiceResult.fail(
+                        "Empty schema name returned",
                     )
 
             logger.info("Analyzing Oracle schema: %s", schema_name)
@@ -73,7 +75,8 @@ class SchemaAnalyzer:
                     procedures_result,
                 ]
             ):
-                return ServiceResult.fail("Failed to analyze schema components",
+                return ServiceResult.fail(
+                    "Failed to analyze schema components",
                 )
 
             schema_analysis = {
@@ -116,7 +119,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -157,7 +161,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -198,7 +203,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -242,7 +248,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -279,7 +286,7 @@ class SchemaAnalyzer:
         try:
             query = """
                 SELECT column_name, data_type, data_length, data_precision, data_scale,
-                       nullable, column_id, default_value
+                       nullable, column_id, data_default
                 FROM all_tab_columns
                 WHERE owner = :schema_name
                 AND table_name = :table_name
@@ -295,7 +302,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -325,7 +333,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get table columns")
-            return ServiceResult.fail(f"Failed to get table columns: {e}",
+            return ServiceResult.fail(
+                f"Failed to get table columns: {e}",
             )
 
     async def _get_current_schema(self) -> ServiceResult[Any]:
@@ -336,7 +345,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data or not result.data.rows:
@@ -347,7 +357,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get current schema")
-            return ServiceResult.fail(f"Failed to get current schema: {e}",
+            return ServiceResult.fail(
+                f"Failed to get current schema: {e}",
             )
 
     async def get_table_constraints(
@@ -375,7 +386,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -403,7 +415,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get table constraints")
-            return ServiceResult.fail(f"Failed to get table constraints: {e}",
+            return ServiceResult.fail(
+                f"Failed to get table constraints: {e}",
             )
 
     async def get_table_indexes(
@@ -431,7 +444,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -461,7 +475,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get table indexes")
-            return ServiceResult.fail(f"Failed to get table indexes: {e}",
+            return ServiceResult.fail(
+                f"Failed to get table indexes: {e}",
             )
 
     async def get_detailed_table_info(
@@ -474,7 +489,8 @@ class SchemaAnalyzer:
             # Get basic table info
             tables_result = await self.get_tables(schema_name)
             if not tables_result.success:
-                return ServiceResult.fail(tables_result.error or "Failed to get table list",
+                return ServiceResult.fail(
+                    tables_result.error or "Failed to get table list",
                 )
 
             if not tables_result.data:
@@ -490,7 +506,8 @@ class SchemaAnalyzer:
             )
 
             if not table_info:
-                return ServiceResult.fail(f"Table {schema_name}.{table_name} not found",
+                return ServiceResult.fail(
+                    f"Table {schema_name}.{table_name} not found",
                 )
 
             # Get detailed information
@@ -505,7 +522,8 @@ class SchemaAnalyzer:
                 not result.success
                 for result in [columns_result, constraints_result, indexes_result]
             ):
-                return ServiceResult.fail("Failed to get detailed table information",
+                return ServiceResult.fail(
+                    "Failed to get detailed table information",
                 )
 
             detailed_info = {
@@ -527,7 +545,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get detailed table info")
-            return ServiceResult.fail(f"Failed to get detailed table info: {e}",
+            return ServiceResult.fail(
+                f"Failed to get detailed table info: {e}",
             )
 
     async def analyze_schema_size(
@@ -568,13 +587,15 @@ class SchemaAnalyzer:
                     fallback_query,
                 )
                 if not fallback_result.success:
-                    return ServiceResult.fail(fallback_result.error
+                    return ServiceResult.fail(
+                        fallback_result.error
                         or "Failed to analyze schema size (fallback)",
                     )
                 result = fallback_result
 
             if not result.data:
-                return ServiceResult.fail("Schema size analysis result is empty",
+                return ServiceResult.fail(
+                    "Schema size analysis result is empty",
                 )
 
             size_analysis = {
@@ -602,7 +623,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to analyze schema size")
-            return ServiceResult.fail(f"Failed to analyze schema size: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze schema size: {e}",
             )
 
     async def get_complete_schema_metadata(
@@ -614,11 +636,13 @@ class SchemaAnalyzer:
             if schema_name is None:
                 schema_result = await self._get_current_schema()
                 if not schema_result.success:
-                    return ServiceResult.fail(schema_result.error or "Failed to get current schema",
+                    return ServiceResult.fail(
+                        schema_result.error or "Failed to get current schema",
                     )
                 schema_name = schema_result.data
                 if not schema_name:
-                    return ServiceResult.fail("Empty schema name returned",
+                    return ServiceResult.fail(
+                        "Empty schema name returned",
                     )
 
             logger.info("Getting complete schema metadata for: %s", schema_name)
@@ -626,12 +650,14 @@ class SchemaAnalyzer:
             # Get basic schema analysis
             analysis_result = await self.analyze_schema(schema_name)
             if not analysis_result.success:
-                return ServiceResult.fail(analysis_result.error or "Failed to analyze schema",
+                return ServiceResult.fail(
+                    analysis_result.error or "Failed to analyze schema",
                 )
 
             analysis = analysis_result.data
             if not analysis:
-                return ServiceResult.fail("Schema analysis returned no data",
+                return ServiceResult.fail(
+                    "Schema analysis returned no data",
                 )
 
             # Convert to domain models
@@ -786,7 +812,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get complete schema metadata")
-            return ServiceResult.fail(f"Failed to get complete schema metadata: {e}",
+            return ServiceResult.fail(
+                f"Failed to get complete schema metadata: {e}",
             )
 
     async def get_constraint_columns(
@@ -813,7 +840,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -824,7 +852,8 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get constraint columns")
-            return ServiceResult.fail(f"Failed to get constraint columns: {e}",
+            return ServiceResult.fail(
+                f"Failed to get constraint columns: {e}",
             )
 
     async def get_index_columns(
@@ -851,7 +880,8 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to execute query",
+                return ServiceResult.fail(
+                    result.error or "Failed to execute query",
                 )
 
             if not result.data:
@@ -862,5 +892,6 @@ class SchemaAnalyzer:
 
         except Exception as e:
             logger.exception("Failed to get index columns")
-            return ServiceResult.fail(f"Failed to get index columns: {e}",
+            return ServiceResult.fail(
+                f"Failed to get index columns: {e}",
             )

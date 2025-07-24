@@ -128,6 +128,7 @@ combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = [ "S101", "S103", "S104", "S105", "S106", "S107", "PLR2004", "ARG", "SLF001", "PLC0415",]
+"test_*.py" = [ "S101", "S103", "S104", "S105", "S106", "S107", "PLR2004", "ARG", "SLF001", "PLC0415",]
 "**/scripts/**" = [ "T201", "S603", "S607", "ANN",]
 "**/__init__.py" = [ "F401",]
 "**/proto/*_pb2.py" = [ "ALL",]

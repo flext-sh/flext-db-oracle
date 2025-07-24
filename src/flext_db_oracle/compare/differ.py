@@ -1,4 +1,5 @@
 """Difference analysis for Oracle database objects.
+
 Built on flext-core foundation for comprehensive schema and data comparison.
 Uses ServiceResult pattern for robust error handling.
 """
@@ -8,70 +9,47 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeGuard
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
+# Import TableMetadata for runtime type guard
+
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
     from flext_db_oracle.schema.metadata import SchemaMetadata, TableMetadata
 logger = get_logger(__name__)
 
 
-def validate_sql_identifier(identifier: str) -> bool:
-    """Validate SQL identifier to prevent injection attacks.
-    Oracle identifiers must:
-    - Start with a letter
-    - Contain only alphanumeric characters and underscores
-    - Be 128 characters or less
-    - Not be a reserved word.
-    """
-    if not identifier or len(identifier) > 128:
+def flext_db_oracle_validate_sql_identifier(identifier: str) -> bool:
+    """Validate SQL identifier for Oracle."""
+    from flext_db_oracle.constants import FlextDbOracleConstants
+
+    if not identifier or not identifier.strip():
         return False
-    # Check pattern: starts with letter, contains only valid characters
-    if not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", identifier):
-        return False
-    # Basic reserved words check (not exhaustive but covers most common)
-    reserved_words = {
-        "SELECT",
-        "FROM",
-        "WHERE",
-        "INSERT",
-        "UPDATE",
-        "DELETE",
-        "DROP",
-        "CREATE",
-        "ALTER",
-        "INDEX",
-        "TABLE",
-        "VIEW",
-        "SEQUENCE",
-        "TRIGGER",
-        "PROCEDURE",
-        "FUNCTION",
-        "PACKAGE",
-        "UNION",
-        "ORDER",
-        "GROUP",
-        "HAVING",
-    }
-    return identifier.upper() not in reserved_words
+    # Use FlextDbOracleConstants for validation
+    return FlextDbOracleConstants.is_valid_oracle_identifier(identifier)
 
 
-def validate_table_name(table_name: str) -> ServiceResult[Any]:
+def flext_db_oracle_validate_table_name(table_name: str) -> ServiceResult[Any]:
     """Validate table name for safe SQL construction."""
-    if not validate_sql_identifier(table_name):
+    if not flext_db_oracle_validate_sql_identifier(table_name):
         return ServiceResult.fail(f"Invalid table name: {table_name}")
     return ServiceResult.ok(table_name)
 
 
-def validate_column_names(column_names: list[str]) -> ServiceResult[Any]:
+def flext_db_oracle_validate_column_names(
+    column_names: list[str],
+) -> ServiceResult[Any]:
     """Validate column names for safe SQL construction."""
     for column_name in column_names:
-        if not validate_sql_identifier(column_name):
+        if not flext_db_oracle_validate_sql_identifier(column_name):
             return ServiceResult.fail(f"Invalid column name: {column_name}")
     return ServiceResult.ok(column_names)
 
@@ -98,6 +76,13 @@ class SchemaDifference(DomainValueObject):
         description="Additional details",
     )
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for schema difference."""
+        if not self.object_type.strip():
+            raise ValueError("Object type cannot be empty")
+        if not self.object_name.strip():
+            raise ValueError("Object name cannot be empty")
+
 
 class DataDifference(DomainValueObject):
     """Represents a difference in table data."""
@@ -121,6 +106,13 @@ class DataDifference(DomainValueObject):
         description="New column values",
     )
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for data difference."""
+        if not self.table_name.strip():
+            raise ValueError("Table name cannot be empty")
+        if not self.row_identifier:
+            raise ValueError("Row identifier cannot be empty")
+
 
 class ComparisonResult(DomainValueObject):
     """Result of a comparison operation."""
@@ -141,55 +133,124 @@ class ComparisonResult(DomainValueObject):
         """Check if there are any differences."""
         return self.total_differences > 0
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for comparison result."""
+        if not self.source_name.strip():
+            raise ValueError("Source name cannot be empty")
+        if not self.target_name.strip():
+            raise ValueError("Target name cannot be empty")
+
 
 class SchemaDiffer:
     """Analyzes differences between Oracle database schemas using flext-core."""
 
     def __init__(self) -> None:
         """Initialize the schema differ.
+
         No parameters required for this service.
         """
 
+    def _is_table_metadata(self, obj: Any) -> TypeGuard[TableMetadata]:
+        """Type guard to check if object is TableMetadata."""
+        return (
+            hasattr(obj, "columns")
+            and hasattr(obj, "constraints")
+            and hasattr(obj, "name")
+        )
+
     async def compare_schemas(
         self,
-        source_schema: SchemaMetadata,
-        target_schema: SchemaMetadata,
+        source_schema: SchemaMetadata | dict[str, Any],
+        target_schema: SchemaMetadata | dict[str, Any],
     ) -> ServiceResult[Any]:
         """Compare two schemas and return differences."""
         try:
+            # Handle both dict and SchemaMetadata input types
+            source_name = (
+                source_schema.name
+                if hasattr(source_schema, "name")
+                else source_schema.get("schema_name", "unknown")
+            )
+            target_name = (
+                target_schema.name
+                if hasattr(target_schema, "name")
+                else target_schema.get("schema_name", "unknown")
+            )
+
             logger.info(
                 "Comparing schemas: %s vs %s",
-                source_schema.name,
-                target_schema.name,
+                source_name,
+                target_name,
             )
             differences = []
             # Compare tables
+            source_tables = (
+                source_schema.tables
+                if hasattr(source_schema, "tables")
+                else source_schema.get("tables", [])
+            )
+            target_tables = (
+                target_schema.tables
+                if hasattr(target_schema, "tables")
+                else target_schema.get("tables", [])
+            )
+
             table_diffs = await self._compare_tables(
-                source_schema.tables,
-                target_schema.tables,
+                source_tables,
+                target_tables,
             )
             differences.extend(table_diffs)
             # Compare views
+            source_views = (
+                source_schema.views
+                if hasattr(source_schema, "views")
+                else source_schema.get("views", [])
+            )
+            target_views = (
+                target_schema.views
+                if hasattr(target_schema, "views")
+                else target_schema.get("views", [])
+            )
             view_diffs = await self._compare_views(
-                source_schema.views,
-                target_schema.views,
+                source_views,
+                target_views,
             )
             differences.extend(view_diffs)
             # Compare sequences
+            source_sequences = (
+                source_schema.sequences
+                if hasattr(source_schema, "sequences")
+                else source_schema.get("sequences", [])
+            )
+            target_sequences = (
+                target_schema.sequences
+                if hasattr(target_schema, "sequences")
+                else target_schema.get("sequences", [])
+            )
             seq_diffs = await self._compare_sequences(
-                source_schema.sequences,
-                target_schema.sequences,
+                source_sequences,
+                target_sequences,
             )
             differences.extend(seq_diffs)
             # Compare procedures
+            source_procedures = (
+                source_schema.procedures
+                if hasattr(source_schema, "procedures")
+                else source_schema.get("procedures", [])
+            )
+            target_procedures = (
+                target_schema.procedures
+                if hasattr(target_schema, "procedures")
+                else target_schema.get("procedures", [])
+            )
             proc_diffs = await self._compare_procedures(
-                source_schema.procedures,
-                target_schema.procedures,
+                source_procedures,
+                target_procedures,
             )
             differences.extend(proc_diffs)
             result = ComparisonResult(
-                source_name=source_schema.name,
-                target_name=target_schema.name,
+                source_name=source_name,
+                target_name=target_name,
                 schema_differences=differences,
             )
             logger.info(
@@ -201,45 +262,76 @@ class SchemaDiffer:
             logger.exception("Schema comparison failed")
             return ServiceResult.fail(f"Schema comparison failed: {e}")
 
+    def _get_object_name(self, obj: dict[str, Any] | Any) -> str:
+        """Get name from object (handle both dict and object types)."""
+        if isinstance(obj, dict):
+            return str(obj.get("table_name", obj.get("name", "unknown")))
+        return str(getattr(obj, "name", "unknown"))
+
     async def _compare_tables(
         self,
-        source_tables: list[TableMetadata],
-        target_tables: list[TableMetadata],
+        source_tables: list[TableMetadata] | list[dict[str, Any]],
+        target_tables: list[TableMetadata] | list[dict[str, Any]],
     ) -> list[SchemaDifference]:
         """Compare tables between schemas."""
         differences = []
-        source_names = {t.name.upper() for t in source_tables}
-        target_names = {t.name.upper() for t in target_tables}
+        source_names = {self._get_object_name(t).upper() for t in source_tables}
+        target_names = {self._get_object_name(t).upper() for t in target_tables}
         # Find added tables
         for name in target_names - source_names:
-            target_table = next(t for t in target_tables if t.name.upper() == name)
+            target_table = next(
+                t for t in target_tables if self._get_object_name(t).upper() == name
+            )
+            target_value = (
+                target_table.model_dump()
+                if hasattr(target_table, "model_dump")
+                else target_table
+            )
             differences.append(
                 SchemaDifference(
                     object_type="TABLE",
                     object_name=name,
                     difference_type=DifferenceType.ADDED,
                     source_value=None,
-                    target_value=target_table.model_dump(),
+                    target_value=target_value,
                 ),
             )
         # Find removed tables
         for name in source_names - target_names:
-            source_table = next(t for t in source_tables if t.name.upper() == name)
+            source_table = next(
+                t for t in source_tables if self._get_object_name(t).upper() == name
+            )
+            source_value = (
+                source_table.model_dump()
+                if hasattr(source_table, "model_dump")
+                else source_table
+            )
             differences.append(
                 SchemaDifference(
                     object_type="TABLE",
                     object_name=name,
                     difference_type=DifferenceType.REMOVED,
-                    source_value=source_table.model_dump(),
+                    source_value=source_value,
                     target_value=None,
                 ),
             )
-        # Find modified tables
+        # Find modified tables - only compare TableMetadata objects
         for name in source_names & target_names:
-            source_table = next(t for t in source_tables if t.name.upper() == name)
-            target_table = next(t for t in target_tables if t.name.upper() == name)
-            table_diffs = await self._compare_table_details(source_table, target_table)
-            differences.extend(table_diffs)
+            source_table = next(
+                t for t in source_tables if self._get_object_name(t).upper() == name
+            )
+            target_table = next(
+                t for t in target_tables if self._get_object_name(t).upper() == name
+            )
+
+            # Only perform detailed comparison if both are TableMetadata objects
+            if self._is_table_metadata(source_table) and self._is_table_metadata(
+                target_table
+            ):
+                table_diffs = await self._compare_table_details(
+                    source_table, target_table
+                )
+                differences.extend(table_diffs)
         return differences
 
     async def _compare_table_details(
@@ -407,13 +499,14 @@ class DataDiffer:
 
     def __init__(self) -> None:
         """Initialize the data differ.
+
         No parameters required for this service.
         """
 
     async def compare_table_data(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
     ) -> ServiceResult[Any]:
@@ -431,7 +524,8 @@ class DataDiffer:
                 table_name,
             )
             if not row_count_result.success:
-                return ServiceResult.fail(row_count_result.error or "Row count comparison failed",
+                return ServiceResult.fail(
+                    row_count_result.error or "Row count comparison failed",
                 )
             counts = row_count_result.data
             if not counts:
@@ -460,8 +554,8 @@ class DataDiffer:
 
     async def _perform_detailed_comparison(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
     ) -> ServiceResult[Any]:
@@ -524,32 +618,37 @@ class DataDiffer:
 
     async def _fetch_table_data(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
     ) -> ServiceResult[Any]:
         """Fetch ordered data from both tables."""
         # Validate identifiers to prevent SQL injection
-        table_validation = validate_table_name(table_name)
+        table_validation = flext_db_oracle_validate_table_name(table_name)
         if not table_validation.success:
-            return ServiceResult.fail(table_validation.error or "Table validation failed",
+            return ServiceResult.fail(
+                table_validation.error or "Table validation failed",
             )
-        column_validation = validate_column_names(primary_key_columns)
+        column_validation = flext_db_oracle_validate_column_names(primary_key_columns)
         if not column_validation.success:
-            return ServiceResult.fail(column_validation.error or "Column validation failed",
+            return ServiceResult.fail(
+                column_validation.error or "Column validation failed",
             )
         # Now safe to construct queries with validated identifiers
+        # Build query using safe identifier substitution (already validated above)
         pk_columns_str = ", ".join(primary_key_columns)
-        source_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # nosec: B608 - identifiers validated aboveS608
-        target_query = f"SELECT * FROM {table_name} ORDER BY {pk_columns_str}"  # nosec: B608 - identifiers validated aboveS608
+        query_template = "SELECT * FROM {} ORDER BY {}"
+        source_query = query_template.format(table_name, pk_columns_str)
+        target_query = query_template.format(table_name, pk_columns_str)
         source_data_result = await source_connection_service.execute_query(source_query)
         target_data_result = await target_connection_service.execute_query(target_query)
         if not source_data_result.success or not target_data_result.success:
             return ServiceResult.fail("Failed to retrieve table data for comparison")
         if not source_data_result.data or not target_data_result.data:
             return ServiceResult.fail("Query results are empty")
-        return ServiceResult.ok((
+        return ServiceResult.ok(
+            (
                 source_data_result.data.rows,
                 target_data_result.data.rows,
             ),
@@ -681,19 +780,20 @@ class DataDiffer:
 
     async def _compare_row_counts(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
     ) -> ServiceResult[Any]:
         """Compare row counts between tables."""
         try:
             # Validate table name to prevent SQL injection
-            table_validation = validate_table_name(table_name)
+            table_validation = flext_db_oracle_validate_table_name(table_name)
             if not table_validation.success:
-                return ServiceResult.fail(table_validation.error or "Table validation failed",
+                return ServiceResult.fail(
+                    table_validation.error or "Table validation failed",
                 )
             # Now safe to construct queries with validated identifier
-            count_query = f"SELECT COUNT(*) FROM {table_name}"  # nosec: B608 - table name validated aboveS608
+            count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
             source_result = await source_connection_service.execute_query(count_query)
             target_result = await target_connection_service.execute_query(count_query)
             if not source_result.success or not target_result.success:
@@ -713,8 +813,8 @@ class DataDiffer:
 
     async def compare_large_table_data(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int = 10000,
@@ -733,7 +833,8 @@ class DataDiffer:
                 table_name,
             )
             if not row_count_result.success:
-                return ServiceResult.fail(row_count_result.error or "Failed to get row counts",
+                return ServiceResult.fail(
+                    row_count_result.error or "Failed to get row counts",
                 )
             counts = row_count_result.data
             if not counts:
@@ -770,8 +871,8 @@ class DataDiffer:
 
     async def _compare_using_hashes(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
         *,
@@ -780,83 +881,34 @@ class DataDiffer:
         """Compare tables using hash-based approach for performance."""
         try:
             logger.info("Using hash-based comparison for table: %s", table_name)
+
             # Validate identifiers to prevent SQL injection
-            table_validation = validate_table_name(table_name)
-            if not table_validation.success:
-                return ServiceResult.fail(table_validation.error or "Table validation failed",
-                )
-            column_validation = validate_column_names(primary_key_columns)
-            if not column_validation.success:
-                return ServiceResult.fail(column_validation.error or "Column validation failed",
-                )
-            pk_columns_str = ", ".join(primary_key_columns)
-            # Create hash query with validated identifiers
-            hash_query = f"""
-                SELECT {pk_columns_str},
-                       ORA_HASH(CONCAT_WS('|', *)) as row_hash
-                FROM {table_name}
-                ORDER BY {pk_columns_str}
-            """  # nosec: B608 - identifiers validated aboveS608
-            # Get hashes from both tables
-            source_hashes_result = await source_connection_service.execute_query(
-                hash_query,
+            validation_result = await self._validate_identifiers(
+                table_name, primary_key_columns
             )
-            target_hashes_result = await target_connection_service.execute_query(
-                hash_query,
+            if not validation_result.success:
+                return validation_result
+
+            # Execute hash queries on both tables
+            hash_result = await self._execute_hash_queries(
+                source_connection_service,
+                target_connection_service,
+                table_name,
+                primary_key_columns,
             )
-            if not source_hashes_result.success or not target_hashes_result.success:
-                logger.warning("Hash comparison failed, falling back to row comparison")
-                return ServiceResult.fail("Hash comparison not supported")
-            # Check if results have value and rows
-            source_result = source_hashes_result.data
-            target_result = target_hashes_result.data
-            if not source_result or not target_result:
-                return ServiceResult.fail("Query results are empty")
-            source_hashes = {tuple(row[:-1]): row[-1] for row in source_result.rows}
-            target_hashes = {tuple(row[:-1]): row[-1] for row in target_result.rows}
-            differences = []
-            # Find differences by comparing hashes
-            all_keys = set(source_hashes.keys()) | set(target_hashes.keys())
-            for pk_key in all_keys:
-                pk_dict = {
-                    pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
-                }
-                if pk_key in source_hashes and pk_key not in target_hashes:
-                    # Row removed
-                    differences.append(
-                        DataDifference(
-                            table_name=table_name,
-                            row_identifier=pk_dict,
-                            difference_type=DifferenceType.REMOVED,
-                            changed_columns=["*"],
-                            old_values={"status": "exists_in_source"},
-                            new_values={},
-                        ),
-                    )
-                elif pk_key not in source_hashes and pk_key in target_hashes:
-                    # Row added
-                    differences.append(
-                        DataDifference(
-                            table_name=table_name,
-                            row_identifier=pk_dict,
-                            difference_type=DifferenceType.ADDED,
-                            changed_columns=["*"],
-                            old_values={},
-                            new_values={"status": "exists_in_target"},
-                        ),
-                    )
-                elif source_hashes[pk_key] != target_hashes[pk_key]:
-                    # Row modified (hashes differ)
-                    differences.append(
-                        DataDifference(
-                            table_name=table_name,
-                            row_identifier=pk_dict,
-                            difference_type=DifferenceType.MODIFIED,
-                            changed_columns=["*"],
-                            old_values={"hash": str(source_hashes[pk_key])},
-                            new_values={"hash": str(target_hashes[pk_key])},
-                        ),
-                    )
+            if not hash_result.success:
+                return hash_result
+
+            if hash_result.data is None:
+                return ServiceResult.fail("Hash computation returned no data")
+
+            source_hashes, target_hashes = hash_result.data
+
+            # Find and categorize differences using hash comparison
+            differences = self._find_hash_differences(
+                source_hashes, target_hashes, table_name, primary_key_columns
+            )
+
             logger.info(
                 "Hash-based comparison complete: %d differences found",
                 len(differences),
@@ -866,10 +918,108 @@ class DataDiffer:
             logger.exception("Hash-based comparison failed")
             return ServiceResult.fail(f"Hash-based comparison failed: {e}")
 
+    async def _execute_hash_queries(
+        self,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
+        table_name: str,
+        primary_key_columns: list[str],
+    ) -> ServiceResult[Any]:
+        """Execute hash queries on both source and target tables."""
+        pk_columns_str = ", ".join(primary_key_columns)
+        # Create hash query with validated identifiers
+        hash_query_template = """
+            SELECT {},
+                   ORA_HASH(CONCAT_WS('|', *)) as row_hash
+            FROM {}
+            ORDER BY {}
+        """
+        hash_query = hash_query_template.format(
+            pk_columns_str, table_name, pk_columns_str
+        )
+
+        # Get hashes from both tables
+        source_hashes_result = await source_connection_service.execute_query(
+            hash_query,
+        )
+        target_hashes_result = await target_connection_service.execute_query(
+            hash_query,
+        )
+
+        if not source_hashes_result.success or not target_hashes_result.success:
+            logger.warning("Hash comparison failed, falling back to row comparison")
+            return ServiceResult.fail("Hash comparison not supported")
+
+        # Check if results have value and rows
+        source_result = source_hashes_result.data
+        target_result = target_hashes_result.data
+        if not source_result or not target_result:
+            return ServiceResult.fail("Query results are empty")
+
+        source_hashes = {tuple(row[:-1]): row[-1] for row in source_result.rows}
+        target_hashes = {tuple(row[:-1]): row[-1] for row in target_result.rows}
+
+        return ServiceResult.ok((source_hashes, target_hashes))
+
+    def _find_hash_differences(
+        self,
+        source_hashes: dict[tuple[Any, ...], Any],
+        target_hashes: dict[tuple[Any, ...], Any],
+        table_name: str,
+        primary_key_columns: list[str],
+    ) -> list[DataDifference]:
+        """Find differences by comparing hash values."""
+        differences = []
+        all_keys = set(source_hashes.keys()) | set(target_hashes.keys())
+
+        for pk_key in all_keys:
+            pk_dict = {
+                pk_col: pk_key[i] for i, pk_col in enumerate(primary_key_columns)
+            }
+
+            if pk_key in source_hashes and pk_key not in target_hashes:
+                # Row removed
+                differences.append(
+                    DataDifference(
+                        table_name=table_name,
+                        row_identifier=pk_dict,
+                        difference_type=DifferenceType.REMOVED,
+                        changed_columns=["*"],
+                        old_values={"status": "exists_in_source"},
+                        new_values={},
+                    ),
+                )
+            elif pk_key not in source_hashes and pk_key in target_hashes:
+                # Row added
+                differences.append(
+                    DataDifference(
+                        table_name=table_name,
+                        row_identifier=pk_dict,
+                        difference_type=DifferenceType.ADDED,
+                        changed_columns=["*"],
+                        old_values={},
+                        new_values={"status": "exists_in_target"},
+                    ),
+                )
+            elif source_hashes[pk_key] != target_hashes[pk_key]:
+                # Row modified (hashes differ)
+                differences.append(
+                    DataDifference(
+                        table_name=table_name,
+                        row_identifier=pk_dict,
+                        difference_type=DifferenceType.MODIFIED,
+                        changed_columns=["*"],
+                        old_values={"hash": str(source_hashes[pk_key])},
+                        new_values={"hash": str(target_hashes[pk_key])},
+                    ),
+                )
+
+        return differences
+
     async def _compare_in_batches(
         self,
-        source_connection_service: OracleConnectionService,
-        target_connection_service: OracleConnectionService,
+        source_connection_service: FlextDbOracleConnectionService,
+        target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int,
@@ -878,17 +1028,21 @@ class DataDiffer:
         try:
             logger.info("Using batched comparison for table: %s", table_name)
             # Validate identifiers to prevent SQL injection
-            table_validation = validate_table_name(table_name)
+            table_validation = flext_db_oracle_validate_table_name(table_name)
             if not table_validation.success:
-                return ServiceResult.fail(table_validation.error or "Table validation failed",
+                return ServiceResult.fail(
+                    table_validation.error or "Table validation failed",
                 )
-            column_validation = validate_column_names(primary_key_columns)
+            column_validation = flext_db_oracle_validate_column_names(
+                primary_key_columns
+            )
             if not column_validation.success:
-                return ServiceResult.fail(column_validation.error or "Column validation failed",
+                return ServiceResult.fail(
+                    column_validation.error or "Column validation failed",
                 )
             pk_columns_str = ", ".join(primary_key_columns)
             # Get total row count for progress tracking with validated identifier
-            count_query = f"SELECT COUNT(*) FROM {table_name}"  # nosec: B608 - table name validated aboveS608
+            count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
             count_result = await source_connection_service.execute_query(count_query)
             total_rows = 0
             if count_result.success and count_result.data and count_result.data.rows:
@@ -897,13 +1051,21 @@ class DataDiffer:
             offset = 0
             while True:
                 # Fetch batch from both tables with validated identifiers
-                batch_query = f"""
+                # Build batch query with validated identifiers
+                batch_query_template = """
                     SELECT * FROM (
-                        SELECT t.*, ROW_NUMBER() OVER (ORDER BY {pk_columns_str}) as rn
-                        FROM {table_name} t
-                    ) WHERE rn > {offset} AND rn <= {offset + batch_size}
-                    ORDER BY {pk_columns_str}
-                """  # nosec: B608 - identifiers validated aboveS608
+                        SELECT t.*, ROW_NUMBER() OVER (ORDER BY {}) as rn
+                        FROM {} t
+                    ) WHERE rn > {} AND rn <= {}
+                    ORDER BY {}
+                """
+                batch_query = batch_query_template.format(
+                    pk_columns_str,
+                    table_name,
+                    offset,
+                    offset + batch_size,
+                    pk_columns_str,
+                )
                 source_batch_result = await source_connection_service.execute_query(
                     batch_query,
                 )

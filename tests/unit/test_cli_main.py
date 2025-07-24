@@ -15,27 +15,36 @@ from flext_db_oracle.cli.main import (
     list_tables,
     main,
     setup_parser,
-    test_connection,
+    test_connection as cli_test_connection,
 )
 
 
 class TestTestConnection:
     """Test connection testing functionality."""
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_connection_success_with_args(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test successful connection with individual args."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.host = "localhost"
+        mock_config.port = 1521
+        mock_config.service_name = "testdb"
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock
         mock_conn = Mock()
-        mock_conn.test_connection.return_value = True
+        mock_conn.is_connected = True
+        mock_conn.fetch_one.return_value = (1,)  # Return tuple for "SELECT 1 FROM DUAL"
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -49,26 +58,37 @@ class TestTestConnection:
             password="testpass",
         )
 
-        result = test_connection(args)
+        result = cli_test_connection(args)
 
         assert result == 0
         mock_config_class.assert_called_once()
-        mock_conn_class.assert_called_once_with(mock_config)
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_one.assert_called_once_with("SELECT 1 FROM DUAL")
+        mock_conn.disconnect.assert_called_once()
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig.from_url")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_connection_success_with_url(
         self,
-        mock_from_url: Mock,
+        mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test successful connection with URL."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
-        mock_from_url.return_value = mock_config
+        mock_config.host = "host"
+        mock_config.port = 1521
+        mock_config.service_name = "service"
+        mock_config.username = "user"
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.from_url.return_value = mock_config
 
+        # Setup connection mock
         mock_conn = Mock()
-        mock_conn.test_connection.return_value = True
+        mock_conn.is_connected = True
+        mock_conn.fetch_one.return_value = (1,)  # Return tuple for "SELECT 1 FROM DUAL"
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
         mock_conn_class.return_value = mock_conn
 
         # Create args with URL
@@ -82,25 +102,33 @@ class TestTestConnection:
             password=None,
         )
 
-        result = test_connection(args)
+        result = cli_test_connection(args)
 
         assert result == 0
-        mock_from_url.assert_called_once_with("oracle://user:pass@host:1521/service")
+        mock_config_class.from_url.assert_called_once_with(
+            "oracle://user:pass@host:1521/service"
+        )
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_one.assert_called_once_with("SELECT 1 FROM DUAL")
+        mock_conn.disconnect.assert_called_once()
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
-    def test_connection_failure(
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_connection_failure_not_connected(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
-        """Test connection failure."""
-        # Setup mocks
+        """Test connection failure when connection cannot be established."""
+        # Setup config mock
         mock_config = Mock()
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock to simulate connection failure
         mock_conn = Mock()
-        mock_conn.test_connection.side_effect = Exception("Connection failed")
+        mock_conn.is_connected = False  # Connection fails
+        mock_conn.connect.return_value = None
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -114,7 +142,79 @@ class TestTestConnection:
             password="testpass",
         )
 
-        result = test_connection(args)
+        result = cli_test_connection(args)
+
+        assert result == 1
+        mock_conn.connect.assert_called_once()
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_connection_failure_no_query_result(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test connection failure when test query returns no result."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock
+        mock_conn = Mock()
+        mock_conn.is_connected = True
+        mock_conn.fetch_one.return_value = None  # Query returns no result
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn_class.return_value = mock_conn
+
+        # Create args
+        args = Namespace(
+            url=None,
+            host="localhost",
+            port=1521,
+            sid=None,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+        )
+
+        result = cli_test_connection(args)
+
+        assert result == 1
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_one.assert_called_once_with("SELECT 1 FROM DUAL")
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_connection_exception(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test connection failure due to exception."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock to raise exception
+        mock_conn = Mock()
+        mock_conn.connect.side_effect = Exception("Connection failed")
+        mock_conn_class.return_value = mock_conn
+
+        # Create args
+        args = Namespace(
+            url=None,
+            host="localhost",
+            port=1521,
+            sid=None,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+        )
+
+        result = cli_test_connection(args)
 
         assert result == 1
 
@@ -122,20 +222,29 @@ class TestTestConnection:
 class TestListTables:
     """Test table listing functionality."""
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_list_tables_success(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test successful table listing."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock with fetch_all returning list of tuples
         mock_conn = Mock()
-        mock_conn.list_tables.return_value = ["table1", "table2", "table3"]
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [
+            ("TABLE1", 100, "USERS"),
+            ("TABLE2", 50, "USERS"),
+            ("TABLE3", 200, "SYSTEM"),
+        ]
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -153,22 +262,118 @@ class TestListTables:
         result = list_tables(args)
 
         assert result == 0
-        mock_conn.list_tables.assert_called_once_with("testschema")
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        mock_conn.disconnect.assert_called_once()
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+        # Verify the SQL query parameters
+        call_args = mock_conn.fetch_all.call_args
+        sql_query = call_args[0][0]
+        parameters = call_args[0][1]
+
+        assert "all_tables" in sql_query
+        assert "owner = :schema" in sql_query
+        assert parameters == {"schema": "testschema"}
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_list_tables_no_schema_uses_username(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test table listing when no schema provided uses username."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock
+        mock_conn = Mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [("TABLE1", 100, "USERS")]
+        mock_conn_class.return_value = mock_conn
+
+        # Create args without schema
+        args = Namespace(
+            schema=None,  # No schema provided
+            host="localhost",
+            port=1521,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+            url=None,
+            sid=None,
+        )
+
+        result = list_tables(args)
+
+        assert result == 0
+
+        # Verify the SQL query uses uppercase username as schema
+        call_args = mock_conn.fetch_all.call_args
+        parameters = call_args[0][1]
+        assert parameters == {"schema": "TESTUSER"}  # Should be uppercase
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_list_tables_empty_results(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test table listing with no tables found."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock with empty results
+        mock_conn = Mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = []  # No tables found
+        mock_conn_class.return_value = mock_conn
+
+        # Create args
+        args = Namespace(
+            schema="emptyschema",
+            host="localhost",
+            port=1521,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+            url=None,
+            sid=None,
+        )
+
+        result = list_tables(args)
+
+        assert result == 0  # Should still return success with empty results
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        mock_conn.disconnect.assert_called_once()
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_list_tables_failure(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test table listing failure."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock to raise exception
         mock_conn = Mock()
-        mock_conn.list_tables.side_effect = Exception("List tables failed")
+        mock_conn.connect.side_effect = Exception("Connection failed")
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -191,25 +396,37 @@ class TestListTables:
 class TestDescribeTable:
     """Test table description functionality."""
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_describe_table_success(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test successful table description."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock with fetch_all returning column information
         mock_conn = Mock()
-        mock_conn.describe_table.return_value = {
-            "columns": [
-                {"name": "id", "type": "NUMBER", "nullable": False},
-                {"name": "name", "type": "VARCHAR2", "nullable": True},
-            ],
-        }
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [
+            (
+                "ID",
+                "NUMBER",
+                None,
+                10,
+                0,
+                "N",
+                None,
+            ),  # column_name, data_type, data_length, data_precision, data_scale, nullable, data_default
+            ("NAME", "VARCHAR2", 100, None, None, "Y", None),
+            ("CREATED_DATE", "DATE", None, None, None, "N", "SYSDATE"),
+        ]
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -228,22 +445,126 @@ class TestDescribeTable:
         result = describe_table(args)
 
         assert result == 0
-        mock_conn.describe_table.assert_called_once_with("testtable", "testschema")
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        mock_conn.disconnect.assert_called_once()
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+        # Verify the SQL query parameters
+        call_args = mock_conn.fetch_all.call_args
+        sql_query = call_args[0][0]
+        parameters = call_args[0][1]
+
+        assert "all_tab_columns" in sql_query
+        assert "table_name = :table_name" in sql_query
+        assert "owner = :schema" in sql_query
+        assert parameters == {"table_name": "TESTTABLE", "schema": "testschema"}
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_describe_table_no_schema_uses_username(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test table description when no schema provided uses username."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock
+        mock_conn = Mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [
+            ("ID", "NUMBER", None, 10, 0, "N", None),
+        ]
+        mock_conn_class.return_value = mock_conn
+
+        # Create args without schema
+        args = Namespace(
+            table="testtable",
+            schema=None,  # No schema provided
+            host="localhost",
+            port=1521,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+            url=None,
+            sid=None,
+        )
+
+        result = describe_table(args)
+
+        assert result == 0
+
+        # Verify the SQL query uses uppercase username as schema
+        call_args = mock_conn.fetch_all.call_args
+        parameters = call_args[0][1]
+        assert parameters == {
+            "table_name": "TESTTABLE",
+            "schema": "TESTUSER",
+        }  # Should be uppercase
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
+    def test_describe_table_not_found(
+        self,
+        mock_config_class: Mock,
+        mock_conn_class: Mock,
+    ) -> None:
+        """Test table description when table is not found."""
+        # Setup config mock
+        mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
+        mock_config_class.return_value = mock_config
+
+        # Setup connection mock with empty results (table not found)
+        mock_conn = Mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = []  # No columns found
+        mock_conn_class.return_value = mock_conn
+
+        # Create args
+        args = Namespace(
+            table="nonexistent",
+            schema="testschema",
+            host="localhost",
+            port=1521,
+            service_name="testdb",
+            username="testuser",
+            password="testpass",
+            url=None,
+            sid=None,
+        )
+
+        result = describe_table(args)
+
+        assert result == 1  # Should return error code for table not found
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        # disconnect() is NOT called when table is not found (returns early)
+
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_describe_table_failure(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test table description failure."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock to raise exception
         mock_conn = Mock()
-        mock_conn.describe_table.side_effect = Exception("Describe failed")
+        mock_conn.connect.side_effect = Exception("Connection failed")
         mock_conn_class.return_value = mock_conn
 
         # Create args
@@ -282,40 +603,46 @@ class TestParser:
         """Test parser has expected subcommands."""
         parser = setup_parser()
 
-        # Test that subcommands exist
+        # Test that subcommands exist (using actual command names from CLI)
+        # Note: Global arguments must come before the subcommand
         test_args = [
             [
-                "test-connection",
                 "--host",
                 "localhost",
+                "--service-name",
+                "XE",
                 "--username",
                 "test",
                 "--password",
                 "pass",
+                "test",
             ],
             [
-                "list-tables",
                 "--schema",
                 "test",
                 "--host",
                 "localhost",
+                "--service-name",
+                "XE",
                 "--username",
                 "test",
                 "--password",
                 "pass",
+                "tables",
             ],
             [
-                "describe-table",
-                "--table",
-                "test",
                 "--schema",
                 "test",
                 "--host",
                 "localhost",
+                "--service-name",
+                "XE",
                 "--username",
                 "test",
                 "--password",
                 "pass",
+                "describe",
+                "testtable",
             ],
         ]
 
@@ -337,11 +664,12 @@ class TestMain:
         """Test main function with test-connection command."""
         # Setup mocks
         mock_args = Mock()
-        mock_args.command = "test-connection"
+        mock_args.command = "test"
+        mock_args.func = mock_test_connection  # Set the function to be called
         mock_parser.return_value.parse_args.return_value = mock_args
         mock_test_connection.return_value = 0
 
-        with patch("sys.argv", ["flext-db-oracle", "test-connection"]):
+        with patch("sys.argv", ["flext-db-oracle", "test"]):
             result = main()
 
         assert result == 0
@@ -357,11 +685,12 @@ class TestMain:
         """Test main function with list-tables command."""
         # Setup mocks
         mock_args = Mock()
-        mock_args.command = "list-tables"
+        mock_args.command = "tables"
+        mock_args.func = mock_list_tables  # Set the function to be called
         mock_parser.return_value.parse_args.return_value = mock_args
         mock_list_tables.return_value = 0
 
-        with patch("sys.argv", ["flext-db-oracle", "list-tables"]):
+        with patch("sys.argv", ["flext-db-oracle", "tables"]):
             result = main()
 
         assert result == 0
@@ -391,7 +720,8 @@ class TestMain:
         """Test main function when command fails."""
         # Setup mocks
         mock_args = Mock()
-        mock_args.command = "test-connection"
+        mock_args.command = "test"
+        mock_args.func = mock_test_connection  # Set the function to be called
         mock_parser.return_value.parse_args.return_value = mock_args
         mock_test_connection.return_value = 1
 
@@ -413,25 +743,43 @@ class TestMain:
 class TestIntegrationScenarios:
     """Test CLI integration scenarios."""
 
-    @patch("flext_db_oracle.connection.connection.OracleConnection")
-    @patch("flext_db_oracle.connection.config.ConnectionConfig")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConnection")
+    @patch("flext_db_oracle.cli.main.FlextDbOracleConfig")
     def test_full_cli_workflow(
         self,
         mock_config_class: Mock,
         mock_conn_class: Mock,
     ) -> None:
         """Test complete CLI workflow simulation."""
-        # Setup mocks
+        # Setup config mock
         mock_config = Mock()
+        mock_config.host = "localhost"
+        mock_config.port = 1521
+        mock_config.service_name = "testdb"
+        mock_config.username = "testuser"
+        mock_config.to_connection_config.return_value = Mock()
         mock_config_class.return_value = mock_config
 
+        # Setup connection mock that matches the actual CLI calls
         mock_conn = Mock()
-        mock_conn.test_connection.return_value = True
-        mock_conn.list_tables.return_value = ["table1", "table2"]
-        mock_conn.describe_table.return_value = {"columns": []}
+
+        # Mock connection behavior
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.is_connected = True
+
+        # Mock for test_connection: fetch_one("SELECT 1 FROM DUAL")
+        mock_conn.fetch_one.return_value = (1,)
+
+        # Mock for list_tables: fetch_all with table data
+        mock_conn.fetch_all.return_value = [
+            ("TABLE1", 100, "USERS"),
+            ("TABLE2", 50, "USERS"),
+        ]
+
         mock_conn_class.return_value = mock_conn
 
-        # Test connection
+        # Test connection workflow
         args = Namespace(
             url=None,
             host="localhost",
@@ -442,19 +790,60 @@ class TestIntegrationScenarios:
             password="testpass",
         )
 
-        # Test connection
-        result = test_connection(args)
+        # Test connection command
+        result = cli_test_connection(args)
         assert result == 0
+        mock_conn.connect.assert_called()
+        mock_conn.fetch_one.assert_called_with("SELECT 1 FROM DUAL")
+        mock_conn.disconnect.assert_called()
 
-        # Test list tables
+        # Reset mock call counts for next test
+        mock_conn.reset_mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [
+            ("TABLE1", 100, "USERS"),
+            ("TABLE2", 50, "USERS"),
+        ]
+
+        # Test list tables workflow
         args.schema = "testschema"
         result = list_tables(args)
         assert result == 0
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        mock_conn.disconnect.assert_called_once()
 
-        # Test describe table
+        # Verify list_tables called with correct SQL
+        call_args = mock_conn.fetch_all.call_args
+        sql_query = call_args[0][0]
+        parameters = call_args[0][1]
+        assert "all_tables" in sql_query
+        assert parameters == {"schema": "testschema"}
+
+        # Reset mock call counts for describe table test
+        mock_conn.reset_mock()
+        mock_conn.connect.return_value = None
+        mock_conn.disconnect.return_value = None
+        mock_conn.fetch_all.return_value = [
+            ("ID", "NUMBER", None, 10, 0, "N", None),
+            ("NAME", "VARCHAR2", 100, None, None, "Y", None),
+        ]
+
+        # Test describe table workflow
         args.table = "testtable"
         result = describe_table(args)
         assert result == 0
+        mock_conn.connect.assert_called_once()
+        mock_conn.fetch_all.assert_called_once()
+        mock_conn.disconnect.assert_called_once()
+
+        # Verify describe_table called with correct SQL
+        call_args = mock_conn.fetch_all.call_args
+        sql_query = call_args[0][0]
+        parameters = call_args[0][1]
+        assert "all_tab_columns" in sql_query
+        assert parameters == {"table_name": "TESTTABLE", "schema": "testschema"}
 
     def test_help_output(self) -> None:
         """Test help output is generated."""

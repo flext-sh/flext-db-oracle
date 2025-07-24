@@ -6,8 +6,8 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from oracledb import DatabaseError, InterfaceError, OperationalError
 
+from flext_db_oracle.connection.base import FlextDbOracleBaseOperations
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
@@ -17,8 +17,9 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class OracleConnection:
+class FlextDbOracleConnection(FlextDbOracleBaseOperations):
     """Oracle database connection wrapper with enterprise features.
+
     Provides a high-level interface for Oracle database operations with
     proper connection management, error handling, and transaction support.
     """
@@ -27,7 +28,7 @@ class OracleConnection:
         """Initialize the Oracle connection.
 
         Args:
-            config: Oracle database connection configuration
+            config: FlextDbOracle database connection configuration
 
         """
         self.config = config
@@ -67,36 +68,21 @@ class OracleConnection:
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> list[Any] | int:
+    ) -> list[tuple[Any, ...]] | int:
         """Execute SQL statement."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-        cursor = self._connection.cursor()
-        try:
-            if parameters:
-                cursor.execute(sql, parameters)
-            else:
-                cursor.execute(sql)
-            # For SELECT statements, return fetchall()
-            if sql.strip().upper().startswith("SELECT"):
-                return cursor.fetchall()
-            # For DML statements, return row count
-            return cursor.rowcount
-        finally:
-            cursor.close()
+        return self._execute_with_connection(self._connection, sql, parameters)
 
     def execute_many(self, sql: str, parameters_list: list[dict[str, Any]]) -> int:
         """Execute SQL statement with multiple parameter sets."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-        cursor = self._connection.cursor()
-        try:
-            cursor.executemany(sql, parameters_list)
-            return int(cursor.rowcount) if cursor.rowcount is not None else 0
-        finally:
-            cursor.close()
+        return self._execute_many_with_connection(
+            self._connection, sql, parameters_list
+        )
 
     def fetch_one(
         self,
@@ -107,35 +93,18 @@ class OracleConnection:
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-        cursor = self._connection.cursor()
-        try:
-            if parameters:
-                cursor.execute(sql, parameters)
-            else:
-                cursor.execute(sql)
-            return cursor.fetchone()
-        finally:
-            cursor.close()
+        return self._fetch_one_with_connection(self._connection, sql, parameters)
 
     def fetch_all(
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> list[Any]:
+    ) -> list[tuple[Any, ...]]:
         """Fetch all rows from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
             raise RuntimeError(msg)
-        cursor = self._connection.cursor()
-        try:
-            if parameters:
-                cursor.execute(sql, parameters)
-            else:
-                cursor.execute(sql)
-            result = cursor.fetchall()
-            return list(result) if result is not None else []
-        finally:
-            cursor.close()
+        return self._fetch_all_with_connection(self._connection, sql, parameters)
 
     def commit(self) -> None:
         """Commit current transaction."""
@@ -152,7 +121,7 @@ class OracleConnection:
         self._connection.rollback()
 
     @contextmanager
-    def transaction(self) -> Generator[OracleConnection]:
+    def transaction(self) -> Generator[Any]:
         """Context manager for database transactions."""
         if not self.is_connected:
             msg = "Not connected to database"
@@ -212,10 +181,7 @@ class OracleConnection:
         return str(result[0]) if result else "Unknown"
 
     def test_connection(self) -> bool:
-        try:
-            self.fetch_one("SELECT 1 FROM dual")
-        except (DatabaseError, InterfaceError, OperationalError) as e:
-            logger.warning("Connection test failed: %s", e)
+        """Test if connection is working."""
+        if not self.is_connected:
             return False
-        else:
-            return True
+        return self._test_connection_with_connection(self._connection)

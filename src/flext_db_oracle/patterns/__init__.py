@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from .oracle_patterns import (
-    BaseOracleValidator,
-    OracleTapValidator,
-    OracleTargetValidator,
-    OracleValidationError,
-    OracleWMSValidator,
+    FlextDbOracleBaseValidator,
+    FlextDbOracleTapValidator,
+    FlextDbOracleTargetValidator,
+    FlextDbOracleValidationError,
+    FlextDbOracleWMSValidator,
 )
 
 __all__ = [
-    "BaseOracleValidator",
-    "OracleTapValidator",
-    "OracleTargetValidator",
-    "OracleValidationError",
-    "OracleWMSValidator",
+    "FlextDbOracleBaseValidator",
+    "FlextDbOracleTapValidator",
+    "FlextDbOracleTargetValidator",
+    "FlextDbOracleValidationError",
+    "FlextDbOracleWMSValidator",
 ]

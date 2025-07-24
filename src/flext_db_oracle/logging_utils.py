@@ -7,13 +7,11 @@ falls back to standard logging when flext-observability is not available.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from logging import Logger
+from logging import Logger
+from typing import cast
 
 
-def get_logger(name: str) -> Logger:
+def flext_db_oracle_get_logger(name: str) -> Logger:
     """Get logger with fallback to standard logging.
 
     Tries to use flext-observability's enhanced logging first,
@@ -27,9 +25,11 @@ def get_logger(name: str) -> Logger:
 
     """
     try:
-        from flext_observability.logging import get_logger as flext_get_logger
+        from flext_observability.logging import (  # type: ignore[import-untyped]
+            get_logger as flext_get_logger,
+        )
 
-        return flext_get_logger(name)
+        return cast("Logger", flext_get_logger(name))
     except ImportError:
         # Fallback to standard logging when flext-observability is not available
         logger = logging.getLogger(name)
@@ -42,3 +42,7 @@ def get_logger(name: str) -> Logger:
             logger.addHandler(handler)
             logger.setLevel(logging.INFO)
         return logger
+
+
+# Backward compatibility alias
+get_logger = flext_db_oracle_get_logger

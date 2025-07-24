@@ -53,10 +53,11 @@ poetry shell
 
 ### Configuração
 
+#### Configuração Direta
 ```python
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.config import FlextDbOracleConfig
 
-config = OracleConfig(
+config = FlextDbOracleConfig(
     username="usuario",
     password="senha",
     service_name="ORCL",
@@ -65,41 +66,92 @@ config = OracleConfig(
 )
 ```
 
-### Análise de Schema
-
-```python
-from flext_db_oracle.application.services import OracleConnectionService
-from flext_db_oracle.schema.analyzer import SchemaAnalyzer
-
-# Conectar ao Oracle
-connection_service = OracleConnectionService(config)
-analyzer = SchemaAnalyzer(connection_service)
-
-# Analisar schema
-result = await analyzer.analyze_schema("HR")
-if result.is_success:
-    schema_data = result.value
-    print(f"Encontradas {len(schema_data['tables'])} tabelas")
+#### Configuração via Environment Variables (Meltano)
+```bash
+export FLEXT_TARGET_ORACLE_USERNAME="usuario"
+export FLEXT_TARGET_ORACLE_PASSWORD="senha"
+export FLEXT_TARGET_ORACLE_HOST="localhost"
+export FLEXT_TARGET_ORACLE_SERVICE_NAME="ORCL"
+export FLEXT_TARGET_ORACLE_PORT="1521"
 ```
 
-### Comparação de Dados
+```python
+from flext_db_oracle.config import FlextDbOracleConfig
+
+# Carrega automaticamente das variáveis de ambiente
+config = FlextDbOracleConfig.from_env()
+```
+
+### Conexão e Operações Básicas
 
 ```python
-from flext_db_oracle.compare.differ import DataDiffer
+from flext_db_oracle.connection.connection import FlextDbOracleConnection
 
-differ = DataDiffer()
+# Converter configuração para formato de conexão
+connection_config = config.to_connection_config()
+conn = FlextDbOracleConnection(connection_config)
 
-# Comparar dados entre tabelas
-result = await differ.compare_table_data(
-    source_connection, 
-    target_connection, 
-    "EMPLOYEES", 
-    ["EMPLOYEE_ID"]
+# Conectar ao Oracle
+conn.connect()
+
+# Obter informações de tabelas
+tables = conn.get_table_names("HR")
+print(f"Encontradas {len(tables)} tabelas no schema HR")
+
+# Obter informações de colunas
+columns = conn.get_column_info("EMPLOYEES", "HR")
+for col in columns:
+    print(f"Coluna: {col['name']} - Tipo: {col['type']}")
+```
+
+### Execução de Queries
+
+```python
+# Executar query simples
+result = conn.fetch_all("SELECT * FROM HR.EMPLOYEES WHERE ROWNUM <= 5")
+print(f"Retornadas {len(result)} linhas")
+
+# Executar query com parâmetros
+employee = conn.fetch_one(
+    "SELECT first_name, last_name FROM HR.EMPLOYEES WHERE employee_id = :emp_id",
+    {"emp_id": 100}
 )
+if employee:
+    print(f"Funcionário: {employee[0]} {employee[1]}")
 
-if result.is_success:
-    differences = result.value
-    print(f"Encontradas {len(differences)} diferenças")
+# Testar conexão
+if conn.test_connection():
+    print("✅ Conexão Oracle está funcionando")
+else:
+    print("❌ Falha na conexão Oracle")
+
+# Sempre desconectar quando terminar
+conn.disconnect()
+```
+
+### Connection Pooling para Alta Performance
+
+```python
+from flext_db_oracle.connection.pool import FlextDbOracleConnectionPool
+
+# Criar pool de conexões
+pool = FlextDbOracleConnectionPool(connection_config)
+pool.initialize()
+
+# Usar pool para operações de alta performance
+try:
+    # Executar query usando o pool
+    result = pool.fetch_all("SELECT * FROM HR.EMPLOYEES WHERE ROWNUM <= 10")
+    print(f"Retornadas {len(result)} linhas via pool")
+    
+    # Usar transações com pool
+    with pool.transaction() as conn:
+        # Operações transacionais aqui
+        pass
+        
+finally:
+    # Sempre fechar o pool
+    pool.close()
 ```
 
 ### Geração de DDL

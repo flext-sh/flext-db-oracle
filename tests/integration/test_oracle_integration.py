@@ -1,4 +1,5 @@
 """Integration tests that would run against a real Oracle database.
+
 These tests are designed to be comprehensive but require a real Oracle database
 connection. They demonstrate the full functionality of the flext-infrastructure.databases.flext-db-oracle package.
 """
@@ -10,10 +11,10 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import FlextResult as ServiceResult
 
-from flext_db_oracle.application.services import OracleConnectionService
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.application.services import FlextDbOracleConnectionService
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.maintenance.health import HealthChecker
 from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 from flext_db_oracle.schema.ddl import DDLGenerator
@@ -30,9 +31,9 @@ class TestOracleIntegration:
     """Integration tests for Oracle database functionality."""
 
     @pytest.fixture
-    def oracle_config(self) -> OracleConfig:
+    def oracle_config(self) -> FlextDbOracleConfig:
         """Create Oracle configuration for testing."""
-        return OracleConfig(
+        return FlextDbOracleConfig(
             username=os.getenv("ORACLE_USERNAME", "testuser"),
             password=os.getenv("ORACLE_PASSWORD", "testpass"),
             service_name=os.getenv("ORACLE_SERVICE_NAME", "XE"),
@@ -43,10 +44,10 @@ class TestOracleIntegration:
     @pytest.fixture
     async def connection_service(
         self,
-        oracle_config: OracleConfig,
-    ) -> AsyncGenerator[OracleConnectionService]:
+        oracle_config: FlextDbOracleConfig,
+    ) -> AsyncGenerator[FlextDbOracleConnectionService]:
         """Create connection service for testing."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         # Mock the connection pool initialization and test connection
         with (
             patch.object(service, "initialize_pool") as mock_init,
@@ -59,7 +60,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_full_schema_analysis_workflow(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test complete schema analysis workflow."""
         analyzer = SchemaAnalyzer(connection_service)
@@ -273,7 +274,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_health_monitoring_workflow(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test comprehensive health monitoring workflow."""
         health_checker = HealthChecker(connection_service)
@@ -408,7 +409,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_query_optimization_workflow(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test SQL query optimization workflow."""
         optimizer = QueryOptimizer(connection_service)
@@ -503,7 +504,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_data_comparison_workflow(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test data comparison workflow."""
         from flext_db_oracle.compare.differ import DataDiffer
@@ -539,7 +540,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_end_to_end_database_analysis(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test complete end-to-end database analysis workflow."""
         # This would be a comprehensive test that exercises multiple components
@@ -641,7 +642,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_configuration_and_connection_workflow(
         self,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test Oracle configuration and connection workflow."""
         # Test configuration validation
@@ -657,7 +658,7 @@ class TestOracleIntegration:
         assert oracle_config.host in connection_string
         assert str(oracle_config.port) in connection_string
         # Test connection service creation
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         assert service.config == oracle_config
         # In real integration tests, we would test actual connection
         # For demonstration, we'll mock the connection pool initialization and test
@@ -677,7 +678,7 @@ class TestOracleIntegration:
     @pytest.mark.asyncio
     async def test_error_handling_and_resilience(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
     ) -> None:
         """Test error handling and resilience across components."""
         analyzer = SchemaAnalyzer(connection_service)

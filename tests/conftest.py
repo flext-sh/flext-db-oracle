@@ -54,22 +54,22 @@ async def oracle_connection(
     oracle_connection_config: dict[str, Any],
 ) -> AsyncGenerator[Any]:
     """Oracle database connection for testing."""
-    from flext_db_oracle.application.services import OracleConnectionService
-    from flext_db_oracle.config import OracleConfig
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
+    from flext_db_oracle.config import FlextDbOracleConfig
 
-    config = OracleConfig(**oracle_connection_config)
-    return OracleConnectionService(config)
+    config = FlextDbOracleConfig(**oracle_connection_config)
+    return FlextDbOracleConnectionService(config)  # type: ignore[return-value]
     # Mock connection initialization for testing
 
 
 @pytest.fixture
 async def oracle_pool(oracle_connection_config: dict[str, Any]) -> AsyncGenerator[Any]:
     """Oracle connection pool for testing."""
-    from flext_db_oracle.application.services import OracleConnectionService
-    from flext_db_oracle.config import OracleConfig
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
+    from flext_db_oracle.config import FlextDbOracleConfig
 
-    config = OracleConfig(**oracle_connection_config)
-    return OracleConnectionService(config)
+    config = FlextDbOracleConfig(**oracle_connection_config)
+    return FlextDbOracleConnectionService(config)  # type: ignore[return-value]
     # Mock pool for testing
 
 

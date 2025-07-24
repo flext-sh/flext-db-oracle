@@ -9,8 +9,11 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
@@ -45,6 +48,14 @@ class ParsedStatement(DomainValueObject):
     def is_query(self) -> bool:
         """Check if this is a query statement."""
         return self.statement_type.upper() == "SELECT"
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for parsed statement."""
+        # Basic SQL validation
+        if not self.sql_text.strip():
+            raise ValueError("SQL text cannot be empty")
+        if self.complexity_score < 0:
+            raise ValueError("Complexity score must be non-negative")
 
     @property
     def is_dml(self) -> bool:

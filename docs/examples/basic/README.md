@@ -13,7 +13,7 @@ Demonstrates secure connection establishment and basic query execution.
 """
 
 import asyncio
-from oracledb_core_shared import ConnectionConfig, OracleConnection
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection
 
 async def basic_connection_example():
     """Demonstrate basic database connection and query execution."""
@@ -36,7 +36,7 @@ async def basic_connection_example():
 
     try:
         # Establish connection
-        async with OracleConnection(config) as conn:
+        async with FlextDbOracleConnection(config) as conn:
             print("✅ Successfully connected to Oracle database")
 
             # Execute simple query
@@ -79,7 +79,7 @@ import os
 import asyncio
 from pathlib import Path
 import yaml
-from oracledb_core_shared import ConnectionConfig, OracleConnection
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection
 
 def load_config_from_env():
     """Load database configuration from environment variables."""
@@ -127,7 +127,7 @@ async def environment_config_example():
         file_config = env_config
 
     # Use the configuration
-    async with OracleConnection(file_config) as conn:
+    async with FlextDbOracleConnection(file_config) as conn:
         # Test connection with a simple query
         result = await conn.execute("""
             SELECT
@@ -186,7 +186,7 @@ Demonstrates how to analyze database schema structure.
 """
 
 import asyncio
-from oracledb_core_shared import ConnectionConfig, OracleConnection, SchemaAnalyzer
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection, SchemaAnalyzer
 
 async def schema_analysis_example():
     """Demonstrate basic schema analysis capabilities."""
@@ -199,7 +199,7 @@ async def schema_analysis_example():
         password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         # Initialize schema analyzer
         analyzer = SchemaAnalyzer(conn)
 
@@ -257,7 +257,7 @@ Shows how to generate CREATE statements for database objects.
 
 import asyncio
 from pathlib import Path
-from oracledb_core_shared import ConnectionConfig, OracleConnection, DDLGenerator
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection, DDLGenerator
 
 async def ddl_generation_example():
     """Demonstrate DDL generation for database objects."""
@@ -270,7 +270,7 @@ async def ddl_generation_example():
         password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         # Initialize DDL generator
         ddl_generator = DDLGenerator(conn)
 
@@ -334,7 +334,7 @@ Demonstrates basic CRUD operations with proper error handling.
 import asyncio
 from datetime import date, datetime
 from decimal import Decimal
-from oracledb_core_shared import ConnectionConfig, OracleConnection
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection
 
 async def data_operations_example():
     """Demonstrate basic data operations (CRUD)."""
@@ -347,7 +347,7 @@ async def data_operations_example():
         password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
 
         # CREATE - Insert new employee
         print("➕ Creating new employee...")
@@ -448,7 +448,7 @@ import asyncio
 from datetime import date, timedelta
 from decimal import Decimal
 import random
-from oracledb_core_shared import ConnectionConfig, OracleConnection
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection
 
 async def batch_operations_example():
     """Demonstrate efficient batch data operations."""
@@ -461,7 +461,7 @@ async def batch_operations_example():
         password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
 
         # Prepare test data
         print("📊 Preparing batch test data...")
@@ -583,7 +583,7 @@ Demonstrates efficient connection management for high-throughput applications.
 import asyncio
 import time
 from concurrent.futures import ThreadPoolExecutor
-from oracledb_core_shared import ConnectionConfig, ConnectionPool
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnectionPool
 
 async def connection_pooling_example():
     """Demonstrate connection pooling for performance."""
@@ -606,7 +606,7 @@ async def connection_pooling_example():
 
     # Create connection pool
     print("🏊 Creating connection pool...")
-    pool = ConnectionPool(config)
+    pool = FlextDbFlextDbOracleConnectionPool(config)
     await pool.initialize()
 
     print(f"✅ Pool created with {pool.current_size} connections")
@@ -702,10 +702,8 @@ Shows how to analyze and optimize SQL queries.
 """
 
 import asyncio
-from oracledb_core_shared import (
-    ConnectionConfig, OracleConnection,
-    SQLParser, QueryOptimizer
-)
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
+from flext_db_oracle.sql import SQLParser, QueryOptimizer
 
 async def query_optimization_example():
     """Demonstrate query analysis and optimization."""
@@ -718,7 +716,7 @@ async def query_optimization_example():
         password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
 
         # Original (potentially inefficient) query
         original_query = """
@@ -822,9 +820,9 @@ Demonstrates proper error handling and recovery strategies.
 
 import asyncio
 import logging
-from oracledb_core_shared import (
-    ConnectionConfig, OracleConnection,
-    ConnectionError, SQLError, ValidationError
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
+from flext_db_oracle.utils.exceptions import (
+    FlextDbOracleFlextDbOracleConnectionError, FlextDbOracleQueryError, FlextDbOracleFlextDbOracleValidationError
 )
 
 # Configure logging
@@ -850,7 +848,7 @@ async def error_handling_example():
 
     try:
         # Attempt connection with retry logic
-        async with OracleConnection(config) as conn:
+        async with FlextDbOracleConnection(config) as conn:
             print("✅ Connection successful")
 
             # Example 2: SQL execution errors
@@ -860,7 +858,7 @@ async def error_handling_example():
                 # Intentional syntax error
                 await conn.execute("SELEC * FROM employees")  # Missing 'T'
 
-            except SQLError as e:
+            except FlextDbOracleQueryError as e:
                 logger.error(f"SQL Error: {e.message}")
                 logger.error(f"Error code: {e.error_code}")
                 logger.error(f"SQL: {e.sql}")
@@ -883,7 +881,7 @@ async def error_handling_example():
                     VALUES (100, 'Test', 'User', 'EXISTING_EMAIL', SYSDATE, 'IT_PROG')
                 """)
 
-            except SQLError as e:
+            except FlextDbOracleQueryError as e:
                 if "unique constraint" in e.message.lower():
                     logger.warning("Duplicate key detected, attempting update instead...")
 
@@ -925,7 +923,7 @@ async def error_handling_example():
 
                 await conn.commit()
 
-            except SQLError as e:
+            except FlextDbOracleQueryError as e:
                 logger.error(f"Transaction failed: {e.message}")
                 logger.info("Rolling back transaction...")
                 await conn.rollback()
@@ -947,7 +945,7 @@ async def error_handling_example():
                 # Cursor is automatically closed here
                 print("✅ Cursor properly closed")
 
-    except ConnectionError as e:
+    except FlextDbOracleConnectionError as e:
         logger.error(f"Connection failed after retries: {e.message}")
         logger.info("Attempting fallback connection strategy...")
 
@@ -962,7 +960,7 @@ async def error_handling_example():
         )
 
         try:
-            async with OracleConnection(fallback_config) as conn:
+            async with FlextDbOracleConnection(fallback_config) as conn:
                 print("✅ Fallback connection successful")
 
                 # Verify connection with simple query
@@ -984,10 +982,10 @@ def handle_database_errors(func):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except ConnectionError as e:
+        except FlextDbOracleConnectionError as e:
             logger.error(f"Database connection error in {func.__name__}: {e}")
             raise
-        except SQLError as e:
+        except FlextDbOracleQueryError as e:
             logger.error(f"SQL error in {func.__name__}: {e}")
             raise
         except Exception as e:
@@ -1003,7 +1001,7 @@ async def example_function_with_error_handling():
         user="hr", password="password"
     )
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         result = await conn.execute("SELECT COUNT(*) FROM employees")
         count = await result.fetchone()
         return count[0]

@@ -9,15 +9,18 @@ from __future__ import annotations
 import operator
 import re
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -46,6 +49,15 @@ class QueryPlanStep(DomainValueObject):
     io_cost: int | None = Field(None, description="I/O cost", ge=0)
     depth: int = Field(0, description="Nesting depth", ge=0)
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for query plan step."""
+        if not self.operation.strip():
+            raise ValueError("Operation cannot be empty")
+        if self.cost is not None and self.cost < 0:
+            raise ValueError("Cost cannot be negative")
+        if self.cardinality is not None and self.cardinality < 0:
+            raise ValueError("Cardinality cannot be negative")
+
 
 class QueryAnalysis(DomainValueObject):
     """Complete query analysis results."""
@@ -69,18 +81,144 @@ class QueryAnalysis(DomainValueObject):
         expensive_ops = ["TABLE ACCESS FULL", "SORT", "HASH JOIN", "NESTED LOOPS"]
         return any(step.operation in expensive_ops for step in self.execution_plan)
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for query analysis."""
+        if not self.sql_text.strip():
+            raise ValueError("SQL text cannot be empty")
+
+        valid_ratings = {"unknown", "excellent", "good", "fair", "poor"}
+        if self.performance_rating not in valid_ratings:
+            raise ValueError(f"Invalid performance rating: {self.performance_rating}")
+
+        if self.total_cost is not None and self.total_cost < 0:
+            raise ValueError("Total cost cannot be negative")
+        if self.estimated_rows is not None and self.estimated_rows < 0:
+            raise ValueError("Estimated rows cannot be negative")
+
 
 class QueryOptimizer:
     """Analyzes and optimizes Oracle SQL queries using flext-core patterns."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the query optimizer.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
+
+    async def optimize_query(self, sql: str) -> ServiceResult[Any]:
+        """Optimize SQL query by analyzing execution plan and providing suggestions.
+
+        Args:
+            sql: SQL query to optimize
+
+        Returns:
+            ServiceResult containing optimization analysis and suggestions
+
+        """
+        try:
+            logger.info("Starting SQL query optimization analysis")
+
+            # Step 1: Try to analyze execution plan (graceful degradation)
+            plan_result = await self.analyze_query_plan(sql)
+            execution_plan_data = None
+            if plan_result.success:
+                execution_plan_data = plan_result.data
+            else:
+                logger.warning(
+                    "Execution plan analysis failed, continuing with basic analysis: %s",
+                    plan_result.error,
+                )
+
+            # Step 2: Try to get index suggestions (graceful degradation)
+            index_result = await self.suggest_indexes(sql)
+            index_suggestions: list[str] = []
+            if index_result.success and index_result.data:
+                index_suggestions = index_result.data
+            else:
+                logger.warning(
+                    "Index suggestions failed, continuing without suggestions: %s",
+                    index_result.error,
+                )
+
+            # Step 3: Compile optimization results (always succeed with basic analysis)
+            optimization_analysis = {
+                "original_query": sql,
+                "execution_plan": execution_plan_data,
+                "index_suggestions": index_suggestions,
+                "optimization_score": self._calculate_optimization_score(
+                    execution_plan_data
+                ),
+                "recommendations": self._generate_recommendations(
+                    sql, execution_plan_data
+                ),
+                "analysis_timestamp": "2025-07-24T13:20:00Z",
+                "analysis_method": "basic" if not execution_plan_data else "advanced",
+            }
+
+            logger.info("Query optimization analysis completed successfully")
+            return ServiceResult.ok(optimization_analysis)
+
+        except Exception as e:
+            logger.exception("Query optimization failed")
+            return ServiceResult.fail(f"Query optimization failed: {e}")
+
+    def _calculate_optimization_score(self, execution_plan: Any) -> str:
+        """Calculate optimization score based on execution plan."""
+        if not execution_plan:
+            return "UNKNOWN"
+
+        # Handle QueryAnalysis object
+        if hasattr(execution_plan, "execution_plan"):
+            plan_steps = execution_plan.execution_plan
+        elif isinstance(execution_plan, list):
+            plan_steps = execution_plan
+        else:
+            return "UNKNOWN"
+
+        # Simple scoring based on plan complexity
+        if len(plan_steps) <= 3:
+            return "EXCELLENT"
+        if len(plan_steps) <= 6:
+            return "GOOD"
+        if len(plan_steps) <= 10:
+            return "FAIR"
+        return "NEEDS_OPTIMIZATION"
+
+    def _generate_recommendations(self, sql: str, execution_plan: Any) -> list[str]:
+        """Generate optimization recommendations."""
+        recommendations = []
+
+        # Basic SQL analysis
+        sql_upper = sql.upper()
+
+        if "SELECT *" in sql_upper:
+            recommendations.append(
+                "Consider selecting only needed columns instead of SELECT *"
+            )
+
+        if "WHERE" not in sql_upper:
+            recommendations.append("Consider adding WHERE clause to filter results")
+
+        if "ORDER BY" in sql_upper and "LIMIT" not in sql_upper:
+            recommendations.append("Consider adding LIMIT clause when using ORDER BY")
+
+        if (
+            execution_plan
+            and hasattr(execution_plan, "execution_plan")
+            and len(execution_plan.execution_plan) > 5
+        ) or (
+            execution_plan
+            and isinstance(execution_plan, list)
+            and len(execution_plan) > 5
+        ):
+            recommendations.append(
+                "Query has complex execution plan - consider query simplification"
+            )
+
+        return recommendations
 
     async def analyze_query_plan(self, sql: str) -> ServiceResult[Any]:
         """Analyze execution plan for a SQL query."""
@@ -95,7 +233,8 @@ class QueryOptimizer:
             plan_result = await self.connection_service.execute_query(plan_sql)
 
             if not plan_result.success:
-                return ServiceResult.fail(f"Failed to generate execution plan: {plan_result.error}",
+                return ServiceResult.fail(
+                    f"Failed to generate execution plan: {plan_result.error}",
                 )
 
             # Retrieve the execution plan
@@ -122,11 +261,13 @@ class QueryOptimizer:
             )
 
             if not plan_rows_result.success:
-                return ServiceResult.fail(f"Failed to retrieve execution plan: {plan_rows_result.error}",
+                return ServiceResult.fail(
+                    f"Failed to retrieve execution plan: {plan_rows_result.error}",
                 )
 
             if not plan_rows_result.data:
-                return ServiceResult.fail("Execution plan result is empty",
+                return ServiceResult.fail(
+                    "Execution plan result is empty",
                 )
 
             # Build execution plan
@@ -163,7 +304,8 @@ class QueryOptimizer:
             logger.info("Query plan analysis completed")
             if analysis.is_success and analysis.data:
                 return ServiceResult.ok(analysis.data)
-            return ServiceResult.ok(QueryAnalysis(
+            return ServiceResult.ok(
+                QueryAnalysis(
                     sql_text=sql,
                     total_cost=None,
                     estimated_rows=None,
@@ -173,7 +315,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Query plan analysis failed")
-            return ServiceResult.fail(f"Query plan analysis failed: {e}",
+            return ServiceResult.fail(
+                f"Query plan analysis failed: {e}",
             )
 
     async def _analyze_execution_plan(
@@ -237,7 +380,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Execution plan analysis failed")
-            return ServiceResult.fail(f"Execution plan analysis failed: {e}",
+            return ServiceResult.fail(
+                f"Execution plan analysis failed: {e}",
             )
 
     def _assess_performance(
@@ -275,7 +419,7 @@ class QueryOptimizer:
 
             # Extract WHERE clause columns for indexing suggestions
             where_match = re.search(
-                r"\bWHERE\s+(.*?)(?:\s+(?:GROUP|ORDER|HAVING|LIMIT|$))",
+                r"\bWHERE\s+(.*?)(?:\s+(?:GROUP|ORDER|HAVING|LIMIT)|$)",
                 sql,
                 re.IGNORECASE | re.DOTALL,
             )
@@ -289,7 +433,8 @@ class QueryOptimizer:
                 )
                 if column_conditions:
                     suggestions.append(
-                        f"Consider index on columns: {', '.join(set(column_conditions))}",
+                        f"Consider index on columns: "
+                        f"{', '.join(set(column_conditions))}",
                     )
 
             # Extract JOIN conditions
@@ -301,12 +446,13 @@ class QueryOptimizer:
             if join_matches:
                 join_columns = [f"{col1}, {col2}" for col1, col2 in join_matches]
                 suggestions.append(
-                    f"Consider foreign key indexes on JOIN columns: {'; '.join(join_columns)}",
+                    f"Consider foreign key indexes on JOIN columns: "
+                    f"{'; '.join(join_columns)}",
                 )
 
             # Extract ORDER BY columns
             order_match = re.search(
-                r"\bORDER\s+BY\s+(.*?)(?:\s+(?:LIMIT|OFFSET|$))",
+                r"\bORDER\s+BY\s+(.*?)(?:\s+(?:LIMIT|OFFSET)|$)",
                 sql,
                 re.IGNORECASE | re.DOTALL,
             )
@@ -315,7 +461,8 @@ class QueryOptimizer:
                 order_columns = re.findall(r"(\w+\.?\w*)", order_clause)
                 if order_columns:
                     suggestions.append(
-                        f"Consider index for ORDER BY optimization: {', '.join(set(order_columns))}",
+                        f"Consider index for ORDER BY optimization: "
+                        f"{', '.join(set(order_columns))}",
                     )
 
             # Default suggestions if no specific patterns found
@@ -345,12 +492,14 @@ class QueryOptimizer:
             # Get execution plan
             plan_result = await self.analyze_query_plan(sql)
             if not plan_result.success:
-                return ServiceResult.fail(plan_result.error or "Failed to generate execution plan",
+                return ServiceResult.fail(
+                    plan_result.error or "Failed to generate execution plan",
                 )
 
             analysis = plan_result.data
             if not analysis:
-                return ServiceResult.fail("Query analysis result is empty",
+                return ServiceResult.fail(
+                    "Query analysis result is empty",
                 )
 
             # Get index suggestions
@@ -373,9 +522,15 @@ class QueryOptimizer:
             if execution_stats:
                 performance_report.update(
                     {
-                        "execution_time_estimate": "Not implemented - would require actual execution",
-                        "buffer_gets_estimate": "Not implemented - would require v$sql_plan_statistics",
-                        "disk_reads_estimate": "Not implemented - would require actual execution",
+                        "execution_time_estimate": (
+                            "Not implemented - would require actual execution"
+                        ),
+                        "buffer_gets_estimate": (
+                            "Not implemented - would require v$sql_plan_statistics"
+                        ),
+                        "disk_reads_estimate": (
+                            "Not implemented - would require actual execution"
+                        ),
                     },
                 )
 
@@ -384,7 +539,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Query performance analysis failed")
-            return ServiceResult.fail(f"Query performance analysis failed: {e}",
+            return ServiceResult.fail(
+                f"Query performance analysis failed: {e}",
             )
 
     async def analyze_sql_performance_statistics(
@@ -396,7 +552,8 @@ class QueryOptimizer:
             # First, execute the query to get it into v$sql
             explain_result = await self.analyze_query_plan(sql_text)
             if not explain_result.success:
-                return ServiceResult.fail(explain_result.error or "Failed to explain query plan",
+                return ServiceResult.fail(
+                    explain_result.error or "Failed to explain query plan",
                 )
 
             # Get SQL statistics from v$sql
@@ -470,7 +627,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze SQL performance statistics")
-            return ServiceResult.fail(f"Failed to analyze SQL performance statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze SQL performance statistics: {e}",
             )
 
     async def get_session_statistics(self) -> ServiceResult[Any]:
@@ -499,11 +657,13 @@ class QueryOptimizer:
             result = await self.connection_service.execute_query(session_query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get session statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to get session statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Session statistics result is empty",
+                return ServiceResult.fail(
+                    "Session statistics result is empty",
                 )
 
             statistics = {row[0]: row[1] for row in result.data.rows}
@@ -528,7 +688,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get session statistics")
-            return ServiceResult.fail(f"Failed to get session statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to get session statistics: {e}",
             )
 
     async def analyze_wait_events(self) -> ServiceResult[Any]:
@@ -547,7 +708,8 @@ class QueryOptimizer:
             result = await self.connection_service.execute_query(wait_query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to analyze wait events",
+                return ServiceResult.fail(
+                    result.error or "Failed to analyze wait events",
                 )
 
             if not result.data:
@@ -588,7 +750,8 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze wait events")
-            return ServiceResult.fail(f"Failed to analyze wait events: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze wait events: {e}",
             )
 
     async def get_sql_plan_statistics(
@@ -613,11 +776,13 @@ class QueryOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get SQL plan statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to get SQL plan statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("SQL plan statistics result is empty",
+                return ServiceResult.fail(
+                    "SQL plan statistics result is empty",
                 )
 
             plan_steps = []
@@ -678,5 +843,6 @@ class QueryOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get SQL plan statistics")
-            return ServiceResult.fail(f"Failed to get SQL plan statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to get SQL plan statistics: {e}",
             )

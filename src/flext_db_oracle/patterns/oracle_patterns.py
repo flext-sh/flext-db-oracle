@@ -14,20 +14,20 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any
 
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import FlextResult as ServiceResult
 
 logger = logging.getLogger(__name__)
 
 
-class OracleValidationError(Exception):
+class FlextDbOracleValidationError(Exception):
     """Oracle validation error."""
 
 
-class OracleCriticalValidationError(Exception):
+class FlextDbOracleCriticalValidationError(Exception):
     """Critical Oracle validation error that requires immediate abort."""
 
 
-class BaseOracleValidator(ABC):
+class FlextDbOracleBaseValidator(ABC):
     """Base class for Oracle validation patterns.
 
     Provides common validation patterns used across Oracle projects:
@@ -136,7 +136,7 @@ class BaseOracleValidator(ABC):
         """Validate Oracle connection configuration.
 
         Args:
-            config: Oracle connection configuration
+            config: FlextDbOracle connection configuration
 
         Returns:
             ServiceResult indicating validation success or failure
@@ -152,7 +152,8 @@ class BaseOracleValidator(ABC):
             ]
 
             if missing_fields:
-                return ServiceResult.fail(f"Missing required Oracle connection fields: {missing_fields}",
+                return ServiceResult.fail(
+                    f"Missing required Oracle connection fields: {missing_fields}",
                 )
 
             # Validate port range
@@ -172,7 +173,7 @@ class BaseOracleValidator(ABC):
             return ServiceResult.fail(f"Oracle connection validation failed: {e}")
 
 
-class OracleWMSValidator(BaseOracleValidator):
+class FlextDbOracleWMSValidator(FlextDbOracleBaseValidator):
     """Oracle WMS-specific validation patterns.
 
     Provides WMS-specific validation rules common across WMS projects.
@@ -367,7 +368,7 @@ class OracleWMSValidator(BaseOracleValidator):
         return errors
 
 
-class OracleTapValidator(BaseOracleValidator):
+class FlextDbOracleTapValidator(FlextDbOracleBaseValidator):
     """Oracle Tap-specific validation patterns."""
 
     def get_critical_env_vars(self) -> dict[str, Any]:
@@ -384,7 +385,7 @@ class OracleTapValidator(BaseOracleValidator):
         }
 
 
-class OracleTargetValidator(BaseOracleValidator):
+class FlextDbOracleTargetValidator(FlextDbOracleBaseValidator):
     """Oracle Target-specific validation patterns."""
 
     def get_critical_env_vars(self) -> dict[str, Any]:

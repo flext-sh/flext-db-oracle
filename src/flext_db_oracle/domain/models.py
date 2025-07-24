@@ -10,20 +10,19 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from flext_core import Field
-from pydantic import field_validator
+from pydantic import Field, field_validator
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
 
 from flext_core import (
-    DomainEntity,
-    DomainValueObject,
-    EntityId,
+    FlextEntity as DomainEntity,
+    FlextEntityId as EntityId,
+    FlextValueObject as DomainValueObject,
 )
 
 
-class OracleConnectionInfo(DomainValueObject):
+class FlextDbOracleConnectionInfo(DomainValueObject):
     """Oracle database connection configuration."""
 
     host: str = Field(..., description="Database host")
@@ -53,8 +52,15 @@ class OracleConnectionInfo(DomainValueObject):
         service = self.service_name or self.sid
         return f"oracle://{self.username}:***@{self.host}:{self.port}/{service}"
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for connection info."""
+        if not self.host.strip():
+            raise ValueError("Host cannot be empty")
+        if not self.username.strip():
+            raise ValueError("Username cannot be empty")
 
-class OracleColumnInfo(DomainValueObject):
+
+class FlextDbOracleColumnInfo(DomainValueObject):
     """Oracle table column metadata."""
 
     name: str = Field(..., description="Column name")
@@ -74,14 +80,21 @@ class OracleColumnInfo(DomainValueObject):
     )
     comments: str | None = Field(None, description="Column comments")
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.name.strip():
+            raise ValueError("Column name cannot be empty")
+        if not self.data_type.strip():
+            raise ValueError("Data type cannot be empty")
 
-class OracleTableMetadata(DomainEntity):
+
+class FlextDbOracleTableMetadata(DomainEntity):
     """Oracle table metadata entity."""
 
-    id: EntityId = Field(default_factory=uuid4)
+    id: EntityId = Field(default_factory=lambda: str(uuid4()))
     schema_name: str = Field(..., description="Schema name")
     table_name: str = Field(..., description="Table name")
-    columns: list[OracleColumnInfo] = Field(
+    columns: list[FlextDbOracleColumnInfo] = Field(
         default_factory=list,
         description="Table columns",
     )
@@ -100,12 +113,19 @@ class OracleTableMetadata(DomainEntity):
         """Get list of primary key column names."""
         return [col.name for col in self.columns if col.is_primary_key]
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.schema_name.strip():
+            raise ValueError("Schema name cannot be empty")
+        if not self.table_name.strip():
+            raise ValueError("Table name cannot be empty")
 
-class OracleSchemaInfo(DomainValueObject):
+
+class FlextDbOracleSchemaInfo(DomainValueObject):
     """Oracle schema information."""
 
     name: str = Field(..., description="Schema name")
-    tables: list[OracleTableMetadata] = Field(
+    tables: list[FlextDbOracleTableMetadata] = Field(
         default_factory=list,
         description="Schema tables",
     )
@@ -117,8 +137,13 @@ class OracleSchemaInfo(DomainValueObject):
         """Get list of table names in schema."""
         return [table.table_name for table in self.tables]
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.name.strip():
+            raise ValueError("Schema name cannot be empty")
 
-class OracleQueryResult(DomainValueObject):
+
+class FlextDbOracleQueryResult(DomainValueObject):
     """Result of Oracle query execution."""
 
     rows: list[tuple[Any, ...]] = Field(
@@ -144,8 +169,15 @@ class OracleQueryResult(DomainValueObject):
             row[column_index] if column_index < len(row) else None for row in self.rows
         ]
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if self.row_count < 0:
+            raise ValueError("Row count cannot be negative")
+        if self.execution_time_ms < 0:
+            raise ValueError("Execution time cannot be negative")
 
-class OracleConnectionStatus(DomainValueObject):
+
+class FlextDbOracleConnectionStatus(DomainValueObject):
     """Oracle connection health status."""
 
     is_connected: bool = Field(..., description="Connection status")
@@ -166,3 +198,10 @@ class OracleConnectionStatus(DomainValueObject):
     def connection_info(self) -> str:
         """Get formatted connection information."""
         return f"{self.username}@{self.host}:{self.port}/{self.database}"
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.host.strip():
+            raise ValueError("Host cannot be empty")
+        if not self.username.strip():
+            raise ValueError("Username cannot be empty")

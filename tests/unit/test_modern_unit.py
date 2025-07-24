@@ -12,12 +12,12 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.config import FlextDbOracleConfig
 
 
 def test_oracle_config_creation() -> None:
     """Test Oracle configuration creation with valid parameters."""
-    config = OracleConfig(
+    config = FlextDbOracleConfig(
         username="test_user",
         password="test_password",
         service_name="XE",
@@ -33,7 +33,7 @@ def test_oracle_config_creation() -> None:
 def test_oracle_config_validation_missing_service_and_sid() -> None:
     """Test that validation fails when both service_name and sid are missing."""
     with pytest.raises(ValidationError):
-        OracleConfig(
+        FlextDbOracleConfig(
             username="test_user",
             password="test_password",
         )
@@ -41,7 +41,7 @@ def test_oracle_config_validation_missing_service_and_sid() -> None:
 
 def test_oracle_config_connection_string() -> None:
     """Test connection string generation for logging."""
-    config = OracleConfig(
+    config = FlextDbOracleConfig(
         username="test_user",
         password="test_password",
         service_name="XE",
@@ -56,7 +56,7 @@ def test_oracle_config_connection_string() -> None:
 def test_oracle_config_pool_validation() -> None:
     """Test pool size validation."""
     with pytest.raises(ValidationError):
-        OracleConfig(
+        FlextDbOracleConfig(
             username="test_user",
             password="test_password",
             service_name="XE",

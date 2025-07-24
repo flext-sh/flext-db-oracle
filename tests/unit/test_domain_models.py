@@ -8,19 +8,19 @@ from __future__ import annotations
 from datetime import datetime
 
 from flext_db_oracle.domain.models import (
-    OracleConnectionStatus,
-    OracleQueryResult,
-    OracleSchemaInfo,
-    OracleTableMetadata,
+    FlextDbOracleConnectionStatus,
+    FlextDbOracleQueryResult,
+    FlextDbOracleSchemaInfo,
+    FlextDbOracleTableMetadata,
 )
 
 
-class TestOracleConnectionStatus:
+class TestFlextDbOracleConnectionStatus:
     """Test Oracle connection status model."""
 
     def test_connection_status_creation_success(self) -> None:
         """Test successful connection status creation."""
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=True,
             host="testhost",
             port=1521,
@@ -36,7 +36,7 @@ class TestOracleConnectionStatus:
 
     def test_connection_status_creation_disconnected(self) -> None:
         """Test disconnected connection status creation."""
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=False,
             host="testhost",
             port=1521,
@@ -54,7 +54,7 @@ class TestOracleConnectionStatus:
 
     def test_connection_status_properties(self) -> None:
         """Test connection status properties."""
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=True,
             host="testhost",
             port=1521,
@@ -72,7 +72,7 @@ class TestOracleConnectionStatus:
     def test_connection_status_validation(self) -> None:
         """Test connection status validation."""
         # Should work with all required fields
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=True,
             host="host",
             port=1521,
@@ -82,7 +82,7 @@ class TestOracleConnectionStatus:
         assert status.is_connected is True
 
         # Test with error message
-        status_with_error = OracleConnectionStatus(
+        status_with_error = FlextDbOracleConnectionStatus(
             is_connected=False,
             host="host",
             port=1521,
@@ -94,12 +94,12 @@ class TestOracleConnectionStatus:
         assert status_with_error.error_message == "Failed to connect"
 
 
-class TestOracleQueryResult:
+class TestFlextDbOracleQueryResult:
     """Test Oracle query result model."""
 
     def test_query_result_creation(self) -> None:
         """Test query result creation with data."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[(1, "test"), (2, "data")],
             columns=["id", "name"],
             row_count=2,
@@ -115,7 +115,7 @@ class TestOracleQueryResult:
 
     def test_query_result_empty(self) -> None:
         """Test empty query result."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[],
             columns=[],
             row_count=0,
@@ -129,7 +129,7 @@ class TestOracleQueryResult:
 
     def test_query_result_defaults(self) -> None:
         """Test query result with default values."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[(1,)],
             columns=["col1"],
         )
@@ -141,7 +141,7 @@ class TestOracleQueryResult:
 
     def test_query_result_properties(self) -> None:
         """Test query result computed properties."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[(1, "a"), (2, "b"), (3, "c")],
             columns=["id", "value"],
             row_count=3,
@@ -163,7 +163,7 @@ class TestOracleQueryResult:
     def test_query_result_large_dataset(self) -> None:
         """Test query result with larger dataset."""
         rows = [(i, f"value_{i}") for i in range(100)]
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=rows,
             columns=["id", "value"],
             row_count=100,
@@ -176,12 +176,12 @@ class TestOracleQueryResult:
         assert result.row_count == 100
 
 
-class TestOracleTableMetadata:
+class TestFlextDbOracleTableMetadata:
     """Test Oracle table metadata model."""
 
     def test_table_metadata_creation(self) -> None:
         """Test table metadata creation."""
-        metadata = OracleTableMetadata(
+        metadata = FlextDbOracleTableMetadata(
             table_name="TEST_TABLE",
             schema_name="TEST_SCHEMA",
             row_count=1000,
@@ -195,7 +195,7 @@ class TestOracleTableMetadata:
 
     def test_table_metadata_minimal(self) -> None:
         """Test table metadata with minimal required fields."""
-        metadata = OracleTableMetadata(
+        metadata = FlextDbOracleTableMetadata(
             table_name="SIMPLE_TABLE",
             schema_name="SCHEMA",
         )
@@ -207,7 +207,7 @@ class TestOracleTableMetadata:
 
     def test_table_metadata_properties(self) -> None:
         """Test table metadata computed properties."""
-        metadata = OracleTableMetadata(
+        metadata = FlextDbOracleTableMetadata(
             table_name="LARGE_TABLE",
             schema_name="PROD_SCHEMA",
             row_count=5000000,
@@ -221,7 +221,7 @@ class TestOracleTableMetadata:
     def test_table_metadata_validation(self) -> None:
         """Test table metadata validation."""
         # Should work with valid data
-        metadata = OracleTableMetadata(
+        metadata = FlextDbOracleTableMetadata(
             table_name="VALID_TABLE",
             schema_name="VALID_SCHEMA",
             row_count=500,
@@ -232,12 +232,12 @@ class TestOracleTableMetadata:
         assert metadata.row_count == 500
 
 
-class TestOracleSchemaInfo:
+class TestFlextDbOracleSchemaInfo:
     """Test Oracle schema info model."""
 
     def test_schema_info_creation(self) -> None:
         """Test schema info creation."""
-        schema_info = OracleSchemaInfo(
+        schema_info = FlextDbOracleSchemaInfo(
             name="TEST_SCHEMA",
             table_count=15,
         )
@@ -247,7 +247,7 @@ class TestOracleSchemaInfo:
 
     def test_schema_info_minimal(self) -> None:
         """Test schema info with minimal data."""
-        schema_info = OracleSchemaInfo(
+        schema_info = FlextDbOracleSchemaInfo(
             name="MINIMAL_SCHEMA",
         )
 
@@ -257,10 +257,14 @@ class TestOracleSchemaInfo:
     def test_schema_info_properties(self) -> None:
         """Test schema info computed properties."""
         # Create some test tables
-        table1 = OracleTableMetadata(table_name="TABLE1", schema_name="FULL_SCHEMA")
-        table2 = OracleTableMetadata(table_name="TABLE2", schema_name="FULL_SCHEMA")
+        table1 = FlextDbOracleTableMetadata(
+            table_name="TABLE1", schema_name="FULL_SCHEMA"
+        )
+        table2 = FlextDbOracleTableMetadata(
+            table_name="TABLE2", schema_name="FULL_SCHEMA"
+        )
 
-        schema_info = OracleSchemaInfo(
+        schema_info = FlextDbOracleSchemaInfo(
             name="FULL_SCHEMA",
             table_count=2,
             tables=[table1, table2],
@@ -272,7 +276,7 @@ class TestOracleSchemaInfo:
 
     def test_schema_info_empty(self) -> None:
         """Test empty schema info."""
-        schema_info = OracleSchemaInfo(
+        schema_info = FlextDbOracleSchemaInfo(
             name="EMPTY_SCHEMA",
             table_count=0,
         )
@@ -289,7 +293,7 @@ class TestModelIntegration:
     def test_models_work_together(self) -> None:
         """Test that models can be used together."""
         # Create connection status
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=True,
             host="localhost",
             port=1521,
@@ -298,21 +302,21 @@ class TestModelIntegration:
         )
 
         # Create query result
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[(1, "table1"), (2, "table2")],
             columns=["id", "name"],
             row_count=2,
         )
 
         # Create table metadata
-        metadata = OracleTableMetadata(
+        metadata = FlextDbOracleTableMetadata(
             table_name="table1",
             schema_name="TESTSCHEMA",
             row_count=100,
         )
 
         # Create schema info
-        schema_info = OracleSchemaInfo(
+        schema_info = FlextDbOracleSchemaInfo(
             name="TESTSCHEMA",
             table_count=2,
             tables=[metadata],
@@ -330,7 +334,7 @@ class TestModelIntegration:
 
     def test_model_serialization(self) -> None:
         """Test that models can be serialized."""
-        status = OracleConnectionStatus(
+        status = FlextDbOracleConnectionStatus(
             is_connected=True,
             host="localhost",
             port=1521,
@@ -349,7 +353,7 @@ class TestModelIntegration:
             assert status_dict["is_connected"] is True
 
         # Test that we can create a new instance
-        new_status = OracleConnectionStatus(
+        new_status = FlextDbOracleConnectionStatus(
             is_connected=False,
             host="localhost",
             port=1521,

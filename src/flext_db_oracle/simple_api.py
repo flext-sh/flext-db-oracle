@@ -6,16 +6,20 @@ Built on flext-core foundation following enterprise patterns.
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
-from flext_core.domain.shared_types import ServiceResult
-from flext_observability.logging import setup_logging
+from flext_core import FlextResult as ServiceResult
+
+# from flext_observability.logging import setup_logging  # Disabled due to API mismatch
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
-from flext_db_oracle.application.services import OracleConnectionService
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.application.services import FlextDbOracleConnectionService
+from flext_db_oracle.config import FlextDbOracleConfig
 
 
-def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[Any]:
+def flext_db_oracle_setup_oracle_db(
+    config: FlextDbOracleConfig | None = None,
+) -> ServiceResult[Any]:
     """Set up Oracle database configuration using flext-core patterns.
 
     Args:
@@ -29,13 +33,16 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[Any]:
         if config is None:
             # Create default config with explicit parameters to satisfy MyPy
             # NOTE: This is for development/testing. Use environment variables in production.
-            config = OracleConfig(
+            config = FlextDbOracleConfig(
                 host=os.getenv("ORACLE_HOST", "localhost"),
                 port=int(os.getenv("ORACLE_PORT", "1521")),
                 service_name=os.getenv("ORACLE_SERVICE_NAME", "XE"),
                 sid=None,
                 username=os.getenv("ORACLE_USERNAME", "oracle"),
-                password=os.getenv("ORACLE_PASSWORD", "oracle"),  # nosec: default for dev/test
+                password=os.getenv(
+                    "ORACLE_PASSWORD",
+                    "oracle",
+                ),  # nosec: default for dev/test
                 protocol="tcp",
                 pool_min_size=1,
                 pool_max_size=10,
@@ -47,8 +54,7 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[Any]:
                 retry_delay=1.0,
             )
 
-        # Setup logging using flext-infrastructure.monitoring.flext-observability
-        setup_logging()
+        # Note: logging setup is handled by the individual services
 
         return ServiceResult.ok(config)
 
@@ -56,38 +62,40 @@ def setup_oracle_db(config: OracleConfig | None = None) -> ServiceResult[Any]:
         return ServiceResult.fail(f"Failed to setup Oracle DB: {e}")
 
 
-def create_connection_service(
-    config: OracleConfig,
+def flext_db_oracle_create_connection_service(
+    config: FlextDbOracleConfig,
 ) -> ServiceResult[Any]:
     """Create Oracle connection service from config.
 
     Args:
-        config: OracleConfig instance.
+        config: FlextDbOracleConfig instance.
 
     Returns:
         ServiceResult containing the connection service.
 
     """
     try:
-        service = OracleConnectionService(config)
+        service = FlextDbOracleConnectionService(config)
         return ServiceResult.ok(service)
 
     except (ValueError, TypeError, AttributeError) as e:
         return ServiceResult.fail(f"Failed to create connection service: {e}")
 
 
-async def test_connection(config: OracleConfig) -> ServiceResult[Any]:
+async def flext_db_oracle_test_connection(
+    config: FlextDbOracleConfig,
+) -> ServiceResult[Any]:
     """Test Oracle database connection using flext-core service.
 
     Args:
-        config: OracleConfig instance.
+        config: FlextDbOracleConfig instance.
 
     Returns:
         ServiceResult containing test result.
 
     """
     try:
-        service_result = create_connection_service(config)
+        service_result = flext_db_oracle_create_connection_service(config)
         if not service_result.success:
             return ServiceResult.fail(f"Connection test failed: {service_result.error}")
 
@@ -115,18 +123,20 @@ async def test_connection(config: OracleConfig) -> ServiceResult[Any]:
         return ServiceResult.fail(f"Connection test failed: {e}")
 
 
-async def get_database_info(config: OracleConfig) -> ServiceResult[Any]:
+async def flext_db_oracle_get_database_info(
+    config: FlextDbOracleConfig,
+) -> ServiceResult[Any]:
     """Get Oracle database information using flext-core service.
 
     Args:
-        config: OracleConfig instance.
+        config: FlextDbOracleConfig instance.
 
     Returns:
         ServiceResult containing database information.
 
     """
     try:
-        service_result = create_connection_service(config)
+        service_result = flext_db_oracle_create_connection_service(config)
         if not service_result.success:
             return ServiceResult.fail(f"Failed to get DB info: {service_result.error}")
 
@@ -135,7 +145,8 @@ async def get_database_info(config: OracleConfig) -> ServiceResult[Any]:
             return ServiceResult.fail("Failed to create connection service")
 
         # Get database info using service
-        return await service.get_database_info()
+        result = await service.get_database_info()
+        return cast("ServiceResult[Any]", result)
 
     except (DatabaseError, InterfaceError, OperationalError) as e:
         return ServiceResult.fail(f"Failed to get database info: {e}")

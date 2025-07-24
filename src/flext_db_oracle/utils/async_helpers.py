@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
-def run_async_in_sync_context[T](awaitable: Awaitable[T]) -> T:
+def flext_db_oracle_run_async_in_sync_context[T](awaitable: Awaitable[T]) -> T:
     """Run async function in sync context.
 
     This utility function allows calling async functions from sync code

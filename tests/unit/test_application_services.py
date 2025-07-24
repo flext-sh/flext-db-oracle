@@ -1,6 +1,6 @@
 """Comprehensive unit tests for Oracle application services.
 
-Tests for OracleConnectionService and OracleQueryService to achieve target coverage.
+Tests for FlextDbOracleConnectionService and FlextDbOracleQueryService to achieve target coverage.
 """
 
 from __future__ import annotations
@@ -9,23 +9,23 @@ from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import FlextResult as ServiceResult
 
 from flext_db_oracle.application.services import (
-    OracleConnectionService,
-    OracleQueryService,
+    FlextDbOracleConnectionService,
+    FlextDbOracleQueryService,
 )
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.domain.models import (
-    OracleConnectionStatus,
-    OracleQueryResult,
+    FlextDbOracleConnectionStatus,
+    FlextDbOracleQueryResult,
 )
 
 
 @pytest.fixture
-def oracle_config() -> OracleConfig:
+def oracle_config() -> FlextDbOracleConfig:
     """Create test Oracle configuration."""
-    return OracleConfig(
+    return FlextDbOracleConfig(
         host="localhost",
         port=1521,
         service_name="XEPDB1",
@@ -68,12 +68,14 @@ def mock_connection() -> Any:
     return connection
 
 
-class TestOracleConnectionService:
-    """Test cases for OracleConnectionService."""
+class TestFlextDbOracleConnectionService:
+    """Test cases for FlextDbOracleConnectionService."""
 
-    async def test_service_initialization(self, oracle_config: OracleConfig) -> None:
+    async def test_service_initialization(
+        self, oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test service initialization with configuration."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         assert service.config == oracle_config
         # Verify service is properly initialized without pool by testing functionality
@@ -88,7 +90,7 @@ class TestOracleConnectionService:
     async def test_initialize_pool_success(
         self,
         mock_create_pool: Mock,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
         mock_connection: Mock,
     ) -> None:
@@ -98,7 +100,7 @@ class TestOracleConnectionService:
         # Set up proper connection context manager for test_connection
         mock_pool.acquire.return_value = mock_connection
 
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         result = await service.initialize_pool()
 
@@ -116,11 +118,11 @@ class TestOracleConnectionService:
     async def test_initialize_pool_failure(
         self,
         mock_create_pool: Mock,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test pool initialization failure."""
         mock_create_pool.side_effect = Exception("Pool creation failed")
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         result = await service.initialize_pool()
 
@@ -133,11 +135,11 @@ class TestOracleConnectionService:
 
     async def test_close_pool_success(
         self,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
     ) -> None:
         """Test successful pool closure."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         # Initialize the service with a mock pool
         with patch.object(service, "_pool", mock_pool):
             result = await service.close_pool()
@@ -145,9 +147,9 @@ class TestOracleConnectionService:
             assert result.success
             mock_pool.close.assert_called_once()
 
-    async def test_close_pool_no_pool(self, oracle_config: OracleConfig) -> None:
+    async def test_close_pool_no_pool(self, oracle_config: FlextDbOracleConfig) -> None:
         """Test pool closure when no pool exists."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         result = await service.close_pool()
 
@@ -158,12 +160,12 @@ class TestOracleConnectionService:
 
     async def test_close_pool_error(
         self,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
     ) -> None:
         """Test pool closure error handling."""
         mock_pool.close.side_effect = Exception("Close failed")
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         # Set up service with mock pool for error testing
         with patch.object(service, "_pool", mock_pool):
             result = await service.close_pool()
@@ -176,7 +178,7 @@ class TestOracleConnectionService:
     async def test_test_connection_success(
         self,
         mock_create_pool: Mock,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
         mock_connection: Mock,
     ) -> None:
@@ -190,7 +192,7 @@ class TestOracleConnectionService:
         mock_connection.cursor.return_value.__exit__.return_value = None
 
         # Mock get_connection for this test
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         await service.initialize_pool()
 
         with patch.object(service, "get_connection") as mock_get_conn:
@@ -200,12 +202,14 @@ class TestOracleConnectionService:
             result = await service.test_connection()
 
             assert result.success
-            assert isinstance(result.data, OracleConnectionStatus)
+            assert isinstance(result.data, FlextDbOracleConnectionStatus)
             assert result.data.is_connected
 
-    async def test_test_connection_no_pool(self, oracle_config: OracleConfig) -> None:
+    async def test_test_connection_no_pool(
+        self, oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection test without initialized pool."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         # Mock get_connection to simulate no pool scenario
         with patch.object(service, "get_connection") as mock_get_conn:
@@ -221,7 +225,7 @@ class TestOracleConnectionService:
     async def test_execute_query_success(
         self,
         mock_create_pool: Mock,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
         mock_connection: Mock,
     ) -> None:
@@ -234,7 +238,7 @@ class TestOracleConnectionService:
         mock_cursor.description = [("col1", str, None, None, None, None, None)]
         mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
 
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         await service.initialize_pool()
 
         # Mock get_connection for the query service
@@ -245,11 +249,13 @@ class TestOracleConnectionService:
             result = await service.execute_query("SELECT 1 FROM dual")
 
             assert result.success
-            assert isinstance(result.data, OracleQueryResult)
+            assert isinstance(result.data, FlextDbOracleQueryResult)
 
-    async def test_execute_query_no_pool(self, oracle_config: OracleConfig) -> None:
+    async def test_execute_query_no_pool(
+        self, oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test query execution without initialized pool."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         # Mock get_connection to simulate no pool scenario
         with patch.object(service, "get_connection") as mock_get_conn:
@@ -265,24 +271,27 @@ class TestOracleConnectionService:
     async def test_get_database_info_success(
         self,
         mock_create_pool: Mock,
-        oracle_config: OracleConfig,
+        oracle_config: FlextDbOracleConfig,
         mock_pool: Mock,
         mock_connection: Mock,
     ) -> None:
         """Test successful database info retrieval."""
         mock_create_pool.return_value = mock_pool
 
-        # Mock cursor for database info queries
-        mock_cursor = Mock()
+        # Mock cursor for database info queries with context manager support
+        from unittest.mock import MagicMock
+
+        mock_cursor = MagicMock()
         mock_cursor.fetchone.side_effect = [
             ("Oracle Database 19c Enterprise Edition Release 19.0.0.0.0",),  # version
             ("TESTDB", "TESTINST", "localhost"),  # db info
         ]
         mock_cursor.execute.return_value = None
-        mock_cursor.close.return_value = None
+        mock_cursor.__enter__.return_value = mock_cursor
+        mock_cursor.__exit__.return_value = None
         mock_connection.cursor.return_value = mock_cursor
 
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
         await service.initialize_pool()
 
         # Mock get_connection for database info
@@ -295,9 +304,11 @@ class TestOracleConnectionService:
             assert result.success
             assert isinstance(result.data, dict)
 
-    async def test_get_database_info_no_pool(self, oracle_config: OracleConfig) -> None:
+    async def test_get_database_info_no_pool(
+        self, oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test database info retrieval without initialized pool."""
-        service = OracleConnectionService(oracle_config)
+        service = FlextDbOracleConnectionService(oracle_config)
 
         # Mock get_connection to simulate no pool scenario
         with patch.object(service, "get_connection") as mock_get_conn:
@@ -310,18 +321,18 @@ class TestOracleConnectionService:
             assert "Connection pool not initialized" in result.error
 
 
-class TestOracleQueryService:
-    """Test cases for OracleQueryService."""
+class TestFlextDbOracleQueryService:
+    """Test cases for FlextDbOracleQueryService."""
 
     @pytest.fixture
-    def query_service(self) -> OracleQueryService:
+    def query_service(self) -> FlextDbOracleQueryService:
         """Create query service with mock connection service."""
-        mock_connection_service = Mock(spec=OracleConnectionService)
-        return OracleQueryService(mock_connection_service)
+        mock_connection_service = Mock(spec=FlextDbOracleConnectionService)
+        return FlextDbOracleQueryService(mock_connection_service)
 
     async def test_execute_query_success(
         self,
-        query_service: OracleQueryService,
+        query_service: FlextDbOracleQueryService,
         mock_connection: Mock,
     ) -> None:
         """Test successful query execution."""
@@ -341,11 +352,11 @@ class TestOracleQueryService:
             result = await query_service.execute_query("SELECT 1 FROM dual")
 
             assert result.success
-            assert isinstance(result.data, OracleQueryResult)
+            assert isinstance(result.data, FlextDbOracleQueryResult)
 
     async def test_execute_query_with_parameters(
         self,
-        query_service: OracleQueryService,
+        query_service: FlextDbOracleQueryService,
         mock_connection: Mock,
     ) -> None:
         """Test query execution with parameters."""
@@ -371,11 +382,11 @@ class TestOracleQueryService:
             )
 
             assert result.success
-            assert isinstance(result.data, OracleQueryResult)
+            assert isinstance(result.data, FlextDbOracleQueryResult)
 
     async def test_execute_query_database_error(
         self,
-        query_service: OracleQueryService,
+        query_service: FlextDbOracleQueryService,
         mock_connection: Mock,
     ) -> None:
         """Test query execution with database error."""

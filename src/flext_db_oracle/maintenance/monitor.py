@@ -7,15 +7,18 @@ Uses ServiceResult pattern and async operations for robust monitoring.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -33,6 +36,23 @@ class SGAComponent(DomainValueObject):
     def size_mb(self) -> float:
         """Get size in MB."""
         return self.current_size / (1024 * 1024)
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.name.strip():
+            raise ValueError("Component name cannot be empty")
+        if self.current_size < 0:
+            raise ValueError("Current size cannot be negative")
+        if self.min_size < 0:
+            raise ValueError("Minimum size cannot be negative")
+        if self.max_size < 0:
+            raise ValueError("Maximum size cannot be negative")
+        if self.max_size > 0 and self.current_size > self.max_size:
+            raise ValueError("Current size cannot exceed maximum size")
+        if self.min_size > 0 and self.current_size < self.min_size:
+            raise ValueError("Current size cannot be less than minimum size")
+        if not self.unit.strip():
+            raise ValueError("Unit cannot be empty")
 
 
 class WaitEvent(DomainValueObject):
@@ -62,6 +82,21 @@ class WaitEvent(DomainValueObject):
         """Get average wait time in milliseconds."""
         return self.average_wait * 10.0
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.event.strip():
+            raise ValueError("Event name cannot be empty")
+        if self.total_waits < 0:
+            raise ValueError("Total waits cannot be negative")
+        if self.total_timeouts < 0:
+            raise ValueError("Total timeouts cannot be negative")
+        if self.time_waited < 0:
+            raise ValueError("Time waited cannot be negative")
+        if self.average_wait < 0:
+            raise ValueError("Average wait cannot be negative")
+        if self.total_timeouts > self.total_waits:
+            raise ValueError("Total timeouts cannot exceed total waits")
+
 
 class SessionStatistics(DomainValueObject):
     """Oracle session statistics."""
@@ -78,6 +113,25 @@ class SessionStatistics(DomainValueObject):
         if self.total_sessions == 0:
             return 0.0
         return (self.active_sessions / self.total_sessions) * 100.0
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if self.total_sessions < 0:
+            raise ValueError("Total sessions cannot be negative")
+        if self.active_sessions < 0:
+            raise ValueError("Active sessions cannot be negative")
+        if self.inactive_sessions < 0:
+            raise ValueError("Inactive sessions cannot be negative")
+        if self.blocked_sessions < 0:
+            raise ValueError("Blocked sessions cannot be negative")
+        if self.system_sessions < 0:
+            raise ValueError("System sessions cannot be negative")
+        if self.active_sessions > self.total_sessions:
+            raise ValueError("Active sessions cannot exceed total sessions")
+        if self.inactive_sessions > self.total_sessions:
+            raise ValueError("Inactive sessions cannot exceed total sessions")
+        if self.active_sessions + self.inactive_sessions > self.total_sessions:
+            raise ValueError("Active + inactive sessions cannot exceed total sessions")
 
 
 class DatabaseMetrics(DomainValueObject):
@@ -122,15 +176,35 @@ class DatabaseMetrics(DomainValueObject):
         """Get top 5 wait events by time waited."""
         return sorted(self.wait_events, key=lambda x: x.time_waited, reverse=True)[:5]
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if self.buffer_cache_hit_ratio is not None:
+            if self.buffer_cache_hit_ratio < 0 or self.buffer_cache_hit_ratio > 100:
+                raise ValueError("Buffer cache hit ratio must be between 0 and 100")
+
+        if self.library_cache_hit_ratio is not None:
+            if self.library_cache_hit_ratio < 0 or self.library_cache_hit_ratio > 100:
+                raise ValueError("Library cache hit ratio must be between 0 and 100")
+
+        # Validate nested objects
+        if self.session_stats:
+            self.session_stats.validate_domain_rules()
+
+        for component in self.sga_components:
+            component.validate_domain_rules()
+
+        for event in self.wait_events:
+            event.validate_domain_rules()
+
 
 class PerformanceMonitor:
     """Monitors Oracle database performance metrics using flext-core patterns."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the performance monitor.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
@@ -392,7 +466,8 @@ class PerformanceMonitor:
             result = await self.connection_service.execute_query(query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get tablespace usage",
+                return ServiceResult.fail(
+                    result.error or "Failed to get tablespace usage",
                 )
 
             if not result.data or not result.data.rows:
@@ -452,7 +527,8 @@ class PerformanceMonitor:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get active sessions",
+                return ServiceResult.fail(
+                    result.error or "Failed to get active sessions",
                 )
 
             if not result.data or not result.data.rows:
@@ -492,7 +568,8 @@ class PerformanceMonitor:
             active_sessions_result = await self.get_active_sessions()
 
             if not metrics_result.success:
-                return ServiceResult.fail(metrics_result.error or "Failed to get performance metrics",
+                return ServiceResult.fail(
+                    metrics_result.error or "Failed to get performance metrics",
                 )
 
             metrics = metrics_result.data

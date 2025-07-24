@@ -8,13 +8,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
     from flext_db_oracle.compare.differ import (
         ComparisonResult,
         DataDiffer,
@@ -52,14 +55,34 @@ class ComparisonConfig(DomainValueObject):
         ge=1,
     )
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for comparison configuration."""
+        if not self.schema_objects:
+            raise ValueError("Schema objects list cannot be empty")
+
+        valid_objects = {
+            "tables",
+            "views",
+            "sequences",
+            "procedures",
+            "functions",
+            "indexes",
+        }
+        for obj in self.schema_objects:
+            if obj not in valid_objects:
+                raise ValueError(f"Invalid schema object type: {obj}")
+
+        if self.sample_size is not None and self.sample_size <= 0:
+            raise ValueError("Sample size must be positive")
+
 
 class DatabaseComparator:
     """Compares Oracle databases using flext-core patterns."""
 
     def __init__(
         self,
-        source_service: OracleConnectionService,
-        target_service: OracleConnectionService,
+        source_service: FlextDbOracleConnectionService,
+        target_service: FlextDbOracleConnectionService,
         schema_differ: SchemaDiffer,
         data_differ: DataDiffer | None = None,
     ) -> None:
@@ -111,7 +134,8 @@ class DatabaseComparator:
                     comparison_result,
                 )
                 if not data_result.success:
-                    return ServiceResult.fail(data_result.error or "Data comparison failed",
+                    return ServiceResult.fail(
+                        data_result.error or "Data comparison failed",
                     )
                 # Data comparison would update the comparison_result
 
@@ -188,7 +212,8 @@ class DatabaseComparator:
             )
 
             if not tables_to_compare.is_success:
-                return ServiceResult.fail(tables_to_compare.error or "Failed to get tables to compare",
+                return ServiceResult.fail(
+                    tables_to_compare.error or "Failed to get tables to compare",
                 )
 
             data_differences = []
@@ -242,7 +267,7 @@ class DatabaseComparator:
 
     async def _get_schema_metadata(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
         schema_name: str,
         config: ComparisonConfig,
     ) -> ServiceResult[Any]:
@@ -323,7 +348,8 @@ class DatabaseComparator:
         )
 
         if not result.success:
-            return ServiceResult.fail(result.error or "Failed to fetch schema tables",
+            return ServiceResult.fail(
+                result.error or "Failed to fetch schema tables",
             )
 
         if not result.data or not result.data.rows:
@@ -379,7 +405,8 @@ class DatabaseComparator:
 
         return filtered_tables
 
-    # Removed duplicate method - use flext_db_oracle.utils.database_utils.get_primary_key_columns directly
+    # Removed duplicate method - use flext_db_oracle.utils.database_utils
+    # .get_primary_key_columns directly
 
     async def get_comparison_summary(
         self,
@@ -426,7 +453,8 @@ class DatabaseComparator:
             # Validate sync requirements first
             validation_result = await self._validate_sync_requirements(table_name)
             if not validation_result.success:
-                return ServiceResult.fail(validation_result.error or "Sync validation failed",
+                return ServiceResult.fail(
+                    validation_result.error or "Sync validation failed",
                 )
 
             # Example sync operation - can be expanded based on strategy
@@ -468,7 +496,8 @@ class DatabaseComparator:
                 # Get all tables in schema
                 tables_result = await self._fetch_schema_tables(schema_name)
                 if not tables_result.success:
-                    return ServiceResult.fail(tables_result.error or "Failed to get schema tables",
+                    return ServiceResult.fail(
+                        tables_result.error or "Failed to get schema tables",
                     )
                 tables = tables_result.data or []
 
@@ -537,7 +566,8 @@ class DatabaseComparator:
                 schema_name=None,
             )
             if not pk_result.success:
-                return ServiceResult.fail(f"Cannot determine primary key for {table_name}",
+                return ServiceResult.fail(
+                    f"Cannot determine primary key for {table_name}",
                 )
 
             validation_info = {
@@ -555,7 +585,7 @@ class DatabaseComparator:
 
     async def _table_exists(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
         table_name: str,
     ) -> bool:
         """Check if table exists in database."""
@@ -580,7 +610,7 @@ class DatabaseComparator:
 
     async def _get_primary_key_columns(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
         table_name: str,
         schema_name: str | None = None,
     ) -> ServiceResult[Any]:
@@ -624,13 +654,15 @@ class DatabaseComparator:
             result = await connection_service.execute_query(query, params)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get primary key columns",
+                return ServiceResult.fail(
+                    result.error or "Failed to get primary key columns",
                 )
 
             if not result.data or not result.data.rows:
                 if schema_name:
                     # Comparator expects error when no PK found
-                    return ServiceResult.fail(f"No primary key found for table {schema_name}.{table_name}",
+                    return ServiceResult.fail(
+                        f"No primary key found for table {schema_name}.{table_name}",
                     )
                 # Synchronizer expects empty list when no PK found
                 return ServiceResult.ok([])
@@ -638,7 +670,9 @@ class DatabaseComparator:
             pk_columns = [row[0] for row in result.data.rows]
 
             if not pk_columns and schema_name:
-                return ServiceResult.fail(f"No primary key columns found for table {schema_name}.{table_name}",
+                return ServiceResult.fail(
+                    f"No primary key columns found for "
+                    f"table {schema_name}.{table_name}",
                 )
 
             return ServiceResult.ok(pk_columns)
@@ -653,8 +687,8 @@ class DataComparator:
 
     def __init__(
         self,
-        source_service: OracleConnectionService,
-        target_service: OracleConnectionService,
+        source_service: FlextDbOracleConnectionService,
+        target_service: FlextDbOracleConnectionService,
     ) -> None:
         """Initialize data comparator with connection services."""
         self.source_service = source_service
@@ -684,8 +718,8 @@ class SchemaComparator:
 
     def __init__(
         self,
-        source_service: OracleConnectionService,
-        target_service: OracleConnectionService,
+        source_service: FlextDbOracleConnectionService,
+        target_service: FlextDbOracleConnectionService,
     ) -> None:
         """Initialize schema comparator with connection services."""
         self.source_service = source_service

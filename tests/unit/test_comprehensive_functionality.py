@@ -11,28 +11,31 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from flext_db_oracle.application.services import (
-    OracleConnectionService,
-    OracleQueryService,
-    OracleSchemaService,
+    FlextDbOracleConnectionService,
+    FlextDbOracleQueryService,
+    FlextDbOracleSchemaService,
 )
-from flext_db_oracle.config import OracleConfig
-from flext_db_oracle.domain.models import OracleConnectionInfo, OracleQueryResult
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.domain.models import (
+    FlextDbOracleConnectionInfo,
+    FlextDbOracleQueryResult,
+)
 from flext_db_oracle.maintenance.health import HealthChecker
 from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 from flext_db_oracle.schema.ddl import DDLGenerator
 
 
-class TestOracleConnectionService:
-    """Test OracleConnectionService functionality."""
+class TestFlextDbOracleConnectionService:
+    """Test FlextDbOracleConnectionService functionality."""
 
     def test_service_initialization(self) -> None:
         """Test service can be initialized with valid config."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test_user",
             password="test_password",
             service_name="XE",
         )
-        service = OracleConnectionService(config)
+        service = FlextDbOracleConnectionService(config)
 
         assert service.config == config
         assert not service.is_pool_initialized
@@ -41,14 +44,14 @@ class TestOracleConnectionService:
     @pytest.mark.asyncio
     async def test_initialize_pool_configuration(self) -> None:
         """Test pool initialization creates proper configuration."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test_user",
             password="test_password",
             service_name="XE",
             pool_min_size=2,
             pool_max_size=10,
         )
-        service = OracleConnectionService(config)
+        service = FlextDbOracleConnectionService(config)
 
         with patch("oracledb.create_pool") as mock_create_pool:
             mock_pool = MagicMock()
@@ -71,12 +74,12 @@ class TestOracleConnectionService:
     @pytest.mark.asyncio
     async def test_close_pool_success(self) -> None:
         """Test successful pool closure."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        service = OracleConnectionService(config)
+        service = FlextDbOracleConnectionService(config)
 
         # Initialize pool first to test closure
         with patch("oracledb.create_pool") as mock_create_pool:
@@ -93,12 +96,12 @@ class TestOracleConnectionService:
     @pytest.mark.asyncio
     async def test_close_pool_error_handling(self) -> None:
         """Test pool closure error handling."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        service = OracleConnectionService(config)
+        service = FlextDbOracleConnectionService(config)
 
         # Initialize pool first, then make close() raise exception
         with patch("oracledb.create_pool") as mock_create_pool:
@@ -114,18 +117,18 @@ class TestOracleConnectionService:
             assert "Connection pool closure failed" in result.error
 
 
-class TestOracleQueryService:
-    """Test OracleQueryService functionality."""
+class TestFlextDbOracleQueryService:
+    """Test FlextDbOracleQueryService functionality."""
 
     def test_query_service_initialization(self) -> None:
         """Test query service initialization."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
-        query_service = OracleQueryService(conn_service)
+        conn_service = FlextDbOracleConnectionService(config)
+        query_service = FlextDbOracleQueryService(conn_service)
 
         assert query_service.connection_service == conn_service
 
@@ -135,12 +138,12 @@ class TestSchemaAnalyzer:
 
     def test_analyzer_initialization(self) -> None:
         """Test analyzer can be initialized."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
+        conn_service = FlextDbOracleConnectionService(config)
         analyzer = SchemaAnalyzer(conn_service)
 
         assert analyzer.connection_service == conn_service
@@ -163,40 +166,40 @@ class TestHealthChecker:
 
     def test_health_checker_initialization(self) -> None:
         """Test health checker initialization."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
+        conn_service = FlextDbOracleConnectionService(config)
         health_checker = HealthChecker(conn_service)
 
         assert health_checker.connection_service == conn_service
 
 
-class TestOracleSchemaService:
-    """Test OracleSchemaService functionality."""
+class TestFlextDbOracleSchemaService:
+    """Test FlextDbOracleSchemaService functionality."""
 
     def test_schema_service_initialization(self) -> None:
         """Test schema service initialization."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
-        query_service = OracleQueryService(conn_service)
-        schema_service = OracleSchemaService(query_service)
+        conn_service = FlextDbOracleConnectionService(config)
+        query_service = FlextDbOracleQueryService(conn_service)
+        schema_service = FlextDbOracleSchemaService(query_service)
 
         assert schema_service.query_service == query_service
 
 
-class TestOracleConnectionInfo:
-    """Test OracleConnectionInfo domain model."""
+class TestFlextDbOracleConnectionInfo:
+    """Test FlextDbOracleConnectionInfo domain model."""
 
     def test_connection_info_creation(self) -> None:
         """Test connection info model creation."""
-        connection_info = OracleConnectionInfo(
+        connection_info = FlextDbOracleConnectionInfo(
             host="localhost",
             port=1521,
             service_name="XE",
@@ -217,12 +220,12 @@ class TestServiceIntegration:
     @pytest.mark.asyncio
     async def test_connection_service_with_query_service(self) -> None:
         """Test connection service integration with query service."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
+        conn_service = FlextDbOracleConnectionService(config)
 
         # Initialize pool with mock
         with patch("oracledb.create_pool") as mock_create_pool:
@@ -233,21 +236,21 @@ class TestServiceIntegration:
             assert result.success
 
             # Test that query service can be created after pool initialization
-            query_service = OracleQueryService(conn_service)
+            query_service = FlextDbOracleQueryService(conn_service)
             assert query_service.connection_service == conn_service
 
     def test_all_services_can_be_created_together(self) -> None:
         """Test that all services can be created together."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test",
             password="test",
             service_name="XE",
         )
-        conn_service = OracleConnectionService(config)
+        conn_service = FlextDbOracleConnectionService(config)
 
         # Create all services
-        query_service = OracleQueryService(conn_service)
-        schema_service = OracleSchemaService(query_service)
+        query_service = FlextDbOracleQueryService(conn_service)
+        schema_service = FlextDbOracleSchemaService(query_service)
         analyzer = SchemaAnalyzer(conn_service)
         health_checker = HealthChecker(conn_service)
 
@@ -263,7 +266,7 @@ class TestConfigurationParsing:
 
     def test_oracle_config_valid_creation(self) -> None:
         """Test Oracle config creation with valid values."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="test_user",
             password="test_password",
             service_name="ORCL",
@@ -278,7 +281,7 @@ class TestConfigurationParsing:
 
     def test_oracle_config_connection_string_formatting(self) -> None:
         """Test connection string generation."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="user",
             password="pass",
             service_name="ORCL",
@@ -296,7 +299,7 @@ class TestConfigurationParsing:
 
     def test_oracle_config_pool_settings(self) -> None:
         """Test connection pool configuration."""
-        config = OracleConfig(
+        config = FlextDbOracleConfig(
             username="user",
             password="pass",
             service_name="ORCL",
@@ -315,7 +318,10 @@ class TestDomainModels:
 
     def test_oracle_table_metadata_properties(self) -> None:
         """Test table metadata computed properties."""
-        from flext_db_oracle.domain.models import OracleColumnInfo, OracleTableMetadata
+        from flext_db_oracle.domain.models import (
+            FlextDbOracleColumnInfo as OracleColumnInfo,
+            FlextDbOracleTableMetadata,
+        )
 
         # Create columns with primary keys
         columns = [
@@ -324,7 +330,7 @@ class TestDomainModels:
             OracleColumnInfo(name="EMAIL", data_type="VARCHAR2", nullable=True),
         ]
 
-        table = OracleTableMetadata(
+        table = FlextDbOracleTableMetadata(
             schema_name="HR",
             table_name="EMPLOYEES",
             columns=columns,
@@ -337,7 +343,7 @@ class TestDomainModels:
 
     def test_oracle_query_result_methods(self) -> None:
         """Test query result utility methods."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[("John", 30), ("Jane", 25), ("Bob", 35)],
             row_count=3,
             columns=["name", "age"],
@@ -350,7 +356,7 @@ class TestDomainModels:
 
     def test_empty_oracle_query_result(self) -> None:
         """Test empty query result."""
-        result = OracleQueryResult(
+        result = FlextDbOracleQueryResult(
             rows=[],
             row_count=0,
             columns=["name", "age"],
@@ -362,14 +368,17 @@ class TestDomainModels:
 
     def test_oracle_schema_info_properties(self) -> None:
         """Test schema info computed properties."""
-        from flext_db_oracle.domain.models import OracleSchemaInfo, OracleTableMetadata
+        from flext_db_oracle.domain.models import (
+            FlextDbOracleSchemaInfo,
+            FlextDbOracleTableMetadata,
+        )
 
         tables = [
-            OracleTableMetadata(schema_name="HR", table_name="EMPLOYEES"),
-            OracleTableMetadata(schema_name="HR", table_name="DEPARTMENTS"),
+            FlextDbOracleTableMetadata(schema_name="HR", table_name="EMPLOYEES"),
+            FlextDbOracleTableMetadata(schema_name="HR", table_name="DEPARTMENTS"),
         ]
 
-        schema = OracleSchemaInfo(
+        schema = FlextDbOracleSchemaInfo(
             name="HR",
             tables=tables,
             table_count=2,

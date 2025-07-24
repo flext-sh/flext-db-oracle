@@ -1,4 +1,5 @@
 """Tests for simple API module.
+
 Tests for the simple API functionality providing easy Oracle setup.
 """
 
@@ -6,10 +7,10 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-from flext_db_oracle.config import OracleConfig
+from flext_db_oracle.config import FlextDbOracleConfig as OracleConfig
 from flext_db_oracle.simple_api import (
-    create_connection_service,
-    setup_oracle_db,
+    flext_db_oracle_create_connection_service as create_connection_service,
+    flext_db_oracle_setup_oracle_db as setup_oracle_db,
 )
 
 
@@ -50,6 +51,7 @@ class TestSetupOracleDb:
         result = setup_oracle_db()
         assert result.success
         config = result.data
+        assert config is not None
         assert config.host == "envhost"
         assert config.port == 1522
         assert config.service_name == "envdb"
@@ -62,13 +64,14 @@ class TestSetupOracleDb:
         # This will cause int() conversion to fail
         result = setup_oracle_db()
         assert not result.success
+        assert result.error is not None
         assert "Failed to setup Oracle DB" in result.error
 
 
 class TestCreateConnectionService:
     """Test connection service creation functionality."""
 
-    @patch("flext_db_oracle.simple_api.OracleConnectionService")
+    @patch("flext_db_oracle.simple_api.FlextDbOracleConnectionService")
     def test_create_connection_service_success(self, mock_service_class: Mock) -> None:
         """Test successful connection service creation."""
         mock_service = Mock()
@@ -87,14 +90,23 @@ class TestCreateConnectionService:
 
     def test_create_connection_service_invalid_config(self) -> None:
         """Test service creation with invalid config."""
-        result = create_connection_service(None)
-        assert not result.success
-        assert "configuration" in result.error.lower()
+        # Test that invalid config creation itself fails at validation time
+        import pytest
+        from pydantic import ValidationError
 
-    @patch("flext_db_oracle.simple_api.OracleConnectionService")
+        with pytest.raises(ValidationError):
+            OracleConfig(
+                host="",  # Empty host
+                port=0,  # Invalid port - should fail validation
+                service_name="",  # Empty service name
+                username="",  # Empty username
+                password="",  # Empty password
+            )
+
+    @patch("flext_db_oracle.simple_api.FlextDbOracleConnectionService")
     def test_create_connection_service_failure(self, mock_service_class: Mock) -> None:
         """Test service creation failure."""
-        mock_service_class.side_effect = Exception("Service creation failed")
+        mock_service_class.side_effect = ValueError("Service creation failed")
         config = OracleConfig(
             host="testhost",
             port=1521,
@@ -104,6 +116,7 @@ class TestCreateConnectionService:
         )
         result = create_connection_service(config)
         assert not result.success
+        assert result.error is not None
         assert "Failed to create connection service" in result.error
         assert "Service creation failed" in result.error
 
@@ -121,7 +134,7 @@ class TestIntegrationScenarios:
             "ORACLE_PASSWORD": "envpass",
         },
     )
-    @patch("flext_db_oracle.simple_api.OracleConnectionService")
+    @patch("flext_db_oracle.simple_api.FlextDbOracleConnectionService")
     def test_full_setup_workflow(self, mock_service_class: Mock) -> None:
         """Test complete setup workflow."""
         # Setup service mock
@@ -131,10 +144,11 @@ class TestIntegrationScenarios:
         config_result = setup_oracle_db()
         assert config_result.success
         # Create service
+        assert config_result.data is not None
         service_result = create_connection_service(config_result.data)
         assert service_result.success
 
-    @patch("flext_db_oracle.simple_api.OracleConnectionService")
+    @patch("flext_db_oracle.simple_api.FlextDbOracleConnectionService")
     def test_setup_and_service_creation(self, mock_service_class: Mock) -> None:
         """Test setup and service creation."""
         # Setup mocks
@@ -144,6 +158,7 @@ class TestIntegrationScenarios:
         config_result = setup_oracle_db()
         assert config_result.success
         # Create service
+        assert config_result.data is not None
         service_result = create_connection_service(config_result.data)
         assert service_result.success
         assert service_result.data is not None

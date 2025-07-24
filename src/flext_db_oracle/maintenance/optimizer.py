@@ -6,15 +6,18 @@ Uses ServiceResult pattern and async operations for robust performance analysis.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -55,6 +58,19 @@ class TableStatistics(DomainValueObject):
             return (used_blocks / self.blocks) * 100
         return 0.0
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.table_name.strip():
+            raise ValueError("Table name cannot be empty")
+        if not self.schema_name.strip():
+            raise ValueError("Schema name cannot be empty")
+        if self.num_rows is not None and self.num_rows < 0:
+            raise ValueError("Number of rows cannot be negative")
+        if self.blocks is not None and self.blocks < 0:
+            raise ValueError("Number of blocks cannot be negative")
+        if self.empty_blocks is not None and self.empty_blocks < 0:
+            raise ValueError("Number of empty blocks cannot be negative")
+
 
 class IndexStatistics(DomainValueObject):
     """Oracle index statistics information."""
@@ -87,6 +103,26 @@ class IndexStatistics(DomainValueObject):
             return self.distinct_keys / self.sample_size
         return 0.0
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.index_name.strip():
+            raise ValueError("Index name cannot be empty")
+        if not self.table_name.strip():
+            raise ValueError("Table name cannot be empty")
+        if not self.schema_name.strip():
+            raise ValueError("Schema name cannot be empty")
+        if not self.uniqueness.strip():
+            raise ValueError("Uniqueness cannot be empty")
+        valid_uniqueness = {"UNIQUE", "NONUNIQUE"}
+        if self.uniqueness.upper() not in valid_uniqueness:
+            raise ValueError(f"Uniqueness must be one of {valid_uniqueness}")
+        if self.blevel is not None and self.blevel < 0:
+            raise ValueError("B-tree level cannot be negative")
+        if self.leaf_blocks is not None and self.leaf_blocks < 0:
+            raise ValueError("Leaf blocks cannot be negative")
+        if self.distinct_keys is not None and self.distinct_keys < 0:
+            raise ValueError("Distinct keys cannot be negative")
+
 
 class OptimizationRecommendation(DomainValueObject):
     """Database optimization recommendation."""
@@ -105,15 +141,40 @@ class OptimizationRecommendation(DomainValueObject):
         description="SQL to implement recommendation",
     )
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules."""
+        if not self.recommendation_type.strip():
+            raise ValueError("Recommendation type cannot be empty")
+        if not self.object_name.strip():
+            raise ValueError("Object name cannot be empty")
+        if not self.object_type.strip():
+            raise ValueError("Object type cannot be empty")
+        if not self.priority.strip():
+            raise ValueError("Priority cannot be empty")
+        if not self.description.strip():
+            raise ValueError("Description cannot be empty")
+
+        valid_priorities = {"HIGH", "MEDIUM", "LOW"}
+        if self.priority.upper() not in valid_priorities:
+            raise ValueError(f"Priority must be one of {valid_priorities}")
+
+        valid_types = {"STATISTICS", "INDEX_CLEANUP", "REORGANIZATION", "ANALYSIS", "PERFORMANCE"}
+        if self.recommendation_type.upper() not in valid_types:
+            raise ValueError(f"Recommendation type must be one of {valid_types}")
+
+        valid_object_types = {"TABLE", "INDEX", "VIEW", "PROCEDURE", "FUNCTION", "PACKAGE"}
+        if self.object_type.upper() not in valid_object_types:
+            raise ValueError(f"Object type must be one of {valid_object_types}")
+
 
 class DatabaseOptimizer:
     """Provides Oracle database optimization utilities using flext-core patterns."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the database optimizer.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
@@ -152,11 +213,13 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to analyze table statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to analyze table statistics",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.fail(f"Table {schema_name}.{table_name} not found",
+                return ServiceResult.fail(
+                    f"Table {schema_name}.{table_name} not found",
                 )
 
             row = result.data.rows[0]
@@ -179,7 +242,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze table statistics")
-            return ServiceResult.fail(f"Failed to analyze table statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze table statistics: {e}",
             )
 
     async def analyze_index_statistics(
@@ -217,11 +281,13 @@ class DatabaseOptimizer:
             result = await self.connection_service.execute_query(query, params)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to analyze index statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to analyze index statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Index statistics result is empty",
+                return ServiceResult.fail(
+                    "Index statistics result is empty",
                 )
 
             statistics = []
@@ -250,7 +316,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze index statistics")
-            return ServiceResult.fail(f"Failed to analyze index statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze index statistics: {e}",
             )
 
     async def gather_table_statistics(
@@ -277,7 +344,8 @@ class DatabaseOptimizer:
             result = await self.connection_service.execute_query(gather_sql)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to gather table statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to gather table statistics",
                 )
 
             message = (
@@ -289,7 +357,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to gather table statistics")
-            return ServiceResult.fail(f"Failed to gather table statistics: {e}",
+            return ServiceResult.fail(
+                f"Failed to gather table statistics: {e}",
             )
 
     async def analyze_schema_optimization(
@@ -311,7 +380,10 @@ class DatabaseOptimizer:
                         priority="HIGH",
                         description=f"Table {table_name} lacks current statistics",
                         estimated_improvement="Query performance improvement up to 50%",
-                        implementation_sql=f"EXEC DBMS_STATS.GATHER_TABLE_STATS('{schema_name.upper()}', '{table_name.upper()}')",
+                        implementation_sql=(
+                            f"EXEC DBMS_STATS.GATHER_TABLE_STATS("
+                            f"'{schema_name.upper()}', '{table_name.upper()}')"
+                        ),
                     )
                     for table_name in tables_result.data
                 )
@@ -326,8 +398,12 @@ class DatabaseOptimizer:
                         object_type="INDEX",
                         priority="MEDIUM",
                         description=f"Index {index_name} appears to be unused",
-                        estimated_improvement="Storage savings and reduced maintenance overhead",
-                        implementation_sql=f"DROP INDEX {schema_name.upper()}.{index_name}",
+                        estimated_improvement=(
+                            "Storage savings and reduced maintenance overhead"
+                        ),
+                        implementation_sql=(
+                            f"DROP INDEX {schema_name.upper()}.{index_name}"
+                        ),
                     )
                     for index_name in unused_indexes_result.data
                 )
@@ -342,8 +418,12 @@ class DatabaseOptimizer:
                         object_type="TABLE",
                         priority="MEDIUM",
                         description=f"Table {table_name} has high row chaining",
-                        estimated_improvement="I/O reduction and query performance improvement",
-                        implementation_sql=f"ALTER TABLE {schema_name.upper()}.{table_name} MOVE",
+                        estimated_improvement=(
+                            "I/O reduction and query performance improvement"
+                        ),
+                        implementation_sql=(
+                            f"ALTER TABLE {schema_name.upper()}.{table_name} MOVE"
+                        ),
                     )
                     for table_name in chained_tables_result.data
                 )
@@ -357,7 +437,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to analyze schema optimization")
-            return ServiceResult.fail(f"Failed to analyze schema optimization: {e}",
+            return ServiceResult.fail(
+                f"Failed to analyze schema optimization: {e}",
             )
 
     async def _get_tables_without_stats(
@@ -380,7 +461,8 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get tables without statistics",
+                return ServiceResult.fail(
+                    result.error or "Failed to get tables without statistics",
                 )
 
             if not result.data:
@@ -391,7 +473,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get tables without stats")
-            return ServiceResult.fail(f"Failed to get tables without stats: {e}",
+            return ServiceResult.fail(
+                f"Failed to get tables without stats: {e}",
             )
 
     async def _get_unused_indexes(self, schema_name: str) -> ServiceResult[Any]:
@@ -439,12 +522,14 @@ class DatabaseOptimizer:
                 )
 
                 if not fallback_result.success:
-                    return ServiceResult.fail(fallback_result.error
+                    return ServiceResult.fail(
+                        fallback_result.error
                         or "Failed to get unused indexes (fallback)",
                     )
 
                 if not fallback_result.data:
-                    return ServiceResult.fail("Fallback query result is empty",
+                    return ServiceResult.fail(
+                        "Fallback query result is empty",
                     )
 
                 unused_indexes = [row[0] for row in fallback_result.data.rows]
@@ -468,7 +553,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get unused indexes")
-            return ServiceResult.fail(f"Failed to get unused indexes: {e}",
+            return ServiceResult.fail(
+                f"Failed to get unused indexes: {e}",
             )
 
     async def _get_chained_tables(self, schema_name: str) -> ServiceResult[Any]:
@@ -489,7 +575,8 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get chained tables",
+                return ServiceResult.fail(
+                    result.error or "Failed to get chained tables",
                 )
 
             if not result.data or not result.data.rows:
@@ -500,7 +587,8 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to get chained tables")
-            return ServiceResult.fail(f"Failed to get chained tables: {e}",
+            return ServiceResult.fail(
+                f"Failed to get chained tables: {e}",
             )
 
     async def generate_optimization_report(
@@ -512,7 +600,8 @@ class DatabaseOptimizer:
             # Get recommendations
             recommendations_result = await self.analyze_schema_optimization(schema_name)
             if not recommendations_result.success:
-                return ServiceResult.fail(recommendations_result.error
+                return ServiceResult.fail(
+                    recommendations_result.error
                     or "Failed to analyze schema optimization",
                 )
 
@@ -542,5 +631,6 @@ class DatabaseOptimizer:
 
         except Exception as e:
             logger.exception("Failed to generate optimization report")
-            return ServiceResult.fail(f"Failed to generate optimization report: {e}",
+            return ServiceResult.fail(
+                f"Failed to generate optimization report: {e}",
             )

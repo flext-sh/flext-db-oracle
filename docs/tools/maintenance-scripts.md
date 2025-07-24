@@ -11,14 +11,15 @@ Essential maintenance scripts for Oracle database REDACTED_LDAP_BIND_PASSWORDist
 
 import asyncio
 from datetime import datetime
-from oracledb_core_shared import ConnectionConfig, OracleConnection, HealthChecker
+from flext_db_oracle.connection import ConnectionConfig, FlextDbFlextDbOracleConnection
+from flext_db_oracle.tools import HealthChecker
 
 async def daily_health_check():
     """Perform comprehensive daily health check."""
 
     config = ConnectionConfig.from_env()
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         checker = HealthChecker(conn)
 
         # Run health checks
@@ -54,14 +55,15 @@ if __name__ == "__main__":
 """Generate AWR reports automatically."""
 
 import asyncio
-from oracledb_core_shared import ConnectionConfig, OracleConnection, PerformanceMonitor
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
+from flext_db_oracle.tools import PerformanceMonitor
 
 async def generate_awr_reports():
     """Generate AWR reports for performance analysis."""
 
     config = ConnectionConfig.from_env()
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         monitor = PerformanceMonitor(conn)
 
         # Generate daily AWR report
@@ -89,7 +91,8 @@ if __name__ == "__main__":
 
 import asyncio
 from pathlib import Path
-from oracledb_core_shared import ConnectionConfig, OracleConnection, DDLGenerator
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
+from flext_db_oracle.tools import DDLGenerator
 
 async def backup_schema(schema_name: str):
     """Backup complete schema including DDL and data."""
@@ -98,7 +101,7 @@ async def backup_schema(schema_name: str):
     backup_dir = Path(f"backup/{schema_name}_{datetime.now().strftime('%Y%m%d')}")
     backup_dir.mkdir(parents=True, exist_ok=True)
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         ddl_gen = DDLGenerator(conn)
 
         # Generate DDL
@@ -127,14 +130,15 @@ if __name__ == "__main__":
 """Clean up temporary database objects."""
 
 import asyncio
-from oracledb_core_shared import ConnectionConfig, OracleConnection, DatabaseOptimizer
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
+from flext_db_oracle.tools import DatabaseOptimizer
 
 async def cleanup_temp_objects():
     """Remove temporary and obsolete database objects."""
 
     config = ConnectionConfig.from_env()
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         optimizer = DatabaseOptimizer(conn)
 
         # Find and remove temp objects
@@ -159,14 +163,14 @@ if __name__ == "__main__":
 """Update database statistics for optimal performance."""
 
 import asyncio
-from oracledb_core_shared import ConnectionConfig, OracleConnection
+from flext_db_oracle.connection import ConnectionConfig, FlextDbOracleConnection
 
 async def update_statistics(schema_name: str = None):
     """Update optimizer statistics for better performance."""
 
     config = ConnectionConfig.from_env()
 
-    async with OracleConnection(config) as conn:
+    async with FlextDbOracleConnection(config) as conn:
         if schema_name:
             # Update specific schema
             await conn.execute(f"""

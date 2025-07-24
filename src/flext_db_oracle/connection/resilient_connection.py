@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
-from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.connection.config import ConnectionConfig
+from flext_db_oracle.connection.connection import FlextDbOracleConnection
 from flext_db_oracle.logging_utils import get_logger
-
-if TYPE_CHECKING:
-    from flext_db_oracle.connection.config import ConnectionConfig
 
 logger = get_logger(__name__)
 
@@ -21,7 +19,7 @@ DEFAULT_ORACLE_SSL_PORT = 1522
 DEFAULT_ORACLE_PORT = 1521
 
 
-class ResilientOracleConnection(OracleConnection):
+class FlextDbOracleResilientConnection(FlextDbOracleConnection):
     """Oracle connection with retry logic and automatic fallback.
 
     Extends the base OracleConnection with enterprise resilience features:
@@ -149,21 +147,34 @@ class ResilientOracleConnection(OracleConnection):
         # Try TCPS -> TCP fallback
         if self.config.protocol.lower() == "tcps":
             logger.info("Attempting fallback from TCPS to TCP")
-            self.config.protocol = "tcp"
-            self.config.ssl_server_dn_match = False
+            # Create new config with fallback values
+            fallback_config = ConnectionConfig.model_validate(
+                {
+                    **self.config.model_dump(),
+                    "protocol": "tcp",
+                    "ssl_server_dn_match": False,
+                    "port": (
+                        DEFAULT_ORACLE_PORT
+                        if self.config.port == DEFAULT_ORACLE_SSL_PORT
+                        else self.config.port
+                    ),
+                }
+            )
+            self.config = fallback_config
             self._fallback_applied = True
 
-            # Also try common Oracle port fallback
-            if self.config.port == DEFAULT_ORACLE_SSL_PORT:
-                self.config.port = DEFAULT_ORACLE_PORT
-                logger.info("Also applying port fallback: 1522 -> 1521")
+            if self.config.port == DEFAULT_ORACLE_PORT:
+                logger.info("Also applied port fallback: 1522 -> 1521")
 
             return True
 
         # Try port fallback only
         if self.config.port == DEFAULT_ORACLE_SSL_PORT:
             logger.info("Attempting port fallback: 1522 -> 1521")
-            self.config.port = DEFAULT_ORACLE_PORT
+            fallback_config = ConnectionConfig.model_validate(
+                {**self.config.model_dump(), "port": DEFAULT_ORACLE_PORT}
+            )
+            self.config = fallback_config
             self._fallback_applied = True
             return True
 

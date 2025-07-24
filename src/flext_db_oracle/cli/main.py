@@ -14,10 +14,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from argparse import Namespace
 
-from pydantic import SecretStr
 
-from flext_db_oracle.connection.config import ConnectionConfig
-from flext_db_oracle.connection.connection import OracleConnection
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.connection.connection import FlextDbOracleConnection
 from flext_db_oracle.logging_utils import get_logger
 
 # Use flext-infrastructure.monitoring.flext-observability for all logging
@@ -29,27 +28,21 @@ def test_connection(args: Namespace) -> int:
     logger.info("🔍 Testing Oracle database connection...")
 
     if args.url:
-        config = ConnectionConfig.from_url(args.url)
+        config = FlextDbOracleConfig.from_url(args.url)
     else:
-        config = ConnectionConfig(
+        config = FlextDbOracleConfig(
             host=args.host,
             port=args.port,
             sid=args.sid,
             service_name=args.service_name or "XE",
             username=args.username,
             password=args.password,
-            pool_min=1,
-            pool_max=10,
-            pool_increment=1,
-            timeout=30,
-            encoding="UTF-8",
-            ssl_cert_path=None,
-            ssl_key_path=None,
             protocol="tcp",
         )
 
     try:
-        conn = OracleConnection(config)
+        connection_config = config.to_connection_config()
+        conn = FlextDbOracleConnection(connection_config)
         conn.connect()
 
         if not conn.is_connected:
@@ -80,26 +73,20 @@ def list_tables(args: Namespace) -> int:
         logger.info("📋 Listing database tables...")
 
         if args.url:
-            config = ConnectionConfig.from_url(args.url)
+            config = FlextDbOracleConfig.from_url(args.url)
         else:
-            config = ConnectionConfig(
+            config = FlextDbOracleConfig(
                 host=args.host,
                 port=args.port,
                 sid=args.sid,
                 service_name=args.service_name or "XE",
                 username=args.username,
-                password=SecretStr(args.password),
-                pool_min=1,
-                pool_max=10,
-                pool_increment=1,
-                timeout=30,
-                encoding="UTF-8",
-                ssl_cert_path=None,
-                ssl_key_path=None,
+                password=args.password,
                 protocol="tcp",
             )
 
-        conn = OracleConnection(config)
+        connection_config = config.to_connection_config()
+        conn = FlextDbOracleConnection(connection_config)
         conn.connect()
 
         schema = args.schema or config.username.upper()
@@ -140,26 +127,20 @@ def describe_table(args: Namespace) -> int:
         logger.info("📊 Describing table structure...")
 
         if args.url:
-            config = ConnectionConfig.from_url(args.url)
+            config = FlextDbOracleConfig.from_url(args.url)
         else:
-            config = ConnectionConfig(
+            config = FlextDbOracleConfig(
                 host=args.host,
                 port=args.port,
                 sid=args.sid,
                 service_name=args.service_name or "XE",
                 username=args.username,
-                password=SecretStr(args.password),
-                pool_min=1,
-                pool_max=10,
-                pool_increment=1,
-                timeout=30,
-                encoding="UTF-8",
-                ssl_cert_path=None,
-                ssl_key_path=None,
+                password=args.password,
                 protocol="tcp",
             )
 
-        conn = OracleConnection(config)
+        connection_config = config.to_connection_config()
+        conn = FlextDbOracleConnection(connection_config)
         conn.connect()
 
         schema = args.schema or config.username.upper()

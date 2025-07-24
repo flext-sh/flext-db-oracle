@@ -10,8 +10,11 @@ import re
 from re import error as regex_error
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
@@ -48,6 +51,21 @@ class ValidationRule(DomainValueObject):
         """Check if this is a warning-level rule."""
         return self.severity.upper() == "WARNING"
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for validation rule."""
+        if not self.rule_id.strip():
+            raise ValueError("Rule ID cannot be empty")
+        if not self.rule_name.strip():
+            raise ValueError("Rule name cannot be empty")
+        if not self.description.strip():
+            raise ValueError("Description cannot be empty")
+
+        valid_severities = {"ERROR", "WARNING", "INFO"}
+        if self.severity.upper() not in valid_severities:
+            raise ValueError(
+                f"Invalid severity: {self.severity}. Must be one of {valid_severities}"
+            )
+
 
 class ValidationResult(DomainValueObject):
     """Result of SQL validation."""
@@ -72,6 +90,15 @@ class ValidationResult(DomainValueObject):
     def total_issues(self) -> int:
         """Get total number of issues found."""
         return len(self.errors) + len(self.warnings) + len(self.info)
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for validation result."""
+        if self.rules_checked < 0:
+            raise ValueError("Rules checked cannot be negative")
+
+        # Check that if there are errors, is_valid should be False
+        if self.has_errors and self.is_valid:
+            raise ValueError("Cannot be valid when errors are present")
 
 
 class SQLValidator:
@@ -161,7 +188,7 @@ class SQLValidator:
                         warnings=warnings,
                         info=info,
                         rules_checked=1,
-                    )
+                    ),
                 )
 
             # Check each validation rule
@@ -395,7 +422,7 @@ class SQLValidator:
             validation_result = await self._perform_sql_validation(sql)
             if not validation_result.success:
                 return ServiceResult.fail(
-                    validation_result.error or "Validation failed"
+                    validation_result.error or "Validation failed",
                 )
 
             validation = validation_result.data
@@ -419,7 +446,7 @@ class SQLValidator:
         validation_result = await self.validate_sql(sql)
         if not validation_result.success:
             return ServiceResult.fail(
-                validation_result.error or "SQL validation failed"
+                validation_result.error or "SQL validation failed",
             )
 
         if not validation_result.data:
@@ -447,7 +474,7 @@ class SQLValidator:
             validation_result = await self.validate_with_recommendations(sql)
             if not validation_result.success:
                 return ServiceResult.fail(
-                    validation_result.error or "Validation failed"
+                    validation_result.error or "Validation failed",
                 )
 
             validation_data = validation_result.data

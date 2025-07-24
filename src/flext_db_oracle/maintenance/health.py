@@ -8,13 +8,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
 
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -54,6 +57,12 @@ class DatabaseHealth(DomainValueObject):
         """Check if database is overall healthy."""
         return self.overall_status == "healthy"
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for database health."""
+        valid_statuses = {"healthy", "unhealthy", "warning", "critical"}
+        if self.overall_status not in valid_statuses:
+            raise ValueError(f"Invalid overall status: {self.overall_status}")
+
 
 class TablespaceInfo(DomainValueObject):
     """Tablespace information."""
@@ -73,6 +82,13 @@ class TablespaceInfo(DomainValueObject):
             return (self.used_mb / self.size_mb) * 100
         return 0.0
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for tablespace info."""
+        if not self.name.strip():
+            raise ValueError("Tablespace name cannot be empty")
+        if self.size_mb is not None and self.size_mb < 0:
+            raise ValueError("Size cannot be negative")
+
 
 class SessionInfo(DomainValueObject):
     """Database session information."""
@@ -84,15 +100,20 @@ class SessionInfo(DomainValueObject):
     logon_time: str | None = Field(None, description="Logon timestamp")
     sql_id: str | None = Field(None, description="Current SQL ID")
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for session info."""
+        if not self.status.strip():
+            raise ValueError("Session status cannot be empty")
+
 
 class HealthChecker:
     """Monitors Oracle database health and performance using flext-core patterns."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the health checker.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
@@ -151,7 +172,8 @@ class HealthChecker:
             result = await self.connection_service.execute_query("SELECT 1 FROM DUAL")
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Connection health check failed",
+                return ServiceResult.fail(
+                    result.error or "Connection health check failed",
                 )
 
             if not result.data or not result.data.rows:
@@ -211,16 +233,17 @@ class HealthChecker:
 
             tablespaces = []
             for row in result.data.rows:
-                tablespace = TablespaceInfo(
-                    name=row[0],
-                    status=row[1],
-                    contents=row[2],
-                    logging=row[3],
-                    size_mb=row[4],
-                    used_mb=row[5],
-                    free_mb=row[6],
-                )
-                tablespaces.append(tablespace)
+                if len(row) >= 7:  # Ensure row has all required columns
+                    tablespace = TablespaceInfo(
+                        name=row[0],
+                        status=row[1],
+                        contents=row[2],
+                        logging=row[3],
+                        size_mb=row[4],
+                        used_mb=row[5],
+                        free_mb=row[6],
+                    )
+                    tablespaces.append(tablespace)
 
             logger.info("Retrieved health info for %d tablespaces", len(tablespaces))
             return ServiceResult.ok(tablespaces)
@@ -259,15 +282,16 @@ class HealthChecker:
 
             sessions = []
             for row in result.data.rows:
-                session = SessionInfo(
-                    username=row[0],
-                    status=row[1],
-                    machine=row[2],
-                    program=row[3],
-                    logon_time=row[4],
-                    sql_id=row[5],
-                )
-                sessions.append(session)
+                if len(row) >= 6:  # Ensure row has all required columns
+                    session = SessionInfo(
+                        username=row[0],
+                        status=row[1],
+                        machine=row[2],
+                        program=row[3],
+                        logon_time=row[4],
+                        sql_id=row[5],
+                    )
+                    sessions.append(session)
 
             logger.info("Retrieved info for %d active sessions", len(sessions))
             return ServiceResult.ok(sessions)
@@ -282,7 +306,8 @@ class HealthChecker:
             health_result = await self.check_overall_health()
 
             if not health_result.success:
-                return ServiceResult.fail(health_result.error or "Failed to check overall health",
+                return ServiceResult.fail(
+                    health_result.error or "Failed to check overall health",
                 )
 
             health = health_result.data
@@ -438,6 +463,7 @@ class HealthChecker:
                         "time_waited": row[2],
                     }
                     for row in wait_result.data.rows
+                    if len(row) >= 3  # Ensure row has all required columns
                 ]
                 if wait_result.success and wait_result.data and wait_result.data.rows
                 else []
@@ -545,6 +571,7 @@ class HealthChecker:
                         "mode_requested": row[8],
                     }
                     for row in blocking_result.data.rows
+                    if len(row) >= 9  # Ensure row has all required columns
                 ]
 
             # Get total locks count
@@ -606,6 +633,7 @@ class HealthChecker:
                         "switches": row[1],
                     }
                     for row in switches_result.data.rows
+                    if len(row) >= 2  # Ensure row has all required columns
                 ]
 
             # Get current redo log status
@@ -633,6 +661,7 @@ class HealthChecker:
                         "size_mb": round(row[3], 2),
                     }
                     for row in status_result.data.rows
+                    if len(row) >= 4  # Ensure row has all required columns
                 ]
 
             # Calculate average switches per hour
@@ -696,7 +725,8 @@ class HealthChecker:
 
         except Exception as e:
             logger.exception("Failed to generate comprehensive health report")
-            return ServiceResult.fail(f"Failed to generate comprehensive health report: {e}",
+            return ServiceResult.fail(
+                f"Failed to generate comprehensive health report: {e}",
             )
 
     def _calculate_overall_assessment(self, *results: ServiceResult[Any]) -> str:

@@ -8,11 +8,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import DomainValueObject, Field, ServiceResult
-from flext_observability.logging import get_logger
+from flext_core import (
+    FlextResult as ServiceResult,
+    FlextValueObject as DomainValueObject,
+)
+from pydantic import Field
+
+from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
-    from flext_db_oracle.application.services import OracleConnectionService
+    from flext_db_oracle.application.services import FlextDbOracleConnectionService
 
 logger = get_logger(__name__)
 
@@ -31,6 +36,17 @@ class SyncOperation(DomainValueObject):
     success: bool = Field(default=True, description="Whether operation succeeded")
     error_message: str | None = Field(None, description="Error message if failed")
 
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for sync operation."""
+        if not self.operation_type.strip():
+            raise ValueError("Operation type cannot be empty")
+        if not self.table_name.strip():
+            raise ValueError("Table name cannot be empty")
+        if self.records_affected < 0:
+            raise ValueError("Records affected cannot be negative")
+        if self.execution_time_ms < 0:
+            raise ValueError("Execution time cannot be negative")
+
 
 class SyncResult(DomainValueObject):
     """Result of a synchronization operation."""
@@ -43,6 +59,15 @@ class SyncResult(DomainValueObject):
     )
     total_records_synced: int = Field(0, description="Total records synchronized", ge=0)
     success: bool = Field(default=True, description="Overall success status")
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for sync result."""
+        if not self.source_name.strip():
+            raise ValueError("Source name cannot be empty")
+        if not self.target_name.strip():
+            raise ValueError("Target name cannot be empty")
+        if self.total_records_synced < 0:
+            raise ValueError("Total records synced cannot be negative")
 
     @property
     def total_operations(self) -> int:
@@ -65,8 +90,8 @@ class DatabaseSynchronizer:
 
     def __init__(
         self,
-        source_service: OracleConnectionService,
-        target_service: OracleConnectionService,
+        source_service: FlextDbOracleConnectionService,
+        target_service: FlextDbOracleConnectionService,
     ) -> None:
         """Initialize the database synchronizer.
 
@@ -240,7 +265,7 @@ class DatabaseSynchronizer:
 
     async def _table_exists(
         self,
-        connection_service: OracleConnectionService,
+        connection_service: FlextDbOracleConnectionService,
         table_name: str,
     ) -> bool:
         try:
@@ -304,8 +329,8 @@ class DataSynchronizer:
 
     def __init__(
         self,
-        source_service: OracleConnectionService,
-        target_service: OracleConnectionService,
+        source_service: FlextDbOracleConnectionService,
+        target_service: FlextDbOracleConnectionService,
     ) -> None:
         """Initialize data synchronizer with connection services."""
         self.source_service = source_service

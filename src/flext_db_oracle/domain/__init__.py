@@ -4,19 +4,19 @@ Following flext-core DDD patterns.
 """
 
 from flext_db_oracle.domain.models import (
-    OracleColumnInfo,
-    OracleConnectionInfo,
-    OracleConnectionStatus,
-    OracleQueryResult,
-    OracleSchemaInfo,
-    OracleTableMetadata,
+    FlextDbOracleColumnInfo,
+    FlextDbOracleConnectionInfo,
+    FlextDbOracleConnectionStatus,
+    FlextDbOracleQueryResult,
+    FlextDbOracleSchemaInfo,
+    FlextDbOracleTableMetadata,
 )
 
 __all__ = [
-    "OracleColumnInfo",
-    "OracleConnectionInfo",
-    "OracleConnectionStatus",
-    "OracleQueryResult",
-    "OracleSchemaInfo",
-    "OracleTableMetadata",
+    "FlextDbOracleColumnInfo",
+    "FlextDbOracleConnectionInfo",
+    "FlextDbOracleConnectionStatus",
+    "FlextDbOracleQueryResult",
+    "FlextDbOracleSchemaInfo",
+    "FlextDbOracleTableMetadata",
 ]

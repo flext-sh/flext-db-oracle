@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 
-class OracleDBCoreError(Exception):
+class FlextDbOracleDBCoreError(Exception):
     """Base exception for Oracle database core operations."""
 
     def __init__(self, message: str, error_code: str | None = None) -> None:
@@ -19,7 +19,7 @@ class OracleDBCoreError(Exception):
         self.error_code = error_code
 
 
-class OracleConnectionError(OracleDBCoreError):
+class FlextDbOracleConnectionError(FlextDbOracleDBCoreError):
     """Exception raised for database connection errors."""
 
     def __init__(
@@ -41,7 +41,7 @@ class OracleConnectionError(OracleDBCoreError):
         self.port = port
 
 
-class SchemaError(OracleDBCoreError):
+class SchemaError(FlextDbOracleDBCoreError):
     """Exception raised for schema-related errors."""
 
     def __init__(
@@ -63,7 +63,7 @@ class SchemaError(OracleDBCoreError):
         self.object_name = object_name
 
 
-class SQLError(OracleDBCoreError):
+class SQLError(FlextDbOracleDBCoreError):
     """Exception raised for SQL execution errors."""
 
     def __init__(
@@ -77,7 +77,7 @@ class SQLError(OracleDBCoreError):
         Args:
             message: Error message
             sql: SQL statement that caused the error
-            oracle_code: Oracle error code
+            oracle_code: FlextDbOracle error code
 
         """
         super().__init__(message, oracle_code or "SQL_ERROR")
@@ -85,7 +85,7 @@ class SQLError(OracleDBCoreError):
         self.oracle_code = oracle_code
 
 
-class OracleQueryError(SQLError):
+class FlextDbOracleQueryError(SQLError):
     """Exception raised for Oracle query execution errors."""
 
     def __init__(
@@ -99,13 +99,13 @@ class OracleQueryError(SQLError):
         Args:
             message: Error message
             sql: SQL statement that caused the error
-            oracle_code: Oracle error code
+            oracle_code: FlextDbOracle error code
 
         """
         super().__init__(message, sql, oracle_code or "QUERY_ERROR")
 
 
-class ValidationError(OracleDBCoreError):
+class ValidationError(FlextDbOracleDBCoreError):
     """Exception raised for data validation errors."""
 
     def __init__(
@@ -127,7 +127,7 @@ class ValidationError(OracleDBCoreError):
         self.value = value
 
 
-class ConfigurationError(OracleDBCoreError):
+class ConfigurationError(FlextDbOracleDBCoreError):
     """Exception raised for configuration errors."""
 
     def __init__(self, message: str, config_key: str | None = None) -> None:
@@ -142,7 +142,7 @@ class ConfigurationError(OracleDBCoreError):
         self.config_key = config_key
 
 
-class PoolError(OracleDBCoreError):
+class PoolError(FlextDbOracleDBCoreError):
     """Exception raised for connection pool errors."""
 
     def __init__(self, message: str, pool_name: str | None = None) -> None:
@@ -157,7 +157,7 @@ class PoolError(OracleDBCoreError):
         self.pool_name = pool_name
 
 
-class OraclePerformanceError(OracleDBCoreError):
+class FlextDbOraclePerformanceError(FlextDbOracleDBCoreError):
     """Exception raised for Oracle performance-related errors."""
 
     def __init__(

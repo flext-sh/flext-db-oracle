@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any
 
-from flext_core import BaseConfig, Field
-from pydantic import SecretStr, field_validator, model_validator
+from flext_core import FlextValueObject as BaseConfig
+from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 
 from flext_db_oracle.logging_utils import get_logger
 
@@ -24,7 +24,7 @@ class ConnectionConfig(BaseConfig):
     with support for various connection modes and security features.
     """
 
-    model_config: ClassVar[dict[str, str]] = {"extra": "forbid"}
+    model_config = ConfigDict(extra="forbid")
 
     host: str = Field("localhost", description="Database host")
     port: int = Field(1521, description="Database port", ge=1, le=65535)
@@ -60,7 +60,10 @@ class ConnectionConfig(BaseConfig):
         if hasattr(info, "data") and "pool_min" in info.data:
             pool_min = info.data.get("pool_min", 1)
             if v < pool_min:
-                msg = f"pool_max ({v}) must be greater than or equal to pool_min ({pool_min})"
+                msg = (
+                    f"pool_max ({v}) must be greater than or equal to "
+                    f"pool_min ({pool_min})"
+                )
                 raise ValueError(msg)
         return v
 
@@ -158,6 +161,10 @@ class ConnectionConfig(BaseConfig):
             ssl_key_path=None,
             protocol="tcp",
         )
+
+    def validate_domain_rules(self) -> None:
+        """Validate domain rules for connection configuration."""
+        # Domain validation already handled by Pydantic validators
 
     def __repr__(self) -> str:
         """Safe representation without password."""

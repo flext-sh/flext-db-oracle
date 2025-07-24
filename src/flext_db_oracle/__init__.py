@@ -4,7 +4,8 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 Version 0.7.0 - Enterprise Oracle Database with simplified public API:
-- All common imports available from root: from flext_db_oracle import OracleConnectionService
+- All common imports available from root:
+  from flext_db_oracle import FlextDbOracleConnectionService
 - Built on flext-core foundation for robust Oracle database integration
 - Deprecation warnings for internal imports
 """
@@ -17,15 +18,10 @@ import warnings
 
 # Import from flext-core for foundational patterns
 from flext_core import (
-    BaseConfig,
-    BaseConfig as OracleBaseConfig,
-    DomainBaseModel,
-    DomainBaseModel as BaseModel,
-    DomainError as OracleError,
-    DomainValueObject as ValueObject,
-    ServiceResult,
-    ServiceResult as FlextServiceResult,
-    ValidationError,
+    FlextResult as ServiceResult,
+    FlextValueObject as BaseModel,
+    FlextValueObject as DomainBaseModel,
+    FlextValueObject as ValueObject,
 )
 
 try:
@@ -63,49 +59,72 @@ def _show_deprecation_warning(old_import: str, new_import: str) -> None:
 
 # Configuration exports - simplified imports
 with contextlib.suppress(ImportError):
-    from flext_db_oracle.config import OracleConfig
+    from flext_db_oracle.config import FlextDbOracleConfig
 
-# Application Services exports - simplified imports
+# Connection layer exports - actual implementations only
 with contextlib.suppress(ImportError):
-    from flext_db_oracle.application.services import (
-        OracleConnectionService,
-        OracleQueryService,
-        OracleSchemaService,
+    from flext_db_oracle.connection.connection import FlextDbOracleConnection
+    from flext_db_oracle.connection.pool import (
+        ConnectionPool,
+        FlextDbOracleConnectionPool,
     )
 
-# Domain Models exports - simplified imports
+# SQL processing exports - actual implementations only
 with contextlib.suppress(ImportError):
-    from flext_db_oracle.domain.models import (
-        OracleConnectionInfo,
-        OracleQueryResult,
-        OracleSchemaInfo,
-        OracleTableMetadata,
+    from flext_db_oracle.sql.parser import SQLParser
+    from flext_db_oracle.sql.validator import ValidationResult, ValidationRule
+
+# Schema metadata exports - actual implementations only
+with contextlib.suppress(ImportError):
+    from flext_db_oracle.schema.metadata import (
+        ColumnMetadata,
+        ConstraintMetadata,
+        ConstraintType,
+        IndexMetadata,
+        ObjectStatus,
+        SchemaMetadata,
+        TableMetadata,
+        ViewMetadata,
     )
 
-# Utilities exports - simplified imports
+# Logging utilities - actual implementations only
 with contextlib.suppress(ImportError):
-    from flext_db_oracle.utils import run_async_in_sync_context
+    from flext_db_oracle.logging_utils import get_logger
 
 # ================================
 # PUBLIC API EXPORTS
 # ================================
 
 __all__ = [
+    # Core base classes from flext-core
     "BaseModel",
+    # Schema Metadata - actual implementations
+    "ColumnMetadata",
+    "ConnectionPool",  # Backward compatibility alias
+    "ConstraintMetadata",
+    "ConstraintType",
+    "DomainBaseModel",
+    # Configuration - actual implementations
+    "FlextDbOracleConfig",
+    # Connection and Pool - actual implementations
+    "FlextDbOracleConnection",
+    "FlextDbOracleConnectionPool",
+    # Deprecation warnings
     "FlextDbOracleDeprecationWarning",
-    "OracleBaseConfig",
-    "OracleConfig",
-    "OracleConnectionInfo",
-    "OracleConnectionService",
-    "OracleError",
-    "OracleQueryResult",
-    "OracleQueryService",
-    "OracleSchemaInfo",
-    "OracleSchemaService",
-    "OracleTableMetadata",
+    "IndexMetadata",
+    "ObjectStatus",
+    # SQL Processing - actual implementations
+    "SQLParser",
+    "SchemaMetadata",
     "ServiceResult",
-    "ValidationError",
+    "TableMetadata",
+    "ValidationResult",
+    "ValidationRule",
     "ValueObject",
+    "ViewMetadata",
+    # Metadata
     "__version__",
     "__version_info__",
+    # Utilities - actual implementations
+    "get_logger",
 ]

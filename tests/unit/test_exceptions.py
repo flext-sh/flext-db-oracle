@@ -8,10 +8,14 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle.utils.exceptions import (
-    OracleConnectionError,
-    OracleDBCoreError,
+    FlextDbOracleConnectionError,
+    FlextDbOracleDBCoreError,
     SchemaError,
 )
+
+# Aliases for test compatibility
+OracleDBCoreError = FlextDbOracleDBCoreError
+OracleConnectionError = FlextDbOracleConnectionError
 
 
 class TestOracleDBCoreError:

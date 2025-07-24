@@ -10,38 +10,38 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from flext_core.domain.shared_types import ServiceResult
+from flext_core import FlextResult as ServiceResult
 
 from flext_db_oracle.domain.models import (
-    OracleColumnInfo,
-    OracleConnectionStatus,
-    OracleQueryResult,
-    OracleSchemaInfo,
-    OracleTableMetadata,
+    FlextDbOracleColumnInfo,
+    FlextDbOracleConnectionStatus,
+    FlextDbOracleQueryResult,
+    FlextDbOracleSchemaInfo,
+    FlextDbOracleTableMetadata,
 )
 from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
-    from flext_db_oracle.config import OracleConfig
+    from flext_db_oracle.config import FlextDbOracleConfig
 
 logger = get_logger(__name__)
 
 
-class OracleConnectionService:
+class FlextDbOracleConnectionService:
     """Service for managing Oracle database connections."""
 
-    def __init__(self, config: OracleConfig) -> None:
+    def __init__(self, config: FlextDbOracleConfig) -> None:
         """Initialize the Oracle connection service.
 
         Args:
-            config: Oracle database configuration
+            config: FlextDbOracle database configuration
 
         """
         self.config = config
         self._pool: oracledb.ConnectionPool | None = None
-        self._query_service: OracleQueryService | None = None
+        self._query_service: FlextDbOracleQueryService | None = None
 
     async def initialize_pool(self) -> ServiceResult[Any]:
         """Initialize the connection pool."""
@@ -98,7 +98,7 @@ class OracleConnectionService:
 
             self._pool = oracledb.create_pool(**conn_params)
             # Initialize query service after pool is ready
-            self._query_service = OracleQueryService(self)
+            self._query_service = FlextDbOracleQueryService(self)
             logger.info(
                 "Oracle connection pool initialized: %s",
                 self.config.connection_string,
@@ -153,7 +153,7 @@ class OracleConnectionService:
                     result = cursor.fetchone()
 
                     if result and result[0] == 1:
-                        status = OracleConnectionStatus(
+                        status = FlextDbOracleConnectionStatus(
                             is_connected=True,
                             host=self.config.host,
                             port=self.config.port,
@@ -163,7 +163,7 @@ class OracleConnectionService:
                             error_message=None,
                         )
                         return ServiceResult.ok(status)
-                    status = OracleConnectionStatus(
+                    status = FlextDbOracleConnectionStatus(
                         is_connected=False,
                         host=self.config.host,
                         port=self.config.port,
@@ -176,7 +176,7 @@ class OracleConnectionService:
 
         except Exception as e:
             logger.exception("Oracle connection test failed")
-            status = OracleConnectionStatus(
+            status = FlextDbOracleConnectionStatus(
                 is_connected=False,
                 host=self.config.host,
                 port=self.config.port,
@@ -207,14 +207,14 @@ class OracleConnectionService:
         """Get Oracle database information."""
         try:
             async with self.get_connection() as conn:
-                # Get database version
+                # Get database version using safe cursor management
                 version_sql = "SELECT banner FROM v$version WHERE rownum = 1"
-                cursor = conn.cursor()
-                cursor.execute(version_sql)
-                version_result = cursor.fetchone()
-                version = version_result[0] if version_result else "Unknown"
+                with conn.cursor() as cursor:
+                    cursor.execute(version_sql)
+                    version_result = cursor.fetchone()
+                    version = version_result[0] if version_result else "Unknown"
 
-                # Get database name and instance
+                # Get database name and instance using safe cursor management
                 info_sql = """
                 SELECT
                     sys_context('USERENV', 'DB_NAME') as db_name,
@@ -222,8 +222,9 @@ class OracleConnectionService:
                     sys_context('USERENV', 'SERVER_HOST') as host
                 FROM dual
                 """
-                cursor.execute(info_sql)
-                info_result = cursor.fetchone()
+                with conn.cursor() as cursor:
+                    cursor.execute(info_sql)
+                    info_result = cursor.fetchone()
 
                 db_info = {
                     "version": version,
@@ -238,7 +239,6 @@ class OracleConnectionService:
                     },
                 }
 
-                cursor.close()
                 return ServiceResult.ok(db_info)
 
         except Exception as e:
@@ -255,7 +255,8 @@ class OracleConnectionService:
             # Initialize pool and query service if not already done
             init_result = await self.initialize_pool()
             if not init_result.success:
-                return ServiceResult.fail(f"Failed to initialize pool: {init_result.error}",
+                return ServiceResult.fail(
+                    f"Failed to initialize pool: {init_result.error}",
                 )
 
         if not self._query_service:
@@ -264,14 +265,14 @@ class OracleConnectionService:
         return await self._query_service.execute_query(sql, parameters)
 
 
-class OracleQueryService:
+class FlextDbOracleQueryService:
     """Service for executing Oracle database queries."""
 
-    def __init__(self, connection_service: OracleConnectionService) -> None:
+    def __init__(self, connection_service: FlextDbOracleConnectionService) -> None:
         """Initialize the Oracle query service.
 
         Args:
-            connection_service: Oracle connection service for database operations
+            connection_service: FlextDbOracle connection service for database operations
 
         """
         self.connection_service = connection_service
@@ -304,7 +305,7 @@ class OracleQueryService:
                         datetime.now(UTC) - start_time
                     ).total_seconds() * 1000
 
-                    result = OracleQueryResult(
+                    result = FlextDbOracleQueryResult(
                         rows=result_rows,
                         row_count=len(result_rows),
                         columns=columns,
@@ -342,14 +343,14 @@ class OracleQueryService:
             return ServiceResult.fail(f"Scalar query failed: {e}")
 
 
-class OracleSchemaService:
+class FlextDbOracleSchemaService:
     """Service for Oracle schema operations."""
 
-    def __init__(self, query_service: OracleQueryService) -> None:
+    def __init__(self, query_service: FlextDbOracleQueryService) -> None:
         """Initialize the Oracle schema service.
 
         Args:
-            query_service: Oracle query service for executing database queries
+            query_service: FlextDbOracle query service for executing database queries
 
         """
         self.query_service = query_service
@@ -363,11 +364,12 @@ class OracleSchemaService:
             # Get schema tables
             tables_result = await self.get_schema_tables(schema_name)
             if not tables_result.success:
-                return ServiceResult.fail(f"Failed to get schema tables: {tables_result.error}",
+                return ServiceResult.fail(
+                    f"Failed to get schema tables: {tables_result.error}",
                 )
 
             tables = tables_result.data or []
-            schema_info = OracleSchemaInfo(
+            schema_info = FlextDbOracleSchemaInfo(
                 name=schema_name,
                 tables=tables,
                 table_count=len(tables),
@@ -386,12 +388,28 @@ class OracleSchemaService:
         self,
         schema_name: str,
     ) -> ServiceResult[Any]:
-        """Get all tables in a schema."""
+        """Get all tables in a schema with optimized single-query approach.
+
+        Eliminates N+1 query problem by fetching all table and column data together.
+        """
+        # Single optimized query to get all table and column information
         sql = """
-        SELECT table_name, tablespace_name, num_rows
-        FROM all_tables
-        WHERE owner = UPPER(:schema_name)
-        ORDER BY table_name
+        SELECT
+            t.table_name,
+            t.tablespace_name,
+            t.num_rows,
+            c.column_name,
+            c.data_type,
+            c.nullable,
+            c.data_default,
+            c.data_length,
+            c.data_precision,
+            c.data_scale,
+            c.column_id
+        FROM all_tables t
+        LEFT JOIN all_tab_columns c ON t.owner = c.owner AND t.table_name = c.table_name
+        WHERE t.owner = UPPER(:schema_name)
+        ORDER BY t.table_name, c.column_id
         """
 
         try:
@@ -400,31 +418,63 @@ class OracleSchemaService:
                 {"schema_name": schema_name},
             )
             if not result.success:
-                return ServiceResult.fail(f"Failed to query schema tables: {result.error}",
+                return ServiceResult.fail(
+                    f"Failed to query schema tables: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail("No result data returned from schema query",
+                return ServiceResult.fail(
+                    "No result data returned from schema query",
                 )
 
-            tables = []
+            # Process results efficiently by grouping columns by table
+            tables_dict: dict[str, dict[str, Any]] = {}
             for row in result.data.rows:
-                table_meta = OracleTableMetadata(
-                    schema_name=schema_name,
-                    table_name=row[0],  # table_name
-                    row_count=row[2],  # num_rows
-                    tablespace=row[1],  # tablespace_name
-                    comments=None,
-                    created_date=None,
+                table_name = row[0]
+                tablespace_name = row[1]
+                num_rows = row[2]
+
+                # Initialize table metadata if not exists
+                if table_name not in tables_dict:
+                    tables_dict[table_name] = {
+                        "metadata": {
+                            "schema_name": schema_name,
+                            "table_name": table_name,
+                            "tablespace": tablespace_name,
+                            "row_count": num_rows,
+                            "comments": None,
+                            "created_date": None,
+                        },
+                        "columns": [],
+                    }
+
+                # Add column information if present (LEFT JOIN may have NULL columns)
+                if row[3] is not None:  # column_name exists
+                    column_info = FlextDbOracleColumnInfo(
+                        name=row[3],  # column_name
+                        data_type=row[4],  # data_type
+                        nullable=row[5] == "Y",  # nullable
+                        default_value=row[6],  # data_default
+                        max_length=row[7],  # data_length
+                        precision=row[8],  # data_precision
+                        scale=row[9],  # data_scale
+                    )
+                    tables_dict[table_name]["columns"].append(column_info)
+
+            # Convert to FlextDbOracleTableMetadata objects
+            tables = []
+            for table_data in tables_dict.values():
+                table_meta = FlextDbOracleTableMetadata(
+                    columns=table_data["columns"], **table_data["metadata"]
                 )
-
-                # Get column information for each table
-                columns_result = await self.get_table_columns(schema_name, row[0])
-                if columns_result.success and columns_result.data:
-                    table_meta.columns = columns_result.data
-
                 tables.append(table_meta)
 
+            logger.info(
+                "Retrieved %d tables with %d total columns for schema %s",
+                len(tables),
+                sum(len(t.columns) for t in tables),
+                schema_name,
+            )
             return ServiceResult.ok(tables)
 
         except Exception as e:
@@ -436,7 +486,11 @@ class OracleSchemaService:
         schema_name: str,
         table_name: str,
     ) -> ServiceResult[Any]:
-        """Get column information for a specific table."""
+        """Get column information for a specific table.
+
+        Note: For bulk schema operations, use get_schema_tables() which is optimized
+        to avoid N+1 query problems by fetching all tables and columns together.
+        """
         sql = """
         SELECT
             column_name,
@@ -462,16 +516,18 @@ class OracleSchemaService:
             )
 
             if not result.success:
-                return ServiceResult.fail(f"Failed to query table columns: {result.error}",
+                return ServiceResult.fail(
+                    f"Failed to query table columns: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail("No result data returned from columns query",
+                return ServiceResult.fail(
+                    "No result data returned from columns query",
                 )
 
             columns = []
             for row in result.data.rows:
-                column_info = OracleColumnInfo(
+                column_info = FlextDbOracleColumnInfo(
                     name=row[0],  # column_name
                     data_type=row[1],  # data_type
                     nullable=row[2] == "Y",  # nullable
