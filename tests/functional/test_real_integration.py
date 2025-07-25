@@ -37,7 +37,8 @@ class TestRealIntegration:
     """Test real integration functionality."""
 
     def test_config_creation_and_validation(
-        self, test_config: FlextDbOracleConfig
+        self,
+        test_config: FlextDbOracleConfig,
     ) -> None:
         """Test configuration creation and validation."""
         # Test basic properties
@@ -79,7 +80,8 @@ class TestRealIntegration:
         assert result.data.host == "testhost"
 
     def test_connection_service_creation(
-        self, test_config: FlextDbOracleConfig
+        self,
+        test_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection service creation."""
         result = flext_db_oracle_create_connection_service(test_config)
@@ -107,7 +109,8 @@ class TestRealIntegration:
 
     @pytest.mark.asyncio
     async def test_database_info_functionality(
-        self, test_config: FlextDbOracleConfig
+        self,
+        test_config: FlextDbOracleConfig,
     ) -> None:
         """Test database info retrieval functionality."""
         result = await flext_db_oracle_get_database_info(test_config)
@@ -138,13 +141,16 @@ class TestRealIntegration:
 
         # Test missing required fields - should work with defaults
         config = FlextDbOracleConfig(
-            username="test", password="test", service_name="testdb"
+            username="test",
+            password="test",
+            service_name="testdb",
         )
         assert config.host == "localhost"  # Default value
 
     @pytest.mark.asyncio
     async def test_service_initialization_and_cleanup(
-        self, test_config: FlextDbOracleConfig
+        self,
+        test_config: FlextDbOracleConfig,
     ) -> None:
         """Test service initialization and cleanup."""
         service = FlextDbOracleConnectionService(test_config)
@@ -169,7 +175,7 @@ class TestRealIntegration:
 
     def test_logging_utils(self) -> None:
         """Test logging utilities."""
-        from flext_db_oracle.logging_utils import get_logger
+        from flext_core import get_logger
 
         logger = get_logger(__name__)
         assert logger is not None
@@ -244,7 +250,11 @@ class TestRealIntegration:
 
         # Test can instantiate (even if it won't work without connection)
         service = FlextDbOracleConnectionService(
-            FlextDbOracleConfig(username="test", password="test", service_name="testdb")
+            FlextDbOracleConfig(
+                username="test",
+                password="test",
+                service_name="testdb",
+            ),
         )
         analyzer = SchemaAnalyzer(service)
         assert analyzer is not None
@@ -267,7 +277,9 @@ class TestRealIntegration:
         )
 
         config = FlextDbOracleConfig(
-            username="test", password="test", service_name="testdb"
+            username="test",
+            password="test",
+            service_name="testdb",
         )
         engine_service = FlextDbOracleSQLAlchemyEngine(config)
         assert engine_service is not None
@@ -275,7 +287,8 @@ class TestRealIntegration:
 
     @pytest.mark.asyncio
     async def test_error_handling_comprehensive(
-        self, test_config: FlextDbOracleConfig
+        self,
+        test_config: FlextDbOracleConfig,
     ) -> None:
         """Test comprehensive error handling across components."""
         service = FlextDbOracleConnectionService(test_config)
@@ -313,7 +326,9 @@ class TestRealIntegration:
         # Test multiple config scenarios
         configs = [
             FlextDbOracleConfig(
-                username="test", password="test", service_name="testdb"
+                username="test",
+                password="test",
+                service_name="testdb",
             ),  # Default with required fields
             FlextDbOracleConfig(
                 host="custom",

@@ -8,8 +8,9 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from flext_core import FlextResult as ServiceResult
-from src.flext_db_oracle.schema.analyzer import SchemaAnalyzer
+from flext_core import FlextResult
+
+from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 
 
 @pytest.fixture
@@ -48,16 +49,18 @@ class TestSchemaAnalyzer:
     """Test cases for SchemaAnalyzer class."""
 
     async def test_analyze_schema_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful schema analysis."""
         # Mock current schema
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
-            ServiceResult.ok(MagicMock(rows=[])),  # tables
-            ServiceResult.ok(MagicMock(rows=[])),  # views
-            ServiceResult.ok(MagicMock(rows=[])),  # sequences
-            ServiceResult.ok(MagicMock(rows=[])),  # procedures
+            FlextResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
+            FlextResult.ok(MagicMock(rows=[])),  # tables
+            FlextResult.ok(MagicMock(rows=[])),  # views
+            FlextResult.ok(MagicMock(rows=[])),  # sequences
+            FlextResult.ok(MagicMock(rows=[])),  # procedures
         ]
 
         result = await schema_analyzer.analyze_schema()
@@ -67,14 +70,16 @@ class TestSchemaAnalyzer:
         assert result.data["total_objects"] == 0
 
     async def test_analyze_schema_with_explicit_name(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test schema analysis with explicit schema name."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[])),  # tables
-            ServiceResult.ok(MagicMock(rows=[])),  # views
-            ServiceResult.ok(MagicMock(rows=[])),  # sequences
-            ServiceResult.ok(MagicMock(rows=[])),  # procedures
+            FlextResult.ok(MagicMock(rows=[])),  # tables
+            FlextResult.ok(MagicMock(rows=[])),  # views
+            FlextResult.ok(MagicMock(rows=[])),  # sequences
+            FlextResult.ok(MagicMock(rows=[])),  # procedures
         ]
 
         result = await schema_analyzer.analyze_schema("EXPLICIT_SCHEMA")
@@ -83,11 +88,13 @@ class TestSchemaAnalyzer:
         assert result.data["schema_name"] == "EXPLICIT_SCHEMA"
 
     async def test_analyze_schema_connection_failure(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test schema analysis with connection failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Connection failed"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Connection failed",
         )
 
         result = await schema_analyzer.analyze_schema()
@@ -96,11 +103,14 @@ class TestSchemaAnalyzer:
         assert "Connection failed" in result.error
 
     async def test_get_tables_success(
-        self, schema_analyzer: Any, mock_connection_service: Any, sample_table_data: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
+        sample_table_data: list[list[Any]],
     ) -> None:
         """Test successful table retrieval."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sample_table_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sample_table_data),
         )
 
         result = await schema_analyzer.get_tables("TEST_SCHEMA")
@@ -113,11 +123,13 @@ class TestSchemaAnalyzer:
         assert tables[1]["name"] == "DEPARTMENTS"
 
     async def test_get_tables_empty_result(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test table retrieval with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await schema_analyzer.get_tables("TEST_SCHEMA")
@@ -126,11 +138,13 @@ class TestSchemaAnalyzer:
         assert result.data == []
 
     async def test_get_tables_query_failure(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test table retrieval with query failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Query failed"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Query failed",
         )
 
         result = await schema_analyzer.get_tables("TEST_SCHEMA")
@@ -140,13 +154,13 @@ class TestSchemaAnalyzer:
 
     async def test_get_table_columns_success(
         self,
-        schema_analyzer: Any,
-        mock_connection_service: Any,
-        sample_column_data: Any,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
+        sample_column_data: list[list[Any]],
     ) -> None:
         """Test successful column retrieval."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sample_column_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sample_column_data),
         )
 
         result = await schema_analyzer.get_table_columns("TEST_SCHEMA", "EMPLOYEES")
@@ -162,11 +176,13 @@ class TestSchemaAnalyzer:
         assert columns[3]["default_value"] == "0"
 
     async def test_get_table_columns_no_results(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test column retrieval with no results."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await schema_analyzer.get_table_columns("TEST_SCHEMA", "NONEXISTENT")
@@ -175,15 +191,17 @@ class TestSchemaAnalyzer:
         assert result.data == []
 
     async def test_get_views_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful view retrieval."""
         view_data = [
             ["EMP_VIEW", 1024, "SELECT * FROM employees"],
             ["DEPT_VIEW", 512, "SELECT * FROM departments"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=view_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=view_data),
         )
 
         result = await schema_analyzer.get_views("TEST_SCHEMA")
@@ -195,15 +213,17 @@ class TestSchemaAnalyzer:
         assert views[0]["text_length"] == 1024
 
     async def test_get_sequences_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful sequence retrieval."""
         sequence_data = [
             ["EMP_SEQ", 1, 999999, 1, "N"],
             ["DEPT_SEQ", 1, 999999, 1, "N"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sequence_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sequence_data),
         )
 
         result = await schema_analyzer.get_sequences("TEST_SCHEMA")
@@ -215,15 +235,17 @@ class TestSchemaAnalyzer:
         assert sequences[0]["increment_by"] == 1
 
     async def test_get_procedures_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful procedure retrieval."""
         procedure_data = [
             ["GET_EMPLOYEE", "PROCEDURE", "VALID", "2024-01-01", "2024-01-01"],
             ["CALC_SALARY", "FUNCTION", "VALID", "2024-01-01", "2024-01-01"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=procedure_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=procedure_data),
         )
 
         result = await schema_analyzer.get_procedures("TEST_SCHEMA")
@@ -236,7 +258,9 @@ class TestSchemaAnalyzer:
         assert procedures[1]["type"] == "FUNCTION"
 
     async def test_get_table_constraints_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful constraint retrieval."""
         constraint_data = [
@@ -244,8 +268,8 @@ class TestSchemaAnalyzer:
             ["EMP_DEPT_FK", "R", None, "DEPT_PK", "CASCADE", "ENABLED"],
             ["EMP_SALARY_CHK", "C", "salary > 0", None, None, "ENABLED"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=constraint_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=constraint_data),
         )
 
         result = await schema_analyzer.get_table_constraints("TEST_SCHEMA", "EMPLOYEES")
@@ -259,15 +283,17 @@ class TestSchemaAnalyzer:
         assert constraints[2]["search_condition"] == "salary > 0"
 
     async def test_get_table_indexes_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful index retrieval."""
         index_data = [
             ["EMP_PK", "NORMAL", "UNIQUE", None, "VALID", 100, 10, 100],
             ["EMP_NAME_IDX", "NORMAL", "NONUNIQUE", None, "VALID", 100, 15, 95],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=index_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=index_data),
         )
 
         result = await schema_analyzer.get_table_indexes("TEST_SCHEMA", "EMPLOYEES")
@@ -280,29 +306,32 @@ class TestSchemaAnalyzer:
         assert indexes[1]["uniqueness"] == "NONUNIQUE"
 
     async def test_get_detailed_table_info_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful detailed table info retrieval."""
         # Mock sequence of calls: tables, columns, constraints, indexes
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(
-                MagicMock(rows=[["EMPLOYEES", "USERS", "VALID", 100, 50, 2048]])
+            FlextResult.ok(
+                MagicMock(rows=[["EMPLOYEES", "USERS", "VALID", 100, 50, 2048]]),
             ),  # tables
-            ServiceResult.ok(
-                MagicMock(rows=[["EMPLOYEE_ID", "NUMBER", 22, 10, 0, "N", 1, None]])
+            FlextResult.ok(
+                MagicMock(rows=[["EMPLOYEE_ID", "NUMBER", 22, 10, 0, "N", 1, None]]),
             ),  # columns
-            ServiceResult.ok(
-                MagicMock(rows=[["EMP_PK", "P", None, None, None, "ENABLED"]])
+            FlextResult.ok(
+                MagicMock(rows=[["EMP_PK", "P", None, None, None, "ENABLED"]]),
             ),  # constraints
-            ServiceResult.ok(
+            FlextResult.ok(
                 MagicMock(
-                    rows=[["EMP_PK", "NORMAL", "UNIQUE", None, "VALID", 100, 10, 100]]
-                )
+                    rows=[["EMP_PK", "NORMAL", "UNIQUE", None, "VALID", 100, 10, 100]],
+                ),
             ),  # indexes
         ]
 
         result = await schema_analyzer.get_detailed_table_info(
-            "TEST_SCHEMA", "EMPLOYEES"
+            "TEST_SCHEMA",
+            "EMPLOYEES",
         )
 
         assert result.success
@@ -313,30 +342,35 @@ class TestSchemaAnalyzer:
         assert table_info["index_count"] == 1
 
     async def test_get_detailed_table_info_table_not_found(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test detailed table info when table doesn't exist."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await schema_analyzer.get_detailed_table_info(
-            "TEST_SCHEMA", "NONEXISTENT"
+            "TEST_SCHEMA",
+            "NONEXISTENT",
         )
 
         assert not result.success
         assert "Table list is empty" in result.error
 
     async def test_analyze_schema_size_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful schema size analysis."""
         size_data = [
             [1024.5, 10, "TABLE"],
             [512.25, 5, "INDEX"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=size_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=size_data),
         )
 
         result = await schema_analyzer.analyze_schema_size("TEST_SCHEMA")
@@ -349,13 +383,15 @@ class TestSchemaAnalyzer:
         assert len(size_analysis["segments"]) == 2
 
     async def test_analyze_schema_size_fallback_to_user_segments(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test schema size analysis fallback to user_segments."""
         # First call fails (dba_segments), second succeeds (user_segments)
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.fail("Access denied to dba_segments"),
-            ServiceResult.ok(MagicMock(rows=[[512.0, 5, "TABLE"]])),
+            FlextResult.fail("Access denied to dba_segments"),
+            FlextResult.ok(MagicMock(rows=[[512.0, 5, "TABLE"]])),
         ]
 
         result = await schema_analyzer.analyze_schema_size("TEST_SCHEMA")
@@ -364,18 +400,20 @@ class TestSchemaAnalyzer:
         assert result.data["total_size_mb"] == 512.0
 
     async def test_get_complete_schema_metadata_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test complete schema metadata creation."""
         # Mock the complex sequence of calls
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
-            ServiceResult.ok(MagicMock(rows=[])),  # tables (for analyze_schema)
-            ServiceResult.ok(MagicMock(rows=[])),  # views (for analyze_schema)
-            ServiceResult.ok(MagicMock(rows=[])),  # sequences (for analyze_schema)
-            ServiceResult.ok(MagicMock(rows=[])),  # procedures (for analyze_schema)
-            ServiceResult.fail("No size data"),  # schema size (fails gracefully)
-            ServiceResult.fail("Fallback also fails"),  # fallback query also fails
+            FlextResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
+            FlextResult.ok(MagicMock(rows=[])),  # tables (for analyze_schema)
+            FlextResult.ok(MagicMock(rows=[])),  # views (for analyze_schema)
+            FlextResult.ok(MagicMock(rows=[])),  # sequences (for analyze_schema)
+            FlextResult.ok(MagicMock(rows=[])),  # procedures (for analyze_schema)
+            FlextResult.fail("No size data"),  # schema size (fails gracefully)
+            FlextResult.fail("Fallback also fails"),  # fallback query also fails
         ]
 
         result = await schema_analyzer.get_complete_schema_metadata()
@@ -388,19 +426,22 @@ class TestSchemaAnalyzer:
         )  # Failed size analysis defaults to 0
 
     async def test_get_constraint_columns_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test constraint column retrieval."""
         column_data = [
             ["EMPLOYEE_ID"],
             ["DEPARTMENT_ID"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=column_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=column_data),
         )
 
         result = await schema_analyzer.get_constraint_columns(
-            "TEST_SCHEMA", "EMP_DEPT_FK"
+            "TEST_SCHEMA",
+            "EMP_DEPT_FK",
         )
 
         assert result.success
@@ -408,15 +449,17 @@ class TestSchemaAnalyzer:
         assert columns == ["EMPLOYEE_ID", "DEPARTMENT_ID"]
 
     async def test_get_index_columns_success(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test index column retrieval."""
         column_data = [
             ["LAST_NAME"],
             ["FIRST_NAME"],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=column_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=column_data),
         )
 
         result = await schema_analyzer.get_index_columns("TEST_SCHEMA", "EMP_NAME_IDX")
@@ -426,7 +469,9 @@ class TestSchemaAnalyzer:
         assert columns == ["LAST_NAME", "FIRST_NAME"]
 
     async def test_exception_handling(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test exception handling in analyzer methods."""
         # Mock connection service to raise exception
@@ -438,11 +483,13 @@ class TestSchemaAnalyzer:
         assert "Failed to analyze schema components" in result.error
 
     async def test_empty_current_schema(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test handling of empty current schema."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await schema_analyzer.analyze_schema()
@@ -451,10 +498,12 @@ class TestSchemaAnalyzer:
         assert "No current schema found" in result.error
 
     async def test_query_result_data_none(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test handling when query result data is None."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(None)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(None)
 
         result = await schema_analyzer.get_tables("TEST_SCHEMA")
 
@@ -467,22 +516,24 @@ class TestSchemaAnalyzerIntegration:
     """Integration-style tests for SchemaAnalyzer."""
 
     async def test_full_schema_analysis_workflow(
-        self, schema_analyzer: Any, mock_connection_service: Any
+        self,
+        schema_analyzer: SchemaAnalyzer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test complete schema analysis workflow."""
         # Mock complete workflow
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
-            ServiceResult.ok(
-                MagicMock(rows=[["EMPLOYEES", "USERS", "VALID", 100, 50, 2048]])
+            FlextResult.ok(MagicMock(rows=[["TEST_SCHEMA"]])),  # current schema
+            FlextResult.ok(
+                MagicMock(rows=[["EMPLOYEES", "USERS", "VALID", 100, 50, 2048]]),
             ),  # tables
-            ServiceResult.ok(
-                MagicMock(rows=[["EMP_VIEW", 1024, "SELECT * FROM employees"]])
+            FlextResult.ok(
+                MagicMock(rows=[["EMP_VIEW", 1024, "SELECT * FROM employees"]]),
             ),  # views
-            ServiceResult.ok(
-                MagicMock(rows=[["EMP_SEQ", 1, 999999, 1, "N"]])
+            FlextResult.ok(
+                MagicMock(rows=[["EMP_SEQ", 1, 999999, 1, "N"]]),
             ),  # sequences
-            ServiceResult.ok(
+            FlextResult.ok(
                 MagicMock(
                     rows=[
                         [
@@ -491,9 +542,9 @@ class TestSchemaAnalyzerIntegration:
                             "VALID",
                             "2024-01-01",
                             "2024-01-01",
-                        ]
-                    ]
-                )
+                        ],
+                    ],
+                ),
             ),  # procedures
         ]
 

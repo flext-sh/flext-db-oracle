@@ -6,9 +6,9 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
+from flext_core import FlextProcessingError, get_logger
 
 from flext_db_oracle.connection.base import FlextDbOracleBaseOperations
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -84,7 +84,7 @@ class FlextDbOracleConnectionPool(FlextDbOracleBaseOperations):
         """
         if not self.is_initialized:
             msg = "Connection pool is not initialized"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         try:
             connection = self._pool.acquire() if self._pool else None
             yield connection
@@ -171,10 +171,11 @@ class FlextDbOracleConnectionPool(FlextDbOracleBaseOperations):
                         "busy": self._pool.busy,
                     },
                 )
-            return stats
         except Exception as e:
             logger.exception("Error getting pool stats")
             return {"status": "error", "error": str(e)}
+        else:
+            return stats
 
 
 # Backward compatibility alias

@@ -1,16 +1,32 @@
 [build-system]
-requires = [ "poetry-core>=1.9.0",]
+requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "flext-db-oracle"
-version = "0.7.0"
+version = "0.8.0"
 description = "FLEXT DB Oracle - Advanced Oracle Database Integration"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
-keywords = [ "flext", "enterprise", "async", "typed", "integration", "adapter",]
-classifiers = [ "Development Status :: 5 - Production/Stable", "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent", "Programming Language :: Python :: 3.13", "Programming Language :: Python :: 3 :: Only", "Topic :: Software Development :: Libraries :: Python Modules", "Typing :: Typed",]
-dependencies = [ "pydantic-settings (>=2.10.1)", "flext-observability @ file:///home/marlonsc/flext/flext-observability", "flext-core @ file:///home/marlonsc/flext/flext-core", "oracledb (>=3.2.0)", "pydantic (>=2.11.7)",]
+keywords = ["flext", "enterprise", "async", "typed", "integration", "adapter"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic-settings (>=2.10.1)",
+    "flext-observability @ file:///home/marlonsc/flext/flext-observability",
+    "flext-core @ file:///home/marlonsc/flext/flext-core",
+    "oracledb (>=3.2.0)",
+    "pydantic (>=2.11.7)",
+    "sqlalchemy (>=2.0.0,<3.0.0)",
+]
 [[project.authors]]
 name = "FLEXT Team"
 email = "team@flext.sh"
@@ -37,8 +53,20 @@ line-length = 88
 fix = true
 show-fixes = true
 respect-gitignore = true
-src = [ "src", "tests",]
-extend-exclude = [ "__pycache__", ".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".venv", "venv", "build", "dist", "htmlcov",]
+src = ["src", "tests"]
+extend-exclude = [
+    "__pycache__",
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "htmlcov",
+]
+extend = "../.ruff-shared.toml"
 
 [tool.mypy]
 python_version = "3.13"
@@ -63,13 +91,17 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 ignore_missing_imports = false
 no_implicit_reexport = true
-files = [ "src", "tests",]
-plugins = [ "pydantic.mypy",]
-exclude = [ "build", "dist", ".venv", ".mypy_cache",]
+
+[[tool.mypy.overrides]]
+module = ["flext_observability.*", "flext_core.*"]
+ignore_missing_imports = true
+files = ["src/flext_db_oracle/"]
+plugins = ["pydantic.mypy"]
+exclude = ["build", "dist", ".venv", ".mypy_cache"]
 
 [tool.bandit]
-exclude_dirs = [ "tests", "build", "dist",]
-skips = [ "B101", "B601",]
+exclude_dirs = ["tests", "build", "dist"]
+skips = ["B101", "B601", "B608"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -82,19 +114,42 @@ include = "flext_db_oracle"
 from = "src"
 
 [tool.deptry]
-known_first_party = [ "flext_db_oracle",]
+known_first_party = ["flext_db_oracle"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 asyncio_mode = "auto"
-addopts = [ "-ra", "--strict-markers", "--strict-config", "--cov=flext_db_oracle", "--cov-branch", "--cov-report=term-missing:skip-covered", "--cov-report=html:reports/coverage", "--cov-report=xml:reports/coverage.xml", "--cov-fail-under=90", "--maxfail=1", "--tb=short",]
-testpaths = [ "tests",]
-markers = [ "unit: Unit tests", "integration: Integration tests", "slow: Slow tests", "smoke: Smoke tests", "e2e: End-to-end tests",]
-filterwarnings = [ "error", "ignore::UserWarning", "ignore::DeprecationWarning",]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=flext_db_oracle",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:reports/coverage",
+    "--cov-report=xml:reports/coverage.xml",
+    "--cov-fail-under=90",
+    "--maxfail=1",
+    "--tb=short",
+]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow tests",
+    "smoke: Smoke tests",
+    "e2e: End-to-end tests",
+]
+filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]
 
 [tool.ruff.lint]
-select = [ "ALL",]
-ignore = [ "COM812", "D203", "D213", "ISC001", "ANN401", "ARG001", "ARG002", "BLE001", "C901", "D102", "D103", "D105", "D107", "D401", "DTZ001", "DTZ005", "E401", "E501", "EM101", "EM102", "ERA001", "EXE001", "F401", "F823", "FBT001", "FBT002", "FBT003", "FIX002", "G004", "PLC0415", "PLR0911", "PLR0912", "PLR0913", "PLR0915", "PLR2004", "PLW0603", "PTH118", "PTH123", "RUF001", "S103", "S104", "S105", "S106", "S107", "S603", "S607", "SIM102", "TD002", "TD003", "TRY003", "TRY203", "TRY300", "TRY301", "TRY401",]
+select = ["ALL"]
+ignore = [
+    "D203",   # one-blank-line-before-class (conflicts with D211)
+    "D213",   # multi-line-summary-second-line (conflicts with D212)
+    "W505",   # line break after binary operator
+    "E501",   # line too long (handled by line-length)
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -103,12 +158,23 @@ line-ending = "lf"
 docstring-code-format = true
 
 [tool.coverage.run]
-source = [ "src",]
+source = ["src"]
 branch = true
-omit = [ "*/tests/*", "*/test_*", "*/__pycache__/*", "*/venv/*", "*/.venv/*",]
+omit = ["*/tests/*", "*/test_*", "*/__pycache__/*", "*/venv/*", "*/.venv/*"]
 
 [tool.coverage.report]
-exclude_lines = [ "pragma: no cover", "def __repr__", "if self.debug:", "if settings.DEBUG", "raise AssertionError", "raise NotImplementedError", "if 0:", "if __name__ == .__main__.:", "class .*\\bProtocol\\):", "@(abc\\.)?abstractmethod",]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
 
 [tool.coverage.html]
 directory = "reports/coverage"
@@ -121,21 +187,39 @@ python = ">=3.13,<3.14"
 
 
 [tool.ruff.lint.isort]
-known-first-party = [ "flext",]
+known-first-party = ["flext"]
 force-single-line = false
 split-on-trailing-comma = true
 combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/**" = [ "S101", "S103", "S104", "S105", "S106", "S107", "PLR2004", "ARG", "SLF001", "PLC0415",]
-"test_*.py" = [ "S101", "S103", "S104", "S105", "S106", "S107", "PLR2004", "ARG", "SLF001", "PLC0415",]
-"**/scripts/**" = [ "T201", "S603", "S607", "ANN",]
-"**/__init__.py" = [ "F401",]
-"**/proto/*_pb2.py" = [ "ALL",]
-"**/proto/*_pb2_grpc.py" = [ "ALL",]
-"**/*_pb2.py" = [ "ALL",]
-"**/*_pb2_grpc.py" = [ "ALL",]
-"**/generated/**/*.py" = [ "ALL",]
+"tests/*" = [
+    "S101",
+    "S103",
+    "S104",
+    "S105",
+    "S106",
+    "S107",
+    "PLR2004",
+    "ARG",
+    "SLF001",
+    "PLC0415",
+]
+"**/scripts/**" = [
+    "T201",    # Print statements allowed in scripts
+    "S603",    # Subprocess calls allowed in scripts
+    "S607",    # Subprocess calls allowed in scripts
+    "ANN",     # Type annotations not required in scripts
+]
+"**/__init__.py" = ["F401"]  # Unused imports allowed in __init__.py
+"**/proto/*_pb2.py" = ["ALL"]  # Generated protobuf files
+"**/proto/*_pb2_grpc.py" = ["ALL"]  # Generated protobuf files
+"**/*_pb2.py" = ["ALL"]  # Generated protobuf files
+"**/*_pb2_grpc.py" = ["ALL"]  # Generated protobuf files
+"**/generated/**/*.py" = ["ALL"]  # Generated files
+"**/__pycache__/*" = ["ALL"]
+"**/*.pyc" = ["ALL"]
+"**/migrations/*" = ["ALL"]
 
 [tool.poetry.dependencies.flext-core]
 path = "../flext-core"
@@ -146,13 +230,13 @@ ruff = "^0.12.3"
 black = "^25.1.0"
 isort = "^6.0.1"
 mypy = "^1.13.0"
-pylint = "^3.3.0"
 pre-commit = "^4.0.1"
 vulture = "^2.13"
 radon = "^6.0.1"
 codespell = "^2.3.0"
 pyupgrade = "^3.19.0"
 autoflake = "^2.3.1"
+detect-secrets = "^1.4.0"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.0"

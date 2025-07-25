@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
-from flext_db_oracle.logging_utils import get_logger
+from flext_core import get_logger
 
 if TYPE_CHECKING:
     import oracledb
@@ -131,6 +131,54 @@ class FlextDbOracleBaseOperations:
                 cursor.execute(sql)
             result = cursor.fetchall()
             return result if result is not None else []
+        finally:
+            cursor.close()
+
+    def _execute_with_metadata(
+        self,
+        conn: oracledb.Connection,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Execute SQL and return results with column metadata.
+
+        Args:
+            conn: Oracle database connection
+            sql: SQL statement to execute
+            parameters: Optional parameters for SQL statement
+
+        Returns:
+            Dictionary containing 'columns', 'rows', and 'affected_rows'
+
+        """
+        cursor = conn.cursor()
+        try:
+            if parameters:
+                cursor.execute(sql, parameters)
+            else:
+                cursor.execute(sql)
+
+            # Get column information from cursor description
+            columns = []
+            if cursor.description:
+                columns = [desc[0] for desc in cursor.description]
+
+            # For SELECT statements, fetch results
+            if sql.strip().upper().startswith("SELECT"):
+                rows = cursor.fetchall()
+                return {
+                    "columns": columns,
+                    "rows": rows if rows is not None else [],
+                    "affected_rows": 0,
+                }
+
+            # For DML statements, return affected rows count
+            affected_rows = cursor.rowcount if cursor.rowcount is not None else 0
+            return {
+                "columns": columns,
+                "rows": [],
+                "affected_rows": affected_rows,
+            }
         finally:
             cursor.close()
 

@@ -1,16 +1,14 @@
 """Oracle DDL (Data Definition Language) generation utilities.
 
 Built on flext-core foundation for robust DDL generation.
-Uses ServiceResult pattern and modern Python 3.13 typing.
+Uses FlextResult pattern and modern Python 3.13 typing.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import FlextResult as ServiceResult
-
-from flext_db_oracle.logging_utils import get_logger
+from flext_core import FlextResult, get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.schema.metadata import (
@@ -36,11 +34,11 @@ class DDLGenerator:
         """
         self.include_comments = include_comments
 
-    async def generate_table_ddl(self, table: TableMetadata) -> ServiceResult[Any]:
+    async def generate_table_ddl(self, table: TableMetadata) -> FlextResult[Any]:
         """Generate CREATE TABLE DDL statement."""
         try:
             if not table.columns:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Table {table.name} has no columns defined",
                 )
 
@@ -83,22 +81,22 @@ class DDLGenerator:
                     ddl += "\n" + comments_result.data
 
             logger.info("Generated DDL for table: %s", table.name)
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception("Failed to generate table DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate table DDL: {e}",
             )
 
     async def generate_constraints_ddl(
         self,
         table: TableMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate constraint DDL statements."""
         try:
             if not table.constraints:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             statements: list[str] = []
 
@@ -117,22 +115,22 @@ class DDLGenerator:
                 len(statements),
                 table.name,
             )
-            return ServiceResult.ok(statements)
+            return FlextResult.ok(statements)
 
         except Exception as e:
             logger.exception("Failed to generate constraints DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate constraints DDL: {e}",
             )
 
     async def generate_indexes_ddl(
         self,
         table: TableMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate index DDL statements."""
         try:
             if not table.indexes:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             statements: list[str] = []
 
@@ -152,15 +150,15 @@ class DDLGenerator:
                 len(statements),
                 table.name,
             )
-            return ServiceResult.ok(statements)
+            return FlextResult.ok(statements)
 
         except Exception as e:
             logger.exception("Failed to generate indexes DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate indexes DDL: {e}",
             )
 
-    async def generate_complete_ddl(self, table: TableMetadata) -> ServiceResult[Any]:
+    async def generate_complete_ddl(self, table: TableMetadata) -> FlextResult[Any]:
         """Generate complete DDL including table, constraints, and indexes."""
         try:
             all_ddl: list[str] = []
@@ -185,18 +183,18 @@ class DDLGenerator:
             complete_ddl = "\n\n".join(all_ddl)
 
             logger.info("Generated complete DDL for table: %s", table.name)
-            return ServiceResult.ok(complete_ddl)
+            return FlextResult.ok(complete_ddl)
 
         except Exception as e:
             logger.exception("Failed to generate complete DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate complete DDL: {e}",
             )
 
     async def _generate_column_definition(
         self,
         column: ColumnMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate column definition part of DDL."""
         try:
             parts = [column.name]
@@ -228,11 +226,11 @@ class DDLGenerator:
                 parts.append("NOT NULL")
 
             column_def = " ".join(parts)
-            return ServiceResult.ok(column_def)
+            return FlextResult.ok(column_def)
 
         except Exception as e:
             logger.exception("Failed to generate column definition for %s", column.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate column definition: {e}",
             )
 
@@ -240,7 +238,7 @@ class DDLGenerator:
         self,
         table: TableMetadata,
         constraint: ConstraintMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate constraint DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
@@ -262,7 +260,7 @@ class DDLGenerator:
                 ddl = f"ALTER TABLE {table_name} ADD CONSTRAINT {constraint.name} CHECK ({constraint.check_condition})"
 
             else:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Unsupported constraint type: {constraint.constraint_type}",
                 )
 
@@ -274,14 +272,14 @@ class DDLGenerator:
 
             ddl += ";"
 
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate constraint DDL for %s",
                 constraint.name,
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate constraint DDL: {e}",
             )
 
@@ -289,7 +287,7 @@ class DDLGenerator:
         self,
         table: TableMetadata,
         index: IndexMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate index DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
@@ -322,18 +320,18 @@ class DDLGenerator:
 
             ddl = " ".join(ddl_parts) + ";"
 
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception("Failed to generate index DDL for %s", index.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate index DDL: {e}",
             )
 
     async def _generate_table_comments(
         self,
         table: TableMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate table and column comments."""
         try:
             comments = []
@@ -347,11 +345,11 @@ class DDLGenerator:
                     comment_sql = f"COMMENT ON COLUMN {table_name}.{col.name} IS '{self._escape_string(col.comments)}';"
                     comments.append(comment_sql)
 
-            return ServiceResult.ok("\n".join(comments))
+            return FlextResult.ok("\n".join(comments))
 
         except Exception as e:
             logger.exception("Failed to generate comments for table %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate comments: {e}",
             )
 
@@ -364,7 +362,7 @@ class DDLGenerator:
         table: TableMetadata,
         *,
         cascade: bool = False,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate DROP TABLE DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
@@ -376,29 +374,29 @@ class DDLGenerator:
             ddl += ";"
 
             logger.info("Generated DROP TABLE DDL for: %s", table.name)
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception("Failed to generate DROP TABLE DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate DROP TABLE DDL: {e}",
             )
 
     async def generate_truncate_table_ddl(
         self,
         table: TableMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate TRUNCATE TABLE DDL statement."""
         try:
             table_name = f"{table.schema_name}.{table.name}"
             ddl = f"TRUNCATE TABLE {table_name};"
 
             logger.info("Generated TRUNCATE TABLE DDL for: %s", table.name)
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception("Failed to generate TRUNCATE TABLE DDL for %s", table.name)
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate TRUNCATE TABLE DDL: {e}",
             )
 
@@ -406,7 +404,7 @@ class DDLGenerator:
         self,
         sequence_data: dict[str, Any],
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate CREATE SEQUENCE DDL statement."""
         try:
             sequence_name = f"{schema_name}.{sequence_data['name']}"
@@ -432,14 +430,14 @@ class DDLGenerator:
             ddl = " ".join(ddl_parts) + ";"
 
             logger.info("Generated CREATE SEQUENCE DDL for: %s", sequence_data["name"])
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate SEQUENCE DDL for %s",
                 sequence_data.get("name", "unknown"),
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate SEQUENCE DDL: {e}",
             )
 
@@ -447,13 +445,13 @@ class DDLGenerator:
         self,
         view_data: dict[str, Any],
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate CREATE VIEW DDL statement."""
         try:
             view_name = f"{schema_name}.{view_data['name']}"
 
             if not view_data.get("text"):
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"View {view_data['name']} has no definition text",
                 )
 
@@ -464,21 +462,21 @@ class DDLGenerator:
                 ddl += ";"
 
             logger.info("Generated CREATE VIEW DDL for: %s", view_data["name"])
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate VIEW DDL for %s",
                 view_data.get("name", "unknown"),
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate VIEW DDL: {e}",
             )
 
     async def generate_schema_ddl(
         self,
         schema_metadata: SchemaMetadata,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate complete schema DDL including all objects."""
         try:
             all_ddl: list[str] = []
@@ -528,14 +526,14 @@ class DDLGenerator:
                 schema_metadata.name,
                 schema_metadata.total_objects,
             )
-            return ServiceResult.ok(complete_ddl)
+            return FlextResult.ok(complete_ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate schema DDL for %s",
                 schema_metadata.name,
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate schema DDL: {e}",
             )
 
@@ -543,7 +541,7 @@ class DDLGenerator:
         self,
         table: TableMetadata,
         partition_info: dict[str, Any],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate DDL for partitioned table (advanced Oracle feature)."""
         try:
             # Start with basic table DDL
@@ -553,7 +551,7 @@ class DDLGenerator:
 
             ddl = basic_result.data
             if not ddl:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "No DDL generated for partitioned table",
                 )
 
@@ -588,21 +586,21 @@ class DDLGenerator:
             ddl += ";"
 
             logger.info("Generated partitioned table DDL for: %s", table.name)
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate partitioned table DDL for %s",
                 table.name,
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate partitioned table DDL: {e}",
             )
 
     async def generate_tablespace_ddl(
         self,
         tablespace_info: dict[str, Any],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate CREATE TABLESPACE DDL statement."""
         try:
             tablespace_name = tablespace_info["name"]
@@ -635,13 +633,13 @@ class DDLGenerator:
             ddl = " ".join(ddl_parts) + ";"
 
             logger.info("Generated CREATE TABLESPACE DDL for: %s", tablespace_name)
-            return ServiceResult.ok(ddl)
+            return FlextResult.ok(ddl)
 
         except Exception as e:
             logger.exception(
                 "Failed to generate TABLESPACE DDL for %s",
                 tablespace_info.get("name", "unknown"),
             )
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate TABLESPACE DDL: {e}",
             )

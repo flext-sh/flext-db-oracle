@@ -10,14 +10,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from flext_core import FlextResult
 from sqlalchemy.exc import SQLAlchemyError
-from src.flext_db_oracle.config import FlextDbOracleConfig
-from src.flext_db_oracle.infrastructure.sqlalchemy_engine import (
+
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.infrastructure.sqlalchemy_engine import (
     FlextDbOracleSQLAlchemyEngine,
 )
 
 
 @pytest.fixture
-def sample_config() -> Any:
+def sample_config() -> FlextDbOracleConfig:
     """Create sample Oracle configuration for tests."""
     return FlextDbOracleConfig(
         username="test_user",
@@ -31,7 +32,7 @@ def sample_config() -> Any:
 
 
 @pytest.fixture
-def engine_manager(sample_config: Any) -> FlextDbOracleSQLAlchemyEngine:
+def engine_manager(sample_config: FlextDbOracleConfig) -> FlextDbOracleSQLAlchemyEngine:
     """Create SQLAlchemy engine manager with sample config."""
     return FlextDbOracleSQLAlchemyEngine(sample_config)
 
@@ -39,7 +40,7 @@ def engine_manager(sample_config: Any) -> FlextDbOracleSQLAlchemyEngine:
 class TestFlextDbOracleSQLAlchemyEngine:
     """Test cases for FlextDbOracleSQLAlchemyEngine class."""
 
-    def test_initialization(self, sample_config: Any) -> None:
+    def test_initialization(self, sample_config: FlextDbOracleConfig) -> None:
         """Test engine manager initialization."""
         engine_manager = FlextDbOracleSQLAlchemyEngine(sample_config)
 
@@ -47,7 +48,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert engine_manager.sync_engine is None
         assert engine_manager.async_engine is None
 
-    def test_build_connection_url_service_name(self, engine_manager: Any) -> None:
+    def test_build_connection_url_service_name(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test connection URL building with service name."""
         url = engine_manager._build_connection_url()
 
@@ -56,7 +60,7 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert "localhost:1521" in url
         assert "service_name=XE" in url
 
-    def test_build_connection_url_sid(self, sample_config: Any) -> None:
+    def test_build_connection_url_sid(self, sample_config: FlextDbOracleConfig) -> None:
         """Test connection URL building with SID."""
         # Create config with SID instead of service_name
         config = FlextDbOracleConfig(
@@ -74,7 +78,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert "localhost:1521/ORCL" in url
         assert "service_name" not in url
 
-    def test_build_connection_url_default(self, sample_config: Any) -> None:
+    def test_build_connection_url_default(
+        self,
+        sample_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection URL building with default service name."""
         # Create config with default service_name
         config = FlextDbOracleConfig(
@@ -90,7 +97,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
         assert "service_name=XE" in url  # Default service name
 
-    def test_create_engine_params(self, engine_manager: Any) -> None:
+    def test_create_engine_params(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test SQLAlchemy engine parameters creation."""
         params = engine_manager._create_engine_params()
 
@@ -104,7 +114,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_initialize_sync_engine_success(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test successful synchronous engine initialization."""
         mock_engine = MagicMock()
@@ -125,7 +138,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     async def test_initialize_sync_engine_already_initialized(
-        self, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test sync engine initialization when already initialized."""
         # Set up already initialized engine
@@ -140,7 +155,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     async def test_initialize_sync_engine_sqlalchemy_error(
-        self, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test sync engine initialization with SQLAlchemy error."""
         mock_create_engine.side_effect = SQLAlchemyError("Connection failed")
@@ -152,7 +169,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     async def test_initialize_sync_engine_unexpected_error(
-        self, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test sync engine initialization with unexpected error."""
         mock_create_engine.side_effect = Exception("Unexpected error")
@@ -166,9 +185,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_initialize_async_engine_success(
         self,
-        mock_async_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        engine_manager: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test successful asynchronous engine initialization."""
         mock_async_engine = MagicMock()
@@ -189,7 +208,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_async_engine")
     async def test_initialize_async_engine_already_initialized(
-        self, mock_create_async_engine: Any, engine_manager: Any
+        self,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test async engine initialization when already initialized."""
         # Set up already initialized engine
@@ -204,11 +225,13 @@ class TestFlextDbOracleSQLAlchemyEngine:
 
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_async_engine")
     async def test_initialize_async_engine_sqlalchemy_error(
-        self, mock_create_async_engine: Any, engine_manager: Any
+        self,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test async engine initialization with SQLAlchemy error."""
         mock_create_async_engine.side_effect = SQLAlchemyError(
-            "Async connection failed"
+            "Async connection failed",
         )
 
         result = await engine_manager.initialize_async_engine()
@@ -219,7 +242,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_get_session_context_manager(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test synchronous session context manager."""
         # Mock engine and session setup
@@ -239,7 +265,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_get_session_with_exception(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test synchronous session context manager with exception."""
         # Mock engine and session setup
@@ -252,14 +281,16 @@ class TestFlextDbOracleSQLAlchemyEngine:
         # Test exception handling
         with pytest.raises(RuntimeError):
             async with engine_manager.get_session():
-                raise RuntimeError("Test exception")
+                msg = "Test exception"
+                raise FlextProcessingError(msg)
 
         mock_session.rollback.assert_called_once()
         mock_session.close.assert_called_once()
         mock_session.commit.assert_not_called()
 
     async def test_get_session_initialization_failure(
-        self, engine_manager: Any
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test session context manager with initialization failure."""
         with (
@@ -277,9 +308,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_get_async_session_context_manager(
         self,
-        mock_async_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        engine_manager: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test asynchronous session context manager."""
         # Mock async engine and session setup
@@ -300,9 +331,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_get_async_session_with_exception(
         self,
-        mock_async_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        engine_manager: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test asynchronous session context manager with exception."""
         # Mock async engine and session setup
@@ -315,14 +346,16 @@ class TestFlextDbOracleSQLAlchemyEngine:
         # Test exception handling
         with pytest.raises(RuntimeError):
             async with engine_manager.get_async_session():
-                raise RuntimeError("Test async exception")
+                msg = "Test async exception"
+                raise FlextProcessingError(msg)
 
         mock_async_session.rollback.assert_called_once()
         mock_async_session.close.assert_called_once()
         mock_async_session.commit.assert_not_called()
 
     async def test_get_async_session_initialization_failure(
-        self, engine_manager: Any
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test async session context manager with initialization failure."""
         with (
@@ -336,7 +369,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
             async with engine_manager.get_async_session():
                 pass
 
-    async def test_close_engines_both_engines(self, engine_manager: Any) -> None:
+    async def test_close_engines_both_engines(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test closing both sync and async engines."""
         # Set up both engines
         mock_sync_engine = MagicMock()
@@ -356,7 +392,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert engine_manager._session_factory is None
         assert engine_manager._async_session_factory is None
 
-    async def test_close_engines_only_sync(self, engine_manager: Any) -> None:
+    async def test_close_engines_only_sync(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test closing only sync engine."""
         mock_sync_engine = MagicMock()
         engine_manager._sync_engine = mock_sync_engine
@@ -369,7 +408,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert engine_manager._sync_engine is None
         assert engine_manager._session_factory is None
 
-    async def test_close_engines_only_async(self, engine_manager: Any) -> None:
+    async def test_close_engines_only_async(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test closing only async engine."""
         mock_async_engine = AsyncMock()
         engine_manager._async_engine = mock_async_engine
@@ -382,14 +424,20 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert engine_manager._async_engine is None
         assert engine_manager._async_session_factory is None
 
-    async def test_close_engines_no_engines(self, engine_manager: Any) -> None:
+    async def test_close_engines_no_engines(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test closing engines when none are initialized."""
         result = await engine_manager.close_engines()
 
         assert result.success
         # Should complete successfully even with no engines
 
-    async def test_close_engines_exception(self, engine_manager: Any) -> None:
+    async def test_close_engines_exception(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test closing engines with exception."""
         mock_sync_engine = MagicMock()
         mock_sync_engine.dispose.side_effect = Exception("Disposal error")
@@ -403,7 +451,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_get_connection_success(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test successful database connection retrieval."""
         mock_engine = MagicMock()
@@ -418,7 +469,8 @@ class TestFlextDbOracleSQLAlchemyEngine:
         mock_engine.connect.assert_called_once()
 
     async def test_get_connection_initialization_failure(
-        self, engine_manager: Any
+        self,
+        engine_manager: Any,
     ) -> None:
         """Test connection retrieval with initialization failure."""
         with patch.object(
@@ -434,7 +486,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_get_connection_connect_failure(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test connection retrieval with connection failure."""
         mock_engine = MagicMock()
@@ -446,7 +501,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert not result.success
         assert "Connection retrieval failed" in result.error
 
-    def test_sync_engine_property(self, engine_manager: Any) -> None:
+    def test_sync_engine_property(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test sync engine property."""
         assert engine_manager.sync_engine is None
 
@@ -454,7 +512,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         engine_manager._sync_engine = mock_engine
         assert engine_manager.sync_engine == mock_engine
 
-    def test_async_engine_property(self, engine_manager: Any) -> None:
+    def test_async_engine_property(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test async engine property."""
         assert engine_manager.async_engine is None
 
@@ -462,7 +523,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         engine_manager._async_engine = mock_async_engine
         assert engine_manager.async_engine == mock_async_engine
 
-    async def test_health_check_no_engines(self, engine_manager: Any) -> None:
+    async def test_health_check_no_engines(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test health check with no engines initialized."""
         result = await engine_manager.health_check()
 
@@ -476,7 +540,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_health_check_sync_engine_healthy(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test health check with healthy sync engine."""
         # Set up sync engine
@@ -503,7 +570,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_health_check_sync_engine_unhealthy(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test health check with unhealthy sync engine."""
         # Set up sync engine that fails health check
@@ -526,9 +596,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_health_check_async_engine_healthy(
         self,
-        mock_async_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        engine_manager: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test health check with healthy async engine."""
         # Set up async engine
@@ -556,9 +626,9 @@ class TestFlextDbOracleSQLAlchemyEngine:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_health_check_async_engine_unhealthy(
         self,
-        mock_async_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        engine_manager: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test health check with unhealthy async engine."""
         # Set up async engine that fails health check
@@ -577,7 +647,10 @@ class TestFlextDbOracleSQLAlchemyEngine:
         assert health_status["async_engine_healthy"] is False
         assert "async_engine_error" in health_status
 
-    async def test_health_check_exception(self, engine_manager: Any) -> None:
+    async def test_health_check_exception(
+        self,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
+    ) -> None:
         """Test health check with unexpected exception."""
         # Mock config to raise exception during URL building
         with patch.object(
@@ -601,10 +674,10 @@ class TestSQLAlchemyEngineIntegration:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.async_sessionmaker")
     async def test_full_engine_lifecycle(
         self,
-        mock_async_sessionmaker: Any,
-        mock_sessionmaker: Any,
-        mock_create_async_engine: Any,
-        mock_create_engine: Any,
+        mock_async_sessionmaker: MagicMock,
+        mock_sessionmaker: MagicMock,
+        mock_create_async_engine: MagicMock,
+        mock_create_engine: MagicMock,
         engine_manager: Any,
     ) -> None:
         """Test complete engine lifecycle: init -> use -> close."""
@@ -618,7 +691,7 @@ class TestSQLAlchemyEngineIntegration:
         mock_create_async_engine.return_value = mock_async_engine
         mock_sessionmaker.return_value = MagicMock(return_value=mock_session)
         mock_async_sessionmaker.return_value = MagicMock(
-            return_value=mock_async_session
+            return_value=mock_async_session,
         )
 
         # 1. Initialize both engines
@@ -650,7 +723,10 @@ class TestSQLAlchemyEngineIntegration:
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.create_engine")
     @patch("src.flext_db_oracle.infrastructure.sqlalchemy_engine.sessionmaker")
     async def test_connection_retrieval_and_usage(
-        self, mock_sessionmaker: Any, mock_create_engine: Any, engine_manager: Any
+        self,
+        mock_sessionmaker: MagicMock,
+        mock_create_engine: MagicMock,
+        engine_manager: FlextDbOracleSQLAlchemyEngine,
     ) -> None:
         """Test connection retrieval and usage workflow."""
         # Mock engine and connection

@@ -71,7 +71,7 @@ class TestFlextDbOracleConfig:
                     "host": "testhost",
                     "service_name": "testdb",
                     "password": "testpass",
-                }
+                },
             )
 
     def test_config_validation_requires_password(self) -> None:
@@ -82,7 +82,7 @@ class TestFlextDbOracleConfig:
                     "host": "testhost",
                     "service_name": "testdb",
                     "username": "testuser",
-                }
+                },
             )
 
     def test_config_validation_requires_service_name_or_sid(self) -> None:

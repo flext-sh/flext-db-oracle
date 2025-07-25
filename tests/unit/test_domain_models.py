@@ -5,7 +5,7 @@ Tests for Oracle domain entities and value objects.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from flext_db_oracle.domain.models import (
     FlextDbOracleConnectionStatus,
@@ -185,13 +185,13 @@ class TestFlextDbOracleTableMetadata:
             table_name="TEST_TABLE",
             schema_name="TEST_SCHEMA",
             row_count=1000,
-            created_date=datetime(2023, 1, 1),
+            created_date=datetime(2023, 1, 1, tzinfo=UTC),
         )
 
         assert metadata.table_name == "TEST_TABLE"
         assert metadata.schema_name == "TEST_SCHEMA"
         assert metadata.row_count == 1000
-        assert metadata.created_date == datetime(2023, 1, 1)
+        assert metadata.created_date == datetime(2023, 1, 1, tzinfo=UTC)
 
     def test_table_metadata_minimal(self) -> None:
         """Test table metadata with minimal required fields."""
@@ -258,10 +258,12 @@ class TestFlextDbOracleSchemaInfo:
         """Test schema info computed properties."""
         # Create some test tables
         table1 = FlextDbOracleTableMetadata(
-            table_name="TABLE1", schema_name="FULL_SCHEMA"
+            table_name="TABLE1",
+            schema_name="FULL_SCHEMA",
         )
         table2 = FlextDbOracleTableMetadata(
-            table_name="TABLE2", schema_name="FULL_SCHEMA"
+            table_name="TABLE2",
+            schema_name="FULL_SCHEMA",
         )
 
         schema_info = FlextDbOracleSchemaInfo(

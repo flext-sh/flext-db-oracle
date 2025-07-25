@@ -9,11 +9,23 @@ from .oracle_patterns import (
     FlextDbOracleValidationError,
     FlextDbOracleWMSValidator,
 )
+from .type_converters import (
+    FlextDbOracleDataTransformer,
+    FlextDbOracleSchemaMapper,
+    FlextDbOracleTableManager,
+    FlextDbOracleTypeConverter,
+    OracleTypeMapping,
+)
 
 __all__ = [
     "FlextDbOracleBaseValidator",
+    "FlextDbOracleDataTransformer",
+    "FlextDbOracleSchemaMapper",
+    "FlextDbOracleTableManager",
     "FlextDbOracleTapValidator",
     "FlextDbOracleTargetValidator",
+    "FlextDbOracleTypeConverter",
     "FlextDbOracleValidationError",
     "FlextDbOracleWMSValidator",
+    "OracleTypeMapping",
 ]

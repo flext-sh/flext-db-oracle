@@ -9,30 +9,29 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
 
-from flext_db_oracle.logging_utils import get_logger
+from flext_db_oracle.compare.differ import (
+    DataDiffer,
+    DifferenceType,
+)
+from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleConnectionService
     from flext_db_oracle.compare.differ import (
         ComparisonResult,
-        DataDiffer,
-        DifferenceType,
         SchemaDiffer,
     )
-    from flext_db_oracle.schema.analyzer import SchemaAnalyzer
-else:
-    from flext_db_oracle.compare.differ import DataDiffer, DifferenceType
-    from flext_db_oracle.schema.analyzer import SchemaAnalyzer
 
 logger = get_logger(__name__)
 
 
-class ComparisonConfig(DomainValueObject):
+class ComparisonConfig(FlextValueObject):
     """Configuration for database comparison operations."""
 
     include_schema: bool = Field(default=True, description="Include schema comparison")
@@ -58,7 +57,8 @@ class ComparisonConfig(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for comparison configuration."""
         if not self.schema_objects:
-            raise ValueError("Schema objects list cannot be empty")
+            msg = "Schema objects list cannot be empty"
+            raise ValueError(msg)
 
         valid_objects = {
             "tables",
@@ -70,10 +70,12 @@ class ComparisonConfig(DomainValueObject):
         }
         for obj in self.schema_objects:
             if obj not in valid_objects:
-                raise ValueError(f"Invalid schema object type: {obj}")
+                msg = f"Invalid schema object type: {obj}"
+                raise ValueError(msg)
 
         if self.sample_size is not None and self.sample_size <= 0:
-            raise ValueError("Sample size must be positive")
+            msg = "Sample size must be positive"
+            raise ValueError(msg)
 
 
 class DatabaseComparator:
@@ -105,7 +107,7 @@ class DatabaseComparator:
         source_schema: str,
         target_schema: str,
         config: ComparisonConfig,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare two Oracle databases comprehensively."""
         try:
             logger.info(
@@ -134,30 +136,30 @@ class DatabaseComparator:
                     comparison_result,
                 )
                 if not data_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         data_result.error or "Data comparison failed",
                     )
                 # Data comparison would update the comparison_result
 
             if comparison_result is None:
-                return ServiceResult.fail("No comparison operations performed")
+                return FlextResult.fail("No comparison operations performed")
 
             logger.info(
                 "Database comparison complete: %d total differences",
                 comparison_result.total_differences,
             )
-            return ServiceResult.ok(comparison_result)
+            return FlextResult.ok(comparison_result)
 
         except Exception as e:
             logger.exception("Database comparison failed")
-            return ServiceResult.fail(f"Database comparison failed: {e}")
+            return FlextResult.fail(f"Database comparison failed: {e}")
 
     async def _compare_schemas(
         self,
         source_schema: str,
         target_schema: str,
         config: ComparisonConfig,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare schema structures."""
         try:
             logger.info("Comparing schemas: %s vs %s", source_schema, target_schema)
@@ -175,10 +177,10 @@ class DatabaseComparator:
             )
 
             if not source_metadata.is_success or not target_metadata.is_success:
-                return ServiceResult.fail("Failed to retrieve schema metadata")
+                return FlextResult.fail("Failed to retrieve schema metadata")
 
             if not source_metadata.data or not target_metadata.data:
-                return ServiceResult.fail("Schema metadata is empty")
+                return FlextResult.fail("Schema metadata is empty")
 
             # Perform schema comparison
             return await self.schema_differ.compare_schemas(
@@ -188,7 +190,7 @@ class DatabaseComparator:
 
         except Exception as e:
             logger.exception("Schema comparison failed")
-            return ServiceResult.fail(f"Schema comparison failed: {e}")
+            return FlextResult.fail(f"Schema comparison failed: {e}")
 
     async def _compare_data(
         self,
@@ -196,13 +198,13 @@ class DatabaseComparator:
         target_schema: str,
         config: ComparisonConfig,
         schema_comparison: ComparisonResult | None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare data between databases."""
         try:
             logger.info("Comparing data: %s vs %s", source_schema, target_schema)
 
             if not self.data_differ:
-                return ServiceResult.fail("Data differ not configured")
+                return FlextResult.fail("Data differ not configured")
 
             # Get list of tables to compare
             tables_to_compare = await self._get_comparable_tables(
@@ -212,7 +214,7 @@ class DatabaseComparator:
             )
 
             if not tables_to_compare.is_success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     tables_to_compare.error or "Failed to get tables to compare",
                 )
 
@@ -220,7 +222,7 @@ class DatabaseComparator:
 
             tables_list = tables_to_compare.data
             if not tables_list:
-                return ServiceResult.ok({"data_differences": []})
+                return FlextResult.ok({"data_differences": []})
 
             for table_name in tables_list:
                 # Get primary key columns for the table
@@ -259,18 +261,18 @@ class DatabaseComparator:
                 "Data comparison complete: %d differences found",
                 len(data_differences),
             )
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("Data comparison failed")
-            return ServiceResult.fail(f"Data comparison failed: {e}")
+            return FlextResult.fail(f"Data comparison failed: {e}")
 
     async def _get_schema_metadata(
         self,
         connection_service: FlextDbOracleConnectionService,
         schema_name: str,
         config: ComparisonConfig,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get comprehensive schema metadata."""
         try:
             # Use the connection service to actually get schema metadata
@@ -283,7 +285,7 @@ class DatabaseComparator:
             # Convert the analyzed data based on config requirements
             metadata = schema_result.data
             if not metadata:
-                return ServiceResult.fail("Schema analysis returned no metadata")
+                return FlextResult.fail("Schema analysis returned no metadata")
 
             # Filter based on config if needed
             if config.schema_objects == ["tables"] and "tables" in metadata:
@@ -295,18 +297,18 @@ class DatabaseComparator:
                 }
 
             logger.info("Retrieved metadata for schema: %s", schema_name)
-            return ServiceResult.ok(metadata)
+            return FlextResult.ok(metadata)
 
         except Exception as e:
             logger.exception("Failed to get schema metadata for %s", schema_name)
-            return ServiceResult.fail(f"Failed to get schema metadata: {e}")
+            return FlextResult.fail(f"Failed to get schema metadata: {e}")
 
     async def _get_comparable_tables(
         self,
         schema_name: str,
         config: ComparisonConfig,
         schema_comparison: ComparisonResult | None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get list of tables that can be compared."""
         try:
             # Get all tables from database
@@ -327,13 +329,13 @@ class DatabaseComparator:
                 "Found %d comparable tables after filtering",
                 len(filtered_tables),
             )
-            return ServiceResult.ok(filtered_tables)
+            return FlextResult.ok(filtered_tables)
 
         except Exception as e:
             logger.exception("Failed to get comparable tables")
-            return ServiceResult.fail(f"Failed to get comparable tables: {e}")
+            return FlextResult.fail(f"Failed to get comparable tables: {e}")
 
-    async def _fetch_schema_tables(self, schema_name: str) -> ServiceResult[Any]:
+    async def _fetch_schema_tables(self, schema_name: str) -> FlextResult[Any]:
         """Fetch all tables from schema."""
         query = """
             SELECT table_name
@@ -348,14 +350,14 @@ class DatabaseComparator:
         )
 
         if not result.success:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 result.error or "Failed to fetch schema tables",
             )
 
         if not result.data or not result.data.rows:
-            return ServiceResult.ok([])
+            return FlextResult.ok([])
 
-        return ServiceResult.ok([row[0] for row in result.data.rows])
+        return FlextResult.ok([row[0] for row in result.data.rows])
 
     def _filter_common_tables(
         self,
@@ -411,7 +413,7 @@ class DatabaseComparator:
     async def get_comparison_summary(
         self,
         comparison_result: ComparisonResult,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate a summary of comparison results."""
         try:
             summary = {
@@ -434,18 +436,18 @@ class DatabaseComparator:
 
             summary["schema_differences_by_type"] = schema_by_type
 
-            return ServiceResult.ok(summary)
+            return FlextResult.ok(summary)
 
         except Exception as e:
             logger.exception("Failed to generate comparison summary")
-            return ServiceResult.fail(f"Failed to generate summary: {e}")
+            return FlextResult.fail(f"Failed to generate summary: {e}")
 
     # Database Synchronization Methods (consolidated from synchronizer.py)
     async def synchronize_table(
         self,
         table_name: str,
         sync_strategy: str = "upsert",
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Synchronize a single table between source and target databases."""
         try:
             logger.info("Starting synchronization for table: %s", table_name)
@@ -453,7 +455,7 @@ class DatabaseComparator:
             # Validate sync requirements first
             validation_result = await self._validate_sync_requirements(table_name)
             if not validation_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     validation_result.error or "Sync validation failed",
                 )
 
@@ -476,18 +478,18 @@ class DatabaseComparator:
             }
 
             logger.info("Table synchronization complete: %s", table_name)
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("Table synchronization failed for %s", table_name)
-            return ServiceResult.fail(f"Table synchronization failed: {e}")
+            return FlextResult.fail(f"Table synchronization failed: {e}")
 
     async def synchronize_schema(
         self,
         schema_name: str,
         tables: list[str] | None = None,
         sync_strategy: str = "upsert",
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Synchronize multiple tables in a schema."""
         try:
             logger.info("Starting schema synchronization: %s", schema_name)
@@ -496,7 +498,7 @@ class DatabaseComparator:
                 # Get all tables in schema
                 tables_result = await self._fetch_schema_tables(schema_name)
                 if not tables_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         tables_result.error or "Failed to get schema tables",
                     )
                 tables = tables_result.data or []
@@ -537,16 +539,16 @@ class DatabaseComparator:
                 len(tables),
                 total_synced,
             )
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("Schema synchronization failed for %s", schema_name)
-            return ServiceResult.fail(f"Schema synchronization failed: {e}")
+            return FlextResult.fail(f"Schema synchronization failed: {e}")
 
     async def _validate_sync_requirements(
         self,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Validate that a table can be synchronized."""
         try:
             # Check if table exists in both databases
@@ -554,10 +556,10 @@ class DatabaseComparator:
             target_exists = await self._table_exists(self.target_service, table_name)
 
             if not source_exists:
-                return ServiceResult.fail(f"Source table {table_name} does not exist")
+                return FlextResult.fail(f"Source table {table_name} does not exist")
 
             if not target_exists:
-                return ServiceResult.fail(f"Target table {table_name} does not exist")
+                return FlextResult.fail(f"Target table {table_name} does not exist")
 
             # Check for primary key
             pk_result = await self._get_primary_key_columns(
@@ -566,7 +568,7 @@ class DatabaseComparator:
                 schema_name=None,
             )
             if not pk_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Cannot determine primary key for {table_name}",
                 )
 
@@ -577,11 +579,11 @@ class DatabaseComparator:
                 "sync_ready": True,
             }
 
-            return ServiceResult.ok(validation_info)
+            return FlextResult.ok(validation_info)
 
         except Exception as e:
             logger.exception("Sync validation failed for %s", table_name)
-            return ServiceResult.fail(f"Sync validation failed: {e}")
+            return FlextResult.fail(f"Sync validation failed: {e}")
 
     async def _table_exists(
         self,
@@ -613,7 +615,7 @@ class DatabaseComparator:
         connection_service: FlextDbOracleConnectionService,
         table_name: str,
         schema_name: str | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get primary key columns for a table using connection service."""
         try:
             if schema_name:
@@ -654,32 +656,32 @@ class DatabaseComparator:
             result = await connection_service.execute_query(query, params)
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to get primary key columns",
                 )
 
             if not result.data or not result.data.rows:
                 if schema_name:
                     # Comparator expects error when no PK found
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         f"No primary key found for table {schema_name}.{table_name}",
                     )
                 # Synchronizer expects empty list when no PK found
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             pk_columns = [row[0] for row in result.data.rows]
 
             if not pk_columns and schema_name:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"No primary key columns found for "
                     f"table {schema_name}.{table_name}",
                 )
 
-            return ServiceResult.ok(pk_columns)
+            return FlextResult.ok(pk_columns)
 
         except Exception as e:
             logger.exception("Failed to get primary key columns")
-            return ServiceResult.fail(f"Failed to get primary key columns: {e}")
+            return FlextResult.fail(f"Failed to get primary key columns: {e}")
 
 
 class DataComparator:
@@ -698,7 +700,7 @@ class DataComparator:
         self,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare data between tables in source and target databases."""
         try:
             differ = DataDiffer()
@@ -710,7 +712,7 @@ class DataComparator:
             )
         except Exception as e:
             logger.exception("Data comparison failed")
-            return ServiceResult.fail(f"Data comparison failed: {e}")
+            return FlextResult.fail(f"Data comparison failed: {e}")
 
 
 class SchemaComparator:
@@ -729,7 +731,7 @@ class SchemaComparator:
         self,
         source_schema: str,
         target_schema: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare schemas between source and target databases."""
         try:
             source_analyzer = SchemaAnalyzer(self.source_service)
@@ -740,10 +742,10 @@ class SchemaComparator:
             target_result = await target_analyzer.analyze_schema(target_schema)
 
             if not source_result.success or not target_result.success:
-                return ServiceResult.fail("Failed to analyze schemas")
+                return FlextResult.fail("Failed to analyze schemas")
 
             if not source_result.data or not target_result.data:
-                return ServiceResult.fail("Schema analysis returned empty results")
+                return FlextResult.fail("Schema analysis returned empty results")
 
             # Basic comparison - return structured differences
             comparison = {
@@ -757,11 +759,11 @@ class SchemaComparator:
                 ),
             }
 
-            return ServiceResult.ok(comparison)
+            return FlextResult.ok(comparison)
 
         except Exception as e:
             logger.exception("Schema comparison failed")
-            return ServiceResult.fail(f"Schema comparison failed: {e}")
+            return FlextResult.fail(f"Schema comparison failed: {e}")
 
     def _calculate_differences(
         self,

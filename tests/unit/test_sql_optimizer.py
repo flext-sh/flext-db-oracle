@@ -8,8 +8,9 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from flext_core import FlextResult as ServiceResult
-from src.flext_db_oracle.sql.optimizer import (
+from flext_core import FlextResult
+
+from flext_db_oracle.sql.optimizer import (
     QueryAnalysis,
     QueryOptimizer,
     QueryPlanStep,
@@ -48,13 +49,16 @@ class TestQueryOptimizer:
     """Test cases for QueryOptimizer class."""
 
     async def test_optimize_query_success(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test successful query optimization."""
         # Mock successful plan analysis and index suggestions
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(
                 MagicMock(
                     rows=[
                         [0, "SELECT STATEMENT", None, None, 100, 10, 1024, 50, 30],
@@ -69,10 +73,10 @@ class TestQueryOptimizer:
                             40,
                             20,
                         ],
-                    ]
-                )
+                    ],
+                ),
             ),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.optimize_query(sample_sql_query)
@@ -87,12 +91,15 @@ class TestQueryOptimizer:
         )  # Should suggest not using SELECT *
 
     async def test_optimize_query_plan_failure_graceful_degradation(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test optimization with plan analysis failure but graceful degradation."""
         # Mock plan analysis failure
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Access denied to plan_table"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Access denied to plan_table",
         )
 
         result = await query_optimizer.optimize_query(sample_sql_query)
@@ -107,16 +114,16 @@ class TestQueryOptimizer:
 
     async def test_analyze_query_plan_success(
         self,
-        query_optimizer: Any,
-        mock_connection_service: Any,
-        sample_execution_plan_data: Any,
-        sample_sql_query: Any,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_execution_plan_data: list[list[Any]],
+        sample_sql_query: str,
     ) -> None:
         """Test successful query plan analysis."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.analyze_query_plan(sample_sql_query)
@@ -137,11 +144,14 @@ class TestQueryOptimizer:
         assert first_step.cardinality == 10
 
     async def test_analyze_query_plan_explain_failure(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test query plan analysis with EXPLAIN PLAN failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Invalid SQL syntax"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Invalid SQL syntax",
         )
 
         result = await query_optimizer.analyze_query_plan(sample_sql_query)
@@ -150,12 +160,15 @@ class TestQueryOptimizer:
         assert "Failed to generate execution plan" in result.error
 
     async def test_analyze_query_plan_retrieve_failure(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test query plan analysis with plan retrieval failure."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN succeeds
-            ServiceResult.fail("Access denied to plan_table"),  # Plan query fails
+            FlextResult.ok(None),  # EXPLAIN PLAN succeeds
+            FlextResult.fail("Access denied to plan_table"),  # Plan query fails
         ]
 
         result = await query_optimizer.analyze_query_plan(sample_sql_query)
@@ -164,12 +177,15 @@ class TestQueryOptimizer:
         assert "Failed to retrieve execution plan" in result.error
 
     async def test_analyze_query_plan_empty_result(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: Any,
     ) -> None:
         """Test query plan analysis with empty plan result."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(None),  # Plan query returns None
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(None),  # Plan query returns None
         ]
 
         result = await query_optimizer.analyze_query_plan(sample_sql_query)
@@ -178,13 +194,16 @@ class TestQueryOptimizer:
         assert "Execution plan result is empty" in result.error
 
     async def test_analyze_query_plan_no_rows(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test query plan analysis with no plan rows."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(MagicMock(rows=[])),  # Plan query returns empty rows
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(MagicMock(rows=[])),  # Plan query returns empty rows
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.analyze_query_plan(sample_sql_query)
@@ -195,7 +214,9 @@ class TestQueryOptimizer:
         assert analysis.performance_rating == "unknown"
 
     async def test_suggest_indexes_where_clause(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test index suggestions for WHERE clause columns."""
         sql = "SELECT name, email FROM employees WHERE department_id = 10 AND status = 'ACTIVE'"
@@ -209,7 +230,9 @@ class TestQueryOptimizer:
         assert any("department_id" in suggestion for suggestion in suggestions)
 
     async def test_suggest_indexes_join_conditions(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test index suggestions for JOIN conditions."""
         sql = """
@@ -227,7 +250,9 @@ class TestQueryOptimizer:
         assert any("JOIN columns" in suggestion for suggestion in suggestions)
 
     async def test_suggest_indexes_order_by(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: Any,
+        mock_connection_service: Any,
     ) -> None:
         """Test index suggestions for ORDER BY columns."""
         sql = "SELECT name, email FROM employees ORDER BY last_name, first_name"
@@ -241,7 +266,9 @@ class TestQueryOptimizer:
         assert any("ORDER BY optimization" in suggestion for suggestion in suggestions)
 
     async def test_suggest_indexes_no_patterns(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test index suggestions when no specific patterns are found."""
         sql = "SELECT COUNT(*) FROM employees"
@@ -258,15 +285,15 @@ class TestQueryOptimizer:
         self,
         query_optimizer: Any,
         mock_connection_service: Any,
-        sample_execution_plan_data: Any,
-        sample_sql_query: Any,
+        sample_execution_plan_data: list[list[Any]],
+        sample_sql_query: str,
     ) -> None:
         """Test successful query performance analysis."""
         # Mock plan analysis success
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.analyze_query_performance(sample_sql_query)
@@ -284,21 +311,22 @@ class TestQueryOptimizer:
 
     async def test_analyze_query_performance_with_execution_stats(
         self,
-        query_optimizer: Any,
-        mock_connection_service: Any,
-        sample_execution_plan_data: Any,
-        sample_sql_query: Any,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_execution_plan_data: list[list[Any]],
+        sample_sql_query: str,
     ) -> None:
         """Test query performance analysis with execution statistics."""
         # Mock plan analysis success
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.analyze_query_performance(
-            sample_sql_query, execution_stats=True
+            sample_sql_query,
+            execution_stats=True,
         )
 
         assert result.success
@@ -309,11 +337,14 @@ class TestQueryOptimizer:
         assert "disk_reads_estimate" in report
 
     async def test_analyze_query_performance_plan_failure(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test query performance analysis with plan analysis failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Plan analysis failed"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Plan analysis failed",
         )
 
         result = await query_optimizer.analyze_query_performance(sample_sql_query)
@@ -323,26 +354,28 @@ class TestQueryOptimizer:
 
     async def test_analyze_sql_performance_statistics_success(
         self,
-        query_optimizer: Any,
-        mock_connection_service: Any,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
         sample_execution_plan_data: Any,
         sample_sql_query: Any,
     ) -> None:
         """Test SQL performance statistics analysis."""
         # Mock explain plan success and v$sql statistics
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
-            ServiceResult.ok(
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(MagicMock(rows=sample_execution_plan_data)),  # Plan query
+            FlextResult.ok(None),  # Cleanup
+            FlextResult.ok(
                 MagicMock(
-                    rows=[["abc123", 5, 500000, 200000, 1000, 50, 100, 150, "ALL_ROWS"]]
-                )
+                    rows=[
+                        ["abc123", 5, 500000, 200000, 1000, 50, 100, 150, "ALL_ROWS"],
+                    ],
+                ),
             ),  # v$sql statistics
         ]
 
         result = await query_optimizer.analyze_sql_performance_statistics(
-            sample_sql_query
+            sample_sql_query,
         )
 
         assert result.success
@@ -357,30 +390,30 @@ class TestQueryOptimizer:
 
     async def test_analyze_sql_performance_statistics_no_stats(
         self,
-        query_optimizer: Any,
-        mock_connection_service: Any,
-        sample_execution_plan_data: Any,
-        sample_sql_query: Any,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_execution_plan_data: list[list[Any]],
+        sample_sql_query: str,
     ) -> None:
         """Test SQL performance statistics with no v$sql data."""
         # Mock explain plan success but no v$sql statistics
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN (first call)
-            ServiceResult.ok(
-                MagicMock(rows=sample_execution_plan_data)
+            FlextResult.ok(None),  # EXPLAIN PLAN (first call)
+            FlextResult.ok(
+                MagicMock(rows=sample_execution_plan_data),
             ),  # Plan query (first call)
-            ServiceResult.ok(None),  # Cleanup (first call)
-            ServiceResult.ok(MagicMock(rows=[])),  # Empty v$sql statistics
-            ServiceResult.ok(None),  # EXPLAIN PLAN (fallback call)
-            ServiceResult.ok(
-                MagicMock(rows=sample_execution_plan_data)
+            FlextResult.ok(None),  # Cleanup (first call)
+            FlextResult.ok(MagicMock(rows=[])),  # Empty v$sql statistics
+            FlextResult.ok(None),  # EXPLAIN PLAN (fallback call)
+            FlextResult.ok(
+                MagicMock(rows=sample_execution_plan_data),
             ),  # Plan query (fallback call)
-            ServiceResult.ok(None),  # Cleanup (fallback call)
+            FlextResult.ok(None),  # Cleanup (fallback call)
         ]
 
         # Should fallback to basic performance analysis
         result = await query_optimizer.analyze_sql_performance_statistics(
-            sample_sql_query
+            sample_sql_query,
         )
 
         assert result.success
@@ -388,22 +421,27 @@ class TestQueryOptimizer:
         assert "performance_rating" in result.data
 
     async def test_analyze_sql_performance_statistics_explain_failure(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: Any,
     ) -> None:
         """Test SQL performance statistics with explain plan failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Explain plan failed"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Explain plan failed",
         )
 
         result = await query_optimizer.analyze_sql_performance_statistics(
-            sample_sql_query
+            sample_sql_query,
         )
 
         assert not result.success
         assert "Failed to generate execution plan" in result.error
 
     async def test_get_session_statistics_success(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful session statistics retrieval."""
         stats_data = [
@@ -417,8 +455,8 @@ class TestQueryOptimizer:
             ["user commits", 10],
             ["user rollbacks", 2],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=stats_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=stats_data),
         )
 
         result = await query_optimizer.get_session_statistics()
@@ -431,10 +469,12 @@ class TestQueryOptimizer:
         assert stats["soft_parse_ratio"] == 75.0  # (20-5)/20 * 100
 
     async def test_get_session_statistics_empty_result(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test session statistics with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(None)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(None)
 
         result = await query_optimizer.get_session_statistics()
 
@@ -442,11 +482,13 @@ class TestQueryOptimizer:
         assert "Session statistics result is empty" in result.error
 
     async def test_get_session_statistics_query_failure(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test session statistics with query failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Access denied to v$sesstat"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Access denied to v$sesstat",
         )
 
         result = await query_optimizer.get_session_statistics()
@@ -455,7 +497,9 @@ class TestQueryOptimizer:
         assert "Access denied to v$sesstat" in result.error
 
     async def test_analyze_wait_events_success(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful wait events analysis."""
         wait_events_data = [
@@ -463,8 +507,8 @@ class TestQueryOptimizer:
             ["log file sync", "COMMIT", 800, 100, 3000],
             ["db file scattered read", "USER I/O", 600, 50, 2000],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=wait_events_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=wait_events_data),
         )
 
         result = await query_optimizer.analyze_wait_events()
@@ -480,10 +524,12 @@ class TestQueryOptimizer:
         assert first_event["percentage_of_total"] == 50.0  # 5000/10000 * 100
 
     async def test_analyze_wait_events_empty_result(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test wait events analysis with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(None)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(None)
 
         result = await query_optimizer.analyze_wait_events()
 
@@ -491,15 +537,17 @@ class TestQueryOptimizer:
         assert "Wait events result is empty" in result.error
 
     async def test_get_sql_plan_statistics_success(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful SQL plan statistics retrieval."""
         plan_stats_data = [
             ["TABLE ACCESS", "FULL", "EMPLOYEES", 1, 1000, 500, 100, 50, 10000],
             ["SORT", "ORDER BY", None, 1, 1000, 200, 50, 10, 5000],
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=plan_stats_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=plan_stats_data),
         )
 
         result = await query_optimizer.get_sql_plan_statistics("abc123")
@@ -519,14 +567,17 @@ class TestQueryOptimizer:
         # Check percentage calculations
         first_step = stats["plan_steps"][0]
         assert first_step["time_percentage"] == pytest.approx(
-            66.67, rel=1e-2
+            66.67,
+            rel=1e-2,
         )  # 10000/15000 * 100
 
     async def test_get_sql_plan_statistics_empty_result(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test SQL plan statistics with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(None)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(None)
 
         result = await query_optimizer.get_sql_plan_statistics("abc123")
 
@@ -534,7 +585,9 @@ class TestQueryOptimizer:
         assert "SQL plan statistics result is empty" in result.error
 
     async def test_optimization_score_calculation(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test optimization score calculation logic."""
         # Test different plan complexities
@@ -560,13 +613,16 @@ class TestQueryOptimizer:
         )  # Invalid type
 
     async def test_generate_recommendations_comprehensive(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test comprehensive recommendation generation."""
         # SQL with multiple issues
         sql = "SELECT * FROM employees ORDER BY last_name"
         recommendations = query_optimizer._generate_recommendations(
-            sql, [1] * 8
+            sql,
+            [1] * 8,
         )  # Complex plan
 
         # Should have multiple recommendations
@@ -575,12 +631,14 @@ class TestQueryOptimizer:
         assert any("complex execution plan" in rec for rec in recommendations)
 
     async def test_exception_handling(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test exception handling in optimizer methods."""
         # Mock connection service to raise exception
         mock_connection_service.execute_query.side_effect = Exception(
-            "Database connection lost"
+            "Database connection lost",
         )
 
         result = await query_optimizer.optimize_query("SELECT 1 FROM dual")
@@ -593,7 +651,10 @@ class TestQueryOptimizer:
         assert len(analysis["recommendations"]) > 0  # Has basic recommendations
 
     async def test_assess_performance_ratings(
-        self, query_optimizer: Any, mock_connection_service: Any, sample_sql_query: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
+        sample_sql_query: str,
     ) -> None:
         """Test performance rating assessment."""
         # Create execution plans with different characteristics
@@ -601,7 +662,11 @@ class TestQueryOptimizer:
         # Plan with expensive operations (TABLE ACCESS FULL)
         expensive_plan = [
             QueryPlanStep(
-                id=0, operation="SELECT STATEMENT", cost=100, cardinality=10, depth=0
+                id=0,
+                operation="SELECT STATEMENT",
+                cost=100,
+                cardinality=10,
+                depth=0,
             ),
             QueryPlanStep(
                 id=1,
@@ -619,7 +684,11 @@ class TestQueryOptimizer:
         # Plan with high cost but no expensive operations
         high_cost_plan = [
             QueryPlanStep(
-                id=0, operation="INDEX RANGE SCAN", cost=15000, cardinality=10, depth=0
+                id=0,
+                operation="INDEX RANGE SCAN",
+                cost=15000,
+                cardinality=10,
+                depth=0,
             ),
         ]
 
@@ -629,7 +698,11 @@ class TestQueryOptimizer:
         # Plan with medium cost
         medium_cost_plan = [
             QueryPlanStep(
-                id=0, operation="INDEX RANGE SCAN", cost=5000, cardinality=10, depth=0
+                id=0,
+                operation="INDEX RANGE SCAN",
+                cost=5000,
+                cardinality=10,
+                depth=0,
             ),
         ]
 
@@ -639,7 +712,11 @@ class TestQueryOptimizer:
         # Plan with low cost
         good_plan = [
             QueryPlanStep(
-                id=0, operation="INDEX UNIQUE SCAN", cost=500, cardinality=1, depth=0
+                id=0,
+                operation="INDEX UNIQUE SCAN",
+                cost=500,
+                cardinality=1,
+                depth=0,
             ),
         ]
 
@@ -656,7 +733,9 @@ class TestQueryOptimizerIntegration:
     """Integration-style tests for QueryOptimizer."""
 
     async def test_full_optimization_workflow(
-        self, query_optimizer: Any, mock_connection_service: Any
+        self,
+        query_optimizer: QueryOptimizer,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test complete optimization workflow."""
         complex_sql = """
@@ -669,8 +748,8 @@ class TestQueryOptimizerIntegration:
 
         # Mock comprehensive optimization workflow
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(None),  # EXPLAIN PLAN
-            ServiceResult.ok(
+            FlextResult.ok(None),  # EXPLAIN PLAN
+            FlextResult.ok(
                 MagicMock(
                     rows=[
                         [0, "SELECT STATEMENT", None, None, 200, 50, 4000, 100, 80, 0],
@@ -700,10 +779,10 @@ class TestQueryOptimizerIntegration:
                             20,
                             3,
                         ],
-                    ]
-                )
+                    ],
+                ),
             ),  # Plan query
-            ServiceResult.ok(None),  # Cleanup
+            FlextResult.ok(None),  # Cleanup
         ]
 
         result = await query_optimizer.optimize_query(complex_sql)
@@ -784,10 +863,18 @@ class TestDomainModels:
         """Test QueryAnalysis expensive operations detection."""
         execution_plan = [
             QueryPlanStep(
-                id=0, operation="SELECT STATEMENT", cost=100, cardinality=10, depth=0
+                id=0,
+                operation="SELECT STATEMENT",
+                cost=100,
+                cardinality=10,
+                depth=0,
             ),
             QueryPlanStep(
-                id=1, operation="TABLE ACCESS FULL", cost=80, cardinality=1000, depth=1
+                id=1,
+                operation="TABLE ACCESS FULL",
+                cost=80,
+                cardinality=1000,
+                depth=1,
             ),
             QueryPlanStep(
                 id=2,
@@ -810,7 +897,11 @@ class TestDomainModels:
         # Analysis without expensive operations
         cheap_plan = [
             QueryPlanStep(
-                id=0, operation="INDEX UNIQUE SCAN", cost=5, cardinality=1, depth=0
+                id=0,
+                operation="INDEX UNIQUE SCAN",
+                cost=5,
+                cardinality=1,
+                depth=0,
             ),
         ]
 

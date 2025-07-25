@@ -7,16 +7,16 @@ validation logic and provides consistent patterns.
 
 from __future__ import annotations
 
-import logging
 import os
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any
 
-from flext_core import FlextResult as ServiceResult
+from flext_core import FlextResult
+from flext_core.patterns.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FlextDbOracleValidationError(Exception):
@@ -45,7 +45,7 @@ class FlextDbOracleBaseValidator(ABC):
 
         """
         self.project_prefix = project_prefix
-        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
 
     @abstractmethod
     def get_critical_env_vars(self) -> dict[str, Any]:
@@ -56,11 +56,11 @@ class FlextDbOracleBaseValidator(ABC):
 
         """
 
-    def enforce_critical_environment_variables(self) -> ServiceResult[Any]:
+    def enforce_critical_environment_variables(self) -> FlextResult[Any]:
         """Enforce critical environment variables.
 
         Returns:
-            ServiceResult indicating success or failure with error details
+            FlextResult indicating success or failure with error details
 
         """
         try:
@@ -117,29 +117,29 @@ class FlextDbOracleBaseValidator(ABC):
                             self.logger.exception(error_msg)
 
             if errors:
-                return ServiceResult.fail("; ".join(errors))
+                return FlextResult.fail("; ".join(errors))
 
             self.logger.info(
                 "🚨 CRITICAL VALIDATION PASSED: All mandatory environment variables validated",
             )
-            return ServiceResult.ok(None)
+            return FlextResult.ok(None)
 
         except Exception as e:
             error_msg = f"Environment validation failed: {e}"
             self.logger.exception(error_msg)
-            return ServiceResult.fail(error_msg)
+            return FlextResult.fail(error_msg)
 
     def validate_oracle_connection_config(
         self,
         config: dict[str, Any],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Validate Oracle connection configuration.
 
         Args:
             config: FlextDbOracle connection configuration
 
         Returns:
-            ServiceResult indicating validation success or failure
+            FlextResult indicating validation success or failure
 
         """
         try:
@@ -152,25 +152,25 @@ class FlextDbOracleBaseValidator(ABC):
             ]
 
             if missing_fields:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Missing required Oracle connection fields: {missing_fields}",
                 )
 
             # Validate port range
             port = config.get("port", 1521)
             if not isinstance(port, int) or port < 1 or port > 65535:
-                return ServiceResult.fail(f"Invalid Oracle port: {port}")
+                return FlextResult.fail(f"Invalid Oracle port: {port}")
 
             # Validate service_name or sid is provided
             service_name = config.get("service_name")
             sid = config.get("sid")
             if not service_name and not sid:
-                return ServiceResult.fail("Either service_name or sid must be provided")
+                return FlextResult.fail("Either service_name or sid must be provided")
 
-            return ServiceResult.ok(None)
+            return FlextResult.ok(None)
 
         except (KeyError, ValueError, TypeError) as e:
-            return ServiceResult.fail(f"Oracle connection validation failed: {e}")
+            return FlextResult.fail(f"Oracle connection validation failed: {e}")
 
 
 class FlextDbOracleWMSValidator(FlextDbOracleBaseValidator):
@@ -228,14 +228,14 @@ class FlextDbOracleWMSValidator(FlextDbOracleBaseValidator):
             },
         }
 
-    def validate_wms_record(self, record: dict[str, Any]) -> ServiceResult[Any]:
+    def validate_wms_record(self, record: dict[str, Any]) -> FlextResult[Any]:
         """Validate a WMS record against business rules.
 
         Args:
             record: WMS record to validate
 
         Returns:
-            ServiceResult containing list of validation errors (empty if valid)
+            FlextResult containing list of validation errors (empty if valid)
 
         """
         try:
@@ -253,10 +253,10 @@ class FlextDbOracleWMSValidator(FlextDbOracleBaseValidator):
             logic_errors = self._validate_wms_business_logic(record)
             errors.extend(logic_errors)
 
-            return ServiceResult.ok(errors)
+            return FlextResult.ok(errors)
 
         except (KeyError, ValueError, TypeError, AttributeError) as e:
-            return ServiceResult.fail(f"WMS record validation failed: {e}")
+            return FlextResult.fail(f"WMS record validation failed: {e}")
 
     def _validate_wms_constraints(self, record: dict[str, Any]) -> list[str]:
         """Validate WMS-specific field constraints."""

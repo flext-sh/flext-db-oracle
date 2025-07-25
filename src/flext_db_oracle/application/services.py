@@ -1,6 +1,6 @@
 """Oracle Database Application Services.
 
-Following flext-core application layer patterns with ServiceResult for error handling.
+Following flext-core application layer patterns with FlextResult for error handling.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import oracledb
-from flext_core import FlextResult as ServiceResult
+from flext_core import FlextResult, get_logger
 
 from flext_db_oracle.domain.models import (
     FlextDbOracleColumnInfo,
@@ -19,7 +19,6 @@ from flext_db_oracle.domain.models import (
     FlextDbOracleSchemaInfo,
     FlextDbOracleTableMetadata,
 )
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -43,7 +42,7 @@ class FlextDbOracleConnectionService:
         self._pool: oracledb.ConnectionPool | None = None
         self._query_service: FlextDbOracleQueryService | None = None
 
-    async def initialize_pool(self) -> ServiceResult[Any]:
+    async def initialize_pool(self) -> FlextResult[Any]:
         """Initialize the connection pool."""
         try:
             # Build DSN with protocol support
@@ -103,24 +102,24 @@ class FlextDbOracleConnectionService:
                 "Oracle connection pool initialized: %s",
                 self.config.connection_string,
             )
-            return ServiceResult.ok(None)
+            return FlextResult.ok(None)
 
         except Exception as e:
             logger.exception("Failed to initialize Oracle connection pool")
-            return ServiceResult.fail(f"Connection pool initialization failed: {e}")
+            return FlextResult.fail(f"Connection pool initialization failed: {e}")
 
-    async def close_pool(self) -> ServiceResult[Any]:
+    async def close_pool(self) -> FlextResult[Any]:
         """Close the connection pool."""
         try:
             if self._pool:
                 self._pool.close()
                 self._pool = None
                 logger.info("Oracle connection pool closed")
-            return ServiceResult.ok(None)
+            return FlextResult.ok(None)
 
         except Exception as e:
             logger.exception("Failed to close Oracle connection pool")
-            return ServiceResult.fail(f"Connection pool closure failed: {e}")
+            return FlextResult.fail(f"Connection pool closure failed: {e}")
 
     @asynccontextmanager
     async def get_connection(self) -> AsyncGenerator[oracledb.Connection]:
@@ -143,7 +142,7 @@ class FlextDbOracleConnectionService:
             if connection and self._pool:
                 self._pool.release(connection)
 
-    async def test_connection(self) -> ServiceResult[Any]:
+    async def test_connection(self) -> FlextResult[Any]:
         """Test the database connection."""
         try:
             async with self.get_connection() as conn:
@@ -162,7 +161,7 @@ class FlextDbOracleConnectionService:
                             last_check=datetime.now(UTC),
                             error_message=None,
                         )
-                        return ServiceResult.ok(status)
+                        return FlextResult.ok(status)
                     status = FlextDbOracleConnectionStatus(
                         is_connected=False,
                         host=self.config.host,
@@ -172,7 +171,7 @@ class FlextDbOracleConnectionService:
                         last_check=datetime.now(UTC),
                         error_message="Test query returned unexpected result",
                     )
-                    return ServiceResult.fail("Connection test failed")
+                    return FlextResult.fail("Connection test failed")
 
         except Exception as e:
             logger.exception("Oracle connection test failed")
@@ -185,7 +184,7 @@ class FlextDbOracleConnectionService:
                 last_check=datetime.now(UTC),
                 error_message=str(e),
             )
-            return ServiceResult.fail(f"Connection test failed: {e}")
+            return FlextResult.fail(f"Connection test failed: {e}")
 
     @property
     def is_pool_initialized(self) -> bool:
@@ -203,7 +202,7 @@ class FlextDbOracleConnectionService:
             return {"initialized": False, "pool": None}
         return {"initialized": True, "pool": self._pool}
 
-    async def get_database_info(self) -> ServiceResult[Any]:
+    async def get_database_info(self) -> FlextResult[Any]:
         """Get Oracle database information."""
         try:
             async with self.get_connection() as conn:
@@ -239,28 +238,28 @@ class FlextDbOracleConnectionService:
                     },
                 }
 
-                return ServiceResult.ok(db_info)
+                return FlextResult.ok(db_info)
 
         except Exception as e:
             logger.exception("Failed to get database info")
-            return ServiceResult.fail(f"Database info retrieval failed: {e}")
+            return FlextResult.fail(f"Database info retrieval failed: {e}")
 
     async def execute_query(
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Execute a query using the internal query service."""
         if not self._query_service:
             # Initialize pool and query service if not already done
             init_result = await self.initialize_pool()
             if not init_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Failed to initialize pool: {init_result.error}",
                 )
 
         if not self._query_service:
-            return ServiceResult.fail("Query service not initialized")
+            return FlextResult.fail("Query service not initialized")
 
         return await self._query_service.execute_query(sql, parameters)
 
@@ -281,7 +280,7 @@ class FlextDbOracleQueryService:
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Execute a SELECT query and return results."""
         start_time = datetime.now(UTC)
 
@@ -317,30 +316,30 @@ class FlextDbOracleQueryService:
                         len(result_rows),
                         execution_time,
                     )
-                    return ServiceResult.ok(result)
+                    return FlextResult.ok(result)
 
         except Exception as e:
             execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             logger.exception("Query execution failed after %.2fms", execution_time)
-            return ServiceResult.fail(f"Query execution failed: {e}")
+            return FlextResult.fail(f"Query execution failed: {e}")
 
     async def execute_scalar(
         self,
         sql: str,
         parameters: dict[str, Any] | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Execute a query and return a single scalar value."""
         try:
             result = await self.execute_query(sql, parameters)
             if result.success and result.data and result.data.row_count > 0:
                 first_row = result.data.rows[0]
                 first_value = first_row[0] if first_row else None
-                return ServiceResult.ok(first_value)
-            return ServiceResult.ok(None)
+                return FlextResult.ok(first_value)
+            return FlextResult.ok(None)
 
         except Exception as e:
             logger.exception("Scalar query execution failed")
-            return ServiceResult.fail(f"Scalar query failed: {e}")
+            return FlextResult.fail(f"Scalar query failed: {e}")
 
 
 class FlextDbOracleSchemaService:
@@ -358,13 +357,13 @@ class FlextDbOracleSchemaService:
     async def get_schema_info(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get comprehensive schema information."""
         try:
             # Get schema tables
             tables_result = await self.get_schema_tables(schema_name)
             if not tables_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Failed to get schema tables: {tables_result.error}",
                 )
 
@@ -378,16 +377,16 @@ class FlextDbOracleSchemaService:
                 ),  # Would need actual query for real creation date
             )
 
-            return ServiceResult.ok(schema_info)
+            return FlextResult.ok(schema_info)
 
         except Exception as e:
             logger.exception("Failed to get schema info for %s", schema_name)
-            return ServiceResult.fail(f"Schema info retrieval failed: {e}")
+            return FlextResult.fail(f"Schema info retrieval failed: {e}")
 
     async def get_schema_tables(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get all tables in a schema with optimized single-query approach.
 
         Eliminates N+1 query problem by fetching all table and column data together.
@@ -418,12 +417,12 @@ class FlextDbOracleSchemaService:
                 {"schema_name": schema_name},
             )
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Failed to query schema tables: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "No result data returned from schema query",
                 )
 
@@ -465,7 +464,8 @@ class FlextDbOracleSchemaService:
             tables = []
             for table_data in tables_dict.values():
                 table_meta = FlextDbOracleTableMetadata(
-                    columns=table_data["columns"], **table_data["metadata"]
+                    columns=table_data["columns"],
+                    **table_data["metadata"],
                 )
                 tables.append(table_meta)
 
@@ -475,17 +475,17 @@ class FlextDbOracleSchemaService:
                 sum(len(t.columns) for t in tables),
                 schema_name,
             )
-            return ServiceResult.ok(tables)
+            return FlextResult.ok(tables)
 
         except Exception as e:
             logger.exception("Failed to get tables for schema %s", schema_name)
-            return ServiceResult.fail(f"Schema tables retrieval failed: {e}")
+            return FlextResult.fail(f"Schema tables retrieval failed: {e}")
 
     async def get_table_columns(
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get column information for a specific table.
 
         Note: For bulk schema operations, use get_schema_tables() which is optimized
@@ -516,12 +516,12 @@ class FlextDbOracleSchemaService:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Failed to query table columns: {result.error}",
                 )
 
             if not result.data:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "No result data returned from columns query",
                 )
 
@@ -539,8 +539,8 @@ class FlextDbOracleSchemaService:
                 )
                 columns.append(column_info)
 
-            return ServiceResult.ok(columns)
+            return FlextResult.ok(columns)
 
         except Exception as e:
             logger.exception("Failed to get columns for %s.%s", schema_name, table_name)
-            return ServiceResult.fail(f"Table columns retrieval failed: {e}")
+            return FlextResult.fail(f"Table columns retrieval failed: {e}")

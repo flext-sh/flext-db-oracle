@@ -8,8 +8,9 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from flext_core import FlextResult as ServiceResult
-from src.flext_db_oracle.maintenance.health import (
+from flext_core import FlextResult
+
+from flext_db_oracle.maintenance.health import (
     DatabaseHealth,
     HealthChecker,
     SessionInfo,
@@ -60,11 +61,13 @@ class TestHealthChecker:
     """Test cases for HealthChecker class."""
 
     async def test_check_connection_success(
-        self, health_checker: HealthChecker, mock_connection_service: AsyncMock
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful connection health check."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[[1]])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[[1]]),
         )
 
         result = await health_checker.check_connection()
@@ -76,11 +79,13 @@ class TestHealthChecker:
         assert data["result"] == 1
 
     async def test_check_connection_query_failure(
-        self, health_checker: HealthChecker, mock_connection_service: AsyncMock
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test connection health check with query failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Connection timeout"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Connection timeout",
         )
 
         result = await health_checker.check_connection()
@@ -89,11 +94,13 @@ class TestHealthChecker:
         assert "Connection timeout" in result.error
 
     async def test_check_connection_empty_result(
-        self, health_checker: HealthChecker, mock_connection_service: AsyncMock
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test connection health check with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await health_checker.check_connection()
@@ -108,8 +115,8 @@ class TestHealthChecker:
         sample_tablespace_data: list[list[Any]],
     ) -> None:
         """Test successful tablespace health check."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sample_tablespace_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sample_tablespace_data),
         )
 
         result = await health_checker.check_tablespaces()
@@ -128,11 +135,13 @@ class TestHealthChecker:
         assert system_ts.usage_percent == 50.0  # 512/1024 * 100
 
     async def test_check_tablespaces_empty_result(
-        self, health_checker: HealthChecker, mock_connection_service: AsyncMock
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test tablespace check with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await health_checker.check_tablespaces()
@@ -141,11 +150,13 @@ class TestHealthChecker:
         assert result.data == []
 
     async def test_check_tablespaces_query_failure(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test tablespace check with query failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Access denied to dba_tablespaces"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Access denied to dba_tablespaces",
         )
 
         result = await health_checker.check_tablespaces()
@@ -154,7 +165,9 @@ class TestHealthChecker:
         assert "Access denied to dba_tablespaces" in result.error
 
     async def test_check_tablespaces_incomplete_rows(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test tablespace check with incomplete row data."""
         # Rows with insufficient columns should be skipped
@@ -170,8 +183,8 @@ class TestHealthChecker:
                 1024.0,
             ],  # Complete row
         ]
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=incomplete_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=incomplete_data),
         )
 
         result = await health_checker.check_tablespaces()
@@ -183,13 +196,13 @@ class TestHealthChecker:
 
     async def test_check_sessions_success(
         self,
-        health_checker: Any,
-        mock_connection_service: Any,
-        sample_session_data: Any,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
+        sample_session_data: list[list[Any]],
     ) -> None:
         """Test successful session health check."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sample_session_data)
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sample_session_data),
         )
 
         result = await health_checker.check_sessions()
@@ -209,13 +222,13 @@ class TestHealthChecker:
 
     async def test_check_sessions_with_limit(
         self,
-        health_checker: Any,
-        mock_connection_service: Any,
-        sample_session_data: Any,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
+        sample_session_data: list[list[Any]],
     ) -> None:
         """Test session check with custom limit."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=sample_session_data[:2])  # Return only first 2 sessions
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=sample_session_data[:2]),  # Return only first 2 sessions
         )
 
         result = await health_checker.check_sessions(limit=2)
@@ -225,11 +238,13 @@ class TestHealthChecker:
         assert len(sessions) == 2
 
     async def test_check_sessions_empty_result(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test session check with empty result."""
-        mock_connection_service.execute_query.return_value = ServiceResult.ok(
-            MagicMock(rows=[])
+        mock_connection_service.execute_query.return_value = FlextResult.ok(
+            MagicMock(rows=[]),
         )
 
         result = await health_checker.check_sessions()
@@ -238,11 +253,13 @@ class TestHealthChecker:
         assert result.data == []
 
     async def test_check_sessions_query_failure(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test session check with query failure."""
-        mock_connection_service.execute_query.return_value = ServiceResult.fail(
-            "Access denied to v$session"
+        mock_connection_service.execute_query.return_value = FlextResult.fail(
+            "Access denied to v$session",
         )
 
         result = await health_checker.check_sessions()
@@ -251,14 +268,16 @@ class TestHealthChecker:
         assert "Access denied to v$session" in result.error
 
     async def test_check_overall_health_success(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful overall health check."""
         # Mock all sub-checks to succeed
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection check
-            ServiceResult.ok(MagicMock(rows=[])),  # tablespace check
-            ServiceResult.ok(MagicMock(rows=[])),  # session check
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection check
+            FlextResult.ok(MagicMock(rows=[])),  # tablespace check
+            FlextResult.ok(MagicMock(rows=[])),  # session check
         ]
 
         result = await health_checker.check_overall_health()
@@ -273,16 +292,18 @@ class TestHealthChecker:
         assert health.session_status == "healthy"
 
     async def test_check_overall_health_partial_failure(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test overall health check with partial failures."""
         # Mock connection success, tablespace failure, session success
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection check - success
-            ServiceResult.fail(
-                "Tablespace access denied"
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection check - success
+            FlextResult.fail(
+                "Tablespace access denied",
             ),  # tablespace check - failure
-            ServiceResult.ok(MagicMock(rows=[])),  # session check - success
+            FlextResult.ok(MagicMock(rows=[])),  # session check - success
         ]
 
         result = await health_checker.check_overall_health()
@@ -296,14 +317,16 @@ class TestHealthChecker:
         assert health.session_status == "healthy"
 
     async def test_generate_health_report_success(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful health report generation."""
         # Mock successful overall health check
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection check
-            ServiceResult.ok(MagicMock(rows=[])),  # tablespace check
-            ServiceResult.ok(MagicMock(rows=[])),  # session check
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection check
+            FlextResult.ok(MagicMock(rows=[])),  # tablespace check
+            FlextResult.ok(MagicMock(rows=[])),  # session check
         ]
 
         result = await health_checker.generate_health_report()
@@ -318,23 +341,25 @@ class TestHealthChecker:
         assert report["summary"] == "Database is healthy"
 
     async def test_check_database_performance_metrics_success(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful performance metrics check."""
         # Mock performance queries
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[[95.5]])),  # buffer cache hit ratio
-            ServiceResult.ok(MagicMock(rows=[[92.3]])),  # library cache hit ratio
-            ServiceResult.ok(MagicMock(rows=[[75.0]])),  # shared pool usage
-            ServiceResult.ok(MagicMock(rows=[[256.5]])),  # PGA usage
-            ServiceResult.ok(MagicMock(rows=[[15]])),  # active sessions
-            ServiceResult.ok(
+            FlextResult.ok(MagicMock(rows=[[95.5]])),  # buffer cache hit ratio
+            FlextResult.ok(MagicMock(rows=[[92.3]])),  # library cache hit ratio
+            FlextResult.ok(MagicMock(rows=[[75.0]])),  # shared pool usage
+            FlextResult.ok(MagicMock(rows=[[256.5]])),  # PGA usage
+            FlextResult.ok(MagicMock(rows=[[15]])),  # active sessions
+            FlextResult.ok(
                 MagicMock(
                     rows=[  # wait events
                         ["db file sequential read", 1000, 5000],
                         ["log file sync", 500, 2000],
-                    ]
-                )
+                    ],
+                ),
             ),
         ]
 
@@ -351,17 +376,19 @@ class TestHealthChecker:
         assert metrics["performance_assessment"] == "good"
 
     async def test_check_database_performance_metrics_poor_performance(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test performance metrics check with poor performance indicators."""
         # Mock poor performance metrics
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[[70.0]])),  # low buffer cache hit ratio
-            ServiceResult.ok(MagicMock(rows=[[65.0]])),  # low library cache hit ratio
-            ServiceResult.ok(MagicMock(rows=[[98.0]])),  # high shared pool usage
-            ServiceResult.ok(MagicMock(rows=[[512.0]])),  # high PGA usage
-            ServiceResult.ok(MagicMock(rows=[[50]])),  # many active sessions
-            ServiceResult.ok(MagicMock(rows=[])),  # no wait events
+            FlextResult.ok(MagicMock(rows=[[70.0]])),  # low buffer cache hit ratio
+            FlextResult.ok(MagicMock(rows=[[65.0]])),  # low library cache hit ratio
+            FlextResult.ok(MagicMock(rows=[[98.0]])),  # high shared pool usage
+            FlextResult.ok(MagicMock(rows=[[512.0]])),  # high PGA usage
+            FlextResult.ok(MagicMock(rows=[[50]])),  # many active sessions
+            FlextResult.ok(MagicMock(rows=[])),  # no wait events
         ]
 
         result = await health_checker.check_database_performance_metrics()
@@ -371,12 +398,14 @@ class TestHealthChecker:
         assert metrics["performance_assessment"] == "poor"
 
     async def test_check_database_locks_no_blocking(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test database locks check with no blocking sessions."""
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[])),  # no blocking sessions
-            ServiceResult.ok(MagicMock(rows=[[25]])),  # total locks count
+            FlextResult.ok(MagicMock(rows=[])),  # no blocking sessions
+            FlextResult.ok(MagicMock(rows=[[25]])),  # total locks count
         ]
 
         result = await health_checker.check_database_locks()
@@ -389,7 +418,9 @@ class TestHealthChecker:
         assert lock_analysis["lock_status"] == "normal"
 
     async def test_check_database_locks_with_blocking(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test database locks check with blocking sessions."""
         blocking_data = [
@@ -397,8 +428,8 @@ class TestHealthChecker:
             ["SYS", 111, 222, "APPS", 333, 444, "TM", 3, 5],
         ]
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=blocking_data)),  # blocking sessions
-            ServiceResult.ok(MagicMock(rows=[[50]])),  # total locks count
+            FlextResult.ok(MagicMock(rows=blocking_data)),  # blocking sessions
+            FlextResult.ok(MagicMock(rows=[[50]])),  # total locks count
         ]
 
         result = await health_checker.check_database_locks()
@@ -417,7 +448,9 @@ class TestHealthChecker:
         assert first_block["lock_type"] == "TX"
 
     async def test_check_redo_log_activity_success(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test successful redo log activity check."""
         log_switches_data = [
@@ -431,8 +464,8 @@ class TestHealthChecker:
             [3, "INACTIVE", "YES", 50.0],
         ]
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=log_switches_data)),  # log switches
-            ServiceResult.ok(MagicMock(rows=redo_status_data)),  # redo status
+            FlextResult.ok(MagicMock(rows=log_switches_data)),  # log switches
+            FlextResult.ok(MagicMock(rows=redo_status_data)),  # redo status
         ]
 
         result = await health_checker.check_redo_log_activity()
@@ -446,7 +479,9 @@ class TestHealthChecker:
         assert redo_analysis["redo_activity_level"] == "normal"  # <= 4 threshold
 
     async def test_check_redo_log_activity_high_activity(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test redo log activity check with high activity."""
         log_switches_data = [
@@ -454,8 +489,8 @@ class TestHealthChecker:
             ["2024-07-24 13", 5],
         ]
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=log_switches_data)),  # log switches
-            ServiceResult.ok(MagicMock(rows=[])),  # redo status
+            FlextResult.ok(MagicMock(rows=log_switches_data)),  # log switches
+            FlextResult.ok(MagicMock(rows=[])),  # redo status
         ]
 
         result = await health_checker.check_redo_log_activity()
@@ -466,28 +501,30 @@ class TestHealthChecker:
         assert redo_analysis["redo_activity_level"] == "high"  # > 4 threshold
 
     async def test_generate_comprehensive_health_report_success(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test comprehensive health report generation."""
         # Mock all health check queries to succeed
         mock_connection_service.execute_query.side_effect = [
             # Basic health checks
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection
-            ServiceResult.ok(MagicMock(rows=[])),  # tablespaces
-            ServiceResult.ok(MagicMock(rows=[])),  # sessions
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection
+            FlextResult.ok(MagicMock(rows=[])),  # tablespaces
+            FlextResult.ok(MagicMock(rows=[])),  # sessions
             # Performance metrics
-            ServiceResult.ok(MagicMock(rows=[[95.0]])),  # buffer cache
-            ServiceResult.ok(MagicMock(rows=[[92.0]])),  # library cache
-            ServiceResult.ok(MagicMock(rows=[[75.0]])),  # shared pool
-            ServiceResult.ok(MagicMock(rows=[[256.0]])),  # PGA
-            ServiceResult.ok(MagicMock(rows=[[10]])),  # active sessions
-            ServiceResult.ok(MagicMock(rows=[])),  # wait events
+            FlextResult.ok(MagicMock(rows=[[95.0]])),  # buffer cache
+            FlextResult.ok(MagicMock(rows=[[92.0]])),  # library cache
+            FlextResult.ok(MagicMock(rows=[[75.0]])),  # shared pool
+            FlextResult.ok(MagicMock(rows=[[256.0]])),  # PGA
+            FlextResult.ok(MagicMock(rows=[[10]])),  # active sessions
+            FlextResult.ok(MagicMock(rows=[])),  # wait events
             # Lock analysis
-            ServiceResult.ok(MagicMock(rows=[])),  # blocking sessions
-            ServiceResult.ok(MagicMock(rows=[[20]])),  # total locks
+            FlextResult.ok(MagicMock(rows=[])),  # blocking sessions
+            FlextResult.ok(MagicMock(rows=[[20]])),  # total locks
             # Redo log analysis
-            ServiceResult.ok(MagicMock(rows=[])),  # log switches
-            ServiceResult.ok(MagicMock(rows=[])),  # redo status
+            FlextResult.ok(MagicMock(rows=[])),  # log switches
+            FlextResult.ok(MagicMock(rows=[])),  # redo status
         ]
 
         result = await health_checker.generate_comprehensive_health_report()
@@ -502,21 +539,23 @@ class TestHealthChecker:
         assert report["overall_assessment"] == "excellent"  # All checks succeeded
 
     async def test_generate_comprehensive_health_report_partial_failures(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test comprehensive health report with partial failures."""
         # Mock some checks to fail - need to account for ALL calls made
         mock_connection_service.execute_query.side_effect = [
             # Basic health checks
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection - success
-            ServiceResult.fail("Tablespace access denied"),  # tablespaces - fail
-            ServiceResult.ok(MagicMock(rows=[])),  # sessions - success
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection - success
+            FlextResult.fail("Tablespace access denied"),  # tablespaces - fail
+            FlextResult.ok(MagicMock(rows=[])),  # sessions - success
             # Performance metrics - fail (first call)
-            ServiceResult.fail("Performance data unavailable"),
+            FlextResult.fail("Performance data unavailable"),
             # Lock analysis - fail (first call)
-            ServiceResult.fail("Lock data unavailable"),
+            FlextResult.fail("Lock data unavailable"),
             # Redo log analysis - fail (first call)
-            ServiceResult.fail("Redo log data unavailable"),
+            FlextResult.fail("Redo log data unavailable"),
         ]
 
         result = await health_checker.generate_comprehensive_health_report()
@@ -530,12 +569,14 @@ class TestHealthChecker:
         assert report["overall_assessment"] == "critical"  # Multiple failures
 
     async def test_exception_handling(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test exception handling in health checker methods."""
         # Mock connection service to raise exception
         mock_connection_service.execute_query.side_effect = Exception(
-            "Database connection lost"
+            "Database connection lost",
         )
 
         result = await health_checker.check_connection()
@@ -544,17 +585,19 @@ class TestHealthChecker:
         assert "Connection check failed" in result.error
 
     async def test_incomplete_performance_data(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test performance metrics with incomplete data."""
         # Mock some queries to return empty results
         mock_connection_service.execute_query.side_effect = [
-            ServiceResult.ok(MagicMock(rows=[])),  # buffer cache - empty
-            ServiceResult.ok(MagicMock(rows=[[85.0]])),  # library cache - has data
-            ServiceResult.ok(MagicMock(rows=[])),  # shared pool - empty
-            ServiceResult.ok(MagicMock(rows=[])),  # PGA - empty
-            ServiceResult.ok(MagicMock(rows=[[5]])),  # active sessions - has data
-            ServiceResult.ok(MagicMock(rows=[])),  # wait events - empty
+            FlextResult.ok(MagicMock(rows=[])),  # buffer cache - empty
+            FlextResult.ok(MagicMock(rows=[[85.0]])),  # library cache - has data
+            FlextResult.ok(MagicMock(rows=[])),  # shared pool - empty
+            FlextResult.ok(MagicMock(rows=[])),  # PGA - empty
+            FlextResult.ok(MagicMock(rows=[[5]])),  # active sessions - has data
+            FlextResult.ok(MagicMock(rows=[])),  # wait events - empty
         ]
 
         result = await health_checker.check_database_performance_metrics()
@@ -575,14 +618,16 @@ class TestHealthCheckerIntegration:
     """Integration-style tests for HealthChecker."""
 
     async def test_full_health_workflow(
-        self, health_checker: Any, mock_connection_service: Any
+        self,
+        health_checker: HealthChecker,
+        mock_connection_service: AsyncMock,
     ) -> None:
         """Test complete health checking workflow."""
         # Mock comprehensive health check workflow
         mock_connection_service.execute_query.side_effect = [
             # Basic health checks
-            ServiceResult.ok(MagicMock(rows=[[1]])),  # connection
-            ServiceResult.ok(
+            FlextResult.ok(MagicMock(rows=[[1]])),  # connection
+            FlextResult.ok(
                 MagicMock(
                     rows=[
                         [
@@ -593,11 +638,11 @@ class TestHealthCheckerIntegration:
                             1024.0,
                             512.0,
                             512.0,
-                        ]
-                    ]
-                )
+                        ],
+                    ],
+                ),
             ),  # tablespaces
-            ServiceResult.ok(
+            FlextResult.ok(
                 MagicMock(
                     rows=[
                         [
@@ -607,9 +652,9 @@ class TestHealthCheckerIntegration:
                             "sqlplus.exe",
                             "2024-07-24 10:30:00",
                             "abc123",
-                        ]
-                    ]
-                )
+                        ],
+                    ],
+                ),
             ),  # sessions
         ]
 

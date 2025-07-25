@@ -18,11 +18,11 @@ if TYPE_CHECKING:
 from flext_core import (
     FlextEntity as DomainEntity,
     FlextEntityId as EntityId,
-    FlextValueObject as DomainValueObject,
+    FlextValueObject,
 )
 
 
-class FlextDbOracleConnectionInfo(DomainValueObject):
+class FlextDbOracleConnectionInfo(FlextValueObject):
     """Oracle database connection configuration."""
 
     host: str = Field(..., description="Database host")
@@ -55,12 +55,14 @@ class FlextDbOracleConnectionInfo(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for connection info."""
         if not self.host.strip():
-            raise ValueError("Host cannot be empty")
+            msg = "Host cannot be empty"
+            raise ValueError(msg)
         if not self.username.strip():
-            raise ValueError("Username cannot be empty")
+            msg = "Username cannot be empty"
+            raise ValueError(msg)
 
 
-class FlextDbOracleColumnInfo(DomainValueObject):
+class FlextDbOracleColumnInfo(FlextValueObject):
     """Oracle table column metadata."""
 
     name: str = Field(..., description="Column name")
@@ -83,9 +85,11 @@ class FlextDbOracleColumnInfo(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.name.strip():
-            raise ValueError("Column name cannot be empty")
+            msg = "Column name cannot be empty"
+            raise ValueError(msg)
         if not self.data_type.strip():
-            raise ValueError("Data type cannot be empty")
+            msg = "Data type cannot be empty"
+            raise ValueError(msg)
 
 
 class FlextDbOracleTableMetadata(DomainEntity):
@@ -116,12 +120,14 @@ class FlextDbOracleTableMetadata(DomainEntity):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.schema_name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
 
 
-class FlextDbOracleSchemaInfo(DomainValueObject):
+class FlextDbOracleSchemaInfo(FlextValueObject):
     """Oracle schema information."""
 
     name: str = Field(..., description="Schema name")
@@ -140,10 +146,11 @@ class FlextDbOracleSchemaInfo(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
 
 
-class FlextDbOracleQueryResult(DomainValueObject):
+class FlextDbOracleQueryResult(FlextValueObject):
     """Result of Oracle query execution."""
 
     rows: list[tuple[Any, ...]] = Field(
@@ -172,12 +179,14 @@ class FlextDbOracleQueryResult(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if self.row_count < 0:
-            raise ValueError("Row count cannot be negative")
+            msg = "Row count cannot be negative"
+            raise ValueError(msg)
         if self.execution_time_ms < 0:
-            raise ValueError("Execution time cannot be negative")
+            msg = "Execution time cannot be negative"
+            raise ValueError(msg)
 
 
-class FlextDbOracleConnectionStatus(DomainValueObject):
+class FlextDbOracleConnectionStatus(FlextValueObject):
     """Oracle connection health status."""
 
     is_connected: bool = Field(..., description="Connection status")
@@ -202,6 +211,8 @@ class FlextDbOracleConnectionStatus(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.host.strip():
-            raise ValueError("Host cannot be empty")
+            msg = "Host cannot be empty"
+            raise ValueError(msg)
         if not self.username.strip():
-            raise ValueError("Username cannot be empty")
+            msg = "Username cannot be empty"
+            raise ValueError(msg)

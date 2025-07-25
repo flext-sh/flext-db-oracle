@@ -58,7 +58,7 @@ async def oracle_connection(
     from flext_db_oracle.config import FlextDbOracleConfig
 
     config = FlextDbOracleConfig(**oracle_connection_config)
-    return FlextDbOracleConnectionService(config)  # type: ignore[return-value]
+    return FlextDbOracleConnectionService(config)
     # Mock connection initialization for testing
 
 
@@ -69,7 +69,7 @@ async def oracle_pool(oracle_connection_config: dict[str, Any]) -> AsyncGenerato
     from flext_db_oracle.config import FlextDbOracleConfig
 
     config = FlextDbOracleConfig(**oracle_connection_config)
-    return FlextDbOracleConnectionService(config)  # type: ignore[return-value]
+    return FlextDbOracleConnectionService(config)
     # Mock pool for testing
 
 
@@ -210,7 +210,7 @@ def transaction_test_data() -> dict[str, Any]:
 # Performance testing fixtures
 @pytest.fixture
 def performance_test_config() -> dict[str, Any]:
-    """Configuration for performance testing."""
+    """Create a configuration for performance testing."""
     return {
         "batch_size": 1000,
         "concurrent_connections": 5,
@@ -222,7 +222,7 @@ def performance_test_config() -> dict[str, Any]:
 
 @pytest.fixture
 def large_dataset_config() -> dict[str, Any]:
-    """Configuration for large dataset testing."""
+    """Create a configuration for large dataset testing."""
     return {
         "record_count": 10000,
         "batch_size": 1000,
@@ -234,7 +234,7 @@ def large_dataset_config() -> dict[str, Any]:
 # Error testing fixtures
 @pytest.fixture
 def oracle_error_scenarios() -> list[dict[str, Any]]:
-    """Oracle error scenarios for testing."""
+    """Create a list of Oracle error scenarios for testing."""
     return [
         {
             "name": "invalid_sql",
@@ -266,7 +266,7 @@ def oracle_error_scenarios() -> list[dict[str, Any]]:
 # Data type testing fixtures
 @pytest.fixture
 def oracle_data_types() -> dict[str, Any]:
-    """Oracle data type testing configurations."""
+    """Create a configuration for Oracle data type testing."""
     return {
         "numeric_types": {
             "NUMBER": [1, 1.5, 999999999999],
@@ -292,7 +292,7 @@ def oracle_data_types() -> dict[str, Any]:
 # Pagination fixtures
 @pytest.fixture
 def pagination_test_config() -> dict[str, Any]:
-    """Configuration for pagination testing."""
+    """Create a configuration for pagination testing."""
     return {
         "total_records": 1000,
         "page_sizes": [10, 25, 50, 100],
@@ -307,7 +307,7 @@ def pagination_test_config() -> dict[str, Any]:
 
 # Pytest markers for test categorization
 def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest markers."""
+    """Configure pytest markers for test categorization."""
     config.addinivalue_line("markers", "unit: Unit tests")
     config.addinivalue_line("markers", "integration: Integration tests")
     config.addinivalue_line("markers", "e2e: End-to-end tests")
@@ -319,84 +319,101 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "slow: Slow tests")
 
 
-# Mock services
-@pytest.fixture
-def mock_oracle_service() -> Any:
+class MockOracleService:
     """Mock Oracle service for testing."""
 
-    class MockOracleService:
-        def __init__(self) -> None:
-            self.connected = False
-            self.transactions: list[dict[str, Any]] = []
-            self.queries_executed: list[dict[str, Any]] = []
+    def __init__(self) -> None:
+        """Initialize the mock Oracle service."""
+        self.connected = False
+        self.transactions: list[dict[str, Any]] = []
+        self.queries_executed: list[dict[str, Any]] = []
 
-        async def connect(self) -> bool:
-            self.connected = True
-            return True
+    async def connect(self) -> bool:
+        """Connect to the mock Oracle service."""
+        self.connected = True
+        return True
 
-        async def disconnect(self) -> bool:
-            self.connected = False
-            return True
+    async def disconnect(self) -> bool:
+        """Disconnect from the mock Oracle service."""
+        self.connected = False
+        return True
 
-        async def execute_query(
-            self,
-            query: str,
-            params: dict[str, Any] | None = None,
-        ) -> list[dict[str, Any]]:
-            self.queries_executed.append({"query": query, "params": params})
-            return [{"id": 1, "name": "test"}]
+    async def execute_query(
+        self,
+        query: str,
+        params: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
+        """Execute a query on the mock Oracle service."""
+        self.queries_executed.append({"query": query, "params": params})
+        return [{"id": 1, "name": "test"}]
 
-        async def execute_non_query(
-            self,
-            query: str,
-            params: dict[str, Any] | None = None,
-        ) -> int:
-            self.queries_executed.append({"query": query, "params": params})
-            return 1
+    async def execute_non_query(
+        self,
+        query: str,
+        params: dict[str, Any] | None = None,
+    ) -> int:
+        """Execute a non-query on the mock Oracle service."""
+        self.queries_executed.append({"query": query, "params": params})
+        return 1
 
-        async def begin_transaction(self) -> str:
-            transaction_id = f"txn_{len(self.transactions) + 1}"
-            self.transactions.append({"id": transaction_id, "status": "active"})
-            return transaction_id
+    async def begin_transaction(self) -> str:
+        """Begin a transaction on the mock Oracle service."""
+        transaction_id = f"txn_{len(self.transactions) + 1}"
+        self.transactions.append({"id": transaction_id, "status": "active"})
+        return transaction_id
 
-        async def commit_transaction(self, transaction_id: str) -> None:
-            for txn in self.transactions:
-                if txn["id"] == transaction_id:
-                    txn["status"] = "committed"
+    async def commit_transaction(self, transaction_id: str) -> None:
+        """Commit a transaction on the mock Oracle service."""
+        for txn in self.transactions:
+            if txn["id"] == transaction_id:
+                txn["status"] = "committed"
 
-        async def rollback_transaction(self, transaction_id: str) -> None:
-            for txn in self.transactions:
-                if txn["id"] == transaction_id:
-                    txn["status"] = "rolled_back"
+    async def rollback_transaction(self, transaction_id: str) -> None:
+        """Rollback a transaction on the mock Oracle service."""
+        for txn in self.transactions:
+            if txn["id"] == transaction_id:
+                txn["status"] = "rolled_back"
 
+
+# Mock services
+@pytest.fixture
+def mock_oracle_service() -> MockOracleService:
+    """Create a mock Oracle service for testing."""
     return MockOracleService()
 
 
-@pytest.fixture
-def mock_oracle_pool() -> Any:
+class MockOraclePool:
     """Mock Oracle connection pool for testing."""
 
-    class MockOraclePool:
-        def __init__(self, config: dict[str, Any]) -> None:
-            self.config = config
-            self.pool_size = 0
-            self.active_connections = 0
+    def __init__(self, config: dict[str, Any]) -> None:
+        """Initialize the mock Oracle connection pool."""
+        self.config = config
+        self.pool_size = 0
+        self.active_connections = 0
 
-        async def create_pool(self) -> None:
-            self.pool_size = self.config.get("pool_max", 10)
+    async def create_pool(self) -> None:
+        """Create a pool of connections on the mock Oracle service."""
+        self.pool_size = self.config.get("pool_max", 10)
 
-        async def close_pool(self) -> None:
-            self.pool_size = 0
-            self.active_connections = 0
+    async def close_pool(self) -> None:
+        """Close the pool of connections on the mock Oracle service."""
+        self.pool_size = 0
+        self.active_connections = 0
 
-        async def acquire_connection(self) -> str:
-            if self.active_connections < self.pool_size:
-                self.active_connections += 1
-                return f"connection_{self.active_connections}"
-            msg = "Pool exhausted"
-            raise RuntimeError(msg)
+    async def acquire_connection(self) -> str:
+        """Acquire a connection from the pool on the mock Oracle service."""
+        if self.active_connections < self.pool_size:
+            self.active_connections += 1
+            return f"connection_{self.active_connections}"
+        msg = "Pool exhausted"
+        raise FlextProcessingError(msg)
 
-        async def release_connection(self, connection: Any) -> None:
-            self.active_connections -= 1
+    async def release_connection(self, connection: str) -> None:
+        """Release a connection to the pool on the mock Oracle service."""
+        self.active_connections -= 1
 
+
+@pytest.fixture
+def mock_oracle_pool() -> MockOraclePool:
+    """Create a mock Oracle connection pool for testing."""
     return MockOraclePool

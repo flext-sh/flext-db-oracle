@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import FlextValueObject as BaseConfig
+from flext_core import (
+    FlextValueObject as BaseConfig,
+    get_logger,
+)
 from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
@@ -114,6 +115,7 @@ class ConnectionConfig(BaseConfig):
         raise ValueError(msg)
 
     def test_connection_params(self) -> bool:
+        """Test connection parameters."""
         try:
             self.to_connect_params()
         except (ValueError, TypeError, KeyError) as e:

@@ -106,7 +106,7 @@ class TestTestConnection:
 
         assert result == 0
         mock_config_class.from_url.assert_called_once_with(
-            "oracle://user:pass@host:1521/service"
+            "oracle://user:pass@host:1521/service",
         )
         mock_conn.connect.assert_called_once()
         mock_conn.fetch_one.assert_called_once_with("SELECT 1 FROM DUAL")

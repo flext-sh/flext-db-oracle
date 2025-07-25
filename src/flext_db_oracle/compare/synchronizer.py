@@ -1,7 +1,7 @@
 """Oracle database synchronization functionality.
 
 Built on flext-core foundation for robust data synchronization.
-Uses ServiceResult pattern and async operations.
+Uses FlextResult pattern and async operations.
 """
 
 from __future__ import annotations
@@ -9,12 +9,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleConnectionService
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class SyncOperation(DomainValueObject):
+class SyncOperation(FlextValueObject):
     """Represents a synchronization operation."""
 
     operation_type: str = Field(..., description="Type of sync operation")
@@ -39,16 +38,20 @@ class SyncOperation(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for sync operation."""
         if not self.operation_type.strip():
-            raise ValueError("Operation type cannot be empty")
+            msg = "Operation type cannot be empty"
+            raise ValueError(msg)
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if self.records_affected < 0:
-            raise ValueError("Records affected cannot be negative")
+            msg = "Records affected cannot be negative"
+            raise ValueError(msg)
         if self.execution_time_ms < 0:
-            raise ValueError("Execution time cannot be negative")
+            msg = "Execution time cannot be negative"
+            raise ValueError(msg)
 
 
-class SyncResult(DomainValueObject):
+class SyncResult(FlextValueObject):
     """Result of a synchronization operation."""
 
     source_name: str = Field(..., description="Source database identifier")
@@ -63,11 +66,14 @@ class SyncResult(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for sync result."""
         if not self.source_name.strip():
-            raise ValueError("Source name cannot be empty")
+            msg = "Source name cannot be empty"
+            raise ValueError(msg)
         if not self.target_name.strip():
-            raise ValueError("Target name cannot be empty")
+            msg = "Target name cannot be empty"
+            raise ValueError(msg)
         if self.total_records_synced < 0:
-            raise ValueError("Total records synced cannot be negative")
+            msg = "Total records synced cannot be negative"
+            raise ValueError(msg)
 
     @property
     def total_operations(self) -> int:
@@ -107,7 +113,7 @@ class DatabaseSynchronizer:
         self,
         table_name: str,
         sync_strategy: str = "upsert",
-    ) -> ServiceResult[SyncResult]:
+    ) -> FlextResult[SyncResult]:
         """Synchronize a single table between databases."""
         try:
             logger.info("Starting synchronization for table: %s", table_name)
@@ -134,17 +140,17 @@ class DatabaseSynchronizer:
             )
 
             logger.info("Table synchronization complete: %s", table_name)
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("Table synchronization failed for %s", table_name)
-            return ServiceResult.fail(f"Table synchronization failed: {e}")
+            return FlextResult.fail(f"Table synchronization failed: {e}")
 
     async def synchronize_schema(
         self,
         schema_name: str,
         tables: list[str] | None = None,
-    ) -> ServiceResult[SyncResult]:
+    ) -> FlextResult[SyncResult]:
         """Synchronize multiple tables in a schema."""
         try:
             logger.info("Starting schema synchronization: %s", schema_name)
@@ -153,7 +159,7 @@ class DatabaseSynchronizer:
                 # Get all tables in schema
                 tables_result = await self._get_schema_tables(schema_name)
                 if not tables_result.is_success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         tables_result.error or "Failed to get schema tables",
                     )
                 tables = tables_result.data or []
@@ -189,13 +195,13 @@ class DatabaseSynchronizer:
                 len(tables),
                 total_synced,
             )
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("Schema synchronization failed for %s", schema_name)
-            return ServiceResult.fail(f"Schema synchronization failed: {e}")
+            return FlextResult.fail(f"Schema synchronization failed: {e}")
 
-    async def _get_schema_tables(self, schema_name: str) -> ServiceResult[list[str]]:
+    async def _get_schema_tables(self, schema_name: str) -> FlextResult[list[str]]:
         """Get list of tables in a schema."""
         try:
             query = """
@@ -211,22 +217,22 @@ class DatabaseSynchronizer:
             )
 
             if not result.is_success:
-                return ServiceResult.fail(result.error or "Failed to execute query")
+                return FlextResult.fail(result.error or "Failed to execute query")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             tables = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(tables)
+            return FlextResult.ok(tables)
 
         except Exception as e:
             logger.exception("Failed to get schema tables")
-            return ServiceResult.fail(f"Failed to get schema tables: {e}")
+            return FlextResult.fail(f"Failed to get schema tables: {e}")
 
     async def validate_sync_requirements(
         self,
         table_name: str,
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, Any]]:
         """Validate that a table can be synchronized."""
         try:
             # Check if table exists in both databases
@@ -234,19 +240,19 @@ class DatabaseSynchronizer:
             target_exists = await self._table_exists(self.target_service, table_name)
 
             if not source_exists:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Source table {table_name} does not exist",
                 )
 
             if not target_exists:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Target table {table_name} does not exist",
                 )
 
             # Check for primary key
             pk_result = await self._get_primary_key_columns(table_name)
             if not pk_result.is_success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Cannot determine primary key for {table_name}",
                 )
 
@@ -257,11 +263,11 @@ class DatabaseSynchronizer:
                 "sync_ready": True,
             }
 
-            return ServiceResult.ok(validation_info)
+            return FlextResult.ok(validation_info)
 
         except Exception as e:
             logger.exception("Sync validation failed for %s", table_name)
-            return ServiceResult.fail(f"Sync validation failed: {e}")
+            return FlextResult.fail(f"Sync validation failed: {e}")
 
     async def _table_exists(
         self,
@@ -290,7 +296,7 @@ class DatabaseSynchronizer:
     async def _get_primary_key_columns(
         self,
         table_name: str,
-    ) -> ServiceResult[list[str]]:
+    ) -> FlextResult[list[str]]:
         """Get primary key columns for a table."""
         try:
             query = """
@@ -311,17 +317,17 @@ class DatabaseSynchronizer:
             )
 
             if not result.is_success:
-                return ServiceResult.fail(result.error or "Failed to execute query")
+                return FlextResult.fail(result.error or "Failed to execute query")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             pk_columns = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(pk_columns)
+            return FlextResult.ok(pk_columns)
 
         except Exception as e:
             logger.exception("Failed to get primary key columns")
-            return ServiceResult.fail(f"Failed to get primary key columns: {e}")
+            return FlextResult.fail(f"Failed to get primary key columns: {e}")
 
 
 class DataSynchronizer:
@@ -341,15 +347,15 @@ class DataSynchronizer:
         self,
         table_name: str,
         strategy: str = "upsert",
-    ) -> ServiceResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, Any]]:
         """Synchronize data for a specific table."""
         try:
             result = await self._sync_engine.synchronize_table(table_name, strategy)
             if not result.is_success:
-                return ServiceResult.fail(result.error or "Synchronization failed")
+                return FlextResult.fail(result.error or "Synchronization failed")
 
             if not result.data:
-                return ServiceResult.fail("Synchronization returned no data")
+                return FlextResult.fail("Synchronization returned no data")
 
             # Convert to simplified format
             sync_summary = {
@@ -360,23 +366,23 @@ class DataSynchronizer:
                 "success": result.data.success,
             }
 
-            return ServiceResult.ok(sync_summary)
+            return FlextResult.ok(sync_summary)
 
         except Exception as e:
             logger.exception("Data synchronization failed")
-            return ServiceResult.fail(f"Data synchronization failed: {e}")
+            return FlextResult.fail(f"Data synchronization failed: {e}")
 
     async def validate_synchronization_requirements(
         self,
         table_name: str,
-    ) -> ServiceResult[bool]:
+    ) -> FlextResult[bool]:
         """Validate that synchronization can be performed."""
         try:
             validation_result = await self._sync_engine.validate_sync_requirements(
                 table_name,
             )
-            return ServiceResult.ok(validation_result.is_success)
+            return FlextResult.ok(validation_result.is_success)
 
         except Exception as e:
             logger.exception("Synchronization validation failed")
-            return ServiceResult.fail(f"Synchronization validation failed: {e}")
+            return FlextResult.fail(f"Synchronization validation failed: {e}")

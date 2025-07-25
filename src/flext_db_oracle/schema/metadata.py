@@ -14,7 +14,7 @@ from uuid import uuid4
 from flext_core import (
     FlextEntity as DomainEntity,
     FlextEntityId as EntityId,
-    FlextValueObject as DomainValueObject,
+    FlextValueObject,
 )
 from pydantic import Field
 
@@ -38,7 +38,7 @@ class ObjectStatus(StrEnum):
     ENABLED = "ENABLED"
 
 
-class ColumnMetadata(DomainValueObject):
+class ColumnMetadata(FlextValueObject):
     """Metadata for an Oracle database column."""
 
     name: str = Field(..., description="Column name")
@@ -89,20 +89,26 @@ class ColumnMetadata(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for column metadata."""
         if not self.name.strip():
-            raise ValueError("Column name cannot be empty")
+            msg = "Column name cannot be empty"
+            raise ValueError(msg)
         if not self.data_type.strip():
-            raise ValueError("Data type cannot be empty")
+            msg = "Data type cannot be empty"
+            raise ValueError(msg)
         if self.column_id <= 0:
-            raise ValueError("Column ID must be positive")
+            msg = "Column ID must be positive"
+            raise ValueError(msg)
         if self.max_length is not None and self.max_length <= 0:
-            raise ValueError("Max length must be positive")
+            msg = "Max length must be positive"
+            raise ValueError(msg)
         if self.precision is not None and self.precision <= 0:
-            raise ValueError("Precision must be positive")
+            msg = "Precision must be positive"
+            raise ValueError(msg)
         if self.scale is not None and self.scale < 0:
-            raise ValueError("Scale cannot be negative")
+            msg = "Scale cannot be negative"
+            raise ValueError(msg)
 
 
-class ConstraintMetadata(DomainValueObject):
+class ConstraintMetadata(FlextValueObject):
     """Metadata for an Oracle database constraint."""
 
     name: str = Field(..., description="Constraint name")
@@ -132,19 +138,24 @@ class ConstraintMetadata(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for constraint metadata."""
         if not self.name.strip():
-            raise ValueError("Constraint name cannot be empty")
+            msg = "Constraint name cannot be empty"
+            raise ValueError(msg)
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.column_names:
-            raise ValueError("Column names cannot be empty")
+            msg = "Column names cannot be empty"
+            raise ValueError(msg)
         if self.constraint_type == ConstraintType.FOREIGN_KEY:
             if not self.referenced_table:
-                raise ValueError("Foreign key must have referenced table")
+                msg = "Foreign key must have referenced table"
+                raise ValueError(msg)
             if not self.referenced_columns:
-                raise ValueError("Foreign key must have referenced columns")
+                msg = "Foreign key must have referenced columns"
+                raise ValueError(msg)
 
 
-class IndexMetadata(DomainValueObject):
+class IndexMetadata(FlextValueObject):
     """Metadata for an Oracle database index."""
 
     name: str = Field(..., description="Index name")
@@ -171,13 +182,17 @@ class IndexMetadata(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for index metadata."""
         if not self.name.strip():
-            raise ValueError("Index name cannot be empty")
+            msg = "Index name cannot be empty"
+            raise ValueError(msg)
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.column_names:
-            raise ValueError("Column names cannot be empty")
+            msg = "Column names cannot be empty"
+            raise ValueError(msg)
         if self.degree <= 0:
-            raise ValueError("Degree must be positive")
+            msg = "Degree must be positive"
+            raise ValueError(msg)
 
 
 class TableMetadata(DomainEntity):
@@ -248,17 +263,23 @@ class TableMetadata(DomainEntity):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for table metadata."""
         if not self.name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.schema_name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if self.num_rows is not None and self.num_rows < 0:
-            raise ValueError("Number of rows cannot be negative")
+            msg = "Number of rows cannot be negative"
+            raise ValueError(msg)
         if self.blocks is not None and self.blocks < 0:
-            raise ValueError("Blocks cannot be negative")
+            msg = "Blocks cannot be negative"
+            raise ValueError(msg)
         if self.avg_row_len is not None and self.avg_row_len < 0:
-            raise ValueError("Average row length cannot be negative")
+            msg = "Average row length cannot be negative"
+            raise ValueError(msg)
         if self.degree <= 0:
-            raise ValueError("Degree must be positive")
+            msg = "Degree must be positive"
+            raise ValueError(msg)
 
 
 class ViewMetadata(DomainEntity):
@@ -290,11 +311,14 @@ class ViewMetadata(DomainEntity):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for view metadata."""
         if not self.name.strip():
-            raise ValueError("View name cannot be empty")
+            msg = "View name cannot be empty"
+            raise ValueError(msg)
         if not self.schema_name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if self.text_length < 0:
-            raise ValueError("Text length cannot be negative")
+            msg = "Text length cannot be negative"
+            raise ValueError(msg)
 
 
 class SchemaMetadata(DomainEntity):
@@ -366,8 +390,11 @@ class SchemaMetadata(DomainEntity):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for schema metadata."""
         if not self.name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if self.total_objects < 0:
-            raise ValueError("Total objects cannot be negative")
+            msg = "Total objects cannot be negative"
+            raise ValueError(msg)
         if self.total_size_mb < 0:
-            raise ValueError("Total size cannot be negative")
+            msg = "Total size cannot be negative"
+            raise ValueError(msg)

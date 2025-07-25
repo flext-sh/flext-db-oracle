@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import FlextResult as ServiceResult
+from flext_core import FlextResult, get_logger
 
-from flext_db_oracle.logging_utils import get_logger
 from flext_db_oracle.schema.metadata import (
     ColumnMetadata,
     ConstraintMetadata,
@@ -43,18 +42,18 @@ class SchemaAnalyzer:
     async def analyze_schema(
         self,
         schema_name: str | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Analyze Oracle schema and return comprehensive metadata."""
         try:
             if schema_name is None:
                 schema_result = await self._get_current_schema()
                 if not schema_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         schema_result.error or "Failed to get current schema",
                     )
                 schema_name = schema_result.data
                 if not schema_name:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         "Empty schema name returned",
                     )
 
@@ -75,7 +74,7 @@ class SchemaAnalyzer:
                     procedures_result,
                 ]
             ):
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "Failed to analyze schema components",
                 )
 
@@ -97,13 +96,13 @@ class SchemaAnalyzer:
                 "Schema analysis complete: %d total objects",
                 schema_analysis["total_objects"],
             )
-            return ServiceResult.ok(schema_analysis)
+            return FlextResult.ok(schema_analysis)
 
         except Exception as e:
             logger.exception("Schema analysis failed")
-            return ServiceResult.fail(f"Schema analysis failed: {e}")
+            return FlextResult.fail(f"Schema analysis failed: {e}")
 
-    async def get_tables(self, schema_name: str) -> ServiceResult[Any]:
+    async def get_tables(self, schema_name: str) -> FlextResult[Any]:
         """Get all tables in the specified schema."""
         try:
             query = """
@@ -119,12 +118,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             tables = [
                 {
@@ -139,13 +138,13 @@ class SchemaAnalyzer:
             ]
 
             logger.info("Found %d tables in schema %s", len(tables), schema_name)
-            return ServiceResult.ok(tables)
+            return FlextResult.ok(tables)
 
         except Exception as e:
             logger.exception("Failed to get tables")
-            return ServiceResult.fail(f"Failed to get tables: {e}")
+            return FlextResult.fail(f"Failed to get tables: {e}")
 
-    async def get_views(self, schema_name: str) -> ServiceResult[Any]:
+    async def get_views(self, schema_name: str) -> FlextResult[Any]:
         """Get all views in the specified schema."""
         try:
             query = """
@@ -161,12 +160,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             views = [
                 {
@@ -178,16 +177,16 @@ class SchemaAnalyzer:
             ]
 
             logger.info("Found %d views in schema %s", len(views), schema_name)
-            return ServiceResult.ok(views)
+            return FlextResult.ok(views)
 
         except Exception as e:
             logger.exception("Failed to get views")
-            return ServiceResult.fail(f"Failed to get views: {e}")
+            return FlextResult.fail(f"Failed to get views: {e}")
 
     async def get_sequences(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get all sequences in the specified schema."""
         try:
             query = """
@@ -203,12 +202,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             sequences = [
                 {
@@ -222,16 +221,16 @@ class SchemaAnalyzer:
             ]
 
             logger.info("Found %d sequences in schema %s", len(sequences), schema_name)
-            return ServiceResult.ok(sequences)
+            return FlextResult.ok(sequences)
 
         except Exception as e:
             logger.exception("Failed to get sequences")
-            return ServiceResult.fail(f"Failed to get sequences: {e}")
+            return FlextResult.fail(f"Failed to get sequences: {e}")
 
     async def get_procedures(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get all procedures and functions in the specified schema."""
         try:
             query = """
@@ -248,12 +247,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             procedures = [
                 {
@@ -271,17 +270,17 @@ class SchemaAnalyzer:
                 len(procedures),
                 schema_name,
             )
-            return ServiceResult.ok(procedures)
+            return FlextResult.ok(procedures)
 
         except Exception as e:
             logger.exception("Failed to get procedures")
-            return ServiceResult.fail(f"Failed to get procedures: {e}")
+            return FlextResult.fail(f"Failed to get procedures: {e}")
 
     async def get_table_columns(
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get column information for a specific table."""
         try:
             query = """
@@ -302,12 +301,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             columns = [
                 {
@@ -329,15 +328,15 @@ class SchemaAnalyzer:
                 schema_name,
                 table_name,
             )
-            return ServiceResult.ok(columns)
+            return FlextResult.ok(columns)
 
         except Exception as e:
             logger.exception("Failed to get table columns")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get table columns: {e}",
             )
 
-    async def _get_current_schema(self) -> ServiceResult[Any]:
+    async def _get_current_schema(self) -> FlextResult[Any]:
         """Get the current schema name."""
         try:
             result = await self.connection_service.execute_query(
@@ -345,19 +344,19 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.fail("No current schema found")
+                return FlextResult.fail("No current schema found")
 
             schema_name = result.data.rows[0][0]
-            return ServiceResult.ok(schema_name)
+            return FlextResult.ok(schema_name)
 
         except Exception as e:
             logger.exception("Failed to get current schema")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get current schema: {e}",
             )
 
@@ -365,7 +364,7 @@ class SchemaAnalyzer:
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get all constraints for a specific table."""
         try:
             query = """
@@ -386,12 +385,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             constraints = [
                 {
@@ -411,11 +410,11 @@ class SchemaAnalyzer:
                 schema_name,
                 table_name,
             )
-            return ServiceResult.ok(constraints)
+            return FlextResult.ok(constraints)
 
         except Exception as e:
             logger.exception("Failed to get table constraints")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get table constraints: {e}",
             )
 
@@ -423,7 +422,7 @@ class SchemaAnalyzer:
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get all indexes for a specific table."""
         try:
             query = """
@@ -444,12 +443,12 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             indexes = [
                 {
@@ -471,11 +470,11 @@ class SchemaAnalyzer:
                 schema_name,
                 table_name,
             )
-            return ServiceResult.ok(indexes)
+            return FlextResult.ok(indexes)
 
         except Exception as e:
             logger.exception("Failed to get table indexes")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get table indexes: {e}",
             )
 
@@ -483,18 +482,18 @@ class SchemaAnalyzer:
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get comprehensive information about a specific table."""
         try:
             # Get basic table info
             tables_result = await self.get_tables(schema_name)
             if not tables_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     tables_result.error or "Failed to get table list",
                 )
 
             if not tables_result.data:
-                return ServiceResult.fail("Table list is empty")
+                return FlextResult.fail("Table list is empty")
 
             table_info = next(
                 (
@@ -506,7 +505,7 @@ class SchemaAnalyzer:
             )
 
             if not table_info:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Table {schema_name}.{table_name} not found",
                 )
 
@@ -522,7 +521,7 @@ class SchemaAnalyzer:
                 not result.success
                 for result in [columns_result, constraints_result, indexes_result]
             ):
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "Failed to get detailed table information",
                 )
 
@@ -541,18 +540,18 @@ class SchemaAnalyzer:
                 schema_name,
                 table_name,
             )
-            return ServiceResult.ok(detailed_info)
+            return FlextResult.ok(detailed_info)
 
         except Exception as e:
             logger.exception("Failed to get detailed table info")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get detailed table info: {e}",
             )
 
     async def analyze_schema_size(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Analyze total size and space usage of schema."""
         try:
             query = """
@@ -587,14 +586,14 @@ class SchemaAnalyzer:
                     fallback_query,
                 )
                 if not fallback_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         fallback_result.error
                         or "Failed to analyze schema size (fallback)",
                     )
                 result = fallback_result
 
             if not result.data:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "Schema size analysis result is empty",
                 )
 
@@ -619,29 +618,29 @@ class SchemaAnalyzer:
                 schema_name,
                 size_analysis["total_size_mb"],
             )
-            return ServiceResult.ok(size_analysis)
+            return FlextResult.ok(size_analysis)
 
         except Exception as e:
             logger.exception("Failed to analyze schema size")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to analyze schema size: {e}",
             )
 
     async def get_complete_schema_metadata(
         self,
         schema_name: str | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get complete schema metadata using domain models."""
         try:
             if schema_name is None:
                 schema_result = await self._get_current_schema()
                 if not schema_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         schema_result.error or "Failed to get current schema",
                     )
                 schema_name = schema_result.data
                 if not schema_name:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         "Empty schema name returned",
                     )
 
@@ -650,13 +649,13 @@ class SchemaAnalyzer:
             # Get basic schema analysis
             analysis_result = await self.analyze_schema(schema_name)
             if not analysis_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     analysis_result.error or "Failed to analyze schema",
                 )
 
             analysis = analysis_result.data
             if not analysis:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "Schema analysis returned no data",
                 )
 
@@ -808,11 +807,11 @@ class SchemaAnalyzer:
                 len(view_metadata_list),
             )
 
-            return ServiceResult.ok(schema_metadata)
+            return FlextResult.ok(schema_metadata)
 
         except Exception as e:
             logger.exception("Failed to get complete schema metadata")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get complete schema metadata: {e}",
             )
 
@@ -820,7 +819,7 @@ class SchemaAnalyzer:
         self,
         schema_name: str,
         constraint_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get column names for a specific constraint."""
         try:
             query = """
@@ -840,19 +839,19 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             columns = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(columns)
+            return FlextResult.ok(columns)
 
         except Exception as e:
             logger.exception("Failed to get constraint columns")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get constraint columns: {e}",
             )
 
@@ -860,7 +859,7 @@ class SchemaAnalyzer:
         self,
         schema_name: str,
         index_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get column names for a specific index."""
         try:
             query = """
@@ -880,18 +879,18 @@ class SchemaAnalyzer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to execute query",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             columns = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(columns)
+            return FlextResult.ok(columns)
 
         except Exception as e:
             logger.exception("Failed to get index columns")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get index columns: {e}",
             )

@@ -1,7 +1,7 @@
 """Oracle database health checking utilities.
 
 Built on flext-core foundation for comprehensive health monitoring.
-Uses ServiceResult pattern and async operations for robust health checks.
+Uses FlextResult pattern and async operations for robust health checks.
 """
 
 from __future__ import annotations
@@ -9,12 +9,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleConnectionService
@@ -40,7 +39,7 @@ MAX_ACCEPTABLE_FAILURES = 1
 MAX_CONCERNING_FAILURES = 2
 
 
-class DatabaseHealth(DomainValueObject):
+class DatabaseHealth(FlextValueObject):
     """Overall database health status."""
 
     connection_status: str = Field(..., description="Connection status")
@@ -61,10 +60,11 @@ class DatabaseHealth(DomainValueObject):
         """Validate domain rules for database health."""
         valid_statuses = {"healthy", "unhealthy", "warning", "critical"}
         if self.overall_status not in valid_statuses:
-            raise ValueError(f"Invalid overall status: {self.overall_status}")
+            msg = f"Invalid overall status: {self.overall_status}"
+            raise ValueError(msg)
 
 
-class TablespaceInfo(DomainValueObject):
+class TablespaceInfo(FlextValueObject):
     """Tablespace information."""
 
     name: str = Field(..., description="Tablespace name")
@@ -85,12 +85,14 @@ class TablespaceInfo(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for tablespace info."""
         if not self.name.strip():
-            raise ValueError("Tablespace name cannot be empty")
+            msg = "Tablespace name cannot be empty"
+            raise ValueError(msg)
         if self.size_mb is not None and self.size_mb < 0:
-            raise ValueError("Size cannot be negative")
+            msg = "Size cannot be negative"
+            raise ValueError(msg)
 
 
-class SessionInfo(DomainValueObject):
+class SessionInfo(FlextValueObject):
     """Database session information."""
 
     username: str | None = Field(None, description="Session username")
@@ -103,7 +105,8 @@ class SessionInfo(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for session info."""
         if not self.status.strip():
-            raise ValueError("Session status cannot be empty")
+            msg = "Session status cannot be empty"
+            raise ValueError(msg)
 
 
 class HealthChecker:
@@ -118,7 +121,7 @@ class HealthChecker:
         """
         self.connection_service = connection_service
 
-    async def check_overall_health(self) -> ServiceResult[Any]:
+    async def check_overall_health(self) -> FlextResult[Any]:
         """Perform comprehensive health check."""
         try:
             logger.info("Starting comprehensive health check")
@@ -160,24 +163,24 @@ class HealthChecker:
             )
 
             logger.info("Health check completed: %s", overall_status)
-            return ServiceResult.ok(health)
+            return FlextResult.ok(health)
 
         except Exception as e:
             logger.exception("Health check failed")
-            return ServiceResult.fail(f"Health check failed: {e}")
+            return FlextResult.fail(f"Health check failed: {e}")
 
-    async def check_connection(self) -> ServiceResult[Any]:
+    async def check_connection(self) -> FlextResult[Any]:
         """Check database connection health."""
         try:
             result = await self.connection_service.execute_query("SELECT 1 FROM DUAL")
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Connection health check failed",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.fail("Connection test query returned no data")
+                return FlextResult.fail("Connection test query returned no data")
 
             connection_info = {
                 "status": "active",
@@ -186,13 +189,13 @@ class HealthChecker:
             }
 
             logger.info("Connection health check passed")
-            return ServiceResult.ok(connection_info)
+            return FlextResult.ok(connection_info)
 
         except Exception as e:
             logger.exception("Connection health check failed")
-            return ServiceResult.fail(f"Connection check failed: {e}")
+            return FlextResult.fail(f"Connection check failed: {e}")
 
-    async def check_tablespaces(self) -> ServiceResult[Any]:
+    async def check_tablespaces(self) -> FlextResult[Any]:
         """Check tablespace health and usage."""
         try:
             query = """
@@ -226,10 +229,10 @@ class HealthChecker:
             result = await self.connection_service.execute_query(query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to check tablespaces")
+                return FlextResult.fail(result.error or "Failed to check tablespaces")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             tablespaces = []
             for row in result.data.rows:
@@ -246,13 +249,13 @@ class HealthChecker:
                     tablespaces.append(tablespace)
 
             logger.info("Retrieved health info for %d tablespaces", len(tablespaces))
-            return ServiceResult.ok(tablespaces)
+            return FlextResult.ok(tablespaces)
 
         except Exception as e:
             logger.exception("Tablespace health check failed")
-            return ServiceResult.fail(f"Tablespace check failed: {e}")
+            return FlextResult.fail(f"Tablespace check failed: {e}")
 
-    async def check_sessions(self, limit: int = 50) -> ServiceResult[Any]:
+    async def check_sessions(self, limit: int = 50) -> FlextResult[Any]:
         """Check active database sessions."""
         try:
             query = """
@@ -275,10 +278,10 @@ class HealthChecker:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to check sessions")
+                return FlextResult.fail(result.error or "Failed to check sessions")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             sessions = []
             for row in result.data.rows:
@@ -294,25 +297,25 @@ class HealthChecker:
                     sessions.append(session)
 
             logger.info("Retrieved info for %d active sessions", len(sessions))
-            return ServiceResult.ok(sessions)
+            return FlextResult.ok(sessions)
 
         except Exception as e:
             logger.exception("Session health check failed")
-            return ServiceResult.fail(f"Session check failed: {e}")
+            return FlextResult.fail(f"Session check failed: {e}")
 
-    async def generate_health_report(self) -> ServiceResult[Any]:
+    async def generate_health_report(self) -> FlextResult[Any]:
         """Generate comprehensive health report."""
         try:
             health_result = await self.check_overall_health()
 
             if not health_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     health_result.error or "Failed to check overall health",
                 )
 
             health = health_result.data
             if not health:
-                return ServiceResult.fail("Health check data is empty")
+                return FlextResult.fail("Health check data is empty")
 
             report = {
                 "timestamp": health.details.get("timestamp", "N/A"),
@@ -328,13 +331,13 @@ class HealthChecker:
             }
 
             logger.info("Generated health report: %s", health.overall_status)
-            return ServiceResult.ok(report)
+            return FlextResult.ok(report)
 
         except Exception as e:
             logger.exception("Failed to generate health report")
-            return ServiceResult.fail(f"Health report generation failed: {e}")
+            return FlextResult.fail(f"Health report generation failed: {e}")
 
-    async def check_database_performance_metrics(self) -> ServiceResult[Any]:
+    async def check_database_performance_metrics(self) -> FlextResult[Any]:
         """Check key Oracle database performance metrics."""
         try:
             # Get buffer cache hit ratio
@@ -484,11 +487,11 @@ class HealthChecker:
             }
 
             logger.info("Retrieved database performance metrics")
-            return ServiceResult.ok(metrics)
+            return FlextResult.ok(metrics)
 
         except Exception as e:
             logger.exception("Failed to check performance metrics")
-            return ServiceResult.fail(f"Failed to check performance metrics: {e}")
+            return FlextResult.fail(f"Failed to check performance metrics: {e}")
 
     def _assess_performance_metrics(
         self,
@@ -517,7 +520,7 @@ class HealthChecker:
             return "acceptable"
         return "poor"
 
-    async def check_database_locks(self) -> ServiceResult[Any]:
+    async def check_database_locks(self) -> FlextResult[Any]:
         """Check for database locks and blocking sessions."""
         try:
             # Get blocking sessions
@@ -597,13 +600,13 @@ class HealthChecker:
                 total_locks,
                 len(blocking_sessions),
             )
-            return ServiceResult.ok(lock_analysis)
+            return FlextResult.ok(lock_analysis)
 
         except Exception as e:
             logger.exception("Failed to check database locks")
-            return ServiceResult.fail(f"Failed to check database locks: {e}")
+            return FlextResult.fail(f"Failed to check database locks: {e}")
 
-    async def check_redo_log_activity(self) -> ServiceResult[Any]:
+    async def check_redo_log_activity(self) -> FlextResult[Any]:
         """Check redo log activity and switches."""
         try:
             # Get redo log switches in last 24 hours
@@ -681,15 +684,15 @@ class HealthChecker:
             }
 
             logger.info("Checked redo log activity: %d switches in 24h", total_switches)
-            return ServiceResult.ok(redo_analysis)
+            return FlextResult.ok(redo_analysis)
 
         except Exception as e:
             logger.exception("Failed to check redo log activity")
-            return ServiceResult.fail(f"Failed to check redo log activity: {e}")
+            return FlextResult.fail(f"Failed to check redo log activity: {e}")
 
     async def generate_comprehensive_health_report(
         self,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate comprehensive health report with all metrics."""
         try:
             logger.info("Generating comprehensive health report")
@@ -721,15 +724,15 @@ class HealthChecker:
             }
 
             logger.info("Generated comprehensive health report")
-            return ServiceResult.ok(report)
+            return FlextResult.ok(report)
 
         except Exception as e:
             logger.exception("Failed to generate comprehensive health report")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate comprehensive health report: {e}",
             )
 
-    def _calculate_overall_assessment(self, *results: ServiceResult[Any]) -> str:
+    def _calculate_overall_assessment(self, *results: FlextResult[Any]) -> str:
         """Calculate overall database assessment."""
         failure_count = sum(1 for result in results if not result.success)
 

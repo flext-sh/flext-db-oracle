@@ -1,7 +1,7 @@
 """SQL parsing utilities for Oracle databases.
 
 Built on flext-core foundation for robust SQL parsing and analysis.
-Uses ServiceResult pattern and modern Python 3.13 typing.
+Uses FlextResult pattern and modern Python 3.13 typing.
 """
 
 from __future__ import annotations
@@ -10,12 +10,11 @@ import re
 from typing import Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -23,7 +22,7 @@ logger = get_logger(__name__)
 MAX_SQL_LENGTH_WARNING = 10000
 
 
-class ParsedStatement(DomainValueObject):
+class ParsedStatement(FlextValueObject):
     """Represents a parsed SQL statement."""
 
     statement_type: str = Field(..., description="Type of SQL statement")
@@ -53,9 +52,11 @@ class ParsedStatement(DomainValueObject):
         """Validate domain rules for parsed statement."""
         # Basic SQL validation
         if not self.sql_text.strip():
-            raise ValueError("SQL text cannot be empty")
+            msg = "SQL text cannot be empty"
+            raise ValueError(msg)
         if self.complexity_score < 0:
-            raise ValueError("Complexity score must be non-negative")
+            msg = "Complexity score must be non-negative"
+            raise ValueError(msg)
 
     @property
     def is_dml(self) -> bool:
@@ -107,20 +108,20 @@ class SQLParser:
             ),
         }
 
-    async def parse_statement(self, sql: str) -> ServiceResult[Any]:
+    async def parse_statement(self, sql: str) -> FlextResult[Any]:
         """Parse a SQL statement and extract components."""
         try:
             sql = sql.strip()
 
             if not sql:
-                return ServiceResult.fail("Empty SQL statement")
+                return FlextResult.fail("Empty SQL statement")
 
             logger.info("Parsing SQL statement")
 
             # Determine statement type
             statement_type = self._get_statement_type(sql)
             if not statement_type:
-                return ServiceResult.fail("Could not determine statement type")
+                return FlextResult.fail("Could not determine statement type")
 
             # Extract components
             tables = self._extract_table_names(sql)
@@ -148,11 +149,11 @@ class SQLParser:
             )
 
             logger.info("SQL statement parsed successfully: %s", statement_type)
-            return ServiceResult.ok(parsed)
+            return FlextResult.ok(parsed)
 
         except Exception as e:
             logger.exception("SQL parsing failed")
-            return ServiceResult.fail(f"SQL parsing failed: {e}")
+            return FlextResult.fail(f"SQL parsing failed: {e}")
 
     def _get_statement_type(self, sql: str) -> str | None:
         """Determine the type of SQL statement."""
@@ -291,7 +292,7 @@ class SQLParser:
 
         return score
 
-    async def validate_syntax(self, sql: str) -> ServiceResult[Any]:
+    async def validate_syntax(self, sql: str) -> FlextResult[Any]:
         """Perform basic SQL syntax validation."""
         try:
             validation_result: dict[str, Any] = {
@@ -304,7 +305,7 @@ class SQLParser:
             if not sql.strip():
                 validation_result["is_valid"] = False
                 validation_result["errors"].append("Empty SQL statement")
-                return ServiceResult.ok(validation_result)
+                return FlextResult.ok(validation_result)
 
             # Check for balanced parentheses
             if sql.count("(") != sql.count(")"):
@@ -333,23 +334,23 @@ class SQLParser:
                 validation_result["warnings"].append("Very long SQL statement")
 
             logger.info("SQL syntax validation completed")
-            return ServiceResult.ok(validation_result)
+            return FlextResult.ok(validation_result)
 
         except Exception as e:
             logger.exception("SQL syntax validation failed")
-            return ServiceResult.fail(f"Syntax validation failed: {e}")
+            return FlextResult.fail(f"Syntax validation failed: {e}")
 
-    async def analyze_statement(self, sql: str) -> ServiceResult[Any]:
+    async def analyze_statement(self, sql: str) -> FlextResult[Any]:
         """Perform comprehensive SQL statement analysis."""
         try:
             # Parse the statement
             parse_result = await self.parse_statement(sql)
             if not parse_result.success:
-                return ServiceResult.fail(parse_result.error or "Parse failed")
+                return FlextResult.fail(parse_result.error or "Parse failed")
 
             parsed = parse_result.data
             if parsed is None:
-                return ServiceResult.fail("Failed to parse SQL statement")
+                return FlextResult.fail("Failed to parse SQL statement")
 
             # Validate syntax
             validation_result = await self.validate_syntax(sql)
@@ -370,8 +371,8 @@ class SQLParser:
             }
 
             logger.info("SQL statement analysis completed")
-            return ServiceResult.ok(analysis)
+            return FlextResult.ok(analysis)
 
         except Exception as e:
             logger.exception("SQL statement analysis failed")
-            return ServiceResult.fail(f"Statement analysis failed: {e}")
+            return FlextResult.fail(f"Statement analysis failed: {e}")

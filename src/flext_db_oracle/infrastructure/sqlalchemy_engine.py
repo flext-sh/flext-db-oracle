@@ -6,12 +6,11 @@ Clean Architecture patterns with FlextDbOracle naming conventions.
 
 from __future__ import annotations
 
-import logging
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
 # Modern flext-core imports from root namespace
-from flext_core import FlextResult
+from flext_core import FlextProcessingError, FlextResult, get_logger
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
 
     from flext_db_oracle.config import FlextDbOracleConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FlextDbOracleSQLAlchemyEngine:
@@ -188,11 +187,11 @@ class FlextDbOracleSQLAlchemyEngine:
             result = await self.initialize_sync_engine()
             if not result.success:
                 msg = f"Failed to initialize sync engine: {result.error}"
-                raise RuntimeError(msg)
+                raise FlextProcessingError(msg)
 
         if self._session_factory is None:
             msg = "Session factory is None after initialization"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
 
         session = self._session_factory()
         try:
@@ -216,11 +215,11 @@ class FlextDbOracleSQLAlchemyEngine:
             result = await self.initialize_async_engine()
             if not result.success:
                 msg = f"Failed to initialize async engine: {result.error}"
-                raise RuntimeError(msg)
+                raise FlextProcessingError(msg)
 
         if self._async_session_factory is None:
             msg = "Async session factory is None after initialization"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
 
         session = self._async_session_factory()
         try:
@@ -319,7 +318,7 @@ class FlextDbOracleSQLAlchemyEngine:
                         result = conn.execute(text("SELECT 1 FROM dual"))
                         result.fetchone()
                     health_status["sync_engine_healthy"] = True
-                except Exception as e:
+                except (SQLAlchemyError, OSError) as e:
                     health_status["sync_engine_healthy"] = False
                     health_status["sync_engine_error"] = str(e)
 
@@ -330,7 +329,7 @@ class FlextDbOracleSQLAlchemyEngine:
                         result = await conn.execute(text("SELECT 1 FROM dual"))
                         result.fetchone()
                     health_status["async_engine_healthy"] = True
-                except Exception as e:
+                except (SQLAlchemyError, OSError) as e:
                     health_status["async_engine_healthy"] = False
                     health_status["async_engine_error"] = str(e)
 

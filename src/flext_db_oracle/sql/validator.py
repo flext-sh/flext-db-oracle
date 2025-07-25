@@ -1,7 +1,7 @@
 """Oracle SQL statement validation utilities.
 
 Built on flext-core foundation for comprehensive SQL validation.
-Uses ServiceResult pattern and modern Python 3.13 typing.
+Uses FlextResult pattern and modern Python 3.13 typing.
 """
 
 from __future__ import annotations
@@ -11,12 +11,11 @@ from re import error as regex_error
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.sql.parser import SQLParser
@@ -32,7 +31,7 @@ MAX_RECOMMENDED_TABLES = 5
 MAX_RECOMMENDED_JOINS = 3
 
 
-class ValidationRule(DomainValueObject):
+class ValidationRule(FlextValueObject):
     """Represents a SQL validation rule."""
 
     rule_id: str = Field(..., description="Unique rule identifier")
@@ -54,20 +53,26 @@ class ValidationRule(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for validation rule."""
         if not self.rule_id.strip():
-            raise ValueError("Rule ID cannot be empty")
+            msg = "Rule ID cannot be empty"
+            raise ValueError(msg)
         if not self.rule_name.strip():
-            raise ValueError("Rule name cannot be empty")
+            msg = "Rule name cannot be empty"
+            raise ValueError(msg)
         if not self.description.strip():
-            raise ValueError("Description cannot be empty")
+            msg = "Description cannot be empty"
+            raise ValueError(msg)
 
         valid_severities = {"ERROR", "WARNING", "INFO"}
         if self.severity.upper() not in valid_severities:
-            raise ValueError(
+            msg = (
                 f"Invalid severity: {self.severity}. Must be one of {valid_severities}"
+            )
+            raise ValueError(
+                msg,
             )
 
 
-class ValidationResult(DomainValueObject):
+class ValidationResult(FlextValueObject):
     """Result of SQL validation."""
 
     is_valid: bool = Field(..., description="Whether SQL is valid")
@@ -94,11 +99,13 @@ class ValidationResult(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for validation result."""
         if self.rules_checked < 0:
-            raise ValueError("Rules checked cannot be negative")
+            msg = "Rules checked cannot be negative"
+            raise ValueError(msg)
 
         # Check that if there are errors, is_valid should be False
         if self.has_errors and self.is_valid:
-            raise ValueError("Cannot be valid when errors are present")
+            msg = "Cannot be valid when errors are present"
+            raise ValueError(msg)
 
 
 class SQLValidator:
@@ -168,7 +175,7 @@ class SQLValidator:
             ),
         ]
 
-    async def validate_sql(self, sql: str) -> ServiceResult[Any]:
+    async def validate_sql(self, sql: str) -> FlextResult[Any]:
         """Validate SQL statement against all rules."""
         try:
             logger.info("Starting SQL validation")
@@ -181,7 +188,7 @@ class SQLValidator:
             # Basic syntax validation
             if not sql.strip():
                 errors.append("Empty SQL statement")
-                return ServiceResult.ok(
+                return FlextResult.ok(
                     ValidationResult(
                         is_valid=False,
                         errors=errors,
@@ -222,11 +229,11 @@ class SQLValidator:
                 "SQL validation completed: %d issues found",
                 result.total_issues,
             )
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("SQL validation failed")
-            return ServiceResult.fail(f"SQL validation failed: {e}")
+            return FlextResult.fail(f"SQL validation failed: {e}")
 
     async def _check_rule(self, sql: str, rule: ValidationRule) -> str | None:
         try:
@@ -415,42 +422,42 @@ class SQLValidator:
     async def validate_with_recommendations(
         self,
         sql: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Validate SQL and provide improvement recommendations."""
         try:
             # Perform validation
             validation_result = await self._perform_sql_validation(sql)
             if not validation_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     validation_result.error or "Validation failed",
                 )
 
             validation = validation_result.data
             if not validation:
-                return ServiceResult.fail("Validation result is empty")
+                return FlextResult.fail("Validation result is empty")
 
             # Generate recommendations and build result
             result = await self._create_recommendations_result(sql, validation)
             logger.info("SQL validation with recommendations completed")
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
 
         except Exception as e:
             logger.exception("SQL validation with recommendations failed")
-            return ServiceResult.fail(f"Validation with recommendations failed: {e}")
+            return FlextResult.fail(f"Validation with recommendations failed: {e}")
 
     async def _perform_sql_validation(
         self,
         sql: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Perform SQL validation and validate result."""
         validation_result = await self.validate_sql(sql)
         if not validation_result.success:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 validation_result.error or "SQL validation failed",
             )
 
         if not validation_result.data:
-            return ServiceResult.fail("Validation result is empty")
+            return FlextResult.fail("Validation result is empty")
 
         return validation_result
 
@@ -468,18 +475,18 @@ class SQLValidator:
     async def get_best_practices_report(
         self,
         sql: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate a comprehensive best practices report."""
         try:
             validation_result = await self.validate_with_recommendations(sql)
             if not validation_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     validation_result.error or "Validation failed",
                 )
 
             validation_data = validation_result.data
             if not validation_data:
-                return ServiceResult.fail("Validation data is empty")
+                return FlextResult.fail("Validation data is empty")
 
             # Best practices checklist
             checklist = {
@@ -515,11 +522,11 @@ class SQLValidator:
             }
 
             logger.info("Best practices report generated with score: %.1f", score)
-            return ServiceResult.ok(report)
+            return FlextResult.ok(report)
 
         except Exception as e:
             logger.exception("Best practices report generation failed")
-            return ServiceResult.fail(f"Best practices report failed: {e}")
+            return FlextResult.fail(f"Best practices report failed: {e}")
 
     def _get_grade(self, score: float) -> str:
         """Get letter grade based on score."""

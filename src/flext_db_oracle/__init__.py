@@ -18,9 +18,9 @@ import warnings
 
 # Import from flext-core for foundational patterns
 from flext_core import (
-    FlextResult as ServiceResult,
+    FlextResult as FlextResult,
     FlextValueObject as BaseModel,
-    FlextValueObject as DomainBaseModel,
+    FlextValueObject as FlextDomainBaseModel,
     FlextValueObject as ValueObject,
 )
 
@@ -89,7 +89,17 @@ with contextlib.suppress(ImportError):
 
 # Logging utilities - actual implementations only
 with contextlib.suppress(ImportError):
-    from flext_db_oracle.logging_utils import get_logger
+    from flext_core import get_logger
+
+# Patterns exports - centralized Oracle type converters and transformers
+with contextlib.suppress(ImportError):
+    from flext_db_oracle.patterns import (
+        FlextDbOracleDataTransformer,
+        FlextDbOracleSchemaMapper,
+        FlextDbOracleTableManager,
+        FlextDbOracleTypeConverter,
+        OracleTypeMapping,
+    )
 
 # ================================
 # PUBLIC API EXPORTS
@@ -103,20 +113,26 @@ __all__ = [
     "ConnectionPool",  # Backward compatibility alias
     "ConstraintMetadata",
     "ConstraintType",
-    "DomainBaseModel",
     # Configuration - actual implementations
     "FlextDbOracleConfig",
     # Connection and Pool - actual implementations
     "FlextDbOracleConnection",
     "FlextDbOracleConnectionPool",
+    # Patterns - centralized Oracle type converters and transformers
+    "FlextDbOracleDataTransformer",
     # Deprecation warnings
     "FlextDbOracleDeprecationWarning",
+    "FlextDbOracleSchemaMapper",
+    "FlextDbOracleTableManager",
+    "FlextDbOracleTypeConverter",
+    "FlextDomainBaseModel",
+    "FlextResult",
     "IndexMetadata",
     "ObjectStatus",
+    "OracleTypeMapping",
     # SQL Processing - actual implementations
     "SQLParser",
     "SchemaMetadata",
-    "ServiceResult",
     "TableMetadata",
     "ValidationResult",
     "ValidationRule",

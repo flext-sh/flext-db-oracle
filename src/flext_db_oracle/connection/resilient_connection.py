@@ -6,11 +6,11 @@ import time
 from datetime import UTC, datetime
 from typing import Any
 
+from flext_core import get_logger
 from oracledb import DatabaseError, InterfaceError, OperationalError
 
 from flext_db_oracle.connection.config import ConnectionConfig
 from flext_db_oracle.connection.connection import FlextDbOracleConnection
-from flext_db_oracle.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -158,7 +158,7 @@ class FlextDbOracleResilientConnection(FlextDbOracleConnection):
                         if self.config.port == DEFAULT_ORACLE_SSL_PORT
                         else self.config.port
                     ),
-                }
+                },
             )
             self.config = fallback_config
             self._fallback_applied = True
@@ -172,7 +172,7 @@ class FlextDbOracleResilientConnection(FlextDbOracleConnection):
         if self.config.port == DEFAULT_ORACLE_SSL_PORT:
             logger.info("Attempting port fallback: 1522 -> 1521")
             fallback_config = ConnectionConfig.model_validate(
-                {**self.config.model_dump(), "port": DEFAULT_ORACLE_PORT}
+                {**self.config.model_dump(), "port": DEFAULT_ORACLE_PORT},
             )
             self.config = fallback_config
             self._fallback_applied = True

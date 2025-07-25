@@ -1,7 +1,7 @@
 """Oracle database performance monitoring utilities.
 
 Built on flext-core foundation for comprehensive performance monitoring.
-Uses ServiceResult pattern and async operations for robust monitoring.
+Uses FlextResult pattern and async operations for robust monitoring.
 """
 
 from __future__ import annotations
@@ -10,12 +10,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleConnectionService
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class SGAComponent(DomainValueObject):
+class SGAComponent(FlextValueObject):
     """Oracle SGA component information."""
 
     name: str = Field(..., description="Component name")
@@ -40,22 +39,29 @@ class SGAComponent(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.name.strip():
-            raise ValueError("Component name cannot be empty")
+            msg = "Component name cannot be empty"
+            raise ValueError(msg)
         if self.current_size < 0:
-            raise ValueError("Current size cannot be negative")
+            msg = "Current size cannot be negative"
+            raise ValueError(msg)
         if self.min_size < 0:
-            raise ValueError("Minimum size cannot be negative")
+            msg = "Minimum size cannot be negative"
+            raise ValueError(msg)
         if self.max_size < 0:
-            raise ValueError("Maximum size cannot be negative")
+            msg = "Maximum size cannot be negative"
+            raise ValueError(msg)
         if self.max_size > 0 and self.current_size > self.max_size:
-            raise ValueError("Current size cannot exceed maximum size")
+            msg = "Current size cannot exceed maximum size"
+            raise ValueError(msg)
         if self.min_size > 0 and self.current_size < self.min_size:
-            raise ValueError("Current size cannot be less than minimum size")
+            msg = "Current size cannot be less than minimum size"
+            raise ValueError(msg)
         if not self.unit.strip():
-            raise ValueError("Unit cannot be empty")
+            msg = "Unit cannot be empty"
+            raise ValueError(msg)
 
 
-class WaitEvent(DomainValueObject):
+class WaitEvent(FlextValueObject):
     """Oracle wait event information."""
 
     event: str = Field(..., description="Wait event name")
@@ -85,20 +91,26 @@ class WaitEvent(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.event.strip():
-            raise ValueError("Event name cannot be empty")
+            msg = "Event name cannot be empty"
+            raise ValueError(msg)
         if self.total_waits < 0:
-            raise ValueError("Total waits cannot be negative")
+            msg = "Total waits cannot be negative"
+            raise ValueError(msg)
         if self.total_timeouts < 0:
-            raise ValueError("Total timeouts cannot be negative")
+            msg = "Total timeouts cannot be negative"
+            raise ValueError(msg)
         if self.time_waited < 0:
-            raise ValueError("Time waited cannot be negative")
+            msg = "Time waited cannot be negative"
+            raise ValueError(msg)
         if self.average_wait < 0:
-            raise ValueError("Average wait cannot be negative")
+            msg = "Average wait cannot be negative"
+            raise ValueError(msg)
         if self.total_timeouts > self.total_waits:
-            raise ValueError("Total timeouts cannot exceed total waits")
+            msg = "Total timeouts cannot exceed total waits"
+            raise ValueError(msg)
 
 
-class SessionStatistics(DomainValueObject):
+class SessionStatistics(FlextValueObject):
     """Oracle session statistics."""
 
     total_sessions: int = Field(..., description="Total sessions", ge=0)
@@ -117,24 +129,32 @@ class SessionStatistics(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if self.total_sessions < 0:
-            raise ValueError("Total sessions cannot be negative")
+            msg = "Total sessions cannot be negative"
+            raise ValueError(msg)
         if self.active_sessions < 0:
-            raise ValueError("Active sessions cannot be negative")
+            msg = "Active sessions cannot be negative"
+            raise ValueError(msg)
         if self.inactive_sessions < 0:
-            raise ValueError("Inactive sessions cannot be negative")
+            msg = "Inactive sessions cannot be negative"
+            raise ValueError(msg)
         if self.blocked_sessions < 0:
-            raise ValueError("Blocked sessions cannot be negative")
+            msg = "Blocked sessions cannot be negative"
+            raise ValueError(msg)
         if self.system_sessions < 0:
-            raise ValueError("System sessions cannot be negative")
+            msg = "System sessions cannot be negative"
+            raise ValueError(msg)
         if self.active_sessions > self.total_sessions:
-            raise ValueError("Active sessions cannot exceed total sessions")
+            msg = "Active sessions cannot exceed total sessions"
+            raise ValueError(msg)
         if self.inactive_sessions > self.total_sessions:
-            raise ValueError("Inactive sessions cannot exceed total sessions")
+            msg = "Inactive sessions cannot exceed total sessions"
+            raise ValueError(msg)
         if self.active_sessions + self.inactive_sessions > self.total_sessions:
-            raise ValueError("Active + inactive sessions cannot exceed total sessions")
+            msg = "Active + inactive sessions cannot exceed total sessions"
+            raise ValueError(msg)
 
 
-class DatabaseMetrics(DomainValueObject):
+class DatabaseMetrics(FlextValueObject):
     """Complete database performance metrics."""
 
     timestamp: datetime = Field(
@@ -178,13 +198,17 @@ class DatabaseMetrics(DomainValueObject):
 
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
-        if self.buffer_cache_hit_ratio is not None:
-            if self.buffer_cache_hit_ratio < 0 or self.buffer_cache_hit_ratio > 100:
-                raise ValueError("Buffer cache hit ratio must be between 0 and 100")
+        if self.buffer_cache_hit_ratio is not None and (
+            self.buffer_cache_hit_ratio < 0 or self.buffer_cache_hit_ratio > 100
+        ):
+            msg = "Buffer cache hit ratio must be between 0 and 100"
+            raise ValueError(msg)
 
-        if self.library_cache_hit_ratio is not None:
-            if self.library_cache_hit_ratio < 0 or self.library_cache_hit_ratio > 100:
-                raise ValueError("Library cache hit ratio must be between 0 and 100")
+        if self.library_cache_hit_ratio is not None and (
+            self.library_cache_hit_ratio < 0 or self.library_cache_hit_ratio > 100
+        ):
+            msg = "Library cache hit ratio must be between 0 and 100"
+            raise ValueError(msg)
 
         # Validate nested objects
         if self.session_stats:
@@ -209,7 +233,7 @@ class PerformanceMonitor:
         """
         self.connection_service = connection_service
 
-    async def get_performance_metrics(self) -> ServiceResult[Any]:
+    async def get_performance_metrics(self) -> FlextResult[Any]:
         """Get comprehensive performance metrics."""
         try:
             logger.info("Collecting performance metrics")
@@ -244,13 +268,13 @@ class PerformanceMonitor:
             )
 
             logger.info("Performance metrics collected successfully")
-            return ServiceResult.ok(metrics)
+            return FlextResult.ok(metrics)
 
         except Exception as e:
             logger.exception("Failed to get performance metrics")
-            return ServiceResult.fail(f"Failed to get performance metrics: {e}")
+            return FlextResult.fail(f"Failed to get performance metrics: {e}")
 
-    async def get_sga_info(self) -> ServiceResult[Any]:
+    async def get_sga_info(self) -> FlextResult[Any]:
         """Get SGA component information."""
         try:
             query = """
@@ -267,10 +291,10 @@ class PerformanceMonitor:
             result = await self.connection_service.execute_query(query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get SGA info")
+                return FlextResult.fail(result.error or "Failed to get SGA info")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             components = []
             for row in result.data.rows:
@@ -284,13 +308,13 @@ class PerformanceMonitor:
                 components.append(component)
 
             logger.info("Retrieved %d SGA components", len(components))
-            return ServiceResult.ok(components)
+            return FlextResult.ok(components)
 
         except Exception as e:
             logger.exception("Failed to get SGA info")
-            return ServiceResult.fail(f"Failed to get SGA info: {e}")
+            return FlextResult.fail(f"Failed to get SGA info: {e}")
 
-    async def get_wait_events(self, limit: int = 10) -> ServiceResult[Any]:
+    async def get_wait_events(self, limit: int = 10) -> FlextResult[Any]:
         """Get top wait events by time waited."""
         try:
             query = """
@@ -313,10 +337,10 @@ class PerformanceMonitor:
             )
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get wait events")
+                return FlextResult.fail(result.error or "Failed to get wait events")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             events = []
             for row in result.data.rows:
@@ -330,13 +354,13 @@ class PerformanceMonitor:
                 events.append(event)
 
             logger.info("Retrieved %d wait events", len(events))
-            return ServiceResult.ok(events)
+            return FlextResult.ok(events)
 
         except Exception as e:
             logger.exception("Failed to get wait events")
-            return ServiceResult.fail(f"Failed to get wait events: {e}")
+            return FlextResult.fail(f"Failed to get wait events: {e}")
 
-    async def get_session_stats(self) -> ServiceResult[Any]:
+    async def get_session_stats(self) -> FlextResult[Any]:
         """Get session statistics."""
         try:
             query = """
@@ -354,10 +378,10 @@ class PerformanceMonitor:
             result = await self.connection_service.execute_query(query)
 
             if not result.success:
-                return ServiceResult.fail(result.error or "Failed to get session stats")
+                return FlextResult.fail(result.error or "Failed to get session stats")
 
             if not result.data or not result.data.rows:
-                return ServiceResult.fail("No session data found")
+                return FlextResult.fail("No session data found")
 
             row = result.data.rows[0]
             stats = SessionStatistics(
@@ -373,13 +397,13 @@ class PerformanceMonitor:
                 stats.total_sessions,
                 stats.active_sessions,
             )
-            return ServiceResult.ok(stats)
+            return FlextResult.ok(stats)
 
         except Exception as e:
             logger.exception("Failed to get session stats")
-            return ServiceResult.fail(f"Failed to get session stats: {e}")
+            return FlextResult.fail(f"Failed to get session stats: {e}")
 
-    async def get_cache_hit_ratios(self) -> ServiceResult[Any]:
+    async def get_cache_hit_ratios(self) -> FlextResult[Any]:
         """Get cache hit ratios."""
         try:
             # Buffer cache hit ratio
@@ -426,13 +450,13 @@ class PerformanceMonitor:
                 ratios["library_cache"] = library_result.data.rows[0][0]
 
             logger.info("Retrieved cache hit ratios: %s", ratios)
-            return ServiceResult.ok(ratios)
+            return FlextResult.ok(ratios)
 
         except Exception as e:
             logger.exception("Failed to get cache hit ratios")
-            return ServiceResult.fail(f"Failed to get cache hit ratios: {e}")
+            return FlextResult.fail(f"Failed to get cache hit ratios: {e}")
 
-    async def get_tablespace_usage(self) -> ServiceResult[Any]:
+    async def get_tablespace_usage(self) -> FlextResult[Any]:
         """Get tablespace usage information."""
         try:
             query = """
@@ -466,12 +490,12 @@ class PerformanceMonitor:
             result = await self.connection_service.execute_query(query)
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to get tablespace usage",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             tablespaces = []
             for row in result.data.rows:
@@ -488,16 +512,16 @@ class PerformanceMonitor:
                 tablespaces.append(tablespace)
 
             logger.info("Retrieved usage for %d tablespaces", len(tablespaces))
-            return ServiceResult.ok(tablespaces)
+            return FlextResult.ok(tablespaces)
 
         except Exception as e:
             logger.exception("Failed to get tablespace usage")
-            return ServiceResult.fail(f"Failed to get tablespace usage: {e}")
+            return FlextResult.fail(f"Failed to get tablespace usage: {e}")
 
     async def get_active_sessions(
         self,
         limit: int = 20,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get information about active sessions."""
         try:
             query = """
@@ -527,12 +551,12 @@ class PerformanceMonitor:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to get active sessions",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             sessions = []
             for row in result.data.rows:
@@ -553,13 +577,13 @@ class PerformanceMonitor:
                 sessions.append(session)
 
             logger.info("Retrieved %d active sessions", len(sessions))
-            return ServiceResult.ok(sessions)
+            return FlextResult.ok(sessions)
 
         except Exception as e:
             logger.exception("Failed to get active sessions")
-            return ServiceResult.fail(f"Failed to get active sessions: {e}")
+            return FlextResult.fail(f"Failed to get active sessions: {e}")
 
-    async def generate_performance_report(self) -> ServiceResult[Any]:
+    async def generate_performance_report(self) -> FlextResult[Any]:
         """Generate comprehensive performance report."""
         try:
             # Get all performance data
@@ -568,13 +592,13 @@ class PerformanceMonitor:
             active_sessions_result = await self.get_active_sessions()
 
             if not metrics_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     metrics_result.error or "Failed to get performance metrics",
                 )
 
             metrics = metrics_result.data
             if not metrics:
-                return ServiceResult.fail("Performance metrics data is empty")
+                return FlextResult.fail("Performance metrics data is empty")
 
             report = {
                 "timestamp": metrics.timestamp.isoformat(),
@@ -605,8 +629,8 @@ class PerformanceMonitor:
             }
 
             logger.info("Generated performance report")
-            return ServiceResult.ok(report)
+            return FlextResult.ok(report)
 
         except Exception as e:
             logger.exception("Failed to generate performance report")
-            return ServiceResult.fail(f"Failed to generate performance report: {e}")
+            return FlextResult.fail(f"Failed to generate performance report: {e}")

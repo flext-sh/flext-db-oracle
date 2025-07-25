@@ -15,9 +15,10 @@ if TYPE_CHECKING:
     from argparse import Namespace
 
 
+from flext_core import get_logger
+
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.connection.connection import FlextDbOracleConnection
-from flext_db_oracle.logging_utils import get_logger
 
 # Use flext-infrastructure.monitoring.flext-observability for all logging
 logger = get_logger(__name__)
@@ -69,6 +70,15 @@ def test_connection(args: Namespace) -> int:
 
 
 def list_tables(args: Namespace) -> int:
+    """List database tables.
+
+    Args:
+        args: Command line arguments
+
+    Returns:
+        Exit code
+
+    """
     try:
         logger.info("📋 Listing database tables...")
 
@@ -107,7 +117,7 @@ def list_tables(args: Namespace) -> int:
     else:
         if results:
             logger.info("📋 Found %d tables in schema %s:", len(results), schema)
-            logger.info("%-30s %-15s %s", "TABLE NAME", "ROWS", "TABLESPACE")
+            logger.info("TABLE NAME%30s ROWS%15s TABLESPACE", "TABLE NAME", "ROWS")
             logger.info("-" * 60)
 
             for row in results:
@@ -123,6 +133,15 @@ def list_tables(args: Namespace) -> int:
 
 
 def describe_table(args: Namespace) -> int:
+    """Describe table structure.
+
+    Args:
+        args: Command line arguments
+
+    Returns:
+        Exit code
+
+    """
     try:
         logger.info("📊 Describing table structure...")
 
@@ -255,6 +274,7 @@ def setup_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    """Invoke main entry point for the CLI."""
     try:
         parser = setup_parser()
         args = parser.parse_args()

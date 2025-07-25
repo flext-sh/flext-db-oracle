@@ -10,9 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from flext_core import FlextResult as ServiceResult
-
-from flext_db_oracle.logging_utils import get_logger
+from flext_core import FlextResult, get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleQueryService
@@ -24,7 +22,7 @@ async def flext_db_oracle_get_primary_key_columns(
     query_service: FlextDbOracleQueryService,
     table_name: str,
     schema_name: str | None = None,
-) -> ServiceResult[Any]:
+) -> FlextResult[Any]:
     """Get primary key columns for a table.
 
     Args:
@@ -33,7 +31,7 @@ async def flext_db_oracle_get_primary_key_columns(
         schema_name: Name of the schema (optional)
 
     Returns:
-        ServiceResult containing list of primary key column names
+        FlextResult containing list of primary key column names
 
     """
     try:
@@ -75,31 +73,31 @@ async def flext_db_oracle_get_primary_key_columns(
         result = await query_service.execute_query(query, params)
 
         if not result.success:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 result.error or "Failed to get primary key columns",
             )
 
         if not result.data or not result.data.rows:
             if schema_name:
                 # Comparator expects error when no PK found
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"No primary key found for table {schema_name}.{table_name}",
                 )
             # Synchronizer expects empty list when no PK found
-            return ServiceResult.ok([])
+            return FlextResult.ok([])
 
         pk_columns = [row[0] for row in result.data.rows]
 
         if not pk_columns and schema_name:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"No primary key columns found for table {schema_name}.{table_name}",
             )
 
-        return ServiceResult.ok(pk_columns)
+        return FlextResult.ok(pk_columns)
 
     except Exception as e:
         logger.exception("Failed to get primary key columns")
-        return ServiceResult(
+        return FlextResult(
             success=True,
             error=f"Failed to get primary key columns: {e}",
         )

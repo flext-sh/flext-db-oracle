@@ -1,7 +1,7 @@
 """Oracle database optimization utilities.
 
 Built on flext-core foundation for comprehensive database optimization.
-Uses ServiceResult pattern and async operations for robust performance analysis.
+Uses FlextResult pattern and async operations for robust performance analysis.
 """
 
 from __future__ import annotations
@@ -9,12 +9,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
-
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.application.services import FlextDbOracleConnectionService
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class TableStatistics(DomainValueObject):
+class TableStatistics(FlextValueObject):
     """Oracle table statistics information."""
 
     table_name: str = Field(..., description="Table name")
@@ -61,18 +60,23 @@ class TableStatistics(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.schema_name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if self.num_rows is not None and self.num_rows < 0:
-            raise ValueError("Number of rows cannot be negative")
+            msg = "Number of rows cannot be negative"
+            raise ValueError(msg)
         if self.blocks is not None and self.blocks < 0:
-            raise ValueError("Number of blocks cannot be negative")
+            msg = "Number of blocks cannot be negative"
+            raise ValueError(msg)
         if self.empty_blocks is not None and self.empty_blocks < 0:
-            raise ValueError("Number of empty blocks cannot be negative")
+            msg = "Number of empty blocks cannot be negative"
+            raise ValueError(msg)
 
 
-class IndexStatistics(DomainValueObject):
+class IndexStatistics(FlextValueObject):
     """Oracle index statistics information."""
 
     index_name: str = Field(..., description="Index name")
@@ -106,25 +110,33 @@ class IndexStatistics(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.index_name.strip():
-            raise ValueError("Index name cannot be empty")
+            msg = "Index name cannot be empty"
+            raise ValueError(msg)
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.schema_name.strip():
-            raise ValueError("Schema name cannot be empty")
+            msg = "Schema name cannot be empty"
+            raise ValueError(msg)
         if not self.uniqueness.strip():
-            raise ValueError("Uniqueness cannot be empty")
+            msg = "Uniqueness cannot be empty"
+            raise ValueError(msg)
         valid_uniqueness = {"UNIQUE", "NONUNIQUE"}
         if self.uniqueness.upper() not in valid_uniqueness:
-            raise ValueError(f"Uniqueness must be one of {valid_uniqueness}")
+            msg = f"Uniqueness must be one of {valid_uniqueness}"
+            raise ValueError(msg)
         if self.blevel is not None and self.blevel < 0:
-            raise ValueError("B-tree level cannot be negative")
+            msg = "B-tree level cannot be negative"
+            raise ValueError(msg)
         if self.leaf_blocks is not None and self.leaf_blocks < 0:
-            raise ValueError("Leaf blocks cannot be negative")
+            msg = "Leaf blocks cannot be negative"
+            raise ValueError(msg)
         if self.distinct_keys is not None and self.distinct_keys < 0:
-            raise ValueError("Distinct keys cannot be negative")
+            msg = "Distinct keys cannot be negative"
+            raise ValueError(msg)
 
 
-class OptimizationRecommendation(DomainValueObject):
+class OptimizationRecommendation(FlextValueObject):
     """Database optimization recommendation."""
 
     recommendation_type: str = Field(..., description="Type of recommendation")
@@ -144,27 +156,48 @@ class OptimizationRecommendation(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules."""
         if not self.recommendation_type.strip():
-            raise ValueError("Recommendation type cannot be empty")
+            msg = "Recommendation type cannot be empty"
+            raise ValueError(msg)
         if not self.object_name.strip():
-            raise ValueError("Object name cannot be empty")
+            msg = "Object name cannot be empty"
+            raise ValueError(msg)
         if not self.object_type.strip():
-            raise ValueError("Object type cannot be empty")
+            msg = "Object type cannot be empty"
+            raise ValueError(msg)
         if not self.priority.strip():
-            raise ValueError("Priority cannot be empty")
+            msg = "Priority cannot be empty"
+            raise ValueError(msg)
         if not self.description.strip():
-            raise ValueError("Description cannot be empty")
+            msg = "Description cannot be empty"
+            raise ValueError(msg)
 
         valid_priorities = {"HIGH", "MEDIUM", "LOW"}
         if self.priority.upper() not in valid_priorities:
-            raise ValueError(f"Priority must be one of {valid_priorities}")
+            msg = f"Priority must be one of {valid_priorities}"
+            raise ValueError(msg)
 
-        valid_types = {"STATISTICS", "INDEX_CLEANUP", "REORGANIZATION", "ANALYSIS", "PERFORMANCE"}
+        valid_types = {
+            "STATISTICS",
+            "INDEX_CLEANUP",
+            "REORGANIZATION",
+            "ANALYSIS",
+            "PERFORMANCE",
+        }
         if self.recommendation_type.upper() not in valid_types:
-            raise ValueError(f"Recommendation type must be one of {valid_types}")
+            msg = f"Recommendation type must be one of {valid_types}"
+            raise ValueError(msg)
 
-        valid_object_types = {"TABLE", "INDEX", "VIEW", "PROCEDURE", "FUNCTION", "PACKAGE"}
+        valid_object_types = {
+            "TABLE",
+            "INDEX",
+            "VIEW",
+            "PROCEDURE",
+            "FUNCTION",
+            "PACKAGE",
+        }
         if self.object_type.upper() not in valid_object_types:
-            raise ValueError(f"Object type must be one of {valid_object_types}")
+            msg = f"Object type must be one of {valid_object_types}"
+            raise ValueError(msg)
 
 
 class DatabaseOptimizer:
@@ -183,7 +216,7 @@ class DatabaseOptimizer:
         self,
         schema_name: str,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Analyze table statistics for optimization."""
         try:
             query = """
@@ -213,12 +246,12 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to analyze table statistics",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     f"Table {schema_name}.{table_name} not found",
                 )
 
@@ -238,11 +271,11 @@ class DatabaseOptimizer:
             )
 
             logger.info("Retrieved table statistics for %s.%s", schema_name, table_name)
-            return ServiceResult.ok(stats)
+            return FlextResult.ok(stats)
 
         except Exception as e:
             logger.exception("Failed to analyze table statistics")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to analyze table statistics: {e}",
             )
 
@@ -250,7 +283,7 @@ class DatabaseOptimizer:
         self,
         schema_name: str,
         index_name: str | None = None,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Analyze index statistics for optimization."""
         try:
             query = """
@@ -281,12 +314,12 @@ class DatabaseOptimizer:
             result = await self.connection_service.execute_query(query, params)
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to analyze index statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     "Index statistics result is empty",
                 )
 
@@ -312,11 +345,11 @@ class DatabaseOptimizer:
                 len(statistics),
                 schema_name,
             )
-            return ServiceResult.ok(statistics)
+            return FlextResult.ok(statistics)
 
         except Exception as e:
             logger.exception("Failed to analyze index statistics")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to analyze index statistics: {e}",
             )
 
@@ -325,7 +358,7 @@ class DatabaseOptimizer:
         schema_name: str,
         table_name: str,
         estimate_percent: int = 10,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Gather fresh statistics for a table."""
         try:
             # Use DBMS_STATS to gather table statistics
@@ -344,7 +377,7 @@ class DatabaseOptimizer:
             result = await self.connection_service.execute_query(gather_sql)
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to gather table statistics",
                 )
 
@@ -353,18 +386,18 @@ class DatabaseOptimizer:
                 f"with {estimate_percent}% estimate"
             )
             logger.info(message)
-            return ServiceResult.ok(message)
+            return FlextResult.ok(message)
 
         except Exception as e:
             logger.exception("Failed to gather table statistics")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to gather table statistics: {e}",
             )
 
     async def analyze_schema_optimization(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Analyze schema and provide optimization recommendations."""
         try:
             recommendations: list[OptimizationRecommendation] = []
@@ -433,18 +466,18 @@ class DatabaseOptimizer:
                 len(recommendations),
                 schema_name,
             )
-            return ServiceResult.ok(recommendations)
+            return FlextResult.ok(recommendations)
 
         except Exception as e:
             logger.exception("Failed to analyze schema optimization")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to analyze schema optimization: {e}",
             )
 
     async def _get_tables_without_stats(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Get tables that lack current statistics."""
         try:
             query = """
@@ -461,23 +494,23 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to get tables without statistics",
                 )
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             tables = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(tables)
+            return FlextResult.ok(tables)
 
         except Exception as e:
             logger.exception("Failed to get tables without stats")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get tables without stats: {e}",
             )
 
-    async def _get_unused_indexes(self, schema_name: str) -> ServiceResult[Any]:
+    async def _get_unused_indexes(self, schema_name: str) -> FlextResult[Any]:
         """Get potentially unused indexes by checking index usage statistics."""
         try:
             # Query to find indexes that might be unused
@@ -522,13 +555,13 @@ class DatabaseOptimizer:
                 )
 
                 if not fallback_result.success:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         fallback_result.error
                         or "Failed to get unused indexes (fallback)",
                     )
 
                 if not fallback_result.data:
-                    return ServiceResult.fail(
+                    return FlextResult.fail(
                         "Fallback query result is empty",
                     )
 
@@ -538,10 +571,10 @@ class DatabaseOptimizer:
                     len(unused_indexes),
                     schema_name,
                 )
-                return ServiceResult.ok(unused_indexes)
+                return FlextResult.ok(unused_indexes)
 
             if not result.data:
-                return ServiceResult.fail("Query result is empty")
+                return FlextResult.fail("Query result is empty")
 
             unused_indexes = [row[0] for row in result.data.rows]
             logger.info(
@@ -549,15 +582,15 @@ class DatabaseOptimizer:
                 len(unused_indexes),
                 schema_name,
             )
-            return ServiceResult.ok(unused_indexes)
+            return FlextResult.ok(unused_indexes)
 
         except Exception as e:
             logger.exception("Failed to get unused indexes")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get unused indexes: {e}",
             )
 
-    async def _get_chained_tables(self, schema_name: str) -> ServiceResult[Any]:
+    async def _get_chained_tables(self, schema_name: str) -> FlextResult[Any]:
         """Get tables with high row chaining."""
         try:
             query = """
@@ -575,32 +608,32 @@ class DatabaseOptimizer:
             )
 
             if not result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     result.error or "Failed to get chained tables",
                 )
 
             if not result.data or not result.data.rows:
-                return ServiceResult.ok([])
+                return FlextResult.ok([])
 
             tables = [row[0] for row in result.data.rows]
-            return ServiceResult.ok(tables)
+            return FlextResult.ok(tables)
 
         except Exception as e:
             logger.exception("Failed to get chained tables")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to get chained tables: {e}",
             )
 
     async def generate_optimization_report(
         self,
         schema_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Generate comprehensive optimization report."""
         try:
             # Get recommendations
             recommendations_result = await self.analyze_schema_optimization(schema_name)
             if not recommendations_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     recommendations_result.error
                     or "Failed to analyze schema optimization",
                 )
@@ -627,10 +660,10 @@ class DatabaseOptimizer:
             }
 
             logger.info("Generated optimization report for schema %s", schema_name)
-            return ServiceResult.ok(report)
+            return FlextResult.ok(report)
 
         except Exception as e:
             logger.exception("Failed to generate optimization report")
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 f"Failed to generate optimization report: {e}",
             )

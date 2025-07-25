@@ -1,7 +1,7 @@
 """Difference analysis for Oracle database objects.
 
 Built on flext-core foundation for comprehensive schema and data comparison.
-Uses ServiceResult pattern for robust error handling.
+Uses FlextResult pattern for robust error handling.
 """
 
 from __future__ import annotations
@@ -12,12 +12,13 @@ from enum import StrEnum
 from typing import TYPE_CHECKING, Any, TypeGuard
 
 from flext_core import (
-    FlextResult as ServiceResult,
-    FlextValueObject as DomainValueObject,
+    FlextResult,
+    FlextValueObject,
+    get_logger,
 )
 from pydantic import Field
 
-from flext_db_oracle.logging_utils import get_logger
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 # Import TableMetadata for runtime type guard
 
@@ -29,29 +30,27 @@ logger = get_logger(__name__)
 
 def flext_db_oracle_validate_sql_identifier(identifier: str) -> bool:
     """Validate SQL identifier for Oracle."""
-    from flext_db_oracle.constants import FlextDbOracleConstants
-
     if not identifier or not identifier.strip():
         return False
     # Use FlextDbOracleConstants for validation
     return FlextDbOracleConstants.is_valid_oracle_identifier(identifier)
 
 
-def flext_db_oracle_validate_table_name(table_name: str) -> ServiceResult[Any]:
+def flext_db_oracle_validate_table_name(table_name: str) -> FlextResult[Any]:
     """Validate table name for safe SQL construction."""
     if not flext_db_oracle_validate_sql_identifier(table_name):
-        return ServiceResult.fail(f"Invalid table name: {table_name}")
-    return ServiceResult.ok(table_name)
+        return FlextResult.fail(f"Invalid table name: {table_name}")
+    return FlextResult.ok(table_name)
 
 
 def flext_db_oracle_validate_column_names(
     column_names: list[str],
-) -> ServiceResult[Any]:
+) -> FlextResult[Any]:
     """Validate column names for safe SQL construction."""
     for column_name in column_names:
         if not flext_db_oracle_validate_sql_identifier(column_name):
-            return ServiceResult.fail(f"Invalid column name: {column_name}")
-    return ServiceResult.ok(column_names)
+            return FlextResult.fail(f"Invalid column name: {column_name}")
+    return FlextResult.ok(column_names)
 
 
 class DifferenceType(StrEnum):
@@ -63,7 +62,7 @@ class DifferenceType(StrEnum):
     RENAMED = "RENAMED"
 
 
-class SchemaDifference(DomainValueObject):
+class SchemaDifference(FlextValueObject):
     """Represents a difference between two schema objects."""
 
     object_type: str = Field(..., description="Type of object (table, view, etc.)")
@@ -79,12 +78,14 @@ class SchemaDifference(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for schema difference."""
         if not self.object_type.strip():
-            raise ValueError("Object type cannot be empty")
+            msg = "Object type cannot be empty"
+            raise ValueError(msg)
         if not self.object_name.strip():
-            raise ValueError("Object name cannot be empty")
+            msg = "Object name cannot be empty"
+            raise ValueError(msg)
 
 
-class DataDifference(DomainValueObject):
+class DataDifference(FlextValueObject):
     """Represents a difference in table data."""
 
     table_name: str = Field(..., description="Table name")
@@ -109,12 +110,14 @@ class DataDifference(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for data difference."""
         if not self.table_name.strip():
-            raise ValueError("Table name cannot be empty")
+            msg = "Table name cannot be empty"
+            raise ValueError(msg)
         if not self.row_identifier:
-            raise ValueError("Row identifier cannot be empty")
+            msg = "Row identifier cannot be empty"
+            raise ValueError(msg)
 
 
-class ComparisonResult(DomainValueObject):
+class ComparisonResult(FlextValueObject):
     """Result of a comparison operation."""
 
     source_name: str = Field(..., description="Source identifier")
@@ -136,9 +139,11 @@ class ComparisonResult(DomainValueObject):
     def validate_domain_rules(self) -> None:
         """Validate domain rules for comparison result."""
         if not self.source_name.strip():
-            raise ValueError("Source name cannot be empty")
+            msg = "Source name cannot be empty"
+            raise ValueError(msg)
         if not self.target_name.strip():
-            raise ValueError("Target name cannot be empty")
+            msg = "Target name cannot be empty"
+            raise ValueError(msg)
 
 
 class SchemaDiffer:
@@ -162,7 +167,7 @@ class SchemaDiffer:
         self,
         source_schema: SchemaMetadata | dict[str, Any],
         target_schema: SchemaMetadata | dict[str, Any],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare two schemas and return differences."""
         try:
             # Handle both dict and SchemaMetadata input types
@@ -257,10 +262,10 @@ class SchemaDiffer:
                 "Schema comparison complete: %d differences found",
                 len(differences),
             )
-            return ServiceResult.ok(result)
+            return FlextResult.ok(result)
         except Exception as e:
             logger.exception("Schema comparison failed")
-            return ServiceResult.fail(f"Schema comparison failed: {e}")
+            return FlextResult.fail(f"Schema comparison failed: {e}")
 
     def _get_object_name(self, obj: dict[str, Any] | Any) -> str:
         """Get name from object (handle both dict and object types)."""
@@ -326,10 +331,11 @@ class SchemaDiffer:
 
             # Only perform detailed comparison if both are TableMetadata objects
             if self._is_table_metadata(source_table) and self._is_table_metadata(
-                target_table
+                target_table,
             ):
                 table_diffs = await self._compare_table_details(
-                    source_table, target_table
+                    source_table,
+                    target_table,
                 )
                 differences.extend(table_diffs)
         return differences
@@ -509,7 +515,7 @@ class DataDiffer:
         target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare data between two tables using primary key columns."""
         try:
             logger.info(
@@ -524,12 +530,12 @@ class DataDiffer:
                 table_name,
             )
             if not row_count_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     row_count_result.error or "Row count comparison failed",
                 )
             counts = row_count_result.data
             if not counts:
-                return ServiceResult.fail("Row count result is empty")
+                return FlextResult.fail("Row count result is empty")
             source_count = counts["source_count"]
             target_count = counts["target_count"]
             logger.info(
@@ -547,10 +553,10 @@ class DataDiffer:
                 )
             # Counts are equal, return no differences
             logger.info("Data comparison complete for %s: 0 differences", table_name)
-            return ServiceResult.ok([])
+            return FlextResult.ok([])
         except Exception as e:
             logger.exception("Data comparison failed for %s", table_name)
-            return ServiceResult.fail(f"Data comparison failed: {e}")
+            return FlextResult.fail(f"Data comparison failed: {e}")
 
     async def _perform_detailed_comparison(
         self,
@@ -558,7 +564,7 @@ class DataDiffer:
         target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Perform detailed row-by-row comparison when row counts differ."""
         logger.info("Row count mismatch detected, performing detailed comparison")
         # Validate identifiers first
@@ -567,7 +573,7 @@ class DataDiffer:
             primary_key_columns,
         )
         if not validation_result.success:
-            return ServiceResult.fail(validation_result.error or "Validation failed")
+            return FlextResult.fail(validation_result.error or "Validation failed")
         # Get data from both tables
         data_result = await self._fetch_table_data(
             source_connection_service,
@@ -576,9 +582,9 @@ class DataDiffer:
             primary_key_columns,
         )
         if not data_result.success:
-            return ServiceResult.fail(data_result.error or "Failed to fetch table data")
+            return FlextResult.fail(data_result.error or "Failed to fetch table data")
         if not data_result.data:
-            return ServiceResult.fail("Table data result is empty")
+            return FlextResult.fail("Table data result is empty")
         source_rows, target_rows = data_result.data
         # Build dictionaries for efficient comparison
         source_dict, target_dict = self._build_row_dictionaries(
@@ -598,23 +604,23 @@ class DataDiffer:
             table_name,
             len(differences),
         )
-        return ServiceResult.ok(differences)
+        return FlextResult.ok(differences)
 
     async def _validate_identifiers(
         self,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Validate table and column names to prevent SQL injection."""
         oracle_identifier_pattern = re.compile(r"^[A-Za-z][A-Za-z0-9_#$]{0,29}$")
         if not oracle_identifier_pattern.match(table_name):
-            return ServiceResult.fail(f"Invalid table name: {table_name}")
+            return FlextResult.fail(f"Invalid table name: {table_name}")
 
         for pk_col in primary_key_columns:
             if not oracle_identifier_pattern.match(pk_col):
-                return ServiceResult.fail(f"Invalid column name: {pk_col}")
+                return FlextResult.fail(f"Invalid column name: {pk_col}")
 
-        return ServiceResult.ok(None)
+        return FlextResult.ok(None)
 
     async def _fetch_table_data(
         self,
@@ -622,17 +628,17 @@ class DataDiffer:
         target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Fetch ordered data from both tables."""
         # Validate identifiers to prevent SQL injection
         table_validation = flext_db_oracle_validate_table_name(table_name)
         if not table_validation.success:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 table_validation.error or "Table validation failed",
             )
         column_validation = flext_db_oracle_validate_column_names(primary_key_columns)
         if not column_validation.success:
-            return ServiceResult.fail(
+            return FlextResult.fail(
                 column_validation.error or "Column validation failed",
             )
         # Now safe to construct queries with validated identifiers
@@ -644,10 +650,10 @@ class DataDiffer:
         source_data_result = await source_connection_service.execute_query(source_query)
         target_data_result = await target_connection_service.execute_query(target_query)
         if not source_data_result.success or not target_data_result.success:
-            return ServiceResult.fail("Failed to retrieve table data for comparison")
+            return FlextResult.fail("Failed to retrieve table data for comparison")
         if not source_data_result.data or not target_data_result.data:
-            return ServiceResult.fail("Query results are empty")
-        return ServiceResult.ok(
+            return FlextResult.fail("Query results are empty")
+        return FlextResult.ok(
             (
                 source_data_result.data.rows,
                 target_data_result.data.rows,
@@ -783,33 +789,33 @@ class DataDiffer:
         source_connection_service: FlextDbOracleConnectionService,
         target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare row counts between tables."""
         try:
             # Validate table name to prevent SQL injection
             table_validation = flext_db_oracle_validate_table_name(table_name)
             if not table_validation.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     table_validation.error or "Table validation failed",
                 )
             # Now safe to construct queries with validated identifier
-            count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
+            count_query = f"SELECT COUNT(*) FROM {table_name}"
             source_result = await source_connection_service.execute_query(count_query)
             target_result = await target_connection_service.execute_query(count_query)
             if not source_result.success or not target_result.success:
-                return ServiceResult.fail("Failed to get row counts")
+                return FlextResult.fail("Failed to get row counts")
             if not source_result.data or not source_result.data.rows:
-                return ServiceResult.fail("Source count query returned no results")
+                return FlextResult.fail("Source count query returned no results")
             if not target_result.data or not target_result.data.rows:
-                return ServiceResult.fail("Target count query returned no results")
+                return FlextResult.fail("Target count query returned no results")
             counts = {
                 "source_count": source_result.data.rows[0][0],
                 "target_count": target_result.data.rows[0][0],
             }
-            return ServiceResult.ok(counts)
+            return FlextResult.ok(counts)
         except Exception as e:
             logger.exception("Row count comparison failed")
-            return ServiceResult.fail(f"Row count comparison failed: {e}")
+            return FlextResult.fail(f"Row count comparison failed: {e}")
 
     async def compare_large_table_data(
         self,
@@ -818,7 +824,7 @@ class DataDiffer:
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int = 10000,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare data between two large tables using batched approach."""
         try:
             logger.info(
@@ -833,12 +839,12 @@ class DataDiffer:
                 table_name,
             )
             if not row_count_result.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     row_count_result.error or "Failed to get row counts",
                 )
             counts = row_count_result.data
             if not counts:
-                return ServiceResult.fail("Row count result is empty")
+                return FlextResult.fail("Row count result is empty")
             source_count = counts["source_count"]
             target_count = counts["target_count"]
             logger.info(
@@ -867,7 +873,7 @@ class DataDiffer:
             )
         except Exception as e:
             logger.exception("Large table comparison failed for %s", table_name)
-            return ServiceResult.fail(f"Large table comparison failed: {e}")
+            return FlextResult.fail(f"Large table comparison failed: {e}")
 
     async def _compare_using_hashes(
         self,
@@ -877,14 +883,15 @@ class DataDiffer:
         primary_key_columns: list[str],
         *,
         batch_size: int,  # Used for fallback decision in calling method
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare tables using hash-based approach for performance."""
         try:
             logger.info("Using hash-based comparison for table: %s", table_name)
 
             # Validate identifiers to prevent SQL injection
             validation_result = await self._validate_identifiers(
-                table_name, primary_key_columns
+                table_name,
+                primary_key_columns,
             )
             if not validation_result.success:
                 return validation_result
@@ -900,23 +907,26 @@ class DataDiffer:
                 return hash_result
 
             if hash_result.data is None:
-                return ServiceResult.fail("Hash computation returned no data")
+                return FlextResult.fail("Hash computation returned no data")
 
             source_hashes, target_hashes = hash_result.data
 
             # Find and categorize differences using hash comparison
             differences = self._find_hash_differences(
-                source_hashes, target_hashes, table_name, primary_key_columns
+                source_hashes,
+                target_hashes,
+                table_name,
+                primary_key_columns,
             )
 
             logger.info(
                 "Hash-based comparison complete: %d differences found",
                 len(differences),
             )
-            return ServiceResult.ok(differences)
+            return FlextResult.ok(differences)
         except Exception as e:
             logger.exception("Hash-based comparison failed")
-            return ServiceResult.fail(f"Hash-based comparison failed: {e}")
+            return FlextResult.fail(f"Hash-based comparison failed: {e}")
 
     async def _execute_hash_queries(
         self,
@@ -924,7 +934,7 @@ class DataDiffer:
         target_connection_service: FlextDbOracleConnectionService,
         table_name: str,
         primary_key_columns: list[str],
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Execute hash queries on both source and target tables."""
         pk_columns_str = ", ".join(primary_key_columns)
         # Create hash query with validated identifiers
@@ -935,7 +945,9 @@ class DataDiffer:
             ORDER BY {}
         """
         hash_query = hash_query_template.format(
-            pk_columns_str, table_name, pk_columns_str
+            pk_columns_str,
+            table_name,
+            pk_columns_str,
         )
 
         # Get hashes from both tables
@@ -948,18 +960,18 @@ class DataDiffer:
 
         if not source_hashes_result.success or not target_hashes_result.success:
             logger.warning("Hash comparison failed, falling back to row comparison")
-            return ServiceResult.fail("Hash comparison not supported")
+            return FlextResult.fail("Hash comparison not supported")
 
         # Check if results have value and rows
         source_result = source_hashes_result.data
         target_result = target_hashes_result.data
         if not source_result or not target_result:
-            return ServiceResult.fail("Query results are empty")
+            return FlextResult.fail("Query results are empty")
 
         source_hashes = {tuple(row[:-1]): row[-1] for row in source_result.rows}
         target_hashes = {tuple(row[:-1]): row[-1] for row in target_result.rows}
 
-        return ServiceResult.ok((source_hashes, target_hashes))
+        return FlextResult.ok((source_hashes, target_hashes))
 
     def _find_hash_differences(
         self,
@@ -1023,26 +1035,26 @@ class DataDiffer:
         table_name: str,
         primary_key_columns: list[str],
         batch_size: int,
-    ) -> ServiceResult[Any]:
+    ) -> FlextResult[Any]:
         """Compare tables in batches for memory efficiency."""
         try:
             logger.info("Using batched comparison for table: %s", table_name)
             # Validate identifiers to prevent SQL injection
             table_validation = flext_db_oracle_validate_table_name(table_name)
             if not table_validation.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     table_validation.error or "Table validation failed",
                 )
             column_validation = flext_db_oracle_validate_column_names(
-                primary_key_columns
+                primary_key_columns,
             )
             if not column_validation.success:
-                return ServiceResult.fail(
+                return FlextResult.fail(
                     column_validation.error or "Column validation failed",
                 )
             pk_columns_str = ", ".join(primary_key_columns)
             # Get total row count for progress tracking with validated identifier
-            count_query = f"SELECT COUNT(*) FROM {table_name}"  # noqa: S608
+            count_query = f"SELECT COUNT(*) FROM {table_name}"
             count_result = await source_connection_service.execute_query(count_query)
             total_rows = 0
             if count_result.success and count_result.data and count_result.data.rows:
@@ -1073,12 +1085,12 @@ class DataDiffer:
                     batch_query,
                 )
                 if not source_batch_result.success or not target_batch_result.success:
-                    return ServiceResult.fail("Failed to fetch batch data")
+                    return FlextResult.fail("Failed to fetch batch data")
                 # Check if batch results have value and rows
                 source_result = source_batch_result.data
                 target_result = target_batch_result.data
                 if not source_result or not target_result:
-                    return ServiceResult.fail("Batch query results are empty")
+                    return FlextResult.fail("Batch query results are empty")
                 source_rows = source_result.rows
                 target_rows = target_result.rows
                 # No more data to process
@@ -1107,10 +1119,10 @@ class DataDiffer:
                 "Batched comparison complete: %d total differences",
                 len(all_differences),
             )
-            return ServiceResult.ok(all_differences)
+            return FlextResult.ok(all_differences)
         except Exception as e:
             logger.exception("Batched comparison failed")
-            return ServiceResult.fail(f"Batched comparison failed: {e}")
+            return FlextResult.fail(f"Batched comparison failed: {e}")
 
     def _compare_batch_data(
         self,

@@ -88,30 +88,38 @@ class FlextDbOracleConfig(BaseConfig):
         """Validate domain rules for Oracle configuration."""
         # Additional domain validation beyond Pydantic
         if not self.host.strip():
-            raise ValueError("Host cannot be empty")
+            msg = "Host cannot be empty"
+            raise ValueError(msg)
         if not self.username.strip():
-            raise ValueError("Username cannot be empty")
+            msg = "Username cannot be empty"
+            raise ValueError(msg)
         if not self.password.strip():
-            raise ValueError("Password cannot be empty")
+            msg = "Password cannot be empty"
+            raise ValueError(msg)
 
         # Validate port range is reasonable for Oracle
         if self.port < 1 or self.port > 65535:
-            raise ValueError(f"Port {self.port} is not in valid range 1-65535")
+            msg = f"Port {self.port} is not in valid range 1-65535"
+            raise ValueError(msg)
 
         # Validate protocol
         valid_protocols = {"tcp", "tcps"}
         if self.protocol.lower() not in valid_protocols:
-            raise ValueError(f"Protocol must be one of {valid_protocols}")
+            msg = f"Protocol must be one of {valid_protocols}"
+            raise ValueError(msg)
 
         # Validate pool settings
         if self.pool_max_size < self.pool_min_size:
-            raise ValueError("pool_max_size must be >= pool_min_size")
+            msg = "pool_max_size must be >= pool_min_size"
+            raise ValueError(msg)
 
         # Validate timeout settings are reasonable
         if self.query_timeout <= 0:
-            raise ValueError("Query timeout must be positive")
+            msg = "Query timeout must be positive"
+            raise ValueError(msg)
         if self.connect_timeout <= 0:
-            raise ValueError("Connect timeout must be positive")
+            msg = "Connect timeout must be positive"
+            raise ValueError(msg)
 
     @classmethod
     def from_url(cls, url: str) -> FlextDbOracleConfig:
@@ -128,7 +136,8 @@ class FlextDbOracleConfig(BaseConfig):
 
         """
         if not url.startswith("oracle://"):
-            raise ValueError("URL must start with 'oracle://'")
+            msg = "URL must start with 'oracle://'"
+            raise ValueError(msg)
 
         # Parse URL: oracle://user:pass@host:port/service_name
         try:
@@ -147,7 +156,8 @@ class FlextDbOracleConfig(BaseConfig):
                 sid=None,
             )
         except (ValueError, IndexError) as e:
-            raise ValueError(f"Invalid Oracle URL format: {e}") from e
+            msg = f"Invalid Oracle URL format: {e}"
+            raise ValueError(msg) from e
 
     def to_connection_config(self) -> ConnectionConfig:
         """Convert to ConnectionConfig for connection layer compatibility.
@@ -202,7 +212,9 @@ class FlextDbOracleConfig(BaseConfig):
             fetch_size: int = Field(1000, ge=1, description="Default fetch size")
             connect_timeout: int = Field(10, ge=1, description="Connection timeout")
             retry_attempts: int = Field(
-                3, ge=0, description="Connection retry attempts"
+                3,
+                ge=0,
+                description="Connection retry attempts",
             )
             retry_delay: float = Field(1.0, ge=0, description="Delay between retries")
 

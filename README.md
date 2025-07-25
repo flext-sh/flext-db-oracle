@@ -54,6 +54,7 @@ poetry shell
 ### Configuração
 
 #### Configuração Direta
+
 ```python
 from flext_db_oracle.config import FlextDbOracleConfig
 
@@ -67,6 +68,7 @@ config = FlextDbOracleConfig(
 ```
 
 #### Configuração via Environment Variables (Meltano)
+
 ```bash
 export FLEXT_TARGET_ORACLE_USERNAME="usuario"
 export FLEXT_TARGET_ORACLE_PASSWORD="senha"
@@ -230,7 +232,7 @@ src/flext_db_oracle/
 
 Este projeto utiliza:
 
-- **flext-core**: Fundação com ServiceResult e patterns DDD
+- **flext-core**: Fundação com FlextResult e patterns DDD
 - **flext-observability**: Logging estruturado e métricas
 - **Arquitetura limpa**: Separação clara entre domínio e infraestrutura
 

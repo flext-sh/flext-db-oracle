@@ -5,12 +5,12 @@ mocking, and comprehensive coverage of all comparison methods.
 """
 
 import unittest
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from flext_core import FlextResult as ServiceResult
-from src.flext_db_oracle.compare.comparator import (
+from flext_core import FlextResult
+
+from flext_db_oracle.compare.comparator import (
     ComparisonConfig,
     DatabaseComparator,
 )
@@ -122,21 +122,30 @@ class TestComparisonConfig:
         """Test validation failure with invalid schema object type."""
         config = ComparisonConfig(schema_objects=["tables", "invalid_object"])
 
-        with pytest.raises(ValueError, match="Invalid schema object type: invalid_object"):
+        with pytest.raises(
+            ValueError,
+            match="Invalid schema object type: invalid_object",
+        ):
             config.validate_domain_rules()
 
     def test_comparison_config_validation_negative_sample_size(self) -> None:
         """Test validation failure with negative sample size."""
         from pydantic import ValidationError
 
-        with pytest.raises(ValidationError, match="Input should be greater than or equal to 1"):
+        with pytest.raises(
+            ValidationError,
+            match="Input should be greater than or equal to 1",
+        ):
             ComparisonConfig(sample_size=-1)
 
     def test_comparison_config_validation_zero_sample_size(self) -> None:
         """Test validation failure with zero sample size."""
         from pydantic import ValidationError
 
-        with pytest.raises(ValidationError, match="Input should be greater than or equal to 1"):
+        with pytest.raises(
+            ValidationError,
+            match="Input should be greater than or equal to 1",
+        ):
             ComparisonConfig(sample_size=0)
 
 
@@ -195,30 +204,35 @@ class TestDatabaseComparator:
                 database_comparator,
                 "_get_schema_metadata",
                 side_effect=[
-                    ServiceResult.ok(source_metadata),
-                    ServiceResult.ok(target_metadata),
+                    FlextResult.ok(source_metadata),
+                    FlextResult.ok(target_metadata),
                 ],
             ),
         ):
             # Mock schema comparison result
             comparison_result = MagicMock()
             comparison_result.total_differences = 2
-            mock_schema_differ.compare_schemas.return_value = ServiceResult.ok(
-                comparison_result
+            mock_schema_differ.compare_schemas.return_value = FlextResult.ok(
+                comparison_result,
             )
 
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", sample_comparison_config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                sample_comparison_config,
             )
 
             assert result.success
             assert result.data == comparison_result
             mock_schema_differ.compare_schemas.assert_called_once_with(
-                source_metadata, target_metadata
+                source_metadata,
+                target_metadata,
             )
 
     async def test_compare_databases_schema_and_data_success(
-        self, database_comparator: DatabaseComparator, mock_data_differ: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_data_differ: AsyncMock,
     ) -> None:
         """Test successful database comparison with schema and data."""
         config = ComparisonConfig(include_schema=True, include_data=True)
@@ -234,22 +248,24 @@ class TestDatabaseComparator:
                 database_comparator,
                 "_get_schema_metadata",
                 side_effect=[
-                    ServiceResult.ok(source_metadata),
-                    ServiceResult.ok(target_metadata),
+                    FlextResult.ok(source_metadata),
+                    FlextResult.ok(target_metadata),
                 ],
             ),
             unittest.mock.patch.object(
                 database_comparator,
                 "_compare_data",
-                return_value=ServiceResult.ok({"data_differences": []}),
+                return_value=FlextResult.ok({"data_differences": []}),
             ),
         ):
             database_comparator.schema_differ.compare_schemas.return_value = (
-                ServiceResult.ok(schema_comparison_result)
+                FlextResult.ok(schema_comparison_result)
             )
 
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
             )
 
             assert result.success
@@ -264,12 +280,14 @@ class TestDatabaseComparator:
             database_comparator,
             "_get_schema_metadata",
             side_effect=[
-                ServiceResult.fail("Source schema analysis failed"),
-                ServiceResult.ok({"name": "TARGET"}),
+                FlextResult.fail("Source schema analysis failed"),
+                FlextResult.ok({"name": "TARGET"}),
             ],
         ):
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", sample_comparison_config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                sample_comparison_config,
             )
 
             assert not result.success
@@ -289,23 +307,26 @@ class TestDatabaseComparator:
             database_comparator,
             "_get_schema_metadata",
             side_effect=[
-                ServiceResult.ok(source_metadata),
-                ServiceResult.ok(target_metadata),
+                FlextResult.ok(source_metadata),
+                FlextResult.ok(target_metadata),
             ],
         ):
-            mock_schema_differ.compare_schemas.return_value = ServiceResult.fail(
-                "Schema comparison failed"
+            mock_schema_differ.compare_schemas.return_value = FlextResult.fail(
+                "Schema comparison failed",
             )
 
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", sample_comparison_config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                sample_comparison_config,
             )
 
             assert not result.success
             assert "Schema comparison failed" in result.error
 
     async def test_compare_databases_data_comparison_failure(
-        self, database_comparator: DatabaseComparator
+        self,
+        database_comparator: DatabaseComparator,
     ) -> None:
         """Test database comparison with data comparison failure."""
         config = ComparisonConfig(include_schema=True, include_data=True)
@@ -319,35 +340,40 @@ class TestDatabaseComparator:
                 database_comparator,
                 "_get_schema_metadata",
                 side_effect=[
-                    ServiceResult.ok(source_metadata),
-                    ServiceResult.ok(target_metadata),
+                    FlextResult.ok(source_metadata),
+                    FlextResult.ok(target_metadata),
                 ],
             ),
             unittest.mock.patch.object(
                 database_comparator,
                 "_compare_data",
-                return_value=ServiceResult.fail("Data comparison failed"),
+                return_value=FlextResult.fail("Data comparison failed"),
             ),
         ):
             database_comparator.schema_differ.compare_schemas.return_value = (
-                ServiceResult.ok(schema_comparison_result)
+                FlextResult.ok(schema_comparison_result)
             )
 
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
             )
 
             assert not result.success
             assert "Data comparison failed" in result.error
 
     async def test_compare_databases_no_operations_performed(
-        self, database_comparator: DatabaseComparator
+        self,
+        database_comparator: DatabaseComparator,
     ) -> None:
         """Test database comparison with no operations configured."""
         config = ComparisonConfig(include_schema=False, include_data=False)
 
         result = await database_comparator.compare_databases(
-            "SOURCE_SCHEMA", "TARGET_SCHEMA", config
+            "SOURCE_SCHEMA",
+            "TARGET_SCHEMA",
+            config,
         )
 
         assert not result.success
@@ -365,14 +391,18 @@ class TestDatabaseComparator:
             side_effect=Exception("Unexpected error"),
         ):
             result = await database_comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", sample_comparison_config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                sample_comparison_config,
             )
 
             assert not result.success
             assert "Schema comparison failed" in result.error
 
     async def test_get_schema_metadata_success(
-        self, database_comparator: DatabaseComparator, mock_source_service: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_source_service: AsyncMock,
     ) -> None:
         """Test successful schema metadata retrieval."""
         config = ComparisonConfig(schema_objects=["tables"])
@@ -383,14 +413,16 @@ class TestDatabaseComparator:
         }
 
         with unittest.mock.patch(
-            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer"
+            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer",
         ) as mock_analyzer_class:
             mock_analyzer = AsyncMock()
-            mock_analyzer.analyze_schema.return_value = ServiceResult.ok(schema_data)
+            mock_analyzer.analyze_schema.return_value = FlextResult.ok(schema_data)
             mock_analyzer_class.return_value = mock_analyzer
 
             result = await database_comparator._get_schema_metadata(
-                mock_source_service, "TEST_SCHEMA", config
+                mock_source_service,
+                "TEST_SCHEMA",
+                config,
             )
 
             assert result.success
@@ -400,49 +432,59 @@ class TestDatabaseComparator:
             mock_analyzer.analyze_schema.assert_called_once_with("TEST_SCHEMA")
 
     async def test_get_schema_metadata_analysis_failure(
-        self, database_comparator: DatabaseComparator, mock_source_service: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_source_service: AsyncMock,
     ) -> None:
         """Test schema metadata retrieval with analysis failure."""
         config = ComparisonConfig()
 
         with unittest.mock.patch(
-            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer"
+            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer",
         ) as mock_analyzer_class:
             mock_analyzer = AsyncMock()
-            mock_analyzer.analyze_schema.return_value = ServiceResult.fail(
-                "Schema analysis failed"
+            mock_analyzer.analyze_schema.return_value = FlextResult.fail(
+                "Schema analysis failed",
             )
             mock_analyzer_class.return_value = mock_analyzer
 
             result = await database_comparator._get_schema_metadata(
-                mock_source_service, "TEST_SCHEMA", config
+                mock_source_service,
+                "TEST_SCHEMA",
+                config,
             )
 
             assert not result.success
             assert "Schema analysis failed" in result.error
 
     async def test_get_schema_metadata_empty_result(
-        self, database_comparator: DatabaseComparator, mock_source_service: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_source_service: AsyncMock,
     ) -> None:
         """Test schema metadata retrieval with empty result."""
         config = ComparisonConfig()
 
         with unittest.mock.patch(
-            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer"
+            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer",
         ) as mock_analyzer_class:
             mock_analyzer = AsyncMock()
-            mock_analyzer.analyze_schema.return_value = ServiceResult.ok(None)
+            mock_analyzer.analyze_schema.return_value = FlextResult.ok(None)
             mock_analyzer_class.return_value = mock_analyzer
 
             result = await database_comparator._get_schema_metadata(
-                mock_source_service, "TEST_SCHEMA", config
+                mock_source_service,
+                "TEST_SCHEMA",
+                config,
             )
 
             assert not result.success
             assert "Schema analysis returned no metadata" in result.error
 
     async def test_compare_data_success(
-        self, database_comparator: DatabaseComparator, mock_data_differ: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_data_differ: AsyncMock,
     ) -> None:
         """Test successful data comparison."""
         config = ComparisonConfig()
@@ -456,20 +498,23 @@ class TestDatabaseComparator:
             unittest.mock.patch.object(
                 database_comparator,
                 "_get_comparable_tables",
-                return_value=ServiceResult.ok(tables_to_compare),
+                return_value=FlextResult.ok(tables_to_compare),
             ),
             unittest.mock.patch.object(
                 database_comparator,
                 "_get_primary_key_columns",
-                return_value=ServiceResult.ok(pk_columns),
+                return_value=FlextResult.ok(pk_columns),
             ),
         ):
-            mock_data_differ.compare_table_data.return_value = ServiceResult.ok(
-                data_differences
+            mock_data_differ.compare_table_data.return_value = FlextResult.ok(
+                data_differences,
             )
 
             result = await database_comparator._compare_data(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config, schema_comparison
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
+                schema_comparison,
             )
 
             assert result.success
@@ -493,14 +538,18 @@ class TestDatabaseComparator:
 
         config = ComparisonConfig()
         result = await comparator._compare_data(
-            "SOURCE_SCHEMA", "TARGET_SCHEMA", config, None
+            "SOURCE_SCHEMA",
+            "TARGET_SCHEMA",
+            config,
+            None,
         )
 
         assert not result.success
         assert "Data differ not configured" in result.error
 
     async def test_compare_data_get_tables_failure(
-        self, database_comparator: DatabaseComparator
+        self,
+        database_comparator: DatabaseComparator,
     ) -> None:
         """Test data comparison with get tables failure."""
         config = ComparisonConfig()
@@ -508,17 +557,21 @@ class TestDatabaseComparator:
         with unittest.mock.patch.object(
             database_comparator,
             "_get_comparable_tables",
-            return_value=ServiceResult.fail("Failed to get tables"),
+            return_value=FlextResult.fail("Failed to get tables"),
         ):
             result = await database_comparator._compare_data(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config, None
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
+                None,
             )
 
             assert not result.success
             assert "Failed to get tables" in result.error
 
     async def test_compare_data_no_tables_to_compare(
-        self, database_comparator: DatabaseComparator
+        self,
+        database_comparator: DatabaseComparator,
     ) -> None:
         """Test data comparison with no tables to compare."""
         config = ComparisonConfig()
@@ -526,17 +579,22 @@ class TestDatabaseComparator:
         with unittest.mock.patch.object(
             database_comparator,
             "_get_comparable_tables",
-            return_value=ServiceResult.ok([]),
+            return_value=FlextResult.ok([]),
         ):
             result = await database_comparator._compare_data(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config, None
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
+                None,
             )
 
             assert result.success
             assert result.data["data_differences"] == []
 
     async def test_compare_data_skip_table_without_primary_key(
-        self, database_comparator: DatabaseComparator, mock_data_differ: AsyncMock
+        self,
+        database_comparator: DatabaseComparator,
+        mock_data_differ: AsyncMock,
     ) -> None:
         """Test data comparison skipping tables without primary keys."""
         config = ComparisonConfig()
@@ -546,21 +604,24 @@ class TestDatabaseComparator:
             unittest.mock.patch.object(
                 database_comparator,
                 "_get_comparable_tables",
-                return_value=ServiceResult.ok(tables_to_compare),
+                return_value=FlextResult.ok(tables_to_compare),
             ),
             unittest.mock.patch.object(
                 database_comparator,
                 "_get_primary_key_columns",
                 side_effect=[
-                    ServiceResult.fail("No primary key"),  # TABLE1 - skip
-                    ServiceResult.ok(["ID"]),  # TABLE2 - compare
+                    FlextResult.fail("No primary key"),  # TABLE1 - skip
+                    FlextResult.ok(["ID"]),  # TABLE2 - compare
                 ],
             ),
         ):
-            mock_data_differ.compare_table_data.return_value = ServiceResult.ok([])
+            mock_data_differ.compare_table_data.return_value = FlextResult.ok([])
 
             result = await database_comparator._compare_data(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config, None
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
+                None,
             )
 
             assert result.success
@@ -568,7 +629,8 @@ class TestDatabaseComparator:
             mock_data_differ.compare_table_data.assert_called_once()
 
     async def test_compare_data_exception_handling(
-        self, database_comparator: DatabaseComparator
+        self,
+        database_comparator: DatabaseComparator,
     ) -> None:
         """Test data comparison exception handling."""
         config = ComparisonConfig()
@@ -579,7 +641,10 @@ class TestDatabaseComparator:
             side_effect=Exception("Unexpected error"),
         ):
             result = await database_comparator._compare_data(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config, None
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
+                None,
             )
 
             assert not result.success
@@ -625,24 +690,26 @@ class TestDatabaseComparatorIntegration:
         }
 
         with unittest.mock.patch(
-            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer"
+            "src.flext_db_oracle.compare.comparator.SchemaAnalyzer",
         ) as mock_analyzer_class:
             mock_analyzer = AsyncMock()
             mock_analyzer.analyze_schema.side_effect = [
-                ServiceResult.ok(source_schema),
-                ServiceResult.ok(target_schema),
+                FlextResult.ok(source_schema),
+                FlextResult.ok(target_schema),
             ]
             mock_analyzer_class.return_value = mock_analyzer
 
             # Mock schema comparison result
             comparison_result = MagicMock()
             comparison_result.total_differences = 2
-            mock_schema_differ.compare_schemas.return_value = ServiceResult.ok(
-                comparison_result
+            mock_schema_differ.compare_schemas.return_value = FlextResult.ok(
+                comparison_result,
             )
 
             result = await comparator.compare_databases(
-                "SOURCE_SCHEMA", "TARGET_SCHEMA", config
+                "SOURCE_SCHEMA",
+                "TARGET_SCHEMA",
+                config,
             )
 
             assert result.success
@@ -655,5 +722,6 @@ class TestDatabaseComparatorIntegration:
 
             # Verify schema comparison was called with correct metadata
             mock_schema_differ.compare_schemas.assert_called_once_with(
-                source_schema, target_schema
+                source_schema,
+                target_schema,
             )

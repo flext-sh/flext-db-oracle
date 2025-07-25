@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextResult as ServiceResult
+from flext_core import FlextResult
 
 from flext_db_oracle.application.services import FlextDbOracleConnectionService
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -53,8 +53,8 @@ class TestOracleIntegration:
             patch.object(service, "initialize_pool") as mock_init,
             patch.object(service, "test_connection") as mock_test,
         ):
-            mock_init.return_value = ServiceResult.ok(None)
-            mock_test.return_value = ServiceResult.ok(None)
+            mock_init.return_value = FlextResult.ok(None)
+            mock_test.return_value = FlextResult.ok(None)
             yield service
 
     @pytest.mark.asyncio
@@ -68,7 +68,7 @@ class TestOracleIntegration:
         # For demonstration, we'll test the workflow structure
         with patch.object(analyzer, "analyze_schema") as mock_analyze:
             # Mock a realistic schema analysis result
-            mock_analyze.return_value = ServiceResult.ok(
+            mock_analyze.return_value = FlextResult.ok(
                 {
                     "schema_name": "HR",
                     "tables": [
@@ -283,7 +283,7 @@ class TestOracleIntegration:
             # Mock sequence of health check queries
             mock_query.side_effect = [
                 # Connection check
-                ServiceResult.ok(
+                FlextResult.ok(
                     type(
                         "QueryResult",
                         (),
@@ -294,7 +294,7 @@ class TestOracleIntegration:
                     )(),
                 ),
                 # Tablespace check
-                ServiceResult.ok(
+                FlextResult.ok(
                     type(
                         "QueryResult",
                         (),
@@ -350,7 +350,7 @@ class TestOracleIntegration:
                     )(),
                 ),
                 # Session check
-                ServiceResult.ok(
+                FlextResult.ok(
                     type(
                         "QueryResult",
                         (),
@@ -423,11 +423,11 @@ class TestOracleIntegration:
                 # Mock execution plan analysis
                 mock_query.side_effect = [
                     # EXPLAIN PLAN execution
-                    ServiceResult.ok(
+                    FlextResult.ok(
                         type("QueryResult", (), {"rows": [], "columns": []})(),
                     ),
                     # Plan table query
-                    ServiceResult.ok(
+                    FlextResult.ok(
                         type(
                             "QueryResult",
                             (),
@@ -486,7 +486,7 @@ class TestOracleIntegration:
                         )(),
                     ),
                     # Cleanup
-                    ServiceResult.ok(
+                    FlextResult.ok(
                         type("QueryResult", (), {"rows": [], "columns": []})(),
                     ),
                 ]
@@ -518,10 +518,10 @@ class TestOracleIntegration:
             patch.object(target_service, "execute_query") as mock_target,
         ):
             # Mock row count comparison (equal counts)
-            mock_source.return_value = ServiceResult.ok(
+            mock_source.return_value = FlextResult.ok(
                 type("QueryResult", (), {"rows": [(100,)], "columns": ["COUNT"]})(),
             )
-            mock_target.return_value = ServiceResult.ok(
+            mock_target.return_value = FlextResult.ok(
                 type("QueryResult", (), {"rows": [(100,)], "columns": ["COUNT"]})(),
             )
             result = await differ.compare_table_data(
@@ -564,7 +564,7 @@ class TestOracleIntegration:
                 ViewMetadata,
             )
 
-            mock_schema.return_value = ServiceResult.ok(
+            mock_schema.return_value = FlextResult.ok(
                 SchemaMetadata(
                     name="HR",
                     tables=[
@@ -596,7 +596,7 @@ class TestOracleIntegration:
                 ),
             )
             # Mock health report
-            mock_health.return_value = ServiceResult.ok(
+            mock_health.return_value = FlextResult.ok(
                 {
                     "overall_assessment": "excellent",
                     "basic_health": {"overall_status": "healthy"},
@@ -606,7 +606,7 @@ class TestOracleIntegration:
                 },
             )
             # Mock query optimization
-            mock_optimizer.return_value = ServiceResult.ok(
+            mock_optimizer.return_value = FlextResult.ok(
                 {
                     "performance_rating": "good",
                     "total_cost": 5,
@@ -666,8 +666,8 @@ class TestOracleIntegration:
             patch.object(service, "initialize_pool") as mock_init,
             patch.object(service, "test_connection") as mock_test,
         ):
-            mock_init.return_value = ServiceResult.ok(None)
-            mock_test.return_value = ServiceResult.ok(None)
+            mock_init.return_value = FlextResult.ok(None)
+            mock_test.return_value = FlextResult.ok(None)
             # Test pool initialization
             init_result = await service.initialize_pool()
             assert init_result.success
@@ -684,7 +684,7 @@ class TestOracleIntegration:
         analyzer = SchemaAnalyzer(connection_service)
         # Test with connection failure
         with patch.object(connection_service, "execute_query") as mock_query:
-            mock_query.return_value = ServiceResult.fail(
+            mock_query.return_value = FlextResult.fail(
                 "ORA-00942: table or view does not exist",
             )
             result = await analyzer.get_tables("NONEXISTENT_SCHEMA")
@@ -696,13 +696,13 @@ class TestOracleIntegration:
         with patch.object(connection_service, "execute_query") as mock_query:
             # Mock mixed success/failure responses
             mock_query.side_effect = [
-                ServiceResult.ok(
+                FlextResult.ok(
                     type("QueryResult", (), {"rows": [(1,)], "columns": ["RESULT"]})(),
                 ),  # Connection OK
-                ServiceResult.fail(
+                FlextResult.fail(
                     "ORA-00942: table or view does not exist",
                 ),  # Tablespace check fails
-                ServiceResult.ok(
+                FlextResult.ok(
                     type("QueryResult", (), {"rows": [], "columns": []})(),
                 ),  # Sessions OK
             ]

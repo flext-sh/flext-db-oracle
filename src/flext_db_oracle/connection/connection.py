@@ -6,9 +6,9 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any
 
 import oracledb
+from flext_core import FlextProcessingError, get_logger
 
 from flext_db_oracle.connection.base import FlextDbOracleBaseOperations
-from flext_db_oracle.logging_utils import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -36,6 +36,7 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         self._is_connected = False
 
     def connect(self) -> None:
+        """Connect to Oracle database."""
         try:
             params = self.config.to_connect_params()
             self._connection = oracledb.connect(**params)
@@ -72,16 +73,18 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         """Execute SQL statement."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         return self._execute_with_connection(self._connection, sql, parameters)
 
     def execute_many(self, sql: str, parameters_list: list[dict[str, Any]]) -> int:
         """Execute SQL statement with multiple parameter sets."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         return self._execute_many_with_connection(
-            self._connection, sql, parameters_list
+            self._connection,
+            sql,
+            parameters_list,
         )
 
     def fetch_one(
@@ -92,7 +95,7 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         """Fetch one row from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         return self._fetch_one_with_connection(self._connection, sql, parameters)
 
     def fetch_all(
@@ -103,21 +106,21 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         """Fetch all rows from SQL query."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         return self._fetch_all_with_connection(self._connection, sql, parameters)
 
     def commit(self) -> None:
         """Commit current transaction."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         self._connection.commit()
 
     def rollback(self) -> None:
         """Rollback current transaction."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         self._connection.rollback()
 
     @contextmanager
@@ -125,7 +128,7 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         """Context manager for database transactions."""
         if not self.is_connected:
             msg = "Not connected to database"
-            raise RuntimeError(msg)
+            raise FlextProcessingError(msg)
         try:
             yield self
             self.commit()
@@ -179,6 +182,35 @@ class FlextDbOracleConnection(FlextDbOracleBaseOperations):
         """Get Oracle database version."""
         result = self.fetch_one("SELECT * FROM v$version WHERE rownum = 1")
         return str(result[0]) if result else "Unknown"
+
+    def execute_with_metadata(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Execute SQL statement and return results with column metadata.
+
+        This method provides access to cursor metadata, making it possible
+        to get column names alongside query results.
+
+        Args:
+            sql: SQL statement to execute
+            parameters: Optional parameters for SQL statement
+
+        Returns:
+            Dictionary containing:
+            - 'columns': List of column names
+            - 'rows': List of result tuples (for SELECT statements)
+            - 'affected_rows': Number of affected rows (for DML statements)
+
+        Raises:
+            RuntimeError: If not connected to database
+
+        """
+        if not self.is_connected:
+            msg = "Not connected to database"
+            raise FlextProcessingError(msg)
+        return self._execute_with_metadata(self._connection, sql, parameters)
 
     def test_connection(self) -> bool:
         """Test if connection is working."""
