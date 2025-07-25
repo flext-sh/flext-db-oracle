@@ -8,14 +8,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_core import FlextValueObject as BaseConfig
-
-if TYPE_CHECKING:
-    from flext_db_oracle.connection.config import ConnectionConfig
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from flext_db_oracle.connection.config import ConnectionConfig
 
 if TYPE_CHECKING:
     from pydantic import ValidationInfo
+
 
 
 class FlextDbOracleConfig(BaseConfig):
@@ -166,10 +166,6 @@ class FlextDbOracleConfig(BaseConfig):
             ConnectionConfig instance with mapped fields
 
         """
-        from pydantic import SecretStr
-
-        from flext_db_oracle.connection.config import ConnectionConfig
-
         return ConnectionConfig(
             host=self.host,
             port=self.port,
