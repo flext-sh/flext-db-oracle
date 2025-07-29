@@ -6,7 +6,6 @@ composition patterns and flext-core resources to reduce complexity.
 
 from __future__ import annotations
 
-import os
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Self
@@ -74,46 +73,15 @@ class FlextDbOracleApi:
 
         config_result = FlextDbOracleConfig.from_env(env_prefix)
         if config_result.is_failure:
-            logger.warning("Failed to load config from environment: %s", config_result.error)
-            # Create with defaults
-            config = FlextDbOracleConfig(
-                host=os.getenv(f"{env_prefix}HOST", "localhost"),
-                port=int(os.getenv(f"{env_prefix}PORT", "1521")),
-                username=os.getenv(f"{env_prefix}USERNAME", "oracle"),
-                password=SecretStr(os.getenv(f"{env_prefix}PASSWORD", "oracle")),
-                service_name=os.getenv(f"{env_prefix}SERVICE_NAME", "XE"),
-                sid=os.getenv(f"{env_prefix}SID"),
-                pool_min=1,
-                pool_max=10,
-                pool_increment=1,
-                timeout=30,
-                encoding="UTF-8",
-                ssl_cert_path=None,
-                ssl_key_path=None,
-                protocol="tcp",
-                ssl_server_cert_dn=None,
-            )
-        elif config_result.data is None:
-            # Fallback if data is None
-            config = FlextDbOracleConfig(
-                host="localhost",
-                port=1521,
-                username="oracle",
-                password=SecretStr("oracle"),
-                service_name="XE",
-                sid=None,
-                pool_min=1,
-                pool_max=10,
-                pool_increment=1,
-                timeout=30,
-                encoding="UTF-8",
-                ssl_cert_path=None,
-                ssl_key_path=None,
-                protocol="tcp",
-                ssl_server_cert_dn=None,
-            )
-        else:
-            config = config_result.data
+            logger.error("Failed to load config from environment: %s", config_result.error)
+            msg = f"Configuration loading failed: {config_result.error}"
+            raise ValueError(msg)
+
+        if config_result.data is None:
+            msg = "Configuration data is None - this should not happen"
+            raise ValueError(msg)
+
+        config = config_result.data
 
         logger.info("Oracle configuration loaded successfully")
         return cls(config, context_name)
@@ -122,7 +90,7 @@ class FlextDbOracleApi:
     def with_config(
         cls,
         context_name: str = "oracle",
-        **config_params: object,
+        **config_params: Any,  # noqa: ANN401  # Required for flexible config parameter passing
     ) -> FlextDbOracleApi:
         """Create Oracle API with direct configuration parameters."""
         logger = get_logger(f"FlextDbOracleApi.{context_name}")
@@ -131,12 +99,12 @@ class FlextDbOracleApi:
         # Create configuration with defaults using flext-core patterns
         try:
             # Handle password conversion to SecretStr if provided
-            if "password" in config_params:
-                password_val = config_params["password"]
-                config_params = dict(config_params)  # Make it mutable
-                config_params["password"] = SecretStr(str(password_val))
-            config = FlextDbOracleConfig(**config_params)
-        except Exception as e:
+            params = dict(config_params)
+            if "password" in params:
+                password_val = params["password"]
+                params["password"] = SecretStr(str(password_val))
+            config = FlextDbOracleConfig(**params)
+        except (ValueError, TypeError, AttributeError) as e:
             logger.exception("Configuration creation failed")
             msg = f"Invalid configuration: {e}"
             raise ValueError(msg) from e
@@ -205,7 +173,7 @@ class FlextDbOracleApi:
                 if attempt < self._retry_attempts:
                     self._logger.warning("Connection attempt %d failed, retrying: %s", attempt + 1, last_error)
 
-            except Exception as e:  # noqa: BLE001
+            except (ConnectionError, OSError, ValueError, AttributeError) as e:
                 last_error = str(e)
                 if attempt < self._retry_attempts:
                     self._logger.warning("Connection attempt %d failed, retrying: %s", attempt + 1, last_error)
@@ -287,7 +255,7 @@ class FlextDbOracleApi:
             self._logger.info("Query executed: %d rows, %.2fms", len(rows_data), execution_time)
             return FlextResult.ok(query_result)
 
-        except Exception as e:
+        except (ConnectionError, OSError, ValueError, AttributeError) as e:
             execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
             self._logger.exception("Query failed after %.2fms", execution_time)
             return FlextResult.fail(f"Query execution failed: {e}")

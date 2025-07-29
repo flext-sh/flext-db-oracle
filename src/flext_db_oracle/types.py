@@ -5,16 +5,23 @@ Consolidated type definitions using proper FlextDbOracle prefixing.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from flext_core import FlextResult, FlextValueObject
 from pydantic import Field
 
-# Constants
-MAX_PORT_NUMBER = 65535
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from .constants import (
+    ERROR_MSG_COLUMN_NAME_EMPTY,
+    ERROR_MSG_DATA_TYPE_EMPTY,
+    ERROR_MSG_HOST_EMPTY,
+    ERROR_MSG_PORT_INVALID,
+    ERROR_MSG_POSITION_INVALID,
+    ERROR_MSG_SCHEMA_NAME_EMPTY,
+    ERROR_MSG_TABLE_NAME_EMPTY,
+    ERROR_MSG_USERNAME_EMPTY,
+    MAX_PORT,
+)
 
 
 class TDbOracleColumn(FlextValueObject):
@@ -38,13 +45,13 @@ class TDbOracleColumn(FlextValueObject):
         """Validate column type domain rules."""
         try:
             if not self.name or not self.name.strip():
-                return FlextResult.fail("Column name cannot be empty")
+                return FlextResult.fail(ERROR_MSG_COLUMN_NAME_EMPTY)
 
             if not self.data_type or not self.data_type.strip():
-                return FlextResult.fail("Data type cannot be empty")
+                return FlextResult.fail(ERROR_MSG_DATA_TYPE_EMPTY)
 
             if self.position <= 0:
-                return FlextResult.fail("Position must be positive")
+                return FlextResult.fail(ERROR_MSG_POSITION_INVALID)
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
@@ -87,10 +94,10 @@ class TDbOracleTable(FlextValueObject):
         """Validate table type domain rules."""
         try:
             if not self.name or not self.name.strip():
-                return FlextResult.fail("Table name cannot be empty")
+                return FlextResult.fail(ERROR_MSG_TABLE_NAME_EMPTY)
 
             if not self.schema_name or not self.schema_name.strip():
-                return FlextResult.fail("Schema name cannot be empty")
+                return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
 
             if not self.columns:
                 return FlextResult.fail("Table must have at least one column")
@@ -145,7 +152,7 @@ class TDbOracleSchema(FlextValueObject):
         """Validate schema type domain rules."""
         try:
             if not self.name or not self.name.strip():
-                return FlextResult.fail("Schema name cannot be empty")
+                return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
 
             # Validate tables
             for table in self.tables:
@@ -227,13 +234,13 @@ class TDbOracleConnectionStatus(FlextValueObject):
         """Validate connection status domain rules."""
         try:
             if not self.host or not self.host.strip():
-                return FlextResult.fail("Host cannot be empty")
+                return FlextResult.fail(ERROR_MSG_HOST_EMPTY)
 
-            if self.port <= 0 or self.port > MAX_PORT_NUMBER:
-                return FlextResult.fail("Invalid port number")
+            if self.port <= 0 or self.port > MAX_PORT:
+                return FlextResult.fail(ERROR_MSG_PORT_INVALID)
 
             if not self.username or not self.username.strip():
-                return FlextResult.fail("Username cannot be empty")
+                return FlextResult.fail(ERROR_MSG_USERNAME_EMPTY)
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:

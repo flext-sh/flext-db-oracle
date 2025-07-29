@@ -9,6 +9,13 @@ from typing import Any
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 
+from .constants import (
+    ERROR_MSG_HOST_EMPTY,
+    ERROR_MSG_USERNAME_EMPTY,
+    MAX_PORT,
+    ORACLE_DEFAULT_PORT,
+)
+
 logger = get_logger(__name__)
 
 
@@ -18,7 +25,7 @@ class FlextDbOracleConfig(FlextValueObject):
     model_config = ConfigDict(extra="forbid")
 
     host: str = Field("localhost", description="Database host")
-    port: int = Field(1521, description="Database port", ge=1, le=65535)
+    port: int = Field(ORACLE_DEFAULT_PORT, description="Database port", ge=1, le=MAX_PORT)
     sid: str | None = Field(None, description="Oracle SID")
     service_name: str | None = Field(None, description="Oracle service name")
     username: str = Field("user", description="Database username")
@@ -67,11 +74,11 @@ class FlextDbOracleConfig(FlextValueObject):
 
             # Validate host is not empty
             if not self.host or not self.host.strip():
-                errors.append("Host cannot be empty")
+                errors.append(ERROR_MSG_HOST_EMPTY)
 
             # Validate username is not empty
             if not self.username or not self.username.strip():
-                errors.append("Username cannot be empty")
+                errors.append(ERROR_MSG_USERNAME_EMPTY)
 
             if errors:
                 return FlextResult.fail("; ".join(errors))
@@ -86,8 +93,7 @@ class FlextDbOracleConfig(FlextValueObject):
     def validate_host(cls, v: str) -> str:
         """Validate host format."""
         if not v or not v.strip():
-            msg = "Host cannot be empty"
-            raise ValueError(msg)
+            raise ValueError(ERROR_MSG_HOST_EMPTY)
         return v.strip()
 
     @field_validator("username")
@@ -95,8 +101,7 @@ class FlextDbOracleConfig(FlextValueObject):
     def validate_username(cls, v: str) -> str:
         """Validate username format."""
         if not v or not v.strip():
-            msg = "Username cannot be empty"
-            raise ValueError(msg)
+            raise ValueError(ERROR_MSG_USERNAME_EMPTY)
         return v.strip()
 
     @classmethod
@@ -105,7 +110,7 @@ class FlextDbOracleConfig(FlextValueObject):
         try:
             config = cls(
                 host=os.getenv(f"{prefix}HOST", "localhost"),
-                port=int(os.getenv(f"{prefix}PORT", "1521")),
+                port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
                 password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
                 service_name=os.getenv(f"{prefix}SERVICE_NAME"),
@@ -133,7 +138,7 @@ class FlextDbOracleConfig(FlextValueObject):
 
             config = cls(
                 host=parsed.hostname or "localhost",
-                port=parsed.port or 1521,
+                port=parsed.port or ORACLE_DEFAULT_PORT,
                 username=parsed.username or "oracle",
                 password=SecretStr(parsed.password or "oracle"),
                 service_name=parsed.path.lstrip("/") if parsed.path else None,
@@ -220,67 +225,6 @@ class FlextDbOracleConfig(FlextValueObject):
         if self.sid:
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
-
-    def build_oracle_dsn(self) -> FlextResult[str]:
-        """Build Oracle DSN with protocol support (consolidated from services)."""
-        try:
-            import oracledb  # noqa: PLC0415
-
-            if self.protocol == "tcps":
-                # For TCPS, build custom DSN string with SSL options
-                service_or_sid = (
-                    f"SERVICE_NAME={self.service_name}"
-                    if self.service_name
-                    else f"SID={self.sid}"
-                )
-                dsn = (
-                    f"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)"
-                    f"(HOST={self.host})(PORT={self.port}))"
-                    f"(CONNECT_DATA=({service_or_sid})))"
-                )
-                return FlextResult.ok(dsn)
-
-            # For TCP, use standard makedsn
-            if self.service_name:
-                dsn = oracledb.makedsn(
-                    host=self.host,
-                    port=self.port,
-                    service_name=self.service_name,
-                )
-            elif self.sid:
-                dsn = oracledb.makedsn(
-                    host=self.host,
-                    port=self.port,
-                    sid=self.sid,
-                )
-            else:
-                return FlextResult.fail("Must provide either service_name or sid")
-
-            return FlextResult.ok(dsn)
-
-        except (ImportError, ValueError, TypeError) as e:
-            return FlextResult.fail(f"DSN building failed: {e}")
-
-    def to_oracledb_params(self) -> dict[str, Any]:
-        """Convert to native oracledb connection parameters (consolidated)."""
-        dsn_result = self.build_oracle_dsn()
-        if dsn_result.is_failure:
-            msg = f"Cannot build DSN: {dsn_result.error}"
-            raise ValueError(msg)
-
-        params = {
-            "user": self.username,
-            "password": self.password.get_secret_value(),
-            "dsn": dsn_result.data,
-        }
-
-        # Add SSL options for TCPS
-        if self.protocol == "tcps":
-            params["ssl_server_dn_match"] = str(self.ssl_server_dn_match).lower()
-            if self.ssl_server_cert_dn:
-                params["ssl_server_cert_dn"] = self.ssl_server_cert_dn
-
-        return params
 
     @classmethod
     def from_dict(cls, config_dict: dict[str, Any]) -> FlextResult[FlextDbOracleConfig]:
