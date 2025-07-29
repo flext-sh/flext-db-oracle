@@ -1,9 +1,9 @@
 """Test configuration for flext-db-oracle enterprise test suite."""
 
-import pytest
 from unittest.mock import MagicMock
 
-from src.flext_db_oracle import FlextDbOracleConfig, FlextDbOracleApi
+import pytest
+from src.flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def valid_config():
         service_name="ORCLCDB",
         pool_min=1,
         pool_max=10,
-        timeout=30
+        timeout=30,
     )
 
 
@@ -30,7 +30,7 @@ def invalid_config():
         username="",
         password="",
         service_name=None,
-        sid=None
+        sid=None,
     )
 
 
@@ -62,7 +62,7 @@ def sample_table_metadata():
     """Sample table metadata for testing."""
     return {
         "name": "EMPLOYEES",
-        "schema_name": "HR", 
+        "schema_name": "HR",
         "columns": [
             {
                 "column_name": "EMPLOYEE_ID",
@@ -71,18 +71,18 @@ def sample_table_metadata():
                 "data_length": None,
                 "data_precision": 6,
                 "data_scale": 0,
-                "column_id": 1
+                "column_id": 1,
             },
             {
-                "column_name": "FIRST_NAME", 
+                "column_name": "FIRST_NAME",
                 "data_type": "VARCHAR2",
                 "nullable": True,
                 "data_length": 20,
                 "data_precision": None,
                 "data_scale": None,
-                "column_id": 2
-            }
-        ]
+                "column_id": 2,
+            },
+        ],
     }
 
 
@@ -103,10 +103,10 @@ def test_environment_variables(monkeypatch):
         "FLEXT_TARGET_ORACLE_PORT": "1521",
         "FLEXT_TARGET_ORACLE_USERNAME": "testuser",
         "FLEXT_TARGET_ORACLE_PASSWORD": "testpass",
-        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ORCLCDB"
+        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ORCLCDB",
     }
-    
+
     for key, value in test_env.items():
         monkeypatch.setenv(key, value)
-    
+
     return test_env

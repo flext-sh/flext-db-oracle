@@ -5,11 +5,16 @@ Consolidated type definitions using proper FlextDbOracle prefixing.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from flext_core import FlextResult, FlextValueObject
 from pydantic import Field
+
+# Constants
+MAX_PORT_NUMBER = 65535
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class TDbOracleColumn(FlextValueObject):
@@ -24,7 +29,7 @@ class TDbOracleColumn(FlextValueObject):
     scale: int | None = Field(None, description="Numeric scale")
     position: int = Field(..., description="Column position")
     comments: str | None = Field(None, description="Column comments")
-    
+
     # Consolidated functionality from domain models
     is_primary_key: bool = Field(default=False, description="Whether column is primary key")
     is_foreign_key: bool = Field(default=False, description="Whether column is foreign key")
@@ -42,7 +47,7 @@ class TDbOracleColumn(FlextValueObject):
                 return FlextResult.fail("Position must be positive")
 
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Column validation failed: {e}")
 
     @property
@@ -59,8 +64,8 @@ class TDbOracleColumn(FlextValueObject):
                 type_spec = f"{type_spec}({self.precision})"
 
         return type_spec
-    
-    @property 
+
+    @property
     def is_key_column(self) -> bool:
         """Check if column is primary or foreign key (consolidated logic)."""
         return self.is_primary_key or self.is_foreign_key
@@ -97,7 +102,7 @@ class TDbOracleTable(FlextValueObject):
                     return FlextResult.fail(f"Column {column.name}: {validation.error}")
 
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Table validation failed: {e}")
 
     def get_column(self, column_name: str) -> TDbOracleColumn | None:
@@ -116,12 +121,12 @@ class TDbOracleTable(FlextValueObject):
     def qualified_name(self) -> str:
         """Get fully qualified table name."""
         return f"{self.schema_name}.{self.name}"
-    
+
     @property
     def primary_key_columns(self) -> list[TDbOracleColumn]:
         """Get primary key columns (consolidated logic)."""
         return [col for col in self.columns if col.is_primary_key]
-    
+
     @property
     def foreign_key_columns(self) -> list[TDbOracleColumn]:
         """Get foreign key columns (consolidated logic)."""
@@ -149,7 +154,7 @@ class TDbOracleSchema(FlextValueObject):
                     return FlextResult.fail(f"Table {table.name}: {validation.error}")
 
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Schema validation failed: {e}")
 
     def get_table(self, table_name: str) -> TDbOracleTable | None:
@@ -188,7 +193,7 @@ class TDbOracleQueryResult(FlextValueObject):
                 return FlextResult.fail("Execution time cannot be negative")
 
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Query result validation failed: {e}")
 
     def to_dict_list(self) -> list[dict[str, Any]]:
@@ -224,14 +229,14 @@ class TDbOracleConnectionStatus(FlextValueObject):
             if not self.host or not self.host.strip():
                 return FlextResult.fail("Host cannot be empty")
 
-            if self.port <= 0 or self.port > 65535:
+            if self.port <= 0 or self.port > MAX_PORT_NUMBER:
                 return FlextResult.fail("Invalid port number")
 
             if not self.username or not self.username.strip():
                 return FlextResult.fail("Username cannot be empty")
 
             return FlextResult.ok(None)
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Connection status validation failed: {e}")
 
     @property

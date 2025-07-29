@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import Field
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from .connection import FlextDbOracleConnection
 
 logger = get_logger(__name__)
 
@@ -37,7 +42,7 @@ class FlextDbOracleColumn(FlextValueObject):
 
             return FlextResult.ok(None)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Column validation failed: {e}")
 
     @property
@@ -87,7 +92,7 @@ class FlextDbOracleTable(FlextValueObject):
 
             return FlextResult.ok(None)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Table validation failed: {e}")
 
     def get_column_by_name(self, column_name: str) -> FlextDbOracleColumn | None:
@@ -125,7 +130,7 @@ class FlextDbOracleSchema(FlextValueObject):
 
             return FlextResult.ok(None)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Schema validation failed: {e}")
 
     def get_table_by_name(self, table_name: str) -> FlextDbOracleTable | None:
@@ -144,7 +149,7 @@ class FlextDbOracleSchema(FlextValueObject):
 class FlextDbOracleMetadataManager:
     """Oracle metadata manager using SQLAlchemy 2 and flext-core patterns."""
 
-    def __init__(self, connection) -> None:
+    def __init__(self, connection: FlextDbOracleConnection) -> None:
         """Initialize metadata manager."""
         self._connection = connection
         self._logger = get_logger(__name__)
@@ -152,7 +157,7 @@ class FlextDbOracleMetadataManager:
     def get_table_metadata(self, table_name: str, schema_name: str | None = None) -> FlextResult[FlextDbOracleTable]:
         """Get complete table metadata."""
         try:
-            self._logger.info(f"Getting metadata for table: {table_name}")
+            self._logger.info("Getting metadata for table: %s", table_name)
 
             # Get column information
             columns_result = self._connection.get_column_info(table_name, schema_name)
@@ -161,15 +166,17 @@ class FlextDbOracleMetadataManager:
 
             # Convert to FlextDbOracleColumn objects
             columns = []
-            for col_info in columns_result.data:
+            for col_info in (columns_result.data or []):
                 column = FlextDbOracleColumn(
                     name=col_info["column_name"],
                     data_type=col_info["data_type"],
                     nullable=col_info["nullable"],
+                    default_value=col_info.get("default_value"),
                     data_length=col_info["data_length"],
                     data_precision=col_info["data_precision"],
                     data_scale=col_info["data_scale"],
                     column_id=col_info["column_id"],
+                    comments=col_info.get("comments"),
                 )
 
                 # Validate column
@@ -182,6 +189,10 @@ class FlextDbOracleMetadataManager:
                 name=table_name,
                 schema_name=schema_name or "USER",
                 columns=columns,
+                row_count=None,  # Would need to query for actual count
+                size_mb=None,    # Would need to query for actual size
+                comments=None,   # Would need to query for table comments
+                created_date=None,  # Would need to query for creation date
             )
 
             # Validate table
@@ -192,15 +203,15 @@ class FlextDbOracleMetadataManager:
             self._logger.info("Table metadata retrieved successfully")
             return FlextResult.ok(table)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             error_msg = f"Failed to get table metadata: {e}"
-            self._logger.error(error_msg)
+            self._logger.exception(error_msg)
             return FlextResult.fail(error_msg)
 
     def get_schema_metadata(self, schema_name: str) -> FlextResult[FlextDbOracleSchema]:
         """Get complete schema metadata."""
         try:
-            self._logger.info(f"Getting metadata for schema: {schema_name}")
+            self._logger.info("Getting metadata for schema: %s", schema_name)
 
             # Get table names
             tables_result = self._connection.get_table_names(schema_name)
@@ -208,16 +219,18 @@ class FlextDbOracleMetadataManager:
                 return FlextResult.fail(f"Failed to get tables: {tables_result.error}")
 
             # Get metadata for each table
-            tables = []
-            for table_name in tables_result.data:
+            tables: list[FlextDbOracleTable] = []
+            for table_name in (tables_result.data or []):
                 table_result = self.get_table_metadata(table_name, schema_name)
-                if table_result.is_success:
+                if table_result.is_success and table_result.data:
                     tables.append(table_result.data)
 
             # Create schema metadata
             schema = FlextDbOracleSchema(
                 name=schema_name,
                 tables=tables,
+                created_date=None,        # Would need to query for creation date
+                default_tablespace=None,  # Would need to query for default tablespace
             )
 
             # Validate schema
@@ -225,12 +238,12 @@ class FlextDbOracleMetadataManager:
             if validation_result.is_failure:
                 return FlextResult.fail(f"Schema validation failed: {validation_result.error}")
 
-            self._logger.info(f"Schema metadata retrieved: {len(tables)} tables")
+            self._logger.info("Schema metadata retrieved: %d tables", len(tables))
             return FlextResult.ok(schema)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             error_msg = f"Failed to get schema metadata: {e}"
-            self._logger.error(error_msg)
+            self._logger.exception(error_msg)
             return FlextResult.fail(error_msg)
 
 

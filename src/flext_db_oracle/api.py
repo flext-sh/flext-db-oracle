@@ -16,12 +16,14 @@ from flext_core import (
     get_flext_container,
     get_logger,
 )
+from pydantic import SecretStr
 
 from .config import FlextDbOracleConfig
 from .connection import FlextDbOracleConnection
 from .types import TDbOracleQueryResult
 
 if TYPE_CHECKING:
+    import types
     from collections.abc import Generator
 
 
@@ -76,9 +78,39 @@ class FlextDbOracleApi:
             # Create with defaults
             config = FlextDbOracleConfig(
                 host=os.getenv(f"{env_prefix}HOST", "localhost"),
+                port=int(os.getenv(f"{env_prefix}PORT", "1521")),
                 username=os.getenv(f"{env_prefix}USERNAME", "oracle"),
-                password=os.getenv(f"{env_prefix}PASSWORD", "oracle"),
+                password=SecretStr(os.getenv(f"{env_prefix}PASSWORD", "oracle")),
                 service_name=os.getenv(f"{env_prefix}SERVICE_NAME", "XE"),
+                sid=os.getenv(f"{env_prefix}SID"),
+                pool_min=1,
+                pool_max=10,
+                pool_increment=1,
+                timeout=30,
+                encoding="UTF-8",
+                ssl_cert_path=None,
+                ssl_key_path=None,
+                protocol="tcp",
+                ssl_server_cert_dn=None,
+            )
+        elif config_result.data is None:
+            # Fallback if data is None
+            config = FlextDbOracleConfig(
+                host="localhost",
+                port=1521,
+                username="oracle",
+                password=SecretStr("oracle"),
+                service_name="XE",
+                sid=None,
+                pool_min=1,
+                pool_max=10,
+                pool_increment=1,
+                timeout=30,
+                encoding="UTF-8",
+                ssl_cert_path=None,
+                ssl_key_path=None,
+                protocol="tcp",
+                ssl_server_cert_dn=None,
             )
         else:
             config = config_result.data
@@ -90,7 +122,7 @@ class FlextDbOracleApi:
     def with_config(
         cls,
         context_name: str = "oracle",
-        **config_params: str | int | bool,
+        **config_params: object,
     ) -> FlextDbOracleApi:
         """Create Oracle API with direct configuration parameters."""
         logger = get_logger(f"FlextDbOracleApi.{context_name}")
@@ -98,12 +130,17 @@ class FlextDbOracleApi:
 
         # Create configuration with defaults using flext-core patterns
         try:
+            # Handle password conversion to SecretStr if provided
+            if "password" in config_params:
+                password_val = config_params["password"]
+                config_params = dict(config_params)  # Make it mutable
+                config_params["password"] = SecretStr(str(password_val))
             config = FlextDbOracleConfig(**config_params)
         except Exception as e:
-            logger.error("Configuration creation failed: %s", e)
+            logger.exception("Configuration creation failed")
             msg = f"Invalid configuration: {e}"
-            raise ValueError(msg)
-        
+            raise ValueError(msg) from e
+
         config_result = config.validate_domain_rules()
         if config_result.is_failure:
             logger.error("Configuration creation failed: %s", config_result.error)
@@ -213,42 +250,46 @@ class FlextDbOracleApi:
         self._logger.debug("Executing SQL query")
         result = self._connection.execute(sql, params)
         if result.is_success:
-            self._logger.info("Query executed successfully, returned %d rows", len(result.data))
+            row_count = len(result.data) if result.data else 0
+            self._logger.info("Query executed successfully, returned %d rows", row_count)
         else:
             self._logger.error("Query execution failed: %s", result.error)
 
         return result
-    
+
     def query_with_timing(self, sql: str, params: dict[str, Any] | None = None) -> FlextResult[TDbOracleQueryResult]:
         """Execute query with timing metrics (consolidated from QueryService)."""
         if not self._is_connected or not self._connection:
             return FlextResult.fail("Database not connected")
-        
+
         start_time = datetime.now(UTC)
-        
+
         try:
             # Execute query
             result = self._connection.execute(sql, params)
             if result.is_failure:
-                return FlextResult.fail(result.error)
-            
+                return FlextResult.fail(result.error or "Query execution failed")
+
             # Calculate execution time
             execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            
-            # Create structured result (consolidated functionality)  
+
+            # Handle None data result
+            rows_data = result.data or []
+
+            # Create structured result (consolidated functionality)
             query_result = TDbOracleQueryResult(
-                rows=result.data,
+                rows=rows_data,
                 columns=[],  # Would need cursor.description to get column names
-                row_count=len(result.data),
-                execution_time_ms=execution_time
+                row_count=len(rows_data),
+                execution_time_ms=execution_time,
             )
-            
-            self._logger.info(f"Query executed: {len(result.data)} rows, {execution_time:.2f}ms")
+
+            self._logger.info("Query executed: %d rows, %.2fms", len(rows_data), execution_time)
             return FlextResult.ok(query_result)
-            
+
         except Exception as e:
             execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
-            self._logger.error(f"Query failed after {execution_time:.2f}ms: {e}")
+            self._logger.exception("Query failed after %.2fms", execution_time)
             return FlextResult.fail(f"Query execution failed: {e}")
 
     def query_one(
@@ -309,7 +350,7 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection")
 
         return self._connection.get_table_names(schema)
-    
+
     def get_schemas(self) -> FlextResult[list[str]]:
         """Get available schema names (consolidated from connection)."""
         if not self._connection:
@@ -447,7 +488,7 @@ class FlextDbOracleApi:
             self.connect()
         return self
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: Any) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: types.TracebackType | None) -> None:
         """Context manager exit."""
         self.disconnect()
 
