@@ -4,8 +4,8 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "flext-db-oracle"
-version = "0.8.0"
-description = "FLEXT DB Oracle - Advanced Oracle Database Integration"
+version = "2.0.0"
+description = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 keywords = ["flext", "enterprise", "async", "typed", "integration", "adapter"]
@@ -93,20 +93,23 @@ ignore_missing_imports = false
 no_implicit_reexport = true
 
 [[tool.mypy.overrides]]
-module = ["flext_observability.*", "flext_core.*"]
+module = ["flext_observability.*"]
 ignore_missing_imports = true
-files = ["src/flext_db_oracle/"]
-plugins = ["pydantic.mypy"]
-exclude = ["build", "dist", ".venv", ".mypy_cache"]
+
+[[tool.mypy.overrides]]
+module = ["flext_core.*"]
+ignore_missing_imports = true
 
 [tool.bandit]
 exclude_dirs = ["tests", "build", "dist"]
 skips = ["B101", "B601", "B608"]
 
 [tool.pydantic-mypy]
+# Pydantic plugin strict configuration
 init_forbid_extra = true
 init_typed = true
 warn_required_dynamic_aliases = true
+warn_untyped_fields = true
 
 [tool.poetry]
 [[tool.poetry.packages]]

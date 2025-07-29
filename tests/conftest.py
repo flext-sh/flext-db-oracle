@@ -1,419 +1,112 @@
-"""Test configuration for flext-db-oracle.
-
-Provides pytest fixtures and configuration for testing Oracle database functionality
-using real Oracle connections and flext-core patterns.
-"""
-
-from __future__ import annotations
-
-import math
-import os
-from typing import TYPE_CHECKING, Any
+"""Test configuration for flext-db-oracle enterprise test suite."""
 
 import pytest
+from unittest.mock import MagicMock
 
-if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Generator
+from src.flext_db_oracle import FlextDbOracleConfig, FlextDbOracleApi
 
 
-# Test environment setup
-@pytest.fixture(autouse=True)
-def set_test_environment() -> Generator[None]:
+@pytest.fixture
+def valid_config():
+    """Valid Oracle configuration for testing."""
+    return FlextDbOracleConfig(
+        host="localhost",
+        port=1521,
+        username="testuser",
+        password="testpass",
+        service_name="ORCLCDB",
+        pool_min=1,
+        pool_max=10,
+        timeout=30
+    )
+
+
+@pytest.fixture
+def invalid_config():
+    """Invalid Oracle configuration for error testing."""
+    return FlextDbOracleConfig(
+        host="",
+        port=0,
+        username="",
+        password="",
+        service_name=None,
+        sid=None
+    )
+
+
+@pytest.fixture
+def mock_connection():
+    """Mock Oracle connection for unit tests."""
+    mock_conn = MagicMock()
+    mock_conn.connect.return_value.is_success = True
+    mock_conn.execute.return_value.is_success = True
+    mock_conn.execute.return_value.data = [("test_result",)]
+    mock_conn.test_connection.return_value.is_success = True
+    return mock_conn
+
+
+@pytest.fixture
+def api_with_valid_config(valid_config):
+    """FlextDbOracleApi instance with valid configuration."""
+    return FlextDbOracleApi(valid_config)
+
+
+@pytest.fixture
+def api_with_invalid_config(invalid_config):
+    """FlextDbOracleApi instance with invalid configuration."""
+    return FlextDbOracleApi(invalid_config)
+
+
+@pytest.fixture
+def sample_table_metadata():
+    """Sample table metadata for testing."""
+    return {
+        "name": "EMPLOYEES",
+        "schema_name": "HR", 
+        "columns": [
+            {
+                "column_name": "EMPLOYEE_ID",
+                "data_type": "NUMBER",
+                "nullable": False,
+                "data_length": None,
+                "data_precision": 6,
+                "data_scale": 0,
+                "column_id": 1
+            },
+            {
+                "column_name": "FIRST_NAME", 
+                "data_type": "VARCHAR2",
+                "nullable": True,
+                "data_length": 20,
+                "data_precision": None,
+                "data_scale": None,
+                "column_id": 2
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def sample_query_result():
+    """Sample query result for testing."""
+    return [
+        (1, "John", "Doe", "john.doe@company.com"),
+        (2, "Jane", "Smith", "jane.smith@company.com"),
+    ]
+
+
+@pytest.fixture
+def test_environment_variables(monkeypatch):
     """Set test environment variables."""
-    os.environ["FLEXT_ENV"] = "test"
-    os.environ["FLEXT_LOG_LEVEL"] = "debug"
-    os.environ["ORACLE_TEST_MODE"] = "true"
-    yield
-    # Cleanup
-    os.environ.pop("FLEXT_ENV", None)
-    os.environ.pop("FLEXT_LOG_LEVEL", None)
-    os.environ.pop("ORACLE_TEST_MODE", None)
-
-
-# Oracle connection fixtures
-@pytest.fixture
-def oracle_connection_config() -> dict[str, Any]:
-    """Oracle database connection configuration for testing."""
-    return {
-        "host": "localhost",
-        "port": 1521,
-        "sid": "XEPDB1",
-        "service_name": "XEPDB1",
-        "username": "test_user",
-        "password": "test_pass",
-        "encoding": "UTF-8",
-        "thick_mode": False,
-        "pool_min": 1,
-        "pool_max": 10,
-        "pool_increment": 1,
+    test_env = {
+        "FLEXT_TARGET_ORACLE_HOST": "test.oracle.com",
+        "FLEXT_TARGET_ORACLE_PORT": "1521",
+        "FLEXT_TARGET_ORACLE_USERNAME": "testuser",
+        "FLEXT_TARGET_ORACLE_PASSWORD": "testpass",
+        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ORCLCDB"
     }
-
-
-@pytest.fixture
-async def oracle_connection(
-    oracle_connection_config: dict[str, Any],
-) -> AsyncGenerator[Any]:
-    """Oracle database connection for testing."""
-    from flext_db_oracle.application.services import FlextDbOracleConnectionService
-    from flext_db_oracle.config import FlextDbOracleConfig
-
-    config = FlextDbOracleConfig(**oracle_connection_config)
-    return FlextDbOracleConnectionService(config)
-    # Mock connection initialization for testing
-
-
-@pytest.fixture
-async def oracle_pool(oracle_connection_config: dict[str, Any]) -> AsyncGenerator[Any]:
-    """Oracle connection pool for testing."""
-    from flext_db_oracle.application.services import FlextDbOracleConnectionService
-    from flext_db_oracle.config import FlextDbOracleConfig
-
-    config = FlextDbOracleConfig(**oracle_connection_config)
-    return FlextDbOracleConnectionService(config)
-    # Mock pool for testing
-
-
-# Schema fixtures
-@pytest.fixture
-def oracle_schema_config() -> dict[str, Any]:
-    """Oracle schema configuration for testing."""
-    return {
-        "schema_name": "TEST_SCHEMA",
-        "tables": [
-            {
-                "name": "EMPLOYEES",
-                "columns": [
-                    {"name": "ID", "type": "NUMBER", "primary_key": True},
-                    {"name": "NAME", "type": "VARCHAR2(100)", "nullable": False},
-                    {"name": "EMAIL", "type": "VARCHAR2(255)", "nullable": True},
-                    {"name": "DEPARTMENT_ID", "type": "NUMBER", "nullable": True},
-                    {
-                        "name": "CREATED_AT",
-                        "type": "TIMESTAMP",
-                        "default": "CURRENT_TIMESTAMP",
-                    },
-                ],
-                "indexes": [
-                    {
-                        "name": "IDX_EMPLOYEES_EMAIL",
-                        "columns": ["EMAIL"],
-                        "unique": True,
-                    },
-                    {"name": "IDX_EMPLOYEES_DEPT", "columns": ["DEPARTMENT_ID"]},
-                ],
-            },
-            {
-                "name": "DEPARTMENTS",
-                "columns": [
-                    {"name": "ID", "type": "NUMBER", "primary_key": True},
-                    {"name": "NAME", "type": "VARCHAR2(100)", "nullable": False},
-                    {"name": "MANAGER_ID", "type": "NUMBER", "nullable": True},
-                ],
-            },
-        ],
-        "sequences": [
-            {"name": "SEQ_EMPLOYEES", "start": 1, "increment": 1},
-            {"name": "SEQ_DEPARTMENTS", "start": 1, "increment": 1},
-        ],
-    }
-
-
-# Sample data fixtures
-@pytest.fixture
-def sample_employee_data() -> list[dict[str, Any]]:
-    """Sample employee data for testing."""
-    return [
-        {
-            "id": 1,
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "department_id": 1,
-        },
-        {
-            "id": 2,
-            "name": "Jane Smith",
-            "email": "jane.smith@example.com",
-            "department_id": 2,
-        },
-        {
-            "id": 3,
-            "name": "Bob Johnson",
-            "email": "bob.johnson@example.com",
-            "department_id": 1,
-        },
-    ]
-
-
-@pytest.fixture
-def sample_department_data() -> list[dict[str, Any]]:
-    """Sample department data for testing."""
-    return [
-        {"id": 1, "name": "Engineering", "manager_id": 1},
-        {"id": 2, "name": "Marketing", "manager_id": 2},
-        {"id": 3, "name": "Sales", "manager_id": None},
-    ]
-
-
-# Query fixtures
-@pytest.fixture
-def oracle_queries() -> dict[str, str]:
-    """Oracle SQL queries for testing."""
-    return {
-        "select_employees": """
-            SELECT id, name, email, department_id, created_at
-            FROM employees
-            ORDER BY id
-        """,
-        "select_employee_by_id": """
-            SELECT id, name, email, department_id, created_at
-            FROM employees
-            WHERE id = :employee_id
-        """,
-        "insert_employee": """
-            INSERT INTO employees (id, name, email, department_id)
-            VALUES (seq_employees.nextval, :name, :email, :department_id)
-        """,
-        "update_employee": """
-            UPDATE employees
-            SET name = :name, email = :email, department_id = :department_id
-            WHERE id = :employee_id
-        """,
-        "delete_employee": """
-            DELETE FROM employees
-            WHERE id = :employee_id
-        """,
-        "select_with_join": """
-            SELECT e.id, e.name, e.email, d.name as department_name
-            FROM employees e
-            LEFT JOIN departments d ON e.department_id = d.id
-            ORDER BY e.id
-        """,
-    }
-
-
-# Transaction fixtures
-@pytest.fixture
-def transaction_test_data() -> dict[str, Any]:
-    """Test data for transaction testing."""
-    return {
-        "employees": [
-            {"name": "Alice Johnson", "email": "alice@example.com", "department_id": 1},
-            {"name": "Bob Smith", "email": "bob@example.com", "department_id": 2},
-        ],
-        "departments": [
-            {"name": "Research", "manager_id": None},
-            {"name": "Development", "manager_id": None},
-        ],
-    }
-
-
-# Performance testing fixtures
-@pytest.fixture
-def performance_test_config() -> dict[str, Any]:
-    """Create a configuration for performance testing."""
-    return {
-        "batch_size": 1000,
-        "concurrent_connections": 5,
-        "test_duration_seconds": 30,
-        "query_iterations": 10000,
-        "insert_batch_size": 100,
-    }
-
-
-@pytest.fixture
-def large_dataset_config() -> dict[str, Any]:
-    """Create a configuration for large dataset testing."""
-    return {
-        "record_count": 10000,
-        "batch_size": 1000,
-        "parallel_workers": 4,
-        "memory_limit_mb": 512,
-    }
-
-
-# Error testing fixtures
-@pytest.fixture
-def oracle_error_scenarios() -> list[dict[str, Any]]:
-    """Create a list of Oracle error scenarios for testing."""
-    return [
-        {
-            "name": "invalid_sql",
-            "query": "SELECT * FROM non_existent_table",
-            "expected_error": "ORA-00942",
-            "error_type": "TableNotFoundError",
-        },
-        {
-            "name": "constraint_violation",
-            "query": "INSERT INTO employees (id, name) VALUES (1, NULL)",
-            "expected_error": "ORA-01400",
-            "error_type": "ConstraintViolationError",
-        },
-        {
-            "name": "invalid_datatype",
-            "query": "INSERT INTO employees (id, name) VALUES ('invalid', 'test')",
-            "expected_error": "ORA-01722",
-            "error_type": "InvalidDataTypeError",
-        },
-        {
-            "name": "connection_timeout",
-            "config": {"connect_timeout": 0.001},
-            "expected_error": "DPI-1080",
-            "error_type": "ConnectionTimeoutError",
-        },
-    ]
-
-
-# Data type testing fixtures
-@pytest.fixture
-def oracle_data_types() -> dict[str, Any]:
-    """Create a configuration for Oracle data type testing."""
-    return {
-        "numeric_types": {
-            "NUMBER": [1, 1.5, 999999999999],
-            "INTEGER": [1, 100, -50],
-            "FLOAT": [1.1, math.pi, -math.e],
-        },
-        "string_types": {
-            "VARCHAR2": ["test", "longer test string", ""],
-            "CHAR": ["A", "FIXED", "12345"],
-            "CLOB": ["small text", "x" * 4000, "unicode: éñ中文"],
-        },
-        "date_types": {
-            "DATE": ["2023-01-01", "2023-12-31"],
-            "TIMESTAMP": ["2023-01-01 12:00:00", "2023-12-31 23:59:59.999"],
-        },
-        "binary_types": {
-            "RAW": [b"binary data", b"\x00\x01\x02\x03"],
-            "BLOB": [b"small blob", b"x" * 4000],
-        },
-    }
-
-
-# Pagination fixtures
-@pytest.fixture
-def pagination_test_config() -> dict[str, Any]:
-    """Create a configuration for pagination testing."""
-    return {
-        "total_records": 1000,
-        "page_sizes": [10, 25, 50, 100],
-        "ordering_columns": ["id", "name", "created_at"],
-        "filter_conditions": [
-            {"column": "department_id", "operator": "=", "value": 1},
-            {"column": "name", "operator": "LIKE", "value": "%John%"},
-            {"column": "created_at", "operator": ">", "value": "2023-01-01"},
-        ],
-    }
-
-
-# Pytest markers for test categorization
-def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest markers for test categorization."""
-    config.addinivalue_line("markers", "unit: Unit tests")
-    config.addinivalue_line("markers", "integration: Integration tests")
-    config.addinivalue_line("markers", "e2e: End-to-end tests")
-    config.addinivalue_line("markers", "oracle: Oracle database tests")
-    config.addinivalue_line("markers", "connection: Connection management tests")
-    config.addinivalue_line("markers", "transaction: Transaction tests")
-    config.addinivalue_line("markers", "performance: Performance tests")
-    config.addinivalue_line("markers", "schema: Schema management tests")
-    config.addinivalue_line("markers", "slow: Slow tests")
-
-
-class MockOracleService:
-    """Mock Oracle service for testing."""
-
-    def __init__(self) -> None:
-        """Initialize the mock Oracle service."""
-        self.connected = False
-        self.transactions: list[dict[str, Any]] = []
-        self.queries_executed: list[dict[str, Any]] = []
-
-    async def connect(self) -> bool:
-        """Connect to the mock Oracle service."""
-        self.connected = True
-        return True
-
-    async def disconnect(self) -> bool:
-        """Disconnect from the mock Oracle service."""
-        self.connected = False
-        return True
-
-    async def execute_query(
-        self,
-        query: str,
-        params: dict[str, Any] | None = None,
-    ) -> list[dict[str, Any]]:
-        """Execute a query on the mock Oracle service."""
-        self.queries_executed.append({"query": query, "params": params})
-        return [{"id": 1, "name": "test"}]
-
-    async def execute_non_query(
-        self,
-        query: str,
-        params: dict[str, Any] | None = None,
-    ) -> int:
-        """Execute a non-query on the mock Oracle service."""
-        self.queries_executed.append({"query": query, "params": params})
-        return 1
-
-    async def begin_transaction(self) -> str:
-        """Begin a transaction on the mock Oracle service."""
-        transaction_id = f"txn_{len(self.transactions) + 1}"
-        self.transactions.append({"id": transaction_id, "status": "active"})
-        return transaction_id
-
-    async def commit_transaction(self, transaction_id: str) -> None:
-        """Commit a transaction on the mock Oracle service."""
-        for txn in self.transactions:
-            if txn["id"] == transaction_id:
-                txn["status"] = "committed"
-
-    async def rollback_transaction(self, transaction_id: str) -> None:
-        """Rollback a transaction on the mock Oracle service."""
-        for txn in self.transactions:
-            if txn["id"] == transaction_id:
-                txn["status"] = "rolled_back"
-
-
-# Mock services
-@pytest.fixture
-def mock_oracle_service() -> MockOracleService:
-    """Create a mock Oracle service for testing."""
-    return MockOracleService()
-
-
-class MockOraclePool:
-    """Mock Oracle connection pool for testing."""
-
-    def __init__(self, config: dict[str, Any]) -> None:
-        """Initialize the mock Oracle connection pool."""
-        self.config = config
-        self.pool_size = 0
-        self.active_connections = 0
-
-    async def create_pool(self) -> None:
-        """Create a pool of connections on the mock Oracle service."""
-        self.pool_size = self.config.get("pool_max", 10)
-
-    async def close_pool(self) -> None:
-        """Close the pool of connections on the mock Oracle service."""
-        self.pool_size = 0
-        self.active_connections = 0
-
-    async def acquire_connection(self) -> str:
-        """Acquire a connection from the pool on the mock Oracle service."""
-        if self.active_connections < self.pool_size:
-            self.active_connections += 1
-            return f"connection_{self.active_connections}"
-        msg = "Pool exhausted"
-        raise FlextProcessingError(msg)
-
-    async def release_connection(self, connection: str) -> None:
-        """Release a connection to the pool on the mock Oracle service."""
-        self.active_connections -= 1
-
-
-@pytest.fixture
-def mock_oracle_pool() -> MockOraclePool:
-    """Create a mock Oracle connection pool for testing."""
-    return MockOraclePool
+    
+    for key, value in test_env.items():
+        monkeypatch.setenv(key, value)
+    
+    return test_env

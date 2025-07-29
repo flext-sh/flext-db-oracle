@@ -784,6 +784,7 @@ develop = true
 dependency-injector = ">=4.45.0"
 pydantic = ">=2.11.7"
 pydantic-settings = ">=2.10.1"
+structlog = ">=25.4.0,<26.0.0"
 
 [package.source]
 type = "directory"

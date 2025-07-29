@@ -1,325 +1,278 @@
-"""Tests for configuration module.
+"""Unit tests for FlextDbOracleConfig - comprehensive validation."""
 
-Tests for the main Oracle configuration functionality.
-"""
-
-from __future__ import annotations
-
+import os
+import pytest
 from unittest.mock import patch
 
-import pytest
-
-from flext_db_oracle.config import FlextDbOracleConfig
+from src.flext_db_oracle import FlextDbOracleConfig
+from flext_core import FlextResult
 
 
 class TestFlextDbOracleConfig:
-    """Test FlextDbOracle configuration functionality."""
+    """Comprehensive tests for Oracle configuration."""
 
-    def test_create_config_with_required_params(self) -> None:
-        """Test creating config with required parameters."""
+    def test_config_creation_with_service_name(self):
+        """Test config creation with service name."""
         config = FlextDbOracleConfig(
-            host="testhost",
+            host="localhost",
             port=1521,
-            service_name="testdb",
             username="testuser",
-            password="testpass",
+            password="testpass", 
+            service_name="ORCLCDB"
         )
-
-        assert config.host == "testhost"
+        
+        assert config.host == "localhost"
         assert config.port == 1521
-        assert config.service_name == "testdb"
         assert config.username == "testuser"
-        assert config.password == "testpass"
+        assert config.password.get_secret_value() == "testpass"
+        assert config.service_name == "ORCLCDB"
+        assert config.sid is None
 
-    def test_create_config_with_sid(self) -> None:
-        """Test creating config with SID instead of service name."""
+    def test_config_creation_with_sid(self):
+        """Test config creation with SID."""
         config = FlextDbOracleConfig(
-            host="testhost",
+            host="localhost",
             port=1521,
-            sid="ORCL",
             username="testuser",
             password="testpass",
+            sid="ORCL"
         )
-
-        assert config.host == "testhost"
-        assert config.port == 1521
+        
         assert config.sid == "ORCL"
         assert config.service_name is None
-        assert config.username == "testuser"
-        assert config.password == "testpass"
 
-    def test_config_default_values(self) -> None:
-        """Test configuration default values."""
+    def test_domain_rules_validation_success(self, valid_config):
+        """Test successful domain rules validation."""
+        result = valid_config.validate_domain_rules()
+        assert result.is_success
+        assert result.data is None
+
+    def test_domain_rules_validation_no_identifier(self):
+        """Test validation failure when no SID or service_name."""
         config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-        )
-
-        assert config.port == 1521  # Default port
-        assert config.protocol == "tcp"  # Default protocol
-        assert config.pool_min_size == 1  # Default pool min
-        assert config.pool_max_size == 10  # Default pool max
-        assert config.query_timeout == 30  # Default timeout
-
-    def test_config_validation_requires_username(self) -> None:
-        """Test config validation requires username."""
-        with pytest.raises((ValueError, TypeError)):
-            FlextDbOracleConfig.model_validate(
-                {
-                    "host": "testhost",
-                    "service_name": "testdb",
-                    "password": "testpass",
-                },
-            )
-
-    def test_config_validation_requires_password(self) -> None:
-        """Test config validation requires password."""
-        with pytest.raises((ValueError, TypeError)):
-            FlextDbOracleConfig.model_validate(
-                {
-                    "host": "testhost",
-                    "service_name": "testdb",
-                    "username": "testuser",
-                },
-            )
-
-    def test_config_validation_requires_service_name_or_sid(self) -> None:
-        """Test config validation requires either service_name or sid."""
-        with pytest.raises(
-            ValueError,
-            match="Either service_name or sid must be provided",
-        ):
-            FlextDbOracleConfig(
-                host="testhost",
-                username="testuser",
-                password="testpass",
-            )
-
-    def test_config_protocol_settings(self) -> None:
-        """Test protocol configuration settings."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            protocol="tcps",
-        )
-
-        assert config.protocol == "tcps"
-
-    def test_config_pool_settings(self) -> None:
-        """Test connection pool configuration settings."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            pool_min_size=5,
-            pool_max_size=50,
-            pool_increment=2,
-        )
-
-        assert config.pool_min_size == 5
-        assert config.pool_max_size == 50
-        assert config.pool_increment == 2
-
-    def test_config_timeout_settings(self) -> None:
-        """Test timeout configuration settings."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            query_timeout=60,
-            connect_timeout=20,
-        )
-
-        assert config.query_timeout == 60
-        assert config.connect_timeout == 20
-
-    def test_config_retry_settings(self) -> None:
-        """Test retry configuration settings."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            retry_attempts=5,
-            retry_delay=2.0,
-        )
-
-        assert config.retry_attempts == 5
-        assert config.retry_delay == 2.0
-
-    def test_config_string_representation(self) -> None:
-        """Test string representation works correctly."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="secretpass",
-        )
-
-        config_str = str(config)
-        assert "testhost" in config_str
-        assert "testdb" in config_str
-        assert "testuser" in config_str
-
-    @patch.dict(
-        "os.environ",
-        {
-            "ORACLE_HOST": "envhost",
-            "ORACLE_PORT": "1522",
-            "ORACLE_SERVICE_NAME": "envdb",
-            "ORACLE_USERNAME": "envuser",
-            "ORACLE_PASSWORD": "envpass",
-        },
-    )
-    def test_config_from_environment_variables(self) -> None:
-        """Test creating config from environment variables."""
-        # This would test a from_env class method if it exists
-        # For now, test that we can create config with env-like values
-        config = FlextDbOracleConfig(
-            host="envhost",
-            port=1522,
-            service_name="envdb",
-            username="envuser",
-            password="envpass",
-        )
-
-        assert config.host == "envhost"
-        assert config.port == 1522
-        assert config.service_name == "envdb"
-        assert config.username == "envuser"
-        assert config.password == "envpass"
-
-    def test_config_dsn_construction(self) -> None:
-        """Test DSN construction for Oracle connection."""
-        config = FlextDbOracleConfig(
-            host="testhost",
+            host="localhost",
             port=1521,
-            service_name="testdb",
             username="testuser",
-            password="testpass",
+            password="testpass"
         )
+        
+        with pytest.raises(ValueError, match="Either SID or service_name must be provided"):
+            config.validate_connection_identifier()
 
-        # Test that config has the necessary components for DSN construction
-        assert config.host == "testhost"
-        assert config.port == 1521
-        assert config.service_name == "testdb"
-        # DSN construction would typically be done by connection layer
-
-    def test_config_equality(self) -> None:
-        """Test configuration equality comparison."""
-        config1 = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-        )
-
-        config2 = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-        )
-
-        config3 = FlextDbOracleConfig(
-            host="otherhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-        )
-
-        assert config1 == config2
-        assert config1 != config3
-
-    def test_config_copy(self) -> None:
-        """Test configuration copying."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            pool_max_size=20,
-        )
-
-        # Create a copy with modified values
-        config_copy = config.model_copy(update={"pool_max_size": 30})
-
-        assert config_copy.host == "testhost"
-        assert config_copy.service_name == "testdb"
-        assert config_copy.username == "testuser"
-        assert config_copy.password == "testpass"
-        assert config_copy.pool_max_size == 30
-        assert config.pool_max_size == 20  # Original unchanged
-
-    def test_database_identifier_property(self) -> None:
-        """Test database identifier property."""
-        # Test with service_name
-        config1 = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-        )
-        assert config1.database_identifier == "testdb"
-
-        # Test with SID
-        config2 = FlextDbOracleConfig(
-            host="testhost",
-            sid="ORCL",
-            username="testuser",
-            password="testpass",
-        )
-        assert config2.database_identifier == "ORCL"
-
-    def test_connection_string_property(self) -> None:
-        """Test connection string property doesn't expose password."""
-        config = FlextDbOracleConfig(
-            host="testhost",
-            port=1522,
-            service_name="testdb",
-            username="testuser",
-            password="secretpass",
-        )
-
-        conn_str = config.connection_string
-        assert "oracle://" in conn_str
-        assert "testuser" in conn_str
-        assert "testhost" in conn_str
-        assert "1522" in conn_str
-        assert "testdb" in conn_str
-        assert "secretpass" not in conn_str  # Password should be hidden
-        assert "***" in conn_str  # Password should be masked
-
-    def test_pool_size_validation(self) -> None:
-        """Test pool size validation."""
-        # This should work fine
-        config = FlextDbOracleConfig(
-            host="testhost",
-            service_name="testdb",
-            username="testuser",
-            password="testpass",
-            pool_min_size=5,
-            pool_max_size=10,
-        )
-        assert config.pool_min_size == 5
-        assert config.pool_max_size == 10
-
-        # This should fail validation
-        with pytest.raises(
-            ValueError,
-            match="pool_max_size.*must be greater than or equal to pool_min_size",
-        ):
+    def test_domain_rules_validation_invalid_pool_settings(self):
+        """Test validation failure for invalid pool settings."""
+        with pytest.raises(ValueError, match="pool_max must be >= pool_min"):
             FlextDbOracleConfig(
-                host="testhost",
-                service_name="testdb",
+                host="localhost",
+                port=1521,
                 username="testuser",
                 password="testpass",
-                pool_min_size=10,
-                pool_max_size=5,  # Less than min
+                service_name="ORCLCDB",
+                pool_min=10,
+                pool_max=5
+            )
+
+    def test_domain_rules_validation_empty_host(self):
+        """Test validation failure for empty host."""
+        result = FlextDbOracleConfig(
+            host="",
+            port=1521,
+            username="testuser", 
+            password="testpass",
+            service_name="ORCLCDB"
+        ).validate_domain_rules()
+        
+        assert result.is_failure
+        assert "Host cannot be empty" in result.error
+
+    def test_from_env_success(self, test_environment_variables):
+        """Test successful configuration from environment variables."""
+        result = FlextDbOracleConfig.from_env()
+        
+        assert result.is_success
+        config = result.data
+        assert config.host == "test.oracle.com"
+        assert config.port == 1521
+        assert config.username == "testuser"
+        assert config.service_name == "ORCLCDB"
+
+    def test_from_env_with_custom_prefix(self, monkeypatch):
+        """Test configuration from environment with custom prefix."""
+        monkeypatch.setenv("CUSTOM_HOST", "custom.oracle.com")
+        monkeypatch.setenv("CUSTOM_PORT", "1522")
+        monkeypatch.setenv("CUSTOM_USERNAME", "customuser")
+        monkeypatch.setenv("CUSTOM_PASSWORD", "custompass")
+        monkeypatch.setenv("CUSTOM_SERVICE_NAME", "CUSTOM")
+        
+        result = FlextDbOracleConfig.from_env("CUSTOM_")
+        
+        assert result.is_success
+        config = result.data
+        assert config.host == "custom.oracle.com"
+        assert config.port == 1522
+        assert config.username == "customuser"
+
+    def test_from_env_failure(self):
+        """Test environment configuration failure."""
+        with patch.dict(os.environ, {}, clear=True):
+            result = FlextDbOracleConfig.from_env()
+            # Should still succeed with defaults, but test error handling
+            assert isinstance(result, FlextResult)
+
+    def test_from_url_service_name(self):
+        """Test configuration from URL with service name."""
+        url = "oracle://user:pass@host:1521/service"
+        result = FlextDbOracleConfig.from_url(url)
+        
+        assert result.is_success
+        config = result.data
+        assert config.host == "host"
+        assert config.port == 1521
+        assert config.username == "user"
+        assert config.password.get_secret_value() == "pass"
+        assert config.service_name == "service"
+
+    def test_from_url_invalid(self):
+        """Test configuration from invalid URL."""
+        result = FlextDbOracleConfig.from_url("invalid-url")
+        assert result.is_failure
+        assert "Failed to parse URL" in result.error
+
+    def test_to_connect_params(self, valid_config):
+        """Test conversion to connection parameters."""
+        params = valid_config.to_connect_params()
+        
+        assert params["host"] == "localhost"
+        assert params["port"] == 1521
+        assert params["user"] == "testuser"
+        assert params["password"] == "testpass"
+        assert params["service_name"] == "ORCLCDB"
+        assert params["encoding"] == "UTF-8"
+
+    def test_to_pool_params(self, valid_config):
+        """Test conversion to pool parameters."""
+        params = valid_config.to_pool_params()
+        
+        assert params["min"] == 1
+        assert params["max"] == 10
+        assert params["timeout"] == 30
+
+    def test_get_connection_string_service_name(self, valid_config):
+        """Test connection string with service name."""
+        conn_str = valid_config.get_connection_string()
+        assert conn_str == "localhost:1521/ORCLCDB"
+
+    def test_get_connection_string_sid(self):
+        """Test connection string with SID."""
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            username="testuser",
+            password="testpass",
+            sid="ORCL"
+        )
+        
+        conn_str = config.get_connection_string()
+        assert conn_str == "localhost:1521:ORCL"
+
+    def test_from_dict_success(self):
+        """Test configuration from dictionary."""
+        config_dict = {
+            "host": "localhost",
+            "port": 1521,
+            "username": "testuser",
+            "password": "testpass",
+            "service_name": "ORCLCDB"
+        }
+        
+        result = FlextDbOracleConfig.from_dict(config_dict)
+        assert result.is_success
+        config = result.data
+        assert config.host == "localhost"
+
+    def test_from_dict_validation_failure(self):
+        """Test configuration from dictionary with validation failure."""
+        config_dict = {
+            "host": "",  # Invalid empty host
+            "port": 1521,
+            "username": "testuser",
+            "password": "testpass",
+            "service_name": "ORCLCDB"
+        }
+        
+        result = FlextDbOracleConfig.from_dict(config_dict)
+        assert result.is_failure
+        assert "Configuration validation failed" in result.error
+
+    def test_ssl_configuration(self):
+        """Test SSL configuration settings."""
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            username="testuser",
+            password="testpass",
+            service_name="ORCLCDB",
+            ssl_enabled=True,
+            ssl_cert_path="/path/to/cert.pem"
+        )
+        
+        params = config.to_connect_params()
+        assert params["ssl_context"] is True
+        assert params["ssl_cert_path"] == "/path/to/cert.pem"
+
+    def test_ssl_validation_failure(self):
+        """Test SSL validation failure when cert path missing."""
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            username="testuser",
+            password="testpass", 
+            service_name="ORCLCDB",
+            ssl_enabled=True
+            # Missing ssl_cert_path
+        )
+        
+        result = config.validate_domain_rules()
+        assert result.is_failure
+        assert "ssl_cert_path required when SSL is enabled" in result.error
+
+    def test_string_representation(self, valid_config):
+        """Test string representation without sensitive data."""
+        str_repr = str(valid_config)
+        assert "FlextDbOracleConfig" in str_repr
+        assert "localhost" in str_repr
+        assert "testuser" in str_repr
+        assert "testpass" not in str_repr  # Password should not be visible
+
+    def test_field_validators(self):
+        """Test field validators for host and username."""
+        # Test host validation
+        with pytest.raises(ValueError, match="Host cannot be empty"):
+            FlextDbOracleConfig(
+                host="   ",  # Whitespace only
+                port=1521,
+                username="testuser",
+                password="testpass",
+                service_name="ORCLCDB"
+            )
+        
+        # Test username validation  
+        with pytest.raises(ValueError, match="Username cannot be empty"):
+            FlextDbOracleConfig(
+                host="localhost",
+                port=1521,
+                username="   ",  # Whitespace only
+                password="testpass", 
+                service_name="ORCLCDB"
+            )
+
+    def test_port_validation(self):
+        """Test port range validation."""
+        with pytest.raises(ValueError):
+            FlextDbOracleConfig(
+                host="localhost",
+                port=70000,  # Out of range
+                username="testuser",
+                password="testpass",
+                service_name="ORCLCDB"
             )

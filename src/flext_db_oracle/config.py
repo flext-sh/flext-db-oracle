@@ -1,253 +1,281 @@
-"""Oracle Database Configuration.
-
-Using flext-core BaseConfig patterns for consistent configuration management.
-"""
+"""Oracle Database Configuration using flext-core patterns."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import os
+from typing import Any
 
-from flext_core import FlextValueObject as BaseConfig
-from pydantic import Field, SecretStr, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from flext_core import FlextResult, FlextValueObject, get_logger
+from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
 
-from flext_db_oracle.connection.config import ConnectionConfig
-
-if TYPE_CHECKING:
-    from pydantic import ValidationInfo
+logger = get_logger(__name__)
 
 
-
-class FlextDbOracleConfig(BaseConfig):
+class FlextDbOracleConfig(FlextValueObject):
     """Oracle database configuration using flext-core patterns."""
 
-    # Connection settings
-    host: str = Field("localhost", description="Oracle database host")
-    port: int = Field(1521, ge=1, le=65535, description="Oracle database port")
-    service_name: str | None = Field(None, description="Oracle service name")
+    model_config = ConfigDict(extra="forbid")
+
+    host: str = Field("localhost", description="Database host")
+    port: int = Field(1521, description="Database port", ge=1, le=65535)
     sid: str | None = Field(None, description="Oracle SID")
-    username: str = Field(..., description="Database username")
-    password: str = Field(..., description="Database password")
-    protocol: str = Field("tcp", description="Connection protocol (tcp or tcps)")
+    service_name: str | None = Field(None, description="Oracle service name")
+    username: str = Field("user", description="Database username")
+    password: SecretStr = Field(SecretStr("password"), description="Database password")
 
     # Connection pool settings
-    pool_min_size: int = Field(1, ge=1, description="Minimum pool connections")
-    pool_max_size: int = Field(10, ge=1, description="Maximum pool connections")
-    pool_increment: int = Field(1, ge=1, description="Pool increment size")
+    pool_min: int = Field(1, description="Minimum pool connections", ge=1)
+    pool_max: int = Field(10, description="Maximum pool connections", ge=1)
+    pool_increment: int = Field(1, description="Pool increment", ge=1)
 
-    # Query settings
-    query_timeout: int = Field(30, ge=1, description="Query timeout in seconds")
-    fetch_size: int = Field(
-        1000,
-        ge=1,
-        description="Default fetch size for large queries",
-    )
+    # Connection options
+    timeout: int = Field(30, description="Connection timeout", ge=1)
+    autocommit: bool = Field(default=False, description="Auto-commit transactions")
+    encoding: str = Field("UTF-8", description="Character encoding")
 
-    # Connection settings
-    connect_timeout: int = Field(10, ge=1, description="Connection timeout in seconds")
-    retry_attempts: int = Field(3, ge=0, description="Connection retry attempts")
-    retry_delay: float = Field(
-        1.0,
-        ge=0,
-        description="Delay between retries in seconds",
-    )
+    # SSL/Security options  
+    ssl_enabled: bool = Field(default=False, description="Enable SSL connection")
+    ssl_cert_path: str | None = Field(None, description="SSL certificate path")
+    ssl_key_path: str | None = Field(None, description="SSL key path")
+    
+    # Protocol options (from application services)
+    protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")
+    ssl_server_dn_match: bool = Field(True, description="SSL server DN match")
+    ssl_server_cert_dn: str | None = Field(None, description="SSL server certificate DN")
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate Oracle connection configuration domain rules."""
+        try:
+            # Validate that either SID or service_name is provided
+            if not self.sid and not self.service_name:
+                return FlextResult.fail("Either SID or service_name must be provided")
+
+            # Validate pool configuration
+            if self.pool_max < self.pool_min:
+                return FlextResult.fail("pool_max must be >= pool_min")
+
+            if self.pool_increment > self.pool_max:
+                return FlextResult.fail("pool_increment cannot exceed pool_max")
+
+            # Validate SSL configuration
+            if self.ssl_enabled:
+                if not self.ssl_cert_path:
+                    return FlextResult.fail("ssl_cert_path required when SSL is enabled")
+
+            # Validate host is not empty
+            if not self.host or not self.host.strip():
+                return FlextResult.fail("Host cannot be empty")
+
+            # Validate username is not empty
+            if not self.username or not self.username.strip():
+                return FlextResult.fail("Username cannot be empty")
+
+            return FlextResult.ok(None)
+
+        except Exception as e:
+            return FlextResult.fail(f"Configuration validation failed: {e}")
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, v: str) -> str:
+        """Validate host format."""
+        if not v or not v.strip():
+            msg = "Host cannot be empty"
+            raise ValueError(msg)
+        return v.strip()
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        """Validate username format."""
+        if not v or not v.strip():
+            msg = "Username cannot be empty"
+            raise ValueError(msg)
+        return v.strip()
+
+    @classmethod
+    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+        """Create configuration from environment variables."""
+        try:
+            config = cls(
+                host=os.getenv(f"{prefix}HOST", "localhost"),
+                port=int(os.getenv(f"{prefix}PORT", "1521")),
+                username=os.getenv(f"{prefix}USERNAME", "oracle"),
+                password=os.getenv(f"{prefix}PASSWORD", "oracle"),
+                service_name=os.getenv(f"{prefix}SERVICE_NAME"),
+                sid=os.getenv(f"{prefix}SID"),
+            )
+            return FlextResult.ok(config)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create config from environment: {e}")
+
+    @classmethod
+    def from_url(cls, url: str) -> FlextResult[FlextDbOracleConfig]:
+        """Create configuration from connection URL."""
+        try:
+            # Parse Oracle URL format: oracle://user:pass@host:port/service_name
+            import urllib.parse
+            parsed = urllib.parse.urlparse(url)
+
+            config = cls(
+                host=parsed.hostname or "localhost",
+                port=parsed.port or 1521,
+                username=parsed.username or "oracle",
+                password=parsed.password or "oracle",
+                service_name=parsed.path.lstrip("/") if parsed.path else None,
+            )
+            return FlextResult.ok(config)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to parse URL: {e}")
 
     @model_validator(mode="after")
-    def validate_service_or_sid(self) -> FlextDbOracleConfig:
-        """Ensure either service_name or sid is provided."""
-        if not self.service_name and not self.sid:
-            msg = "Either service_name or sid must be provided"
+    def validate_connection_identifier(self) -> FlextDbOracleConfig:
+        """Validate that either SID or service_name is provided."""
+        if not self.sid and not self.service_name:
+            msg = "Either SID or service_name must be provided"
             raise ValueError(msg)
         return self
 
-    @field_validator("pool_max_size")
-    @classmethod
-    def validate_pool_max_greater_than_min(cls, v: int, info: ValidationInfo) -> int:
-        """Ensure max pool size is greater than or equal to min."""
-        if info.data:
-            min_size = info.data.get("pool_min_size", 1)
-            if v < min_size:
-                msg = (
-                    f"pool_max_size ({v}) must be greater than or equal to "
-                    f"pool_min_size ({min_size})"
-                )
-                raise ValueError(msg)
-        return v
-
-    @property
-    def database_identifier(self) -> str:
-        """Get the database identifier (service_name or sid)."""
-        return self.service_name or self.sid or "unknown"
-
-    @property
-    def connection_string(self) -> str:
-        """Generate safe connection string for logging."""
-        return f"oracle://{self.username}:***@{self.host}:{self.port}/{self.database_identifier}"
-
-    def validate_domain_rules(self) -> None:
-        """Validate domain rules for Oracle configuration."""
-        # Additional domain validation beyond Pydantic
-        if not self.host.strip():
-            msg = "Host cannot be empty"
-            raise ValueError(msg)
-        if not self.username.strip():
-            msg = "Username cannot be empty"
-            raise ValueError(msg)
-        if not self.password.strip():
-            msg = "Password cannot be empty"
+    @model_validator(mode="after")
+    def validate_pool_settings(self) -> FlextDbOracleConfig:
+        """Validate pool configuration."""
+        if self.pool_max < self.pool_min:
+            msg = "pool_max must be >= pool_min"
             raise ValueError(msg)
 
-        # Validate port range is reasonable for Oracle
-        if self.port < 1 or self.port > 65535:
-            msg = f"Port {self.port} is not in valid range 1-65535"
+        if self.pool_increment > self.pool_max:
+            msg = "pool_increment cannot exceed pool_max"
             raise ValueError(msg)
 
-        # Validate protocol
-        valid_protocols = {"tcp", "tcps"}
-        if self.protocol.lower() not in valid_protocols:
-            msg = f"Protocol must be one of {valid_protocols}"
-            raise ValueError(msg)
+        return self
 
-        # Validate pool settings
-        if self.pool_max_size < self.pool_min_size:
-            msg = "pool_max_size must be >= pool_min_size"
-            raise ValueError(msg)
+    def to_connect_params(self) -> dict[str, Any]:
+        """Convert to Oracle connection parameters."""
+        params = {
+            "host": self.host,
+            "port": self.port,
+            "user": self.username,
+            "password": self.password.get_secret_value(),
+            "encoding": self.encoding,
+        }
 
-        # Validate timeout settings are reasonable
-        if self.query_timeout <= 0:
-            msg = "Query timeout must be positive"
-            raise ValueError(msg)
-        if self.connect_timeout <= 0:
-            msg = "Connect timeout must be positive"
-            raise ValueError(msg)
+        # Add connection identifier
+        if self.service_name:
+            params["service_name"] = self.service_name
+        elif self.sid:
+            params["sid"] = self.sid
 
-    @classmethod
-    def from_url(cls, url: str) -> FlextDbOracleConfig:
-        """Create configuration from Oracle connection URL.
+        # Add SSL options if enabled
+        if self.ssl_enabled:
+            params["ssl_context"] = True
+            if self.ssl_cert_path:
+                params["ssl_cert_path"] = self.ssl_cert_path
+            if self.ssl_key_path:
+                params["ssl_key_path"] = self.ssl_key_path
 
-        Args:
-            url: Oracle connection URL in format: oracle://user:pass@host:port/service_name
+        return params
 
-        Returns:
-            FlextDbOracleConfig instance
+    def to_pool_params(self) -> dict[str, Any]:
+        """Convert to Oracle connection pool parameters."""
+        connect_params = self.to_connect_params()
 
-        Raises:
-            ValueError: If URL format is invalid
+        # Add pool-specific parameters
+        connect_params.update({
+            "min": self.pool_min,
+            "max": self.pool_max,
+            "increment": self.pool_increment,
+            "timeout": self.timeout,
+        })
 
-        """
-        if not url.startswith("oracle://"):
-            msg = "URL must start with 'oracle://'"
-            raise ValueError(msg)
+        return connect_params
 
-        # Parse URL: oracle://user:pass@host:port/service_name
+    def get_connection_string(self) -> str:
+        """Get Oracle connection string for logging purposes."""
+        if self.service_name:
+            return f"{self.host}:{self.port}/{self.service_name}"
+        if self.sid:
+            return f"{self.host}:{self.port}:{self.sid}"
+        return f"{self.host}:{self.port}"
+    
+    def build_oracle_dsn(self) -> FlextResult[str]:
+        """Build Oracle DSN with protocol support (consolidated from services)."""
         try:
-            url_content = url[9:]  # Remove oracle://
-            credentials, connection_part = url_content.split("@")
-            username, password = credentials.split(":")
-            host_part, service_name = connection_part.split("/")
-            host, port = host_part.split(":")
-
-            return cls(
-                host=host,
-                port=int(port),
-                username=username,
-                password=password,
-                service_name=service_name,
-                sid=None,
-            )
-        except (ValueError, IndexError) as e:
-            msg = f"Invalid Oracle URL format: {e}"
-            raise ValueError(msg) from e
-
-    def to_connection_config(self) -> ConnectionConfig:
-        """Convert to ConnectionConfig for connection layer compatibility.
-
-        Returns:
-            ConnectionConfig instance with mapped fields
-
-        """
-        return ConnectionConfig(
-            host=self.host,
-            port=self.port,
-            username=self.username,
-            password=SecretStr(self.password),
-            service_name=self.service_name,
-            sid=self.sid,
-            protocol=self.protocol,
-            pool_min=self.pool_min_size,
-            pool_max=self.pool_max_size,
-            pool_increment=self.pool_increment,
-            timeout=self.connect_timeout,
-        )
+            import oracledb
+            
+            if self.protocol == "tcps":
+                # For TCPS, build custom DSN string with SSL options
+                service_or_sid = (
+                    f"SERVICE_NAME={self.service_name}"
+                    if self.service_name
+                    else f"SID={self.sid}"
+                )
+                dsn = (
+                    f"(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)"
+                    f"(HOST={self.host})(PORT={self.port}))"
+                    f"(CONNECT_DATA=({service_or_sid})))"
+                )
+                return FlextResult.ok(dsn)
+            
+            # For TCP, use standard makedsn
+            if self.service_name:
+                dsn = oracledb.makedsn(
+                    host=self.host,
+                    port=self.port,
+                    service_name=self.service_name,
+                )
+            elif self.sid:
+                dsn = oracledb.makedsn(
+                    host=self.host,
+                    port=self.port,
+                    sid=self.sid,
+                )
+            else:
+                return FlextResult.fail("Must provide either service_name or sid")
+            
+            return FlextResult.ok(dsn)
+            
+        except Exception as e:
+            return FlextResult.fail(f"DSN building failed: {e}")
+    
+    def to_oracledb_params(self) -> dict[str, Any]:
+        """Convert to native oracledb connection parameters (consolidated)."""
+        dsn_result = self.build_oracle_dsn()
+        if dsn_result.is_failure:
+            raise ValueError(f"Cannot build DSN: {dsn_result.error}")
+            
+        params = {
+            "user": self.username,
+            "password": self.password.get_secret_value(),
+            "dsn": dsn_result.data,
+        }
+        
+        # Add SSL options for TCPS
+        if self.protocol == "tcps":
+            params["ssl_server_dn_match"] = self.ssl_server_dn_match
+            if self.ssl_server_cert_dn:
+                params["ssl_server_cert_dn"] = self.ssl_server_cert_dn
+                
+        return params
 
     @classmethod
-    def from_env(cls, env_prefix: str = "FLEXT_TARGET_ORACLE_") -> FlextDbOracleConfig:
-        """Create configuration from environment variables (meltano pattern).
+    def from_dict(cls, config_dict: dict[str, Any]) -> FlextResult[FlextDbOracleConfig]:
+        """Create configuration from dictionary with validation."""
+        try:
+            config = cls(**config_dict)
+            validation_result = config.validate_domain_rules()
 
-        Args:
-            env_prefix: Environment variable prefix
+            if validation_result.is_failure:
+                return FlextResult.fail(f"Configuration validation failed: {validation_result.error}")
 
-        Returns:
-            FlextDbOracleConfig instance loaded from environment
+            logger.info(f"Created Oracle connection config for {config.get_connection_string()}")
+            return FlextResult.ok(config)
 
-        """
-
-        # Use temporary settings class for env loading
-        class _TempSettings(BaseSettings):
-            host: str = Field("localhost", description="Oracle database host")
-            port: int = Field(1521, ge=1, le=65535, description="Oracle database port")
-            service_name: str | None = Field(None, description="Oracle service name")
-            sid: str | None = Field(None, description="Oracle SID")
-            username: str = Field(..., description="Database username")
-            password: str = Field(..., description="Database password")
-            protocol: str = Field("tcp", description="Connection protocol")
-            pool_min_size: int = Field(1, ge=1, description="Minimum pool connections")
-            pool_max_size: int = Field(10, ge=1, description="Maximum pool connections")
-            pool_increment: int = Field(1, ge=1, description="Pool increment size")
-            query_timeout: int = Field(30, ge=1, description="Query timeout in seconds")
-            fetch_size: int = Field(1000, ge=1, description="Default fetch size")
-            connect_timeout: int = Field(10, ge=1, description="Connection timeout")
-            retry_attempts: int = Field(
-                3,
-                ge=0,
-                description="Connection retry attempts",
-            )
-            retry_delay: float = Field(1.0, ge=0, description="Delay between retries")
-
-            model_config = SettingsConfigDict(
-                env_prefix=env_prefix,
-                case_sensitive=False,
-            )
-
-        # Load from environment
-        temp_config = _TempSettings()
-
-        # Create FlextDbOracleConfig with loaded values
-        return cls(
-            host=temp_config.host,
-            port=temp_config.port,
-            service_name=temp_config.service_name,
-            sid=temp_config.sid,
-            username=temp_config.username,
-            password=temp_config.password,
-            protocol=temp_config.protocol,
-            pool_min_size=temp_config.pool_min_size,
-            pool_max_size=temp_config.pool_max_size,
-            pool_increment=temp_config.pool_increment,
-            query_timeout=temp_config.query_timeout,
-            fetch_size=temp_config.fetch_size,
-            connect_timeout=temp_config.connect_timeout,
-            retry_attempts=temp_config.retry_attempts,
-            retry_delay=temp_config.retry_delay,
-        )
+        except Exception as e:
+            return FlextResult.fail(f"Configuration creation failed: {e}")
 
     def __str__(self) -> str:
-        """Safe string representation without sensitive data."""
-        return (
-            f"FlextDbOracleConfig(host={self.host}, port={self.port}, "
-            f"service_name={self.service_name}, username={self.username})"
-        )
+        """String representation without sensitive data."""
+        return f"FlextDbOracleConfig(host={self.host}, port={self.port}, username={self.username}, service_name={self.service_name})"
 
 
-# Alias for backward compatibility
-OracleConfig = FlextDbOracleConfig
+__all__ = ["FlextDbOracleConfig"]

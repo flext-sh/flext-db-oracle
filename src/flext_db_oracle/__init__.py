@@ -1,146 +1,61 @@
-"""FLEXT DB ORACLE - Enterprise Oracle Database Integration with simplified imports.
+"""flext-db-oracle - Oracle Database Integration using SQLAlchemy 2 + oracledb.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
+Modern Oracle database library with comprehensive functionality built on flext-core patterns.
+All classes use FlextDbOracle prefix to supplement (not replace) flext-core functionality.
 
-Version 0.7.0 - Enterprise Oracle Database with simplified public API:
-- All common imports available from root:
-  from flext_db_oracle import FlextDbOracleConnectionService
-- Built on flext-core foundation for robust Oracle database integration
-- Deprecation warnings for internal imports
+Example Usage:
+    from flext_db_oracle import (
+        FlextDbOracleApi,
+        FlextDbOracleConfig,
+        FlextDbOracleConnection,
+    )
+
+    # Basic usage
+    config = FlextDbOracleConfig.from_env()
+    api = FlextDbOracleApi(config).connect()
+    result = api.query("SELECT * FROM employees")
 """
 
-from __future__ import annotations
+# Core components using SQLAlchemy 2 and flext-core
+from .config import FlextDbOracleConfig
+from .connection import FlextDbOracleConnection
 
-import contextlib
-import importlib.metadata
-import warnings
-
-# Import from flext-core for foundational patterns
-from flext_core import (
-    FlextResult as FlextResult,
-    FlextValueObject as BaseModel,
-    FlextValueObject as FlextDomainBaseModel,
-    FlextValueObject as ValueObject,
+# Additional components
+from .metadata import (
+    FlextDbOracleColumn,
+    FlextDbOracleMetadataManager,
+    FlextDbOracleSchema,
+    FlextDbOracleTable,
+)
+from .api import FlextDbOracleApi
+from .types import (
+    TDbOracleColumn,
+    TDbOracleConnectionStatus,
+    TDbOracleQueryResult,
+    TDbOracleSchema,
+    TDbOracleTable,
 )
 
-try:
-    __version__ = importlib.metadata.version("flext-db-oracle")
-except importlib.metadata.PackageNotFoundError:
-    __version__ = "0.7.0"
-
-__version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
-
-
-class FlextDbOracleDeprecationWarning(DeprecationWarning):
-    """Custom deprecation warning for FLEXT DB ORACLE import changes."""
-
-
-def _show_deprecation_warning(old_import: str, new_import: str) -> None:
-    """Show deprecation warning for import paths."""
-    message_parts = [
-        f"⚠️  DEPRECATED IMPORT: {old_import}",
-        f"✅ USE INSTEAD: {new_import}",
-        "🔗 This will be removed in version 1.0.0",
-        "📖 See FLEXT DB ORACLE docs for migration guide",
-    ]
-    warnings.warn(
-        "\n".join(message_parts),
-        FlextDbOracleDeprecationWarning,
-        stacklevel=3,
-    )
-
-
-# Re-export commonly used imports from flext-core - NO FALLBACKS (per user instructions)
-
-# ================================
-# SIMPLIFIED PUBLIC API EXPORTS
-# ================================
-
-# Configuration exports - simplified imports
-with contextlib.suppress(ImportError):
-    from flext_db_oracle.config import FlextDbOracleConfig
-
-# Connection layer exports - actual implementations only
-with contextlib.suppress(ImportError):
-    from flext_db_oracle.connection.connection import FlextDbOracleConnection
-    from flext_db_oracle.connection.pool import (
-        ConnectionPool,
-        FlextDbOracleConnectionPool,
-    )
-
-# SQL processing exports - actual implementations only
-with contextlib.suppress(ImportError):
-    from flext_db_oracle.sql.parser import SQLParser
-    from flext_db_oracle.sql.validator import ValidationResult, ValidationRule
-
-# Schema metadata exports - actual implementations only
-with contextlib.suppress(ImportError):
-    from flext_db_oracle.schema.metadata import (
-        ColumnMetadata,
-        ConstraintMetadata,
-        ConstraintType,
-        IndexMetadata,
-        ObjectStatus,
-        SchemaMetadata,
-        TableMetadata,
-        ViewMetadata,
-    )
-
-# Logging utilities - actual implementations only
-with contextlib.suppress(ImportError):
-    from flext_core import get_logger
-
-# Patterns exports - centralized Oracle type converters and transformers
-with contextlib.suppress(ImportError):
-    from flext_db_oracle.patterns import (
-        FlextDbOracleDataTransformer,
-        FlextDbOracleSchemaMapper,
-        FlextDbOracleTableManager,
-        FlextDbOracleTypeConverter,
-        OracleTypeMapping,
-    )
-
-# ================================
-# PUBLIC API EXPORTS
-# ================================
-
 __all__ = [
-    # Core base classes from flext-core
-    "BaseModel",
-    # Schema Metadata - actual implementations
-    "ColumnMetadata",
-    "ConnectionPool",  # Backward compatibility alias
-    "ConstraintMetadata",
-    "ConstraintType",
-    # Configuration - actual implementations
+    # Core API
+    "FlextDbOracleApi",
     "FlextDbOracleConfig",
-    # Connection and Pool - actual implementations
     "FlextDbOracleConnection",
-    "FlextDbOracleConnectionPool",
-    # Patterns - centralized Oracle type converters and transformers
-    "FlextDbOracleDataTransformer",
-    # Deprecation warnings
-    "FlextDbOracleDeprecationWarning",
-    "FlextDbOracleSchemaMapper",
-    "FlextDbOracleTableManager",
-    "FlextDbOracleTypeConverter",
-    "FlextDomainBaseModel",
-    "FlextResult",
-    "IndexMetadata",
-    "ObjectStatus",
-    "OracleTypeMapping",
-    # SQL Processing - actual implementations
-    "SQLParser",
-    "SchemaMetadata",
-    "TableMetadata",
-    "ValidationResult",
-    "ValidationRule",
-    "ValueObject",
-    "ViewMetadata",
+
     # Metadata
-    "__version__",
-    "__version_info__",
-    # Utilities - actual implementations
-    "get_logger",
+    "FlextDbOracleColumn",
+    "FlextDbOracleTable",
+    "FlextDbOracleSchema",
+    "FlextDbOracleMetadataManager",
+
+    # Types
+    "TDbOracleColumn",
+    "TDbOracleTable",
+    "TDbOracleSchema",
+    "TDbOracleQueryResult",
+    "TDbOracleConnectionStatus",
 ]
+
+__version__ = "2.0.0"
+__author__ = "flext-team"
+__description__ = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb with flext-core patterns"

@@ -1,0 +1,578 @@
+"""Oracle Database Connection using SQLAlchemy 2 and flext-core patterns."""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+from typing import TYPE_CHECKING, Any
+from urllib.parse import quote_plus
+
+import oracledb
+from flext_core import FlextResult, get_logger
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Engine
+
+    from .config import FlextDbOracleConfig
+
+logger = get_logger(__name__)
+
+
+class FlextDbOracleNativePool:
+    """Native oracledb connection pool (consolidated from services)."""
+
+    def __init__(self, config: FlextDbOracleConfig) -> None:
+        self.config = config
+        self._pool: oracledb.ConnectionPool | None = None
+
+    def create_pool(self) -> FlextResult[bool]:
+        """Create native oracledb connection pool."""
+        try:
+            params = self.config.to_oracledb_params()
+            params.update(
+                {
+                    "min": self.config.pool_min,
+                    "max": self.config.pool_max,
+                    "increment": self.config.pool_increment,
+                },
+            )
+
+            self._pool = oracledb.create_pool(**params)
+            logger.info("Native Oracle pool created successfully")
+            return FlextResult.ok(True)
+
+        except Exception as e:
+            return FlextResult.fail(f"Pool creation failed: {e}")
+
+    def get_connection(self) -> FlextResult[oracledb.Connection]:
+        """Get connection from pool."""
+        if not self._pool:
+            return FlextResult.fail("Pool not initialized")
+
+        try:
+            conn = self._pool.acquire()
+            return FlextResult.ok(conn)
+        except Exception as e:
+            return FlextResult.fail(f"Connection acquisition failed: {e}")
+
+    def release_connection(self, connection: oracledb.Connection) -> None:
+        """Release connection back to pool."""
+        if self._pool:
+            self._pool.release(connection)
+
+    def close_pool(self) -> FlextResult[bool]:
+        """Close connection pool."""
+        try:
+            if self._pool:
+                self._pool.close()
+                self._pool = None
+            return FlextResult.ok(True)
+        except Exception as e:
+            return FlextResult.fail(f"Pool closure failed: {e}")
+
+
+class FlextDbOracleConnection:
+    """Oracle database connection using SQLAlchemy 2 and flext-core patterns.
+
+    Provides unified interface for Oracle database operations with proper
+    connection management, transactions, and error handling.
+    """
+
+    def __init__(
+        self,
+        config: FlextDbOracleConfig,
+        use_native_pool: bool = False,
+    ) -> None:
+        """Initialize connection with configuration."""
+        self.config = config
+        self.use_native_pool = use_native_pool
+
+        # SQLAlchemy components
+        self._engine: Engine | None = None
+        self._session_factory: sessionmaker[Session] | None = None
+
+        # Native pool component (composition)
+        self._native_pool: FlextDbOracleNativePool | None = None
+        if use_native_pool:
+            self._native_pool = FlextDbOracleNativePool(config)
+
+        self._logger = get_logger(f"{__name__}.{self.__class__.__name__}")
+
+    def connect(self) -> FlextResult[bool]:
+        """Connect to Oracle database using SQLAlchemy 2 or native pool."""
+        try:
+            # Validate configuration
+            config_validation = self.config.validate_domain_rules()
+            if config_validation.is_failure:
+                return FlextResult.fail(
+                    f"Configuration invalid: {config_validation.error}",
+                )
+
+            if self.use_native_pool and self._native_pool:
+                # Use native oracledb pool (consolidated functionality)
+                pool_result = self._native_pool.create_pool()
+                if pool_result.is_failure:
+                    return pool_result
+
+                self._logger.info("Connected using native Oracle pool")
+                return FlextResult.ok(True)
+            # Use SQLAlchemy 2 (existing functionality)
+            url_result = self._build_connection_url()
+            if url_result.is_failure:
+                return url_result
+
+            self._engine = create_engine(
+                url_result.data,
+                echo=False,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                connect_args={"encoding": "UTF-8", "nencoding": "UTF-8"},
+            )
+
+            self._session_factory = sessionmaker(bind=self._engine)
+
+            # Test connection
+            with self._engine.connect() as conn:
+                conn.execute(text("SELECT 1 FROM DUAL"))
+
+            self._logger.info("Connected using SQLAlchemy 2")
+            return FlextResult.ok(True)
+
+        except Exception as e:
+            error_msg = f"Connection failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    def disconnect(self) -> FlextResult[bool]:
+        """Disconnect from database."""
+        try:
+            if self._engine:
+                self._engine.dispose()
+                self._engine = None
+                self._session_factory = None
+                self._logger.info("Disconnected from Oracle database")
+            return FlextResult.ok(True)
+        except Exception as e:
+            return FlextResult.fail(f"Disconnect failed: {e}")
+
+    def is_connected(self) -> bool:
+        """Check if connected to database."""
+        return self._engine is not None
+
+    def execute(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> FlextResult[list[Any]]:
+        """Execute SQL statement using SQLAlchemy 2."""
+        if not self.is_connected():
+            return FlextResult.fail("Not connected to database")
+
+        try:
+            with self._engine.connect() as conn:
+                result = conn.execute(text(sql), parameters or {})
+
+                # Handle different statement types
+                if sql.strip().upper().startswith(("SELECT", "WITH")):
+                    return FlextResult.ok(result.fetchall())
+                conn.commit()
+                return FlextResult.ok([result.rowcount])
+
+        except Exception as e:
+            error_msg = f"SQL execution failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    def execute_many(
+        self,
+        sql: str,
+        parameters_list: list[dict[str, Any]],
+    ) -> FlextResult[int]:
+        """Execute SQL with multiple parameter sets."""
+        if not self.is_connected():
+            return FlextResult.fail("Not connected to database")
+
+        try:
+            with self._engine.connect() as conn:
+                result = conn.execute(text(sql), parameters_list)
+                conn.commit()
+                return FlextResult.ok(result.rowcount)
+
+        except Exception as e:
+            error_msg = f"Batch execution failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    def fetch_one(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> FlextResult[Any]:
+        """Fetch single row."""
+        if not self.is_connected():
+            return FlextResult.fail("Not connected to database")
+
+        try:
+            with self._engine.connect() as conn:
+                result = conn.execute(text(sql), parameters or {})
+                return FlextResult.ok(result.fetchone())
+
+        except Exception as e:
+            error_msg = f"Fetch one failed: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    @contextmanager
+    def session(self):
+        """Get SQLAlchemy session with automatic transaction management."""
+        if not self._session_factory:
+            msg = "Not connected to database"
+            raise ValueError(msg)
+
+        session = self._session_factory()
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    @contextmanager
+    def transaction(self):
+        """Context manager for database transactions."""
+        if not self.is_connected():
+            msg = "Not connected to database"
+            raise ValueError(msg)
+
+        with self._engine.connect() as conn:
+            trans = conn.begin()
+            try:
+                yield conn
+                trans.commit()
+            except Exception:
+                trans.rollback()
+                raise
+
+    def test_connection(self) -> FlextResult[bool]:
+        """Test database connection."""
+        if not self.is_connected():
+            return FlextResult.fail("Not connected")
+
+        try:
+            result = self.execute("SELECT 1 FROM DUAL")
+            return FlextResult.ok(result.is_success)
+        except Exception as e:
+            return FlextResult.fail(f"Connection test failed: {e}")
+
+    def get_table_names(self, schema_name: str | None = None) -> FlextResult[list[str]]:
+        """Get table names from schema."""
+        if schema_name:
+            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            params = {"schema_name": schema_name}
+        else:
+            sql = "SELECT table_name FROM user_tables ORDER BY table_name"
+            params = {}
+
+        result = self.execute(sql, params)
+        if result.is_failure:
+            return result
+
+        return FlextResult.ok([row[0] for row in result.data])
+
+    def get_schemas(self) -> FlextResult[list[str]]:
+        """Get available schema names."""
+        sql = "SELECT username FROM all_users ORDER BY username"
+
+        result = self.execute(sql)
+        if result.is_failure:
+            return result
+
+        return FlextResult.ok([row[0] for row in result.data])
+
+    def get_column_info(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> FlextResult[list[dict[str, Any]]]:
+        """Get column information for table."""
+        if schema_name:
+            sql = """
+                SELECT column_name, data_type, nullable, data_length, data_precision, data_scale, column_id
+                FROM all_tab_columns
+                WHERE owner = UPPER(:schema_name) AND table_name = UPPER(:table_name)
+                ORDER BY column_id
+            """
+            params = {"schema_name": schema_name, "table_name": table_name}
+        else:
+            sql = """
+                SELECT column_name, data_type, nullable, data_length, data_precision, data_scale, column_id
+                FROM user_tab_columns
+                WHERE table_name = UPPER(:table_name)
+                ORDER BY column_id
+            """
+            params = {"table_name": table_name}
+
+        result = self.execute(sql, params)
+        if result.is_failure:
+            return result
+
+        columns = []
+        for row in result.data:
+            columns.append(
+                {
+                    "column_name": row[0],
+                    "data_type": row[1],
+                    "nullable": row[2] == "Y",
+                    "data_length": row[3],
+                    "data_precision": row[4],
+                    "data_scale": row[5],
+                    "column_id": row[6],
+                },
+            )
+
+        return FlextResult.ok(columns)
+
+    def get_primary_key_columns(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> FlextResult[list[str]]:
+        """Get primary key columns for table (consolidated from services)."""
+        if schema_name:
+            sql = """
+                SELECT column_name
+                FROM all_cons_columns c
+                JOIN all_constraints ct ON c.constraint_name = ct.constraint_name
+                    AND c.owner = ct.owner
+                WHERE ct.constraint_type = 'P'
+                    AND ct.owner = UPPER(:schema_name)
+                    AND ct.table_name = UPPER(:table_name)
+                ORDER BY c.position
+            """
+            params = {"schema_name": schema_name, "table_name": table_name}
+        else:
+            sql = """
+                SELECT column_name
+                FROM user_cons_columns c
+                JOIN user_constraints ct ON c.constraint_name = ct.constraint_name
+                WHERE ct.constraint_type = 'P'
+                    AND ct.table_name = UPPER(:table_name)
+                ORDER BY c.position
+            """
+            params = {"table_name": table_name}
+
+        result = self.execute(sql, params)
+        if result.is_failure:
+            return result
+
+        return FlextResult.ok([row[0] for row in result.data])
+
+    def get_table_metadata(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> FlextResult[dict[str, Any]]:
+        """Get complete table metadata (consolidated from services)."""
+        # Get columns
+        columns_result = self.get_column_info(table_name, schema_name)
+        if columns_result.is_failure:
+            return FlextResult.fail(f"Failed to get columns: {columns_result.error}")
+
+        # Get primary keys
+        pk_result = self.get_primary_key_columns(table_name, schema_name)
+        if pk_result.is_failure:
+            return FlextResult.fail(f"Failed to get primary keys: {pk_result.error}")
+
+        metadata = {
+            "table_name": table_name,
+            "schema_name": schema_name,
+            "columns": columns_result.data,
+            "primary_keys": pk_result.data,
+        }
+
+        return FlextResult.ok(metadata)
+
+    def build_select(
+        self,
+        table_name: str,
+        columns: list[str] | None = None,
+        conditions: dict[str, Any] | None = None,
+        schema_name: str | None = None,
+    ) -> FlextResult[str]:
+        """Build SELECT query using SQLAlchemy patterns (consolidated from services)."""
+        try:
+            # Build column list
+            column_list = ", ".join(columns) if columns else "*"
+
+            # Build table name
+            if schema_name:
+                full_table_name = f"{schema_name}.{table_name}"
+            else:
+                full_table_name = table_name
+
+            # Build WHERE clause
+            where_clause = ""
+            if conditions:
+                where_conditions = []
+                for key, value in conditions.items():
+                    if isinstance(value, str):
+                        where_conditions.append(f"{key} = '{value}'")
+                    else:
+                        where_conditions.append(f"{key} = {value}")
+                where_clause = " WHERE " + " AND ".join(where_conditions)
+
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"
+            return FlextResult.ok(sql)
+
+        except Exception as e:
+            return FlextResult.fail(f"Query building failed: {e}")
+
+    def create_table_ddl(
+        self,
+        table_name: str,
+        columns: list[dict[str, Any]],
+        schema_name: str | None = None,
+    ) -> FlextResult[str]:
+        """Generate CREATE TABLE DDL (consolidated from services)."""
+        try:
+            # Build table name
+            if schema_name:
+                full_table_name = f"{schema_name}.{table_name}"
+            else:
+                full_table_name = table_name
+
+            # Build column definitions
+            column_defs = []
+            for col in columns:
+                col_def = f"{col['name']} {col['data_type']}"
+                if not col.get("nullable", True):
+                    col_def += " NOT NULL"
+                if col.get("default_value"):
+                    col_def += f" DEFAULT {col['default_value']}"
+                column_defs.append(col_def)
+
+            ddl = f"CREATE TABLE {full_table_name} (\n  {',\n  '.join(column_defs)}\n)"
+            return FlextResult.ok(ddl)
+
+        except Exception as e:
+            return FlextResult.fail(f"DDL generation failed: {e}")
+
+    def drop_table_ddl(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> FlextResult[str]:
+        """Generate DROP TABLE DDL (consolidated from services)."""
+        try:
+            if schema_name:
+                full_table_name = f"{schema_name}.{table_name}"
+            else:
+                full_table_name = table_name
+
+            ddl = f"DROP TABLE {full_table_name}"
+            return FlextResult.ok(ddl)
+
+        except Exception as e:
+            return FlextResult.fail(f"DROP DDL generation failed: {e}")
+
+    def execute_ddl(self, ddl: str) -> FlextResult[bool]:
+        """Execute DDL statement (consolidated from services)."""
+        try:
+            result = self.execute(ddl)
+            if result.is_success:
+                return FlextResult.ok(True)
+            return FlextResult.fail(result.error)
+
+        except Exception as e:
+            return FlextResult.fail(f"DDL execution failed: {e}")
+
+    def convert_singer_type(
+        self,
+        singer_type: str | list[str],
+        format_hint: str | None = None,
+    ) -> FlextResult[str]:
+        """Convert Singer type to Oracle type (consolidated from services)."""
+        try:
+            # Handle array types
+            if isinstance(singer_type, list):
+                if "null" in singer_type:
+                    # Remove null and get actual type
+                    actual_types = [t for t in singer_type if t != "null"]
+                    singer_type = actual_types[0] if actual_types else "string"
+                else:
+                    singer_type = singer_type[0]
+
+            # Singer to Oracle type mapping
+            type_mapping = {
+                "string": "VARCHAR2(4000)",
+                "integer": "NUMBER(38)",
+                "number": "NUMBER",
+                "boolean": "NUMBER(1)",
+                "array": "CLOB",
+                "object": "CLOB",
+            }
+
+            # Handle date/time formats
+            if singer_type == "string" and format_hint:
+                if "date" in format_hint.lower():
+                    return FlextResult.ok("DATE")
+                if "time" in format_hint.lower():
+                    return FlextResult.ok("TIMESTAMP")
+
+            oracle_type = type_mapping.get(singer_type, "VARCHAR2(4000)")
+            return FlextResult.ok(oracle_type)
+
+        except Exception as e:
+            return FlextResult.fail(f"Type conversion failed: {e}")
+
+    def map_singer_schema(
+        self,
+        singer_schema: dict[str, Any],
+    ) -> FlextResult[dict[str, str]]:
+        """Map Singer schema to Oracle column definitions (consolidated from services)."""
+        try:
+            oracle_columns = {}
+
+            properties = singer_schema.get("properties", {})
+            for field_name, field_def in properties.items():
+                field_type = field_def.get("type", "string")
+                format_hint = field_def.get("format")
+
+                type_result = self.convert_singer_type(field_type, format_hint)
+                if type_result.is_failure:
+                    return type_result
+
+                oracle_columns[field_name] = type_result.data
+
+            return FlextResult.ok(oracle_columns)
+
+        except Exception as e:
+            return FlextResult.fail(f"Schema mapping failed: {e}")
+
+    def _build_connection_url(self) -> FlextResult[str]:
+        """Build Oracle connection URL for SQLAlchemy."""
+        try:
+            username = quote_plus(self.config.username)
+            password = quote_plus(self.config.password.get_secret_value())
+            host = self.config.host
+            port = self.config.port
+
+            if self.config.service_name:
+                # Use service name
+                url = f"oracle+oracledb://{username}:{password}@{host}:{port}/?service_name={self.config.service_name}"
+            elif self.config.sid:
+                # Use SID
+                url = f"oracle+oracledb://{username}:{password}@{host}:{port}/{self.config.sid}"
+            else:
+                return FlextResult.fail("Must provide either service_name or sid")
+
+            return FlextResult.ok(url)
+
+        except Exception as e:
+            return FlextResult.fail(f"URL building failed: {e}")
+
+
+__all__ = ["FlextDbOracleConnection"]
