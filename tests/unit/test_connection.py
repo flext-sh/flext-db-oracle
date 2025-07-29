@@ -28,7 +28,9 @@ class TestFlextDbOracleConnection:
         assert not connection.is_connected()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_connect_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_connect_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful database connection."""
         # Mock engine and connection
         mock_engine = MagicMock(spec=Engine)
@@ -45,7 +47,9 @@ class TestFlextDbOracleConnection:
         mock_create_engine.assert_called_once()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_connect_failure(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_connect_failure(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection failure."""
         mock_create_engine.side_effect = OSError("Connection failed")
 
@@ -56,7 +60,9 @@ class TestFlextDbOracleConnection:
         assert "Connection failed" in result.error
         assert not connection.is_connected()
 
-    def test_connect_with_invalid_config(self, invalid_config: FlextDbOracleConfig) -> None:
+    def test_connect_with_invalid_config(
+        self, invalid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection with invalid host (network failure)."""
         connection = FlextDbOracleConnection(invalid_config)
         result = connection.connect()
@@ -65,7 +71,9 @@ class TestFlextDbOracleConnection:
         assert "Failed to connect" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_disconnect_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful disconnection."""
         mock_engine = MagicMock(spec=Engine)
         mock_connection = MagicMock()
@@ -82,7 +90,9 @@ class TestFlextDbOracleConnection:
         assert not connection.is_connected()
         mock_engine.dispose.assert_called_once()
 
-    def test_disconnect_when_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_when_not_connected(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test disconnect when not connected."""
         connection = FlextDbOracleConnection(valid_config)
         result = connection.disconnect()
@@ -91,7 +101,9 @@ class TestFlextDbOracleConnection:
         assert result.data is True
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_select_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_select_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful SELECT execution."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -111,7 +123,9 @@ class TestFlextDbOracleConnection:
         assert result.data == [("row1",), ("row2",)]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_dml_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_dml_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful DML execution."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -125,7 +139,9 @@ class TestFlextDbOracleConnection:
         connection = FlextDbOracleConnection(valid_config)
         connection.connect()
 
-        result = connection.execute("INSERT INTO test_table VALUES (:1)", {"1": "value"})
+        result = connection.execute(
+            "INSERT INTO test_table VALUES (:1)", {"1": "value"},
+        )
 
         assert result.is_success
         assert result.data == [5]
@@ -140,7 +156,9 @@ class TestFlextDbOracleConnection:
         assert "Not connected to database" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_sql_error(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_sql_error(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test execute with SQL error."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -167,7 +185,9 @@ class TestFlextDbOracleConnection:
         assert "SQL execution failed" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_many_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_many_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful batch execution."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -188,7 +208,9 @@ class TestFlextDbOracleConnection:
         assert result.data == 3
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_fetch_one_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_fetch_one_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful single row fetch."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -208,7 +230,9 @@ class TestFlextDbOracleConnection:
         assert result.data == ("single_row",)
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_session_context_manager(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_session_context_manager(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test session context manager."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -229,7 +253,9 @@ class TestFlextDbOracleConnection:
         mock_session.close.assert_called_once()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_session_rollback_on_error(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_session_rollback_on_error(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test session rollback on error."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -257,7 +283,9 @@ class TestFlextDbOracleConnection:
         mock_session.close.assert_called_once()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_transaction_context_manager(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_transaction_context_manager(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test transaction context manager."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -276,7 +304,9 @@ class TestFlextDbOracleConnection:
         mock_transaction.commit.assert_called_once()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_transaction_rollback_on_error(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_transaction_rollback_on_error(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test transaction rollback on error."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -302,7 +332,9 @@ class TestFlextDbOracleConnection:
         mock_transaction.rollback.assert_called_once()
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_table_names_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_table_names_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting table names successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -322,7 +354,9 @@ class TestFlextDbOracleConnection:
         assert result.data == ["TABLE1", "TABLE2", "TABLE3"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_table_names_with_schema(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_table_names_with_schema(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting table names with specific schema."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -342,7 +376,9 @@ class TestFlextDbOracleConnection:
         assert result.data == ["HR_TABLE1", "HR_TABLE2"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_schemas_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_schemas_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting schema names successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -362,7 +398,9 @@ class TestFlextDbOracleConnection:
         assert result.data == ["HR", "FINANCE", "SALES"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_column_info_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_column_info_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting column info successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -390,7 +428,9 @@ class TestFlextDbOracleConnection:
         assert result.data[1]["nullable"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_primary_key_columns_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_primary_key_columns_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting primary key columns successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -410,7 +450,9 @@ class TestFlextDbOracleConnection:
         assert result.data == ["ID", "CODE"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_get_table_metadata_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_table_metadata_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test getting complete table metadata successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -453,7 +495,9 @@ class TestFlextDbOracleConnection:
         assert result.data["primary_keys"] == ["ID"]
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_build_select_basic(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_select_basic(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building basic SELECT query."""
         # Setup mocks (minimal setup since we're testing query building logic)
         mock_engine = MagicMock(spec=Engine)
@@ -470,7 +514,9 @@ class TestFlextDbOracleConnection:
         assert "SELECT * FROM EMPLOYEES" in result.data
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_build_select_with_columns(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_select_with_columns(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building SELECT query with specific columns."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -487,7 +533,9 @@ class TestFlextDbOracleConnection:
         assert "SELECT ID, NAME, EMAIL FROM EMPLOYEES" in result.data
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_build_select_with_conditions(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_select_with_conditions(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building SELECT query with WHERE conditions."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -507,7 +555,9 @@ class TestFlextDbOracleConnection:
         assert "department_id = 10" in result.data
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_build_select_with_schema(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_select_with_schema(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building SELECT query with schema."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -524,7 +574,9 @@ class TestFlextDbOracleConnection:
         assert "SELECT ID, NAME FROM HR.EMPLOYEES" in result.data
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_create_table_ddl_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_create_table_ddl_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test creating table DDL successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -536,8 +588,18 @@ class TestFlextDbOracleConnection:
         connection.connect()
 
         columns = [
-            {"name": "ID", "data_type": "NUMBER(10)", "nullable": False, "default_value": None},
-            {"name": "NAME", "data_type": "VARCHAR2(100)", "nullable": True, "default_value": "'UNKNOWN'"},
+            {
+                "name": "ID",
+                "data_type": "NUMBER(10)",
+                "nullable": False,
+                "default_value": None,
+            },
+            {
+                "name": "NAME",
+                "data_type": "VARCHAR2(100)",
+                "nullable": True,
+                "default_value": "'UNKNOWN'",
+            },
         ]
 
         result = connection.create_table_ddl("TEST_TABLE", columns, "HR")
@@ -548,7 +610,9 @@ class TestFlextDbOracleConnection:
         assert "NAME VARCHAR2(100) DEFAULT 'UNKNOWN'" in result.data
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_drop_table_ddl_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_drop_table_ddl_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test creating DROP table DDL successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -565,7 +629,9 @@ class TestFlextDbOracleConnection:
         assert result.data == "DROP TABLE HR.TEST_TABLE"
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_ddl_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_ddl_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test executing DDL successfully."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -585,7 +651,9 @@ class TestFlextDbOracleConnection:
         assert result.data is True
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_convert_singer_type_basic_types(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_convert_singer_type_basic_types(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test converting basic Singer types to Oracle types."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -617,7 +685,9 @@ class TestFlextDbOracleConnection:
         assert result.data == "NUMBER(1)"
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_convert_singer_type_with_format(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_convert_singer_type_with_format(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test converting Singer types with format hints."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -639,7 +709,9 @@ class TestFlextDbOracleConnection:
         assert result.data == "TIMESTAMP"
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_convert_singer_type_array_with_null(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_convert_singer_type_array_with_null(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test converting Singer array types with null."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -661,7 +733,9 @@ class TestFlextDbOracleConnection:
         assert result.data == "NUMBER(38)"
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_map_singer_schema_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_map_singer_schema_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test mapping Singer schema to Oracle column definitions."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -693,7 +767,9 @@ class TestFlextDbOracleConnection:
         assert result.data["is_active"] == "NUMBER(1)"
         assert result.data["metadata"] == "CLOB"
 
-    def test_build_connection_url_service_name(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_connection_url_service_name(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building connection URL with service name."""
         connection = FlextDbOracleConnection(valid_config)
 
@@ -725,7 +801,9 @@ class TestFlextDbOracleConnection:
         assert "/ORCL" in result.data
         assert "service_name=" not in result.data
 
-    def test_build_connection_url_no_identifier(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_build_connection_url_no_identifier(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test building connection URL without SID or service name."""
         # Create a mock config that has neither service_name nor sid
         mock_config = MagicMock()
@@ -742,20 +820,27 @@ class TestFlextDbOracleConnection:
         assert result.is_failure
         assert "Must provide either service_name or sid" in result.error
 
-
-    def test_connect_with_url_building_failure(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_connect_with_url_building_failure(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection with URL building failure."""
         # Patch _build_connection_url to return failure
         connection = FlextDbOracleConnection(valid_config)
 
-        with patch.object(connection, "_build_connection_url", return_value=FlextResult.fail("URL build failed")):
+        with patch.object(
+            connection,
+            "_build_connection_url",
+            return_value=FlextResult.fail("URL build failed"),
+        ):
             result = connection.connect()
 
         assert result.is_failure
         assert "URL build failed" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_test_connection_success(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_test_connection_success(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful connection test."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -774,7 +859,9 @@ class TestFlextDbOracleConnection:
         assert result.is_success
         assert result.data is True
 
-    def test_test_connection_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_test_connection_not_connected(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection test when not connected."""
         connection = FlextDbOracleConnection(valid_config)
         result = connection.test_connection()
@@ -783,7 +870,9 @@ class TestFlextDbOracleConnection:
         assert "Not connected" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_disconnect_failure(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_failure(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test disconnect failure handling."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -801,7 +890,9 @@ class TestFlextDbOracleConnection:
         assert "Disconnect failed" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_many_not_connected(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_many_not_connected(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test execute_many when not connected."""
         connection = FlextDbOracleConnection(valid_config)
 
@@ -812,7 +903,9 @@ class TestFlextDbOracleConnection:
         assert "Not connected to database" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_many_no_engine(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_many_no_engine(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test execute_many when is_connected but engine is None (edge case)."""
         connection = FlextDbOracleConnection(valid_config)
         # Set up mocks for connection
@@ -827,13 +920,17 @@ class TestFlextDbOracleConnection:
         with patch.object(connection, "is_connected", return_value=True):
             connection._engine = None  # Engine is None but is_connected returns True
             params_list = [{"id": 1}, {"id": 2}]
-            result = connection.execute_many("INSERT INTO test VALUES (:id)", params_list)
+            result = connection.execute_many(
+                "INSERT INTO test VALUES (:id)", params_list,
+            )
 
             assert result.is_failure
             assert "Database engine not initialized" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_execute_many_sql_error(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_many_sql_error(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test execute_many with SQL error."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -861,7 +958,9 @@ class TestFlextDbOracleConnection:
         assert "Batch execution failed" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_fetch_one_not_connected(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_fetch_one_not_connected(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test fetch_one when not connected."""
         connection = FlextDbOracleConnection(valid_config)
         result = connection.fetch_one("SELECT 1 FROM DUAL")
@@ -870,7 +969,9 @@ class TestFlextDbOracleConnection:
         assert "Not connected to database" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_fetch_one_no_engine(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_fetch_one_no_engine(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test fetch_one when is_connected but engine is None (edge case)."""
         connection = FlextDbOracleConnection(valid_config)
         # Set up mocks for connection
@@ -890,7 +991,9 @@ class TestFlextDbOracleConnection:
             assert "Database engine not initialized" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_fetch_one_sql_error(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_fetch_one_sql_error(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test fetch_one with SQL error."""
         # Setup mocks
         mock_engine = MagicMock(spec=Engine)
@@ -917,25 +1020,35 @@ class TestFlextDbOracleConnection:
         assert "Fetch one failed" in result.error
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_session_not_connected(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_session_not_connected(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test session context manager when not connected."""
         connection = FlextDbOracleConnection(valid_config)
 
-        with pytest.raises(ValueError, match="Not connected to database"):
-            with connection.session():
-                pass
+        with (
+            pytest.raises(ValueError, match="Not connected to database"),
+            connection.session(),
+        ):
+            pass
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_transaction_not_connected(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_transaction_not_connected(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test transaction context manager when not connected."""
         connection = FlextDbOracleConnection(valid_config)
 
-        with pytest.raises(ValueError, match="Not connected to database"):
-            with connection.transaction():
-                pass
+        with (
+            pytest.raises(ValueError, match="Not connected to database"),
+            connection.transaction(),
+        ):
+            pass
 
     @patch("flext_db_oracle.connection.create_engine")
-    def test_transaction_no_engine(self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_transaction_no_engine(
+        self, mock_create_engine: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test transaction context manager when is_connected but engine is None (edge case)."""
         connection = FlextDbOracleConnection(valid_config)
         # Set up mocks for connection
@@ -950,6 +1063,8 @@ class TestFlextDbOracleConnection:
         with patch.object(connection, "is_connected", return_value=True):
             connection._engine = None  # Engine is None but is_connected returns True
 
-            with pytest.raises(ValueError, match="Database engine not initialized"):
-                with connection.transaction():
-                    pass
+            with (
+                pytest.raises(ValueError, match="Database engine not initialized"),
+                connection.transaction(),
+            ):
+                pass

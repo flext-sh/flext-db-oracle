@@ -44,7 +44,9 @@ class TestFlextDbOracleConfig:
         assert config.sid == "ORCL"
         assert config.service_name is None
 
-    def test_domain_rules_validation_success(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_domain_rules_validation_success(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful domain rules validation."""
         result = valid_config.validate_domain_rules()
         assert result.is_success
@@ -52,7 +54,9 @@ class TestFlextDbOracleConfig:
 
     def test_domain_rules_validation_no_identifier(self) -> None:
         """Test validation failure when no SID or service_name."""
-        with pytest.raises(ValueError, match="Either SID or service_name must be provided"):
+        with pytest.raises(
+            ValueError, match="Either SID or service_name must be provided",
+        ):
             FlextDbOracleConfig(
                 host="localhost",
                 port=1521,
@@ -157,7 +161,9 @@ class TestFlextDbOracleConfig:
         assert params["max"] == 10
         assert params["timeout"] == 30
 
-    def test_get_connection_string_service_name(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_connection_string_service_name(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection string with service name."""
         conn_str = valid_config.get_connection_string()
         assert conn_str == "localhost:1521/ORCLCDB"
@@ -276,3 +282,73 @@ class TestFlextDbOracleConfig:
                 password="testpass",
                 service_name="ORCLCDB",
             )
+
+    def test_pool_configuration_validation_errors(self) -> None:
+        """Test pool configuration validation edge cases."""
+        # Create a valid config first, then modify with model_copy
+        base_config = FlextDbOracleConfig(
+            host="localhost",
+            username="test",
+            password="test",
+            service_name="test",
+        )
+
+        # Test pool_max < pool_min by using model_copy
+        config = base_config.model_copy(update={"pool_min": 10, "pool_max": 5})
+        result = config.validate_domain_rules()
+        assert result.is_failure
+        assert "pool_max must be >= pool_min" in result.error
+
+        # Test pool_increment > pool_max
+        config = base_config.model_copy(update={"pool_max": 5, "pool_increment": 10})
+        result = config.validate_domain_rules()
+        assert result.is_failure
+        assert "pool_increment cannot exceed pool_max" in result.error
+
+    def test_ssl_configuration_with_cert_path(self) -> None:
+        """Test SSL configuration requiring cert path."""
+        # Test SSL enabled but no cert path - should be caught by validate_domain_rules
+        config = FlextDbOracleConfig(
+            host="localhost",
+            username="test",
+            password="test",
+            service_name="test",
+            ssl_enabled=True,
+            # ssl_cert_path not provided
+        )
+
+        result = config.validate_domain_rules()
+        assert result.is_failure
+        assert "ssl_cert_path required when SSL is enabled" in result.error
+
+    def test_from_env_parsing_errors(self) -> None:
+        """Test from_env handles parsing errors gracefully."""
+        with patch.dict(
+            os.environ,
+            {
+                "FLEXT_TARGET_ORACLE_PORT": "invalid-port",
+            },
+        ):
+            result = FlextDbOracleConfig.from_env()
+            assert result.is_failure
+            assert "Failed to create config from environment" in result.error
+
+    def test_from_dict_creation_error(self) -> None:
+        """Test from_dict handles creation errors."""
+        config_dict = {
+            "host": "",  # This will fail validation
+            "username": "test",
+            "password": "test",
+            "service_name": "test",
+        }
+
+        result = FlextDbOracleConfig.from_dict(config_dict)
+        assert result.is_failure
+        assert "Configuration creation failed" in result.error
+
+    def test_from_url_parsing_error(self) -> None:
+        """Test from_url handles parsing errors properly."""
+        with patch("urllib.parse.urlparse", side_effect=ValueError("Mock error")):
+            result = FlextDbOracleConfig.from_url("oracle://test@localhost/db")
+            assert result.is_failure
+            assert "Failed to parse URL" in result.error

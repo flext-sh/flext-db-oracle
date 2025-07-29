@@ -21,7 +21,9 @@ if TYPE_CHECKING:
 class TestFlextDbOracleApi:
     """Comprehensive tests for Oracle API."""
 
-    def test_api_initialization_with_config(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_api_initialization_with_config(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test API initialization with configuration."""
         api = FlextDbOracleApi(valid_config, "test_context")
 
@@ -40,13 +42,16 @@ class TestFlextDbOracleApi:
         assert api._connection is None
         assert not api.is_connected
 
-    @patch.dict("os.environ", {
-        "FLEXT_TARGET_ORACLE_HOST": "env.oracle.com",
-        "FLEXT_TARGET_ORACLE_PORT": "1522",
-        "FLEXT_TARGET_ORACLE_USERNAME": "envuser",
-        "FLEXT_TARGET_ORACLE_PASSWORD": "envpass",
-        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ENVDB",
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "FLEXT_TARGET_ORACLE_HOST": "env.oracle.com",
+            "FLEXT_TARGET_ORACLE_PORT": "1522",
+            "FLEXT_TARGET_ORACLE_USERNAME": "envuser",
+            "FLEXT_TARGET_ORACLE_PASSWORD": "envpass",
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ENVDB",
+        },
+    )
     def test_from_env_success(self) -> None:
         """Test API creation from environment variables."""
         api = FlextDbOracleApi.from_env()
@@ -72,7 +77,9 @@ class TestFlextDbOracleApi:
         assert api._config.port == 1523
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_connect_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_connect_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful database connection."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -95,7 +102,9 @@ class TestFlextDbOracleApi:
             api.connect()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_connect_failure(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_connect_failure(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection failure."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -104,11 +113,15 @@ class TestFlextDbOracleApi:
 
         api = FlextDbOracleApi(valid_config)
 
-        with pytest.raises(ConnectionError, match="Failed to connect: Connection failed"):
+        with pytest.raises(
+            ConnectionError, match="Failed to connect: Connection failed",
+        ):
             api.connect()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_disconnect_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful disconnection."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -126,7 +139,9 @@ class TestFlextDbOracleApi:
         assert not api.is_connected
         mock_connection.disconnect.assert_called_once()
 
-    def test_disconnect_when_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_when_not_connected(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test disconnect when not connected."""
         api = FlextDbOracleApi(valid_config)
         result = api.disconnect()
@@ -167,7 +182,9 @@ class TestFlextDbOracleApi:
         assert "Database not connected" in result.error
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_query_with_parameters(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_query_with_parameters(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test query execution with parameters."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -188,7 +205,9 @@ class TestFlextDbOracleApi:
         )
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_query_one_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_query_one_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful single row query."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -206,7 +225,9 @@ class TestFlextDbOracleApi:
         mock_connection.fetch_one.assert_called_once()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_execute_batch_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_batch_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful batch operation execution."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -234,7 +255,9 @@ class TestFlextDbOracleApi:
         assert result.data[1] == [("result2",)]
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_execute_batch_failure(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_execute_batch_failure(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test batch operation with failure."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -260,12 +283,16 @@ class TestFlextDbOracleApi:
         assert "Batch operation 2 failed" in result.error
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_transaction_context_manager(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_transaction_context_manager(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test transaction context manager."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.transaction.return_value.__enter__.return_value = mock_connection
+        mock_connection.transaction.return_value.__enter__.return_value = (
+            mock_connection
+        )
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -277,12 +304,16 @@ class TestFlextDbOracleApi:
         mock_connection.transaction.assert_called_once()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_get_tables_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_tables_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful table names retrieval."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.get_table_names.return_value = FlextResult.ok(["TABLE1", "TABLE2"])
+        mock_connection.get_table_names.return_value = FlextResult.ok(
+            ["TABLE1", "TABLE2"],
+        )
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -295,7 +326,9 @@ class TestFlextDbOracleApi:
         mock_connection.get_table_names.assert_called_once_with(None)
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_get_tables_with_schema(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_tables_with_schema(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test table names retrieval with schema."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -312,12 +345,16 @@ class TestFlextDbOracleApi:
         mock_connection.get_table_names.assert_called_once_with("TEST_SCHEMA")
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_get_schemas_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_schemas_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful schemas retrieval."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.get_schemas.return_value = FlextResult.ok(["SCHEMA1", "SCHEMA2"])
+        mock_connection.get_schemas.return_value = FlextResult.ok(
+            ["SCHEMA1", "SCHEMA2"],
+        )
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -329,15 +366,19 @@ class TestFlextDbOracleApi:
         assert result.data == ["SCHEMA1", "SCHEMA2"]
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_get_columns_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_get_columns_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful column info retrieval."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.get_column_info.return_value = FlextResult.ok([
-            {"column_name": "ID", "data_type": "NUMBER"},
-            {"column_name": "NAME", "data_type": "VARCHAR2"},
-        ])
+        mock_connection.get_column_info.return_value = FlextResult.ok(
+            [
+                {"column_name": "ID", "data_type": "NUMBER"},
+                {"column_name": "NAME", "data_type": "VARCHAR2"},
+            ],
+        )
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -350,7 +391,9 @@ class TestFlextDbOracleApi:
         assert len(result.data) == 2
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_test_connection_success(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_test_connection_success(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test successful connection test."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -366,7 +409,9 @@ class TestFlextDbOracleApi:
         assert result.is_success
         assert result.data is True
 
-    def test_test_connection_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_test_connection_not_connected(
+        self, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test connection test when not connected."""
         api = FlextDbOracleApi(valid_config)
         result = api.test_connection()
@@ -384,7 +429,9 @@ class TestFlextDbOracleApi:
         assert not api.is_connected
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_context_manager_connect(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_context_manager_connect(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test context manager auto-connection."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -403,7 +450,9 @@ class TestFlextDbOracleApi:
         mock_connection.disconnect.assert_called_once()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_context_manager_already_connected(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_context_manager_already_connected(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test context manager when already connected."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -421,7 +470,9 @@ class TestFlextDbOracleApi:
         assert not api._is_connected
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
-    def test_chaining_methods(self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig) -> None:
+    def test_chaining_methods(
+        self, mock_connection_class: Mock, valid_config: FlextDbOracleConfig,
+    ) -> None:
         """Test method chaining functionality."""
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)

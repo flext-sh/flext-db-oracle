@@ -457,8 +457,12 @@ class TestFlextDbOracleSchema:
     def test_get_table_by_name_found(self) -> None:
         """Test getting table by name when found."""
         column = FlextDbOracleColumn(name="ID", data_type="NUMBER", column_id=1)
-        table1 = FlextDbOracleTable(name="EMPLOYEES", schema_name="HR", columns=[column])
-        table2 = FlextDbOracleTable(name="DEPARTMENTS", schema_name="HR", columns=[column])
+        table1 = FlextDbOracleTable(
+            name="EMPLOYEES", schema_name="HR", columns=[column],
+        )
+        table2 = FlextDbOracleTable(
+            name="DEPARTMENTS", schema_name="HR", columns=[column],
+        )
 
         schema = FlextDbOracleSchema(
             name="HR",
@@ -555,6 +559,7 @@ class TestFlextDbOracleMetadataManager:
         ]
 
         from flext_core import FlextResult
+
         mock_connection.get_column_info.return_value = FlextResult.ok(column_data)
 
         manager = FlextDbOracleMetadataManager(mock_connection)
@@ -574,7 +579,10 @@ class TestFlextDbOracleMetadataManager:
         mock_connection = MagicMock()
 
         from flext_core import FlextResult
-        mock_connection.get_column_info.return_value = FlextResult.fail("Connection failed")
+
+        mock_connection.get_column_info.return_value = FlextResult.fail(
+            "Connection failed",
+        )
 
         manager = FlextDbOracleMetadataManager(mock_connection)
         result = manager.get_table_metadata("EMPLOYEES", "HR")
@@ -601,6 +609,7 @@ class TestFlextDbOracleMetadataManager:
         ]
 
         from flext_core import FlextResult
+
         mock_connection.get_column_info.return_value = FlextResult.ok(column_data)
 
         manager = FlextDbOracleMetadataManager(mock_connection)
@@ -659,6 +668,7 @@ class TestFlextDbOracleMetadataManager:
         ]
 
         from flext_core import FlextResult
+
         mock_connection.get_table_names.return_value = FlextResult.ok(table_names)
         mock_connection.get_column_info.side_effect = [
             FlextResult.ok(employee_columns),
@@ -679,7 +689,10 @@ class TestFlextDbOracleMetadataManager:
         mock_connection = MagicMock()
 
         from flext_core import FlextResult
-        mock_connection.get_table_names.return_value = FlextResult.fail("Connection failed")
+
+        mock_connection.get_table_names.return_value = FlextResult.fail(
+            "Connection failed",
+        )
 
         manager = FlextDbOracleMetadataManager(mock_connection)
         result = manager.get_schema_metadata("HR")
@@ -710,6 +723,7 @@ class TestFlextDbOracleMetadataManager:
         ]
 
         from flext_core import FlextResult
+
         mock_connection.get_table_names.return_value = FlextResult.ok(table_names)
         mock_connection.get_column_info.side_effect = [
             FlextResult.ok(employee_columns),

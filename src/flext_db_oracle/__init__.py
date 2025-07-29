@@ -1,7 +1,8 @@
 """flext-db-oracle - Oracle Database Integration using SQLAlchemy 2 + oracledb.
 
-Modern Oracle database library with comprehensive functionality built on flext-core patterns.
-All classes use FlextDbOracle prefix to supplement (not replace) flext-core functionality.
+Modern Oracle database library with comprehensive functionality built on flext-core
+patterns. All classes use FlextDbOracle prefix to supplement (not replace)
+flext-core functionality.
 
 Example Usage:
     from flext_db_oracle import (
@@ -56,4 +57,7 @@ __all__ = [
 
 __version__ = "2.0.0"
 __author__ = "flext-team"
-__description__ = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb with flext-core patterns"
+__description__ = (
+    "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "
+    "with flext-core patterns"
+)

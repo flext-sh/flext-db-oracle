@@ -25,7 +25,9 @@ class FlextDbOracleConfig(FlextValueObject):
     model_config = ConfigDict(extra="forbid")
 
     host: str = Field("localhost", description="Database host")
-    port: int = Field(ORACLE_DEFAULT_PORT, description="Database port", ge=1, le=MAX_PORT)
+    port: int = Field(
+        ORACLE_DEFAULT_PORT, description="Database port", ge=1, le=MAX_PORT,
+    )
     sid: str | None = Field(None, description="Oracle SID")
     service_name: str | None = Field(None, description="Oracle service name")
     username: str = Field("user", description="Database username")
@@ -49,7 +51,9 @@ class FlextDbOracleConfig(FlextValueObject):
     # Protocol options (from application services)
     protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")
     ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
-    ssl_server_cert_dn: str | None = Field(None, description="SSL server certificate DN")
+    ssl_server_cert_dn: str | None = Field(
+        None, description="SSL server certificate DN",
+    )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate Oracle connection configuration domain rules."""
@@ -105,7 +109,9 @@ class FlextDbOracleConfig(FlextValueObject):
         return v.strip()
 
     @classmethod
-    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+    def from_env(
+        cls, prefix: str = "FLEXT_TARGET_ORACLE_",
+    ) -> FlextResult[FlextDbOracleConfig]:
         """Create configuration from environment variables."""
         try:
             config = cls(
@@ -209,12 +215,14 @@ class FlextDbOracleConfig(FlextValueObject):
         connect_params = self.to_connect_params()
 
         # Add pool-specific parameters
-        connect_params.update({
-            "min": self.pool_min,
-            "max": self.pool_max,
-            "increment": self.pool_increment,
-            "timeout": self.timeout,
-        })
+        connect_params.update(
+            {
+                "min": self.pool_min,
+                "max": self.pool_max,
+                "increment": self.pool_increment,
+                "timeout": self.timeout,
+            },
+        )
 
         return connect_params
 
@@ -234,9 +242,14 @@ class FlextDbOracleConfig(FlextValueObject):
             validation_result = config.validate_domain_rules()
 
             if validation_result.is_failure:
-                return FlextResult.fail(f"Configuration validation failed: {validation_result.error}")
+                return FlextResult.fail(
+                    f"Configuration validation failed: {validation_result.error}",
+                )
 
-            logger.info("Created Oracle connection config for %s", config.get_connection_string())
+            logger.info(
+                "Created Oracle connection config for %s",
+                config.get_connection_string(),
+            )
             return FlextResult.ok(config)
 
         except (ValueError, TypeError, KeyError) as e:

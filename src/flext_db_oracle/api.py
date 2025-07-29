@@ -73,7 +73,9 @@ class FlextDbOracleApi:
 
         config_result = FlextDbOracleConfig.from_env(env_prefix)
         if config_result.is_failure:
-            logger.error("Failed to load config from environment: %s", config_result.error)
+            logger.error(
+                "Failed to load config from environment: %s", config_result.error,
+            )
             msg = f"Configuration loading failed: {config_result.error}"
             raise ValueError(msg)
 
@@ -165,20 +167,36 @@ class FlextDbOracleApi:
                     self._is_connected = True
 
                     # Store in container
-                    self._container.register(f"oracle_connection_{self._context_name}", self._connection)
+                    self._container.register(
+                        f"oracle_connection_{self._context_name}", self._connection,
+                    )
 
-                    self._logger.info("Oracle database connection established successfully")
+                    self._logger.info(
+                        "Oracle database connection established successfully",
+                    )
                     return self
                 last_error = connect_result.error
                 if attempt < self._retry_attempts:
-                    self._logger.warning("Connection attempt %d failed, retrying: %s", attempt + 1, last_error)
+                    self._logger.warning(
+                        "Connection attempt %d failed, retrying: %s",
+                        attempt + 1,
+                        last_error,
+                    )
 
             except (ConnectionError, OSError, ValueError, AttributeError) as e:
                 last_error = str(e)
                 if attempt < self._retry_attempts:
-                    self._logger.warning("Connection attempt %d failed, retrying: %s", attempt + 1, last_error)
+                    self._logger.warning(
+                        "Connection attempt %d failed, retrying: %s",
+                        attempt + 1,
+                        last_error,
+                    )
 
-        self._logger.error("Connection failed after %d attempts: %s", self._retry_attempts + 1, last_error)
+        self._logger.error(
+            "Connection failed after %d attempts: %s",
+            self._retry_attempts + 1,
+            last_error,
+        )
         msg = f"Failed to connect: {last_error}"
         raise ConnectionError(msg)
 
@@ -219,13 +237,17 @@ class FlextDbOracleApi:
         result = self._connection.execute(sql, params)
         if result.is_success:
             row_count = len(result.data) if result.data else 0
-            self._logger.info("Query executed successfully, returned %d rows", row_count)
+            self._logger.info(
+                "Query executed successfully, returned %d rows", row_count,
+            )
         else:
             self._logger.error("Query execution failed: %s", result.error)
 
         return result
 
-    def query_with_timing(self, sql: str, params: dict[str, Any] | None = None) -> FlextResult[TDbOracleQueryResult]:
+    def query_with_timing(
+        self, sql: str, params: dict[str, Any] | None = None,
+    ) -> FlextResult[TDbOracleQueryResult]:
         """Execute query with timing metrics (consolidated from QueryService)."""
         if not self._is_connected or not self._connection:
             return FlextResult.fail("Database not connected")
@@ -252,7 +274,9 @@ class FlextDbOracleApi:
                 execution_time_ms=execution_time,
             )
 
-            self._logger.info("Query executed: %d rows, %.2fms", len(rows_data), execution_time)
+            self._logger.info(
+                "Query executed: %d rows, %.2fms", len(rows_data), execution_time,
+            )
             return FlextResult.ok(query_result)
 
         except (ConnectionError, OSError, ValueError, AttributeError) as e:
@@ -271,7 +295,9 @@ class FlextDbOracleApi:
 
         return self._connection.fetch_one(sql, params)
 
-    def execute_batch(self, operations: list[tuple[str, dict[str, Any] | None]]) -> FlextResult[list[Any]]:
+    def execute_batch(
+        self, operations: list[tuple[str, dict[str, Any] | None]],
+    ) -> FlextResult[list[Any]]:
         """Execute batch operations using flext-core patterns."""
         if not self._connection:
             return FlextResult.fail("No database connection")
@@ -282,10 +308,14 @@ class FlextDbOracleApi:
             result = self._connection.execute(sql, params)
             if result.is_failure:
                 self._logger.error("Batch operation %d failed: %s", i + 1, result.error)
-                return FlextResult.fail(f"Batch operation {i + 1} failed: {result.error}")
+                return FlextResult.fail(
+                    f"Batch operation {i + 1} failed: {result.error}",
+                )
             results.append(result.data)
 
-        self._logger.info("Batch operations completed successfully: %d operations", len(operations))
+        self._logger.info(
+            "Batch operations completed successfully: %d operations", len(operations),
+        )
         return FlextResult.ok(results)
 
     # =============================================================================
@@ -456,7 +486,12 @@ class FlextDbOracleApi:
             self.connect()
         return self
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: types.TracebackType | None) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit."""
         self.disconnect()
 

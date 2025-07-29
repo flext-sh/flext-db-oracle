@@ -6,7 +6,7 @@ Consolidated type definitions using proper FlextDbOracle prefixing.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from flext_core import FlextResult, FlextValueObject
 from pydantic import Field
@@ -38,8 +38,12 @@ class TDbOracleColumn(FlextValueObject):
     comments: str | None = Field(None, description="Column comments")
 
     # Consolidated functionality from domain models
-    is_primary_key: bool = Field(default=False, description="Whether column is primary key")
-    is_foreign_key: bool = Field(default=False, description="Whether column is foreign key")
+    is_primary_key: bool = Field(
+        default=False, description="Whether column is primary key",
+    )
+    is_foreign_key: bool = Field(
+        default=False, description="Whether column is foreign key",
+    )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate column type domain rules."""
@@ -83,7 +87,9 @@ class TDbOracleTable(FlextValueObject):
 
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema name")
-    columns: list[TDbOracleColumn] = Field(default_factory=list, description="Table columns")
+    columns: list[TDbOracleColumn] = Field(
+        default_factory=list, description="Table columns",
+    )
     row_count: int | None = Field(None, description="Estimated row count")
     size_bytes: int | None = Field(None, description="Table size in bytes")
     tablespace: str | None = Field(None, description="Tablespace name")
@@ -144,7 +150,9 @@ class TDbOracleSchema(FlextValueObject):
     """Oracle schema type definition."""
 
     name: str = Field(..., description="Schema name")
-    tables: list[TDbOracleTable] = Field(default_factory=list, description="Schema tables")
+    tables: list[TDbOracleTable] = Field(
+        default_factory=list, description="Schema tables",
+    )
     created_date: datetime | None = Field(None, description="Schema creation date")
     default_tablespace: str | None = Field(None, description="Default tablespace")
 
@@ -188,7 +196,9 @@ class TDbOracleQueryResult(FlextValueObject):
     rows: list[tuple[Any, ...]] = Field(default_factory=list, description="Result rows")
     columns: list[str] = Field(default_factory=list, description="Column names")
     row_count: int = Field(default=0, description="Number of rows")
-    execution_time_ms: float = Field(default=0.0, description="Execution time in milliseconds")
+    execution_time_ms: float = Field(
+        default=0.0, description="Execution time in milliseconds",
+    )
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate query result domain rules."""
@@ -208,10 +218,7 @@ class TDbOracleQueryResult(FlextValueObject):
         if not self.columns:
             return []
 
-        return [
-            dict(zip(self.columns, row, strict=False))
-            for row in self.rows
-        ]
+        return [dict(zip(self.columns, row, strict=False)) for row in self.rows]
 
     @property
     def is_empty(self) -> bool:

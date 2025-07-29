@@ -27,7 +27,9 @@ class FlextDbOracleColumn(FlextValueObject):
 
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
-    nullable: bool = Field(default=True, description="Whether column allows NULL values")
+    nullable: bool = Field(
+        default=True, description="Whether column allows NULL values",
+    )
     default_value: str | None = Field(None, description="Default value")
     data_length: int | None = Field(None, description="Column data length")
     data_precision: int | None = Field(None, description="Numeric precision")
@@ -73,7 +75,9 @@ class FlextDbOracleTable(FlextValueObject):
 
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema name")
-    columns: list[FlextDbOracleColumn] = Field(default_factory=list, description="Table columns")
+    columns: list[FlextDbOracleColumn] = Field(
+        default_factory=list, description="Table columns",
+    )
     row_count: int | None = Field(None, description="Approximate row count")
     size_mb: float | None = Field(None, description="Table size in MB")
     comments: str | None = Field(None, description="Table comments")
@@ -95,7 +99,9 @@ class FlextDbOracleTable(FlextValueObject):
             for column in self.columns:
                 validation_result = column.validate_domain_rules()
                 if validation_result.is_failure:
-                    return FlextResult.fail(f"Column {column.name}: {validation_result.error}")
+                    return FlextResult.fail(
+                        f"Column {column.name}: {validation_result.error}",
+                    )
 
             return FlextResult.ok(None)
 
@@ -119,7 +125,9 @@ class FlextDbOracleSchema(FlextValueObject):
     """Oracle schema metadata using flext-core patterns."""
 
     name: str = Field(..., description="Schema name")
-    tables: list[FlextDbOracleTable] = Field(default_factory=list, description="Schema tables")
+    tables: list[FlextDbOracleTable] = Field(
+        default_factory=list, description="Schema tables",
+    )
     created_date: datetime | None = Field(None, description="Schema creation date")
     default_tablespace: str | None = Field(None, description="Default tablespace")
 
@@ -133,7 +141,9 @@ class FlextDbOracleSchema(FlextValueObject):
             for table in self.tables:
                 validation_result = table.validate_domain_rules()
                 if validation_result.is_failure:
-                    return FlextResult.fail(f"Table {table.name}: {validation_result.error}")
+                    return FlextResult.fail(
+                        f"Table {table.name}: {validation_result.error}",
+                    )
 
             return FlextResult.ok(None)
 
@@ -161,7 +171,9 @@ class FlextDbOracleMetadataManager:
         self._connection = connection
         self._logger = get_logger(__name__)
 
-    def get_table_metadata(self, table_name: str, schema_name: str | None = None) -> FlextResult[FlextDbOracleTable]:
+    def get_table_metadata(
+        self, table_name: str, schema_name: str | None = None,
+    ) -> FlextResult[FlextDbOracleTable]:
         """Get complete table metadata."""
         try:
             self._logger.info("Getting metadata for table: %s", table_name)
@@ -169,11 +181,13 @@ class FlextDbOracleMetadataManager:
             # Get column information
             columns_result = self._connection.get_column_info(table_name, schema_name)
             if columns_result.is_failure:
-                return FlextResult.fail(f"Failed to get columns: {columns_result.error}")
+                return FlextResult.fail(
+                    f"Failed to get columns: {columns_result.error}",
+                )
 
             # Convert to FlextDbOracleColumn objects
             columns = []
-            for col_info in (columns_result.data or []):
+            for col_info in columns_result.data or []:
                 column = FlextDbOracleColumn(
                     name=col_info["column_name"],
                     data_type=col_info["data_type"],
@@ -197,15 +211,17 @@ class FlextDbOracleMetadataManager:
                 schema_name=schema_name or "USER",
                 columns=columns,
                 row_count=None,  # Would need to query for actual count
-                size_mb=None,    # Would need to query for actual size
-                comments=None,   # Would need to query for table comments
+                size_mb=None,  # Would need to query for actual size
+                comments=None,  # Would need to query for table comments
                 created_date=None,  # Would need to query for creation date
             )
 
             # Validate table
             validation_result = table.validate_domain_rules()
             if validation_result.is_failure:
-                return FlextResult.fail(f"Table validation failed: {validation_result.error}")
+                return FlextResult.fail(
+                    f"Table validation failed: {validation_result.error}",
+                )
 
             self._logger.info("Table metadata retrieved successfully")
             return FlextResult.ok(table)
@@ -227,7 +243,7 @@ class FlextDbOracleMetadataManager:
 
             # Get metadata for each table
             tables: list[FlextDbOracleTable] = []
-            for table_name in (tables_result.data or []):
+            for table_name in tables_result.data or []:
                 table_result = self.get_table_metadata(table_name, schema_name)
                 if table_result.is_success and table_result.data:
                     tables.append(table_result.data)
@@ -236,14 +252,16 @@ class FlextDbOracleMetadataManager:
             schema = FlextDbOracleSchema(
                 name=schema_name,
                 tables=tables,
-                created_date=None,        # Would need to query for creation date
+                created_date=None,  # Would need to query for creation date
                 default_tablespace=None,  # Would need to query for default tablespace
             )
 
             # Validate schema
             validation_result = schema.validate_domain_rules()
             if validation_result.is_failure:
-                return FlextResult.fail(f"Schema validation failed: {validation_result.error}")
+                return FlextResult.fail(
+                    f"Schema validation failed: {validation_result.error}",
+                )
 
             self._logger.info("Schema metadata retrieved: %d tables", len(tables))
             return FlextResult.ok(schema)

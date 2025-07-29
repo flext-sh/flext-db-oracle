@@ -447,9 +447,15 @@ class TestTDbOracleTable:
     def test_primary_key_columns_property(self) -> None:
         """Test primary key columns property."""
         columns = [
-            TDbOracleColumn(name="ID", data_type="NUMBER", position=1, is_primary_key=True),
-            TDbOracleColumn(name="NAME", data_type="VARCHAR2", position=2, is_primary_key=False),
-            TDbOracleColumn(name="CODE", data_type="VARCHAR2", position=3, is_primary_key=True),
+            TDbOracleColumn(
+                name="ID", data_type="NUMBER", position=1, is_primary_key=True,
+            ),
+            TDbOracleColumn(
+                name="NAME", data_type="VARCHAR2", position=2, is_primary_key=False,
+            ),
+            TDbOracleColumn(
+                name="CODE", data_type="VARCHAR2", position=3, is_primary_key=True,
+            ),
         ]
 
         table = TDbOracleTable(
@@ -466,9 +472,15 @@ class TestTDbOracleTable:
     def test_foreign_key_columns_property(self) -> None:
         """Test foreign key columns property."""
         columns = [
-            TDbOracleColumn(name="ID", data_type="NUMBER", position=1, is_foreign_key=False),
-            TDbOracleColumn(name="DEPT_ID", data_type="NUMBER", position=2, is_foreign_key=True),
-            TDbOracleColumn(name="MANAGER_ID", data_type="NUMBER", position=3, is_foreign_key=True),
+            TDbOracleColumn(
+                name="ID", data_type="NUMBER", position=1, is_foreign_key=False,
+            ),
+            TDbOracleColumn(
+                name="DEPT_ID", data_type="NUMBER", position=2, is_foreign_key=True,
+            ),
+            TDbOracleColumn(
+                name="MANAGER_ID", data_type="NUMBER", position=3, is_foreign_key=True,
+            ),
         ]
 
         table = TDbOracleTable(
@@ -636,7 +648,9 @@ class TestTDbOracleSchema:
 
         tables = [
             TDbOracleTable(name="EMPLOYEES", schema_name="HR", columns=table1_columns),
-            TDbOracleTable(name="DEPARTMENTS", schema_name="HR", columns=table2_columns),
+            TDbOracleTable(
+                name="DEPARTMENTS", schema_name="HR", columns=table2_columns,
+            ),
         ]
 
         schema = TDbOracleSchema(

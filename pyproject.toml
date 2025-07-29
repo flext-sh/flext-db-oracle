@@ -190,6 +190,8 @@ split-on-trailing-comma = true
 combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
+"src/flext_db_oracle/metadata.py" = ["TC003"]  # datetime needed at runtime for Pydantic
+"src/flext_db_oracle/types.py" = ["TC003"]     # datetime needed at runtime for Pydantic
 "tests/*" = [
     "S101",
     "S103",

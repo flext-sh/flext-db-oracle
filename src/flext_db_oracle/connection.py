@@ -420,7 +420,14 @@ class FlextDbOracleConnection:
             ddl = f"CREATE TABLE {full_table_name} (\n  {',\n  '.join(column_defs)}\n)"
             return FlextResult.ok(ddl)
 
-        except (SQLAlchemyError, OSError, ValueError, AttributeError, TypeError, KeyError) as e:
+        except (
+            SQLAlchemyError,
+            OSError,
+            ValueError,
+            AttributeError,
+            TypeError,
+            KeyError,
+        ) as e:
             return FlextResult.fail(f"DDL generation failed: {e}")
 
     def drop_table_ddl(
