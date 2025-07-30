@@ -1,372 +1,129 @@
-# FLEXT DB Oracle - Makefile Unificado
-# ===================================
-# Oracle Database Integration Service
-# Python 3.13 + Oracle + Clean Architecture + Zero Tolerance Quality
-
-.PHONY: help install test lint type-check format clean build docs
-.PHONY: check validate dev-setup deps-update deps-audit info diagnose
-.PHONY: install-dev test-unit test-integration test-coverage test-watch
-.PHONY: format-check security pre-commit build-clean publish publish-test
-.PHONY: dev dev-test clean-all emergency-reset
-.PHONY: oracle-test oracle-connect oracle-migrate oracle-validate
-
-# ============================================================================
-# 🎯 CONFIGURAÇÃO E DETECÇÃO
-# ============================================================================
-
-# Detectar nome do projeto
+# FLEXT-DB-ORACLE Makefile
 PROJECT_NAME := flext-db-oracle
-PROJECT_TITLE := FLEXT DB Oracle
-PROJECT_VERSION := $(shell poetry version -s)
-
-# Ambiente Python
-PYTHON := python3.13
+PYTHON_VERSION := 3.13
 POETRY := poetry
-VENV_PATH := $(shell poetry env info --path 2>/dev/null || echo "")
+SRC_DIR := src
+TESTS_DIR := tests
 
-# ============================================================================
-# 🎯 AJUDA E INFORMAÇÃO
-# ============================================================================
+# Quality standards
+MIN_COVERAGE := 90
 
-help: ## Mostrar ajuda e comandos disponíveis
-	@echo "🏆 $(PROJECT_TITLE) - Comandos Essenciais"
-	@echo "===================================="
-	@echo "📦 Oracle Database Integration Service"
-	@echo "🐍 Python 3.13 + Oracle + Zero Tolerância"
-	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\\n", $$1, $$2}'
-	@echo ""
-	@echo "💡 Comandos principais: make install, make test, make lint"
+# Help
+help: ## Show available commands
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-info: ## Mostrar informações do projeto
-	@echo "📊 Informações do Projeto"
-	@echo "======================"
-	@echo "Nome: $(PROJECT_NAME)"
-	@echo "Título: $(PROJECT_TITLE)"
-	@echo "Versão: $(PROJECT_VERSION)"
-	@echo "Python: $(shell $(PYTHON) --version 2>/dev/null || echo "Não encontrado")"
-	@echo "Poetry: $(shell $(POETRY) --version 2>/dev/null || echo "Não instalado")"
-	@echo "Venv: $(shell [ -n "$(VENV_PATH)" ] && echo "$(VENV_PATH)" || echo "Não ativado")"
-	@echo "Diretório: $(CURDIR)"
-	@echo "Git Branch: $(shell git branch --show-current 2>/dev/null || echo "Não é repo git")"
-	@echo "Git Status: $(shell git status --porcelain 2>/dev/null | wc -l | xargs echo) arquivos alterados"
+# Installation
+install: ## Install dependencies
+	$(POETRY) install
 
-diagnose: ## Executar diagnósticos completos
-	@echo "🔍 Executando diagnósticos para $(PROJECT_NAME)..."
-	@echo "Informações do Sistema:"
-	@echo "OS: $(shell uname -s)"
-	@echo "Arquitetura: $(shell uname -m)"
-	@echo "Python: $(shell $(PYTHON) --version 2>/dev/null || echo "Não encontrado")"
-	@echo "Poetry: $(shell $(POETRY) --version 2>/dev/null || echo "Não instalado")"
-	@echo ""
-	@echo "Estrutura do Projeto:"
-	@ls -la
-	@echo ""
-	@echo "Configuração Poetry:"
-	@$(POETRY) config --list 2>/dev/null || echo "Poetry não configurado"
-	@echo ""
-	@echo "Status das Dependências:"
-	@$(POETRY) show --outdated 2>/dev/null || echo "Nenhuma dependência desatualizada"
+install-dev: ## Install dev dependencies
+	$(POETRY) install --with dev,test,docs
 
-# ============================================================================
-# 📦 GERENCIAMENTO DE DEPENDÊNCIAS
-# ============================================================================
+setup: install-dev ## Complete project setup
+	$(POETRY) run pre-commit install
 
-validate-setup: ## Validar ambiente de desenvolvimento
-	@echo "🔍 Validando ambiente de desenvolvimento..."
-	@command -v $(PYTHON) >/dev/null 2>&1 || { echo "❌ Python 3.13 não encontrado"; exit 1; }
-	@command -v $(POETRY) >/dev/null 2>&1 || { echo "❌ Poetry não encontrado"; exit 1; }
-	@test -f pyproject.toml || { echo "❌ pyproject.toml não encontrado"; exit 1; }
-	@echo "✅ Validação do ambiente passou"
+# Quality gates
+validate: lint type-check security test ## Run all quality gates
 
-install: validate-setup ## Instalar dependências de runtime
-	@echo "📦 Instalando dependências de runtime para $(PROJECT_NAME)..."
-	@$(POETRY) install --only main
-	@echo "✅ Dependências de runtime instaladas"
+check: lint type-check ## Quick health check
 
-install-dev: validate-setup ## Instalar todas as dependências incluindo dev tools
-	@echo "📦 Instalando todas as dependências para $(PROJECT_NAME)..."
-	@$(POETRY) install --all-extras
-	@echo "✅ Todas as dependências instaladas"
+lint: ## Run linting
+	$(POETRY) run ruff check $(SRC_DIR) $(TESTS_DIR)
 
-deps-update: ## Atualizar dependências para versões mais recentes
-	@echo "🔄 Atualizando dependências para $(PROJECT_NAME)..."
-	@$(POETRY) update
-	@echo "✅ Dependências atualizadas"
+format: ## Format code
+	$(POETRY) run ruff format $(SRC_DIR) $(TESTS_DIR)
 
-deps-show: ## Mostrar árvore de dependências
-	@echo "📊 Árvore de dependências para $(PROJECT_NAME):"
-	@$(POETRY) show --tree
+type-check: ## Run type checking
+	$(POETRY) run mypy $(SRC_DIR) --strict
 
-deps-audit: ## Auditoria de dependências para vulnerabilidades
-	@echo "🔍 Auditando dependências para $(PROJECT_NAME)..."
-	@$(POETRY) run pip-audit --format=columns || echo "⚠️  pip-audit não disponível"
-	@$(POETRY) run safety check --json || echo "⚠️  safety não disponível"
+security: ## Run security scanning
+	$(POETRY) run bandit -r $(SRC_DIR)
+	$(POETRY) run pip-audit
 
-# ============================================================================
-# 🧪 TESTES
-# ============================================================================
+fix: ## Auto-fix issues
+	$(POETRY) run ruff check $(SRC_DIR) $(TESTS_DIR) --fix
+	$(POETRY) run ruff format $(SRC_DIR) $(TESTS_DIR)
 
-test: ## Executar todos os testes (90% cobertura mínima)
-	@echo "🧪 Executando todos os testes para $(PROJECT_NAME)..."
-	@$(POETRY) run pytest tests/ -v --cov=src/flext_db_oracle --cov-report=term-missing --cov-fail-under=90
-	@echo "✅ Todos os testes passaram"
+# Testing
+test: ## Run tests with coverage
+	$(POETRY) run pytest $(TESTS_DIR) --cov=$(SRC_DIR) --cov-report=term-missing --cov-fail-under=$(MIN_COVERAGE)
 
-test-unit: ## Executar apenas testes unitários
-	@echo "🧪 Executando testes unitários para $(PROJECT_NAME)..."
-	@$(POETRY) run pytest tests/unit/ -xvs -m "not integration and not slow"
-	@echo "✅ Testes unitários passaram"
+test-unit: ## Run unit tests
+	$(POETRY) run pytest $(TESTS_DIR) -m "not integration" -v
 
-test-integration: ## Executar apenas testes de integração
-	@echo "🧪 Executando testes de integração para $(PROJECT_NAME)..."
-	@$(POETRY) run pytest tests/integration/ -xvs -m "integration"
-	@echo "✅ Testes de integração passaram"
+test-integration: ## Run integration tests
+	$(POETRY) run pytest $(TESTS_DIR) -m integration -v
 
-test-coverage: ## Executar testes com relatório de cobertura
-	@echo "🧪 Executando testes com cobertura para $(PROJECT_NAME)..."
-	@$(POETRY) run pytest --cov --cov-report=html --cov-report=term-missing --cov-report=xml
-	@echo "✅ Relatório de cobertura gerado"
+test-fast: ## Run tests without coverage
+	$(POETRY) run pytest $(TESTS_DIR) -v
 
-test-watch: ## Executar testes em modo watch
-	@echo "👀 Executando testes em modo watch para $(PROJECT_NAME)..."
-	@$(POETRY) run pytest-watch --clear
+coverage-html: ## Generate HTML coverage report
+	$(POETRY) run pytest $(TESTS_DIR) --cov=$(SRC_DIR) --cov-report=html
 
-coverage-html: test-coverage ## Gerar e abrir relatório HTML de cobertura
-	@echo "📊 Abrindo relatório de cobertura..."
-	@python -m webbrowser htmlcov/index.html
+# Oracle specific
+oracle-test: ## Test Oracle connection
+	$(POETRY) run python -c "from flext_db_oracle import FlextDbOracleApi; print('Oracle test passed')"
 
-# ============================================================================
-# 🎨 QUALIDADE DE CÓDIGO E FORMATAÇÃO
-# ============================================================================
+oracle-connect: ## Test Oracle connection
+	$(POETRY) run python -c "from flext_db_oracle.connection import test_connection; test_connection()"
 
-lint: ## Executar todos os linters com máxima rigorosidade
-	@echo "🔍 Executando linting com máxima rigorosidade para $(PROJECT_NAME)..."
-	@$(POETRY) run ruff check . --output-format=github
-	@echo "✅ Linting completado"
+# Build
+build: ## Build package
+	$(POETRY) build
 
-format: ## Formatar código com padrões rigorosos
-	@echo "🎨 Formatando código para $(PROJECT_NAME)..."
-	@$(POETRY) run ruff format .
-	@$(POETRY) run ruff check . --fix --unsafe-fixes
-	@echo "✅ Código formatado"
+build-clean: clean build ## Clean and build
 
-format-check: ## Verificar formatação sem alterar
-	@echo "🔍 Verificando formatação para $(PROJECT_NAME)..."
-	@$(POETRY) run ruff format . --check
-	@$(POETRY) run ruff check . --output-format=github
-	@echo "✅ Formatação verificada"
+# Documentation
+docs: ## Build documentation
+	$(POETRY) run mkdocs build
 
-type-check: ## Executar verificação de tipos rigorosa
-	@echo "🔍 Executando verificação de tipos rigorosa para $(PROJECT_NAME)..."
-	@$(POETRY) run mypy src/ --strict --show-error-codes
-	@echo "✅ Verificação de tipos passou"
+docs-serve: ## Serve documentation
+	$(POETRY) run mkdocs serve
 
-security: ## Executar análise de segurança
-	@echo "🔒 Executando análise de segurança para $(PROJECT_NAME)..."
-	@$(POETRY) run bandit -r src/ -f json || echo "⚠️  bandit não disponível"
-	@$(POETRY) run detect-secrets scan --all-files || echo "⚠️  detect-secrets não disponível"
-	@echo "✅ Análise de segurança completada"
+# Dependencies
+deps-update: ## Update dependencies
+	$(POETRY) update
 
-pre-commit: ## Executar hooks pre-commit
-	@echo "🔧 Executando hooks pre-commit para $(PROJECT_NAME)..."
-	@$(POETRY) run pre-commit run --all-files || echo "⚠️  pre-commit não disponível"
-	@echo "✅ Hooks pre-commit completados"
+deps-show: ## Show dependency tree
+	$(POETRY) show --tree
 
-check: lint type-check security ## Executar todas as verificações de qualidade
-	@echo "🔍 Executando verificações abrangentes de qualidade para $(PROJECT_NAME)..."
-	@echo "✅ Todas as verificações de qualidade passaram"
+deps-audit: ## Audit dependencies
+	$(POETRY) run pip-audit
 
-validate: check test ## Validação STRICT de conformidade (tudo deve passar)
-	@echo "✅ TODOS OS QUALITY GATES PASSARAM - FLEXT DB ORACLE COMPLIANT"
+# Development
+shell: ## Open Python shell
+	$(POETRY) run python
 
-# ============================================================================
-# 🏗️ BUILD E DISTRIBUIÇÃO
-# ============================================================================
+pre-commit: ## Run pre-commit hooks
+	$(POETRY) run pre-commit run --all-files
 
-build: clean ## Construir o pacote com Poetry
-	@echo "🏗️  Construindo pacote $(PROJECT_NAME)..."
-	@$(POETRY) build
-	@echo "✅ Pacote construído com sucesso"
-	@echo "📦 Artefatos de build:"
-	@ls -la dist/
+# Maintenance
+clean: ## Clean build artifacts
+	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ .coverage .mypy_cache/ .ruff_cache/
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
-build-clean: clean build ## Limpar e construir
-	@echo "✅ Build limpo completado"
+clean-all: clean ## Deep clean including venv
+	rm -rf .venv/
 
-publish-test: build ## Publicar no TestPyPI
-	@echo "📤 Publicando $(PROJECT_NAME) no TestPyPI..."
-	@$(POETRY) publish --repository testpypi
-	@echo "✅ Publicado no TestPyPI"
+reset: clean-all setup ## Reset project
 
-publish: build ## Publicar no PyPI
-	@echo "📤 Publicando $(PROJECT_NAME) no PyPI..."
-	@$(POETRY) publish
-	@echo "✅ Publicado no PyPI"
+# Diagnostics
+diagnose: ## Project diagnostics
+	@echo "Python: $$(python --version)"
+	@echo "Poetry: $$($(POETRY) --version)"
+	@$(POETRY) env info
 
-# ============================================================================
-# 📚 DOCUMENTAÇÃO
-# ============================================================================
+doctor: diagnose check ## Health check
 
-docs: ## Gerar documentação
-	@echo "📚 Gerando documentação para $(PROJECT_NAME)..."
-	@if [ -f mkdocs.yml ]; then \
-		$(POETRY) run mkdocs build; \
-	else \
-		echo "⚠️  Nenhum mkdocs.yml encontrado, pulando geração de documentação"; \
-	fi
-	@echo "✅ Documentação gerada"
-
-docs-serve: ## Servir documentação localmente
-	@echo "📚 Servindo documentação para $(PROJECT_NAME)..."
-	@if [ -f mkdocs.yml ]; then \
-		$(POETRY) run mkdocs serve; \
-	else \
-		echo "⚠️  Nenhum mkdocs.yml encontrado"; \
-	fi
-
-# ============================================================================
-# 🚀 DESENVOLVIMENTO
-# ============================================================================
-
-dev-setup: install-dev ## Configuração completa de desenvolvimento
-	@echo "🚀 Configurando ambiente de desenvolvimento para $(PROJECT_NAME)..."
-	@$(POETRY) run pre-commit install || echo "⚠️  pre-commit não disponível"
-	@echo "✅ Ambiente de desenvolvimento pronto"
-
-dev: ## Executar em modo desenvolvimento
-	@echo "🚀 Iniciando modo desenvolvimento para $(PROJECT_NAME)..."
-	@if [ -f src/flext_db_oracle/cli.py ]; then \
-		$(POETRY) run python -m flext_db_oracle.cli --dev; \
-	elif [ -f src/flext_db_oracle/main.py ]; then \
-		$(POETRY) run python -m flext_db_oracle.main --dev; \
-	else \
-		echo "⚠️  Nenhum ponto de entrada principal encontrado"; \
-	fi
-
-dev-test: ## Ciclo rápido de teste de desenvolvimento
-	@echo "⚡ Ciclo rápido de teste de desenvolvimento para $(PROJECT_NAME)..."
-	@$(POETRY) run ruff check . --fix
-	@$(POETRY) run pytest tests/ -x --tb=short
-	@echo "✅ Ciclo de teste de desenvolvimento completado"
-
-# ============================================================================
-# 🗄️ OPERAÇÕES ESPECÍFICAS ORACLE
-# ============================================================================
-
-oracle-test: ## Testar conectividade Oracle básica
-	@echo "🎯 Testando conectividade Oracle básica..."
-	@$(POETRY) run python -c "from flext_db_oracle.infrastructure.adapters import DatabaseAdapter; from flext_db_oracle.config import OracleSettings; settings = OracleSettings(); adapter = DatabaseAdapter(settings); print('Teste Oracle básico executado')"
-	@echo "✅ Teste Oracle básico completado"
-
-oracle-connect: ## Testar conexão com servidor Oracle
-	@echo "🔗 Testando conexão com servidor Oracle..."
-	@$(POETRY) run python -c "from flext_db_oracle.infrastructure.clients import OracleClient; from flext_db_oracle.config import OracleSettings; settings = OracleSettings(); client = OracleClient(settings); result = client.test_connection(); print(f'Conexão Oracle: {result}')"
-	@echo "✅ Teste de conexão Oracle completado"
-
-oracle-migrate: ## Executar migrações Oracle
-	@echo "🔄 Executando migrações Oracle..."
-	@$(POETRY) run python -m flext_db_oracle.migrate
-	@echo "✅ Migrações Oracle completadas"
-
-oracle-validate: ## Validar configuração Oracle
-	@echo "🔍 Validando configuração Oracle..."
-	@$(POETRY) run python -c "from flext_db_oracle.config import OracleSettings; settings = OracleSettings(); settings.validate(); print('Configuração Oracle válida')"
-	@echo "✅ Configuração Oracle validada"
-
-oracle-schema: ## Verificar schema Oracle
-	@echo "📋 Verificando schema Oracle..."
-	@$(POETRY) run python -c "from flext_db_oracle.domain.services import SchemaService; from flext_db_oracle.config import OracleSettings; settings = OracleSettings(); service = SchemaService(settings); schema_info = service.get_schema_info(); print(f'Schema Oracle verificado: {len(schema_info)} tabelas')"
-	@echo "✅ Verificação de schema Oracle completada"
-
-oracle-operations: oracle-connect oracle-validate oracle-schema ## Validar todas as operações Oracle
-	@echo "✅ Todas as operações Oracle validadas"
-
-# ============================================================================
-# 🧹 LIMPEZA
-# ============================================================================
-
-clean: ## Limpar artefatos de build
-	@echo "🧹 Limpando artefatos de build para $(PROJECT_NAME)..."
-	@rm -rf build/
-	@rm -rf dist/
-	@rm -rf *.egg-info/
-	@rm -rf .pytest_cache/
-	@rm -rf .coverage
-	@rm -rf htmlcov/
-	@rm -rf .mypy_cache/
-	@rm -rf .ruff_cache/
-	@rm -rf reports/
-	@find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	@find . -type f -name "*.pyo" -delete 2>/dev/null || true
-	@echo "✅ Limpeza completada"
-
-clean-all: clean ## Limpar tudo incluindo ambiente virtual
-	@echo "🧹 Limpeza profunda para $(PROJECT_NAME)..."
-	@$(POETRY) env remove --all || true
-	@echo "✅ Limpeza profunda completada"
-
-# ============================================================================
-# 🚨 PROCEDIMENTOS DE EMERGÊNCIA
-# ============================================================================
-
-emergency-reset: ## Reset de emergência para estado limpo
-	@echo "🚨 RESET DE EMERGÊNCIA para $(PROJECT_NAME)..."
-	@read -p "Tem certeza que quer resetar tudo? (y/N) " -n 1 -r; \
-	echo; \
-	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		$(MAKE) clean-all; \
-		$(MAKE) install-dev; \
-		echo "✅ Reset de emergência completado"; \
-	else \
-		echo "⚠️  Reset de emergência cancelado"; \
-	fi
-
-# ============================================================================
-# 🎯 VALIDAÇÃO E VERIFICAÇÃO
-# ============================================================================
-
-workspace-validate: ## Validar conformidade do workspace
-	@echo "🔍 Validando conformidade do workspace para $(PROJECT_NAME)..."
-	@test -f pyproject.toml || { echo "❌ pyproject.toml ausente"; exit 1; }
-	@test -f CLAUDE.md || echo "⚠️  CLAUDE.md ausente"
-	@test -f README.md || echo "⚠️  README.md ausente"
-	@test -d src/ || { echo "❌ diretório src/ ausente"; exit 1; }
-	@test -d tests/ || echo "⚠️  diretório tests/ ausente"
-	@echo "✅ Conformidade do workspace validada"
-
-# ============================================================================
-# 🎯 ALIASES DE CONVENIÊNCIA
-# ============================================================================
-
-# Aliases para operações comuns
-t: test ## Alias para test
-l: lint ## Alias para lint
-tc: type-check ## Alias para type-check
-f: format ## Alias para format
-c: clean ## Alias para clean
-i: install-dev ## Alias para install-dev
-d: dev ## Alias para dev
-dt: dev-test ## Alias para dev-test
-
-# Aliases específicos Oracle
-ot: oracle-test ## Alias para oracle-test
-oc: oracle-connect ## Alias para oracle-connect
-om: oracle-migrate ## Alias para oracle-migrate
-ov: oracle-validate ## Alias para oracle-validate
-os: oracle-schema ## Alias para oracle-schema
-oo: oracle-operations ## Alias para oracle-operations
-
-# Configurações de ambiente
-export PYTHONPATH := $(PWD)/src:$(PYTHONPATH)
-export PYTHONDONTWRITEBYTECODE := 1
-export PYTHONUNBUFFERED := 1
-
-# Oracle settings for development
-export FLEXT_ORACLE_HOST := localhost
-export FLEXT_ORACLE_PORT := 1521
-export FLEXT_ORACLE_SERVICE_NAME := ORCLPDB1
-export FLEXT_ORACLE_USERNAME := flext_user
-export FLEXT_ORACLE_PASSWORD := flext_password
+# Aliases
+t: test
+l: lint
+f: format
+tc: type-check
+c: clean
+i: install
+v: validate
 
 .DEFAULT_GOAL := help
+.PHONY: help install install-dev setup validate check lint format type-check security fix test test-unit test-integration test-fast coverage-html oracle-test oracle-connect build build-clean docs docs-serve deps-update deps-show deps-audit shell pre-commit clean clean-all reset diagnose doctor t l f tc c i v

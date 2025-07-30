@@ -98,7 +98,7 @@ def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
     # Usar assinaturas corretas da API real - refatoração DRY
     plugin = create_flext_plugin(
         name="oracle_performance_monitor",
-        version="1.0.0",
+        version="0.9.0",
         config={
             "description": "Monitor Oracle database performance and identify slow queries",
             "author": "FLEXT Team",
@@ -161,7 +161,7 @@ def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
     # Usar assinaturas corretas da API real - refatoração DRY
     plugin = create_flext_plugin(
         name="oracle_security_audit",
-        version="1.0.0",
+        version="0.9.0",
         config={
             "description": "Security audit and compliance monitoring for Oracle operations",
             "author": "FLEXT Team",
@@ -247,7 +247,7 @@ def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
     # Usar assinaturas corretas da API real - refatoração DRY
     plugin = create_flext_plugin(
         name="oracle_data_validator",
-        version="1.0.0",
+        version="0.9.0",
         config={
             "description": "Validate data integrity and business rules for Oracle operations",
             "author": "FLEXT Team",

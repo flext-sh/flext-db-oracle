@@ -80,7 +80,7 @@ __all__ = [
     "register_all_oracle_plugins",
 ]
 
-__version__ = "2.0.0"
+__version__ = "0.9.0"
 __author__ = "flext-team"
 __description__ = (
     "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "

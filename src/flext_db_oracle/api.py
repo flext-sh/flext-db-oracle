@@ -978,7 +978,7 @@ class FlextDbOracleApi:
         # Connection monitoring plugin - usar assinaturas corretas da API real
         connection_plugin = create_flext_plugin(
             name="oracle_connection_monitor",
-            version="1.0.0",
+            version="0.9.0",
             config={
                 "description": "Monitor Oracle database connections",
                 "author": "FLEXT Team",
@@ -1000,7 +1000,7 @@ class FlextDbOracleApi:
         # Query optimization plugin - usar assinaturas corretas da API real
         query_plugin = create_flext_plugin(
             name="oracle_query_optimizer",
-            version="1.0.0",
+            version="0.9.0",
             config={
                 "description": "Optimize Oracle SQL queries",
                 "author": "FLEXT Team",

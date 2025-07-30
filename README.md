@@ -1,13 +1,23 @@
-# FLEXT DB Oracle
-
-Oracle Database adapter para o framework FLEXT - Ferramentas empresariais para análise, comparação e manutenção de bancos Oracle.
+# FLEXT DB Oracle - Enterprise Oracle Database Integration
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![FLEXT Framework](https://img.shields.io/badge/framework-FLEXT-green.svg)](https://github.com/flext/flext-core)
+[![SQLAlchemy 2](https://img.shields.io/badge/SQLAlchemy-2.x-orange.svg)](https://www.sqlalchemy.org/)
+[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2B%20DDD-green.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 
-## Visão Geral
+Modern Oracle Database integration library built with Python 3.13+, SQLAlchemy 2.x, and the modern `oracledb` driver. Part of the FLEXT ecosystem, implementing Clean Architecture, Domain-Driven Design (DDD), and enterprise-grade quality standards.
 
-O `flext-db-oracle` é um componente do ecossistema FLEXT que fornece funcionalidades avançadas para trabalhar com bancos de dados Oracle. Utiliza a arquitetura limpa do flext-core e oferece ferramentas para análise de schema, comparação de dados, otimização de consultas e monitoramento de saúde.
+## Overview
+
+FLEXT DB Oracle provides comprehensive Oracle Database integration capabilities for the FLEXT data integration platform. It serves as the foundation for Oracle-based data taps, targets, and database operations across the ecosystem.
+
+### Key Capabilities
+
+- **Modern Oracle Integration**: Built on latest `oracledb` driver and SQLAlchemy 2.x
+- **Schema Introspection**: Complete Oracle metadata extraction and DDL generation
+- **Performance Optimization**: Oracle-specific query optimization and monitoring
+- **Connection Management**: Enterprise-grade connection pooling and resource management
+- **FLEXT Core Integration**: Built on FlextResult patterns and dependency injection
+- **Singer Ecosystem Support**: Native integration with FLEXT taps and targets
 
 ## Funcionalidades
 

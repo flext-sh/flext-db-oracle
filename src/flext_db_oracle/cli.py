@@ -26,6 +26,8 @@ from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.plugins import register_all_oracle_plugins
 
+from .constants import ORACLE_DEFAULT_PORT
+
 console = Console()
 
 
@@ -55,14 +57,28 @@ def _safe_get_query_data_attr(query_data: object | None, attr: str, default: obj
     return getattr(query_data, attr, default) if query_data is not None else default
 
 
-def _safe_iterate_list(data_list: list[object] | None) -> list[object]:
+def _safe_iterate_list(data_list: list[str] | None) -> list[str]:
     """Safely iterate over list - DRY null safety pattern."""
     return data_list if data_list is not None else []
 
 
-def _safe_iterate_dict(data_dict: dict[str, object] | None) -> dict[str, object]:
+def _safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
     """Safely iterate over dict - DRY null safety pattern."""
     return data_dict if data_dict is not None else {}
+
+
+def _safe_get_list_length(obj: object) -> int:
+    """Safely get length of list-like object - DRY pattern for type-safe length checking."""
+    if obj is None:
+        return 0
+    if isinstance(obj, list):
+        return len(obj)
+    if hasattr(obj, "__len__"):
+        try:
+            return len(obj)
+        except (TypeError, AttributeError):
+            return 0
+    return 0
 
 
 @click.group()
@@ -112,7 +128,7 @@ def oracle(
 @click.option(
     "--port",
     type=int,
-    default=1521,
+    default=ORACLE_DEFAULT_PORT,
     help="Oracle database port",
 )
 @click.option(
@@ -347,7 +363,7 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
 
 Execution Time: {_safe_get_query_data_attr(query_data, "execution_time_ms", 0):.2f}ms
 Rows Returned: {_safe_get_query_data_attr(query_data, "row_count", 0)}
-Columns: {len(_safe_get_query_data_attr(query_data, "columns", []) or [])}""",
+Columns: {_safe_get_list_length(_safe_get_query_data_attr(query_data, "columns", []))}""",
                         title="Query Results",
                         border_style="green",
                     ),
@@ -644,13 +660,13 @@ def optimize(ctx: click.Context, sql: str) -> None:
 SQL Length: {_safe_get_test_data(optimization_data, "sql_length", 0)} characters
 Has JOINs: {_safe_get_test_data(optimization_data, "has_joins", default=False)}
 Has Subqueries: {_safe_get_test_data(optimization_data, "has_subqueries", default=False)}
-Suggestions: {len(suggestions)}""",
+Suggestions: {_safe_get_list_length(suggestions)}""",
                         title="Query Optimization",
                         border_style="green",
                     ),
                 )
 
-                if suggestions:
+                if suggestions and isinstance(suggestions, list):
                     console.print("\n[yellow]Optimization Suggestions:[/yellow]")
                     for i, suggestion in enumerate(suggestions, 1):
                         console.print(f"  {i}. {suggestion}")
