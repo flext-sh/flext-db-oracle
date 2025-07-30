@@ -45,7 +45,8 @@ class TestFlextDbOracleConfig:
         assert config.service_name is None
 
     def test_domain_rules_validation_success(
-        self, valid_config: FlextDbOracleConfig,
+        self,
+        valid_config: FlextDbOracleConfig,
     ) -> None:
         """Test successful domain rules validation."""
         result = valid_config.validate_domain_rules()
@@ -55,7 +56,8 @@ class TestFlextDbOracleConfig:
     def test_domain_rules_validation_no_identifier(self) -> None:
         """Test validation failure when no SID or service_name."""
         with pytest.raises(
-            ValueError, match="Either SID or service_name must be provided",
+            ValueError,
+            match="Either SID or service_name must be provided",
         ):
             FlextDbOracleConfig(
                 host="localhost",
@@ -162,7 +164,8 @@ class TestFlextDbOracleConfig:
         assert params["timeout"] == 30
 
     def test_get_connection_string_service_name(
-        self, valid_config: FlextDbOracleConfig,
+        self,
+        valid_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection string with service name."""
         conn_str = valid_config.get_connection_string()

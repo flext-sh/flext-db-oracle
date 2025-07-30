@@ -458,10 +458,14 @@ class TestFlextDbOracleSchema:
         """Test getting table by name when found."""
         column = FlextDbOracleColumn(name="ID", data_type="NUMBER", column_id=1)
         table1 = FlextDbOracleTable(
-            name="EMPLOYEES", schema_name="HR", columns=[column],
+            name="EMPLOYEES",
+            schema_name="HR",
+            columns=[column],
         )
         table2 = FlextDbOracleTable(
-            name="DEPARTMENTS", schema_name="HR", columns=[column],
+            name="DEPARTMENTS",
+            schema_name="HR",
+            columns=[column],
         )
 
         schema = FlextDbOracleSchema(

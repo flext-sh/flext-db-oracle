@@ -448,13 +448,22 @@ class TestTDbOracleTable:
         """Test primary key columns property."""
         columns = [
             TDbOracleColumn(
-                name="ID", data_type="NUMBER", position=1, is_primary_key=True,
+                name="ID",
+                data_type="NUMBER",
+                position=1,
+                is_primary_key=True,
             ),
             TDbOracleColumn(
-                name="NAME", data_type="VARCHAR2", position=2, is_primary_key=False,
+                name="NAME",
+                data_type="VARCHAR2",
+                position=2,
+                is_primary_key=False,
             ),
             TDbOracleColumn(
-                name="CODE", data_type="VARCHAR2", position=3, is_primary_key=True,
+                name="CODE",
+                data_type="VARCHAR2",
+                position=3,
+                is_primary_key=True,
             ),
         ]
 
@@ -473,13 +482,22 @@ class TestTDbOracleTable:
         """Test foreign key columns property."""
         columns = [
             TDbOracleColumn(
-                name="ID", data_type="NUMBER", position=1, is_foreign_key=False,
+                name="ID",
+                data_type="NUMBER",
+                position=1,
+                is_foreign_key=False,
             ),
             TDbOracleColumn(
-                name="DEPT_ID", data_type="NUMBER", position=2, is_foreign_key=True,
+                name="DEPT_ID",
+                data_type="NUMBER",
+                position=2,
+                is_foreign_key=True,
             ),
             TDbOracleColumn(
-                name="MANAGER_ID", data_type="NUMBER", position=3, is_foreign_key=True,
+                name="MANAGER_ID",
+                data_type="NUMBER",
+                position=3,
+                is_foreign_key=True,
             ),
         ]
 
@@ -649,7 +667,9 @@ class TestTDbOracleSchema:
         tables = [
             TDbOracleTable(name="EMPLOYEES", schema_name="HR", columns=table1_columns),
             TDbOracleTable(
-                name="DEPARTMENTS", schema_name="HR", columns=table2_columns,
+                name="DEPARTMENTS",
+                schema_name="HR",
+                columns=table2_columns,
             ),
         ]
 

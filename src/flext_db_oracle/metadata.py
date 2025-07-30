@@ -28,7 +28,8 @@ class FlextDbOracleColumn(FlextValueObject):
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
     nullable: bool = Field(
-        default=True, description="Whether column allows NULL values",
+        default=True,
+        description="Whether column allows NULL values",
     )
     default_value: str | None = Field(None, description="Default value")
     data_length: int | None = Field(None, description="Column data length")
@@ -76,7 +77,8 @@ class FlextDbOracleTable(FlextValueObject):
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema name")
     columns: list[FlextDbOracleColumn] = Field(
-        default_factory=list, description="Table columns",
+        default_factory=list,
+        description="Table columns",
     )
     row_count: int | None = Field(None, description="Approximate row count")
     size_mb: float | None = Field(None, description="Table size in MB")
@@ -126,7 +128,8 @@ class FlextDbOracleSchema(FlextValueObject):
 
     name: str = Field(..., description="Schema name")
     tables: list[FlextDbOracleTable] = Field(
-        default_factory=list, description="Schema tables",
+        default_factory=list,
+        description="Schema tables",
     )
     created_date: datetime | None = Field(None, description="Schema creation date")
     default_tablespace: str | None = Field(None, description="Default tablespace")
@@ -172,7 +175,9 @@ class FlextDbOracleMetadataManager:
         self._logger = get_logger(__name__)
 
     def get_table_metadata(
-        self, table_name: str, schema_name: str | None = None,
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> FlextResult[FlextDbOracleTable]:
         """Get complete table metadata."""
         try:

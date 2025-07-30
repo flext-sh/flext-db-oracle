@@ -39,10 +39,12 @@ class TDbOracleColumn(FlextValueObject):
 
     # Consolidated functionality from domain models
     is_primary_key: bool = Field(
-        default=False, description="Whether column is primary key",
+        default=False,
+        description="Whether column is primary key",
     )
     is_foreign_key: bool = Field(
-        default=False, description="Whether column is foreign key",
+        default=False,
+        description="Whether column is foreign key",
     )
 
     def validate_domain_rules(self) -> FlextResult[None]:
@@ -88,7 +90,8 @@ class TDbOracleTable(FlextValueObject):
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema name")
     columns: list[TDbOracleColumn] = Field(
-        default_factory=list, description="Table columns",
+        default_factory=list,
+        description="Table columns",
     )
     row_count: int | None = Field(None, description="Estimated row count")
     size_bytes: int | None = Field(None, description="Table size in bytes")
@@ -151,7 +154,8 @@ class TDbOracleSchema(FlextValueObject):
 
     name: str = Field(..., description="Schema name")
     tables: list[TDbOracleTable] = Field(
-        default_factory=list, description="Schema tables",
+        default_factory=list,
+        description="Schema tables",
     )
     created_date: datetime | None = Field(None, description="Schema creation date")
     default_tablespace: str | None = Field(None, description="Default tablespace")
@@ -197,7 +201,8 @@ class TDbOracleQueryResult(FlextValueObject):
     columns: list[str] = Field(default_factory=list, description="Column names")
     row_count: int = Field(default=0, description="Number of rows")
     execution_time_ms: float = Field(
-        default=0.0, description="Execution time in milliseconds",
+        default=0.0,
+        description="Execution time in milliseconds",
     )
 
     def validate_domain_rules(self) -> FlextResult[None]:

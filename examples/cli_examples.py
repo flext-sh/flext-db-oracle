@@ -1,0 +1,201 @@
+"""Oracle CLI Examples - Demonstrating production CLI usage.
+
+Copyright (c) 2025 FLEXT Contributors
+SPDX-License-Identifier: MIT
+
+Examples showing how to use the flext-oracle CLI commands.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+# Constants for CLI examples
+MAX_OUTPUT_LINES = 3
+
+
+def _get_cli_examples() -> list[dict[str, Any]]:
+    """Get CLI command examples - DRY pattern for example data."""
+    return [
+        {
+            "name": "Show CLI Help",
+            "command": ["flext-oracle", "--help"],
+            "description": "Display all available CLI commands",
+        },
+        {
+            "name": "Connect using Environment Variables",
+            "command": ["flext-oracle", "connect-env", "--debug"],
+            "description": "Connect to Oracle using environment variables",
+            "env_required": True,
+        },
+        {
+            "name": "List Database Schemas",
+            "command": ["flext-oracle", "schemas", "--output", "json"],
+            "description": "List all available schemas in JSON format",
+            "env_required": True,
+        },
+        {
+            "name": "List Database Tables",
+            "command": ["flext-oracle", "tables", "--output", "table"],
+            "description": "List all tables in table format",
+            "env_required": True,
+        },
+        {
+            "name": "Execute Simple Query",
+            "command": [
+                "flext-oracle",
+                "query",
+                "--sql",
+                "SELECT SYSDATE FROM DUAL",
+                "--output",
+                "json",
+            ],
+            "description": "Execute a simple query and get JSON output",
+            "env_required": True,
+        },
+        {
+            "name": "Check Database Health",
+            "command": ["flext-oracle", "health", "--output", "table"],
+            "description": "Check database connection health",
+            "env_required": True,
+        },
+        {
+            "name": "Show Plugin Management",
+            "command": ["flext-oracle", "plugins"],
+            "description": "List and manage Oracle plugins",
+            "env_required": True,
+        },
+        {
+            "name": "Optimize Query",
+            "command": [
+                "flext-oracle",
+                "optimize",
+                "--sql",
+                "SELECT * FROM USER_TABLES WHERE ROWNUM <= 10",
+            ],
+            "description": "Analyze and optimize SQL query",
+            "env_required": True,
+        },
+    ]
+
+
+def _run_example_command(example: dict[str, Any]) -> None:
+    """Run a single CLI example command - DRY pattern."""
+    if example.get("env_required") and not _check_oracle_env():
+        return
+
+    exit_code, stdout, stderr = run_cli_command(example["command"])
+
+    if exit_code == 0:
+        if stdout.strip():
+            # Show first few lines of output
+            lines = stdout.strip().split("\n")
+            preview = lines[:MAX_OUTPUT_LINES]
+            if len(lines) > MAX_OUTPUT_LINES:
+                preview.append("   ...")
+            for _line in preview:
+                pass
+    elif stderr.strip():
+        pass
+
+
+def _check_oracle_env() -> bool:
+    """Check if Oracle environment variables are set - DRY pattern."""
+    required_vars = [
+        "FLEXT_TARGET_ORACLE_HOST",
+        "FLEXT_TARGET_ORACLE_USERNAME",
+        "FLEXT_TARGET_ORACLE_PASSWORD",
+    ]
+    return all(os.getenv(var) for var in required_vars)
+
+
+def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
+    """Run CLI command and return exit code, stdout, stderr."""
+    try:
+        result = subprocess.run(  # noqa: S603 # safe CLI command execution in examples
+            cmd,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+    except subprocess.TimeoutExpired:
+        return 1, "", "Command timed out"
+    except (OSError, subprocess.SubprocessError, ValueError) as e:
+        return 1, "", str(e)
+    else:
+        return result.returncode, result.stdout, result.stderr
+
+
+def demo_cli_commands() -> None:
+    """Execute CLI command demonstrations using DRY patterns."""
+    examples = _get_cli_examples()
+
+    if not _check_oracle_env():
+        return
+
+    # Run each example - refatoração DRY real
+    for example in examples:
+        if not example.get("interactive", False):
+            _run_example_command(example)
+
+
+def show_environment_setup() -> None:
+    """Show how to set up environment for CLI usage."""
+    setup_script = """
+# Oracle Database Configuration
+export FLEXT_TARGET_ORACLE_HOST="localhost"
+export FLEXT_TARGET_ORACLE_PORT="1521"
+export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
+export FLEXT_TARGET_ORACLE_USERNAME="flext_user"
+export FLEXT_TARGET_ORACLE_PASSWORD="secure_password"
+
+# Optional: Connection Pool Settings
+export FLEXT_TARGET_ORACLE_POOL_MIN="1"
+export FLEXT_TARGET_ORACLE_POOL_MAX="10"
+export FLEXT_TARGET_ORACLE_TIMEOUT="30"
+
+# Optional: Debug Mode
+export FLEXT_CLI_DEV_MODE="true"
+export FLEXT_CLI_LOG_LEVEL="debug"
+"""
+
+    env_file = Path(".env")
+    if not env_file.exists():
+        with env_file.open("w", encoding="utf-8") as f:
+            f.write(setup_script.strip())
+
+
+def show_docker_example() -> None:
+    """Show Docker example for testing."""
+
+
+def main() -> None:
+    """Execute main CLI demonstration."""
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "setup":
+            show_environment_setup()
+        elif sys.argv[1] == "docker":
+            show_docker_example()
+        elif sys.argv[1] == "demo":
+            demo_cli_commands()
+    else:
+
+        # Show current environment status
+        env_vars = [
+            "FLEXT_TARGET_ORACLE_HOST",
+            "FLEXT_TARGET_ORACLE_USERNAME",
+        ]
+
+        configured = sum(1 for var in env_vars if os.getenv(var))
+
+        if configured == 0:
+            pass
+
+
+if __name__ == "__main__":
+    main()

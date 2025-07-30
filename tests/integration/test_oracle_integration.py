@@ -90,7 +90,8 @@ class TestOracleIntegration:
         )
 
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             # Initialize API
             api = FlextDbOracleApi(mock_oracle_config)
@@ -124,7 +125,8 @@ class TestOracleIntegration:
             api.disconnect()
 
     def test_connection_error_handling(
-        self, mock_oracle_config: FlextDbOracleConfig,
+        self,
+        mock_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection error handling."""
         with patch("flext_db_oracle.api.FlextDbOracleConnection") as mock_conn_class:
@@ -144,7 +146,8 @@ class TestOracleIntegration:
     ) -> None:
         """Test transaction context manager functionality."""
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 
@@ -167,7 +170,8 @@ class TestOracleIntegration:
         ]
 
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 
@@ -188,7 +192,8 @@ class TestOracleIntegration:
     ) -> None:
         """Test metadata retrieval operations."""
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 
@@ -251,7 +256,8 @@ class TestOracleIntegration:
         assert isinstance(api2, FlextDbOracleApi)
 
     def test_connection_retry_mechanism(
-        self, mock_oracle_config: FlextDbOracleConfig,
+        self,
+        mock_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection retry mechanism."""
         with patch("flext_db_oracle.api.FlextDbOracleConnection") as mock_conn_class:
@@ -278,7 +284,8 @@ class TestOracleIntegration:
     ) -> None:
         """Test API as context manager."""
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             with FlextDbOracleApi(mock_oracle_config) as api:
                 result = api.query("SELECT 1 FROM DUAL")
@@ -297,7 +304,8 @@ class TestOracleIntegration:
 
         # Mock the convert_singer_type method
         def mock_convert_type(
-            singer_type: str, format_hint: str | None = None,
+            singer_type: str,
+            format_hint: str | None = None,
         ) -> FlextResult[str]:
             type_map = {
                 "string": "VARCHAR2(4000)",
@@ -312,7 +320,8 @@ class TestOracleIntegration:
         mock_connection.convert_singer_type.side_effect = mock_convert_type
 
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 
@@ -351,7 +360,8 @@ class TestOracleIntegration:
         )
 
         with patch(
-            "flext_db_oracle.api.FlextDbOracleConnection", return_value=mock_connection,
+            "flext_db_oracle.api.FlextDbOracleConnection",
+            return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 

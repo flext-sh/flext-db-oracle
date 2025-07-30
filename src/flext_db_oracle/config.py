@@ -26,7 +26,10 @@ class FlextDbOracleConfig(FlextValueObject):
 
     host: str = Field("localhost", description="Database host")
     port: int = Field(
-        ORACLE_DEFAULT_PORT, description="Database port", ge=1, le=MAX_PORT,
+        ORACLE_DEFAULT_PORT,
+        description="Database port",
+        ge=1,
+        le=MAX_PORT,
     )
     sid: str | None = Field(None, description="Oracle SID")
     service_name: str | None = Field(None, description="Oracle service name")
@@ -52,7 +55,8 @@ class FlextDbOracleConfig(FlextValueObject):
     protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")
     ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
     ssl_server_cert_dn: str | None = Field(
-        None, description="SSL server certificate DN",
+        None,
+        description="SSL server certificate DN",
     )
 
     def validate_domain_rules(self) -> FlextResult[None]:
@@ -110,7 +114,8 @@ class FlextDbOracleConfig(FlextValueObject):
 
     @classmethod
     def from_env(
-        cls, prefix: str = "FLEXT_TARGET_ORACLE_",
+        cls,
+        prefix: str = "FLEXT_TARGET_ORACLE_",
     ) -> FlextResult[FlextDbOracleConfig]:
         """Create configuration from environment variables."""
         try:

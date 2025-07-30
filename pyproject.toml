@@ -22,6 +22,8 @@ classifiers = [
 dependencies = [
     "pydantic-settings (>=2.10.1)",
     "flext-observability @ file:///home/marlonsc/flext/flext-observability",
+    "flext-plugin @ file:///home/marlonsc/flext/flext-plugin",
+    "flext-cli @ file:///home/marlonsc/flext/flext-cli",
     "flext-core @ file:///home/marlonsc/flext/flext-core",
     "oracledb (>=3.2.0)",
     "pydantic (>=2.11.7)",
@@ -44,8 +46,9 @@ Repository = "https://github.com/flext-sh/flext"
 Documentation = "https://github.com/flext-sh/flext/blob/main/README.md"
 
 [project.scripts]
-flext-db-oracle = "flext_db_oracle.cli.main:main"
+flext-db-oracle = "flext_db_oracle.cli:main"
 flext-oracle-migrate = "flext_db_oracle.migrate:main"
+flext-oracle = "flext_db_oracle.cli:main"
 
 [tool.ruff]
 target-version = "py313"
@@ -133,9 +136,10 @@ testpaths = ["tests"]
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
+    "e2e: End-to-end tests",
+    "benchmark: Performance benchmark tests",
     "slow: Slow tests",
     "smoke: Smoke tests",
-    "e2e: End-to-end tests",
 ]
 filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]
 
