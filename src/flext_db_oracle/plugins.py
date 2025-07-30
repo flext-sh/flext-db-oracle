@@ -63,7 +63,10 @@ def _validate_business_rules(data: dict[str, Any]) -> list[str]:
     return errors
 
 
-def _validate_table_structure(table_name: str | None, api: FlextDbOracleApi) -> list[str]:
+def _validate_table_structure(
+    table_name: str | None,
+    api: FlextDbOracleApi,
+) -> list[str]:
     """Validate table structure - DRY pattern for table validation."""
     errors: list[str] = []
 

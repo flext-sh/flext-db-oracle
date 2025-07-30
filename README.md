@@ -155,12 +155,12 @@ try:
     # Executar query usando o pool
     result = pool.fetch_all("SELECT * FROM HR.EMPLOYEES WHERE ROWNUM <= 10")
     print(f"Retornadas {len(result)} linhas via pool")
-    
+
     # Usar transações com pool
     with pool.transaction() as conn:
         # Operações transacionais aqui
         pass
-        
+
 finally:
     # Sempre fechar o pool
     pool.close()

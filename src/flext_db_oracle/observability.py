@@ -57,11 +57,13 @@ class FlextDbOracleObservabilityManager:
             start_result = self._monitor.flext_start_monitoring()
             if start_result.is_failure:
                 self._logger.warning(
-                    "Failed to start monitoring: %s", start_result.error,
+                    "Failed to start monitoring: %s",
+                    start_result.error,
                 )
         else:
             self._logger.warning(
-                "Failed to initialize observability: %s", init_result.error,
+                "Failed to initialize observability: %s",
+                init_result.error,
             )
 
         self._initialized = True
@@ -101,7 +103,11 @@ class FlextDbOracleObservabilityManager:
         )
 
     def record_metric(
-        self, name: str, value: float, unit: str = "", **tags: str,
+        self,
+        name: str,
+        value: float,
+        unit: str = "",
+        **tags: str,
     ) -> None:
         """Record metric (DRY pattern)."""
         # Use real flext_create_metric API signature - refatoração DRY
@@ -117,7 +123,9 @@ class FlextDbOracleObservabilityManager:
             self._logger.debug("Metric %s created successfully", name)
         else:
             self._logger.warning(
-                "Failed to create metric %s: %s", name, metric_result.error,
+                "Failed to create metric %s: %s",
+                name,
+                metric_result.error,
             )
 
     def create_health_check(
@@ -200,7 +208,8 @@ class FlextDbOracleOperationTracker:
     def __enter__(self) -> Self:
         """Start operation tracking."""
         self._trace = self._observability.create_trace(
-            self._operation, **self._attributes,
+            self._operation,
+            **self._attributes,
         )
         self._start_time = perf_counter()
         return self
@@ -219,11 +228,18 @@ class FlextDbOracleOperationTracker:
             self._observability.finish_trace(self._trace, duration_ms, status, error)
 
     def record_metric(
-        self, name: str, value: float, unit: str = "", **tags: str,
+        self,
+        name: str,
+        value: float,
+        unit: str = "",
+        **tags: str,
     ) -> None:
         """Record metric during operation."""
         self._observability.record_metric(
-            f"{self._operation}.{name}", value, unit, **tags,
+            f"{self._operation}.{name}",
+            value,
+            unit,
+            **tags,
         )
 
     def get_execution_time_ms(self) -> float:
@@ -244,7 +260,10 @@ class FlextDbOracleErrorHandler:
     def handle_connection_error(self, error: str | None) -> None:
         """Handle connection errors with proper metrics and tracing."""
         self._observability.record_metric(
-            "error.connection", 1, "count", error_type="connection_failure",
+            "error.connection",
+            1,
+            "count",
+            error_type="connection_failure",
         )
         self._logger.error("Connection error: %s", error)
         msg = f"Failed to connect: {error}"
@@ -253,18 +272,26 @@ class FlextDbOracleErrorHandler:
     def handle_config_error(self) -> None:
         """Handle configuration errors."""
         self._observability.record_metric(
-            "error.configuration", 1, "count", error_type="missing_config",
+            "error.configuration",
+            1,
+            "count",
+            error_type="missing_config",
         )
         self._logger.error("Configuration error: No configuration provided")
         msg = "No configuration provided"
         raise ValueError(msg)
 
     def handle_query_error(
-        self, error: str, sql: str | None = None,
+        self,
+        error: str,
+        sql: str | None = None,
     ) -> FlextResult[None]:
         """Handle query errors with context."""
         self._observability.record_metric(
-            "error.query", 1, "count", error_type="query_failure",
+            "error.query",
+            1,
+            "count",
+            error_type="query_failure",
         )
         if sql:
             self._logger.error("Query error for SQL '%s': %s", sql[:100], error)
@@ -275,7 +302,10 @@ class FlextDbOracleErrorHandler:
     def handle_plugin_error(self, plugin_name: str, error: str) -> FlextResult[None]:
         """Handle plugin errors."""
         self._observability.record_metric(
-            "error.plugin", 1, "count", plugin_name=plugin_name,
+            "error.plugin",
+            1,
+            "count",
+            plugin_name=plugin_name,
         )
         self._logger.error("Plugin '%s' error: %s", plugin_name, error)
         return FlextResult.fail(f"{plugin_name} plugin failed: {error}")

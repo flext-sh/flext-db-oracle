@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   oracle-xe:
@@ -12,7 +12,14 @@ services:
     volumes:
       - oracle_data:/opt/oracle/oradata
     healthcheck:
-      test: ["CMD", "sqlplus", "-L", "system/Oracle123@//localhost:1521/XE", "@/dev/null"]
+      test:
+        [
+          "CMD",
+          "sqlplus",
+          "-L",
+          "system/Oracle123@//localhost:1521/XE",
+          "@/dev/null",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5

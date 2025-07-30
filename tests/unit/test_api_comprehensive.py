@@ -395,6 +395,7 @@ class TestFlextDbOracleApiComprehensive:
         valid_config: FlextDbOracleConfig,
     ) -> None:
         """Test query_with_timing success path (lines 233-256)."""
+
         # Mock perf_counter with incremental timing - DRY SOLID pattern
         # Provides 0.0, 0.1, 0.2, 0.3, etc. (100ms intervals)
         def timing_generator() -> Iterator[float]:
@@ -402,6 +403,7 @@ class TestFlextDbOracleApiComprehensive:
             while True:
                 yield counter * 0.1
                 counter += 1
+
         mock_perf_counter.side_effect = timing_generator()
 
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
@@ -419,7 +421,9 @@ class TestFlextDbOracleApiComprehensive:
         assert isinstance(result.data, TDbOracleQueryResult)
         assert result.data.rows == sample_data
         assert result.data.row_count == 2
-        assert abs(result.data.execution_time_ms - 100.0) < 0.001  # ~100ms (floating precision)
+        assert (
+            abs(result.data.execution_time_ms - 100.0) < 0.001
+        )  # ~100ms (floating precision)
         assert result.data.columns == []  # Default empty columns
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
@@ -479,6 +483,7 @@ class TestFlextDbOracleApiComprehensive:
             nonlocal call_count
             call_count += 1
             return call_count * 0.05  # Each call adds 50ms
+
         mock_perf_counter.side_effect = mock_time
 
         mock_connection = MagicMock(spec=FlextDbOracleConnection)

@@ -47,12 +47,20 @@ def _raise_cli_error(message: str) -> None:
     raise click.ClickException(message)
 
 
-def _safe_get_test_data(test_data: dict[str, object] | None, key: str, default: object = None) -> object:
+def _safe_get_test_data(
+    test_data: dict[str, object] | None,
+    key: str,
+    default: object = None,
+) -> object:
     """Safely get value from test_data dict - DRY null safety pattern."""
     return test_data.get(key, default) if test_data is not None else default
 
 
-def _safe_get_query_data_attr(query_data: object | None, attr: str, default: object = None) -> object:
+def _safe_get_query_data_attr(
+    query_data: object | None,
+    attr: str,
+    default: object = None,
+) -> object:
     """Safely get attribute from query_data - DRY null safety pattern."""
     return getattr(query_data, attr, default) if query_data is not None else default
 
@@ -148,7 +156,11 @@ def oracle(
     help="Database password",
 )
 @click.pass_context
-def connect(ctx: click.Context, /, **connection_args: str | int) -> None:  # necessary CLI args - / makes ctx positional-only
+def connect(
+    ctx: click.Context,
+    /,
+    **connection_args: str | int,
+) -> None:  # necessary CLI args - / makes ctx positional-only
     """Connect to Oracle database and test connection."""
     # Extract and validate connection args - refatoração DRY real
     params = ConnectionParams(
@@ -193,7 +205,9 @@ def _execute_connection_test(ctx: click.Context, params: ConnectionParams) -> No
         api = FlextDbOracleApi(oracle_config, context_name="cli")
 
         if debug:
-            console.print(f"[blue]Connecting to {params.host}:{params.port}/{params.service_name}...[/blue]")
+            console.print(
+                f"[blue]Connecting to {params.host}:{params.port}/{params.service_name}...[/blue]",
+            )
 
         api.connect()
 
@@ -227,7 +241,10 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
             if health_data and isinstance(health_data, dict):
                 output_data = {
                     "connection_status": _safe_get_test_data(test_data, "status"),
-                    "test_duration_ms": _safe_get_test_data(test_data, "test_duration_ms"),
+                    "test_duration_ms": _safe_get_test_data(
+                        test_data,
+                        "test_duration_ms",
+                    ),
                     "health_status": health_data.get("status"),
                     "health_message": health_data.get("message"),
                     "metrics": health_data.get("metrics", {}),
@@ -369,7 +386,11 @@ Columns: {_safe_get_list_length(_safe_get_query_data_attr(query_data, "columns",
                     ),
                 )
 
-                if config.output_format == "table" and results and isinstance(results, list):
+                if (
+                    config.output_format == "table"
+                    and results
+                    and isinstance(results, list)
+                ):
                     # Create rich table
                     table = Table(title=f"Query Results ({len(results)} rows)")
 
@@ -382,15 +403,26 @@ Columns: {_safe_get_list_length(_safe_get_query_data_attr(query_data, "columns",
                     # Add rows
                     for row in results:
                         table.add_row(
-                            *[str(cell) if cell is not None else "NULL" for cell in row],
+                            *[
+                                str(cell) if cell is not None else "NULL"
+                                for cell in row
+                            ],
                         )
 
                     console.print(table)
                 else:
                     # Format as requested output
                     output_data = {
-                        "execution_time_ms": _safe_get_query_data_attr(query_data, "execution_time_ms", 0),
-                        "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
+                        "execution_time_ms": _safe_get_query_data_attr(
+                            query_data,
+                            "execution_time_ms",
+                            0,
+                        ),
+                        "row_count": _safe_get_query_data_attr(
+                            query_data,
+                            "row_count",
+                            0,
+                        ),
                         "columns": _safe_get_query_data_attr(query_data, "columns", []),
                         "rows": results,
                     }
@@ -445,7 +477,9 @@ Total Schemas: {len(_safe_iterate_list(schema_list))}""",
                     console.print(table)
                 else:
                     format_output(
-                        {"schemas": schema_list}, config.output_format, console,
+                        {"schemas": schema_list},
+                        config.output_format,
+                        console,
                     )
             else:
                 console.print(
@@ -566,7 +600,9 @@ def plugins(ctx: click.Context) -> None:
                     table.add_column("Plugin Name", style="cyan")
                     table.add_column("Status", style="green")
 
-                    for plugin_name, status in _safe_iterate_dict(registration_results).items():
+                    for plugin_name, status in _safe_iterate_dict(
+                        registration_results,
+                    ).items():
                         # table.add_row não aceita style como argumento - refatoração DRY real
                         table.add_row(plugin_name, status)
 
@@ -613,7 +649,9 @@ def plugins(ctx: click.Context) -> None:
                             for p in plugin_list
                         ]
                         format_output(
-                            {"plugins": plugin_data}, config.output_format, console,
+                            {"plugins": plugin_data},
+                            config.output_format,
+                            console,
                         )
             else:
                 console.print(

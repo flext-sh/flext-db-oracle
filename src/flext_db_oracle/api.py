@@ -70,7 +70,8 @@ class FlextDbOracleApi:
 
         # Centralized observability manager (DRY principle)
         self._observability = FlextDbOracleObservabilityManager(
-            self._container, self._context_name,
+            self._container,
+            self._context_name,
         )
         self._error_handler = FlextDbOracleErrorHandler(self._observability)
 
@@ -220,19 +221,26 @@ class FlextDbOracleApi:
         )
 
     def _handle_connection_success(
-        self, trace: FlextTrace, execution_time: float,
+        self,
+        trace: FlextTrace,
+        execution_time: float,
     ) -> FlextDbOracleApi:
         """Handle successful connection - DRY pattern."""
         self._is_connected = True
         self._observability.record_metric("connection.success", 1, "count")
         self._observability.record_metric(
-            "connection.duration_ms", execution_time * 1000, "ms",
+            "connection.duration_ms",
+            execution_time * 1000,
+            "ms",
         )
         self._observability.finish_trace(
-            trace, int(execution_time * 1000), "success",
+            trace,
+            int(execution_time * 1000),
+            "success",
         )
         self._logger.info(
-            "Connected to Oracle database in %.2fms", execution_time * 1000,
+            "Connected to Oracle database in %.2fms",
+            execution_time * 1000,
         )
         return self
 
@@ -258,7 +266,9 @@ class FlextDbOracleApi:
         return last_error
 
     def _attempt_single_connection(
-        self, attempt: int, start_time: float,
+        self,
+        attempt: int,
+        start_time: float,
     ) -> dict[str, Any]:
         """Attempt single connection - DRY pattern."""
         attempt_start = perf_counter()
@@ -271,32 +281,50 @@ class FlextDbOracleApi:
 
             if connect_result.is_success:
                 return self._handle_connection_attempt_success(
-                    connection, attempt, start_time,
+                    connection,
+                    attempt,
+                    start_time,
                 )
 
             # Handle connection failure - DRY pattern
             error_msg = connect_result.error or "Unknown connection error"
             self._record_attempt_failure(
-                attempt, attempt_start, error_msg, "connection_result_failure",
+                attempt,
+                attempt_start,
+                error_msg,
+                "connection_result_failure",
             )
         except (ConnectionError, OSError, ValueError, AttributeError) as e:
             error_str = str(e)
-            self._record_attempt_failure(attempt, attempt_start, error_str, type(e).__name__)
+            self._record_attempt_failure(
+                attempt,
+                attempt_start,
+                error_str,
+                type(e).__name__,
+            )
             return {"success": False, "error": error_str}
 
         return {"success": False, "error": error_msg}
 
     def _handle_connection_attempt_success(
-        self, connection: FlextDbOracleConnection, attempt: int, start_time: float,
+        self,
+        connection: FlextDbOracleConnection,
+        attempt: int,
+        start_time: float,
     ) -> dict[str, Any]:
         """Handle successful connection attempt - DRY pattern."""
         self._connection = connection
         self._container.register(
-            f"oracle_connection_{self._context_name}", self._connection,
+            f"oracle_connection_{self._context_name}",
+            self._connection,
         )
 
         connection_time = perf_counter() - start_time
-        self._observability.record_metric("connection.attempts_made", attempt + 1, "count")
+        self._observability.record_metric(
+            "connection.attempts_made",
+            attempt + 1,
+            "count",
+        )
 
         # Execute connection monitor plugin
         monitor_result = self.execute_connection_monitor()
@@ -311,72 +339,112 @@ class FlextDbOracleApi:
         return {"success": True, "error": None}
 
     def _record_attempt_failure(
-        self, attempt: int, attempt_start: float, error: str, error_type: str,
+        self,
+        attempt: int,
+        attempt_start: float,
+        error: str,
+        error_type: str,
     ) -> None:
         """Record attempt failure metrics - DRY pattern."""
         attempt_time = perf_counter() - attempt_start
         self._observability.record_metric(
-            "connection.attempt_failed", 1, "count",
-            attempt=str(attempt + 1), error_type=error_type,
+            "connection.attempt_failed",
+            1,
+            "count",
+            attempt=str(attempt + 1),
+            error_type=error_type,
         )
         self._observability.record_metric(
-            "connection.attempt_duration_ms", attempt_time * 1000, "ms",
+            "connection.attempt_duration_ms",
+            attempt_time * 1000,
+            "ms",
         )
 
         if attempt < self._retry_attempts:
             self._logger.warning(
                 "Connection attempt %d failed in %.2fms, retrying: %s",
-                attempt + 1, attempt_time * 1000, error,
+                attempt + 1,
+                attempt_time * 1000,
+                error,
             )
 
     def _handle_connection_failure_final(
-        self, trace: FlextTrace, start_time: float, last_error: str,
+        self,
+        trace: FlextTrace,
+        start_time: float,
+        last_error: str,
     ) -> None:
         """Handle final connection failure - DRY pattern."""
         total_time = perf_counter() - start_time
         self._observability.record_metric("connection.failure", 1, "count")
         self._observability.record_metric(
-            "connection.total_duration_ms", total_time * 1000, "ms",
+            "connection.total_duration_ms",
+            total_time * 1000,
+            "ms",
         )
         self._observability.record_metric(
-            "connection.total_attempts", self._retry_attempts + 1, "count",
+            "connection.total_attempts",
+            self._retry_attempts + 1,
+            "count",
         )
 
         trace.span_attributes["attempts"] = self._retry_attempts + 1
         self._observability.finish_trace(
-            trace, int(total_time * 1000), "error", str(last_error),
+            trace,
+            int(total_time * 1000),
+            "error",
+            str(last_error),
         )
 
         self._logger.error(
             "Connection failed after %d attempts in %.2fms: %s",
-            self._retry_attempts + 1, total_time * 1000, last_error,
+            self._retry_attempts + 1,
+            total_time * 1000,
+            last_error,
         )
         self._error_handler.handle_connection_error(last_error)
 
     def _handle_connection_exception(
-        self, trace: FlextTrace, start_time: float, e: Exception,
+        self,
+        trace: FlextTrace,
+        start_time: float,
+        e: Exception,
     ) -> None:
         """Handle connection exception - DRY pattern."""
         total_time = perf_counter() - start_time
         self._observability.record_metric(
-            "connection.unexpected_error", 1, "count", error_type=type(e).__name__,
+            "connection.unexpected_error",
+            1,
+            "count",
+            error_type=type(e).__name__,
         )
 
         trace.span_attributes["error_type"] = type(e).__name__
         self._observability.finish_trace(
-            trace, int(total_time * 1000), "error", str(e),
+            trace,
+            int(total_time * 1000),
+            "error",
+            str(e),
         )
 
     def _handle_connection_failure(
-        self, trace: FlextTrace, execution_time: float, error: str,
+        self,
+        trace: FlextTrace,
+        execution_time: float,
+        error: str,
     ) -> None:
         """Handle connection failure - DRY pattern."""
         self._observability.record_metric("connection.failure", 1, "count")
         self._observability.record_metric(
-            "connection.duration_ms", execution_time * 1000, "ms",
+            "connection.duration_ms",
+            execution_time * 1000,
+            "ms",
         )
         self._observability.finish_trace(
-            trace, int(execution_time * 1000), "error", error,
+            trace,
+            int(execution_time * 1000),
+            "error",
+            error,
         )
         self._logger.error(
             "Failed to connect to Oracle database in %.2fms: %s",
@@ -497,10 +565,14 @@ class FlextDbOracleApi:
                 # Record success metrics
                 self._observability.record_metric("query.success", 1, "count")
                 self._observability.record_metric(
-                    "query.duration_ms", execution_time * 1000, "ms",
+                    "query.duration_ms",
+                    execution_time * 1000,
+                    "ms",
                 )
                 self._observability.record_metric(
-                    "query.rows_returned", row_count, "count",
+                    "query.rows_returned",
+                    row_count,
+                    "count",
                 )
 
                 # Update trace
@@ -522,7 +594,9 @@ class FlextDbOracleApi:
             # Handle query failure - DRY pattern
             self._observability.record_metric("query.failure", 1, "count")
             self._observability.record_metric(
-                "query.duration_ms", execution_time * 1000, "ms",
+                "query.duration_ms",
+                execution_time * 1000,
+                "ms",
             )
 
             # Update trace
@@ -543,7 +617,10 @@ class FlextDbOracleApi:
             # Record unexpected errors
             execution_time = perf_counter() - start_time
             self._observability.record_metric(
-                "query.unexpected_error", 1, "count", error_type=type(e).__name__,
+                "query.unexpected_error",
+                1,
+                "count",
+                error_type=type(e).__name__,
             )
 
             trace.span_attributes["error_type"] = type(e).__name__
@@ -849,7 +926,9 @@ class FlextDbOracleApi:
             # Record test metrics
             self._observability.record_metric("connection.test", 1, "count")
             self._observability.record_metric(
-                "connection.test_duration_ms", test_duration * 1000, "ms",
+                "connection.test_duration_ms",
+                test_duration * 1000,
+                "ms",
             )
 
             health_result = self._get_health_check()
@@ -931,7 +1010,8 @@ class FlextDbOracleApi:
         try:
             service = self._plugin_platform.plugin_service
             if hasattr(service, "registry") and hasattr(
-                service.registry, "list_plugins",
+                service.registry,
+                "list_plugins",
             ):
                 plugins = service.registry.list_plugins()
                 return FlextResult.ok(plugins)

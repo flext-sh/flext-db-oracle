@@ -184,7 +184,6 @@ def main() -> None:
         elif sys.argv[1] == "demo":
             demo_cli_commands()
     else:
-
         # Show current environment status
         env_vars = [
             "FLEXT_TARGET_ORACLE_HOST",

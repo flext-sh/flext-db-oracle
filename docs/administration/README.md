@@ -2,7 +2,7 @@
 
 Comprehensive guide covering all aspects of Oracle Database REDACTED_LDAP_BIND_PASSWORDistration, from installation to advanced maintenance procedures.
 
-## ðŸ“‹ Table of Contents
+## ðŸ"‹ Table of Contents
 
 - [Database Installation](#database-installation)
 - [Instance Management](#instance-management)
@@ -14,7 +14,7 @@ Comprehensive guide covering all aspects of Oracle Database REDACTED_LDAP_BIND_P
 - [Automation](#automation)
 - [Best Practices](#best-practices)
 
-## ðŸ”§ Database Installation
+## ðŸ"§ Database Installation
 
 ### Pre-Installation Requirements
 
@@ -350,7 +350,7 @@ ALTER PROFILE default LIMIT
     IDLE_TIME 30;
 ```
 
-## ðŸ’¾ Storage Management
+## ðŸ'¾ Storage Management
 
 ### Tablespace Management
 
@@ -702,7 +702,7 @@ FROM dba_tab_privs
 WHERE grantee = 'JOHN_DOE';
 ```
 
-## ðŸ“Š Performance Monitoring
+## ðŸ"Š Performance Monitoring
 
 ### System Performance
 
@@ -865,7 +865,7 @@ WHERE executions > 0
 ORDER BY parse_calls DESC;
 ```
 
-## ðŸ”§ Maintenance Tasks
+## ðŸ"§ Maintenance Tasks
 
 ### Statistics Management
 
@@ -1335,7 +1335,7 @@ echo "</body></html>" >> $REPORT_FILE
 mail -s "Database Health Report" -a $REPORT_FILE dba@company.com < /dev/null
 ```
 
-## ðŸ“‹ Best Practices
+## ðŸ"‹ Best Practices
 
 ### Security Best Practices
 
