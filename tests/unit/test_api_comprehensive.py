@@ -474,6 +474,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test query_with_timing exception handling (lines 258-261)."""
         # Mock perf_counter with infinite incrementing values - DRY SOLID pattern
         call_count = 0
+
         def mock_time() -> float:
             nonlocal call_count
             call_count += 1
