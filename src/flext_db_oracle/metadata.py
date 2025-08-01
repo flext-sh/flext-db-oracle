@@ -18,7 +18,7 @@ from .constants import (
 )
 
 # =============================================================================
-# SOLID REFACTORING: Template Method Pattern for validation DRY approach
+# REFACTORING: Template Method Pattern for validation DRY approach
 # =============================================================================
 
 
@@ -55,6 +55,7 @@ class ValidationMixin:
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"{context_name} validation failed: {e}")
 
+
 if TYPE_CHECKING:
     from .connection import FlextDbOracleConnection
 
@@ -80,8 +81,14 @@ class FlextDbOracleColumn(FlextValueObject, ValidationMixin):
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate column metadata domain rules using DRY template method."""
         validation_steps: list[tuple[str, Callable[[], bool]]] = [
-            (ERROR_MSG_COLUMN_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
-            (ERROR_MSG_DATA_TYPE_EMPTY, lambda: bool(self.data_type and self.data_type.strip())),
+            (
+                ERROR_MSG_COLUMN_NAME_EMPTY,
+                lambda: bool(self.name and self.name.strip()),
+            ),
+            (
+                ERROR_MSG_DATA_TYPE_EMPTY,
+                lambda: bool(self.data_type and self.data_type.strip()),
+            ),
             (ERROR_MSG_COLUMN_ID_INVALID, lambda: bool(self.column_id > 0)),
         ]
         return self._execute_validation_template(validation_steps, "Column")
@@ -121,7 +128,10 @@ class FlextDbOracleTable(FlextValueObject, ValidationMixin):
         # Basic field validations
         validation_steps: list[tuple[str, Callable[[], bool]]] = [
             (ERROR_MSG_TABLE_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
-            (ERROR_MSG_SCHEMA_NAME_EMPTY, lambda: bool(self.schema_name and self.schema_name.strip())),
+            (
+                ERROR_MSG_SCHEMA_NAME_EMPTY,
+                lambda: bool(self.schema_name and self.schema_name.strip()),
+            ),
             ("Table must have at least one column", lambda: bool(self.columns)),
         ]
 
@@ -174,7 +184,10 @@ class FlextDbOracleSchema(FlextValueObject, ValidationMixin):
         """Validate schema metadata domain rules using DRY template method."""
         # Basic field validations
         validation_steps: list[tuple[str, Callable[[], bool]]] = [
-            (ERROR_MSG_SCHEMA_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
+            (
+                ERROR_MSG_SCHEMA_NAME_EMPTY,
+                lambda: bool(self.name and self.name.strip()),
+            ),
         ]
 
         # Execute basic validations first

@@ -106,7 +106,7 @@ def _validate_table_structure(
 
 
 # =============================================================================
-# SOLID REFACTORING: Template Method + Factory Pattern for DRY plugin creation
+# REFACTORING: Template Method + Factory Pattern for DRY plugin creation
 # =============================================================================
 
 
@@ -215,7 +215,9 @@ class OraclePluginHandler:
         return base_data
 
     @staticmethod
-    def handle_plugin_exception(e: Exception, plugin_name: str) -> FlextResult[dict[str, Any]]:
+    def handle_plugin_exception(
+        e: Exception, plugin_name: str
+    ) -> FlextResult[dict[str, Any]]:
         """Template method: Consistent exception handling for plugins."""
         return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
 

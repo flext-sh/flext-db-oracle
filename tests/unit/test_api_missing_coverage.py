@@ -43,19 +43,28 @@ class TestApiMissingCoverage:
         assert result.data.status == "unhealthy"
         assert "not connected" in result.data.message.lower()
 
-    @patch("flext_db_oracle.api.FlextDbOracleApi.test_connection")
-    def test_get_health_status_connected_success(self, mock_test_connection: Mock, api: FlextDbOracleApi) -> None:
+    @patch("flext_db_oracle.api.FlextDbOracleApi.query")
+    def test_get_health_status_connected_success(self, mock_query: Mock, api: FlextDbOracleApi) -> None:
         """Test health status when connected and healthy."""
         # Mock the connection manager to indicate connected
         api._connection_manager = Mock()
         api._connection_manager.is_connected = True
-        mock_test_connection.return_value = FlextResult.ok(data=True)
+
+        # Create successful query result
+        from flext_db_oracle.types import TDbOracleQueryResult
+        mock_query_result = TDbOracleQueryResult(
+            rows=[(1,)],
+            columns=["result"],
+            row_count=1,
+            execution_time_ms=0.0,
+        )
+        mock_query.return_value = FlextResult.ok(mock_query_result)
 
         result = api.get_health_status()
 
         assert result.is_success
         assert result.data.status == "healthy"
-        mock_test_connection.assert_called_once()
+        mock_query.assert_called_once_with("SELECT 1 FROM DUAL")
 
     @patch("flext_db_oracle.api.FlextDbOracleApi.query")
     def test_get_health_status_connected_degraded(self, mock_query: Mock, api: FlextDbOracleApi) -> None:
@@ -73,7 +82,8 @@ class TestApiMissingCoverage:
     def test_get_observability_metrics(self, api: FlextDbOracleApi) -> None:
         """Test observability metrics retrieval."""
         api._is_connected = True
-        api._config = Mock()
+        # Also need to set a mock connection for is_connected to return True
+        api._connection = Mock()
 
         result = api.get_observability_metrics()
 
@@ -102,7 +112,7 @@ class TestApiMissingCoverage:
     def test_test_connection_with_observability_connected(self, api: FlextDbOracleApi) -> None:
         """Test connection test with observability when connected."""
         api._is_connected = True
-        
+
         # Mock the connection and its execute_query method
         mock_connection = Mock()
         mock_connection.execute_query.return_value = FlextResult.ok([("1",)])
@@ -114,12 +124,12 @@ class TestApiMissingCoverage:
         assert result.data["status"] == "healthy"
         assert result.data["query_success"] is True
 
-    @patch("flext_db_oracle.api.FlextDbOracleApi.query")
-    def test_test_connection_with_observability_exception(self, mock_query: Mock, api: FlextDbOracleApi) -> None:
+    @patch("flext_db_oracle.api.FlextDbOracleApi.test_connection")
+    def test_test_connection_with_observability_exception(self, mock_test_connection: Mock, api: FlextDbOracleApi) -> None:
         """Test connection test with observability exception."""
         api._is_connected = True
         api._connection = Mock()
-        mock_query.side_effect = Exception("Connection error")
+        mock_test_connection.side_effect = Exception("Connection error")
 
         result = api.test_connection_with_observability()
 
@@ -166,12 +176,16 @@ class TestApiMissingCoverage:
 
     def test_unregister_plugin_success(self, api: FlextDbOracleApi) -> None:
         """Test successful plugin unregistration."""
-        api._plugin_platform = Mock()
-        api._plugin_platform.unload_plugin.return_value = FlextResult.ok(None)
+        # First add a plugin to the registry
+        from flext_plugin import FlextPlugin
+        mock_plugin = Mock(spec=FlextPlugin)
+        mock_plugin.name = "test_plugin"
+        api._plugins["test_plugin"] = mock_plugin
 
         result = api.unregister_plugin("test_plugin")
 
         assert result.is_success
+        assert "test_plugin" not in api._plugins
 
     def test_unregister_plugin_failure(self, api: FlextDbOracleApi) -> None:
         """Test failed plugin unregistration."""
@@ -185,7 +199,8 @@ class TestApiMissingCoverage:
     def test_execute_plugin_success(self, api: FlextDbOracleApi) -> None:
         """Test successful plugin execution."""
         mock_plugin = Mock()
-        mock_plugin.callable_obj = Mock(return_value="plugin result")
+        mock_plugin.config = Mock()
+        mock_plugin.config.callable_obj = Mock(return_value="plugin result")
 
         api.get_plugin = Mock(return_value=FlextResult.ok(mock_plugin))
 
@@ -206,7 +221,9 @@ class TestApiMissingCoverage:
     def test_execute_plugin_not_callable(self, api: FlextDbOracleApi) -> None:
         """Test plugin execution when plugin not callable."""
         mock_plugin = Mock()
-        mock_plugin.callable_obj = None
+        # Properly mock the config to have no callable_obj
+        mock_plugin.config = Mock()
+        mock_plugin.config.callable_obj = None
 
         api.get_plugin = Mock(return_value=FlextResult.ok(mock_plugin))
 
@@ -294,14 +311,14 @@ class TestApiMissingCoverage:
 
         assert result.is_success
         assert result.data is not None
-        
+
         # Check analysis result structure
         analysis = result.data
         assert "sql_length" in analysis
         assert "has_joins" in analysis
         assert "has_subqueries" in analysis
         assert "suggestions" in analysis
-        
+
         # Verify specific analysis results
         assert analysis["sql_length"] == len("SELECT * FROM table")
         assert analysis["has_joins"] is False
@@ -321,15 +338,52 @@ class TestApiMissingCoverage:
 
     def test_context_manager_already_connected(self, api: FlextDbOracleApi) -> None:
         """Test context manager when already connected."""
-        api._is_connected = True
-        api.connect = Mock()
-        api.disconnect = Mock(return_value=api)
+        # Mock is_connected property using patch
+        with patch.object(type(api), "is_connected", new=property(lambda self: True)):
+            api.connect = Mock()
+            api.disconnect = Mock(return_value=api)
 
-        with api:
-            pass
+            with api:
+                pass
 
-        api.connect.assert_not_called()
-        api.disconnect.assert_called_once()
+            api.connect.assert_not_called()
+            api.disconnect.assert_called_once()
+
+    def test_execute_ddl_not_connected(self, api: FlextDbOracleApi) -> None:
+        """Test execute_ddl when not connected - BACKWARD COMPATIBILITY."""
+        result = api.execute_ddl("CREATE TABLE test (id NUMBER)")
+
+        assert result.is_failure
+        assert "Database not connected" in result.error
+
+    def test_execute_ddl_success(self, api: FlextDbOracleApi) -> None:
+        """Test successful execute_ddl - BACKWARD COMPATIBILITY."""
+        # Mock the query executor to simulate successful DDL execution
+        mock_query_executor = Mock()
+        mock_query_result = Mock()
+        mock_query_result.is_success = True
+        mock_query_executor.execute_query.return_value = mock_query_result
+        api._query_executor = mock_query_executor
+
+        result = api.execute_ddl("CREATE TABLE test (id NUMBER)")
+
+        assert result.is_success
+        mock_query_executor.execute_query.assert_called_once_with("CREATE TABLE test (id NUMBER)", None)
+
+    def test_execute_ddl_failure(self, api: FlextDbOracleApi) -> None:
+        """Test failed execute_ddl - BACKWARD COMPATIBILITY."""
+        # Mock the query executor to simulate DDL execution failure
+        mock_query_executor = Mock()
+        mock_query_result = Mock()
+        mock_query_result.is_success = False
+        mock_query_result.error = "DDL execution failed"
+        mock_query_executor.execute_query.return_value = mock_query_result
+        api._query_executor = mock_query_executor
+
+        result = api.execute_ddl("INVALID DDL STATEMENT")
+
+        assert result.is_failure
+        assert "DDL execution failed" in result.error
 
     def test_properties(self, config: FlextDbOracleConfig) -> None:
         """Test API properties."""

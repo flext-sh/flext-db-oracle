@@ -120,7 +120,7 @@ class TestFlextDbOracleApi:
 
         with pytest.raises(
             ConnectionError,
-            match="Failed to connect: Connection failed",
+            match="Failed to connect after .* attempts: Connection failed",
         ):
             api.connect()
 
@@ -134,7 +134,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.disconnect.return_value = FlextResult.ok(data=True)
+        mock_connection.close.return_value = FlextResult.ok(data=True)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -145,7 +145,7 @@ class TestFlextDbOracleApi:
         assert result == api  # Should return self for chaining
         assert not api._is_connected
         assert not api.is_connected
-        mock_connection.disconnect.assert_called_once()
+        mock_connection.close.assert_called_once()
 
     def test_disconnect_when_not_connected(
         self,
@@ -200,7 +200,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute.return_value = FlextResult.ok([("result",)])
+        mock_connection.execute_query.return_value = FlextResult.ok([("result",)])
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -210,7 +210,7 @@ class TestFlextDbOracleApi:
         result = api.query("SELECT * FROM employees WHERE id = :emp_id", params)
 
         assert result.is_success
-        mock_connection.execute.assert_called_once_with(
+        mock_connection.execute_query.assert_called_once_with(
             "SELECT * FROM employees WHERE id = :emp_id",
             params,
         )
@@ -247,7 +247,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute.side_effect = [
+        mock_connection.execute_query.side_effect = [
             FlextResult.ok([("result1",)]),
             FlextResult.ok([("result2",)]),
         ]
@@ -279,7 +279,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute.side_effect = [
+        mock_connection.execute_query.side_effect = [
             FlextResult.ok([("result1",)]),
             FlextResult.fail("SQL error"),
         ]
@@ -469,7 +469,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.disconnect.return_value = FlextResult.ok(data=True)
+        mock_connection.close.return_value = FlextResult.ok(data=True)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -480,7 +480,7 @@ class TestFlextDbOracleApi:
 
         assert not api.is_connected
         mock_connection.connect.assert_called_once()
-        mock_connection.disconnect.assert_called_once()
+        mock_connection.close.assert_called_once()
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
     def test_context_manager_already_connected(
@@ -492,7 +492,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.disconnect.return_value = FlextResult.ok(data=True)
+        mock_connection.close.return_value = FlextResult.ok(data=True)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -514,7 +514,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.disconnect.return_value = FlextResult.ok(data=True)
+        mock_connection.close.return_value = FlextResult.ok(data=True)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -524,7 +524,7 @@ class TestFlextDbOracleApi:
 
         assert result_api == api
         mock_connection.connect.assert_called_once()
-        mock_connection.disconnect.assert_called_once()
+        mock_connection.close.assert_called_once()
 
     def test_container_registration(self, valid_config: FlextDbOracleConfig) -> None:
         """Test container registration functionality."""

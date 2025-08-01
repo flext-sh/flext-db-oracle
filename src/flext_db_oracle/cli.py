@@ -231,7 +231,14 @@ class _ConnectionTestExecutor:
             # Phase 4: Handle Result
             self._handle_test_result(test_result)
 
-        except (click.ClickException, ValueError, TypeError, AttributeError, ConnectionError, OSError) as e:
+        except (
+            click.ClickException,
+            ValueError,
+            TypeError,
+            AttributeError,
+            ConnectionError,
+            OSError,
+        ) as e:
             self._handle_exception(e)
 
     def _setup_connection(self) -> FlextDbOracleApi:
@@ -326,7 +333,9 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
         else:
             format_output(output_data, self.config.output_format, console)
 
-    def _prepare_health_output_data(self, test_data: dict[str, object] | None, health_data: dict[str, object]) -> dict[str, object]:
+    def _prepare_health_output_data(
+        self, test_data: dict[str, object] | None, health_data: dict[str, object]
+    ) -> dict[str, object]:
         """Prepare health data for output - Single Responsibility."""
         return {
             "connection_status": _safe_get_test_data(test_data, "status"),
@@ -343,7 +352,9 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
         table.add_column("Value", style="green")
 
         for key, value in output_data.items():
-            formatted_value = json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
+            formatted_value = (
+                json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
+            )
             table.add_row(key.replace("_", " ").title(), formatted_value)
 
         console.print(table)
@@ -417,14 +428,16 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
 
 
 class QueryResultProcessor:
-    """SOLID refactoring: Single Responsibility for query result processing."""
+    """refactoring: Single Responsibility for query result processing."""
 
     def __init__(self, config: ConfigProtocol, console: Console) -> None:
         """Initialize result processor."""
         self.config = config
         self.console = console
 
-    def process_success(self, query_data: object, results: list[Any], limit: int | None) -> None:
+    def process_success(
+        self, query_data: object, results: list[Any], limit: int | None
+    ) -> None:
         """Process successful query results."""
         # Apply limit if specified
         limited_results = self._apply_limit(results, limit)
@@ -486,10 +499,14 @@ Columns: {_safe_get_list_length(columns)}""",
 
         self.console.print(table)
 
-    def _display_as_structured_output(self, query_data: object, results: list[Any]) -> None:
+    def _display_as_structured_output(
+        self, query_data: object, results: list[Any]
+    ) -> None:
         """Display results as structured output."""
         output_data = {
-            "execution_time_ms": _safe_get_query_data_attr(query_data, "execution_time_ms", 0),
+            "execution_time_ms": _safe_get_query_data_attr(
+                query_data, "execution_time_ms", 0
+            ),
             "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
             "columns": _safe_get_query_data_attr(query_data, "columns", []),
             "rows": results,
@@ -533,7 +550,9 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                     console.print("[red]Query execution returned no data[/red]")
                     _raise_cli_error("Query execution returned no data")
 
-                results: list[Any] = cast("list[Any]", _safe_get_query_data_attr(query_data, "rows", []))
+                results: list[Any] = cast(
+                    "list[Any]", _safe_get_query_data_attr(query_data, "rows", [])
+                )
 
                 # Use SOLID processor for result handling
                 processor = QueryResultProcessor(config, console)
@@ -664,7 +683,7 @@ Schema: {schema or "All"}""",
 
 
 class PluginManagerProcessor:
-    """SOLID refactoring: Single Responsibility for plugin management operations."""
+    """refactoring: Single Responsibility for plugin management operations."""
 
     def __init__(self, config: ConfigProtocol, console: Console) -> None:
         """Initialize plugin manager processor."""
@@ -695,7 +714,9 @@ class PluginManagerProcessor:
             ),
         )
 
-    def _display_registration_results(self, registration_results: dict[str, str]) -> None:
+    def _display_registration_results(
+        self, registration_results: dict[str, str]
+    ) -> None:
         """Display registration results based on output format."""
         if self.config.output_format == "table":
             self._display_registration_table(registration_results)
@@ -778,7 +799,9 @@ def plugins(ctx: click.Context) -> None:
                 if plugins_result.is_success and plugins_result.data:
                     processor.handle_plugin_list_success(plugins_result.data)
             else:
-                console.print(f"[red]Plugin registration failed: {register_result.error}[/red]")
+                console.print(
+                    f"[red]Plugin registration failed: {register_result.error}[/red]"
+                )
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
     except Exception as e:
