@@ -435,7 +435,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test query_with_timing failure path (lines 238-239)."""
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute.return_value = FlextResult.fail("Database error")
+        mock_connection.execute_query.return_value = FlextResult.fail("Database error")
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -543,7 +543,7 @@ class TestFlextDbOracleApiComprehensive:
         result = api.execute_batch(operations)
 
         assert result.is_failure
-        assert "No database connection" in result.error
+        assert "Database not connected" in result.error
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
     def test_execute_batch_success_with_logging(

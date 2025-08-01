@@ -36,223 +36,288 @@ def create_sample_config() -> FlextDbOracleConfig:
     )
 
 
+# =============================================================================
+# SOLID REFACTORING: Template Method Pattern for DRY example patterns
+# =============================================================================
+
+class OracleExampleDemonstrator:
+    """Template Method Pattern: Base class for all Oracle example demonstrations.
+    
+    SOLID REFACTORING: Eliminates 20+ lines of duplicated code (mass=86)
+    by centralizing common example patterns using Template Method pattern.
+    """
+    
+    def __init__(self, context_name: str, log_emoji: str, log_message: str) -> None:
+        """Initialize demonstrator with common parameters."""
+        self.context_name = context_name
+        self.log_emoji = log_emoji
+        self.log_message = log_message
+        self.api = self._create_api_with_logging()
+    
+    def _create_api_with_logging(self) -> FlextDbOracleApi:
+        """Template step: Create API instance with consistent logging."""
+        logger.info(f"{self.log_emoji} {self.log_message}")
+        config = create_sample_config()
+        return FlextDbOracleApi(config, self.context_name)
+    
+    def _log_pattern_info(self, pattern_name: str, pattern_items: list[str]) -> None:
+        """Template step: Log pattern information consistently."""
+        logger.info(f"📝 {pattern_name}:")
+        for item in pattern_items:
+            logger.info(f"  - {item}")
+    
+    def demonstrate_info_patterns(self, patterns: list[tuple[str, list[str]]]) -> None:
+        """Template method: Demonstrate information-only patterns.
+        
+        Args:
+            patterns: List of (pattern_name, pattern_items) tuples
+        """
+        for i, (pattern_name, pattern_items) in enumerate(patterns, 1):
+            logger.info(f"# Pattern {i}: {pattern_name}")
+            self._log_pattern_info(pattern_name, pattern_items)
+    
+    def demonstrate_with_api_operations(self, operation_func) -> None:
+        """Template method: Demonstrate patterns that require API operations.
+        
+        Args:
+            operation_func: Function that performs API operations
+        """
+        try:
+            operation_func(self.api)
+        except Exception as e:
+            logger.warning(f"⚠️ {self.context_name} operation failed: {e}")
+
+
 def demonstrate_connection_patterns() -> None:
-    """Demonstrate different connection management patterns."""
-    logger.info("🔗 Demonstrating Connection Patterns")
-
-    # Pattern 1: Direct configuration
-    config = create_sample_config()
-    api = FlextDbOracleApi(config, "demo_connection")
-    logger.info("✅ Created API with direct configuration")
-
-    # Pattern 2: From environment variables
-    try:
-        FlextDbOracleApi.from_env()
-        logger.info("✅ Created API from environment variables")
-    except Exception as e:
-        logger.warning(f"⚠️ Environment API creation failed: {e}")
-
-    # Pattern 3: With configuration parameters
-    FlextDbOracleApi.with_config(
-        host="example.oracle.com",
-        port=1521,
-        username="demo_user",
-        password="demo_pass",
-        service_name="DEMO_DB",
+    """Demonstrate different connection management patterns using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_connection", "🔗", "Demonstrating Connection Patterns"
     )
-    logger.info("✅ Created API with configuration parameters")
-
-    # Pattern 4: Context manager usage (auto-connect/disconnect)
-    logger.info("🔄 Testing context manager pattern")
-    try:
-        with api as connected_api:
-            logger.info("✅ Connected via context manager")
-            # Connection operations would go here
-            logger.info(f"Connection status: {connected_api.is_connected}")
-    except Exception as e:
-        logger.warning(f"⚠️ Context manager connection failed: {e}")
+    
+    def _perform_connection_operations(api: FlextDbOracleApi) -> None:
+        """Specific connection pattern operations."""
+        # Pattern 1: Direct configuration (already created by demonstrator)
+        logger.info("✅ Created API with direct configuration")
+        
+        # Pattern 2: From environment variables
+        try:
+            FlextDbOracleApi.from_env()
+            logger.info("✅ Created API from environment variables")
+        except Exception as e:
+            logger.warning(f"⚠️ Environment API creation failed: {e}")
+        
+        # Pattern 3: With configuration parameters
+        FlextDbOracleApi.with_config(
+            host="example.oracle.com",
+            port=1521,
+            username="demo_user",
+            password="demo_pass",
+            service_name="DEMO_DB",
+        )
+        logger.info("✅ Created API with configuration parameters")
+        
+        # Pattern 4: Context manager usage (auto-connect/disconnect)
+        logger.info("🔄 Testing context manager pattern")
+        try:
+            with api as connected_api:
+                logger.info("✅ Connected via context manager")
+                logger.info(f"Connection status: {connected_api.is_connected}")
+        except Exception as e:
+            logger.warning(f"⚠️ Context manager connection failed: {e}")
+    
+    demonstrator.demonstrate_with_api_operations(_perform_connection_operations)
 
 
 def demonstrate_configuration_patterns() -> None:
-    """Demonstrate advanced configuration patterns."""
-    logger.info("⚙️ Demonstrating Configuration Patterns")
-
-    # Pattern 1: Minimal configuration
-    FlextDbOracleConfig(
-        host="localhost",
-        username="user",
-        password="pass",
-        service_name="DB",
+    """Demonstrate advanced configuration patterns using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_config", "⚙️", "Demonstrating Configuration Patterns"
     )
-    logger.info("✅ Created minimal configuration")
-
-    # Pattern 2: Production configuration with all options
-    production_config = FlextDbOracleConfig(
-        host="prod.oracle.company.com",
-        port=1521,
-        username="prod_user",
-        password="secure_password",
-        service_name="PROD_DB",
-        encoding="UTF-8",
-        schema="PROD_SCHEMA",
-    )
-    logger.info("✅ Created production configuration")
-
-    # Pattern 3: Configuration validation
-    try:
-        # Test configuration validation
-        production_config.model_validate(
-            {
-                "host": "test.oracle.com",
-                "port": 1521,
-                "username": "test",
-                "password": "test",
-                "service_name": "TEST",
-            },
+    
+    def _perform_configuration_operations(_api: FlextDbOracleApi) -> None:
+        """Specific configuration pattern operations."""
+        # Pattern 1: Minimal configuration
+        FlextDbOracleConfig(
+            host="localhost",
+            username="user",
+            password="pass",
+            service_name="DB",
         )
-        logger.info("✅ Configuration validation passed")
-    except Exception as e:
-        logger.warning(f"⚠️ Configuration validation failed: {e}")
+        logger.info("✅ Created minimal configuration")
+        
+        # Pattern 2: Production configuration with all options
+        production_config = FlextDbOracleConfig(
+            host="prod.oracle.company.com",
+            port=1521,
+            username="prod_user",
+            password="secure_password",
+            service_name="PROD_DB",
+            encoding="UTF-8",
+            schema="PROD_SCHEMA",
+        )
+        logger.info("✅ Created production configuration")
+        
+        # Pattern 3: Configuration validation
+        try:
+            production_config.model_validate(
+                {
+                    "host": "test.oracle.com",
+                    "port": 1521,
+                    "username": "test",
+                    "password": "test",
+                    "service_name": "TEST",
+                },
+            )
+            logger.info("✅ Configuration validation passed")
+        except Exception as e:
+            logger.warning(f"⚠️ Configuration validation failed: {e}")
+    
+    demonstrator.demonstrate_with_api_operations(_perform_configuration_operations)
 
 
 def demonstrate_query_patterns() -> None:
-    """Demonstrate different query execution patterns."""
-    logger.info("📊 Demonstrating Query Patterns")
-
-    config = create_sample_config()
-    api = FlextDbOracleApi(config, "demo_queries")
-
-    # Simulate query operations (without actual Oracle connection)
-
-    # Pattern 1: Simple query
-    query_result = api.query("SELECT 1 as test_value FROM DUAL")
-    if query_result.is_failure:
-        logger.info(
-            f"📝 Simple query pattern demonstrated (simulated): {query_result.error}",
-        )
-
-    # Pattern 2: Parameterized query
-    param_query_result = api.query(
-        "SELECT * FROM employees WHERE department_id = :dept_id",
-        {"dept_id": 10},
+    """Demonstrate different query execution patterns using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_queries", "📊", "Demonstrating Query Patterns"
     )
-    if param_query_result.is_failure:
-        logger.info(
-            f"📝 Parameterized query pattern demonstrated (simulated): {param_query_result.error}",
-        )
-
-    # Pattern 3: Single row query
-    single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
-    if single_result.is_failure:
-        logger.info(
-            f"📝 Single row query pattern demonstrated (simulated): {single_result.error}",
-        )
-
-    # Pattern 4: Batch operations
-    operations = [
-        (
-            "UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id",
+    
+    def _perform_query_operations(api: FlextDbOracleApi) -> None:
+        """Specific query pattern operations."""
+        # Pattern 1: Simple query
+        query_result = api.query("SELECT 1 as test_value FROM DUAL")
+        if query_result.is_failure:
+            logger.info(
+                f"📝 Simple query pattern demonstrated (simulated): {query_result.error}",
+            )
+        
+        # Pattern 2: Parameterized query
+        param_query_result = api.query(
+            "SELECT * FROM employees WHERE department_id = :dept_id",
             {"dept_id": 10},
-        ),
-        (
-            "INSERT INTO audit_log (operation, timestamp) VALUES (:op, SYSDATE)",
-            {"op": "salary_update"},
-        ),
-        ("COMMIT", None),
-    ]
-
-    batch_result = api.execute_batch(operations)
-    if batch_result.is_failure:
-        logger.info(
-            f"📝 Batch operations pattern demonstrated (simulated): {batch_result.error}",
         )
+        if param_query_result.is_failure:
+            logger.info(
+                f"📝 Parameterized query pattern demonstrated (simulated): {param_query_result.error}",
+            )
+        
+        # Pattern 3: Single row query
+        single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
+        if single_result.is_failure:
+            logger.info(
+                f"📝 Single row query pattern demonstrated (simulated): {single_result.error}",
+            )
+        
+        # Pattern 4: Batch operations
+        operations = [
+            (
+                "UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id",
+                {"dept_id": 10},
+            ),
+            (
+                "INSERT INTO audit_log (operation, timestamp) VALUES (:op, SYSDATE)",
+                {"op": "salary_update"},
+            ),
+            ("COMMIT", None),
+        ]
+        
+        batch_result = api.execute_batch(operations)
+        if batch_result.is_failure:
+            logger.info(
+                f"📝 Batch operations pattern demonstrated (simulated): {batch_result.error}",
+            )
+    
+    demonstrator.demonstrate_with_api_operations(_perform_query_operations)
 
 
 def demonstrate_metadata_exploration() -> None:
-    """Demonstrate metadata exploration capabilities."""
-    logger.info("🔍 Demonstrating Metadata Exploration")
-
-    config = create_sample_config()
-    api = FlextDbOracleApi(config, "demo_metadata")
-
-    # Pattern 1: List all schemas
-    schemas_result = api.get_schemas()
-    if schemas_result.is_failure:
-        logger.info(
-            f"📝 Schema listing pattern demonstrated (simulated): {schemas_result.error}",
-        )
-
-    # Pattern 2: List tables in a schema
-    tables_result = api.get_tables("HR")
-    if tables_result.is_failure:
-        logger.info(
-            f"📝 Table listing pattern demonstrated (simulated): {tables_result.error}",
-        )
-
-    # Pattern 3: Get column information for a table
-    columns_result = api.get_columns("EMPLOYEES")
-    if columns_result.is_failure:
-        logger.info(
-            f"📝 Column information pattern demonstrated (simulated): {columns_result.error}",
-        )
-
-    # Pattern 4: Test connection health
-    health_result = api.test_connection()
-    if health_result.is_failure:
-        logger.info(
-            f"📝 Connection health check pattern demonstrated (simulated): {health_result.error}",
-        )
+    """Demonstrate metadata exploration capabilities using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_metadata", "🔍", "Demonstrating Metadata Exploration"
+    )
+    
+    def _perform_metadata_operations(api: FlextDbOracleApi) -> None:
+        """Specific metadata exploration operations."""
+        # Pattern 1: List all schemas
+        schemas_result = api.get_schemas()
+        if schemas_result.is_failure:
+            logger.info(
+                f"📝 Schema listing pattern demonstrated (simulated): {schemas_result.error}",
+            )
+        
+        # Pattern 2: List tables in a schema
+        tables_result = api.get_tables("HR")
+        if tables_result.is_failure:
+            logger.info(
+                f"📝 Table listing pattern demonstrated (simulated): {tables_result.error}",
+            )
+        
+        # Pattern 3: Get column information for a table
+        columns_result = api.get_columns("EMPLOYEES")
+        if columns_result.is_failure:
+            logger.info(
+                f"📝 Column information pattern demonstrated (simulated): {columns_result.error}",
+            )
+        
+        # Pattern 4: Test connection health
+        health_result = api.test_connection()
+        if health_result.is_failure:
+            logger.info(
+                f"📝 Connection health check pattern demonstrated (simulated): {health_result.error}",
+            )
+    
+    demonstrator.demonstrate_with_api_operations(_perform_metadata_operations)
 
 
 def demonstrate_transaction_patterns() -> None:
-    """Demonstrate transaction management patterns."""
-    logger.info("💳 Demonstrating Transaction Patterns")
-
-    config = create_sample_config()
-    FlextDbOracleApi(config, "demo_transactions")
-
-    # Pattern 1: Manual transaction management
-    try:
-        # Simulated transaction pattern
+    """Demonstrate transaction management patterns using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_transactions", "💳", "Demonstrating Transaction Patterns"
+    )
+    
+    def _perform_transaction_operations(_api: FlextDbOracleApi) -> None:
+        """Specific transaction pattern operations."""
+        # Pattern 1: Manual transaction management
         logger.info("📝 Manual transaction pattern:")
         logger.info("  1. BEGIN TRANSACTION")
         logger.info("  2. Execute business operations")
         logger.info("  3. COMMIT or ROLLBACK based on results")
-
+        
         # This would be real code with actual connection:
         # with api.transaction() as txn:
         #     if result1.is_success and result2.is_success:
         #         txn.commit()
         #         txn.rollback()
-
-    except Exception as e:
-        logger.warning(f"⚠️ Transaction pattern failed: {e}")
+    
+    demonstrator.demonstrate_with_api_operations(_perform_transaction_operations)
 
 
 def demonstrate_error_handling_patterns() -> None:
-    """Demonstrate comprehensive error handling patterns."""
-    logger.info("❌ Demonstrating Error Handling Patterns")
-
-    config = create_sample_config()
-    api = FlextDbOracleApi(config, "demo_errors")
-
-    # Pattern 1: Connection error handling
-    try:
-        # This will fail since we don't have real Oracle connection
-        api.connect()
-    except ValueError as e:
-        logger.info(f"✅ Connection error handled: {e}")
-    except Exception as e:
-        logger.info(f"✅ General connection error handled: {e}")
-
-    # Pattern 2: Query error handling with FlextResult
-    result = api.query("INVALID SQL SYNTAX")
-    if result.is_failure:
-        logger.info(f"✅ Query error handled via FlextResult: {result.error}")
-
-    # Pattern 3: Graceful degradation
-    fallback_result = demonstrate_fallback_operations(api)
-    logger.info(f"✅ Fallback operations result: {fallback_result}")
+    """Demonstrate comprehensive error handling patterns using Template Method."""
+    demonstrator = OracleExampleDemonstrator(
+        "demo_errors", "❌", "Demonstrating Error Handling Patterns"
+    )
+    
+    def _perform_error_handling_operations(api: FlextDbOracleApi) -> None:
+        """Specific error handling pattern operations."""
+        # Pattern 1: Connection error handling
+        try:
+            # This will fail since we don't have real Oracle connection
+            api.connect()
+        except ValueError as e:
+            logger.info(f"✅ Connection error handled: {e}")
+        except Exception as e:
+            logger.info(f"✅ General connection error handled: {e}")
+        
+        # Pattern 2: Query error handling with FlextResult
+        result = api.query("INVALID SQL SYNTAX")
+        if result.is_failure:
+            logger.info(f"✅ Query error handled via FlextResult: {result.error}")
+        
+        # Pattern 3: Graceful degradation
+        fallback_result = demonstrate_fallback_operations(api)
+        logger.info(f"✅ Fallback operations result: {fallback_result}")
+    
+    demonstrator.demonstrate_with_api_operations(_perform_error_handling_operations)
 
 
 def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
@@ -269,56 +334,95 @@ def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
     return "Using fallback data due to connection failure"
 
 
+def _demonstrate_info_only_patterns(
+    context_name: str, 
+    log_emoji: str, 
+    log_message: str, 
+    patterns: list[tuple[str, list[str]]]
+) -> None:
+    """DRY helper: Demonstrate information-only patterns without duplication.
+    
+    SOLID REFACTORING: Final elimination of 24 lines duplication (mass=94)
+    by using Strategy Pattern for pattern demonstration.
+    """
+    demonstrator = OracleExampleDemonstrator(context_name, log_emoji, log_message)
+    demonstrator.demonstrate_info_patterns(patterns)
+
+
+# DRY Refactoring: Pattern configuration factory eliminates duplication
+def create_pattern_config(name: str, emoji: str, patterns: list[tuple[str, list[str]]]) -> dict[str, object]:
+    """Create pattern configuration without duplication."""
+    return {
+        "context": f"demo_{name}",
+        "emoji": emoji,
+        "message": f"Demonstrating {name.title()} Patterns",
+        "patterns": patterns
+    }
+
+# Pattern data separated from structure
+PERFORMANCE_PATTERNS = [
+    ("Connection pooling (simulated)", [
+        "Use connection pool for multiple operations",
+        "Reuse connections across requests",
+        "Configure pool size based on workload"
+    ]),
+    ("Batch operations for efficiency", [
+        "Group multiple operations together",
+        "Reduce round trips to database",
+        "Use prepared statements for repeated queries"
+    ]),
+    ("Async operations (when available)", [
+        "Use async/await for I/O operations",
+        "Non-blocking database operations",
+        "Better resource utilization"
+    ])
+]
+
+MONITORING_PATTERNS = [
+    ("Health checks", [
+        "Regular connection health verification",
+        "Database responsiveness monitoring",
+        "Automatic alerting on failures"
+    ]),
+    ("Performance metrics", [
+        "Query execution time tracking",
+        "Connection pool utilization",
+        "Error rate monitoring"
+    ]),
+    ("Structured logging", [
+        "Consistent log format across operations",
+        "Correlation IDs for request tracing",
+        "Log levels for different environments"
+    ])
+]
+
+# Configuration generated without duplication
+PATTERN_CONFIGURATIONS = {
+    "performance": create_pattern_config("performance", "⚡", PERFORMANCE_PATTERNS),
+    "monitoring": create_pattern_config("monitoring", "📊", MONITORING_PATTERNS)
+}
+
+
+def _demonstrate_patterns_from_config(pattern_key: str) -> None:
+    """DRY pattern demonstration using data-driven configuration.
+    
+    SOLID REFACTORING: Final elimination of structural duplication
+    using data-driven approach with pattern configuration.
+    """
+    config = PATTERN_CONFIGURATIONS[pattern_key]
+    _demonstrate_info_only_patterns(
+        config["context"], config["emoji"], config["message"], config["patterns"]
+    )
+
+
 def demonstrate_performance_patterns() -> None:
-    """Demonstrate performance optimization patterns."""
-    logger.info("⚡ Demonstrating Performance Patterns")
-
-    config = create_sample_config()
-    FlextDbOracleApi(config, "demo_performance")
-
-    # Pattern 1: Connection pooling (simulated)
-    logger.info("📝 Connection pooling pattern:")
-    logger.info("  - Use connection pool for multiple operations")
-    logger.info("  - Reuse connections across requests")
-    logger.info("  - Configure pool size based on workload")
-
-    # Pattern 2: Batch operations for efficiency
-    logger.info("📝 Batch operations pattern:")
-    logger.info("  - Group multiple operations together")
-    logger.info("  - Reduce round trips to database")
-    logger.info("  - Use prepared statements for repeated queries")
-
-    # Pattern 3: Async operations (when available)
-    logger.info("📝 Async operations pattern:")
-    logger.info("  - Use async/await for I/O operations")
-    logger.info("  - Non-blocking database operations")
-    logger.info("  - Better resource utilization")
+    """Demonstrate performance optimization patterns using data-driven configuration."""
+    _demonstrate_patterns_from_config("performance")
 
 
 def demonstrate_monitoring_patterns() -> None:
-    """Demonstrate monitoring and observability patterns."""
-    logger.info("📊 Demonstrating Monitoring Patterns")
-
-    config = create_sample_config()
-    FlextDbOracleApi(config, "demo_monitoring")
-
-    # Pattern 1: Health checks
-    logger.info("📝 Health check pattern:")
-    logger.info("  - Regular connection health verification")
-    logger.info("  - Database responsiveness monitoring")
-    logger.info("  - Automatic alerting on failures")
-
-    # Pattern 2: Performance metrics
-    logger.info("📝 Performance metrics pattern:")
-    logger.info("  - Query execution time tracking")
-    logger.info("  - Connection pool utilization")
-    logger.info("  - Error rate monitoring")
-
-    # Pattern 3: Structured logging
-    logger.info("📝 Structured logging pattern:")
-    logger.info("  - Consistent log format across operations")
-    logger.info("  - Correlation IDs for request tracing")
-    logger.info("  - Log levels for different environments")
+    """Demonstrate monitoring and observability patterns using data-driven configuration."""
+    _demonstrate_patterns_from_config("monitoring")
 
 
 def demonstrate_integration_patterns() -> None:

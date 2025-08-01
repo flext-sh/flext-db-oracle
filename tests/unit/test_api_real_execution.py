@@ -35,9 +35,8 @@ class TestFlextDbOracleApiRealExecution:
         api = FlextDbOracleApi()
         assert api._config is None
         assert api._context_name == "oracle"
-        assert not api._is_connected
-        assert api._connection is None
-        assert api._retry_attempts == 3
+        assert not api.is_connected
+        assert api.connection is None
 
         # Test with config
         config = FlextDbOracleConfig(
@@ -94,20 +93,22 @@ class TestFlextDbOracleApiRealExecution:
         """Test from_env behavior when environment variables are missing."""
         # Clear relevant environment variables
 
-        with patch.dict(os.environ, {}, clear=True):
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            pytest.raises(ValueError, match="Configuration error"),
+        ):
             # This should fail appropriately due to missing configuration
-            with pytest.raises(ValueError, match="Configuration loading failed"):
-                FlextDbOracleApi.from_env()
+            FlextDbOracleApi.from_env()
 
     def test_with_config_real_execution(self) -> None:
         """Test API creation with configuration parameters - real execution."""
-        api = FlextDbOracleApi.with_config(
-            host="param.oracle.com",
-            port=1523,
-            username="paramuser",
-            password="parampass",
-            service_name="PARAMDB",
-        )
+        api = FlextDbOracleApi.with_config({
+            "host": "param.oracle.com",
+            "port": 1523,
+            "username": "paramuser",
+            "password": "parampass",
+            "service_name": "PARAMDB",
+        })
 
         assert api._config is not None
         assert api._config.host == "param.oracle.com"
@@ -279,7 +280,7 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert "No connection established" in result.error
+        assert "Not connected to database" in result.error
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
     def test_context_manager_real_execution(

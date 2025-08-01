@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import Any, Protocol, cast
 
 import click
 from flext_cli import (
@@ -29,6 +30,19 @@ from flext_db_oracle.plugins import register_all_oracle_plugins
 from .constants import ORACLE_DEFAULT_PORT
 
 console = Console()
+
+
+class ConfigProtocol(Protocol):
+    """Protocol for CLI config objects."""
+
+    output_format: str
+
+
+class PluginProtocol(Protocol):
+    """Protocol for plugin objects."""
+
+    name: str
+    version: str
 
 
 @dataclass
@@ -87,6 +101,18 @@ def _safe_get_list_length(obj: object) -> int:
         except (TypeError, AttributeError):
             return 0
     return 0
+
+
+def _extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
+    """Extract table name and schema from table_info object - eliminates deeply nested control flow."""
+    # Guard clause pattern - early return for dict-like objects
+    if hasattr(table_info, "get"):
+        name = table_info.get("name", "") or str(table_info)
+        schema_name = table_info.get("schema", schema or "")
+        return name, schema_name
+
+    # Simple object case
+    return str(table_info), schema or ""
 
 
 @click.group()
@@ -175,17 +201,52 @@ def connect(
 
 def _execute_connection_test(ctx: click.Context, params: ConnectionParams) -> None:
     """Execute connection test with parameters - DRY pattern."""
-    config = ctx.obj["config"]
-    debug = ctx.obj["debug"]
+    # Strategy Pattern: Create connection test execution strategy
+    executor = _ConnectionTestExecutor(ctx, params)
+    executor.execute()
 
-    try:
-        # Create Oracle configuration com valores padrão completos - refatoração DRY real
-        oracle_config = FlextDbOracleConfig(
-            host=params.host,
-            port=params.port,
-            service_name=params.service_name,
-            username=params.username,
-            password=SecretStr(params.password),
+
+class _ConnectionTestExecutor:
+    """Connection test executor using Strategy + Template Method patterns - Single Responsibility."""
+
+    def __init__(self, ctx: click.Context, params: ConnectionParams) -> None:
+        """Initialize connection test executor."""
+        self.ctx = ctx
+        self.params = params
+        self.config = ctx.obj["config"]
+        self.debug = ctx.obj["debug"]
+
+    def execute(self) -> None:
+        """Template Method: Execute connection test with structured phases."""
+        try:
+            # Phase 1: Setup
+            api = self._setup_connection()
+
+            # Phase 2: Connect
+            self._establish_connection(api)
+
+            # Phase 3: Test
+            test_result = self._perform_connection_test(api)
+
+            # Phase 4: Handle Result
+            self._handle_test_result(test_result)
+
+        except (click.ClickException, ValueError, TypeError, AttributeError, ConnectionError, OSError) as e:
+            self._handle_exception(e)
+
+    def _setup_connection(self) -> FlextDbOracleApi:
+        """Set up connection configuration - Single Responsibility."""
+        oracle_config = self._create_oracle_config()
+        return FlextDbOracleApi(oracle_config, context_name="cli")
+
+    def _create_oracle_config(self) -> FlextDbOracleConfig:
+        """Create Oracle configuration with defaults - Single Responsibility."""
+        return FlextDbOracleConfig(
+            host=self.params.host,
+            port=self.params.port,
+            service_name=self.params.service_name,
+            username=self.params.username,
+            password=SecretStr(self.params.password),
             sid=None,  # Usando service_name
             pool_min=1,
             pool_max=10,
@@ -201,77 +262,102 @@ def _execute_connection_test(ctx: click.Context, params: ConnectionParams) -> No
             autocommit=False,
         )
 
-        # Create API and connect
-        api = FlextDbOracleApi(oracle_config, context_name="cli")
-
-        if debug:
+    def _establish_connection(self, api: FlextDbOracleApi) -> None:
+        """Establish database connection - Single Responsibility."""
+        if self.debug:
             console.print(
-                f"[blue]Connecting to {params.host}:{params.port}/{params.service_name}...[/blue]",
+                f"[blue]Connecting to {self.params.host}:{self.params.port}/{self.params.service_name}...[/blue]",
             )
-
         api.connect()
 
-        # Test connection with observability
-        test_result = api.test_connection_with_observability()
+    def _perform_connection_test(self, api: FlextDbOracleApi) -> object:
+        """Perform connection test with observability - Single Responsibility."""
+        return api.test_connection_with_observability()
 
-        if test_result.is_success:
-            test_data = test_result.data
-
-            # Null check para test_data - refatoração DRY real
-            if test_data is None:
-                console.print("[red]Connection test returned no data[/red]")
-                _raise_cli_error("Connection test returned no data")
-
-            # Create connection info panel
-            info_panel = Panel(
-                f"""✅ **Connection Successful**
-
-Host: {params.host}
-Port: {params.port}
-Service: {params.service_name}
-Status: {_safe_get_test_data(test_data, "status", "unknown")}
-Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
-                title="Oracle Connection",
-                border_style="green",
-            )
-            console.print(info_panel)
-
-            # Show health data if available
-            health_data = _safe_get_test_data(test_data, "health", {})
-            if health_data and isinstance(health_data, dict):
-                output_data = {
-                    "connection_status": _safe_get_test_data(test_data, "status"),
-                    "test_duration_ms": _safe_get_test_data(
-                        test_data,
-                        "test_duration_ms",
-                    ),
-                    "health_status": health_data.get("status"),
-                    "health_message": health_data.get("message"),
-                    "metrics": health_data.get("metrics", {}),
-                }
-
-                if config.output_format == "table":
-                    table = Table(title="Connection Details")
-                    table.add_column("Property", style="cyan")
-                    table.add_column("Value", style="green")
-
-                    for key, value in output_data.items():
-                        if isinstance(value, dict):
-                            formatted_value = json.dumps(value, indent=2)
-                        else:
-                            formatted_value = str(value)
-                        table.add_row(key.replace("_", " ").title(), formatted_value)
-
-                    console.print(table)
-                else:
-                    format_output(output_data, config.output_format, console)
+    def _handle_test_result(self, test_result: object) -> None:
+        """Handle test result based on success/failure - Single Responsibility."""
+        if hasattr(test_result, "is_success") and test_result.is_success:
+            self._handle_successful_test(test_result)
         else:
-            console.print(f"[red]Connection failed: {test_result.error}[/red]")
-            _raise_cli_error(f"Connection failed: {test_result.error}")
+            self._handle_failed_test(test_result)
 
-    except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+    def _handle_successful_test(self, test_result: object) -> None:
+        """Handle successful connection test - Single Responsibility."""
+        test_data = getattr(test_result, "data", None)
+
+        if test_data is None:
+            console.print("[red]Connection test returned no data[/red]")
+            _raise_cli_error("Connection test returned no data")
+
+        self._display_success_panel(test_data)
+        self._display_health_data(test_data)
+
+    def _display_success_panel(self, test_data: object) -> None:
+        """Display connection success panel - Single Responsibility."""
+        # Type-safe conversion for _safe_get_test_data
+        test_data_dict = test_data if isinstance(test_data, dict) else None
+
+        info_panel = Panel(
+            f"""✅ **Connection Successful**
+
+Host: {self.params.host}
+Port: {self.params.port}
+Service: {self.params.service_name}
+Status: {_safe_get_test_data(test_data_dict, "status", "unknown")}
+Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms""",
+            title="Oracle Connection",
+            border_style="green",
+        )
+        console.print(info_panel)
+
+    def _display_health_data(self, test_data: object) -> None:
+        """Display health data if available - Single Responsibility."""
+        # Type-safe conversion for _safe_get_test_data
+        test_data_dict = test_data if isinstance(test_data, dict) else None
+
+        health_data = _safe_get_test_data(test_data_dict, "health", {})
+        if not (health_data and isinstance(health_data, dict)):
+            return
+
+        output_data = self._prepare_health_output_data(test_data_dict, health_data)
+
+        if self.config.output_format == "table":
+            self._display_health_table(output_data)
+        else:
+            format_output(output_data, self.config.output_format, console)
+
+    def _prepare_health_output_data(self, test_data: dict[str, object] | None, health_data: dict[str, object]) -> dict[str, object]:
+        """Prepare health data for output - Single Responsibility."""
+        return {
+            "connection_status": _safe_get_test_data(test_data, "status"),
+            "test_duration_ms": _safe_get_test_data(test_data, "test_duration_ms"),
+            "health_status": health_data.get("status"),
+            "health_message": health_data.get("message"),
+            "metrics": health_data.get("metrics", {}),
+        }
+
+    def _display_health_table(self, output_data: dict[str, object]) -> None:
+        """Display health data as table - Single Responsibility."""
+        table = Table(title="Connection Details")
+        table.add_column("Property", style="cyan")
+        table.add_column("Value", style="green")
+
+        for key, value in output_data.items():
+            formatted_value = json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
+            table.add_row(key.replace("_", " ").title(), formatted_value)
+
+        console.print(table)
+
+    def _handle_failed_test(self, test_result: object) -> None:
+        """Handle failed connection test - Single Responsibility."""
+        error = getattr(test_result, "error", "Unknown error")
+        console.print(f"[red]Connection failed: {error}[/red]")
+        _raise_cli_error(f"Connection failed: {error}")
+
+    def _handle_exception(self, exception: Exception) -> None:
+        """Handle exceptions during connection test - Single Responsibility."""
+        console.print(f"[red]Error: {exception}[/red]")
+        raise click.ClickException(str(exception)) from exception
 
 
 @oracle.command()
@@ -330,6 +416,87 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
         raise click.ClickException(str(e)) from e
 
 
+class QueryResultProcessor:
+    """SOLID refactoring: Single Responsibility for query result processing."""
+
+    def __init__(self, config: ConfigProtocol, console: Console) -> None:
+        """Initialize result processor."""
+        self.config = config
+        self.console = console
+
+    def process_success(self, query_data: object, results: list[Any], limit: int | None) -> None:
+        """Process successful query results."""
+        # Apply limit if specified
+        limited_results = self._apply_limit(results, limit)
+
+        # Display summary panel
+        self._display_summary_panel(query_data)
+
+        # Display results based on format
+        if self.config.output_format == "table" and limited_results:
+            self._display_as_table(query_data, limited_results)
+        else:
+            self._display_as_structured_output(query_data, limited_results)
+
+    def _apply_limit(self, results: list[object], limit: int | None) -> list[object]:
+        """Apply row limit to results."""
+        if limit and isinstance(results, list) and len(results) > limit:
+            self.console.print(f"[yellow]Results limited to {limit} rows[/yellow]")
+            return results[:limit]
+        return results
+
+    def _display_summary_panel(self, query_data: object) -> None:
+        """Display query execution summary."""
+        execution_time = _safe_get_query_data_attr(query_data, "execution_time_ms", 0)
+        row_count = _safe_get_query_data_attr(query_data, "row_count", 0)
+        columns = _safe_get_query_data_attr(query_data, "columns", [])
+
+        self.console.print(
+            Panel(
+                f"""✅ **Query Executed Successfully**
+
+Execution Time: {execution_time:.2f}ms
+Rows Returned: {row_count}
+Columns: {_safe_get_list_length(columns)}""",
+                title="Query Results",
+                border_style="green",
+            ),
+        )
+
+    def _display_as_table(self, query_data: object, results: list[Any]) -> None:
+        """Display results as rich table."""
+        table = Table(title=f"Query Results ({len(results)} rows)")
+
+        # Add columns
+        columns = _safe_get_query_data_attr(query_data, "columns", [])
+        if columns and isinstance(columns, list):
+            for col in columns:
+                table.add_column(str(col), style="cyan")
+
+        # Add rows
+        for row in results:
+            # Ensure row is iterable (tuple, list, etc.)
+            if hasattr(row, "__iter__") and not isinstance(row, (str, bytes)):
+                table.add_row(
+                    *[str(cell) if cell is not None else "NULL" for cell in row],
+                )
+            else:
+                # Single value row
+                table.add_row(str(row) if row is not None else "NULL")
+
+        self.console.print(table)
+
+    def _display_as_structured_output(self, query_data: object, results: list[Any]) -> None:
+        """Display results as structured output."""
+        output_data = {
+            "execution_time_ms": _safe_get_query_data_attr(query_data, "execution_time_ms", 0),
+            "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
+            "columns": _safe_get_query_data_attr(query_data, "columns", []),
+            "rows": results,
+        }
+        format_output(output_data, self.config.output_format, self.console)
+
+
 @oracle.command()
 @click.option(
     "--sql",
@@ -343,7 +510,7 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
 )
 @click.pass_context
 def query(ctx: click.Context, sql: str, limit: int | None) -> None:
-    """Execute SQL query against Oracle database."""
+    """Execute SQL query against Oracle database - SOLID refactored."""
     config = ctx.obj["config"]
     debug = ctx.obj["debug"]
 
@@ -361,72 +528,16 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             if query_result.is_success:
                 query_data = query_result.data
 
-                # Null check para query_data - refatoração DRY real
+                # Null check for query_data
                 if query_data is None:
                     console.print("[red]Query execution returned no data[/red]")
                     _raise_cli_error("Query execution returned no data")
 
-                results = _safe_get_query_data_attr(query_data, "rows", [])
+                results: list[Any] = cast("list[Any]", _safe_get_query_data_attr(query_data, "rows", []))
 
-                # Apply limit if specified
-                if limit and isinstance(results, list) and len(results) > limit:
-                    results = results[:limit]
-                    console.print(f"[yellow]Results limited to {limit} rows[/yellow]")
-
-                # Display results
-                console.print(
-                    Panel(
-                        f"""✅ **Query Executed Successfully**
-
-Execution Time: {_safe_get_query_data_attr(query_data, "execution_time_ms", 0):.2f}ms
-Rows Returned: {_safe_get_query_data_attr(query_data, "row_count", 0)}
-Columns: {_safe_get_list_length(_safe_get_query_data_attr(query_data, "columns", []))}""",
-                        title="Query Results",
-                        border_style="green",
-                    ),
-                )
-
-                if (
-                    config.output_format == "table"
-                    and results
-                    and isinstance(results, list)
-                ):
-                    # Create rich table
-                    table = Table(title=f"Query Results ({len(results)} rows)")
-
-                    # Add columns
-                    columns = _safe_get_query_data_attr(query_data, "columns", [])
-                    if columns and isinstance(columns, list):
-                        for col in columns:
-                            table.add_column(str(col), style="cyan")
-
-                    # Add rows
-                    for row in results:
-                        table.add_row(
-                            *[
-                                str(cell) if cell is not None else "NULL"
-                                for cell in row
-                            ],
-                        )
-
-                    console.print(table)
-                else:
-                    # Format as requested output
-                    output_data = {
-                        "execution_time_ms": _safe_get_query_data_attr(
-                            query_data,
-                            "execution_time_ms",
-                            0,
-                        ),
-                        "row_count": _safe_get_query_data_attr(
-                            query_data,
-                            "row_count",
-                            0,
-                        ),
-                        "columns": _safe_get_query_data_attr(query_data, "columns", []),
-                        "rows": results,
-                    }
-                    format_output(output_data, config.output_format, console)
+                # Use SOLID processor for result handling
+                processor = QueryResultProcessor(config, console)
+                processor.process_success(query_data, results, limit)
 
             else:
                 console.print(f"[red]Query failed: {query_result.error}[/red]")
@@ -534,23 +645,9 @@ Schema: {schema or "All"}""",
                     table.add_column("Schema", style="yellow")
 
                     for table_info in _safe_iterate_list(table_list):
-                        # Simplificar type checking - refatoração DRY real
-                        if hasattr(table_info, "get"):
-                            # É um dict-like object
-                            name = (
-                                table_info.get("name", "")
-                                if hasattr(table_info, "get")
-                                else str(table_info)
-                            )
-                            schema_name = (
-                                table_info.get("schema", schema or "")
-                                if hasattr(table_info, "get")
-                                else (schema or "")
-                            )
-                            table.add_row(name, schema_name)
-                        else:
-                            # É um objeto simples
-                            table.add_row(str(table_info), schema or "")
+                        # Extract table info using helper function - eliminates deep nesting
+                        name, schema_name = _extract_table_info(table_info, schema)
+                        table.add_row(name, schema_name)
 
                     console.print(table)
                 else:
@@ -566,97 +663,122 @@ Schema: {schema or "All"}""",
         raise click.ClickException(str(e)) from e
 
 
+class PluginManagerProcessor:
+    """SOLID refactoring: Single Responsibility for plugin management operations."""
+
+    def __init__(self, config: ConfigProtocol, console: Console) -> None:
+        """Initialize plugin manager processor."""
+        self.config = config
+        self.console = console
+
+    def handle_registration_success(self, registration_results: dict[str, str]) -> None:
+        """Handle successful plugin registration - Single Responsibility."""
+        self._display_registration_success_panel()
+        self._display_registration_results(registration_results)
+
+    def handle_plugin_list_success(self, plugin_list: list[Any]) -> None:
+        """Handle successful plugin listing - Single Responsibility."""
+        self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
+
+        if self.config.output_format == "table":
+            self._display_plugins_table(plugin_list)
+        else:
+            self._display_plugins_structured(plugin_list)
+
+    def _display_registration_success_panel(self) -> None:
+        """Display registration success panel."""
+        self.console.print(
+            Panel(
+                """✅ **Plugin Registration Complete**""",
+                title="Oracle Plugins",
+                border_style="green",
+            ),
+        )
+
+    def _display_registration_results(self, registration_results: dict[str, str]) -> None:
+        """Display registration results based on output format."""
+        if self.config.output_format == "table":
+            self._display_registration_table(registration_results)
+        else:
+            format_output(registration_results, self.config.output_format, self.console)
+
+    def _display_registration_table(self, registration_results: dict[str, str]) -> None:
+        """Display registration results as table."""
+        table = Table(title="Plugin Registration Results")
+        table.add_column("Plugin Name", style="cyan")
+        table.add_column("Status", style="green")
+
+        for plugin_name, status in _safe_iterate_dict(registration_results).items():
+            table.add_row(plugin_name, status)
+
+        self.console.print(table)
+
+    def _display_plugins_table(self, plugin_list: list[Any]) -> None:
+        """Display plugins as rich table."""
+        plugin_table = Table(title="Available Plugins")
+        plugin_table.add_column("Name", style="cyan")
+        plugin_table.add_column("Version", style="yellow")
+        plugin_table.add_column("Type", style="magenta")
+        plugin_table.add_column("Description", style="white")
+
+        for plugin in plugin_list:
+            plugin_table.add_row(
+                str(plugin.name),
+                str(plugin.version),
+                str(getattr(plugin, "plugin_type", "unknown") or "unknown"),
+                str(getattr(plugin, "description", "") or ""),
+            )
+
+        self.console.print(plugin_table)
+
+    def _display_plugins_structured(self, plugin_list: list[Any]) -> None:
+        """Display plugins as structured output."""
+        plugin_data = [
+            {
+                "name": p.name,
+                "version": p.version,
+                "type": getattr(p, "plugin_type", "unknown"),
+                "description": getattr(p, "description", ""),
+            }
+            for p in plugin_list
+        ]
+        format_output({"plugins": plugin_data}, self.config.output_format, self.console)
+
+
 @oracle.command()
 @click.pass_context
 def plugins(ctx: click.Context) -> None:
-    """Manage Oracle database plugins."""
+    """Manage Oracle database plugins - SOLID refactored."""
     config = ctx.obj["config"]
 
     try:
         api = FlextDbOracleApi.from_env(context_name="cli")
 
         with api:
+            # Use SOLID processor for plugin management
+            processor = PluginManagerProcessor(config, console)
+
             # Register all Oracle plugins
             register_result = register_all_oracle_plugins(api)
 
             if register_result.is_success:
                 registration_results = register_result.data
 
-                # Null check para registration_results - refatoração DRY real
+                # Null check for registration_results
                 if registration_results is None:
                     console.print("[red]Plugin registration returned no data[/red]")
                     _raise_cli_error("Plugin registration returned no data")
 
-                console.print(
-                    Panel(
-                        """✅ **Plugin Registration Complete**""",
-                        title="Oracle Plugins",
-                        border_style="green",
-                    ),
-                )
-
-                if config.output_format == "table":
-                    table = Table(title="Plugin Registration Results")
-                    table.add_column("Plugin Name", style="cyan")
-                    table.add_column("Status", style="green")
-
-                    for plugin_name, status in _safe_iterate_dict(
-                        registration_results,
-                    ).items():
-                        # table.add_row não aceita style como argumento - refatoração DRY real
-                        table.add_row(plugin_name, status)
-
-                    console.print(table)
-                else:
-                    format_output(registration_results, config.output_format, console)
+                # Assert for MyPy: registration_results is not None here
+                assert registration_results is not None  # noqa: S101
+                processor.handle_registration_success(registration_results)
 
                 # List all plugins
                 plugins_result = api.list_plugins()
                 if plugins_result.is_success and plugins_result.data:
-                    plugin_list = plugins_result.data
-
-                    console.print(
-                        f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]",
-                    )
-
-                    if config.output_format == "table":
-                        plugin_table = Table(title="Available Plugins")
-                        plugin_table.add_column("Name", style="cyan")
-                        plugin_table.add_column("Version", style="yellow")
-                        plugin_table.add_column("Type", style="magenta")
-                        plugin_table.add_column("Description", style="white")
-
-                        for plugin in plugin_list:
-                            plugin_table.add_row(
-                                str(plugin.name),
-                                str(plugin.version),
-                                str(
-                                    getattr(plugin, "plugin_type", "unknown")
-                                    or "unknown",
-                                ),
-                                str(getattr(plugin, "description", "") or ""),
-                            )
-
-                        console.print(plugin_table)
-                    else:
-                        plugin_data = [
-                            {
-                                "name": p.name,
-                                "version": p.version,
-                                "type": getattr(p, "plugin_type", "unknown"),
-                                "description": getattr(p, "description", ""),
-                            }
-                            for p in plugin_list
-                        ]
-                        format_output(
-                            {"plugins": plugin_data},
-                            config.output_format,
-                            console,
-                        )
+                    processor.handle_plugin_list_success(plugins_result.data)
             else:
-                console.print(
-                    f"[red]Plugin registration failed: {register_result.error}[/red]",
-                )
+                console.print(f"[red]Plugin registration failed: {register_result.error}[/red]")
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
     except Exception as e:

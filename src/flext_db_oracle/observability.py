@@ -40,10 +40,8 @@ class FlextDbOracleObservabilityManager:
         self._context_name = context_name
         self._logger = get_logger(f"FlextDbOracleObservability.{context_name}")
 
-        # Observability components using real signatures - refatoração DRY
+        # Observability components using flext-observability patterns
         self._monitor = FlextObservabilityMonitor(container)
-        # Use real flext-observability simple API instead of fallback services
-        self._container = container
 
         self._initialized = False
 
@@ -52,19 +50,19 @@ class FlextDbOracleObservabilityManager:
         if self._initialized:
             return FlextResult.ok(None)
 
-        init_result = self._monitor.flext_initialize_observability()
-        if init_result.is_success:
-            start_result = self._monitor.flext_start_monitoring()
-            if start_result.is_failure:
-                self._logger.warning(
-                    "Failed to start monitoring: %s",
-                    start_result.error,
-                )
-        else:
-            self._logger.warning(
-                "Failed to initialize observability: %s",
-                init_result.error,
-            )
+        try:
+            # Use the proper initialization pattern from flext-observability
+            init_result = self._monitor.flext_initialize_observability()
+            if init_result.is_success:
+                start_result = self._monitor.flext_start_monitoring()
+                if start_result.is_success:
+                    self._logger.info("Observability monitoring initialized successfully")
+                else:
+                    self._logger.warning("Failed to start monitoring: %s", start_result.error)
+            else:
+                self._logger.warning("Failed to initialize observability: %s", init_result.error)
+        except (AttributeError, ValueError) as e:
+            self._logger.warning("Failed to initialize observability: %s", e)
 
         self._initialized = True
         return FlextResult.ok(None)
@@ -74,24 +72,17 @@ class FlextDbOracleObservabilityManager:
         trace_id = str(uuid.uuid4())
         span_id = str(uuid.uuid4())
 
-        # Use real flext_create_trace API signature - refatoração DRY
-        config = {
-            "span_id": span_id,
-            "duration_ms": 0,
-            "status": "pending",
-            **attributes,
-        }
-
+        # Use flext_create_trace with proper parameters
         trace_result = flext_create_trace(
             trace_id=trace_id,
             operation=f"{self._context_name}.{operation}",
-            config=config,
+            config=attributes,
         )
 
         if trace_result.is_success and trace_result.data:
             return trace_result.data
 
-        # Create trace directly following real FlextTrace constructor - refatoração real
+        # Fallback: create trace directly using FlextTrace constructor
         return FlextTrace(
             id=str(uuid.uuid4()),
             trace_id=trace_id,
@@ -110,7 +101,7 @@ class FlextDbOracleObservabilityManager:
         **tags: str,
     ) -> None:
         """Record metric (DRY pattern)."""
-        # Use real flext_create_metric API signature - refatoração DRY
+        # Use flext_create_metric with proper parameters
         metric_result = flext_create_metric(
             name=f"{self._context_name}.{name}",
             value=value,
@@ -118,8 +109,7 @@ class FlextDbOracleObservabilityManager:
             tags={"context": self._context_name, **tags},
         )
 
-        if metric_result.is_success and metric_result.data:
-            # Metric created successfully using real flext-observability API
+        if metric_result.is_success:
             self._logger.debug("Metric %s created successfully", name)
         else:
             self._logger.warning(
@@ -132,10 +122,11 @@ class FlextDbOracleObservabilityManager:
         self,
         status: str,
         message: str,
-        metrics: dict[str, Any] | None = None,  # noqa: ARG002 - mantido para compatibilidade API
+        metrics: dict[str, Any] | None = None,  # noqa: ARG002
     ) -> FlextResult[FlextHealthCheck]:
         """Create health check (DRY pattern)."""
-        # Use real flext_create_health_check API signature - refatoração DRY
+        # Use flext_create_health_check with proper parameters
+        # Note: metrics parameter kept for API compatibility but not used by flext_create_health_check
         return flext_create_health_check(
             component=f"oracle.{self._context_name}",
             status=status,
@@ -156,14 +147,16 @@ class FlextDbOracleObservabilityManager:
             updated_span_attributes["error"] = error
 
         # Create new trace with updated fields using flext_create_trace
+        config = {
+            "span_id": trace.span_id,
+            "duration_ms": duration_ms,
+            "status": status,
+        }
+
         trace_result = flext_create_trace(
             trace_id=trace.trace_id,
             operation=trace.operation,
-            config={
-                "span_id": trace.span_id,
-                "duration_ms": duration_ms,
-                "status": status,
-            },
+            config=config,
         )
 
         if trace_result.is_success and trace_result.data:

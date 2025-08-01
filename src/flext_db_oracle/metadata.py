@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -16,14 +17,52 @@ from .constants import (
     ERROR_MSG_TABLE_NAME_EMPTY,
 )
 
+# =============================================================================
+# SOLID REFACTORING: Template Method Pattern for validation DRY approach
+# =============================================================================
+
+
+class ValidationMixin:
+    """Mixin providing DRY validation patterns for Oracle metadata objects.
+
+    SOLID REFACTORING: Eliminates 24+ lines of duplicated validation code
+    (mass=145) using Template Method pattern and consistent error handling.
+    """
+
+    def _execute_validation_template(
+        self,
+        validation_steps: list[tuple[str, Callable[[], bool]]],
+        context_name: str,
+    ) -> FlextResult[None]:
+        """Template method: Execute validation steps with consistent error handling.
+
+        Args:
+            validation_steps: List of (error_msg, validation_func) tuples
+            context_name: Context name for error messages
+
+        Returns:
+            FlextResult[None]: Success if all validations pass, failure otherwise
+
+        """
+        try:
+            # Execute all validation steps
+            for error_msg, validation_func in validation_steps:
+                if not validation_func():
+                    return FlextResult.fail(error_msg)
+
+            return FlextResult.ok(None)
+
+        except (ValueError, TypeError, AttributeError) as e:
+            return FlextResult.fail(f"{context_name} validation failed: {e}")
+
 if TYPE_CHECKING:
     from .connection import FlextDbOracleConnection
 
 logger = get_logger(__name__)
 
 
-class FlextDbOracleColumn(FlextValueObject):
-    """Oracle column metadata using flext-core patterns."""
+class FlextDbOracleColumn(FlextValueObject, ValidationMixin):
+    """Oracle column metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
@@ -39,21 +78,13 @@ class FlextDbOracleColumn(FlextValueObject):
     comments: str | None = Field(None, description="Column comments")
 
     def validate_domain_rules(self) -> FlextResult[None]:
-        """Validate column metadata domain rules."""
-        try:
-            if not self.name or not self.name.strip():
-                return FlextResult.fail(ERROR_MSG_COLUMN_NAME_EMPTY)
-
-            if not self.data_type or not self.data_type.strip():
-                return FlextResult.fail(ERROR_MSG_DATA_TYPE_EMPTY)
-
-            if self.column_id <= 0:
-                return FlextResult.fail(ERROR_MSG_COLUMN_ID_INVALID)
-
-            return FlextResult.ok(None)
-
-        except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Column validation failed: {e}")
+        """Validate column metadata domain rules using DRY template method."""
+        validation_steps: list[tuple[str, Callable[[], bool]]] = [
+            (ERROR_MSG_COLUMN_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
+            (ERROR_MSG_DATA_TYPE_EMPTY, lambda: bool(self.data_type and self.data_type.strip())),
+            (ERROR_MSG_COLUMN_ID_INVALID, lambda: bool(self.column_id > 0)),
+        ]
+        return self._execute_validation_template(validation_steps, "Column")
 
     @property
     def full_type_definition(self) -> str:
@@ -71,8 +102,8 @@ class FlextDbOracleColumn(FlextValueObject):
         return type_def
 
 
-class FlextDbOracleTable(FlextValueObject):
-    """Oracle table metadata using flext-core patterns."""
+class FlextDbOracleTable(FlextValueObject, ValidationMixin):
+    """Oracle table metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Table name")
     schema_name: str = Field(..., description="Schema name")
@@ -86,29 +117,34 @@ class FlextDbOracleTable(FlextValueObject):
     created_date: datetime | None = Field(None, description="Creation date")
 
     def validate_domain_rules(self) -> FlextResult[None]:
-        """Validate table metadata domain rules."""
+        """Validate table metadata domain rules using DRY template method."""
+        # Basic field validations
+        validation_steps: list[tuple[str, Callable[[], bool]]] = [
+            (ERROR_MSG_TABLE_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
+            (ERROR_MSG_SCHEMA_NAME_EMPTY, lambda: bool(self.schema_name and self.schema_name.strip())),
+            ("Table must have at least one column", lambda: bool(self.columns)),
+        ]
+
+        # Execute basic validations first
+        basic_result = self._execute_validation_template(validation_steps, "Table")
+        if basic_result.is_failure:
+            return basic_result
+
+        # Validate each column using Railway-Oriented Programming pattern
+        return self._validate_columns_collection()
+
+    def _validate_columns_collection(self) -> FlextResult[None]:
+        """Validate all columns in collection using Railway-Oriented Programming."""
         try:
-            if not self.name or not self.name.strip():
-                return FlextResult.fail(ERROR_MSG_TABLE_NAME_EMPTY)
-
-            if not self.schema_name or not self.schema_name.strip():
-                return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
-
-            if not self.columns:
-                return FlextResult.fail("Table must have at least one column")
-
-            # Validate each column
             for column in self.columns:
                 validation_result = column.validate_domain_rules()
                 if validation_result.is_failure:
                     return FlextResult.fail(
                         f"Column {column.name}: {validation_result.error}",
                     )
-
             return FlextResult.ok(None)
-
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Table validation failed: {e}")
+            return FlextResult.fail(f"Column collection validation failed: {e}")
 
     def get_column_by_name(self, column_name: str) -> FlextDbOracleColumn | None:
         """Get column metadata by name."""
@@ -123,8 +159,8 @@ class FlextDbOracleTable(FlextValueObject):
         return [col.name for col in self.columns]
 
 
-class FlextDbOracleSchema(FlextValueObject):
-    """Oracle schema metadata using flext-core patterns."""
+class FlextDbOracleSchema(FlextValueObject, ValidationMixin):
+    """Oracle schema metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Schema name")
     tables: list[FlextDbOracleTable] = Field(
@@ -135,23 +171,32 @@ class FlextDbOracleSchema(FlextValueObject):
     default_tablespace: str | None = Field(None, description="Default tablespace")
 
     def validate_domain_rules(self) -> FlextResult[None]:
-        """Validate schema metadata domain rules."""
-        try:
-            if not self.name or not self.name.strip():
-                return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
+        """Validate schema metadata domain rules using DRY template method."""
+        # Basic field validations
+        validation_steps: list[tuple[str, Callable[[], bool]]] = [
+            (ERROR_MSG_SCHEMA_NAME_EMPTY, lambda: bool(self.name and self.name.strip())),
+        ]
 
-            # Validate tables
+        # Execute basic validations first
+        basic_result = self._execute_validation_template(validation_steps, "Schema")
+        if basic_result.is_failure:
+            return basic_result
+
+        # Validate tables collection using Railway-Oriented Programming pattern
+        return self._validate_tables_collection()
+
+    def _validate_tables_collection(self) -> FlextResult[None]:
+        """Validate all tables in collection using Railway-Oriented Programming."""
+        try:
             for table in self.tables:
                 validation_result = table.validate_domain_rules()
                 if validation_result.is_failure:
                     return FlextResult.fail(
                         f"Table {table.name}: {validation_result.error}",
                     )
-
             return FlextResult.ok(None)
-
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Schema validation failed: {e}")
+            return FlextResult.fail(f"Table collection validation failed: {e}")
 
     def get_table_by_name(self, table_name: str) -> FlextDbOracleTable | None:
         """Get table metadata by name."""

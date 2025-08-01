@@ -293,7 +293,7 @@ class TestOracleIntegration:
 
             # Verify connection was established and closed
             mock_connection.connect.assert_called()
-            mock_connection.disconnect.assert_called()
+            mock_connection.close.assert_called()
 
     def test_singer_type_conversion_integration(
         self,

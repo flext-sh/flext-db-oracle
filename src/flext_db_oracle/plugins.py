@@ -45,20 +45,29 @@ def _validate_business_rules(data: dict[str, Any]) -> list[str]:
     """Validate business rules - DRY pattern for business validation."""
     errors: list[str] = []
 
-    if data.get("email"):
-        email = str(data["email"])
-        if "@" not in email or "." not in email:
-            errors.append("Invalid email format")
+    if "email" in data:
+        email_value = data["email"]
+        if email_value is None:
+            errors.append("Email cannot be None")
+        else:
+            email = str(email_value)
+            if "@" not in email or "." not in email:
+                errors.append("Invalid email format")
 
-    if data.get("age"):
+    if "age" in data and data["age"] is not None:
         try:
             age = int(data["age"])
-            if age < 0 or age > MAX_AGE_LIMIT:
+            if age <= 0 or age > MAX_AGE_LIMIT:
                 errors.append(
-                    f"Age must be between 0 and {MAX_AGE_LIMIT}",
+                    f"Age must be between 1 and {MAX_AGE_LIMIT}",
                 )
         except (ValueError, TypeError):
             errors.append("Age must be a valid number")
+
+    if "table_name" in data and data["table_name"] is not None:
+        table_name = str(data["table_name"])
+        if len(table_name) > MAX_TABLE_NAME_LENGTH:
+            errors.append("Table name too long")
 
     return errors
 
@@ -96,22 +105,124 @@ def _validate_table_structure(
     return errors
 
 
-def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
-    """Create a performance monitoring plugin."""
-    # Usar assinaturas corretas da API real - refatoração DRY
-    plugin = create_flext_plugin(
-        name="oracle_performance_monitor",
-        version="0.9.0",
-        config={
-            "description": "Monitor Oracle database performance and identify slow queries",
-            "author": "FLEXT Team",
-            "threshold_ms": 1000,
-            "log_slow_queries": True,
-            "collect_execution_plans": False,
-        },
-    )
+# =============================================================================
+# SOLID REFACTORING: Template Method + Factory Pattern for DRY plugin creation
+# =============================================================================
 
-    return FlextResult.ok(plugin)
+
+class OraclePluginFactory:
+    """Factory for creating Oracle plugins with DRY patterns.
+
+    SOLID REFACTORING: Eliminates 18+ lines of duplicated plugin creation code
+    (mass=95) using Template Method and Factory patterns.
+    """
+
+    _PLUGIN_VERSION = "0.9.0"
+    _PLUGIN_AUTHOR = "FLEXT Team"
+
+    @classmethod
+    def _create_plugin_template(
+        cls,
+        name: str,
+        description: str,
+        plugin_type: str,
+        specific_config: dict[str, Any],
+    ) -> FlextResult[FlextPlugin]:
+        """Template method for creating Oracle plugins with consistent patterns."""
+        base_config = {
+            "description": description,
+            "author": cls._PLUGIN_AUTHOR,
+            "plugin_type": plugin_type,
+        }
+
+        # Merge base config with specific config
+        full_config = {**base_config, **specific_config}
+
+        plugin = create_flext_plugin(
+            name=name,
+            version=cls._PLUGIN_VERSION,
+            config=full_config,
+        )
+
+        return FlextResult.ok(plugin)
+
+    @classmethod
+    def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
+        """Create performance monitoring plugin using DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_performance_monitor",
+            description="Monitor Oracle database performance and identify slow queries",
+            plugin_type="monitor",
+            specific_config={
+                "threshold_ms": 1000,
+                "log_slow_queries": True,
+                "collect_execution_plans": False,
+            },
+        )
+
+    @classmethod
+    def create_security_audit(cls) -> FlextResult[FlextPlugin]:
+        """Create security audit plugin using DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_security_audit",
+            description="Security audit and compliance monitoring for Oracle operations",
+            plugin_type="security",
+            specific_config={
+                "check_sql_injection": True,
+                "audit_ddl_operations": True,
+                "log_privilege_escalations": True,
+                "callable_obj": security_audit_plugin_handler,
+            },
+        )
+
+    @classmethod
+    def create_data_validation(cls) -> FlextResult[FlextPlugin]:
+        """Create data validation plugin using DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_data_validator",
+            description="Validate data integrity and business rules for Oracle operations",
+            plugin_type="validator",
+            specific_config={
+                "validate_data_types": True,
+                "check_constraints": True,
+                "enforce_business_rules": True,
+                "callable_obj": data_validation_plugin_handler,
+            },
+        )
+
+
+class OraclePluginHandler:
+    """Base handler providing DRY patterns for Oracle plugin execution.
+
+    SOLID REFACTORING: Centralizes common plugin execution patterns.
+    """
+
+    @staticmethod
+    def create_base_result_data(
+        plugin_name: str,
+        api: FlextDbOracleApi,
+        additional_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Template method: Create base result data structure."""
+        base_data = {
+            "plugin_name": plugin_name,
+            "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
+        }
+
+        if additional_fields:
+            base_data.update(additional_fields)
+
+        return base_data
+
+    @staticmethod
+    def handle_plugin_exception(e: Exception, plugin_name: str) -> FlextResult[dict[str, Any]]:
+        """Template method: Consistent exception handling for plugins."""
+        return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
+
+
+def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
+    """Create a performance monitoring plugin using DRY factory."""
+    return OraclePluginFactory.create_performance_monitor()
 
 
 def performance_monitor_plugin_handler(
@@ -120,19 +231,21 @@ def performance_monitor_plugin_handler(
     execution_time_ms: float | None = None,
     **kwargs: Any,  # noqa: ANN401
 ) -> FlextResult[dict[str, Any]]:
-    """Handle performance monitoring plugin execution."""
+    """Handle performance monitoring plugin execution using DRY patterns."""
     try:
         threshold_ms = kwargs.get("threshold_ms", 1000)
 
-        result_data = {
-            "plugin_name": "oracle_performance_monitor",
-            "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
-            "sql": sql,
-            "execution_time_ms": execution_time_ms,
-            "threshold_ms": threshold_ms,
-            "is_slow_query": False,
-            "recommendations": [],
-        }
+        result_data = OraclePluginHandler.create_base_result_data(
+            "oracle_performance_monitor",
+            api,
+            {
+                "sql": sql,
+                "execution_time_ms": execution_time_ms,
+                "threshold_ms": threshold_ms,
+                "is_slow_query": False,
+                "recommendations": [],
+            },
+        )
 
         if execution_time_ms and execution_time_ms > threshold_ms:
             result_data["is_slow_query"] = True
@@ -156,27 +269,12 @@ def performance_monitor_plugin_handler(
         return FlextResult.ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return FlextResult.fail(f"Performance monitor plugin failed: {e}")
+        return OraclePluginHandler.handle_plugin_exception(e, "Performance monitor")
 
 
 def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
-    """Create a security audit plugin."""
-    # Usar assinaturas corretas da API real - refatoração DRY
-    plugin = create_flext_plugin(
-        name="oracle_security_audit",
-        version="0.9.0",
-        config={
-            "description": "Security audit and compliance monitoring for Oracle operations",
-            "author": "FLEXT Team",
-            "plugin_type": "security",
-            "check_sql_injection": True,
-            "audit_ddl_operations": True,
-            "log_privilege_escalations": True,
-            "callable_obj": security_audit_plugin_handler,
-        },
-    )
-
-    return FlextResult.ok(plugin)
+    """Create a security audit plugin using DRY factory."""
+    return OraclePluginFactory.create_security_audit()
 
 
 def security_audit_plugin_handler(
@@ -185,17 +283,18 @@ def security_audit_plugin_handler(
     operation_type: str | None = None,
     **kwargs: Any,  # noqa: ANN401
 ) -> FlextResult[dict[str, Any]]:
-    """Handle security audit plugin execution."""
+    """Handle security audit plugin execution using DRY patterns."""
     try:
-        # Type annotation explícita para result_data - refatoração DRY real
-        result_data: dict[str, Any] = {
-            "plugin_name": "oracle_security_audit",
-            "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
-            "sql": sql,
-            "operation_type": operation_type,
-            "security_warnings": [],
-            "compliance_status": "compliant",
-        }
+        result_data = OraclePluginHandler.create_base_result_data(
+            "oracle_security_audit",
+            api,
+            {
+                "sql": sql,
+                "operation_type": operation_type,
+                "security_warnings": [],
+                "compliance_status": "compliant",
+            },
+        )
 
         # Garantir type safety para security_warnings list
         security_warnings: list[str] = result_data["security_warnings"]
@@ -242,27 +341,12 @@ def security_audit_plugin_handler(
         return FlextResult.ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return FlextResult.fail(f"Security audit plugin failed: {e}")
+        return OraclePluginHandler.handle_plugin_exception(e, "Security audit")
 
 
 def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
-    """Create a data validation plugin."""
-    # Usar assinaturas corretas da API real - refatoração DRY
-    plugin = create_flext_plugin(
-        name="oracle_data_validator",
-        version="0.9.0",
-        config={
-            "description": "Validate data integrity and business rules for Oracle operations",
-            "author": "FLEXT Team",
-            "plugin_type": "validator",
-            "validate_data_types": True,
-            "check_constraints": True,
-            "enforce_business_rules": True,
-            "callable_obj": data_validation_plugin_handler,
-        },
-    )
-
-    return FlextResult.ok(plugin)
+    """Create a data validation plugin using DRY factory."""
+    return OraclePluginFactory.create_data_validation()
 
 
 def data_validation_plugin_handler(
@@ -271,18 +355,19 @@ def data_validation_plugin_handler(
     table_name: str | None = None,
     **kwargs: Any,  # noqa: ANN401
 ) -> FlextResult[dict[str, Any]]:
-    """Handle data validation plugin execution."""
+    """Handle data validation plugin execution using DRY patterns."""
     try:
-        # Type annotation explícita para result_data - refatoração DRY real
-        result_data: dict[str, Any] = {
-            "plugin_name": "oracle_data_validator",
-            "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
-            "table_name": table_name,
-            "data": data,
-            "validation_errors": [],
-            "validation_warnings": [],
-            "validation_status": "valid",
-        }
+        result_data = OraclePluginHandler.create_base_result_data(
+            "oracle_data_validator",
+            api,
+            {
+                "table_name": table_name,
+                "data": data,
+                "validation_errors": [],
+                "validation_warnings": [],
+                "validation_status": "valid",
+            },
+        )
 
         # Garantir type safety para validation lists
         validation_errors: list[str] = result_data["validation_errors"]
@@ -311,14 +396,14 @@ def data_validation_plugin_handler(
         return FlextResult.ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return FlextResult.fail(f"Data validation plugin failed: {e}")
+        return OraclePluginHandler.handle_plugin_exception(e, "Data validation")
 
 
-# Plugin registry for easy access
+# Plugin registry for easy access - using DRY factory methods
 ORACLE_PLUGINS = {
-    "performance_monitor": create_performance_monitor_plugin,
-    "security_audit": create_security_audit_plugin,
-    "data_validator": create_data_validation_plugin,
+    "performance_monitor": OraclePluginFactory.create_performance_monitor,
+    "security_audit": OraclePluginFactory.create_security_audit,
+    "data_validator": OraclePluginFactory.create_data_validation,
 }
 
 

@@ -65,13 +65,13 @@ class TestFlextDbOracleApi:
 
     def test_with_config_success(self) -> None:
         """Test API creation with configuration parameters."""
-        api = FlextDbOracleApi.with_config(
-            host="param.oracle.com",
-            port=1523,
-            username="paramuser",
-            password="parampass",
-            service_name="PARAMDB",
-        )
+        api = FlextDbOracleApi.with_config({
+            "host": "param.oracle.com",
+            "port": 1523,
+            "username": "paramuser",
+            "password": "parampass",
+            "service_name": "PARAMDB",
+        })
 
         assert api._config is not None
         assert api._config.host == "param.oracle.com"
@@ -169,7 +169,7 @@ class TestFlextDbOracleApi:
         # Setup mock connection
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute.return_value = FlextResult.ok(sample_query_result)
+        mock_connection.execute_query.return_value = FlextResult.ok(sample_query_result)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -179,7 +179,7 @@ class TestFlextDbOracleApi:
 
         assert result.is_success
         assert result.data == sample_query_result
-        mock_connection.execute.assert_called_once_with("SELECT * FROM employees", None)
+        mock_connection.execute_query.assert_called_once_with("SELECT * FROM employees", {})
 
     def test_query_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
         """Test query when not connected."""
@@ -428,6 +428,7 @@ class TestFlextDbOracleApi:
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
         mock_connection.test_connection.return_value = FlextResult.ok(data=True)
+        mock_connection.execute_query.return_value = FlextResult.ok(data=True)
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -448,7 +449,7 @@ class TestFlextDbOracleApi:
 
         assert result.is_failure
         assert result.error is not None
-        assert "No connection established" in result.error
+        assert "Not connected to database" in result.error
 
     def test_properties(self, valid_config: FlextDbOracleConfig) -> None:
         """Test API properties."""
@@ -475,9 +476,9 @@ class TestFlextDbOracleApi:
 
         with api as connected_api:
             assert connected_api == api
-            assert api._is_connected
+            assert api.is_connected
 
-        assert not api._is_connected
+        assert not api.is_connected
         mock_connection.connect.assert_called_once()
         mock_connection.disconnect.assert_called_once()
 

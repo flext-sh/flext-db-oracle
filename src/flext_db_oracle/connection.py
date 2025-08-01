@@ -212,6 +212,28 @@ class FlextDbOracleConnection:
                 trans.rollback()
                 raise
 
+    def close(self) -> FlextResult[None]:
+        """Close database connection."""
+        try:
+            if self._engine:
+                self._engine.dispose()
+                self._engine = None
+                self._session_factory = None
+                self._logger.info("Database connection closed")
+            return FlextResult.ok(None)
+        except Exception as e:
+            error_msg = f"Failed to close connection: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    def execute_query(
+        self,
+        sql: str,
+        parameters: dict[str, Any] | None = None,
+    ) -> FlextResult[Any]:
+        """Execute query and return result - alias for execute method."""
+        return self.execute(sql, parameters)
+
     def test_connection(self) -> FlextResult[bool]:
         """Test database connection."""
         if not self.is_connected():
