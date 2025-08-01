@@ -73,7 +73,9 @@ class TestModuleImportsAndBasics:
         exports = flext_db_oracle.__all__
 
         for export_name in exports:
-            assert hasattr(flext_db_oracle, export_name), f"Export {export_name} not found"
+            assert hasattr(flext_db_oracle, export_name), (
+                f"Export {export_name} not found"
+            )
 
     def test_constants_values(self) -> None:
         """Test Oracle constants have expected values."""

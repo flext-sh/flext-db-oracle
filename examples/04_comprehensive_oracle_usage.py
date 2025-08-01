@@ -101,13 +101,15 @@ def demonstrate_configuration_patterns() -> None:
     # Pattern 3: Configuration validation
     try:
         # Test configuration validation
-        production_config.model_validate({
-            "host": "test.oracle.com",
-            "port": 1521,
-            "username": "test",
-            "password": "test",
-            "service_name": "TEST",
-        })
+        production_config.model_validate(
+            {
+                "host": "test.oracle.com",
+                "port": 1521,
+                "username": "test",
+                "password": "test",
+                "service_name": "TEST",
+            },
+        )
         logger.info("✅ Configuration validation passed")
     except Exception as e:
         logger.warning(f"⚠️ Configuration validation failed: {e}")
@@ -125,7 +127,9 @@ def demonstrate_query_patterns() -> None:
     # Pattern 1: Simple query
     query_result = api.query("SELECT 1 as test_value FROM DUAL")
     if query_result.is_failure:
-        logger.info(f"📝 Simple query pattern demonstrated (simulated): {query_result.error}")
+        logger.info(
+            f"📝 Simple query pattern demonstrated (simulated): {query_result.error}",
+        )
 
     # Pattern 2: Parameterized query
     param_query_result = api.query(
@@ -133,23 +137,35 @@ def demonstrate_query_patterns() -> None:
         {"dept_id": 10},
     )
     if param_query_result.is_failure:
-        logger.info(f"📝 Parameterized query pattern demonstrated (simulated): {param_query_result.error}")
+        logger.info(
+            f"📝 Parameterized query pattern demonstrated (simulated): {param_query_result.error}",
+        )
 
     # Pattern 3: Single row query
     single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
     if single_result.is_failure:
-        logger.info(f"📝 Single row query pattern demonstrated (simulated): {single_result.error}")
+        logger.info(
+            f"📝 Single row query pattern demonstrated (simulated): {single_result.error}",
+        )
 
     # Pattern 4: Batch operations
     operations = [
-        ("UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id", {"dept_id": 10}),
-        ("INSERT INTO audit_log (operation, timestamp) VALUES (:op, SYSDATE)", {"op": "salary_update"}),
+        (
+            "UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id",
+            {"dept_id": 10},
+        ),
+        (
+            "INSERT INTO audit_log (operation, timestamp) VALUES (:op, SYSDATE)",
+            {"op": "salary_update"},
+        ),
         ("COMMIT", None),
     ]
 
     batch_result = api.execute_batch(operations)
     if batch_result.is_failure:
-        logger.info(f"📝 Batch operations pattern demonstrated (simulated): {batch_result.error}")
+        logger.info(
+            f"📝 Batch operations pattern demonstrated (simulated): {batch_result.error}",
+        )
 
 
 def demonstrate_metadata_exploration() -> None:
@@ -162,22 +178,30 @@ def demonstrate_metadata_exploration() -> None:
     # Pattern 1: List all schemas
     schemas_result = api.get_schemas()
     if schemas_result.is_failure:
-        logger.info(f"📝 Schema listing pattern demonstrated (simulated): {schemas_result.error}")
+        logger.info(
+            f"📝 Schema listing pattern demonstrated (simulated): {schemas_result.error}",
+        )
 
     # Pattern 2: List tables in a schema
     tables_result = api.get_tables("HR")
     if tables_result.is_failure:
-        logger.info(f"📝 Table listing pattern demonstrated (simulated): {tables_result.error}")
+        logger.info(
+            f"📝 Table listing pattern demonstrated (simulated): {tables_result.error}",
+        )
 
     # Pattern 3: Get column information for a table
     columns_result = api.get_columns("EMPLOYEES")
     if columns_result.is_failure:
-        logger.info(f"📝 Column information pattern demonstrated (simulated): {columns_result.error}")
+        logger.info(
+            f"📝 Column information pattern demonstrated (simulated): {columns_result.error}",
+        )
 
     # Pattern 4: Test connection health
     health_result = api.test_connection()
     if health_result.is_failure:
-        logger.info(f"📝 Connection health check pattern demonstrated (simulated): {health_result.error}")
+        logger.info(
+            f"📝 Connection health check pattern demonstrated (simulated): {health_result.error}",
+        )
 
 
 def demonstrate_transaction_patterns() -> None:
@@ -197,11 +221,8 @@ def demonstrate_transaction_patterns() -> None:
 
         # This would be real code with actual connection:
         # with api.transaction() as txn:
-        #     result1 = api.query("INSERT INTO orders (...) VALUES (...)")
-        #     result2 = api.query("UPDATE inventory SET qty = qty - 1 WHERE ...")
         #     if result1.is_success and result2.is_success:
         #         txn.commit()
-        #     else:
         #         txn.rollback()
 
     except Exception as e:

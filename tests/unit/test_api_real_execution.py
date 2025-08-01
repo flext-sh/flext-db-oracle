@@ -154,7 +154,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_query_one_not_connected_real_execution(self) -> None:
         """Test query_one when not connected - real execution."""
@@ -171,7 +174,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_execute_batch_not_connected_real_execution(self) -> None:
         """Test execute_batch when not connected - real execution."""
@@ -193,7 +199,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_get_tables_not_connected_real_execution(self) -> None:
         """Test get_tables when not connected - real execution."""
@@ -210,7 +219,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_get_schemas_not_connected_real_execution(self) -> None:
         """Test get_schemas when not connected - real execution."""
@@ -227,7 +239,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_get_columns_not_connected_real_execution(self) -> None:
         """Test get_columns when not connected - real execution."""
@@ -244,7 +259,10 @@ class TestFlextDbOracleApiRealExecution:
 
         assert result.is_failure
         assert result.error is not None
-        assert ("Database not connected" in result.error or "No database connection" in result.error)
+        assert (
+            "Database not connected" in result.error
+            or "No database connection" in result.error
+        )
 
     def test_test_connection_not_connected_real_execution(self) -> None:
         """Test test_connection when not connected - real execution."""
