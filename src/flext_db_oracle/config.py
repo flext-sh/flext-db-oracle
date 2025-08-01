@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import urllib.parse
-from typing import Any
 
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
@@ -189,7 +188,7 @@ class FlextDbOracleConfig(FlextValueObject):
 
         return self
 
-    def to_connect_params(self) -> dict[str, Any]:
+    def to_connect_params(self) -> dict[str, object]:
         """Convert to Oracle connection parameters."""
         params = {
             "host": self.host,
@@ -215,7 +214,7 @@ class FlextDbOracleConfig(FlextValueObject):
 
         return params
 
-    def to_pool_params(self) -> dict[str, Any]:
+    def to_pool_params(self) -> dict[str, object]:
         """Convert to Oracle connection pool parameters."""
         connect_params = self.to_connect_params()
 
@@ -240,7 +239,9 @@ class FlextDbOracleConfig(FlextValueObject):
         return f"{self.host}:{self.port}"
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, Any]) -> FlextResult[FlextDbOracleConfig]:
+    def from_dict(
+        cls, config_dict: dict[str, object],
+    ) -> FlextResult[FlextDbOracleConfig]:
         """Create configuration from dictionary with validation."""
         try:
             config = cls(**config_dict)

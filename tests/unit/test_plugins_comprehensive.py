@@ -96,8 +96,8 @@ class TestBusinessRulesValidation:
         """Test age validation."""
         test_cases = [
             {"age": -1},  # Negative age
-            {"age": 0},   # Zero age
-            {"age": 151}, # Over 150 limit
+            {"age": 0},  # Zero age
+            {"age": 151},  # Over 150 limit
         ]
 
         for data in test_cases:
@@ -252,7 +252,10 @@ class TestPluginFunctionality:
         # Test basic plugin properties
         assert plugin.name == "oracle_data_validator"
         assert plugin.plugin_version == "0.9.0"
-        assert plugin.description == "Validate data integrity and business rules for Oracle operations"
+        assert (
+            plugin.description
+            == "Validate data integrity and business rules for Oracle operations"
+        )
 
     def test_performance_monitor_plugin_execution(self) -> None:
         """Test performance monitor plugin creation and properties."""
@@ -263,7 +266,10 @@ class TestPluginFunctionality:
         # Test basic plugin properties
         assert plugin.name == "oracle_performance_monitor"
         assert plugin.plugin_version == "0.9.0"
-        assert plugin.description == "Monitor Oracle database performance and identify slow queries"
+        assert (
+            plugin.description
+            == "Monitor Oracle database performance and identify slow queries"
+        )
 
     def test_security_audit_plugin_execution(self) -> None:
         """Test security audit plugin creation and properties."""
@@ -274,7 +280,10 @@ class TestPluginFunctionality:
         # Test basic plugin properties
         assert plugin.name == "oracle_security_audit"
         assert plugin.plugin_version == "0.9.0"
-        assert plugin.description == "Security audit and compliance monitoring for Oracle operations"
+        assert (
+            plugin.description
+            == "Security audit and compliance monitoring for Oracle operations"
+        )
 
     def test_plugin_error_handling(self) -> None:
         """Test plugin creation doesn't fail."""
@@ -285,7 +294,10 @@ class TestPluginFunctionality:
         # Test basic plugin properties
         assert plugin.name == "oracle_data_validator"
         assert plugin.plugin_version == "0.9.0"
-        assert plugin.description == "Validate data integrity and business rules for Oracle operations"
+        assert (
+            plugin.description
+            == "Validate data integrity and business rules for Oracle operations"
+        )
 
 
 class TestEdgeCases:

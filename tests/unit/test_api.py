@@ -65,13 +65,15 @@ class TestFlextDbOracleApi:
 
     def test_with_config_success(self) -> None:
         """Test API creation with configuration parameters."""
-        api = FlextDbOracleApi.with_config({
-            "host": "param.oracle.com",
-            "port": 1523,
-            "username": "paramuser",
-            "password": "parampass",
-            "service_name": "PARAMDB",
-        })
+        api = FlextDbOracleApi.with_config(
+            {
+                "host": "param.oracle.com",
+                "port": 1523,
+                "username": "paramuser",
+                "password": "parampass",
+                "service_name": "PARAMDB",
+            },
+        )
 
         assert api._config is not None
         assert api._config.host == "param.oracle.com"
@@ -179,7 +181,9 @@ class TestFlextDbOracleApi:
 
         assert result.is_success
         assert result.data == sample_query_result
-        mock_connection.execute_query.assert_called_once_with("SELECT * FROM employees", {})
+        mock_connection.execute_query.assert_called_once_with(
+            "SELECT * FROM employees", {},
+        )
 
     def test_query_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
         """Test query when not connected."""

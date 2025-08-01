@@ -218,7 +218,7 @@ class TDbOracleQueryResult(FlextValueObject):
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Query result validation failed: {e}")
 
-    def to_dict_list(self) -> list[dict[str, Any]]:
+    def to_dict_list(self) -> list[dict[str, object]]:
         """Convert rows to list of dictionaries."""
         if not self.columns:
             return []

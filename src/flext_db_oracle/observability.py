@@ -56,11 +56,19 @@ class FlextDbOracleObservabilityManager:
             if init_result.is_success:
                 start_result = self._monitor.flext_start_monitoring()
                 if start_result.is_success:
-                    self._logger.info("Observability monitoring initialized successfully")
+                    self._logger.info(
+                        "Observability monitoring initialized successfully",
+                    )
                 else:
-                    self._logger.warning("Failed to start monitoring: %s", start_result.error)
+                    self._logger.warning(
+                        "Failed to start monitoring: %s",
+                        start_result.error,
+                    )
             else:
-                self._logger.warning("Failed to initialize observability: %s", init_result.error)
+                self._logger.warning(
+                    "Failed to initialize observability: %s",
+                    init_result.error,
+                )
         except (AttributeError, ValueError) as e:
             self._logger.warning("Failed to initialize observability: %s", e)
 
@@ -122,7 +130,7 @@ class FlextDbOracleObservabilityManager:
         self,
         status: str,
         message: str,
-        metrics: dict[str, Any] | None = None,  # noqa: ARG002
+        metrics: dict[str, object] | None = None,  # noqa: ARG002
     ) -> FlextResult[FlextHealthCheck]:
         """Create health check (DRY pattern)."""
         # Use flext_create_health_check with proper parameters

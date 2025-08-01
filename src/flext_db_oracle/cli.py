@@ -334,7 +334,7 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
             format_output(output_data, self.config.output_format, console)
 
     def _prepare_health_output_data(
-        self, test_data: dict[str, object] | None, health_data: dict[str, object]
+        self, test_data: dict[str, object] | None, health_data: dict[str, object],
     ) -> dict[str, object]:
         """Prepare health data for output - Single Responsibility."""
         return {
@@ -436,7 +436,7 @@ class QueryResultProcessor:
         self.console = console
 
     def process_success(
-        self, query_data: object, results: list[Any], limit: int | None
+        self, query_data: object, results: list[Any], limit: int | None,
     ) -> None:
         """Process successful query results."""
         # Apply limit if specified
@@ -500,12 +500,12 @@ Columns: {_safe_get_list_length(columns)}""",
         self.console.print(table)
 
     def _display_as_structured_output(
-        self, query_data: object, results: list[Any]
+        self, query_data: object, results: list[Any],
     ) -> None:
         """Display results as structured output."""
         output_data = {
             "execution_time_ms": _safe_get_query_data_attr(
-                query_data, "execution_time_ms", 0
+                query_data, "execution_time_ms", 0,
             ),
             "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
             "columns": _safe_get_query_data_attr(query_data, "columns", []),
@@ -551,7 +551,7 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                     _raise_cli_error("Query execution returned no data")
 
                 results: list[Any] = cast(
-                    "list[Any]", _safe_get_query_data_attr(query_data, "rows", [])
+                    "list[Any]", _safe_get_query_data_attr(query_data, "rows", []),
                 )
 
                 # Use SOLID processor for result handling
@@ -715,7 +715,7 @@ class PluginManagerProcessor:
         )
 
     def _display_registration_results(
-        self, registration_results: dict[str, str]
+        self, registration_results: dict[str, str],
     ) -> None:
         """Display registration results based on output format."""
         if self.config.output_format == "table":
@@ -800,7 +800,7 @@ def plugins(ctx: click.Context) -> None:
                     processor.handle_plugin_list_success(plugins_result.data)
             else:
                 console.print(
-                    f"[red]Plugin registration failed: {register_result.error}[/red]"
+                    f"[red]Plugin registration failed: {register_result.error}[/red]",
                 )
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 

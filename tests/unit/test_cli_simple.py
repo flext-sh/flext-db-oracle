@@ -85,14 +85,22 @@ class TestOracleCLI:
         mock_api.is_connected = True
         mock_api_class.with_config.return_value = mock_api
 
-        result = runner.invoke(oracle, [
-            "connect",
-            "--host", "localhost",
-            "--port", "1521",
-            "--service-name", "xe",
-            "--username", "test",
-            "--password", "test",
-        ])
+        result = runner.invoke(
+            oracle,
+            [
+                "connect",
+                "--host",
+                "localhost",
+                "--port",
+                "1521",
+                "--service-name",
+                "xe",
+                "--username",
+                "test",
+                "--password",
+                "test",
+            ],
+        )
 
         # Test the command execution (may fail due to no DB, but should not crash)
         assert result.exit_code in [0, 1]

@@ -12,13 +12,12 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[dict[str, Any]]:
+def _get_cli_examples() -> list[dict[str, object]]:
     """Get CLI command examples - DRY pattern for example data."""
     return [
         {
@@ -83,7 +82,7 @@ def _get_cli_examples() -> list[dict[str, Any]]:
     ]
 
 
-def _run_example_command(example: dict[str, Any]) -> None:
+def _run_example_command(example: dict[str, object]) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return

@@ -102,13 +102,15 @@ class TestFlextDbOracleApiRealExecution:
 
     def test_with_config_real_execution(self) -> None:
         """Test API creation with configuration parameters - real execution."""
-        api = FlextDbOracleApi.with_config({
-            "host": "param.oracle.com",
-            "port": 1523,
-            "username": "paramuser",
-            "password": "parampass",
-            "service_name": "PARAMDB",
-        })
+        api = FlextDbOracleApi.with_config(
+            {
+                "host": "param.oracle.com",
+                "port": 1523,
+                "username": "paramuser",
+                "password": "parampass",
+                "service_name": "PARAMDB",
+            },
+        )
 
         assert api._config is not None
         assert api._config.host == "param.oracle.com"

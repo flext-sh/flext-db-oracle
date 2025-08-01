@@ -105,7 +105,7 @@ class FlextDbOracleConnection:
     def execute(
         self,
         sql: str,
-        parameters: dict[str, Any] | None = None,
+        parameters: dict[str, object] | None = None,
     ) -> FlextResult[list[Any]]:
         """Execute SQL statement using SQLAlchemy 2."""
         if not self.is_connected():
@@ -133,7 +133,7 @@ class FlextDbOracleConnection:
     def execute_many(
         self,
         sql: str,
-        parameters_list: list[dict[str, Any]],
+        parameters_list: list[dict[str, object]],
     ) -> FlextResult[int]:
         """Execute SQL with multiple parameter sets."""
         if not self.is_connected():
@@ -156,7 +156,7 @@ class FlextDbOracleConnection:
     def fetch_one(
         self,
         sql: str,
-        parameters: dict[str, Any] | None = None,
+        parameters: dict[str, object] | None = None,
     ) -> FlextResult[Any]:
         """Fetch single row."""
         if not self.is_connected():
@@ -229,7 +229,7 @@ class FlextDbOracleConnection:
     def execute_query(
         self,
         sql: str,
-        parameters: dict[str, Any] | None = None,
+        parameters: dict[str, object] | None = None,
     ) -> FlextResult[Any]:
         """Execute query and return result - alias for execute method."""
         return self.execute(sql, parameters)
@@ -278,7 +278,7 @@ class FlextDbOracleConnection:
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> FlextResult[list[dict[str, Any]]]:
+    ) -> FlextResult[list[dict[str, object]]]:
         """Get column information for table."""
         if schema_name:
             sql = """
@@ -357,7 +357,7 @@ class FlextDbOracleConnection:
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Get complete table metadata (consolidated from services)."""
         # Get columns
         columns_result = self.get_column_info(table_name, schema_name)
@@ -382,7 +382,7 @@ class FlextDbOracleConnection:
         self,
         table_name: str,
         columns: list[str] | None = None,
-        conditions: dict[str, Any] | None = None,
+        conditions: dict[str, object] | None = None,
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Build SELECT query using SQLAlchemy patterns (consolidated from services)."""
@@ -418,7 +418,7 @@ class FlextDbOracleConnection:
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[dict[str, Any]],
+        columns: list[dict[str, object]],
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Generate CREATE TABLE DDL (consolidated from services)."""
@@ -515,7 +515,7 @@ class FlextDbOracleConnection:
 
     def map_singer_schema(
         self,
-        singer_schema: dict[str, Any],
+        singer_schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer schema to Oracle column definitions (consolidated from services)."""
         try:

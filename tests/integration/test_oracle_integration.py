@@ -48,6 +48,7 @@ class TestOracleIntegration:
 
         # Create a mock TDbOracleQueryResult for execute_query
         from flext_db_oracle.types import TDbOracleQueryResult
+
         mock_query_result = TDbOracleQueryResult(
             rows=[("result",)],
             columns=["col1"],
@@ -76,12 +77,14 @@ class TestOracleIntegration:
             "CREATE TABLE new_table (id NUMBER NOT NULL, name VARCHAR2(100))",
         )
         mock_conn.drop_table_ddl.return_value = FlextResult.ok("DROP TABLE test_table")
-        mock_conn.get_table_metadata.return_value = FlextResult.ok({
-            "table_name": "TEST_TABLE",
-            "schema": "test_schema",
-            "columns": [{"name": "ID", "type": "NUMBER"}],
-            "row_count": 100,
-        })
+        mock_conn.get_table_metadata.return_value = FlextResult.ok(
+            {
+                "table_name": "TEST_TABLE",
+                "schema": "test_schema",
+                "columns": [{"name": "ID", "type": "NUMBER"}],
+                "row_count": 100,
+            },
+        )
 
         # Mock transaction context manager
         @contextmanager
@@ -182,9 +185,15 @@ class TestOracleIntegration:
         from flext_db_oracle.types import TDbOracleQueryResult
 
         # Create mock query results
-        result1 = TDbOracleQueryResult(rows=[(1,)], columns=["result"], row_count=1, execution_time_ms=0.0)
-        result2 = TDbOracleQueryResult(rows=[(2,)], columns=["result"], row_count=1, execution_time_ms=0.0)
-        result3 = TDbOracleQueryResult(rows=[(3,)], columns=["result"], row_count=1, execution_time_ms=0.0)
+        result1 = TDbOracleQueryResult(
+            rows=[(1,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+        )
+        result2 = TDbOracleQueryResult(
+            rows=[(2,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+        )
+        result3 = TDbOracleQueryResult(
+            rows=[(3,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+        )
 
         mock_connection.execute_query.side_effect = [
             FlextResult.ok(result1),

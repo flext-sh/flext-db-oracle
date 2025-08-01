@@ -131,7 +131,9 @@ class TestConfigurationCreation:
         # Test invalid port - expect Pydantic ValidationError
         from pydantic import ValidationError
 
-        with pytest.raises(ValidationError, match="Input should be greater than or equal to 1"):
+        with pytest.raises(
+            ValidationError, match="Input should be greater than or equal to 1",
+        ):
             DirectConfig(
                 host="localhost",
                 port=-1,  # Invalid port
@@ -388,13 +390,15 @@ class TestApiClassBasics:
 
     def test_api_with_config_method(self) -> None:
         """Test API with_config class method."""
-        api = FlextDbOracleApi.with_config({
-            "host": "test.host.com",
-            "port": 1521,
-            "username": "testuser",
-            "password": "testpass",
-            "service_name": "TESTDB",
-        })
+        api = FlextDbOracleApi.with_config(
+            {
+                "host": "test.host.com",
+                "port": 1521,
+                "username": "testuser",
+                "password": "testpass",
+                "service_name": "TESTDB",
+            },
+        )
 
         assert api is not None
         assert api._config is not None

@@ -99,7 +99,8 @@ class OracleConnectionManager:
                 disconnect_result = self._connection.close()
                 if disconnect_result.is_failure:
                     self._logger.warning(
-                        "Disconnect warning: %s", disconnect_result.error
+                        "Disconnect warning: %s",
+                        disconnect_result.error,
                     )
 
             self._connection = None
@@ -142,7 +143,8 @@ class OracleConnectionManager:
 
                 if connection_result.is_success and connection_result.data:
                     self._handle_successful_connection(
-                        connection_result.data, start_time
+                        connection_result.data,
+                        start_time,
                     )
                     return None  # Success
 
@@ -156,7 +158,8 @@ class OracleConnectionManager:
         return last_error
 
     def _attempt_single_connection(
-        self, _attempt: int
+        self,
+        _attempt: int,
     ) -> FlextResult[FlextDbOracleConnection]:
         """Attempt single database connection."""
         connection = FlextDbOracleConnection(self._config)
@@ -173,7 +176,9 @@ class OracleConnectionManager:
 
         duration_ms = (perf_counter() - start_time) * 1000
         self._observability.record_metric(
-            "connection.duration_ms", duration_ms, "histogram"
+            "connection.duration_ms",
+            duration_ms,
+            "histogram",
         )
         self._observability.record_metric("connection.success", 1, "count")
 
@@ -183,12 +188,16 @@ class OracleConnectionManager:
         self._logger.warning("Connection attempt %d failed: %s", attempt + 1, error)
 
     def _handle_connection_failure(
-        self, error: str, start_time: float
+        self,
+        error: str,
+        start_time: float,
     ) -> FlextResult[None]:
         """Handle final connection failure."""
         duration_ms = (perf_counter() - start_time) * 1000
         self._observability.record_metric(
-            "connection.total_failure_duration_ms", duration_ms, "histogram"
+            "connection.total_failure_duration_ms",
+            duration_ms,
+            "histogram",
         )
 
         error_msg = (
@@ -224,7 +233,7 @@ class OracleQueryExecutor:
     def execute_query(
         self,
         sql: str,
-        params: dict[str, Any] | None = None,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[TDbOracleQueryResult]:
         """Execute SQL query with parameters."""
         if not self._connection_manager.is_connected:
@@ -243,7 +252,9 @@ class OracleQueryExecutor:
             # Record metrics
             duration_ms = (perf_counter() - start_time) * 1000
             self._observability.record_metric(
-                "query.duration_ms", duration_ms, "histogram"
+                "query.duration_ms",
+                duration_ms,
+                "histogram",
             )
 
             if result.is_success:
@@ -264,8 +275,8 @@ class OracleQueryExecutor:
     def execute_query_single(
         self,
         sql: str,
-        params: dict[str, Any] | None = None,
-    ) -> FlextResult[dict[str, Any] | None]:
+        params: dict[str, object] | None = None,
+    ) -> FlextResult[dict[str, object] | None]:
         """Execute query expecting single result."""
         result = self.execute_query(sql, params)
 
@@ -286,7 +297,7 @@ class OracleQueryExecutor:
 
     def execute_batch(
         self,
-        operations: list[tuple[str, dict[str, Any] | None]],
+        operations: list[tuple[str, dict[str, object] | None]],
     ) -> FlextResult[list[TDbOracleQueryResult]]:
         """Execute batch of SQL operations."""
         results: list[TDbOracleQueryResult] = []
@@ -297,10 +308,12 @@ class OracleQueryExecutor:
             # Stop on first failure for transaction consistency
             if not result.is_success:
                 self._logger.error(
-                    "Batch operation %d failed: %s", step_num, result.error
+                    "Batch operation %d failed: %s",
+                    step_num,
+                    result.error,
                 )
                 return FlextResult.fail(
-                    f"Batch operation {step_num} failed: {result.error}"
+                    f"Batch operation {step_num} failed: {result.error}",
                 )
 
             # Only append successful result data
@@ -398,9 +411,9 @@ class FlextDbOracleApi:
     @classmethod
     def with_config(
         cls,
-        config_dict: dict[str, Any] | None = None,
+        config_dict: dict[str, object] | None = None,
         context_name: str = "oracle",
-        **kwargs: dict[str, Any],
+        **kwargs: dict[str, object],
     ) -> Self:
         """Create Oracle API with configuration dictionary or keyword arguments."""
         if config_dict is not None:
@@ -422,7 +435,8 @@ class FlextDbOracleApi:
         config_result = FlextDbOracleConfig.from_url(url)
         if config_result.is_failure:
             logger.error(
-                "Failed to load configuration from URL: %s", config_result.error
+                "Failed to load configuration from URL: %s",
+                config_result.error,
             )
             config_error = f"Configuration error: {config_result.error}"
             raise ValueError(config_error)
@@ -463,7 +477,7 @@ class FlextDbOracleApi:
 
         return self._connection_manager.test_connection()
 
-    def test_connection_with_observability(self) -> FlextResult[dict[str, Any]]:
+    def test_connection_with_observability(self) -> FlextResult[dict[str, object]]:
         """Test connection with observability metrics for CLI compatibility."""
         try:
             # If not connected, return disconnected status
@@ -475,7 +489,7 @@ class FlextDbOracleApi:
                         "query_success": False,
                         "observability_active": self._observability.is_monitoring_active(),
                         "metrics_collected": False,
-                    }
+                    },
                 )
 
             test_result = self.test_connection()
@@ -488,7 +502,7 @@ class FlextDbOracleApi:
                         "query_success": test_result.data,
                         "observability_active": self._observability.is_monitoring_active(),
                         "metrics_collected": True,
-                    }
+                    },
                 )
 
             return FlextResult.ok(
@@ -499,7 +513,7 @@ class FlextDbOracleApi:
                     "observability_active": self._observability.is_monitoring_active(),
                     "metrics_collected": False,
                     "error": test_result.error or "Connection test failed",
-                }
+                },
             )
         except (OSError, ValueError, TypeError, ConnectionError) as e:
             return FlextResult.fail(f"Connection test failed: {e}")
@@ -529,9 +543,9 @@ class FlextDbOracleApi:
         if (
             self._connection_manager
             and hasattr(self._connection_manager, "_is_connected")
-            and self._connection_manager._is_connected
+            and self._connection_manager._is_connected  # noqa: SLF001
             and self._connection_manager.connection is not None
-        ):  # noqa: SLF001
+        ):
             return True
 
         return bool(
@@ -579,7 +593,7 @@ class FlextDbOracleApi:
     def query(
         self,
         sql: str,
-        params: dict[str, Any] | None = None,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[TDbOracleQueryResult]:
         """Execute SQL query."""
         if not self._query_executor:
@@ -590,7 +604,7 @@ class FlextDbOracleApi:
     def query_one(
         self,
         sql: str,
-        params: dict[str, Any] | None = None,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[tuple[Any, ...] | None]:
         """Execute query expecting single result - delegates to connection."""
         if not self._connection_manager or not self._connection_manager.connection:
@@ -600,7 +614,7 @@ class FlextDbOracleApi:
 
     def execute_batch(
         self,
-        operations: list[tuple[str, dict[str, Any] | None]],
+        operations: list[tuple[str, dict[str, object] | None]],
     ) -> FlextResult[list[TDbOracleQueryResult]]:
         """Execute batch of SQL operations."""
         if not self._query_executor:
@@ -703,7 +717,7 @@ class FlextDbOracleApi:
                 load_result = self._plugin_platform.load_plugin(plugin)
                 if load_result.is_failure:
                     return FlextResult.fail(
-                        f"Failed to register plugin: {load_result.error}"
+                        f"Failed to register plugin: {load_result.error}",
                     )
 
             # Fall back to simple plugin dict
@@ -726,7 +740,8 @@ class FlextDbOracleApi:
         try:
             # Try complex plugin platform first (for compatibility with tests)
             if hasattr(self._plugin_platform, "plugin_service") and hasattr(
-                self._plugin_platform.plugin_service, "registry"
+                self._plugin_platform.plugin_service,
+                "registry",
             ):
                 registry = self._plugin_platform.plugin_service.registry
                 if hasattr(registry, "get_plugin"):
@@ -748,7 +763,7 @@ class FlextDbOracleApi:
     def execute_plugin(
         self,
         plugin_name: str,
-        **kwargs: dict[str, Any],
+        **kwargs: dict[str, object],
     ) -> FlextResult[Any]:
         """Execute a registered plugin."""
         plugin_result = self.get_plugin(plugin_name)
@@ -807,7 +822,7 @@ class FlextDbOracleApi:
     def query_with_timing(
         self,
         sql: str,
-        params: dict[str, Any] | None = None,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[TDbOracleQueryResult]:
         """Execute query with timing information."""
         if not self._query_executor:
@@ -860,15 +875,17 @@ class FlextDbOracleApi:
         return self._connection_manager.connection.get_table_names(schema)
 
     def get_columns(
-        self, table_name: str, schema: str | None = None
-    ) -> FlextResult[list[dict[str, Any]]]:
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> FlextResult[list[dict[str, object]]]:
         """Get column information for specified table."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.get_column_info(table_name, schema)
 
-    def optimize_query(self, sql: str) -> FlextResult[dict[str, Any]]:
+    def optimize_query(self, sql: str) -> FlextResult[dict[str, object]]:
         """Analyze and provide optimization suggestions for SQL query."""
         # Basic SQL analysis - in real implementation would use Oracle's EXPLAIN PLAN
         suggestions: list[str] = []
@@ -888,7 +905,7 @@ class FlextDbOracleApi:
         max_query_length = 1000
         if len(sql) > max_query_length:
             suggestions.append(
-                "Consider breaking down complex query into smaller parts"
+                "Consider breaking down complex query into smaller parts",
             )
 
         return FlextResult.ok(analysis)
@@ -905,7 +922,7 @@ class FlextDbOracleApi:
         self,
         table_name: str,
         columns: list[str] | None = None,
-        conditions: dict[str, Any] | None = None,
+        conditions: dict[str, object] | None = None,
         schema: str | None = None,
     ) -> FlextResult[str]:
         """Build SELECT SQL query - delegates to connection."""
@@ -913,12 +930,16 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_select(
-            table_name, columns, conditions, schema
+            table_name,
+            columns,
+            conditions,
+            schema,
         )
 
     def map_singer_schema(
-        self, singer_schema: dict[str, Any]
-    ) -> FlextResult[dict[str, Any]]:
+        self,
+        singer_schema: dict[str, object],
+    ) -> FlextResult[dict[str, object]]:
         """Map Singer schema to Oracle schema - delegates to connection."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
@@ -926,17 +947,20 @@ class FlextDbOracleApi:
         return self._connection_manager.connection.map_singer_schema(singer_schema)
 
     def get_primary_keys(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> FlextResult[list[str]]:
         """Get primary key columns for specified table - delegates to connection."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.get_primary_key_columns(
-            table_name, schema
+            table_name,
+            schema,
         )
 
-    def get_observability_metrics(self) -> FlextResult[dict[str, Any]]:
+    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get observability metrics from the API."""
         try:
             metrics = {
@@ -951,14 +975,16 @@ class FlextDbOracleApi:
         except Exception as e:  # noqa: BLE001
             return FlextResult.fail(f"Failed to get metrics: {e}")
 
-    def execute_connection_monitor(self, **kwargs: dict[str, Any]) -> FlextResult[Any]:
+    def execute_connection_monitor(
+        self, **kwargs: dict[str, object],
+    ) -> FlextResult[Any]:
         """Execute connection monitor plugin - convenience method."""
         return self.execute_plugin("oracle_connection_monitor", **kwargs)
 
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[dict[str, Any]],
+        columns: list[dict[str, object]],
         schema: str | None = None,
     ) -> FlextResult[str]:
         """Create table DDL statement - delegates to connection."""
@@ -966,7 +992,9 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.create_table_ddl(
-            table_name, columns, schema
+            table_name,
+            columns,
+            schema,
         )
 
     def drop_table_ddl(
@@ -984,13 +1012,14 @@ class FlextDbOracleApi:
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> FlextResult[dict[str, Any]]:
+    ) -> FlextResult[dict[str, object]]:
         """Get table metadata - delegates to connection."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.get_table_metadata(
-            table_name, schema
+            table_name,
+            schema,
         )
 
     def convert_singer_type(
@@ -1003,7 +1032,8 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.convert_singer_type(
-            singer_type, format_hint
+            singer_type,
+            format_hint,
         )
 
     def execute_ddl(self, sql: str) -> FlextResult[None]:
@@ -1032,7 +1062,9 @@ class _TransactionContextManager:
     """Internal transaction context manager."""
 
     def __init__(
-        self, api: FlextDbOracleApi, connection: FlextDbOracleConnection
+        self,
+        api: FlextDbOracleApi,
+        connection: FlextDbOracleConnection,
     ) -> None:
         self.api = api
         self.connection = connection

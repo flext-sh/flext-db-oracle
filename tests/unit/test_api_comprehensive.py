@@ -167,7 +167,7 @@ class TestFlextDbOracleApiComprehensive:
     ) -> None:
         """Test connect when already connected (lines 147-149)."""
         api = FlextDbOracleApi(valid_config)
-        
+
         # Mock the connection manager to simulate already connected state
         api._connection_manager = Mock()
         api._connection_manager.is_connected = True
@@ -286,7 +286,9 @@ class TestFlextDbOracleApiComprehensive:
         mock_connection.connect.return_value = FlextResult.ok(data=True)
 
         # Create successful test query result
-        test_result = TDbOracleQueryResult(rows=[(1,)], columns=["result"], row_count=1, execution_time_ms=0.0)
+        test_result = TDbOracleQueryResult(
+            rows=[(1,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+        )
         mock_connection.execute_query.return_value = FlextResult.ok(test_result)
         mock_connection_class.return_value = mock_connection
 
@@ -360,7 +362,9 @@ class TestFlextDbOracleApiComprehensive:
         """Test query failure with error logging (lines 223-225)."""
         mock_connection = MagicMock(spec=FlextDbOracleConnection)
         mock_connection.connect.return_value = FlextResult.ok(data=True)
-        mock_connection.execute_query.return_value = FlextResult.fail("SQL syntax error")
+        mock_connection.execute_query.return_value = FlextResult.fail(
+            "SQL syntax error",
+        )
         mock_connection_class.return_value = mock_connection
 
         api = FlextDbOracleApi(valid_config)
@@ -410,7 +414,9 @@ class TestFlextDbOracleApiComprehensive:
         # Mock perf_counter for both query_with_timing AND OracleQueryExecutor.execute_query
         # query_with_timing: start=1.0, end=1.1 (100ms diff)
         # execute_query: start=2.0, end=2.05 (50ms diff)
-        with patch("flext_db_oracle.api.perf_counter", side_effect=[1.0, 2.0, 2.05, 1.1]):
+        with patch(
+            "flext_db_oracle.api.perf_counter", side_effect=[1.0, 2.0, 2.05, 1.1],
+        ):
             result = api.query_with_timing("SELECT * FROM test_table")
 
         assert result.is_success
@@ -552,9 +558,15 @@ class TestFlextDbOracleApiComprehensive:
         mock_connection.connect.return_value = FlextResult.ok(data=True)
 
         # Create proper TDbOracleQueryResult objects
-        result1 = TDbOracleQueryResult(rows=[("result1",)], columns=["col1"], row_count=1, execution_time_ms=0.0)
-        result2 = TDbOracleQueryResult(rows=[("result2",)], columns=["col1"], row_count=1, execution_time_ms=0.0)
-        result3 = TDbOracleQueryResult(rows=[("result3",)], columns=["col1"], row_count=1, execution_time_ms=0.0)
+        result1 = TDbOracleQueryResult(
+            rows=[("result1",)], columns=["col1"], row_count=1, execution_time_ms=0.0,
+        )
+        result2 = TDbOracleQueryResult(
+            rows=[("result2",)], columns=["col1"], row_count=1, execution_time_ms=0.0,
+        )
+        result3 = TDbOracleQueryResult(
+            rows=[("result3",)], columns=["col1"], row_count=1, execution_time_ms=0.0,
+        )
 
         mock_connection.execute_query.side_effect = [
             FlextResult.ok(result1),
@@ -1295,7 +1307,9 @@ class TestFlextDbOracleApiComprehensive:
         mock_connection.connect.return_value = FlextResult.ok(data=True)
 
         # Create empty TDbOracleQueryResult
-        empty_result = TDbOracleQueryResult(rows=[], columns=[], row_count=0, execution_time_ms=0.0)
+        empty_result = TDbOracleQueryResult(
+            rows=[], columns=[], row_count=0, execution_time_ms=0.0,
+        )
         mock_connection.execute_query.return_value = FlextResult.ok(empty_result)
         mock_connection_class.return_value = mock_connection
 

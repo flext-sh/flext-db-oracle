@@ -22,7 +22,7 @@ MAX_TABLE_NAME_LENGTH = 150
 MAX_AGE_LIMIT = 150
 
 
-def _validate_data_types(data: dict[str, Any]) -> tuple[list[str], list[str]]:
+def _validate_data_types(data: dict[str, object]) -> tuple[list[str], list[str]]:
     """Validate data types - DRY pattern for type validation."""
     errors: list[str] = []
     warnings: list[str] = []
@@ -41,7 +41,7 @@ def _validate_data_types(data: dict[str, Any]) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-def _validate_business_rules(data: dict[str, Any]) -> list[str]:
+def _validate_business_rules(data: dict[str, object]) -> list[str]:
     """Validate business rules - DRY pattern for business validation."""
     errors: list[str] = []
 
@@ -126,7 +126,7 @@ class OraclePluginFactory:
         name: str,
         description: str,
         plugin_type: str,
-        specific_config: dict[str, Any],
+        specific_config: dict[str, object],
     ) -> FlextResult[FlextPlugin]:
         """Template method for creating Oracle plugins with consistent patterns."""
         base_config = {
@@ -201,8 +201,8 @@ class OraclePluginHandler:
     def create_base_result_data(
         plugin_name: str,
         api: FlextDbOracleApi,
-        additional_fields: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        additional_fields: dict[str, object] | None = None,
+    ) -> dict[str, object]:
         """Template method: Create base result data structure."""
         base_data = {
             "plugin_name": plugin_name,
@@ -216,8 +216,9 @@ class OraclePluginHandler:
 
     @staticmethod
     def handle_plugin_exception(
-        e: Exception, plugin_name: str
-    ) -> FlextResult[dict[str, Any]]:
+        e: Exception,
+        plugin_name: str,
+    ) -> FlextResult[dict[str, object]]:
         """Template method: Consistent exception handling for plugins."""
         return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
 
@@ -232,7 +233,7 @@ def performance_monitor_plugin_handler(
     sql: str | None = None,
     execution_time_ms: float | None = None,
     **kwargs: Any,  # noqa: ANN401
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Handle performance monitoring plugin execution using DRY patterns."""
     try:
         threshold_ms = kwargs.get("threshold_ms", 1000)
@@ -284,7 +285,7 @@ def security_audit_plugin_handler(
     sql: str | None = None,
     operation_type: str | None = None,
     **kwargs: Any,  # noqa: ANN401
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Handle security audit plugin execution using DRY patterns."""
     try:
         result_data = OraclePluginHandler.create_base_result_data(
@@ -353,10 +354,10 @@ def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
 
 def data_validation_plugin_handler(
     api: FlextDbOracleApi,
-    data: dict[str, Any] | None = None,
+    data: dict[str, object] | None = None,
     table_name: str | None = None,
     **kwargs: Any,  # noqa: ANN401
-) -> FlextResult[dict[str, Any]]:
+) -> FlextResult[dict[str, object]]:
     """Handle data validation plugin execution using DRY patterns."""
     try:
         result_data = OraclePluginHandler.create_base_result_data(
