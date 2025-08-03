@@ -423,9 +423,9 @@ class TestConnectionComprehensiveCoverage:
         with patch.object(connection, "execute") as mock_execute:
             mock_execute.return_value = FlextResult.ok(
                 [
-                    ("ID", "NUMBER", "N", 1),
-                    ("NAME", "VARCHAR2", "Y", 2),
-                    ("CREATED_DATE", "DATE", "Y", 3),
+                    ("ID", "NUMBER", "N", 10, 38, 0, 1),
+                    ("NAME", "VARCHAR2", "Y", 100, None, None, 2),
+                    ("CREATED_DATE", "DATE", "Y", 7, None, None, 3),
                 ],
             )
 
@@ -438,7 +438,7 @@ class TestConnectionComprehensiveCoverage:
         with patch.object(connection, "execute") as mock_execute:
             mock_execute.return_value = FlextResult.ok(
                 [
-                    ("ID", "NUMBER", "N", 1),
+                    ("ID", "NUMBER", "N", 10, 38, 0, 1),
                 ],
             )
 

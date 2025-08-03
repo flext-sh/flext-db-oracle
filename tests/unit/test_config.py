@@ -242,13 +242,13 @@ class TestFlextDbOracleConfig:
                 # Missing ssl_cert_path
             )
 
-    def test_string_representation(self, valid_config: FlextDbOracleConfig) -> None:
+    def test_string_representation(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test string representation without sensitive data."""
-        str_repr = str(valid_config)
+        str_repr = str(real_oracle_config)
         assert "FlextDbOracleConfig" in str_repr
         assert "localhost" in str_repr
-        assert "testuser" in str_repr
-        assert "testpass" not in str_repr  # Password should not be visible
+        assert "flexttest" in str_repr
+        assert "FlextTest123" not in str_repr  # Password should not be visible
 
     def test_field_validators(self) -> None:
         """Test field validators for host and username."""

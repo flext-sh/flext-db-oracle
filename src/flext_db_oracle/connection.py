@@ -597,7 +597,7 @@ class FlextDbOracleConnection:
 
                 # Collect primary key columns
                 if col.get("primary_key", False):
-                    primary_key_columns.append(col["name"])
+                    primary_key_columns.append(str(col["name"]))
 
             # Add PRIMARY KEY constraint if any columns are marked as primary key
             if primary_key_columns:
