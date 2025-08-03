@@ -26,7 +26,9 @@ Example:
     >>> observability = FlextDbOracleObservabilityManager(container, "oracle_app")
     >>> observability.initialize()
     >>>
-    >>> with FlextDbOracleOperationTracker(observability, "query_execution", table="employees") as tracker:
+    >>> with FlextDbOracleOperationTracker(
+    ...     observability, "query_execution", table="employees"
+    ... ) as tracker:
     ...     # Database operation here
     ...     tracker.record_metric("rows_processed", 150, "count")
     ...     # Automatic timing and tracing on context exit
@@ -38,9 +40,9 @@ Integration:
     - Compatible with metrics systems (Prometheus, StatsD, etc.)
     - Provides health check endpoints for service monitoring
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 

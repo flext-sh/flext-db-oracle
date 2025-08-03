@@ -1,13 +1,16 @@
 """Oracle Database Constants extending flext-core platform constants.
 
 Oracle Database-specific constants that extend flext-core patterns.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
 
 from typing import ClassVar
 
-# Import flext-core constants for inheritance
 from flext_core.constants import FlextConstants
 
 

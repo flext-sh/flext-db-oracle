@@ -34,9 +34,9 @@ Usage:
     # Run comprehensive demonstration
     python 04_comprehensive_oracle_usage.py
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -105,7 +105,7 @@ class OracleExampleDemonstrator:
             patterns: List of (pattern_name, pattern_items) tuples
 
         """
-        for (pattern_name, pattern_items) in patterns:
+        for pattern_name, pattern_items in patterns:
             logger.info("# Pattern {i}: {pattern_name}")
             self._log_pattern_info(pattern_name, pattern_items)
 
@@ -237,12 +237,18 @@ def demonstrate_query_patterns() -> None:
             {"dept_id": 10},
         )
         if param_query_result.is_failure:
-            logger.info("📝 Parameterized query pattern demonstrated (simulated): %s", param_query_result.error)
+            logger.info(
+                "📝 Parameterized query pattern demonstrated (simulated): %s",
+                param_query_result.error,
+            )
 
         # Pattern 3: Single row query
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
         if single_result.is_failure:
-            logger.info("📝 Single row query pattern demonstrated (simulated): %s", single_result.error)
+            logger.info(
+                "📝 Single row query pattern demonstrated (simulated): %s",
+                single_result.error,
+            )
 
         # Pattern 4: Batch operations
         operations = [
@@ -259,7 +265,10 @@ def demonstrate_query_patterns() -> None:
 
         batch_result = api.execute_batch(operations)
         if batch_result.is_failure:
-            logger.info("📝 Batch operations pattern demonstrated (simulated): %s", batch_result.error)
+            logger.info(
+                "📝 Batch operations pattern demonstrated (simulated): %s",
+                batch_result.error,
+            )
 
     demonstrator.demonstrate_with_api_operations(_perform_query_operations)
 
@@ -277,22 +286,34 @@ def demonstrate_metadata_exploration() -> None:
         # Pattern 1: List all schemas
         schemas_result = api.get_schemas()
         if schemas_result.is_failure:
-            logger.info("📝 Schema listing pattern demonstrated (simulated): %s", schemas_result.error)
+            logger.info(
+                "📝 Schema listing pattern demonstrated (simulated): %s",
+                schemas_result.error,
+            )
 
         # Pattern 2: List tables in a schema
         tables_result = api.get_tables("HR")
         if tables_result.is_failure:
-            logger.info("📝 Table listing pattern demonstrated (simulated): %s", tables_result.error)
+            logger.info(
+                "📝 Table listing pattern demonstrated (simulated): %s",
+                tables_result.error,
+            )
 
         # Pattern 3: Get column information for a table
         columns_result = api.get_columns("EMPLOYEES")
         if columns_result.is_failure:
-            logger.info("📝 Column information pattern demonstrated (simulated): %s", columns_result.error)
+            logger.info(
+                "📝 Column information pattern demonstrated (simulated): %s",
+                columns_result.error,
+            )
 
         # Pattern 4: Test connection health
         health_result = api.test_connection()
         if health_result.is_failure:
-            logger.info("📝 Connection health check pattern demonstrated (simulated): %s", health_result.error)
+            logger.info(
+                "📝 Connection health check pattern demonstrated (simulated): %s",
+                health_result.error,
+            )
 
     demonstrator.demonstrate_with_api_operations(_perform_metadata_operations)
 

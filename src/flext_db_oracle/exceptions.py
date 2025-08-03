@@ -1,9 +1,10 @@
 """Oracle Database exception hierarchy using flext-core DRY patterns.
 
-Copyright (c) 2025 FLEXT Contributors
+Domain-specific exceptions using factory pattern to eliminate 150+ lines of duplication.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Domain-specific exceptions using factory pattern to eliminate 150+ lines of duplication.
 """
 
 from __future__ import annotations

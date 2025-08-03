@@ -22,7 +22,10 @@ Architecture:
 Example:
     Schema introspection and analysis:
 
-    >>> from flext_db_oracle import FlextDbOracleConnection, FlextDbOracleMetadataManager
+    >>> from flext_db_oracle import (
+    ...     FlextDbOracleConnection,
+    ...     FlextDbOracleMetadataManager,
+    ... )
     >>> connection = FlextDbOracleConnection(config)
     >>> connection.connect()
     >>> metadata_manager = FlextDbOracleMetadataManager(connection)
@@ -40,9 +43,8 @@ Integration:
     - Compatible with flext-observability for metadata operation monitoring
     - Provides foundation for schema evolution and migration tools
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 

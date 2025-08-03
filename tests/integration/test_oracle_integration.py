@@ -2,6 +2,10 @@
 
 These tests use mock Oracle connections to simulate real integration scenarios
 without requiring actual Oracle database instances.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -206,7 +210,9 @@ class TestOracleIntegration:
 
             # Mock the query executor's execute_batch method
             with patch.object(api, "_query_executor") as mock_executor:
-                mock_executor.execute_batch.return_value = FlextResult.ok([result1, result2, result3])
+                mock_executor.execute_batch.return_value = FlextResult.ok(
+                    [result1, result2, result3],
+                )
 
                 operations = [
                     ("INSERT INTO table1 VALUES (?)", {"value": 1}),
@@ -219,15 +225,21 @@ class TestOracleIntegration:
                 assert len(result.data) == 3
                 # Fix: Access the actual TDbOracleQueryResult objects correctly
                 first_result = result.data[0]
-                assert hasattr(first_result, "rows"), f"Expected TDbOracleQueryResult, got {type(first_result)}: {first_result}"
+                assert hasattr(first_result, "rows"), (
+                    f"Expected TDbOracleQueryResult, got {type(first_result)}: {first_result}"
+                )
                 assert first_result.rows == [(1,)]
 
                 second_result = result.data[1]
-                assert hasattr(second_result, "rows"), f"Expected TDbOracleQueryResult, got {type(second_result)}: {second_result}"
+                assert hasattr(second_result, "rows"), (
+                    f"Expected TDbOracleQueryResult, got {type(second_result)}: {second_result}"
+                )
                 assert second_result.rows == [(2,)]
 
                 third_result = result.data[2]
-                assert hasattr(third_result, "rows"), f"Expected TDbOracleQueryResult, got {type(third_result)}: {third_result}"
+                assert hasattr(third_result, "rows"), (
+                    f"Expected TDbOracleQueryResult, got {type(third_result)}: {third_result}"
+                )
                 assert third_result.rows == [(3,)]
 
     def test_metadata_operations(

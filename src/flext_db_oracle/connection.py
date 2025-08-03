@@ -27,7 +27,9 @@ Example:
     >>> connection = FlextDbOracleConnection(config)
     >>> connect_result = connection.connect()
     >>> if connect_result.is_success:
-    ...     result = connection.execute("SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10})
+    ...     result = connection.execute(
+    ...         "SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10}
+    ...     )
     ...     if result.is_success:
     ...         for row in result.value:
     ...             print(row)
@@ -39,9 +41,8 @@ Integration:
     - Compatible with Singer ecosystem for data pipeline operations
     - Provides foundation for flext-tap-oracle and flext-target-oracle
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 
@@ -131,9 +132,7 @@ class FlextDbOracleConnection:
             return FlextResult.ok(data=True)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            error_msg = f"Failed to connect: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_database_error_with_logging("Failed to connect", e)
 
     def disconnect(self) -> FlextResult[bool]:
         """Disconnect from database."""
@@ -145,11 +144,60 @@ class FlextDbOracleConnection:
                 self._logger.info("Disconnected from Oracle database")
             return FlextResult.ok(data=True)
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"Disconnect failed: {e}")
+            return self._handle_database_error_simple("Disconnect failed", e)
 
     def is_connected(self) -> bool:
         """Check if connected to database."""
         return self._engine is not None
+
+    def _ensure_connected(self) -> FlextResult[None]:
+        """Ensure database is connected and engine is initialized.
+
+        Enterprise-safe connection validation with detailed error reporting.
+        """
+        if not self.is_connected():
+            return FlextResult.fail("Not connected to database")
+
+        if not self._engine:
+            return FlextResult.fail("Database engine not initialized")
+
+        return FlextResult.ok(None)
+
+    def _handle_database_error_with_logging(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle database errors with logging - DRY pattern for error handling.
+
+        Args:
+            operation: Description of the operation that failed
+            exception: The exception that occurred
+
+        Returns:
+            FlextResult with failure containing formatted error message
+
+        """
+        error_msg = f"{operation}: {exception}"
+        self._logger.exception(error_msg)
+        return FlextResult.fail(error_msg)
+
+    def _handle_database_error_simple(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle database errors without logging - DRY pattern for simple error handling.
+
+        Args:
+            operation: Description of the operation that failed
+            exception: The exception that occurred
+
+        Returns:
+            FlextResult with failure containing formatted error message
+
+        """
+        return FlextResult.fail(f"{operation}: {exception}")
 
     def execute(
         self,
@@ -157,11 +205,9 @@ class FlextDbOracleConnection:
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[list[object]]:
         """Execute SQL statement using SQLAlchemy 2."""
-        if not self.is_connected():
-            return FlextResult.fail("Not connected to database")
-
-        if not self._engine:
-            return FlextResult.fail("Database engine not initialized")
+        connection_check = self._ensure_connected()
+        if connection_check.is_failure:
+            return FlextResult.fail(connection_check.error)
 
         try:
             with self._engine.connect() as conn:
@@ -175,9 +221,7 @@ class FlextDbOracleConnection:
                 return FlextResult.ok([result.rowcount])
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            error_msg = f"SQL execution failed: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_database_error_with_logging("SQL execution failed", e)
 
     def execute_many(
         self,
@@ -185,11 +229,9 @@ class FlextDbOracleConnection:
         parameters_list: list[dict[str, object]],
     ) -> FlextResult[int]:
         """Execute SQL with multiple parameter sets."""
-        if not self.is_connected():
-            return FlextResult.fail("Not connected to database")
-
-        if not self._engine:
-            return FlextResult.fail("Database engine not initialized")
+        connection_check = self._ensure_connected()
+        if connection_check.is_failure:
+            return FlextResult.fail(connection_check.error)
 
         try:
             with self._engine.connect() as conn:
@@ -198,9 +240,7 @@ class FlextDbOracleConnection:
                 return FlextResult.ok(result.rowcount)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            error_msg = f"Batch execution failed: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_database_error_with_logging("Batch execution failed", e)
 
     def fetch_one(
         self,
@@ -208,11 +248,9 @@ class FlextDbOracleConnection:
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[object]:
         """Fetch single row."""
-        if not self.is_connected():
-            return FlextResult.fail("Not connected to database")
-
-        if not self._engine:
-            return FlextResult.fail("Database engine not initialized")
+        connection_check = self._ensure_connected()
+        if connection_check.is_failure:
+            return FlextResult.fail(connection_check.error)
 
         try:
             with self._engine.connect() as conn:
@@ -220,9 +258,7 @@ class FlextDbOracleConnection:
                 return FlextResult.ok(result.fetchone())
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            error_msg = f"Fetch one failed: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_database_error_with_logging("Fetch one failed", e)
 
     @contextmanager
     def session(self) -> Generator[Session]:
@@ -244,13 +280,9 @@ class FlextDbOracleConnection:
     @contextmanager
     def transaction(self) -> Generator[object]:
         """Context manager for database transactions."""
-        if not self.is_connected():
-            msg = "Not connected to database"
-            raise ValueError(msg)
-
-        if not self._engine:
-            msg = "Database engine not initialized"
-            raise ValueError(msg)
+        connection_check = self._ensure_connected()
+        if connection_check.is_failure:
+            raise ValueError(connection_check.error)
 
         with self._engine.connect() as conn:
             trans = conn.begin()
@@ -288,14 +320,15 @@ class FlextDbOracleConnection:
 
     def test_connection(self) -> FlextResult[bool]:
         """Test database connection."""
-        if not self.is_connected():
-            return FlextResult.fail("Not connected")
+        connection_check = self._ensure_connected()
+        if connection_check.is_failure:
+            return FlextResult.fail(connection_check.error)
 
         try:
             result = self.execute(ORACLE_TEST_QUERY)
             return FlextResult.ok(result.is_success)
         except (SQLAlchemyError, OSError, ValueError, AttributeError, Exception) as e:
-            return FlextResult.fail(f"Connection test failed: {e}")
+            return self._handle_database_error_simple("Connection test failed", e)
 
     def get_table_names(self, schema_name: str | None = None) -> FlextResult[list[str]]:
         """Get table names from schema."""
@@ -318,7 +351,9 @@ class FlextDbOracleConnection:
             table_names: list[str] = [
                 str(row[0])
                 for row in result.data
-                if hasattr(row, "__getitem__") and hasattr(row, "__len__") and len(row) > 0
+                if hasattr(row, "__getitem__")
+                and hasattr(row, "__len__")
+                and len(row) > 0
             ]
 
             return FlextResult.ok(table_names)
@@ -358,8 +393,54 @@ class FlextDbOracleConnection:
             return FlextResult.fail("No current schema returned")
 
         # Get first row, first column - SQLAlchemy Row objects are indexable
-        current_schema = str(result.data[0][0]) if hasattr(result.data[0], "__getitem__") else str(result.data[0])
+        current_schema = (
+            str(result.data[0][0])
+            if hasattr(result.data[0], "__getitem__")
+            else str(result.data[0])
+        )
         return FlextResult.ok(current_schema)
+
+    def _build_column_info_query(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> tuple[str, dict[str, object]]:
+        """Build column info query with parameters - DRY pattern for schema queries."""
+        base_sql = """
+            SELECT column_name, data_type, nullable, data_length, data_precision, data_scale, column_id
+            FROM {table_view}
+            WHERE {where_clause}
+            ORDER BY column_id
+        """
+
+        if schema_name:
+            table_view = "all_tab_columns"
+            where_clause = (
+                "owner = UPPER(:schema_name) AND table_name = UPPER(:table_name)"
+            )
+            params: dict[str, object] = {
+                "schema_name": schema_name,
+                "table_name": table_name,
+            }
+        else:
+            table_view = "user_tab_columns"
+            where_clause = "table_name = UPPER(:table_name)"
+            params = {"table_name": table_name}
+
+        sql = base_sql.format(table_view=table_view, where_clause=where_clause)
+        return sql, params
+
+    def _convert_column_row_to_dict(self, row: object) -> dict[str, object]:
+        """Convert Oracle column row to dictionary - Single Responsibility."""
+        return {
+            "column_name": str(row[0]),
+            "data_type": str(row[1]),
+            "nullable": str(row[2]) == "Y",
+            "data_length": row[3],
+            "data_precision": row[4],
+            "data_scale": row[5],
+            "column_id": row[6],
+        }
 
     def get_column_info(
         self,
@@ -367,25 +448,7 @@ class FlextDbOracleConnection:
         schema_name: str | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Get column information for table."""
-        if schema_name:
-            sql = """
-                SELECT column_name, data_type, nullable, data_length, data_precision, data_scale, column_id
-                FROM all_tab_columns
-                WHERE owner = UPPER(:schema_name) AND table_name = UPPER(:table_name)
-                ORDER BY column_id
-            """
-            params: dict[str, object] = {
-                "schema_name": schema_name,
-                "table_name": table_name,
-            }
-        else:
-            sql = """
-                SELECT column_name, data_type, nullable, data_length, data_precision, data_scale, column_id
-                FROM user_tab_columns
-                WHERE table_name = UPPER(:table_name)
-                ORDER BY column_id
-            """
-            params = {"table_name": table_name}
+        sql, params = self._build_column_info_query(table_name, schema_name)
 
         result = self.execute(sql, params)
         if result.is_failure:
@@ -393,20 +456,55 @@ class FlextDbOracleConnection:
 
         # MYPY FIX: Safe type conversion for column information
         columns: list[dict[str, object]] = [
-            {
-                "column_name": str(row[0]),
-                "data_type": str(row[1]),
-                "nullable": str(row[2]) == "Y",
-                "data_length": row[3],
-                "data_precision": row[4],
-                "data_scale": row[5],
-                "column_id": row[6],
-            }
+            self._convert_column_row_to_dict(row)
             for row in result.data or []
-            if hasattr(row, "__getitem__") and hasattr(row, "__len__") and len(row) >= ORACLE_COLUMN_INFO_FIELDS
+            if hasattr(row, "__getitem__")
+            and hasattr(row, "__len__")
+            and len(row) >= ORACLE_COLUMN_INFO_FIELDS
         ]
 
         return FlextResult.ok(columns)
+
+    def _build_primary_key_query(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> tuple[str, dict[str, object]]:
+        """Build primary key query with parameters - DRY pattern for constraint queries."""
+        base_sql = """
+            SELECT column_name
+            FROM {cons_columns_view} c
+            JOIN {constraints_view} ct ON c.constraint_name = ct.constraint_name{owner_join}
+            WHERE ct.constraint_type = 'P'
+                AND {where_clause}
+            ORDER BY c.position
+        """
+
+        if schema_name:
+            cons_columns_view = "all_cons_columns"
+            constraints_view = "all_constraints"
+            owner_join = " AND c.owner = ct.owner"
+            where_clause = (
+                "ct.owner = UPPER(:schema_name) AND ct.table_name = UPPER(:table_name)"
+            )
+            params: dict[str, object] = {
+                "schema_name": schema_name,
+                "table_name": table_name,
+            }
+        else:
+            cons_columns_view = "user_cons_columns"
+            constraints_view = "user_constraints"
+            owner_join = ""
+            where_clause = "ct.table_name = UPPER(:table_name)"
+            params = {"table_name": table_name}
+
+        sql = base_sql.format(
+            cons_columns_view=cons_columns_view,
+            constraints_view=constraints_view,
+            owner_join=owner_join,
+            where_clause=where_clause,
+        )
+        return sql, params
 
     def get_primary_key_columns(
         self,
@@ -414,31 +512,7 @@ class FlextDbOracleConnection:
         schema_name: str | None = None,
     ) -> FlextResult[list[str]]:
         """Get primary key columns for table (consolidated from services)."""
-        if schema_name:
-            sql = """
-                SELECT column_name
-                FROM all_cons_columns c
-                JOIN all_constraints ct ON c.constraint_name = ct.constraint_name
-                    AND c.owner = ct.owner
-                WHERE ct.constraint_type = 'P'
-                    AND ct.owner = UPPER(:schema_name)
-                    AND ct.table_name = UPPER(:table_name)
-                ORDER BY c.position
-            """
-            params: dict[str, object] = {
-                "schema_name": schema_name,
-                "table_name": table_name,
-            }
-        else:
-            sql = """
-                SELECT column_name
-                FROM user_cons_columns c
-                JOIN user_constraints ct ON c.constraint_name = ct.constraint_name
-                WHERE ct.constraint_type = 'P'
-                    AND ct.table_name = UPPER(:table_name)
-                ORDER BY c.position
-            """
-            params = {"table_name": table_name}
+        sql, params = self._build_primary_key_query(table_name, schema_name)
 
         result = self.execute(sql, params)
         if result.is_failure:
@@ -481,6 +555,21 @@ class FlextDbOracleConnection:
 
         return FlextResult.ok(metadata)
 
+    def _build_select_base(
+        self,
+        table_name: str,
+        columns: list[str] | None = None,
+        schema_name: str | None = None,
+    ) -> tuple[str, str]:
+        """Build base SELECT query parts - DRY pattern for select methods."""
+        # Build column list - safe since it's internal column names
+        column_list = ", ".join(columns) if columns else "*"
+
+        # Build table name using existing helper
+        full_table_name = self._build_table_name(table_name, schema_name)
+
+        return column_list, full_table_name
+
     def build_select(
         self,
         table_name: str,
@@ -494,14 +583,11 @@ class FlextDbOracleConnection:
         This method is kept for backward compatibility with existing tests.
         """
         try:
-            # Build column list - safe since it's internal column names
-            column_list = ", ".join(columns) if columns else "*"
-
-            # Build table name - safe since it's internal table/schema names
-            if schema_name:
-                full_table_name = f"{schema_name}.{table_name}"
-            else:
-                full_table_name = table_name
+            column_list, full_table_name = self._build_select_base(
+                table_name,
+                columns,
+                schema_name,
+            )
 
             # Build WHERE clause - SECURITY: Only safe for trusted internal values
             where_clause = ""
@@ -536,14 +622,11 @@ class FlextDbOracleConnection:
     ) -> FlextResult[tuple[str, dict[str, object]]]:
         """Build SELECT query with parameterized conditions (SECURE version)."""
         try:
-            # Build column list - safe since it's internal column names
-            column_list = ", ".join(columns) if columns else "*"
-
-            # Build table name - safe since it's internal table/schema names
-            if schema_name:
-                full_table_name = f"{schema_name}.{table_name}"
-            else:
-                full_table_name = table_name
+            column_list, full_table_name = self._build_select_base(
+                table_name,
+                columns,
+                schema_name,
+            )
 
             # Build WHERE clause with parameters (SECURITY: No SQL injection)
             where_clause = ""
@@ -564,6 +647,33 @@ class FlextDbOracleConnection:
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Query building failed: {e}")
 
+    def _build_table_name(self, table_name: str, schema_name: str | None = None) -> str:
+        """Build full table name with optional schema - DRY pattern."""
+        if schema_name:
+            return f"{schema_name}.{table_name}"
+        return table_name
+
+    def _build_column_definition(self, col: dict[str, object]) -> FlextResult[str]:
+        """Build single column definition - Single Responsibility pattern."""
+        # Support both 'type' and 'data_type' keys for backward compatibility
+        data_type = col.get("data_type") or col.get("type")
+        if not data_type:
+            return FlextResult.fail("Column must have 'type' or 'data_type' specified")
+
+        col_def = f"{col['name']} {data_type}"
+        if not col.get("nullable", True):
+            col_def += " NOT NULL"
+        if col.get("default_value"):
+            col_def += f" DEFAULT {col['default_value']}"
+        return FlextResult.ok(col_def)
+
+    def _collect_primary_key_columns(
+        self,
+        columns: list[dict[str, object]],
+    ) -> list[str]:
+        """Collect primary key columns from column definitions - Single Responsibility."""
+        return [str(col["name"]) for col in columns if col.get("primary_key", False)]
+
     def create_table_ddl(
         self,
         table_name: str,
@@ -572,34 +682,18 @@ class FlextDbOracleConnection:
     ) -> FlextResult[str]:
         """Generate CREATE TABLE DDL (consolidated from services)."""
         try:
-            # Build table name
-            if schema_name:
-                full_table_name = f"{schema_name}.{table_name}"
-            else:
-                full_table_name = table_name
-
-            # Build column definitions and collect primary key columns
+            full_table_name = self._build_table_name(table_name, schema_name)
             column_defs = []
-            primary_key_columns = []
 
+            # Build column definitions
             for col in columns:
-                # Support both 'type' and 'data_type' keys for backward compatibility
-                data_type = col.get("data_type") or col.get("type")
-                if not data_type:
-                    return FlextResult.fail("Column must have 'type' or 'data_type' specified")
-
-                col_def = f"{col['name']} {data_type}"
-                if not col.get("nullable", True):
-                    col_def += " NOT NULL"
-                if col.get("default_value"):
-                    col_def += f" DEFAULT {col['default_value']}"
-                column_defs.append(col_def)
-
-                # Collect primary key columns
-                if col.get("primary_key", False):
-                    primary_key_columns.append(str(col["name"]))
+                col_def_result = self._build_column_definition(col)
+                if col_def_result.is_failure:
+                    return col_def_result
+                column_defs.append(col_def_result.data)
 
             # Add PRIMARY KEY constraint if any columns are marked as primary key
+            primary_key_columns = self._collect_primary_key_columns(columns)
             if primary_key_columns:
                 pk_constraint = f"CONSTRAINT PK_{table_name} PRIMARY KEY ({', '.join(primary_key_columns)})"
                 column_defs.append(pk_constraint)
@@ -615,7 +709,7 @@ class FlextDbOracleConnection:
             TypeError,
             KeyError,
         ) as e:
-            return FlextResult.fail(f"DDL generation failed: {e}")
+            return self._handle_database_error_simple("DDL generation failed", e)
 
     def drop_table_ddl(
         self,
@@ -624,16 +718,12 @@ class FlextDbOracleConnection:
     ) -> FlextResult[str]:
         """Generate DROP TABLE DDL (consolidated from services)."""
         try:
-            if schema_name:
-                full_table_name = f"{schema_name}.{table_name}"
-            else:
-                full_table_name = table_name
-
+            full_table_name = self._build_table_name(table_name, schema_name)
             ddl = f"DROP TABLE {full_table_name}"
             return FlextResult.ok(ddl)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"DROP DDL generation failed: {e}")
+            return self._handle_database_error_simple("DROP DDL generation failed", e)
 
     def execute_ddl(self, ddl: str) -> FlextResult[bool]:
         """Execute DDL statement (consolidated from services)."""
@@ -644,7 +734,7 @@ class FlextDbOracleConnection:
             return FlextResult.fail(result.error or "DDL execution failed")
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"DDL execution failed: {e}")
+            return self._handle_database_error_simple("DDL execution failed", e)
 
     def convert_singer_type(
         self,

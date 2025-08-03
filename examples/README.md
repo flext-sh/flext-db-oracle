@@ -7,9 +7,11 @@ This directory contains comprehensive examples demonstrating real-world usage pa
 ### **Core Integration Examples**
 
 #### **`04_comprehensive_oracle_usage.py`**
+
 **Complete Oracle Integration Workflow**
 
 Demonstrates comprehensive Oracle database operations including:
+
 - Configuration management and environment-based setup
 - Connection pooling and lifecycle management
 - Schema introspection and metadata operations
@@ -18,21 +20,25 @@ Demonstrates comprehensive Oracle database operations including:
 - Error handling and observability integration
 
 **Key Features:**
+
 - Enterprise-grade error handling with FlextResult patterns
 - Performance monitoring and metrics collection
 - Plugin system demonstration with real Oracle operations
 - Configuration validation and multi-environment support
 
 #### **`sqlalchemy2_example.py`**
+
 **SQLAlchemy 2 Integration Patterns**
 
 Shows modern SQLAlchemy 2 usage patterns with FLEXT DB Oracle:
+
 - Modern async/await patterns for database operations
 - Connection session management and transaction handling
 - ORM integration with Oracle-specific optimizations
 - Advanced query building and execution patterns
 
 **Key Features:**
+
 - SQLAlchemy 2.x integration with Clean Architecture
 - Transaction management and connection pooling
 - Oracle-specific SQL optimizations and hints
@@ -41,9 +47,11 @@ Shows modern SQLAlchemy 2 usage patterns with FLEXT DB Oracle:
 ### **CLI and Tooling Examples**
 
 #### **`cli_examples.py`**
+
 **Command Line Interface Demonstrations**
 
 Comprehensive CLI usage examples covering:
+
 - Database connection testing and validation
 - Query execution with multiple output formats
 - Schema exploration and metadata extraction
@@ -51,6 +59,7 @@ Comprehensive CLI usage examples covering:
 - Health monitoring and status checking
 
 **Key Features:**
+
 - Rich terminal formatting and user experience
 - Multiple output formats (table, JSON, YAML, CSV)
 - Error handling and user feedback patterns
@@ -61,6 +70,7 @@ Comprehensive CLI usage examples covering:
 ### **Prerequisites**
 
 #### **Oracle Database Setup**
+
 ```bash
 # Start Oracle XE for examples
 docker-compose -f docker-compose.oracle.yml up -d
@@ -73,6 +83,7 @@ sqlplus sys/oracle@localhost:1521/XE as sysdba
 ```
 
 #### **Environment Configuration**
+
 ```bash
 # Set required environment variables
 export FLEXT_TARGET_ORACLE_HOST=localhost
@@ -127,27 +138,27 @@ from flext_core import FlextResult
 
 def demonstrate_comprehensive_usage():
     """Demonstrate comprehensive Oracle database usage."""
-    
+
     # Load configuration from environment
     config_result = FlextDbOracleConfig.from_env()
     if config_result.is_failure:
         print(f"Configuration failed: {config_result.error}")
         return
-    
+
     config = config_result.value
     api = FlextDbOracleApi(config)
-    
+
     # Demonstrate complete workflow
     with api:
         # Test connection
         connection_result = api.test_connection()
         print(f"Connection: {'✅ Success' if connection_result.is_success else '❌ Failed'}")
-        
+
         # Query execution
         query_result = api.execute_query("SELECT SYSDATE FROM DUAL")
         if query_result.is_success:
             print(f"Current time: {query_result.value.rows[0][0]}")
-        
+
         # Schema operations
         schemas_result = api.get_schemas()
         if schemas_result.is_success:
@@ -177,9 +188,9 @@ from sqlalchemy.orm import Session
 
 def demonstrate_sqlalchemy2_patterns():
     """Demonstrate SQLAlchemy 2 integration patterns."""
-    
+
     connection = FlextDbOracleConnection.from_env()
-    
+
     with connection:
         # Session-based operations
         with connection.session() as session:
@@ -187,7 +198,7 @@ def demonstrate_sqlalchemy2_patterns():
             result = session.execute(text("SELECT COUNT(*) FROM user_tables"))
             table_count = result.scalar()
             print(f"User tables: {table_count}")
-            
+
             # Transaction management
             with session.begin():
                 # Transactional operations here
@@ -217,7 +228,7 @@ import os
 
 def demonstrate_cli_patterns():
     """Demonstrate CLI usage patterns."""
-    
+
     # Set environment for examples
     env = os.environ.copy()
     env.update({
@@ -227,23 +238,23 @@ def demonstrate_cli_patterns():
         'FLEXT_TARGET_ORACLE_USERNAME': 'flext_user',
         'FLEXT_TARGET_ORACLE_PASSWORD': 'flext_password'
     })
-    
+
     # Test connection
     print("Testing connection...")
     result = subprocess.run([
         'python', '-m', 'flext_db_oracle.cli', 'connect-env'
     ], env=env, capture_output=True, text=True)
-    
+
     if result.returncode == 0:
         print("✅ Connection successful")
-        
+
         # Execute sample query
         print("\nExecuting query...")
         query_result = subprocess.run([
             'python', '-m', 'flext_db_oracle.cli', 'query',
             '--sql', 'SELECT table_name FROM user_tables'
         ], env=env, capture_output=True, text=True)
-        
+
         print(query_result.stdout)
     else:
         print(f"❌ Connection failed: {result.stderr}")
@@ -257,6 +268,7 @@ if __name__ == "__main__":
 ### **Development Scenarios**
 
 #### **Local Development Setup**
+
 ```python
 # Quick setup for local development
 def setup_local_development():
@@ -274,13 +286,14 @@ def setup_local_development():
 ```
 
 #### **Testing and Validation**
+
 ```python
 # Configuration for testing scenarios
 def setup_testing_environment():
     """Setup testing environment with isolated database."""
     config = FlextDbOracleConfig.from_env("TEST_ORACLE_")
     api = FlextDbOracleApi(config, context_name="testing")
-    
+
     # Enable comprehensive logging for testing
     api.enable_debug_logging()
     return api
@@ -289,36 +302,38 @@ def setup_testing_environment():
 ### **Production Scenarios**
 
 #### **Enterprise Configuration**
+
 ```python
 # Production-ready configuration with security
 def setup_production_environment():
     """Setup production environment with enterprise features."""
     config = FlextDbOracleConfig.from_env("PROD_ORACLE_")
-    
+
     # Validate production configuration
     validation_result = config.validate_domain_rules()
     if validation_result.is_failure:
         raise RuntimeError(f"Invalid production config: {validation_result.error}")
-    
+
     # Create API with production settings
     api = FlextDbOracleApi(config, context_name="production")
-    
+
     # Register monitoring plugins
     from flext_db_oracle.plugins import register_all_oracle_plugins
     register_all_oracle_plugins(api)
-    
+
     return api
 ```
 
 #### **High-Availability Setup**
+
 ```python
 # High-availability configuration with failover
 def setup_ha_environment():
     """Setup high-availability Oracle environment."""
     primary_config = FlextDbOracleConfig.from_env("PRIMARY_ORACLE_")
-    
+
     api = FlextDbOracleApi(primary_config, context_name="ha_primary")
-    
+
     # Configure connection pooling for HA
     api.configure_ha_pooling(
         min_connections=10,
@@ -326,7 +341,7 @@ def setup_ha_environment():
         retry_attempts=3,
         failover_timeout=30
     )
-    
+
     return api
 ```
 
@@ -369,11 +384,11 @@ def main() -> None:
     try:
         # Example implementation
         demonstrate_feature()
-        
+
     except Exception as e:
         print(f"Example failed: {e}")
         return 1
-    
+
     print("Example completed successfully")
     return 0
 
@@ -406,6 +421,7 @@ make benchmark-examples
 ### **FLEXT Ecosystem Integration**
 
 Examples demonstrate integration with:
+
 - **flext-core**: Foundation patterns and result handling
 - **flext-observability**: Monitoring and metrics collection
 - **flext-cli**: Command-line interface patterns
@@ -414,6 +430,7 @@ Examples demonstrate integration with:
 ### **External System Integration**
 
 Examples show integration with:
+
 - **SQLAlchemy 2**: Modern ORM patterns
 - **Pydantic**: Configuration and validation
 - **Rich**: Terminal formatting and user experience

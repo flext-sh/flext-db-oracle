@@ -32,16 +32,26 @@ Example:
     >>> # Connect and execute operations
     >>> with api.connect() as oracle:
     ...     # Simple query
-    ...     result = oracle.query("SELECT employee_id, name FROM employees WHERE dept_id = :dept",
-    ...                          {"dept": 10})
+    ...     result = oracle.query(
+    ...         "SELECT employee_id, name FROM employees WHERE dept_id = :dept",
+    ...         {"dept": 10},
+    ...     )
     ...     if result.is_success:
     ...         print(f"Found {result.value.row_count} employees")
     ...
     ...     # Bulk operations
-    ...     bulk_result = oracle.execute_batch([
-    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 1, "name": "John"}),
-    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 2, "name": "Jane"})
-    ...     ])
+    ...     bulk_result = oracle.execute_batch(
+    ...         [
+    ...             (
+    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
+    ...                 {"id": 1, "name": "John"},
+    ...             ),
+    ...             (
+    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
+    ...                 {"id": 2, "name": "Jane"},
+    ...             ),
+    ...         ]
+    ...     )
 
     Schema introspection and metadata:
 
@@ -62,19 +72,17 @@ Integration:
     - Uses flext-core patterns ensuring consistency across FLEXT ecosystem
     - Supports Oracle Warehouse Management System (WMS) integration via flext-oracle-wms
 
-Author: FLEXT Development Team
-Version: 0.9.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 
-# Core components using SQLAlchemy 2 and flext-core
+from __future__ import annotations
+
 from .api import FlextDbOracleApi
 from .cli import oracle as oracle_cli
 from .config import FlextDbOracleConfig
 from .connection import FlextDbOracleConnection
-
-# Additional components
 from .metadata import (
     FlextDbOracleColumn,
     FlextDbOracleMetadataManager,

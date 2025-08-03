@@ -5,6 +5,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 ## 🎯 Integration Test Principles
 
 ### **Real System Integration**
+
 - **Actual Oracle database** connection required
 - **Real network communication** and protocol testing
 - **Database schema validation** with actual Oracle metadata
@@ -12,6 +13,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 - **Transaction management** with real database commits/rollbacks
 
 ### **Test Scope**
+
 - **Component interaction** between modules
 - **Database operation validation** with real SQL
 - **Performance characteristics** under realistic conditions
@@ -21,11 +23,13 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 ## 📁 Test Organization
 
 ### **Core Integration Tests**
+
 - `test_oracle_integration.py` - Comprehensive Oracle database integration scenarios
 
 ### **Test Categories**
 
 #### **Connection Integration**
+
 - Database connection establishment and validation
 - Connection pool behavior with multiple concurrent connections
 - SSL/TLS connection security validation
@@ -33,6 +37,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 - Authentication and authorization scenarios
 
 #### **Query Integration**
+
 - SQL query execution with real Oracle database
 - Parameterized query handling and injection prevention
 - Transaction management and rollback scenarios
@@ -40,6 +45,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 - Complex query optimization and execution plan analysis
 
 #### **Schema Integration**
+
 - Schema introspection with real Oracle metadata views
 - DDL generation and execution validation
 - Table creation, modification, and deletion
@@ -47,6 +53,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 - Constraint validation and foreign key relationships
 
 #### **Plugin Integration**
+
 - Plugin execution with real database operations
 - Performance monitoring with actual query timing
 - Security audit with real SQL injection scenarios
@@ -57,6 +64,7 @@ This directory contains integration tests for FLEXT DB Oracle that require actua
 ### **Prerequisites**
 
 #### **Oracle Database Setup**
+
 ```bash
 # Start Oracle XE via Docker
 docker-compose -f docker-compose.oracle.yml up -d
@@ -69,6 +77,7 @@ sqlplus sys/oracle@localhost:1521/XE as sysdba
 ```
 
 #### **Environment Configuration**
+
 ```bash
 # Required environment variables
 export ORACLE_INTEGRATION_TESTS=1
@@ -128,6 +137,7 @@ CREATE TABLE flext_test.departments (
 ## 🧪 Test Examples
 
 ### **Database Connection Testing**
+
 ```python
 @pytest.mark.integration
 def test_oracle_connection_with_real_database():
@@ -135,31 +145,32 @@ def test_oracle_connection_with_real_database():
     # Arrange
     config = FlextDbOracleConfig.from_env().value
     connection = FlextDbOracleConnection(config)
-    
+
     # Act
     result = connection.connect()
-    
+
     # Assert
     assert result.is_success
     assert connection.is_connected()
-    
+
     # Cleanup
     connection.disconnect()
 ```
 
 ### **Query Execution Testing**
+
 ```python
-@pytest.mark.integration  
+@pytest.mark.integration
 def test_query_execution_with_real_oracle():
     """Test SQL query execution with actual Oracle database."""
     # Arrange
     api = FlextDbOracleApi.from_env()
     test_sql = "SELECT COUNT(*) as employee_count FROM employees"
-    
+
     # Act
     with api:
         result = api.execute_query(test_sql)
-    
+
     # Assert
     assert result.is_success
     assert result.value.row_count >= 0
@@ -168,6 +179,7 @@ def test_query_execution_with_real_oracle():
 ```
 
 ### **Schema Integration Testing**
+
 ```python
 @pytest.mark.integration
 def test_schema_metadata_extraction():
@@ -175,17 +187,17 @@ def test_schema_metadata_extraction():
     # Arrange
     api = FlextDbOracleApi.from_env()
     metadata_manager = FlextDbOracleMetadataManager(api.connection)
-    
+
     # Act
     with api:
         result = metadata_manager.get_schema_metadata("FLEXT_TEST")
-    
+
     # Assert
     assert result.is_success
     schema = result.value
     assert schema.name == "FLEXT_TEST"
     assert len(schema.tables) >= 0
-    
+
     # Validate table metadata
     if schema.tables:
         table = schema.tables[0]
@@ -212,12 +224,15 @@ def test_connection_pool_performance():
 ## 🔧 Test Environment Management
 
 ### **Test Database Schema**
+
 Integration tests use isolated test schemas to avoid conflicts:
+
 - **Schema isolation**: Each test run uses dedicated schemas
 - **Data cleanup**: Automatic cleanup after test completion
 - **Parallel execution**: Tests can run concurrently with proper isolation
 
 ### **Docker Integration**
+
 ```bash
 # Complete test environment setup
 make test-integration-setup     # Start Oracle XE and configure schemas
@@ -226,7 +241,9 @@ make test-integration-cleanup  # Stop Oracle and cleanup resources
 ```
 
 ### **Continuous Integration**
+
 Integration tests are configured for CI/CD environments:
+
 - **Oracle XE container** for automated testing
 - **Schema migration** validation
 - **Performance regression** detection

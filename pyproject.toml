@@ -27,7 +27,7 @@ dependencies = [
     "flext-core @ file:///home/marlonsc/flext/flext-core",
     "oracledb (>=3.2.0)",
     "pydantic (>=2.11.7)",
-    "sqlalchemy (>=2.0.0,<3.0.0)",
+    "sqlalchemy (>=2.0.0)",
 ]
 [[project.authors]]
 name = "FLEXT Team"
@@ -138,10 +138,10 @@ filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
-    "D203",   # one-blank-line-before-class (conflicts with D211)
-    "D213",   # multi-line-summary-second-line (conflicts with D212)
-    "W505",   # line break after binary operator
-    "E501",   # line too long (handled by line-length)
+    "D203", # one-blank-line-before-class (conflicts with D211)
+    "D213", # multi-line-summary-second-line (conflicts with D212)
+    "W505", # line break after binary operator
+    "E501", # line too long (handled by line-length)
 ]
 
 [tool.ruff.format]
@@ -186,8 +186,12 @@ split-on-trailing-comma = true
 combine-as-imports = true
 
 [tool.ruff.lint.per-file-ignores]
-"src/flext_db_oracle/metadata.py" = ["TC003"]  # datetime needed at runtime for Pydantic
-"src/flext_db_oracle/types.py" = ["TC003"]     # datetime needed at runtime for Pydantic
+"src/flext_db_oracle/metadata.py" = [
+    "TC003",
+] # datetime needed at runtime for Pydantic
+"src/flext_db_oracle/types.py" = [
+    "TC003",
+] # datetime needed at runtime for Pydantic
 "tests/*" = [
     "S101",
     "S103",
@@ -195,23 +199,25 @@ combine-as-imports = true
     "S105",
     "S106",
     "S107",
+    "S603",    # Subprocess calls allowed in tests (Docker Oracle container management)
+    "S607",    # Subprocess calls allowed in tests (Docker Oracle container management)
     "PLR2004",
     "ARG",
     "SLF001",
     "PLC0415",
 ]
 "**/scripts/**" = [
-    "T201",    # Print statements allowed in scripts
-    "S603",    # Subprocess calls allowed in scripts
-    "S607",    # Subprocess calls allowed in scripts
-    "ANN",     # Type annotations not required in scripts
+    "T201", # Print statements allowed in scripts
+    "S603", # Subprocess calls allowed in scripts
+    "S607", # Subprocess calls allowed in scripts
+    "ANN",  # Type annotations not required in scripts
 ]
-"**/__init__.py" = ["F401"]  # Unused imports allowed in __init__.py
-"**/proto/*_pb2.py" = ["ALL"]  # Generated protobuf files
-"**/proto/*_pb2_grpc.py" = ["ALL"]  # Generated protobuf files
-"**/*_pb2.py" = ["ALL"]  # Generated protobuf files
-"**/*_pb2_grpc.py" = ["ALL"]  # Generated protobuf files
-"**/generated/**/*.py" = ["ALL"]  # Generated files
+"**/__init__.py" = ["F401"] # Unused imports allowed in __init__.py
+"**/proto/*_pb2.py" = ["ALL"] # Generated protobuf files
+"**/proto/*_pb2_grpc.py" = ["ALL"] # Generated protobuf files
+"**/*_pb2.py" = ["ALL"] # Generated protobuf files
+"**/*_pb2_grpc.py" = ["ALL"] # Generated protobuf files
+"**/generated/**/*.py" = ["ALL"] # Generated files
 "**/__pycache__/*" = ["ALL"]
 "**/*.pyc" = ["ALL"]
 "**/migrations/*" = ["ALL"]
@@ -221,45 +227,45 @@ path = "../flext-core"
 develop = true
 
 [tool.poetry.group.dev.dependencies]
-ruff = "^0.12.3"
-black = "^25.1.0"
-isort = "^6.0.1"
-mypy = "^1.13.0"
-pre-commit = "^4.0.1"
-vulture = "^2.13"
-radon = "^6.0.1"
-codespell = "^2.3.0"
-pyupgrade = "^3.19.0"
-autoflake = "^2.3.1"
-detect-secrets = "^1.4.0"
+ruff = ">=0.12.3"
+black = ">=25.1.0"
+isort = ">=6.0.1"
+mypy = ">=1.13.0"
+pre-commit = ">=4.0.1"
+vulture = ">=2.13"
+radon = ">=6.0.1"
+codespell = ">=2.3.0"
+pyupgrade = ">=3.19.0"
+autoflake = ">=2.3.1"
+detect-secrets = ">=1.4.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = "^8.4.0"
+pytest = ">=8.4.0"
 pytest-asyncio = ">=0.23.5.post1,<0.24.0"
-pytest-cov = "^6.2.0"
-pytest-xdist = "^3.8.0"
-pytest-mock = "^3.14.0"
-pytest-timeout = "^2.4.0"
-pytest-benchmark = "^5.1.0"
-pytest-randomly = "^3.16.0"
-pytest-sugar = "^1.0.0"
-pytest-clarity = "^1.0.1"
-pytest-deadfixtures = "^2.2.1"
-pytest-env = "^1.1.5"
-pytest-httpx = "^0.35.0"
-hypothesis = "^6.125.0"
-factory-boy = "^3.3.1"
-faker = "^37.4.0"
+pytest-cov = ">=6.2.0"
+pytest-xdist = ">=3.8.0"
+pytest-mock = ">=3.14.0"
+pytest-timeout = ">=2.4.0"
+pytest-benchmark = ">=5.1.0"
+pytest-randomly = ">=3.16.0"
+pytest-sugar = ">=1.0.0"
+pytest-clarity = ">=1.0.1"
+pytest-deadfixtures = ">=2.2.1"
+pytest-env = ">=1.1.5"
+pytest-httpx = ">=0.35.0"
+hypothesis = ">=6.125.0"
+factory-boy = ">=3.3.1"
+faker = ">=37.4.0"
 
 [tool.poetry.group.typings.dependencies]
-types-python-dateutil = "^2.9.0"
-types-pyyaml = "^6.0.12"
-types-setuptools = "^80.9.0"
-types-toml = "^0.10.8.20240310"
-types-requests = "^2.32.4"
-types-redis = "^4.6.0"
-types-psutil = "^7.0.0"
+types-python-dateutil = ">=2.9.0"
+types-pyyaml = ">=6.0.12"
+types-setuptools = ">=80.9.0"
+types-toml = ">=0.10.8.20240310"
+types-requests = ">=2.32.4"
+types-redis = ">=4.6.0"
+types-psutil = ">=7.0.0"
 
 [tool.poetry.group.security.dependencies]
-bandit = "^1.8.0"
-pip-audit = "^2.7.3"
+bandit = ">=1.8.0"
+pip-audit = ">=2.7.3"

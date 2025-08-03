@@ -38,9 +38,8 @@ Integration:
     - Provides base patterns for flext-tap-oracle and flext-target-oracle
     - Compatible with Meltano orchestration and Singer data pipelines
 
-Author: FLEXT Development Team
-Version: 0.9.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 

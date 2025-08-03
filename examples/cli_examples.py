@@ -1,9 +1,10 @@
 """Oracle CLI Examples - Demonstrating production CLI usage.
 
-Copyright (c) 2025 FLEXT Contributors
+Examples showing how to use the flext-oracle CLI commands.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-Examples showing how to use the flext-oracle CLI commands.
 """
 
 from __future__ import annotations

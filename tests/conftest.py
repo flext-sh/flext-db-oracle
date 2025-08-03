@@ -1,16 +1,133 @@
-"""Test configuration for flext-db-oracle - ORACLE REAL TESTING ONLY."""
+"""Test configuration for flext-db-oracle - ORACLE REAL TESTING ONLY.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
+"""
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import time
-from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+
+
+class DockerCommandExecutor:
+    """Execute Docker commands safely with proper error handling."""
+
+    def __init__(self, compose_file: Path) -> None:
+        """Initialize with compose file path."""
+        self.compose_file = compose_file
+
+    def check_docker_availability(self) -> None:
+        """Check if Docker and Docker Compose are available."""
+        commands = [
+            ["docker", "version"],
+            ["docker-compose", "version"],
+        ]
+
+        for cmd in commands:
+            subprocess.run(cmd, capture_output=True, check=True)
+
+    def check_container_status(self) -> bool:
+        """Check if Oracle container is running."""
+        result = subprocess.run(
+            ["docker-compose", "-f", str(self.compose_file), "ps", "-q", "oracle-xe"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return bool(result.stdout.strip())
+
+    def check_container_health(self) -> bool:
+        """Check if Oracle container is healthy."""
+        health_result = subprocess.run(
+            [
+                "docker",
+                "inspect",
+                "flext-oracle-test",
+                "--format",
+                "{{.State.Health.Status}}",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return "healthy" in health_result.stdout
+
+    def start_container(self) -> None:
+        """Start Oracle container."""
+        subprocess.run(
+            ["docker-compose", "-f", str(self.compose_file), "up", "-d", "oracle-xe"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+    def run_setup_script(self) -> bool:
+        """Run database setup script."""
+        setup_result = subprocess.run(
+            [
+                "docker-compose",
+                "-f",
+                str(self.compose_file),
+                "up",
+                "--no-deps",
+                "oracle-setup",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return setup_result.returncode == 0
+
+
+class OracleContainerManager:
+    """Manage Oracle container lifecycle for testing."""
+
+    def __init__(self, compose_file: Path) -> None:
+        """Initialize with compose file path."""
+        self.docker_executor = DockerCommandExecutor(compose_file)
+        self.max_health_attempts = 120  # 10 minutes max
+        self.health_check_interval = 5  # seconds
+
+    def ensure_container_ready(self) -> None:
+        """Ensure Oracle container is running and healthy."""
+        self.docker_executor.check_docker_availability()
+
+        container_running = self.docker_executor.check_container_status()
+        is_healthy = container_running and self.docker_executor.check_container_health()
+
+        if not container_running or not is_healthy:
+            self._start_and_wait_for_health()
+
+    def _start_and_wait_for_health(self) -> None:
+        """Start container and wait for it to become healthy."""
+        self.docker_executor.start_container()
+        self._wait_for_healthy_status()
+
+    def _wait_for_healthy_status(self) -> None:
+        """Wait for container to become healthy."""
+        for _attempt in range(self.max_health_attempts):
+            if self.docker_executor.check_container_health():
+                self.docker_executor.run_setup_script()
+                time.sleep(self.health_check_interval)
+                return
+            time.sleep(self.health_check_interval)
+
+        pytest.exit(
+            "Oracle container failed to become healthy - cannot run tests without Oracle",
+        )
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -34,7 +151,7 @@ def pytest_configure(config: pytest.Config) -> None:
     os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "flexttest"
     os.environ["FLEXT_TARGET_ORACLE_PASSWORD"] = "FlextTest123"
 
-    print("🔥 PYTEST CONFIGURADO PARA USAR ORACLE REAL - SEM MOCKS!")
+    # PYTEST CONFIGURADO PARA USAR ORACLE REAL - SEM MOCKS!
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -47,101 +164,20 @@ def oracle_container() -> Generator[None]:
         pytest.skip("Docker compose file not found - skipping Oracle container tests")
 
     try:
-        # Check if Docker is available
-        subprocess.run(["docker", "version"], capture_output=True, check=True)
-        subprocess.run(["docker-compose", "version"], capture_output=True, check=True)
-
-        print("🐳 Verificando status do container Oracle...")
-
-        # Check if container is already running and healthy
-        result = subprocess.run(
-            ["docker-compose", "-f", str(compose_file), "ps", "-q", "oracle-xe"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        container_running = bool(result.stdout.strip())
-
-        if container_running:
-            # Check if container is healthy
-            health_result = subprocess.run(
-                ["docker", "inspect", "flext-oracle-test", "--format", "{{.State.Health.Status}}"],
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            is_healthy = "healthy" in health_result.stdout
-            print(f"📊 Container encontrado - Status de saúde: {health_result.stdout.strip()}")
-        else:
-            is_healthy = False
-            print("⚠️ Container Oracle não está rodando")
-
-        if not container_running or not is_healthy:
-            print("🚀 Iniciando container Oracle (isso pode levar alguns minutos)...")
-
-            # Start the container
-            start_result = subprocess.run(
-                ["docker-compose", "-f", str(compose_file), "up", "-d", "oracle-xe"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            print("✅ Container Oracle iniciado!")
-
-            # Wait for container to be healthy with better feedback
-            max_attempts = 120  # 10 minutes max (Oracle can be slow)
-            print("⏳ Aguardando Oracle ficar saudável...")
-
-            for attempt in range(max_attempts):
-                health_result = subprocess.run(
-                    ["docker", "inspect", "flext-oracle-test", "--format", "{{.State.Health.Status}}"],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                )
-
-                health_status = health_result.stdout.strip()
-
-                if health_status == "healthy":
-                    print("🎉 Oracle container está saudável!")
-
-                    # Run setup script to create test user and schema
-                    print("🔧 Executando script de setup do banco...")
-                    setup_result = subprocess.run(
-                        ["docker-compose", "-f", str(compose_file), "up", "--no-deps", "oracle-setup"],
-                        capture_output=True,
-                        text=True,
-                        check=False,
-                    )
-
-                    if setup_result.returncode == 0:
-                        print("✅ Setup do banco completado com sucesso!")
-                    else:
-                        print(f"⚠️ Setup do banco falhou (pode já estar configurado): {setup_result.stderr}")
-
-                    # Extra time for full initialization
-                    time.sleep(5)
-                    break
-                elif health_status == "unhealthy":
-                    print(f"❌ Container não saudável na tentativa {attempt + 1}/{max_attempts}")
-                else:
-                    print(f"⏳ Status: {health_status} - Tentativa {attempt + 1}/{max_attempts}")
-
-                time.sleep(5)
-            else:
-                pytest.exit("Oracle container failed to become healthy - cannot run tests without Oracle")
-        else:
-            print("✅ Container Oracle já está saudável e pronto!")
-
+        container_manager = OracleContainerManager(compose_file)
+        container_manager.ensure_container_ready()
         yield
 
     except subprocess.CalledProcessError as e:
         pytest.exit(f"Failed to manage Oracle container: {e}")
     except FileNotFoundError:
-        pytest.exit("Docker/Docker Compose not available - cannot run tests without Docker")
-    except Exception as e:
-        pytest.exit(f"Unexpected error managing Oracle container: {e}")
+        pytest.exit(
+            "Docker/Docker Compose not available - cannot run tests without Docker",
+        )
+    except subprocess.SubprocessError as e:
+        pytest.exit(f"Subprocess error managing Oracle container: {e}")
+    except OSError as e:
+        pytest.exit(f"OS error managing Oracle container: {e}")
 
 
 @pytest.fixture
@@ -170,10 +206,8 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> FlextDbOracleApi:
     """Return Oracle API that is already connected."""
     connected_api = oracle_api.connect()
     yield connected_api
-    try:
+    with contextlib.suppress(Exception):
         connected_api.disconnect()
-    except Exception:
-        pass  # Best effort cleanup
 
 
 # REMOVE ALL MOCK FIXTURES - ONLY REAL ORACLE TESTING ALLOWED

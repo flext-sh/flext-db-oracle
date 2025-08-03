@@ -35,9 +35,8 @@ Integration:
     - Supports flext-cli configuration management commands
     - Compatible with FLEXT ecosystem service discovery
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 
@@ -171,7 +170,9 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
                 password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
-                service_name=os.getenv(f"{prefix}SERVICE_NAME") or os.getenv(f"{prefix}SID") or "ORCLPDB1",
+                service_name=os.getenv(f"{prefix}SERVICE_NAME")
+                or os.getenv(f"{prefix}SID")
+                or "ORCLPDB1",
                 sid=os.getenv(f"{prefix}SID"),
                 pool_min=int(os.getenv(f"{prefix}POOL_MIN", "1")),
                 pool_max=int(os.getenv(f"{prefix}POOL_MAX", "10")),
@@ -179,7 +180,8 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 timeout=int(os.getenv(f"{prefix}TIMEOUT", "30")),
                 encoding=os.getenv(f"{prefix}ENCODING", "UTF-8"),
                 autocommit=bool(
-                    os.getenv(f"{prefix}AUTOCOMMIT", "").lower() in {"true", "1", "yes"},
+                    os.getenv(f"{prefix}AUTOCOMMIT", "").lower()
+                    in {"true", "1", "yes"},
                 ),
                 ssl_cert_path=os.getenv(f"{prefix}SSL_CERT_PATH"),
                 ssl_server_dn_match=bool(

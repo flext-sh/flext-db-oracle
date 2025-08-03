@@ -11,7 +11,7 @@ This file provides comprehensive development guidance to Claude Code (claude.ai/
 ### **Current Status: Enterprise Production Ready**
 
 - ✅ **Documentation Standardization**: 100% complete across all Python modules
-- ✅ **Type Annotation Coverage**: 95%+ with strict MyPy validation  
+- ✅ **Type Annotation Coverage**: 95%+ with strict MyPy validation
 - ✅ **Quality Gates**: Integrated with CI/CD pipelines
 - ✅ **FLEXT Ecosystem Integration**: Full compatibility with FLEXT Core patterns
 - ✅ **Enterprise Standards**: Professional documentation without marketing content
@@ -134,6 +134,7 @@ pytest --cov-fail-under=90                            # Enforce 90% coverage
 ### **Core Module Structure**
 
 **Source Code (`src/flext_db_oracle/`)**:
+
 - `__init__.py` - Public API exports and library initialization
 - `api.py` - Main `FlextDbOracleApi` class with SOLID refactoring and `OracleConnectionManager`
 - `config.py` - `FlextDbOracleConfig` with environment variable support and Pydantic validation
@@ -147,18 +148,21 @@ pytest --cov-fail-under=90                            # Enforce 90% coverage
 - `constants.py` - Constants and configuration defaults
 
 **Testing Structure (`tests/`)**:
+
 - `tests/unit/` - Fast unit tests with comprehensive mocking (18+ test files)
 - `tests/integration/` - Tests requiring actual Oracle connection
 - `tests/e2e/` - End-to-end workflow tests
 - `conftest.py` - Shared pytest fixtures and Oracle test configuration
 
 **Examples (`examples/`)**:
+
 - `01_basic_connection.py` - Simple connection patterns
 - `02_configuration_patterns.py` - Configuration management examples
 - `03_query_operations.py` - Query execution and result handling
 - `04_comprehensive_oracle_usage.py` - Complete feature demonstration with SOLID patterns
 
 **Documentation (`docs/`)**:
+
 - Complete API reference and integration guides
 - Architecture documentation with Clean Architecture diagrams
 - Performance optimization and troubleshooting guides
@@ -245,6 +249,7 @@ flext-core = { path = "../flext-core", develop = true }
 ### **Singer Ecosystem Foundation**
 
 FLEXT DB Oracle serves as the foundation for Singer ecosystem components:
+
 - **flext-tap-oracle**: Data extraction using this library's connection patterns
 - **flext-target-oracle**: Data loading using this library's pooling and optimization
 - **flext-dbt-oracle**: Data transformation using this library's metadata capabilities
@@ -338,6 +343,7 @@ flext-oracle             # Alias for main CLI
 ```
 
 Available CLI commands:
+
 - `connect` - Connect to Oracle database with parameters
 - `connect-env` - Connect using environment variables
 - `query` - Execute SQL queries with rich formatting
@@ -352,6 +358,7 @@ Available CLI commands:
 ### **Common Issues & Solutions**
 
 **Import Errors**:
+
 ```bash
 # Ensure FLEXT core dependencies are properly installed
 pip install -e ../flext-core
@@ -359,6 +366,7 @@ make install-dev
 ```
 
 **Oracle Connection Issues**:
+
 ```bash
 # Verify Oracle service is running
 docker-compose -f docker-compose.oracle.yml ps
@@ -371,6 +379,7 @@ make oracle-connect
 ```
 
 **Type Errors**:
+
 ```bash
 # Run detailed MyPy analysis
 make type-check
@@ -378,6 +387,7 @@ mypy src/ --show-error-codes --show-column-numbers
 ```
 
 **Test Failures**:
+
 ```bash
 # Check if integration tests need Oracle
 pytest tests/integration/ --collect-only
@@ -433,11 +443,13 @@ pytest -v -s --log-cli-level=DEBUG
 **Status**: HIGH PRIORITY - Oracle DB library integration with Singer ecosystem incomplete
 
 **Current Issues**:
+
 - Meltano environment variables follow convention but integration not complete
 - Schema introspection not exposed via Singer catalog patterns
 - Missing integration with flext-tap-oracle and flext-target-oracle
 
 **Required Actions**:
+
 - [ ] Complete integration with flext-tap-oracle and flext-target-oracle
 - [ ] Implement Singer catalog generation from Oracle schema introspection
 - [ ] Create Oracle-specific Singer stream patterns and configuration
@@ -448,11 +460,13 @@ pytest -v -s --log-cli-level=DEBUG
 **Status**: HIGH PRIORITY - Missing integration with flext-oracle-wms specialization
 
 **Current Issues**:
+
 - Oracle WMS has specialized library (flext-oracle-wms) but no integration
 - WMS-specific patterns not reused, causing duplication
 - Oracle connection patterns duplicated across projects
 
 **Required Actions**:
+
 - [ ] Integrate with flext-oracle-wms patterns and configurations
 - [ ] Create shared Oracle connection patterns across ecosystem
 - [ ] Implement WMS-specific optimizations when appropriate
@@ -463,11 +477,13 @@ pytest -v -s --log-cli-level=DEBUG
 **Status**: HIGH PRIORITY - Observability integration incomplete
 
 **Current Issues**:
+
 - observability.py module exists but integration not complete
 - Oracle performance metrics not exposed via ecosystem monitoring
 - Connection pool monitoring not integrated with FLEXT observability stack
 
 **Required Actions**:
+
 - [ ] Complete flext-observability integration with metrics export
 - [ ] Expose Oracle performance metrics via ecosystem monitoring
 - [ ] Create Oracle connection pool monitoring and alerting
@@ -478,11 +494,13 @@ pytest -v -s --log-cli-level=DEBUG
 **Status**: HIGH PRIORITY - CLI commands not integrated with ecosystem CLI
 
 **Current Issues**:
+
 - Oracle-specific make commands not accessible via flext-cli
 - Oracle connection testing not available via ecosystem CLI
 - Schema operations not integrated with CLI workflow
 
 **Required Actions**:
+
 - [ ] Integrate Oracle commands with flext-cli command groups
 - [ ] Create `flext oracle` command group in ecosystem CLI
 - [ ] Implement Oracle connection testing via unified CLI interface

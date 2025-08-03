@@ -43,9 +43,8 @@ Integration:
     - Compatible with FLEXT ecosystem plugin discovery and management
     - Provides extension points for custom Oracle-specific functionality
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 
@@ -332,7 +331,11 @@ def performance_monitor_plugin_handler(
     """Handle performance monitoring plugin execution using DRY patterns."""
     try:
         threshold_raw = kwargs.get("threshold_ms", 1000)
-        threshold_ms = float(threshold_raw) if isinstance(threshold_raw, (int, float, str)) else 1000.0
+        threshold_ms = (
+            float(threshold_raw)
+            if isinstance(threshold_raw, (int, float, str))
+            else 1000.0
+        )
 
         result_data = OraclePluginHandler.create_base_result_data(
             "oracle_performance_monitor",
@@ -349,7 +352,9 @@ def performance_monitor_plugin_handler(
         if execution_time_ms and execution_time_ms > threshold_ms:
             result_data["is_slow_query"] = True
             recommendations_raw = result_data.get("recommendations", [])
-            recommendations: list[str] = recommendations_raw if isinstance(recommendations_raw, list) else []
+            recommendations: list[str] = (
+                recommendations_raw if isinstance(recommendations_raw, list) else []
+            )
             if isinstance(recommendations, list):
                 recommendations.extend(
                     [

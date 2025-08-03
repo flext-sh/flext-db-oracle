@@ -41,9 +41,8 @@ Integration:
     - Compatible with FLEXT ecosystem configuration and observability
     - Provides comprehensive error handling and user feedback
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 
@@ -857,7 +856,9 @@ def plugins(ctx: click.Context) -> None:
                     _raise_cli_error("Plugin registration succeeded but returned None")
 
                 # registration_results is guaranteed non-None after validation above
-                processor.handle_registration_success(cast("dict[str, str]", registration_results))
+                processor.handle_registration_success(
+                    cast("dict[str, str]", registration_results),
+                )
 
                 # List all plugins
                 plugins_result = api.list_plugins()

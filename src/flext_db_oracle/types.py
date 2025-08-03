@@ -27,7 +27,7 @@ Example:
     ...     data_type="NUMBER",
     ...     precision=10,
     ...     position=1,
-    ...     is_primary_key=True
+    ...     is_primary_key=True,
     ... )
     >>> validation_result = column.validate_domain_rules()
     >>> if validation_result.is_success:
@@ -40,9 +40,8 @@ Integration:
     - Compatible with Singer ecosystem type definitions and conversions
     - Provides foundation for metadata management and DDL generation
 
-Author: FLEXT Development Team
-Version: 2.0.0
-License: MIT
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 
 """
 

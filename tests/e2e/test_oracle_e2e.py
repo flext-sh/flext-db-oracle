@@ -2,6 +2,10 @@
 
 These tests simulate complete real-world scenarios using Docker containers
 or test databases to validate the entire system works end-to-end.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -23,7 +27,10 @@ class TestOracleE2E:
     # Remove test_config fixture - use real_oracle_config from conftest.py
 
     @pytest.mark.e2e
-    def test_complete_oracle_workflow(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_complete_oracle_workflow(
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+    ) -> None:
         """Test complete Oracle workflow end-to-end.
 
         This test validates:
@@ -173,7 +180,10 @@ class TestOracleE2E:
                     api.execute_ddl(drop_ddl_result.data)
 
     @pytest.mark.e2e
-    def test_singer_type_conversion_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_singer_type_conversion_e2e(
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+    ) -> None:
         """Test Singer type conversion in real Oracle environment."""
         with FlextDbOracleApi(real_oracle_config) as api:
             # Test various Singer type conversions
@@ -284,7 +294,10 @@ class TestOracleE2E:
         assert "No database connection" in metadata_result.error
 
     @pytest.mark.e2e
-    def test_concurrent_operations_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_concurrent_operations_e2e(
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+    ) -> None:
         """Test concurrent database operations."""
         # This test would be expanded with actual threading/asyncio in a real scenario
         # For now, test sequential operations that simulate concurrent patterns
@@ -316,7 +329,10 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     @pytest.mark.benchmark
-    def test_performance_benchmark_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_performance_benchmark_e2e(
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+    ) -> None:
         """Test performance benchmarks for Oracle operations."""
         # This test would use pytest-benchmark in a real scenario
         # For now, validate that timing information is captured
