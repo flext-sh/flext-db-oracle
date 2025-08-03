@@ -20,23 +20,10 @@ from flext_db_oracle import (
 class TestOracleE2E:
     """End-to-end tests for Oracle database operations."""
 
-    @pytest.fixture
-    def test_config(self) -> FlextDbOracleConfig:
-        """Create test configuration for E2E tests."""
-        return FlextDbOracleConfig(
-            host=os.getenv("TEST_ORACLE_HOST", "localhost"),
-            port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
-            service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
-            username=os.getenv("TEST_ORACLE_USER", "test_user"),
-            password=os.getenv("TEST_ORACLE_PASSWORD", "test_password"),
-        )
+    # Remove test_config fixture - use real_oracle_config from conftest.py
 
     @pytest.mark.e2e
-    @pytest.mark.skipif(
-        os.getenv("SKIP_E2E_TESTS", "true").lower() == "true",
-        reason="E2E tests require Oracle database setup",
-    )
-    def test_complete_oracle_workflow(self, test_config: FlextDbOracleConfig) -> None:
+    def test_complete_oracle_workflow(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test complete Oracle workflow end-to-end.
 
         This test validates:
@@ -49,7 +36,7 @@ class TestOracleE2E:
         7. Table cleanup
         8. Disconnection
         """
-        with FlextDbOracleApi(test_config) as api:
+        with FlextDbOracleApi(real_oracle_config) as api:
             # Test connection
             connection_test = api.test_connection()
             assert connection_test.is_success, (
@@ -83,8 +70,8 @@ class TestOracleE2E:
                 {
                     "name": "CREATED_AT",
                     "type": "TIMESTAMP",
-                    "nullable": False,
-                    "default_value": "CURRENT_TIMESTAMP",
+                    "nullable": True,
+                    "default_value": "SYSDATE",
                 },
             ]
 
@@ -123,8 +110,8 @@ class TestOracleE2E:
                 assert select_result.is_success, (
                     f"Data query failed: {select_result.error}"
                 )
-                assert len(select_result.data) == 3, (
-                    f"Expected 3 rows, got {len(select_result.data)}"
+                assert select_result.data.row_count == 3, (
+                    f"Expected 3 rows, got {select_result.data.row_count}"
                 )
 
                 # Test single row query
@@ -132,8 +119,8 @@ class TestOracleE2E:
                 assert single_result.is_success, (
                     f"Single query failed: {single_result.error}"
                 )
-                assert single_result.data[0] == 3, (
-                    f"Expected count 3, got {single_result.data[0]}"
+                assert single_result.data[0][0] == 3, (
+                    f"Expected count 3, got {single_result.data[0][0]}"
                 )
 
                 # Test table metadata
@@ -177,7 +164,7 @@ class TestOracleE2E:
                     f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",  # noqa: S608 # safe table name from test constant
                 )
                 assert verify_result.is_success
-                assert verify_result.data[0] == "bob@example.com"
+                assert verify_result.data[0][0] == "bob@example.com"
 
             finally:
                 # Cleanup: Drop test table
@@ -186,13 +173,9 @@ class TestOracleE2E:
                     api.execute_ddl(drop_ddl_result.data)
 
     @pytest.mark.e2e
-    @pytest.mark.skipif(
-        os.getenv("SKIP_E2E_TESTS", "true").lower() == "true",
-        reason="E2E tests require Oracle database setup",
-    )
-    def test_singer_type_conversion_e2e(self, test_config: FlextDbOracleConfig) -> None:
+    def test_singer_type_conversion_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test Singer type conversion in real Oracle environment."""
-        with FlextDbOracleApi(test_config) as api:
+        with FlextDbOracleApi(real_oracle_config) as api:
             # Test various Singer type conversions
             singer_types = [
                 ("string", "VARCHAR2(4000)"),
@@ -301,13 +284,13 @@ class TestOracleE2E:
         assert "No database connection" in metadata_result.error
 
     @pytest.mark.e2e
-    def test_concurrent_operations_e2e(self, test_config: FlextDbOracleConfig) -> None:
+    def test_concurrent_operations_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test concurrent database operations."""
         # This test would be expanded with actual threading/asyncio in a real scenario
         # For now, test sequential operations that simulate concurrent patterns
 
-        api1 = FlextDbOracleApi(test_config, context_name="connection1")
-        api2 = FlextDbOracleApi(test_config, context_name="connection2")
+        api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
+        api2 = FlextDbOracleApi(real_oracle_config, context_name="connection2")
 
         # Simulate independent operations
         try:
@@ -333,13 +316,13 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     @pytest.mark.benchmark
-    def test_performance_benchmark_e2e(self, test_config: FlextDbOracleConfig) -> None:
+    def test_performance_benchmark_e2e(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test performance benchmarks for Oracle operations."""
         # This test would use pytest-benchmark in a real scenario
         # For now, validate that timing information is captured
 
         try:
-            with FlextDbOracleApi(test_config) as api:
+            with FlextDbOracleApi(real_oracle_config) as api:
                 # Test query with timing
                 timed_result = api.query_with_timing("SELECT 1 FROM DUAL")
 

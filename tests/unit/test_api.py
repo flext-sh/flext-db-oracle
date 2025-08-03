@@ -180,9 +180,11 @@ class TestFlextDbOracleApi:
         result = api.query("SELECT * FROM employees")
 
         assert result.is_success
-        assert result.data == sample_query_result
+        assert result.data.rows == [tuple(row) if isinstance(row, (list, tuple)) else (row,) for row in sample_query_result]
+        assert result.data.row_count == len(sample_query_result)
         mock_connection.execute_query.assert_called_once_with(
-            "SELECT * FROM employees", {},
+            "SELECT * FROM employees",
+            {},
         )
 
     def test_query_not_connected(self, valid_config: FlextDbOracleConfig) -> None:
@@ -270,8 +272,9 @@ class TestFlextDbOracleApi:
         assert result.is_success
         assert result.data is not None
         assert len(result.data) == 2
-        assert result.data[0] == [("result1",)]
-        assert result.data[1] == [("result2",)]
+        # Fix: execute_batch returns TDbOracleQueryResult objects, not raw data
+        assert result.data[0].rows == [("result1",)]
+        assert result.data[1].rows == [("result2",)]
 
     @patch("flext_db_oracle.api.FlextDbOracleConnection")
     def test_execute_batch_failure(

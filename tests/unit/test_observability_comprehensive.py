@@ -46,7 +46,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.FlextObservabilityMonitor")
     def test_initialize_success(
-        self, mock_monitor_class: Mock, container: FlextContainer,
+        self,
+        mock_monitor_class: Mock,
+        container: FlextContainer,
     ) -> None:
         """Test successful initialization."""
         mock_monitor = Mock()
@@ -62,7 +64,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.FlextObservabilityMonitor")
     def test_initialize_already_initialized(
-        self, mock_monitor_class: Mock, container: FlextContainer,
+        self,
+        mock_monitor_class: Mock,
+        container: FlextContainer,
     ) -> None:
         """Test initialization when already initialized."""
         mock_monitor = Mock()
@@ -78,7 +82,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.FlextObservabilityMonitor")
     def test_initialize_monitor_init_failure(
-        self, mock_monitor_class: Mock, container: FlextContainer,
+        self,
+        mock_monitor_class: Mock,
+        container: FlextContainer,
     ) -> None:
         """Test initialization with monitor init failure."""
         mock_monitor = Mock()
@@ -95,7 +101,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.FlextObservabilityMonitor")
     def test_initialize_monitor_start_failure(
-        self, mock_monitor_class: Mock, container: FlextContainer,
+        self,
+        mock_monitor_class: Mock,
+        container: FlextContainer,
     ) -> None:
         """Test initialization with monitor start failure."""
         mock_monitor = Mock()
@@ -113,7 +121,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.FlextObservabilityMonitor")
     def test_initialize_exception(
-        self, mock_monitor_class: Mock, container: FlextContainer,
+        self,
+        mock_monitor_class: Mock,
+        container: FlextContainer,
     ) -> None:
         """Test initialization with monitor creation exception."""
         mock_monitor_class.side_effect = Exception("Monitor creation failed")
@@ -124,7 +134,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_trace")
     def test_create_trace_success(
-        self, mock_create_trace: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_trace: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test successful trace creation."""
         mock_trace = Mock(spec=FlextTrace)
@@ -155,7 +167,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_metric")
     def test_record_metric_success(
-        self, mock_create_metric: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_metric: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test successful metric recording."""
         mock_create_metric.return_value = FlextResult.ok(Mock())
@@ -171,7 +185,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_metric")
     def test_record_metric_failure(
-        self, mock_create_metric: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_metric: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test metric recording failure."""
         mock_create_metric.return_value = FlextResult.fail("Metric creation failed")
@@ -183,7 +199,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_health_check")
     def test_create_health_check(
-        self, mock_create_health_check: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_health_check: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test health check creation."""
         mock_health_check = Mock(spec=FlextHealthCheck)
@@ -201,7 +219,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_trace")
     def test_finish_trace_success(
-        self, mock_create_trace: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_trace: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test successful trace finishing."""
         original_trace = Mock(spec=FlextTrace)
@@ -222,7 +242,9 @@ class TestFlextDbOracleObservabilityManager:
 
     @patch("flext_db_oracle.observability.flext_create_trace")
     def test_finish_trace_failure(
-        self, mock_create_trace: Mock, manager: FlextDbOracleObservabilityManager,
+        self,
+        mock_create_trace: Mock,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test trace finishing failure."""
         original_trace = Mock(spec=FlextTrace)
@@ -237,7 +259,8 @@ class TestFlextDbOracleObservabilityManager:
         assert result is original_trace  # Returns original on failure
 
     def test_get_current_timestamp(
-        self, manager: FlextDbOracleObservabilityManager,
+        self,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test timestamp generation."""
         timestamp = manager.get_current_timestamp()
@@ -247,17 +270,21 @@ class TestFlextDbOracleObservabilityManager:
         datetime.fromisoformat(timestamp)
 
     def test_is_monitoring_active_initialized(
-        self, manager: FlextDbOracleObservabilityManager,
+        self,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test monitoring active check when initialized."""
         manager._initialized = True
         with patch.object(
-            manager._monitor, "flext_is_monitoring_active", return_value=True,
+            manager._monitor,
+            "flext_is_monitoring_active",
+            return_value=True,
         ):
             assert manager.is_monitoring_active()
 
     def test_is_monitoring_active_not_initialized(
-        self, manager: FlextDbOracleObservabilityManager,
+        self,
+        manager: FlextDbOracleObservabilityManager,
     ) -> None:
         """Test monitoring active check when not initialized."""
         manager._initialized = False
@@ -289,7 +316,9 @@ class TestFlextDbOracleOperationTracker:
         assert tracker._start_time == 0.0
 
     def test_context_manager_success(
-        self, tracker: FlextDbOracleOperationTracker, observability: Mock,
+        self,
+        tracker: FlextDbOracleOperationTracker,
+        observability: Mock,
     ) -> None:
         """Test context manager success flow."""
         mock_trace = Mock(spec=FlextTrace)
@@ -310,7 +339,9 @@ class TestFlextDbOracleOperationTracker:
         assert call_args[0][3] is None  # error
 
     def test_context_manager_with_exception(
-        self, tracker: FlextDbOracleOperationTracker, observability: Mock,
+        self,
+        tracker: FlextDbOracleOperationTracker,
+        observability: Mock,
     ) -> None:
         """Test context manager with exception."""
         mock_trace = Mock(spec=FlextTrace)
@@ -327,7 +358,9 @@ class TestFlextDbOracleOperationTracker:
         assert call_args[0][3] == "Test error"  # error
 
     def test_context_manager_no_trace(
-        self, tracker: FlextDbOracleOperationTracker, observability: Mock,
+        self,
+        tracker: FlextDbOracleOperationTracker,
+        observability: Mock,
     ) -> None:
         """Test context manager when trace creation fails."""
         observability.create_trace.return_value = None
@@ -339,7 +372,9 @@ class TestFlextDbOracleOperationTracker:
         observability.finish_trace.assert_not_called()
 
     def test_record_metric(
-        self, tracker: FlextDbOracleOperationTracker, observability: Mock,
+        self,
+        tracker: FlextDbOracleOperationTracker,
+        observability: Mock,
     ) -> None:
         """Test metric recording."""
         tracker.record_metric("test_metric", 42.0, "count", tag1="value1")
@@ -352,7 +387,8 @@ class TestFlextDbOracleOperationTracker:
         )
 
     def test_get_execution_time_ms(
-        self, tracker: FlextDbOracleOperationTracker,
+        self,
+        tracker: FlextDbOracleOperationTracker,
     ) -> None:
         """Test execution time calculation."""
         start_time = perf_counter()
@@ -387,11 +423,14 @@ class TestFlextDbOracleErrorHandler:
         assert handler._logger is not None
 
     def test_handle_connection_error(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test connection error handling."""
         with pytest.raises(
-            ConnectionError, match="Failed to connect: Connection timeout",
+            ConnectionError,
+            match="Failed to connect: Connection timeout",
         ):
             error_handler.handle_connection_error("Connection timeout")
 
@@ -403,7 +442,9 @@ class TestFlextDbOracleErrorHandler:
         )
 
     def test_handle_connection_error_none(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test connection error handling with None error."""
         with pytest.raises(ConnectionError, match="Failed to connect: None"):
@@ -412,7 +453,9 @@ class TestFlextDbOracleErrorHandler:
         observability.record_metric.assert_called_once()
 
     def test_handle_config_error(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test configuration error handling."""
         with pytest.raises(ValueError, match="No configuration provided"):
@@ -426,7 +469,9 @@ class TestFlextDbOracleErrorHandler:
         )
 
     def test_handle_query_error_with_sql(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test query error handling with SQL."""
         sql = "SELECT * FROM users WHERE id = 1"
@@ -443,7 +488,9 @@ class TestFlextDbOracleErrorHandler:
         )
 
     def test_handle_query_error_without_sql(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test query error handling without SQL."""
         result = error_handler.handle_query_error("Connection lost")
@@ -454,7 +501,9 @@ class TestFlextDbOracleErrorHandler:
         observability.record_metric.assert_called_once()
 
     def test_handle_query_error_long_sql(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test query error handling with long SQL."""
         sql = "x" * 200  # Long SQL query
@@ -464,7 +513,9 @@ class TestFlextDbOracleErrorHandler:
         observability.record_metric.assert_called_once()
 
     def test_handle_plugin_error(
-        self, error_handler: FlextDbOracleErrorHandler, observability: Mock,
+        self,
+        error_handler: FlextDbOracleErrorHandler,
+        observability: Mock,
     ) -> None:
         """Test plugin error handling."""
         result = error_handler.handle_plugin_error("test_plugin", "Plugin failed")

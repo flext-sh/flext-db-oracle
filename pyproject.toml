@@ -95,14 +95,6 @@ disallow_untyped_calls = true
 ignore_missing_imports = false
 no_implicit_reexport = true
 
-[[tool.mypy.overrides]]
-module = ["flext_observability.*"]
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = ["flext_core.*"]
-ignore_missing_imports = true
-
 [tool.bandit]
 exclude_dirs = ["tests", "build", "dist"]
 skips = ["B101", "B601", "B608"]

@@ -6,19 +6,24 @@ and business logic with complete code coverage.
 
 from __future__ import annotations
 
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from flext_core import FlextResult
 from flext_plugin import FlextPlugin
 
 from flext_db_oracle.plugins import (
     ORACLE_PLUGINS,
+    OraclePluginHandler,
     _validate_business_rules,
     _validate_data_types,
+    _validate_table_structure,
     create_data_validation_plugin,
     create_performance_monitor_plugin,
     create_security_audit_plugin,
+    data_validation_plugin_handler,
+    performance_monitor_plugin_handler,
     register_all_oracle_plugins,
+    security_audit_plugin_handler,
 )
 
 
@@ -329,3 +334,393 @@ class TestEdgeCases:
         errors, warnings = _validate_data_types(data)
         assert len(errors) == 1  # Only bad_ID should error
         assert warnings == []
+
+
+class TestBusinessRulesMissingCoverage:
+    """Test business rule validation missing coverage."""
+
+    def test_validate_business_rules_email_edge_cases(self) -> None:
+        """Test email validation edge cases."""
+        # Test email missing @ symbol - line 51-55
+        data = {"email": "invalid-email"}
+        errors = _validate_business_rules(data)
+        assert len(errors) == 1
+        assert "Invalid email format" in errors[0]
+
+    def test_validate_business_rules_age_exceptions(self) -> None:
+        """Test age validation exception handling - lines 64-65."""
+        # Test ValueError in age conversion
+        data = {"age": "not-a-number"}
+        errors = _validate_business_rules(data)
+        assert len(errors) == 1
+        assert "valid number" in errors[0]
+
+        # Test None age - should be skipped, no error
+        data = {"age": None}
+        errors = _validate_business_rules(data)
+        assert len(errors) == 0  # None values are skipped
+
+    def test_validate_business_rules_table_name_checks(self) -> None:
+        """Test table name validation - lines 67-72."""
+        # Test table_name exists and not None
+        data = {"table_name": "x" * 151}  # Over 150 char limit
+        errors = _validate_business_rules(data)
+        assert len(errors) == 1
+        assert "too long" in errors[0]
+
+        # Test table_name is None - should be skipped (line 67)
+        data = {"table_name": None}
+        errors = _validate_business_rules(data)
+        assert len(errors) == 0
+
+        # Test table_name not in data - should be skipped
+        data = {"other_field": "value"}
+        errors = _validate_business_rules(data)
+        assert len(errors) == 0
+
+
+class TestTableStructureMissingCoverage:
+    """Test table structure validation missing coverage."""
+
+    def test_validate_table_structure_exception_handling(self) -> None:
+        """Test exception handling in table validation - lines 100-105."""
+        mock_api = Mock()
+
+        # Mock exception during get_tables call
+        mock_api.get_tables.side_effect = Exception("Database connection failed")
+
+        # Should not raise exception, just return empty errors
+        errors = _validate_table_structure("test_table", mock_api)
+        assert errors == []
+
+    def test_validate_table_structure_mixed_objects(self) -> None:
+        """Test table structure with mixed object types - lines 94-98."""
+        mock_api = Mock()
+
+        # Mock tables with mixed types
+        mock_table_obj = Mock()
+        mock_table_obj.name = "TABLE_WITH_NAME"
+
+        # Mix of objects with .name and plain strings
+        mock_api.get_tables.return_value = FlextResult.ok(
+            [
+                mock_table_obj,  # Has .name attribute
+                "PLAIN_STRING_TABLE",  # Plain string
+                42,  # Number (will be converted to string)
+            ],
+        )
+
+        # Test finding table with .name attribute
+        errors = _validate_table_structure("table_with_name", mock_api)
+        assert errors == []
+
+        # Test finding plain string table
+        errors = _validate_table_structure("plain_string_table", mock_api)
+        assert errors == []
+
+        # Test finding number table
+        errors = _validate_table_structure("42", mock_api)
+        assert errors == []
+
+    def test_validate_table_structure_edge_cases(self) -> None:
+        """Test table structure validation edge cases."""
+        mock_api = Mock()
+
+        # Test with None table_name - should return empty errors (line 82-83)
+        errors = _validate_table_structure(None, mock_api)
+        assert errors == []
+
+        # Test with empty string table_name
+        errors = _validate_table_structure("", mock_api)
+        assert errors == []
+
+        # Test with very long table name (line 85-88)
+        long_name = "x" * 151  # Over MAX_TABLE_NAME_LENGTH (150)
+        errors = _validate_table_structure(long_name, mock_api)
+        assert len(errors) == 1
+        assert "exceeds maximum length" in errors[0]
+
+        # Test table not found case (line 98-99)
+        mock_api.get_tables.return_value = FlextResult.ok(["OTHER_TABLE"])
+        errors = _validate_table_structure("MISSING_TABLE", mock_api)
+        assert len(errors) == 1
+        assert "does not exist" in errors[0]
+
+
+class TestPluginHandlersMissingCoverage:
+    """Test missing coverage in plugin handlers."""
+
+    def test_performance_monitor_slow_query_detection(self) -> None:
+        """Test slow query detection logic - lines 250-270."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        # Test slow query detection
+        result = performance_monitor_plugin_handler(
+            mock_api,
+            sql="SELECT * FROM large_table",
+            execution_time_ms=2000.0,
+            threshold_ms=1000,
+        )
+
+        assert result.is_success
+        data = result.data
+        assert data["is_slow_query"] is True
+        assert "database indexes" in str(data["recommendations"]) or "Add index" in str(
+            data["recommendations"],
+        )
+        assert len(data["recommendations"]) > 0
+
+    def test_data_validation_handler_all_paths(self) -> None:
+        """Test data validation handler all execution paths - lines 290-320."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        # Test with data that has both errors and warnings
+        test_data = {
+            "email": "invalid-email",  # Will cause error
+            "name": "x" * 4001,  # Will cause warning (over VARCHAR limit)
+            "age": -5,  # Will cause error
+            "user_id": ["invalid"],  # Will cause error
+        }
+
+        result = data_validation_plugin_handler(mock_api, data=test_data)
+
+        assert result.is_success
+        data = result.data
+        assert data["validation_status"] == "invalid"
+        assert len(data["validation_errors"]) >= 3  # email, age, user_id errors
+        assert len(data["validation_warnings"]) >= 1  # name warning
+
+    def test_data_validation_handler_branch_coverage(self) -> None:
+        """Test data validation handler branch coverage - lines 380-397."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        # Test with validate_data_types=False (line 380)
+        result = data_validation_plugin_handler(
+            mock_api,
+            data={"test": "data"},
+            validate_data_types=False,
+        )
+        assert result.is_success
+
+        # Test with enforce_business_rules=False (line 385)
+        result = data_validation_plugin_handler(
+            mock_api,
+            data={"test": "data"},
+            enforce_business_rules=False,
+        )
+        assert result.is_success
+
+        # Test with no data provided (line 380-385)
+        result = data_validation_plugin_handler(mock_api, data=None)
+        assert result.is_success
+        assert result.data["validation_status"] == "valid"
+
+        # Test validation_status = "warning" path (line 396-397)
+        result = data_validation_plugin_handler(
+            mock_api,
+            data={"name": "x" * 4001},  # Only warning, no errors
+        )
+        assert result.is_success
+        assert result.data["validation_status"] == "warning"
+
+    def test_security_audit_handler_basic_functionality(self) -> None:
+        """Test security audit handler basic functionality - lines 283-320."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        # Test basic security audit
+        result = security_audit_plugin_handler(
+            mock_api,
+            sql="SELECT * FROM users",
+            operation_type="SELECT",
+        )
+        assert result.is_success
+        assert result.data["plugin_name"] == "oracle_security_audit"
+        assert result.data["sql"] == "SELECT * FROM users"
+        assert result.data["operation_type"] == "SELECT"
+        assert "security_warnings" in result.data
+        assert "compliance_status" in result.data
+
+    def test_security_audit_handler_sql_injection_detection(self) -> None:
+        """Test security audit SQL injection detection."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        # Test with potentially dangerous SQL
+        dangerous_sql = "SELECT * FROM users WHERE id = 1; DROP TABLE users;"
+        result = security_audit_plugin_handler(
+            mock_api,
+            sql=dangerous_sql,
+            check_sql_injection=True,
+        )
+        assert result.is_success
+        # Should detect security warnings
+        assert len(result.data["security_warnings"]) >= 1
+        assert "DROP TABLE" in str(result.data["security_warnings"])
+
+    def test_plugin_handler_exception_coverage(self) -> None:
+        """Test plugin handler exception handling - lines 274-275, 346-347, 401-402."""
+        mock_api = Mock()
+        # Force TypeError in performance monitor by making _observability raise exception
+        mock_api._observability.get_current_timestamp.side_effect = TypeError(
+            "Timestamp error",
+        )
+
+        # Test performance monitor exception
+        result = performance_monitor_plugin_handler(mock_api, sql="SELECT 1")
+        assert result.is_failure
+        assert "Performance monitor plugin failed" in result.error
+
+        # Test security audit exception
+        result = security_audit_plugin_handler(mock_api, sql="SELECT 1")
+        assert result.is_failure
+        assert "Security audit plugin failed" in result.error
+
+        # Test data validation exception
+        result = data_validation_plugin_handler(mock_api, data={"test": "data"})
+        assert result.is_failure
+        assert "Data validation plugin failed" in result.error
+
+    def test_registration_edge_cases(self) -> None:
+        """Test plugin registration edge cases - lines 430-432."""
+        from flext_db_oracle.plugins import register_all_oracle_plugins
+
+        mock_api = Mock()
+
+        # Test case where plugin creation succeeds but plugin is None
+        def mock_creator_none() -> FlextResult[None]:
+            return FlextResult.ok(None)
+
+        # Patch ORACLE_PLUGINS to include our test creator
+        with patch(
+            "flext_db_oracle.plugins.ORACLE_PLUGINS",
+            {"test_plugin": mock_creator_none},
+        ):
+            result = register_all_oracle_plugins(mock_api)
+            assert result.is_success
+            assert "failed: plugin is None" in result.data["test_plugin"]
+
+
+class TestOraclePluginHandlerMethods:
+    """Test OraclePluginHandler methods missing coverage."""
+
+    def test_create_base_result_data_basic(self) -> None:
+        """Test basic result data creation."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        result = OraclePluginHandler.create_base_result_data("test_plugin", mock_api)
+
+        assert result["plugin_name"] == "test_plugin"
+        assert result["timestamp"] == "2025-01-01T12:00:00"
+
+    def test_create_base_result_data_with_additional_fields(self) -> None:
+        """Test result data creation with additional fields."""
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        additional = {"status": "success", "count": 42}
+        result = OraclePluginHandler.create_base_result_data(
+            "test_plugin",
+            mock_api,
+            additional,
+        )
+
+        assert result["plugin_name"] == "test_plugin"
+        assert result["timestamp"] == "2025-01-01T12:00:00"
+        assert result["status"] == "success"
+        assert result["count"] == 42
+
+    def test_handle_plugin_exception(self) -> None:
+        """Test plugin exception handling."""
+        test_exception = ValueError("Test error message")
+        result = OraclePluginHandler.handle_plugin_exception(
+            test_exception,
+            "test_plugin",
+        )
+
+        assert result.is_failure
+        assert "test_plugin plugin failed: Test error message" in result.error
+
+
+class TestFactoryMethodsMissingCoverage:
+    """Test factory methods missing coverage."""
+
+    def test_plugin_creation_functions(self) -> None:
+        """Test plugin creation functions that actually exist."""
+        # Test all plugin creation functions work
+        data_validation = create_data_validation_plugin()
+        assert data_validation.is_success
+
+        performance_monitor = create_performance_monitor_plugin()
+        assert performance_monitor.is_success
+
+        security_audit = create_security_audit_plugin()
+        assert security_audit.is_success
+
+    def test_oracle_plugin_factory_edge_cases(self) -> None:
+        """Test OraclePluginFactory edge cases for missing coverage."""
+        from flext_db_oracle.plugins import OraclePluginFactory
+
+        # Test direct factory methods
+        factory = OraclePluginFactory()
+
+        # Test create_plugin_template with different configurations
+        result = factory._create_plugin_template(
+            name="test_plugin",
+            description="Test plugin description",
+            plugin_type="test",
+            specific_config={"custom_param": "custom_value"},
+        )
+        assert result.is_success
+        plugin = result.data
+        assert plugin.name == "test_plugin"
+        assert plugin.plugin_version == "0.9.0"
+
+    def test_oracle_plugin_handler_edge_cases(self) -> None:
+        """Test OraclePluginHandler edge cases for missing coverage."""
+        from flext_db_oracle.plugins import OraclePluginHandler
+
+        # Test create_base_result_data with None additional_fields
+        mock_api = Mock()
+        mock_api._observability.get_current_timestamp.return_value = (
+            "2025-01-01T12:00:00"
+        )
+
+        result = OraclePluginHandler.create_base_result_data(
+            "test_plugin",
+            mock_api,
+            None,
+        )
+        assert result["plugin_name"] == "test_plugin"
+        assert result["timestamp"] == "2025-01-01T12:00:00"
+
+        # Test various exception types
+        test_exceptions = [
+            ValueError("Value error"),
+            TypeError("Type error"),
+            AttributeError("Attribute error"),
+            Exception("Generic error"),
+        ]
+
+        for exc in test_exceptions:
+            result = OraclePluginHandler.handle_plugin_exception(exc, "test_plugin")
+            assert result.is_failure
+            assert "test_plugin plugin failed:" in result.error

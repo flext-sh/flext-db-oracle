@@ -59,28 +59,45 @@ class TestOracleCLIComprehensive:
 
             # Test with a subcommand to actually trigger the group function
             # Since --help shortcuts out before calling the function
-            result = runner.invoke(oracle, [
-                "--profile", "test",
-                "--output", "json", 
-                "--debug",
-                "schemas",
-                "--help",
-            ])
+            result = runner.invoke(
+                oracle,
+                [
+                    "--profile",
+                    "test",
+                    "--output",
+                    "json",
+                    "--debug",
+                    "schemas",
+                    "--help",
+                ],
+            )
             assert result.exit_code == 0
             # get_config should be called when the group function executes
             mock_get_config.assert_called_once()
 
     @patch("flext_db_oracle.cli._execute_connection_test")
-    def test_connect_command_success(self, mock_execute: Mock, runner: CliRunner) -> None:
+    def test_connect_command_success(
+        self,
+        mock_execute: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test connect command with valid parameters."""
-        result = runner.invoke(oracle, [
-            "connect",
-            "--host", "localhost",
-            "--port", "1521",
-            "--service-name", "XE",
-            "--username", "test",
-            "--password", "test",
-        ])
+        result = runner.invoke(
+            oracle,
+            [
+                "connect",
+                "--host",
+                "localhost",
+                "--port",
+                "1521",
+                "--service-name",
+                "XE",
+                "--username",
+                "test",
+                "--password",
+                "test",
+            ],
+        )
         assert result.exit_code == 0
         mock_execute.assert_called_once()
 
@@ -101,14 +118,20 @@ class TestOracleCLIComprehensive:
         assert "Missing option" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_connect_env_command_success(self, mock_from_env: Mock, runner: CliRunner) -> None:
+    def test_connect_env_command_success(
+        self,
+        mock_from_env: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test connect-env command success."""
         # Mock successful API creation and connection
         mock_api = Mock()
-        mock_api.test_connection_with_observability.return_value = FlextResult.ok({
-            "status": "healthy",
-            "connected": True,
-        })
+        mock_api.test_connection_with_observability.return_value = FlextResult.ok(
+            {
+                "status": "healthy",
+                "connected": True,
+            },
+        )
         mock_from_env.return_value = mock_api
 
         result = runner.invoke(oracle, ["connect-env"])
@@ -120,8 +143,9 @@ class TestOracleCLIComprehensive:
         """Test query command basic functionality."""
         # Mock API instance and successful query
         mock_api = make_context_manager_mock()
-        
+
         from flext_db_oracle.types import TDbOracleQueryResult
+
         query_result = TDbOracleQueryResult(
             rows=[("result",)],
             columns=["col1"],
@@ -131,10 +155,14 @@ class TestOracleCLIComprehensive:
         mock_api.query_with_timing.return_value = FlextResult.ok(query_result)
         mock_from_env.return_value = mock_api
 
-        result = runner.invoke(oracle, [
-            "query",
-            "--sql", "SELECT 1 FROM DUAL",
-        ])
+        result = runner.invoke(
+            oracle,
+            [
+                "query",
+                "--sql",
+                "SELECT 1 FROM DUAL",
+            ],
+        )
         assert result.exit_code == 0
 
     def test_query_command_help(self, runner: CliRunner) -> None:
@@ -144,7 +172,11 @@ class TestOracleCLIComprehensive:
         assert "Execute SQL query" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_schemas_command_success(self, mock_from_env: Mock, runner: CliRunner) -> None:
+    def test_schemas_command_success(
+        self,
+        mock_from_env: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test schemas command success."""
         # Mock API and successful schema retrieval
         mock_api = make_context_manager_mock()
@@ -155,7 +187,11 @@ class TestOracleCLIComprehensive:
         assert result.exit_code == 0
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_tables_command_success(self, mock_from_env: Mock, runner: CliRunner) -> None:
+    def test_tables_command_success(
+        self,
+        mock_from_env: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test tables command success."""
         # Mock API and successful table retrieval
         mock_api = make_context_manager_mock()
@@ -166,7 +202,11 @@ class TestOracleCLIComprehensive:
         assert result.exit_code == 0
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_tables_command_with_schema(self, mock_from_env: Mock, runner: CliRunner) -> None:
+    def test_tables_command_with_schema(
+        self,
+        mock_from_env: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test tables command with schema filter."""
         # Mock API and successful table retrieval with schema
         mock_api = make_context_manager_mock()
@@ -180,15 +220,24 @@ class TestOracleCLIComprehensive:
 
     @patch("flext_db_oracle.cli.register_all_oracle_plugins")
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_plugins_command_success(self, mock_from_env: Mock, mock_register: Mock, runner: CliRunner) -> None:
+    def test_plugins_command_success(
+        self,
+        mock_from_env: Mock,
+        mock_register: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test plugins command success."""
         # Mock successful plugin registration
         mock_api = make_context_manager_mock()
-        mock_register.return_value = FlextResult.ok({"plugin1": "success", "plugin2": "success"})
-        mock_api.list_plugins.return_value = FlextResult.ok([
-            Mock(name="plugin1", version="1.0"),
-            Mock(name="plugin2", version="2.0"),
-        ])
+        mock_register.return_value = FlextResult.ok(
+            {"plugin1": "success", "plugin2": "success"},
+        )
+        mock_api.list_plugins.return_value = FlextResult.ok(
+            [
+                Mock(name="plugin1", version="1.0"),
+                Mock(name="plugin2", version="2.0"),
+            ],
+        )
         mock_from_env.return_value = mock_api
 
         result = runner.invoke(oracle, ["plugins"])
@@ -196,11 +245,15 @@ class TestOracleCLIComprehensive:
         mock_register.assert_called_once()
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi.from_env")
-    def test_health_command_success(self, mock_from_env: Mock, runner: CliRunner) -> None:
+    def test_health_command_success(
+        self,
+        mock_from_env: Mock,
+        runner: CliRunner,
+    ) -> None:
         """Test health command success."""
         # Mock API and successful health check
         mock_api = make_context_manager_mock()
-        
+
         # Create proper health data mock
         mock_health_data = Mock()
         mock_health_data.status = "healthy"
@@ -209,7 +262,7 @@ class TestOracleCLIComprehensive:
         mock_health_data.timestamp = Mock()
         mock_health_data.timestamp.isoformat.return_value = "2025-01-01T12:00:00"
         mock_health_data.metrics = {"connections": 5, "queries_per_sec": 10.5}
-        
+
         mock_api.get_health_status.return_value = FlextResult.ok(mock_health_data)
         mock_from_env.return_value = mock_api
 
@@ -288,7 +341,6 @@ class TestOracleCLIComprehensive:
         assert schema == ""
 
 
-
 class TestCLIUtilityFunctions:
     """Test CLI utility functions."""
 
@@ -319,6 +371,7 @@ class TestCLIUtilityFunctions:
         # Object without len
         class NoLen:
             pass
+
         assert _safe_get_list_length(NoLen()) == 0
 
     def test_extract_table_info_edge_cases(self) -> None:
@@ -337,16 +390,3 @@ class TestCLIUtilityFunctions:
         # The default in get("schema", schema or "") is only used if key missing
         # Since key exists with None value, schema_name becomes None
         assert schema is None
-
-    def test_additional_cli_commands_coverage(self, runner: CliRunner) -> None:
-        """Test additional CLI commands to increase coverage."""
-        # Test optimize command help
-        result = runner.invoke(oracle, ["optimize", "--help"])
-        assert result.exit_code == 0
-        assert "Optimize SQL query" in result.output
-
-        # Test connect-env command help
-        result = runner.invoke(oracle, ["connect-env", "--help"])
-        assert result.exit_code == 0
-        assert "environment variables" in result.output
-

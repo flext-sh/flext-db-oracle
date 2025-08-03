@@ -1,20 +1,71 @@
-"""flext-db-oracle - Oracle Database Integration using SQLAlchemy 2 + oracledb.
+"""FLEXT DB Oracle - Enterprise Oracle Database Integration Library.
 
-Modern Oracle database library with comprehensive functionality built on flext-core
-patterns. All classes use FlextDbOracle prefix to supplement (not replace)
-flext-core functionality.
+Modern Oracle database integration library providing enterprise-grade connectivity,
+performance optimization, and comprehensive Oracle-specific functionality. Built on
+FLEXT Core patterns with Clean Architecture principles for reliable, scalable Oracle
+database operations within the FLEXT ecosystem.
 
-Example Usage:
-    from flext_db_oracle import (
-        FlextDbOracleApi,
-        FlextDbOracleConfig,
-        FlextDbOracleConnection,
-    )
+Architecture:
+    Clean Architecture implementation with clear layer separation:
+    - Application Layer: FlextDbOracleApi (main service interface)
+    - Domain Layer: Metadata models and Oracle-specific entities
+    - Infrastructure Layer: Connection management and configuration
+    - Foundation Layer: FLEXT Core integration (FlextResult, FlextContainer)
 
-    # Basic usage
-    config = FlextDbOracleConfig.from_env()
-    api = FlextDbOracleApi(config).connect()
-    result = api.query("SELECT * FROM employees")
+Key Features:
+    - Enterprise connection pooling with SSL/TLS support
+    - Comprehensive Oracle schema introspection and metadata management
+    - Type-safe query execution with FlextResult[T] error handling patterns
+    - Plugin system for extensible Oracle-specific functionality
+    - Singer ecosystem foundation for data pipeline development
+    - Performance optimization with Oracle-specific hints and bulk operations
+    - Security features including audit logging and credential management
+
+Example:
+    Basic Oracle database operations:
+
+    >>> from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+    >>>
+    >>> # Environment-based configuration (recommended)
+    >>> api = FlextDbOracleApi.from_env("production")
+    >>>
+    >>> # Connect and execute operations
+    >>> with api.connect() as oracle:
+    ...     # Simple query
+    ...     result = oracle.query("SELECT employee_id, name FROM employees WHERE dept_id = :dept",
+    ...                          {"dept": 10})
+    ...     if result.is_success:
+    ...         print(f"Found {result.value.row_count} employees")
+    ...
+    ...     # Bulk operations
+    ...     bulk_result = oracle.execute_batch([
+    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 1, "name": "John"}),
+    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 2, "name": "Jane"})
+    ...     ])
+
+    Schema introspection and metadata:
+
+    >>> from flext_db_oracle import FlextDbOracleMetadataManager
+    >>>
+    >>> metadata_manager = FlextDbOracleMetadataManager(api.connection)
+    >>> schema_result = metadata_manager.get_schema_metadata("HR")
+    >>> if schema_result.is_success:
+    ...     schema = schema_result.value
+    ...     print(f"Schema {schema.name} has {len(schema.tables)} tables")
+    ...     for table in schema.tables:
+    ...         print(f"  - {table.name}: {len(table.columns)} columns")
+
+Integration:
+    - Foundation for flext-tap-oracle and flext-target-oracle Singer components
+    - Compatible with Meltano orchestration for data pipeline workflows
+    - Integrates with flext-observability for monitoring and performance tracking
+    - Uses flext-core patterns ensuring consistency across FLEXT ecosystem
+    - Supports Oracle Warehouse Management System (WMS) integration via flext-oracle-wms
+
+Author: FLEXT Development Team
+Version: 0.9.0
+License: MIT
+
 """
 
 # Core components using SQLAlchemy 2 and flext-core

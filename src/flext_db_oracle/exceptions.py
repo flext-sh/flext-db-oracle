@@ -33,7 +33,9 @@ def _create_oracle_domain_exception_class(
     """Create Oracle domain exception class dynamically - complete DRY solution."""
 
     def init_method(
-        self: object, message: str = default_message, **kwargs: object,
+        self: object,
+        message: str = default_message,
+        **kwargs: object,
     ) -> None:
         """Initialize Oracle domain exception with context."""
         context: dict[str, object] = {}

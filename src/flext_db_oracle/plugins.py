@@ -1,14 +1,57 @@
-"""Oracle Database Plugins - Extensible plugin examples.
+"""FLEXT DB Oracle Plugin System.
 
-Copyright (c) 2025 FLEXT Contributors
-SPDX-License-Identifier: MIT
+This module provides an extensible plugin system for Oracle database operations
+using FLEXT Plugin patterns and Clean Architecture principles. It implements
+comprehensive plugin examples for performance monitoring, security auditing,
+and data validation with DRY patterns and SOLID design principles.
 
-Examples of custom plugins for Oracle database operations.
+Key Components:
+    - OraclePluginFactory: Factory for creating Oracle-specific plugins with DRY patterns
+    - OraclePluginHandler: Base handler providing common plugin execution patterns
+    - Performance Monitor Plugin: Monitors query execution times and identifies bottlenecks
+    - Security Audit Plugin: Provides SQL injection detection and compliance checking
+    - Data Validation Plugin: Validates data integrity and business rules
+
+Architecture:
+    This module implements the Application layer's plugin concern using Factory
+    and Template Method design patterns. It follows Clean Architecture by
+    separating plugin creation, execution, and business logic concerns while
+    maintaining strong integration with the FLEXT ecosystem.
+
+Example:
+    Register and use Oracle plugins:
+
+    >>> from flext_db_oracle import FlextDbOracleApi, register_all_oracle_plugins
+    >>> api = FlextDbOracleApi.from_env()
+    >>> api.connect()
+    >>>
+    >>> # Register all built-in plugins
+    >>> register_result = register_all_oracle_plugins(api)
+    >>> if register_result.is_success:
+    ...     print("All plugins registered successfully")
+    >>>
+    >>> # Use performance monitoring plugin
+    >>> result = api.execute_with_plugin(
+    ...     "performance_monitor",
+    ...     {"sql": "SELECT * FROM large_table", "threshold_ms": 500},
+    ... )
+
+Integration:
+    - Built on flext-plugin foundation for enterprise plugin management
+    - Integrates with flext-core FlextResult patterns for error handling
+    - Supports flext-observability for plugin operation monitoring
+    - Compatible with FLEXT ecosystem plugin discovery and management
+    - Provides extension points for custom Oracle-specific functionality
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from flext_core import FlextResult, get_logger
 from flext_plugin import FlextPlugin, create_flext_plugin
@@ -42,7 +85,30 @@ def _validate_data_types(data: dict[str, object]) -> tuple[list[str], list[str]]
 
 
 def _validate_business_rules(data: dict[str, object]) -> list[str]:
-    """Validate business rules - DRY pattern for business validation."""
+    """Validate business rules - DRY pattern for business validation.
+
+    SOLID REFACTORING: Reduced complexity from 22 using Extract Method pattern.
+    """
+    errors: list[str] = []
+
+    # SOLID Extract Method - Validate individual business rules
+    email_errors = _validate_email_business_rules(data)
+    age_errors = _validate_age_business_rules(data)
+    table_name_errors = _validate_table_name_business_rules(data)
+
+    # Combine all validation errors
+    errors.extend(email_errors)
+    errors.extend(age_errors)
+    errors.extend(table_name_errors)
+
+    return errors
+
+
+def _validate_email_business_rules(data: dict[str, object]) -> list[str]:
+    """SOLID REFACTORING: Extract Method for email validation.
+
+    Single Responsibility - handles only email business rules.
+    """
     errors: list[str] = []
 
     if "email" in data:
@@ -54,15 +120,41 @@ def _validate_business_rules(data: dict[str, object]) -> list[str]:
             if "@" not in email or "." not in email:
                 errors.append("Invalid email format")
 
+    return errors
+
+
+def _validate_age_business_rules(data: dict[str, object]) -> list[str]:
+    """SOLID REFACTORING: Extract Method for age validation.
+
+    Single Responsibility - handles only age business rules with type safety.
+    """
+    errors: list[str] = []
+
     if "age" in data and data["age"] is not None:
         try:
-            age = int(data["age"])
+            # MYPY FIX: Safe conversion from object to int
+            age_value = data["age"]
+            if isinstance(age_value, (int, str)):
+                age = int(age_value)
+            else:
+                errors.append("Age must be a number")
+                return errors
             if age <= 0 or age > MAX_AGE_LIMIT:
                 errors.append(
                     f"Age must be between 1 and {MAX_AGE_LIMIT}",
                 )
         except (ValueError, TypeError):
             errors.append("Age must be a valid number")
+
+    return errors
+
+
+def _validate_table_name_business_rules(data: dict[str, object]) -> list[str]:
+    """SOLID REFACTORING: Extract Method for table name validation.
+
+    Single Responsibility - handles only table name business rules.
+    """
+    errors: list[str] = []
 
     if "table_name" in data and data["table_name"] is not None:
         table_name = str(data["table_name"])
@@ -129,20 +221,23 @@ class OraclePluginFactory:
         specific_config: dict[str, object],
     ) -> FlextResult[FlextPlugin]:
         """Template method for creating Oracle plugins with consistent patterns."""
-        base_config = {
+        base_config: dict[str, object] = {
             "description": description,
             "author": cls._PLUGIN_AUTHOR,
             "plugin_type": plugin_type,
         }
 
         # Merge base config with specific config
-        full_config = {**base_config, **specific_config}
+        full_config: dict[str, object] = {**base_config, **specific_config}
 
-        plugin = create_flext_plugin(
+        plugin: FlextPlugin | None = create_flext_plugin(
             name=name,
             version=cls._PLUGIN_VERSION,
             config=full_config,
         )
+
+        if plugin is None:
+            return FlextResult.fail(f"Failed to create plugin '{name}'")
 
         return FlextResult.ok(plugin)
 
@@ -204,7 +299,7 @@ class OraclePluginHandler:
         additional_fields: dict[str, object] | None = None,
     ) -> dict[str, object]:
         """Template method: Create base result data structure."""
-        base_data = {
+        base_data: dict[str, object] = {
             "plugin_name": plugin_name,
             "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
         }
@@ -232,11 +327,12 @@ def performance_monitor_plugin_handler(
     api: FlextDbOracleApi,
     sql: str | None = None,
     execution_time_ms: float | None = None,
-    **kwargs: Any,  # noqa: ANN401
+    **kwargs: object,
 ) -> FlextResult[dict[str, object]]:
     """Handle performance monitoring plugin execution using DRY patterns."""
     try:
-        threshold_ms = kwargs.get("threshold_ms", 1000)
+        threshold_raw = kwargs.get("threshold_ms", 1000)
+        threshold_ms = float(threshold_raw) if isinstance(threshold_raw, (int, float, str)) else 1000.0
 
         result_data = OraclePluginHandler.create_base_result_data(
             "oracle_performance_monitor",
@@ -252,14 +348,18 @@ def performance_monitor_plugin_handler(
 
         if execution_time_ms and execution_time_ms > threshold_ms:
             result_data["is_slow_query"] = True
-            result_data["recommendations"].extend(
-                [
-                    "Consider adding database indexes",
-                    "Review query execution plan",
-                    "Check for missing WHERE clauses",
-                    "Analyze table statistics",
-                ],
-            )
+            recommendations_raw = result_data.get("recommendations", [])
+            recommendations: list[str] = recommendations_raw if isinstance(recommendations_raw, list) else []
+            if isinstance(recommendations, list):
+                recommendations.extend(
+                    [
+                        "Consider adding database indexes",
+                        "Review query execution plan",
+                        "Check for missing WHERE clauses",
+                        "Analyze table statistics",
+                    ],
+                )
+                result_data["recommendations"] = recommendations
 
             # Log slow query if configured
             if kwargs.get("log_slow_queries", True):
@@ -284,10 +384,14 @@ def security_audit_plugin_handler(
     api: FlextDbOracleApi,
     sql: str | None = None,
     operation_type: str | None = None,
-    **kwargs: Any,  # noqa: ANN401
+    **kwargs: object,
 ) -> FlextResult[dict[str, object]]:
-    """Handle security audit plugin execution using DRY patterns."""
+    """Handle security audit plugin execution using DRY patterns.
+
+    SOLID REFACTORING: Reduced complexity from 24 using Extract Method pattern.
+    """
     try:
+        # SOLID Extract Method - Create base result structure
         result_data = OraclePluginHandler.create_base_result_data(
             "oracle_security_audit",
             api,
@@ -299,52 +403,110 @@ def security_audit_plugin_handler(
             },
         )
 
-        # Garantir type safety para security_warnings list
-        security_warnings: list[str] = result_data["security_warnings"]
-
+        # SOLID Extract Method - Process SQL security audit
         if sql:
-            sql_upper = sql.upper()
+            security_warnings = _process_sql_security_audit(sql, api, kwargs)
+            result_data["security_warnings"] = security_warnings
 
-            # Check for potential SQL injection patterns
-            if kwargs.get("check_sql_injection", True):
-                suspicious_patterns = [
-                    "' OR '1'='1'",
-                    "UNION SELECT",
-                    "DROP TABLE",
-                    "DELETE FROM",
-                    "; --",
-                ]
-
-                for pattern in suspicious_patterns:
-                    if pattern in sql_upper:
-                        security_warnings.append(
-                            f"Potential SQL injection pattern detected: {pattern}",
-                        )
-                        result_data["compliance_status"] = "warning"
-
-            # Audit DDL operations
-            if kwargs.get("audit_ddl_operations", True):
-                ddl_operations = ["CREATE", "ALTER", "DROP", "TRUNCATE"]
-
-                for operation in ddl_operations:
-                    if sql_upper.startswith(operation):
-                        security_warnings.append(
-                            f"DDL operation detected: {operation}",
-                        )
-                        api._logger.info(  # noqa: SLF001
-                            "DDL operation audited: %s",
-                            operation,
-                        )
-
-        if security_warnings:
-            result_data["compliance_status"] = (
-                "non_compliant" if len(security_warnings) > 1 else "warning"
+            # SOLID Extract Method - Update compliance status
+            result_data["compliance_status"] = _determine_compliance_status(
+                security_warnings,
             )
 
         return FlextResult.ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Security audit")
+
+
+def _process_sql_security_audit(
+    sql: str,
+    api: FlextDbOracleApi,
+    kwargs: dict[str, object],
+) -> list[str]:
+    """SOLID REFACTORING: Extract Method for SQL security audit processing.
+
+    Single Responsibility - handles all SQL-related security checks.
+    """
+    security_warnings: list[str] = []
+    sql_upper = sql.upper()
+
+    # SOLID Extract Method - Check SQL injection patterns
+    injection_warnings = _check_sql_injection_patterns(sql_upper, kwargs)
+    security_warnings.extend(injection_warnings)
+
+    # SOLID Extract Method - Audit DDL operations
+    ddl_warnings = _audit_ddl_operations(sql_upper, api, kwargs)
+    security_warnings.extend(ddl_warnings)
+
+    return security_warnings
+
+
+def _check_sql_injection_patterns(
+    sql_upper: str,
+    kwargs: dict[str, object],
+) -> list[str]:
+    """SOLID REFACTORING: Extract Method for SQL injection pattern detection.
+
+    Single Responsibility - handles only SQL injection pattern checking.
+    """
+    warnings: list[str] = []
+
+    if kwargs.get("check_sql_injection", True):
+        suspicious_patterns = [
+            "' OR '1'='1'",
+            "UNION SELECT",
+            "DROP TABLE",
+            "DELETE FROM",
+            "; --",
+        ]
+
+        warnings.extend(
+            f"Potential SQL injection pattern detected: {pattern}"
+            for pattern in suspicious_patterns
+            if pattern in sql_upper
+        )
+
+    return warnings
+
+
+def _audit_ddl_operations(
+    sql_upper: str,
+    api: FlextDbOracleApi,
+    kwargs: dict[str, object],
+) -> list[str]:
+    """SOLID REFACTORING: Extract Method for DDL operation auditing.
+
+    Single Responsibility - handles only DDL operation detection and logging.
+    """
+    warnings: list[str] = []
+
+    if kwargs.get("audit_ddl_operations", True):
+        ddl_operations = ["CREATE", "ALTER", "DROP", "TRUNCATE"]
+
+        for operation in ddl_operations:
+            if sql_upper.startswith(operation):
+                warnings.append(
+                    f"DDL operation detected: {operation}",
+                )
+                api._logger.info(  # noqa: SLF001
+                    "DDL operation audited: %s",
+                    operation,
+                )
+
+    return warnings
+
+
+def _determine_compliance_status(security_warnings: list[str]) -> str:
+    """SOLID REFACTORING: Extract Method for compliance status determination.
+
+    Single Responsibility - handles only compliance status logic.
+    """
+    if not security_warnings:
+        return "compliant"
+    if len(security_warnings) > 1:
+        return "non_compliant"
+    return "warning"
 
 
 def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
@@ -356,7 +518,7 @@ def data_validation_plugin_handler(
     api: FlextDbOracleApi,
     data: dict[str, object] | None = None,
     table_name: str | None = None,
-    **kwargs: Any,  # noqa: ANN401
+    **kwargs: object,
 ) -> FlextResult[dict[str, object]]:
     """Handle data validation plugin execution using DRY patterns."""
     try:
@@ -372,9 +534,15 @@ def data_validation_plugin_handler(
             },
         )
 
-        # Garantir type safety para validation lists
-        validation_errors: list[str] = result_data["validation_errors"]
-        validation_warnings: list[str] = result_data["validation_warnings"]
+        # MYPY FIX: Safe access to validation lists
+        validation_errors_obj = result_data.get("validation_errors", [])
+        validation_warnings_obj = result_data.get("validation_warnings", [])
+        validation_errors: list[str] = (
+            validation_errors_obj if isinstance(validation_errors_obj, list) else []
+        )
+        validation_warnings: list[str] = (
+            validation_warnings_obj if isinstance(validation_warnings_obj, list) else []
+        )
 
         # Apply DRY validation patterns - refatoração real
         if data and kwargs.get("validate_data_types", True):
@@ -389,6 +557,10 @@ def data_validation_plugin_handler(
         if table_name:
             table_errors = _validate_table_structure(table_name, api)
             validation_errors.extend(table_errors)
+
+        # Update result_data with modified lists
+        result_data["validation_errors"] = validation_errors
+        result_data["validation_warnings"] = validation_warnings
 
         # Set validation status
         if validation_errors:

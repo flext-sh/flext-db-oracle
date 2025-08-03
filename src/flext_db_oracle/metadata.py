@@ -1,4 +1,50 @@
-"""Oracle database metadata using SQLAlchemy 2 and flext-core patterns."""
+"""FLEXT DB Oracle Metadata Management.
+
+This module provides comprehensive Oracle database metadata introspection and management
+using FLEXT Core patterns and Domain-Driven Design principles. It implements Clean
+Architecture with strong domain validation and type safety for Oracle schema analysis,
+DDL generation, and metadata operations.
+
+Key Components:
+    - FlextDbOracleColumn: Domain entity for Oracle column metadata with validation
+    - FlextDbOracleTable: Domain entity for Oracle table metadata with relationships
+    - FlextDbOracleSchema: Domain aggregate for Oracle schema management
+    - FlextDbOracleMetadataManager: Application service for metadata operations
+    - ValidationMixin: DRY validation patterns using Template Method design pattern
+
+Architecture:
+    This module implements both Domain and Application layers of Clean Architecture:
+    - Domain entities (Column, Table, Schema) with rich business logic and validation
+    - Application service (MetadataManager) coordinating metadata operations
+    - Template Method pattern for eliminating validation code duplication
+    - Railway-Oriented Programming with FlextResult for error handling
+
+Example:
+    Schema introspection and analysis:
+
+    >>> from flext_db_oracle import FlextDbOracleConnection, FlextDbOracleMetadataManager
+    >>> connection = FlextDbOracleConnection(config)
+    >>> connection.connect()
+    >>> metadata_manager = FlextDbOracleMetadataManager(connection)
+    >>> schema_result = metadata_manager.get_schema_metadata("HR")
+    >>> if schema_result.is_success:
+    ...     schema = schema_result.value
+    ...     print(f"Schema {schema.name} has {schema.table_count} tables")
+    ...     for table in schema.tables:
+    ...         print(f"Table: {table.name} with {len(table.columns)} columns")
+
+Integration:
+    - Built on flext-core FlextValueObject and FlextResult patterns
+    - Integrates with FlextDbOracleConnection for database operations
+    - Supports Singer ecosystem schema mapping and DDL generation
+    - Compatible with flext-observability for metadata operation monitoring
+    - Provides foundation for schema evolution and migration tools
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
+"""
 
 from __future__ import annotations
 
@@ -237,38 +283,131 @@ class FlextDbOracleMetadataManager:
         table_name: str,
         schema_name: str | None = None,
     ) -> FlextResult[FlextDbOracleTable]:
-        """Get complete table metadata."""
+        """Get complete table metadata.
+
+        SOLID REFACTORING: Reduced complexity from 21 to manageable levels using Extract Method pattern.
+        """
         try:
             self._logger.info("Getting metadata for table: %s", table_name)
 
-            # Get column information
-            columns_result = self._connection.get_column_info(table_name, schema_name)
+            # SOLID Extract Method - Get and validate columns
+            columns_result = self._get_validated_columns(table_name, schema_name)
             if columns_result.is_failure:
+                return FlextResult.fail(columns_result.error or "Failed to get columns")
+
+            # SOLID Extract Method - Create and validate table
+            table_result = self._create_validated_table(
+                table_name,
+                schema_name,
+                columns_result.data or [],
+            )
+            if table_result.is_failure:
+                return FlextResult.fail(table_result.error or "Failed to create table")
+
+            # MYPY FIX: Safe access to table_result.data with None check
+            if table_result.data is None:
                 return FlextResult.fail(
-                    f"Failed to get columns: {columns_result.error}",
+                    "Table creation returned None - should not happen",
                 )
 
-            # Convert to FlextDbOracleColumn objects
-            columns = []
-            for col_info in columns_result.data or []:
-                column = FlextDbOracleColumn(
-                    name=col_info["column_name"],
-                    data_type=col_info["data_type"],
-                    nullable=col_info["nullable"],
-                    default_value=col_info.get("default_value"),
-                    data_length=col_info["data_length"],
-                    data_precision=col_info["data_precision"],
-                    data_scale=col_info["data_scale"],
-                    column_id=col_info["column_id"],
-                    comments=col_info.get("comments"),
+            self._logger.info("Table metadata retrieved successfully")
+            return FlextResult.ok(table_result.data)
+
+        except (ValueError, TypeError, AttributeError) as e:
+            error_msg = f"Failed to get table metadata: {e}"
+            self._logger.exception(error_msg)
+            return FlextResult.fail(error_msg)
+
+    def _get_validated_columns(
+        self,
+        table_name: str,
+        schema_name: str | None,
+    ) -> FlextResult[list[FlextDbOracleColumn]]:
+        """SOLID REFACTORING: Extract Method for column retrieval and validation.
+
+        Reduces main function complexity by handling column-specific logic.
+        """
+        # Get column information from database
+        columns_result = self._connection.get_column_info(table_name, schema_name)
+        if columns_result.is_failure:
+            return FlextResult.fail(
+                f"Failed to get columns: {columns_result.error}",
+            )
+
+        # Convert and validate columns
+        columns: list[FlextDbOracleColumn] = []
+        for col_info in columns_result.data or []:
+            column_result = self._create_validated_column(col_info)
+            if column_result.is_success and column_result.data:
+                columns.append(column_result.data)
+
+        return FlextResult.ok(columns)
+
+    def _create_validated_column(
+        self,
+        col_info: dict[str, object],
+    ) -> FlextResult[FlextDbOracleColumn]:
+        """SOLID REFACTORING: Extract Method for single column creation and validation.
+
+        Single Responsibility - handles one column conversion with type safety.
+        """
+        try:
+            # MYPY FIX: Safe casting from database object types with type checking
+            data_length_val = col_info["data_length"]
+            data_precision_val = col_info["data_precision"]
+            data_scale_val = col_info["data_scale"]
+            column_id_val = col_info["column_id"]
+
+            column = FlextDbOracleColumn(
+                name=str(col_info["column_name"]),
+                data_type=str(col_info["data_type"]),
+                nullable=bool(col_info["nullable"]),
+                default_value=str(col_info["default_value"])
+                if col_info.get("default_value") is not None
+                else None,
+                data_length=int(data_length_val)
+                if data_length_val is not None
+                and isinstance(data_length_val, (int, str))
+                else None,
+                data_precision=int(data_precision_val)
+                if data_precision_val is not None
+                and isinstance(data_precision_val, (int, str))
+                else None,
+                data_scale=int(data_scale_val)
+                if data_scale_val is not None and isinstance(data_scale_val, (int, str))
+                else None,
+                column_id=int(column_id_val)
+                if isinstance(column_id_val, (int, str))
+                else 0,
+                comments=str(col_info["comments"])
+                if col_info.get("comments") is not None
+                else None,
+            )
+
+            # Validate column domain rules
+            validation_result = column.validate_domain_rules()
+            if validation_result.is_failure:
+                return FlextResult.fail(
+                    f"Column validation failed: {validation_result.error}",
                 )
 
-                # Validate column
-                validation_result = column.validate_domain_rules()
-                if validation_result.is_success:
-                    columns.append(column)
+            return FlextResult.ok(column)
 
-            # Create table metadata
+        except (ValueError, TypeError, KeyError) as e:
+            return FlextResult.fail(f"Failed to create column: {e}")
+
+    def _create_validated_table(
+        self,
+        table_name: str,
+        schema_name: str | None,
+        columns: list[FlextDbOracleColumn],
+    ) -> FlextResult[FlextDbOracleTable]:
+        """SOLID REFACTORING: Extract Method for table creation and validation.
+
+        Single Responsibility - handles table creation with validated columns.
+        """
+        try:
+            # Create table metadata with validated columns
             table = FlextDbOracleTable(
                 name=table_name,
                 schema_name=schema_name or "USER",
@@ -279,20 +418,17 @@ class FlextDbOracleMetadataManager:
                 created_date=None,  # Would need to query for creation date
             )
 
-            # Validate table
+            # Validate table domain rules
             validation_result = table.validate_domain_rules()
             if validation_result.is_failure:
                 return FlextResult.fail(
                     f"Table validation failed: {validation_result.error}",
                 )
 
-            self._logger.info("Table metadata retrieved successfully")
             return FlextResult.ok(table)
 
-        except (ValueError, TypeError, AttributeError) as e:
-            error_msg = f"Failed to get table metadata: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+        except (ValueError, TypeError) as e:
+            return FlextResult.fail(f"Failed to create table: {e}")
 
     def get_schema_metadata(self, schema_name: str) -> FlextResult[FlextDbOracleSchema]:
         """Get complete schema metadata."""

@@ -1,12 +1,54 @@
-"""Oracle Database Types using flext-core patterns.
+"""FLEXT DB Oracle Type Definitions.
 
-Consolidated type definitions using proper FlextDbOracle prefixing.
+This module provides comprehensive type definitions for Oracle database operations
+using FLEXT Core patterns and Domain-Driven Design principles. It implements Clean
+Architecture with strong type safety, validation, and domain logic encapsulation
+for Oracle-specific data structures and value objects.
+
+Key Components:
+    - TDbOracleColumn: Value object for Oracle column metadata with type specifications
+    - TDbOracleTable: Value object for Oracle table metadata with column relationships
+    - TDbOracleSchema: Value object for Oracle schema metadata with table collections
+    - TDbOracleQueryResult: Value object for Oracle query results with performance metrics
+    - TDbOracleConnectionStatus: Value object for Oracle connection status information
+
+Architecture:
+    This module implements the Domain layer's value object concern, providing
+    immutable, validated data structures that encapsulate Oracle database
+    concepts. It follows Domain-Driven Design principles with rich domain models
+    that include business logic and validation rules specific to Oracle systems.
+
+Example:
+    Working with Oracle domain types:
+
+    >>> from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
+    >>> column = TDbOracleColumn(
+    ...     name="employee_id",
+    ...     data_type="NUMBER",
+    ...     precision=10,
+    ...     position=1,
+    ...     is_primary_key=True
+    ... )
+    >>> validation_result = column.validate_domain_rules()
+    >>> if validation_result.is_success:
+    ...     print(f"Column type: {column.full_type_spec}")  # "NUMBER(10)"
+
+Integration:
+    - Built on flext-core FlextValueObject foundation for immutability
+    - Integrates with flext-core FlextResult patterns for validation
+    - Supports Oracle-specific type mapping and schema introspection
+    - Compatible with Singer ecosystem type definitions and conversions
+    - Provides foundation for metadata management and DDL generation
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
 """
 
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 
 from flext_core import FlextResult, FlextValueObject
 from pydantic import Field
@@ -100,26 +142,44 @@ class TDbOracleTable(FlextValueObject):
     comments: str | None = Field(None, description="Table comments")
 
     def validate_domain_rules(self) -> FlextResult[None]:
-        """Validate table type domain rules."""
+        """Validate table type domain rules.
+
+        SOLID REFACTORING: Reduced from 6 returns to 3 using Guard Clauses pattern.
+        """
         try:
-            if not self.name or not self.name.strip():
-                return FlextResult.fail(ERROR_MSG_TABLE_NAME_EMPTY)
+            # SOLID Guard Clauses - Early exits for validation errors
+            validation_error = self._get_basic_validation_error()
+            if validation_error:
+                return FlextResult.fail(validation_error)
 
-            if not self.schema_name or not self.schema_name.strip():
-                return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
-
-            if not self.columns:
-                return FlextResult.fail("Table must have at least one column")
-
-            # Validate columns
-            for column in self.columns:
-                validation = column.validate_domain_rules()
-                if validation.is_failure:
-                    return FlextResult.fail(f"Column {column.name}: {validation.error}")
+            column_validation_error = self._get_column_validation_error()
+            if column_validation_error:
+                return FlextResult.fail(column_validation_error)
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Table validation failed: {e}")
+
+    def _get_basic_validation_error(self) -> str | None:
+        """SOLID REFACTORING: Extract Method for basic validations."""
+        if not self.name or not self.name.strip():
+            return ERROR_MSG_TABLE_NAME_EMPTY
+
+        if not self.schema_name or not self.schema_name.strip():
+            return ERROR_MSG_SCHEMA_NAME_EMPTY
+
+        if not self.columns:
+            return "Table must have at least one column"
+
+        return None
+
+    def _get_column_validation_error(self) -> str | None:
+        """SOLID REFACTORING: Extract Method for column validations."""
+        for column in self.columns:
+            validation = column.validate_domain_rules()
+            if validation.is_failure:
+                return f"Column {column.name}: {validation.error}"
+        return None
 
     def get_column(self, column_name: str) -> TDbOracleColumn | None:
         """Get column by name."""
@@ -197,7 +257,10 @@ class TDbOracleSchema(FlextValueObject):
 class TDbOracleQueryResult(FlextValueObject):
     """Oracle query result type definition."""
 
-    rows: list[tuple[Any, ...]] = Field(default_factory=list, description="Result rows")
+    rows: list[tuple[object, ...]] = Field(
+        default_factory=list,
+        description="Result rows",
+    )
     columns: list[str] = Field(default_factory=list, description="Column names")
     row_count: int = Field(default=0, description="Number of rows")
     execution_time_ms: float = Field(

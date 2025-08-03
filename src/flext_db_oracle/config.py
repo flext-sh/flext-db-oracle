@@ -1,62 +1,124 @@
-"""Oracle Database Configuration using flext-core patterns."""
+"""FLEXT DB Oracle Configuration Management.
+
+This module provides enterprise-grade Oracle database configuration management with
+comprehensive validation, multiple configuration sources, and seamless integration
+with FLEXT Core patterns. It extends the centralized FlextOracleConfig from flext-core
+with Oracle-specific features and domain-driven validation rules.
+
+Key Components:
+    - FlextDbOracleConfig: Extended Oracle configuration with SSL/TLS support
+    - Environment variable loading with secure credential handling
+    - URL-based configuration parsing for connection strings
+    - Dictionary-based configuration with type safety
+    - Comprehensive validation with domain-specific rules
+
+Architecture:
+    Built on FLEXT Core patterns following Clean Architecture principles,
+    this module implements the Infrastructure layer's configuration concern
+    with strong integration to the Domain layer's validation rules and
+    Application layer's service requirements.
+
+Example:
+    Environment-based configuration (recommended for production):
+
+    >>> import os
+    >>> os.environ["FLEXT_TARGET_ORACLE_HOST"] = "oracle-prod.company.com"
+    >>> os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "app_user"
+    >>> config_result = FlextDbOracleConfig.from_env()
+    >>> if config_result.is_success:
+    ...     config = config_result.value
+    ...     print(f"Connected to {config.get_connection_string()}")
+
+Integration:
+    - Built on flext-core FlextOracleConfig foundation
+    - Integrates with flext-observability for configuration monitoring
+    - Supports flext-cli configuration management commands
+    - Compatible with FLEXT ecosystem service discovery
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
+"""
 
 from __future__ import annotations
 
 import os
 import urllib.parse
 
-from flext_core import FlextResult, FlextValueObject, get_logger
-from pydantic import ConfigDict, Field, SecretStr, field_validator, model_validator
+from flext_core import (
+    FlextOracleConfig,
+    FlextResult,
+    get_logger,
+)
+from pydantic import Field, SecretStr, field_validator, model_validator
 
 from .constants import (
     ERROR_MSG_HOST_EMPTY,
     ERROR_MSG_USERNAME_EMPTY,
-    MAX_PORT,
     ORACLE_DEFAULT_PORT,
 )
 
 logger = get_logger(__name__)
 
 
-class FlextDbOracleConfig(FlextValueObject):
-    """Oracle database configuration using flext-core patterns."""
+class FlextDbOracleConfig(FlextOracleConfig):
+    """Oracle database configuration extending flext-core centralized config."""
 
-    model_config = ConfigDict(extra="forbid")
-
-    host: str = Field("localhost", description="Database host")
-    port: int = Field(
-        ORACLE_DEFAULT_PORT,
-        description="Database port",
-        ge=1,
-        le=MAX_PORT,
-    )
-    sid: str | None = Field(None, description="Oracle SID")
-    service_name: str | None = Field(None, description="Oracle service name")
-    username: str = Field("user", description="Database username")
-    password: SecretStr = Field(SecretStr("password"), description="Database password")
-
-    # Connection pool settings
-    pool_min: int = Field(1, description="Minimum pool connections", ge=1)
-    pool_max: int = Field(10, description="Maximum pool connections", ge=1)
-    pool_increment: int = Field(1, description="Pool increment", ge=1)
-
-    # Connection options
-    timeout: int = Field(30, description="Connection timeout", ge=1)
+    # Additional Oracle-specific options not in base class
     autocommit: bool = Field(default=False, description="Auto-commit transactions")
-    encoding: str = Field("UTF-8", description="Character encoding")
-
-    # SSL/Security options
-    ssl_enabled: bool = Field(default=False, description="Enable SSL connection")
-    ssl_cert_path: str | None = Field(None, description="SSL certificate path")
-    ssl_key_path: str | None = Field(None, description="SSL key path")
-
-    # Protocol options (from application services)
-    protocol: str = Field("tcp", description="Connection protocol (tcp/tcps)")
+    ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")
+    ssl_key_path: str | None = Field(default=None, description="SSL key path")
     ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
     ssl_server_cert_dn: str | None = Field(
         None,
         description="SSL server certificate DN",
     )
+
+    @field_validator("host")
+    @classmethod
+    def validate_host_not_empty(cls, v: str) -> str:
+        """Validate host is not empty or whitespace only."""
+        if not v or not v.strip():
+            raise ValueError(ERROR_MSG_HOST_EMPTY)
+        return v
+
+    @field_validator("username")
+    @classmethod
+    def validate_username_not_empty(cls, v: str) -> str:
+        """Validate username is not empty or whitespace only."""
+        if not v or not v.strip():
+            raise ValueError(ERROR_MSG_USERNAME_EMPTY)
+        return v
+
+    @model_validator(mode="after")
+    def validate_pool_settings(self) -> FlextDbOracleConfig:
+        """Validate pool configuration consistency."""
+        if self.pool_max < self.pool_min:
+            msg = "pool_max must be >= pool_min"
+            raise ValueError(msg)
+
+        if self.pool_increment > self.pool_max:
+            msg = "pool_increment cannot exceed pool_max"
+            raise ValueError(msg)
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_connection_identifiers(self) -> FlextDbOracleConfig:
+        """Validate that either SID or service_name is provided."""
+        if not self.sid and not self.service_name:
+            msg = "Either SID or service_name must be provided"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_ssl_settings(self) -> FlextDbOracleConfig:
+        """Validate SSL configuration."""
+        if self.ssl_enabled and not self.ssl_cert_path:
+            msg = "ssl_cert_path required when SSL is enabled"
+            raise ValueError(msg)
+        return self
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate Oracle connection configuration domain rules."""
@@ -95,21 +157,7 @@ class FlextDbOracleConfig(FlextValueObject):
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Configuration validation failed: {e}")
 
-    @field_validator("host")
-    @classmethod
-    def validate_host(cls, v: str) -> str:
-        """Validate host format."""
-        if not v or not v.strip():
-            raise ValueError(ERROR_MSG_HOST_EMPTY)
-        return v.strip()
-
-    @field_validator("username")
-    @classmethod
-    def validate_username(cls, v: str) -> str:
-        """Validate username format."""
-        if not v or not v.strip():
-            raise ValueError(ERROR_MSG_USERNAME_EMPTY)
-        return v.strip()
+    # Host and username validation inherited from FlextOracleConfig
 
     @classmethod
     def from_env(
@@ -123,14 +171,21 @@ class FlextDbOracleConfig(FlextValueObject):
                 port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
                 password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
-                service_name=os.getenv(f"{prefix}SERVICE_NAME"),
+                service_name=os.getenv(f"{prefix}SERVICE_NAME") or os.getenv(f"{prefix}SID") or "ORCLPDB1",
                 sid=os.getenv(f"{prefix}SID"),
                 pool_min=int(os.getenv(f"{prefix}POOL_MIN", "1")),
                 pool_max=int(os.getenv(f"{prefix}POOL_MAX", "10")),
                 pool_increment=int(os.getenv(f"{prefix}POOL_INCREMENT", "1")),
                 timeout=int(os.getenv(f"{prefix}TIMEOUT", "30")),
                 encoding=os.getenv(f"{prefix}ENCODING", "UTF-8"),
+                autocommit=bool(
+                    os.getenv(f"{prefix}AUTOCOMMIT", "").lower() in {"true", "1", "yes"},
+                ),
                 ssl_cert_path=os.getenv(f"{prefix}SSL_CERT_PATH"),
+                ssl_server_dn_match=bool(
+                    os.getenv(f"{prefix}SSL_SERVER_DN_MATCH", "true").lower()
+                    in {"true", "1", "yes"},
+                ),
                 ssl_key_path=os.getenv(f"{prefix}SSL_KEY_PATH"),
                 protocol=os.getenv(f"{prefix}PROTOCOL", "tcp"),
                 ssl_server_cert_dn=os.getenv(f"{prefix}SSL_SERVER_CERT_DN"),
@@ -158,7 +213,9 @@ class FlextDbOracleConfig(FlextValueObject):
                 pool_increment=1,
                 timeout=30,
                 encoding="UTF-8",
+                autocommit=False,  # Default for URL parsing
                 ssl_cert_path=None,
+                ssl_server_dn_match=True,  # Default for URL parsing
                 ssl_key_path=None,
                 protocol="tcp",
                 ssl_server_cert_dn=None,
@@ -167,42 +224,19 @@ class FlextDbOracleConfig(FlextValueObject):
         except (ValueError, TypeError, AttributeError) as e:
             return FlextResult.fail(f"Failed to parse URL: {e}")
 
-    @model_validator(mode="after")
-    def validate_connection_identifier(self) -> FlextDbOracleConfig:
-        """Validate that either SID or service_name is provided."""
-        if not self.sid and not self.service_name:
-            msg = "Either SID or service_name must be provided"
-            raise ValueError(msg)
-        return self
-
-    @model_validator(mode="after")
-    def validate_pool_settings(self) -> FlextDbOracleConfig:
-        """Validate pool configuration."""
-        if self.pool_max < self.pool_min:
-            msg = "pool_max must be >= pool_min"
-            raise ValueError(msg)
-
-        if self.pool_increment > self.pool_max:
-            msg = "pool_increment cannot exceed pool_max"
-            raise ValueError(msg)
-
-        return self
+    # Connection identifier and pool validation inherited from FlextOracleConfig
 
     def to_connect_params(self) -> dict[str, object]:
-        """Convert to Oracle connection parameters."""
-        params = {
-            "host": self.host,
-            "port": self.port,
-            "user": self.username,
-            "password": self.password.get_secret_value(),
-            "encoding": self.encoding,
-        }
+        """Convert to Oracle connection parameters with Oracle-specific extensions."""
+        # Get base params from parent class and convert to mutable dict
+        params: dict[str, object] = dict(super().to_oracle_dict())
 
-        # Add connection identifier
-        if self.service_name:
-            params["service_name"] = self.service_name
-        elif self.sid:
-            params["sid"] = self.sid
+        # Oracle driver expects 'user', not 'username'
+        if "username" in params:
+            params["user"] = params.pop("username")
+
+        # Add Oracle-specific extensions
+        params["autocommit"] = self.autocommit
 
         # Add SSL options if enabled
         if self.ssl_enabled:
@@ -211,6 +245,9 @@ class FlextDbOracleConfig(FlextValueObject):
                 params["ssl_cert_path"] = self.ssl_cert_path
             if self.ssl_key_path:
                 params["ssl_key_path"] = self.ssl_key_path
+            if self.ssl_server_cert_dn:
+                params["ssl_server_cert_dn"] = self.ssl_server_cert_dn
+            params["ssl_server_dn_match"] = self.ssl_server_dn_match
 
         return params
 
@@ -240,11 +277,56 @@ class FlextDbOracleConfig(FlextValueObject):
 
     @classmethod
     def from_dict(
-        cls, config_dict: dict[str, object],
+        cls,
+        config_dict: dict[str, object],
     ) -> FlextResult[FlextDbOracleConfig]:
         """Create configuration from dictionary with validation."""
         try:
-            config = cls(**config_dict)
+            # MYPY FIX: Properly cast dict values to expected types with safe conversion
+            port_val = config_dict.get("port", 1521)
+            pool_min_val = config_dict.get("pool_min", 1)
+            pool_max_val = config_dict.get("pool_max", 10)
+            pool_increment_val = config_dict.get("pool_increment", 1)
+            timeout_val = config_dict.get("timeout", 30)
+
+            typed_config = {
+                "host": str(config_dict.get("host", "localhost")),
+                "port": int(port_val) if isinstance(port_val, (int, str)) else 1521,
+                "sid": config_dict.get("sid") and str(config_dict["sid"]),
+                "service_name": config_dict.get("service_name")
+                and str(config_dict["service_name"]),
+                "username": str(config_dict.get("username", "user")),
+                "password": SecretStr(str(config_dict.get("password", "password"))),
+                "pool_min": int(pool_min_val)
+                if isinstance(pool_min_val, (int, str))
+                else 1,
+                "pool_max": int(pool_max_val)
+                if isinstance(pool_max_val, (int, str))
+                else 10,
+                "pool_increment": int(pool_increment_val)
+                if isinstance(pool_increment_val, (int, str))
+                else 1,
+                "timeout": int(timeout_val)
+                if isinstance(timeout_val, (int, str))
+                else 30,
+                "autocommit": bool(config_dict.get("autocommit")),
+                "encoding": str(config_dict.get("encoding", "UTF-8")),
+                "ssl_enabled": bool(config_dict.get("ssl_enabled")),
+                "ssl_cert_path": config_dict.get("ssl_cert_path")
+                and str(config_dict["ssl_cert_path"]),
+                "ssl_key_path": config_dict.get("ssl_key_path")
+                and str(config_dict["ssl_key_path"]),
+                "protocol": str(config_dict.get("protocol", "tcp")),
+                "ssl_server_dn_match": bool(
+                    config_dict.get("ssl_server_dn_match", True),
+                ),
+                "ssl_server_cert_dn": config_dict.get("ssl_server_cert_dn")
+                and str(config_dict["ssl_server_cert_dn"]),
+            }
+            # Filter out None values for optional parameters
+            filtered_config = {k: v for k, v in typed_config.items() if v is not None}
+            # MYPY FIX: Type ignore since values are properly cast above
+            config = cls(**filtered_config)  # type: ignore[arg-type]
             validation_result = config.validate_domain_rules()
 
             if validation_result.is_failure:

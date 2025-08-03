@@ -231,19 +231,16 @@ class TestFlextDbOracleConfig:
 
     def test_ssl_validation_failure(self) -> None:
         """Test SSL validation failure when cert path missing."""
-        config = FlextDbOracleConfig(
-            host="localhost",
-            port=1521,
-            username="testuser",
-            password="testpass",
-            service_name="ORCLCDB",
-            ssl_enabled=True,
-            # Missing ssl_cert_path
-        )
-
-        result = config.validate_domain_rules()
-        assert result.is_failure
-        assert "ssl_cert_path required when SSL is enabled" in result.error
+        with pytest.raises(ValueError, match="ssl_cert_path required when SSL is enabled"):
+            FlextDbOracleConfig(
+                host="localhost",
+                port=1521,
+                username="testuser",
+                password="testpass",
+                service_name="ORCLCDB",
+                ssl_enabled=True,
+                # Missing ssl_cert_path
+            )
 
     def test_string_representation(self, valid_config: FlextDbOracleConfig) -> None:
         """Test string representation without sensitive data."""
@@ -310,19 +307,16 @@ class TestFlextDbOracleConfig:
 
     def test_ssl_configuration_with_cert_path(self) -> None:
         """Test SSL configuration requiring cert path."""
-        # Test SSL enabled but no cert path - should be caught by validate_domain_rules
-        config = FlextDbOracleConfig(
-            host="localhost",
-            username="test",
-            password="test",
-            service_name="test",
-            ssl_enabled=True,
-            # ssl_cert_path not provided
-        )
-
-        result = config.validate_domain_rules()
-        assert result.is_failure
-        assert "ssl_cert_path required when SSL is enabled" in result.error
+        # Test SSL enabled but no cert path - should be caught by Pydantic validation
+        with pytest.raises(ValueError, match="ssl_cert_path required when SSL is enabled"):
+            FlextDbOracleConfig(
+                host="localhost",
+                username="test",
+                password="test",
+                service_name="test",
+                ssl_enabled=True,
+                # ssl_cert_path not provided
+            )
 
     def test_from_env_parsing_errors(self) -> None:
         """Test from_env handles parsing errors gracefully."""

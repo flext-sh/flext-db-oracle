@@ -755,10 +755,10 @@ class TestFlextDbOracleConnection:
         connection = FlextDbOracleConnection(valid_config)
         connection.connect()
 
-        # Test date format
+        # Test date-time format
         result = connection.convert_singer_type("string", "date-time")
         assert result.is_success
-        assert result.data == "DATE"
+        assert result.data == "TIMESTAMP"  # Fix: "date-time" format should return TIMESTAMP
 
         # Test time format
         result = connection.convert_singer_type("string", "time")
@@ -824,7 +824,7 @@ class TestFlextDbOracleConnection:
         assert result.data["id"] == "NUMBER(38)"
         assert result.data["name"] == "VARCHAR2(4000)"
         assert result.data["email"] == "VARCHAR2(4000)"
-        assert result.data["created_at"] == "DATE"
+        assert result.data["created_at"] == "TIMESTAMP"  # Fix: "date-time" format should map to TIMESTAMP
         assert result.data["is_active"] == "NUMBER(1)"
         assert result.data["metadata"] == "CLOB"
 

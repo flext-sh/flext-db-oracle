@@ -75,7 +75,7 @@ class TestOracleCLI:
         result = runner.invoke(oracle, ["connect-env"])
 
         # Should not fail completely
-        assert result.exit_code in [0, 1]  # May fail due to missing env vars
+        assert result.exit_code in {0, 1}  # May fail due to missing env vars
 
     @patch("flext_db_oracle.cli.FlextDbOracleApi")
     def test_connect_with_params(self, mock_api_class: Mock, runner: CliRunner) -> None:
@@ -103,7 +103,7 @@ class TestOracleCLI:
         )
 
         # Test the command execution (may fail due to no DB, but should not crash)
-        assert result.exit_code in [0, 1]
+        assert result.exit_code in {0, 1}
 
     def test_utility_functions(self) -> None:
         """Test utility functions for coverage."""

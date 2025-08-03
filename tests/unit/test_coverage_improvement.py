@@ -132,7 +132,8 @@ class TestConfigurationCreation:
         from pydantic import ValidationError
 
         with pytest.raises(
-            ValidationError, match="Input should be greater than or equal to 1",
+            ValidationError,
+            match="Input should be greater than or equal to 1",
         ):
             DirectConfig(
                 host="localhost",

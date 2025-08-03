@@ -46,16 +46,8 @@ class TestOracleIntegration:
         mock_conn.disconnect.return_value = FlextResult.ok(data=True)
         mock_conn.execute.return_value = FlextResult.ok([("result",)])
 
-        # Create a mock TDbOracleQueryResult for execute_query
-        from flext_db_oracle.types import TDbOracleQueryResult
-
-        mock_query_result = TDbOracleQueryResult(
-            rows=[("result",)],
-            columns=["col1"],
-            row_count=1,
-            execution_time_ms=0.0,
-        )
-        mock_conn.execute_query.return_value = FlextResult.ok(mock_query_result)
+        # Fix: connection execute_query should return raw data, API creates TDbOracleQueryResult
+        mock_conn.execute_query.return_value = FlextResult.ok([("result",)])
         mock_conn.fetch_one.return_value = FlextResult.ok(("single_result",))
         mock_conn.get_table_names.return_value = FlextResult.ok(["TEST_TABLE"])
         mock_conn.get_column_info.return_value = FlextResult.ok(
@@ -122,6 +114,7 @@ class TestOracleIntegration:
             # Execute query
             result = api.query("SELECT * FROM test_table")
             assert result.is_success
+            # Fix: result.data is a TDbOracleQueryResult object, access rows attribute directly
             assert result.data.rows == [("result",)]
 
             # Test single query
@@ -186,39 +179,56 @@ class TestOracleIntegration:
 
         # Create mock query results
         result1 = TDbOracleQueryResult(
-            rows=[(1,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+            rows=[(1,)],
+            columns=["result"],
+            row_count=1,
+            execution_time_ms=0.0,
         )
         result2 = TDbOracleQueryResult(
-            rows=[(2,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+            rows=[(2,)],
+            columns=["result"],
+            row_count=1,
+            execution_time_ms=0.0,
         )
         result3 = TDbOracleQueryResult(
-            rows=[(3,)], columns=["result"], row_count=1, execution_time_ms=0.0,
+            rows=[(3,)],
+            columns=["result"],
+            row_count=1,
+            execution_time_ms=0.0,
         )
 
-        mock_connection.execute_query.side_effect = [
-            FlextResult.ok(result1),
-            FlextResult.ok(result2),
-            FlextResult.ok(result3),
-        ]
-
+        # Fix: Mock the query executor's execute_batch method instead of connection's execute_query
         with patch(
             "flext_db_oracle.api.FlextDbOracleConnection",
             return_value=mock_connection,
         ):
             api = FlextDbOracleApi(mock_oracle_config).connect()
 
-            operations = [
-                ("INSERT INTO table1 VALUES (?)", {"value": 1}),
-                ("INSERT INTO table2 VALUES (?)", {"value": 2}),
-                ("UPDATE table3 SET col = ?", {"col": "updated"}),
-            ]
+            # Mock the query executor's execute_batch method
+            with patch.object(api, "_query_executor") as mock_executor:
+                mock_executor.execute_batch.return_value = FlextResult.ok([result1, result2, result3])
 
-            result = api.execute_batch(operations)
-            assert result.is_success
-            assert len(result.data) == 3
-            assert result.data[0].rows == [(1,)]
-            assert result.data[1].rows == [(2,)]
-            assert result.data[2].rows == [(3,)]
+                operations = [
+                    ("INSERT INTO table1 VALUES (?)", {"value": 1}),
+                    ("INSERT INTO table2 VALUES (?)", {"value": 2}),
+                    ("UPDATE table3 SET col = ?", {"col": "updated"}),
+                ]
+
+                result = api.execute_batch(operations)
+                assert result.is_success
+                assert len(result.data) == 3
+                # Fix: Access the actual TDbOracleQueryResult objects correctly
+                first_result = result.data[0]
+                assert hasattr(first_result, "rows"), f"Expected TDbOracleQueryResult, got {type(first_result)}: {first_result}"
+                assert first_result.rows == [(1,)]
+
+                second_result = result.data[1]
+                assert hasattr(second_result, "rows"), f"Expected TDbOracleQueryResult, got {type(second_result)}: {second_result}"
+                assert second_result.rows == [(2,)]
+
+                third_result = result.data[2]
+                assert hasattr(third_result, "rows"), f"Expected TDbOracleQueryResult, got {type(third_result)}: {third_result}"
+                assert third_result.rows == [(3,)]
 
     def test_metadata_operations(
         self,

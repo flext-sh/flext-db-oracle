@@ -1,9 +1,47 @@
-"""Oracle Observability Manager - DRY observability patterns.
+"""FLEXT DB Oracle Observability Management.
 
-Copyright (c) 2025 FLEXT Contributors
-SPDX-License-Identifier: MIT
+This module provides comprehensive observability, monitoring, and error handling for
+Oracle database operations using FLEXT Observability patterns. It implements Clean
+Architecture with centralized monitoring, metrics collection, distributed tracing,
+and error handling following DRY and SOLID principles.
 
-Centralized observability management following DRY, KISS, and SOLID principles.
+Key Components:
+    - FlextDbOracleObservabilityManager: Central observability coordinator
+    - FlextDbOracleOperationTracker: Context manager for operation timing and tracing
+    - FlextDbOracleErrorHandler: Centralized error handling with metrics integration
+    - Health checks, metrics collection, and distributed tracing integration
+
+Architecture:
+    This module implements the Infrastructure layer's observability concern,
+    providing cross-cutting monitoring capabilities for all Oracle database
+    operations. It follows the Single Responsibility Principle by centralizing
+    all observability concerns and uses Template Method pattern for DRY operations.
+
+Example:
+    Operation tracking with automatic metrics and tracing:
+
+    >>> from flext_db_oracle import FlextDbOracleObservabilityManager
+    >>> from flext_core import get_flext_container
+    >>> container = get_flext_container()
+    >>> observability = FlextDbOracleObservabilityManager(container, "oracle_app")
+    >>> observability.initialize()
+    >>>
+    >>> with FlextDbOracleOperationTracker(observability, "query_execution", table="employees") as tracker:
+    ...     # Database operation here
+    ...     tracker.record_metric("rows_processed", 150, "count")
+    ...     # Automatic timing and tracing on context exit
+
+Integration:
+    - Built on flext-observability foundation for enterprise monitoring
+    - Integrates with FLEXT Core container and logging patterns
+    - Supports distributed tracing with OpenTelemetry standards
+    - Compatible with metrics systems (Prometheus, StatsD, etc.)
+    - Provides health check endpoints for service monitoring
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
 """
 
 from __future__ import annotations
@@ -11,7 +49,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 from time import perf_counter
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from flext_core import FlextResult, get_logger
 from flext_observability import (
@@ -75,7 +113,7 @@ class FlextDbOracleObservabilityManager:
         self._initialized = True
         return FlextResult.ok(None)
 
-    def create_trace(self, operation: str, **attributes: Any) -> FlextTrace:  # noqa: ANN401
+    def create_trace(self, operation: str, **attributes: object) -> FlextTrace:
         """Create trace for operation (DRY pattern)."""
         trace_id = str(uuid.uuid4())
         span_id = str(uuid.uuid4())
@@ -197,7 +235,7 @@ class FlextDbOracleOperationTracker:
         self,
         observability: FlextDbOracleObservabilityManager,
         operation: str,
-        **attributes: Any,  # noqa: ANN401
+        **attributes: object,
     ) -> None:
         """Initialize operation tracker."""
         self._observability = observability

@@ -1,16 +1,57 @@
-"""Oracle Database CLI Commands - Production-ready command line interface.
+"""FLEXT DB Oracle Command Line Interface.
 
-Copyright (c) 2025 FLEXT Contributors
-SPDX-License-Identifier: MIT
+This module provides a comprehensive command-line interface for Oracle database
+operations using FLEXT CLI patterns and Clean Architecture principles. It implements
+enterprise-grade CLI commands with rich formatting, comprehensive error handling,
+and seamless integration with the FLEXT ecosystem.
 
-CLI commands for Oracle database operations using flext-cli patterns.
+Key Components:
+    - Oracle CLI Group: Main command group with connection, query, and management commands
+    - Connection Commands: connect, connect-env for database connectivity testing
+    - Query Commands: query, optimize for SQL execution and optimization
+    - Schema Commands: schemas, tables for database structure exploration
+    - Plugin Commands: plugins for extensibility management
+    - Health Commands: health for database status monitoring
+
+Architecture:
+    This module implements the Presentation layer's CLI concern following Clean
+    Architecture principles. It uses the Strategy pattern for output formatting,
+    Template Method pattern for command execution, and Single Responsibility
+    principle for command processors and result handlers.
+
+Example:
+    Basic Oracle CLI usage:
+
+    >>> # Connect to Oracle database
+    >>> oracle connect --host oracle-server --port 1521 --service-name PROD --username app_user
+    >>>
+    >>> # Execute query with environment configuration
+    >>> oracle connect-env && oracle query --sql "SELECT COUNT(*) FROM employees"
+    >>>
+    >>> # List schemas and tables
+    >>> oracle schemas && oracle tables --schema HR
+    >>>
+    >>> # Register and manage plugins
+    >>> oracle plugins
+
+Integration:
+    - Built on flext-cli foundation for consistent CLI patterns
+    - Integrates with Rich library for enhanced terminal formatting
+    - Supports multiple output formats (table, json, yaml, csv)
+    - Compatible with FLEXT ecosystem configuration and observability
+    - Provides comprehensive error handling and user feedback
+
+Author: FLEXT Development Team
+Version: 2.0.0
+License: MIT
+
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 import click
 from flext_cli import (
@@ -21,6 +62,9 @@ from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+
+if TYPE_CHECKING:
+    from flext_plugin import FlextPlugin
 
 # Direct imports to avoid circular dependency - DRY refactoring
 from flext_db_oracle.api import FlextDbOracleApi
@@ -334,7 +378,9 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
             format_output(output_data, self.config.output_format, console)
 
     def _prepare_health_output_data(
-        self, test_data: dict[str, object] | None, health_data: dict[str, object],
+        self,
+        test_data: dict[str, object] | None,
+        health_data: dict[str, object],
     ) -> dict[str, object]:
         """Prepare health data for output - Single Responsibility."""
         return {
@@ -436,7 +482,10 @@ class QueryResultProcessor:
         self.console = console
 
     def process_success(
-        self, query_data: object, results: list[Any], limit: int | None,
+        self,
+        query_data: object,
+        results: list[object],
+        limit: int | None,
     ) -> None:
         """Process successful query results."""
         # Apply limit if specified
@@ -476,9 +525,13 @@ Columns: {_safe_get_list_length(columns)}""",
             ),
         )
 
-    def _display_as_table(self, query_data: object, results: list[Any]) -> None:
+    def _display_as_table(
+        self,
+        query_data: object,
+        results: list[object],
+    ) -> None:
         """Display results as rich table."""
-        table = Table(title=f"Query Results ({len(results)} rows)")
+        table: Table = Table(title=f"Query Results ({len(results)} rows)")
 
         # Add columns
         columns = _safe_get_query_data_attr(query_data, "columns", [])
@@ -500,12 +553,16 @@ Columns: {_safe_get_list_length(columns)}""",
         self.console.print(table)
 
     def _display_as_structured_output(
-        self, query_data: object, results: list[Any],
+        self,
+        query_data: object,
+        results: list[object],
     ) -> None:
         """Display results as structured output."""
         output_data = {
             "execution_time_ms": _safe_get_query_data_attr(
-                query_data, "execution_time_ms", 0,
+                query_data,
+                "execution_time_ms",
+                0,
             ),
             "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
             "columns": _safe_get_query_data_attr(query_data, "columns", []),
@@ -550,8 +607,9 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                     console.print("[red]Query execution returned no data[/red]")
                     _raise_cli_error("Query execution returned no data")
 
-                results: list[Any] = cast(
-                    "list[Any]", _safe_get_query_data_attr(query_data, "rows", []),
+                results: list[object] = cast(
+                    "list[object]",
+                    _safe_get_query_data_attr(query_data, "rows", []),
                 )
 
                 # Use SOLID processor for result handling
@@ -695,7 +753,7 @@ class PluginManagerProcessor:
         self._display_registration_success_panel()
         self._display_registration_results(registration_results)
 
-    def handle_plugin_list_success(self, plugin_list: list[Any]) -> None:
+    def handle_plugin_list_success(self, plugin_list: list[FlextPlugin]) -> None:
         """Handle successful plugin listing - Single Responsibility."""
         self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
 
@@ -715,7 +773,8 @@ class PluginManagerProcessor:
         )
 
     def _display_registration_results(
-        self, registration_results: dict[str, str],
+        self,
+        registration_results: dict[str, str],
     ) -> None:
         """Display registration results based on output format."""
         if self.config.output_format == "table":
@@ -734,7 +793,7 @@ class PluginManagerProcessor:
 
         self.console.print(table)
 
-    def _display_plugins_table(self, plugin_list: list[Any]) -> None:
+    def _display_plugins_table(self, plugin_list: list[FlextPlugin]) -> None:
         """Display plugins as rich table."""
         plugin_table = Table(title="Available Plugins")
         plugin_table.add_column("Name", style="cyan")
@@ -752,9 +811,9 @@ class PluginManagerProcessor:
 
         self.console.print(plugin_table)
 
-    def _display_plugins_structured(self, plugin_list: list[Any]) -> None:
+    def _display_plugins_structured(self, plugin_list: list[FlextPlugin]) -> None:
         """Display plugins as structured output."""
-        plugin_data = [
+        plugin_data: list[dict[str, object]] = [
             {
                 "name": p.name,
                 "version": p.version,
@@ -790,9 +849,15 @@ def plugins(ctx: click.Context) -> None:
                     console.print("[red]Plugin registration returned no data[/red]")
                     _raise_cli_error("Plugin registration returned no data")
 
-                # Assert for MyPy: registration_results is not None here
-                assert registration_results is not None  # noqa: S101
-                processor.handle_registration_success(registration_results)
+                # Validation for production safety - no assert needed after explicit checks
+                if registration_results is None:
+                    console.print(
+                        "[red]❌ Plugin registration succeeded but returned None[/red]",
+                    )
+                    _raise_cli_error("Plugin registration succeeded but returned None")
+
+                # registration_results is guaranteed non-None after validation above
+                processor.handle_registration_success(cast("dict[str, str]", registration_results))
 
                 # List all plugins
                 plugins_result = api.list_plugins()

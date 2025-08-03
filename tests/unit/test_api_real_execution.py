@@ -91,14 +91,16 @@ class TestFlextDbOracleApiRealExecution:
 
     def test_from_env_missing_variables(self) -> None:
         """Test from_env behavior when environment variables are missing."""
-        # Clear relevant environment variables
+        # Clear relevant environment variables - should use defaults, not fail
+        with patch.dict(os.environ, {}, clear=True):
+            # This should succeed with default values
+            api = FlextDbOracleApi.from_env()
 
-        with (
-            patch.dict(os.environ, {}, clear=True),
-            pytest.raises(ValueError, match="Configuration error"),
-        ):
-            # This should fail appropriately due to missing configuration
-            FlextDbOracleApi.from_env()
+            # Verify defaults are used
+            assert api._config.host == "localhost"
+            assert api._config.port == 1521
+            assert api._config.username == "oracle"
+            assert api._config.service_name == "ORCLPDB1"
 
     def test_with_config_real_execution(self) -> None:
         """Test API creation with configuration parameters - real execution."""
