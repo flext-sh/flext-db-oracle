@@ -1,3 +1,4 @@
+# ruff: noqa: N999
 """FLEXT DB Oracle Comprehensive Usage Example.
 
 This example demonstrates enterprise-grade Oracle database operations using FLEXT DB Oracle
@@ -109,7 +110,7 @@ class OracleExampleDemonstrator:
             logger.info("# Pattern {i}: {pattern_name}")
             self._log_pattern_info(pattern_name, pattern_items)
 
-    def demonstrate_with_api_operations(self, operation_func) -> None:
+    def demonstrate_with_api_operations(self, operation_func: object) -> None:
         """Template method: Demonstrate patterns that require API operations.
 
         Args:
@@ -147,7 +148,7 @@ def demonstrate_connection_patterns() -> None:
             host="example.oracle.com",
             port=1521,
             username="demo_user",
-            password="demo_pass",
+            password="demo_pass",  # noqa: S106
             service_name="DEMO_DB",
         )
         logger.info("✅ Created API with configuration parameters")
@@ -178,7 +179,7 @@ def demonstrate_configuration_patterns() -> None:
         FlextDbOracleConfig(
             host="localhost",
             username="user",
-            password="pass",
+            password="pass",  # noqa: S106
             service_name="DB",
         )
         logger.info("✅ Created minimal configuration")
@@ -188,7 +189,7 @@ def demonstrate_configuration_patterns() -> None:
             host="prod.oracle.company.com",
             port=1521,
             username="prod_user",
-            password="secure_password",
+            password="secure_password",  # noqa: S106
             service_name="PROD_DB",
             encoding="UTF-8",
             schema="PROD_SCHEMA",
@@ -337,8 +338,8 @@ def demonstrate_transaction_patterns() -> None:
         # This would be real code with actual connection:
         # with api.transaction() as txn:
         #     if result1.success and result2.success:
-        #         txn.commit()
-        #         txn.rollback()
+        #         txn.commit()  # noqa: ERA001
+        #         txn.rollback()  # noqa: ERA001
 
     demonstrator.demonstrate_with_api_operations(_perform_transaction_operations)
 
@@ -549,7 +550,7 @@ async def demonstrate_async_patterns() -> None:
 
 
 def main() -> None:
-    """Main function demonstrating all Oracle usage patterns."""
+    """Demonstrate all Oracle usage patterns."""
     logger.info("🚀 Starting Comprehensive Oracle Database Usage Examples")
 
     try:

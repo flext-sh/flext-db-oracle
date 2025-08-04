@@ -176,7 +176,7 @@ def demonstrate_transaction_management() -> None:
 
 
 def main() -> None:
-    """Main demonstration function."""
+    """Demonstrate SQLAlchemy 2 integration."""
     # Check environment
     create_oracle_config()
 

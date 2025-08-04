@@ -16,6 +16,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import logging
 import os
 
 
@@ -74,8 +75,8 @@ def demo_basic_usage() -> None:
 
             connected_api.disconnect()
 
-    except Exception:
-        pass
+    except Exception as e:
+        logging.exception("Demo usage failed: %s", e)
 
 
 def show_available_examples() -> None:

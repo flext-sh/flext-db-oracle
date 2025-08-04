@@ -10,12 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleApi
 
 
 class TestDirectCoverageBoostAPI:
@@ -84,8 +79,8 @@ class TestDirectCoverageBoostAPI:
 
     def test_api_query_optimization_758_798(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: object,
+        oracle_container: object,
     ) -> None:
         """Test API query optimization paths (lines 758-798)."""
         # Connect first
@@ -377,7 +372,7 @@ class TestDirectCoverageBoostObservability:
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api, oracle_container,
+        self, oracle_api: object, oracle_container: object,
     ) -> None:
         """Test observability metrics collection."""
         # Connect first

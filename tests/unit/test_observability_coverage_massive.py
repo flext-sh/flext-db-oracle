@@ -155,12 +155,12 @@ class TestObservabilityInitialization:
                 except (AttributeError, ValueError):
                     # Should trigger lines 165-166
                     pass
-                except (ValueError, TypeError, RuntimeError):
+                except (TypeError, RuntimeError):
                     # Other exceptions also contribute
                     pass
 
         except (ValueError, TypeError, RuntimeError):
-            # Construction exceptions
+            # Construction exceptions including AttributeError from inner try
             pass
 
     def test_initialization_value_error_lines_165_166(self) -> None:
@@ -178,11 +178,8 @@ class TestObservabilityInitialization:
                 try:
                     if hasattr(obs_manager, "initialize"):
                         obs_manager.initialize()
-                except (AttributeError, ValueError):
-                    # Should handle ValueError (line 166)
-                    pass
-                except (ValueError, TypeError, RuntimeError):
-                    # Other exception paths
+                except (AttributeError, ValueError, TypeError, RuntimeError):
+                    # Should handle ValueError (line 166) and other exception paths
                     pass
 
         except (ValueError, TypeError, RuntimeError):
@@ -291,15 +288,17 @@ class TestObservabilityMonitoringOperations:
                             for context in contexts:
                                 try:
                                     method(context)
-                                except TypeError:
+                                except (TypeError, ValueError, RuntimeError):
+                                    # Handle TypeError with fallback and other exceptions
                                     with contextlib.suppress(Exception):
-                                        method()
-                                except (ValueError, TypeError, RuntimeError):
-                                    pass
+                                        if method() is None:  # TypeError fallback
+                                            method()
                     except (ValueError, TypeError, RuntimeError):
+                        # Method access and execution exceptions
                         pass
 
         except (ValueError, TypeError, RuntimeError):
+            # Construction and operational exceptions
             pass
 
 

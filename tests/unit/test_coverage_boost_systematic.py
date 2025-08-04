@@ -24,8 +24,8 @@ class TestAPIMissedLines:
 
     def test_api_error_handling_methods_107_109(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: object,
+        oracle_container: object,
     ) -> None:
         """Test API error handling methods (EXACT lines 107-109)."""
         # Connect to have a real API instance
@@ -52,8 +52,8 @@ class TestAPIMissedLines:
 
     def test_api_connection_manager_lines_117_133(
         self,
-        real_oracle_config,
-        oracle_container,
+        real_oracle_config: object,
+        oracle_container: object,
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
         # Create API without connecting
@@ -73,8 +73,8 @@ class TestAPIMissedLines:
 
     def test_api_query_operations_571_610(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: object,
+        oracle_container: object,
     ) -> None:
         """Test query operations error paths (EXACT lines 571-610)."""
         # Connect first
@@ -100,8 +100,8 @@ class TestAPIMissedLines:
 
     def test_api_schema_operations_1038_1058(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: object,
+        oracle_container: object,
     ) -> None:
         """Test schema operations paths (EXACT lines 1038-1058)."""
         # Connect first

@@ -136,11 +136,9 @@ class TestConnectionSessionManagement:
                     session.execute("INVALID SQL THAT WILL FAIL")
 
             except (ValueError, TypeError, RuntimeError):
-                # Specific database exceptions should trigger rollback (line 275) and close (line 278)
-                pass  # Expected during testing
-            except (ValueError, TypeError, RuntimeError):
-                # Other exceptions for error handling coverage
-                pass  # Expected during testing
+                # Database exceptions should trigger rollback (line 275) and close (line 278)
+                # Expected during testing for error handling coverage
+                pass
 
             finally:
                 connection.disconnect()
@@ -157,14 +155,9 @@ class TestConnectionSessionManagement:
             with connection.get_session():
                 pytest.fail("Should have raised ValueError for not connected")
 
-        except ValueError:
-            # Should get "Not connected to database" error (line 267-268)
-            pass  # Expected error
         except (ValueError, TypeError, RuntimeError):
-            # Expected exceptions from connection operations
-            pass  # Expected during testing
-        except (ValueError, TypeError, RuntimeError):
-            # Expected during testing
+            # Should get "Not connected to database" error or connection exceptions
+            # Expected during testing for error handling coverage
             pass
 
 
@@ -172,7 +165,7 @@ class TestConnectionLifecycleComprehensive:
     """Comprehensive connection lifecycle testing."""
 
     def test_connection_state_management_comprehensive(
-        self, real_oracle_config,
+        self, real_oracle_config: object,
     ) -> None:
         """Test comprehensive connection state management."""
         from flext_db_oracle import FlextDbOracleConnection
