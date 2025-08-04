@@ -85,6 +85,59 @@ class FlextDbOracleObservabilityManager:
 
         self._initialized = False
 
+    def _log_error_with_context(
+        self,
+        error_type: str,
+        error: str | Exception,
+        **context: str,
+    ) -> None:
+        """DRY helper: Log error with consistent formatting.
+
+        Args:
+            error_type: Type of error (e.g., "Connection", "Query", "Plugin")
+            error: The error object or message
+            **context: Additional context for logging (e.g., sql, plugin_name)
+
+        """
+        if "sql" in context and len(str(context["sql"])) > 100:
+            self._logger.error(
+                "%s error for SQL '%s': %s",
+                error_type,
+                str(context["sql"])[:100],
+                str(error),
+            )
+        elif context:
+            # Handle plugin_name or other single context
+            context_key = next(iter(context.keys()))
+            context_value = context[context_key]
+            self._logger.error(
+                "%s '%s' error: %s",
+                error_type,
+                context_value,
+                str(error),
+            )
+        else:
+            self._logger.error("%s error: %s", error_type, str(error))
+
+    def _record_error_metric(
+        self,
+        error_type: str,
+        **tags: str,
+    ) -> None:
+        """DRY helper: Record error metrics with consistent naming.
+
+        Args:
+            error_type: Type of error for metric naming (e.g., "connection", "query")
+            **tags: Additional tags for the metric
+
+        """
+        self._observability.record_metric(
+            f"{error_type}.errors",
+            1,
+            "count",
+            **tags,
+        )
+
     def initialize(self) -> FlextResult[None]:
         """Initialize observability system."""
         if self._initialized:
@@ -300,25 +353,15 @@ class FlextDbOracleErrorHandler:
 
     def handle_connection_error(self, error: str | None) -> None:
         """Handle connection errors with proper metrics and tracing."""
-        self._observability.record_metric(
-            "error.connection",
-            1,
-            "count",
-            error_type="connection_failure",
-        )
-        self._logger.error("Connection error: %s", error)
+        self._record_error_metric("connection", error_type="connection_failure")
+        self._log_error_with_context("Connection", error)
         msg = f"Failed to connect: {error}"
         raise ConnectionError(msg)
 
     def handle_config_error(self) -> None:
         """Handle configuration errors."""
-        self._observability.record_metric(
-            "error.configuration",
-            1,
-            "count",
-            error_type="missing_config",
-        )
-        self._logger.error("Configuration error: No configuration provided")
+        self._record_error_metric("configuration", error_type="missing_config")
+        self._log_error_with_context("Configuration", "No configuration provided")
         msg = "No configuration provided"
         raise ValueError(msg)
 
@@ -328,27 +371,17 @@ class FlextDbOracleErrorHandler:
         sql: str | None = None,
     ) -> FlextResult[None]:
         """Handle query errors with context."""
-        self._observability.record_metric(
-            "error.query",
-            1,
-            "count",
-            error_type="query_failure",
-        )
+        self._record_error_metric("query", error_type="query_failure")
         if sql:
-            self._logger.error("Query error for SQL '%s': %s", sql[:100], error)
+            self._log_error_with_context("Query", error, sql=sql)
         else:
-            self._logger.error("Query error: %s", error)
+            self._log_error_with_context("Query", error)
         return FlextResult.fail(error)
 
     def handle_plugin_error(self, plugin_name: str, error: str) -> FlextResult[None]:
         """Handle plugin errors."""
-        self._observability.record_metric(
-            "error.plugin",
-            1,
-            "count",
-            plugin_name=plugin_name,
-        )
-        self._logger.error("Plugin '%s' error: %s", plugin_name, error)
+        self._record_error_metric("plugin", plugin_name=plugin_name)
+        self._log_error_with_context("Plugin", error, plugin_name=plugin_name)
         return FlextResult.fail(f"{plugin_name} plugin failed: {error}")
 
 

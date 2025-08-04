@@ -280,6 +280,59 @@ class FlextDbOracleMetadataManager:
         self._connection = connection
         self._logger = get_logger(__name__)
 
+    def _handle_metadata_error_with_logging(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle metadata errors with logging - DRY pattern for error handling.
+
+        Args:
+            operation: Description of the operation that failed
+            exception: The exception that occurred
+
+        Returns:
+            FlextResult with failure containing formatted error message
+
+        """
+        error_msg = f"Failed to get {operation}: {exception}"
+        self._logger.error(error_msg)
+        return FlextResult.fail(error_msg)
+
+    def _handle_result_failure_with_fallback(
+        self,
+        result: FlextResult,
+        fallback_message: str,
+    ) -> FlextResult[None]:
+        """Handle FlextResult failure with fallback message - DRY pattern.
+
+        Args:
+            result: The failed FlextResult
+            fallback_message: Fallback message if result.error is None
+
+        Returns:
+            FlextResult with failure containing error or fallback message
+
+        """
+        return FlextResult.fail(result.error or fallback_message)
+
+    def _handle_creation_error(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle creation errors - DRY pattern for object creation failures.
+
+        Args:
+            operation: Description of the creation operation that failed
+            exception: The exception that occurred
+
+        Returns:
+            FlextResult with failure containing formatted error message
+
+        """
+        return FlextResult.fail(f"Failed to create {operation}: {exception}")
+
     def get_table_metadata(
         self,
         table_name: str,
@@ -295,7 +348,10 @@ class FlextDbOracleMetadataManager:
             # SOLID Extract Method - Get and validate columns
             columns_result = self._get_validated_columns(table_name, schema_name)
             if columns_result.is_failure:
-                return FlextResult.fail(columns_result.error or "Failed to get columns")
+                return self._handle_result_failure_with_fallback(
+                    columns_result,
+                    "Failed to get columns",
+                )
 
             # SOLID Extract Method - Create and validate table
             table_result = self._create_validated_table(
@@ -304,7 +360,10 @@ class FlextDbOracleMetadataManager:
                 columns_result.data or [],
             )
             if table_result.is_failure:
-                return FlextResult.fail(table_result.error or "Failed to create table")
+                return self._handle_result_failure_with_fallback(
+                    table_result,
+                    "Failed to create table",
+                )
 
             # MYPY FIX: Safe access to table_result.data with None check
             if table_result.data is None:
@@ -316,9 +375,7 @@ class FlextDbOracleMetadataManager:
             return FlextResult.ok(table_result.data)
 
         except (ValueError, TypeError, AttributeError) as e:
-            error_msg = f"Failed to get table metadata: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_metadata_error_with_logging("table metadata", e)
 
     def _get_validated_columns(
         self,
@@ -396,7 +453,7 @@ class FlextDbOracleMetadataManager:
             return FlextResult.ok(column)
 
         except (ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to create column: {e}")
+            return self._handle_creation_error("column", e)
 
     def _create_validated_table(
         self,
@@ -430,7 +487,7 @@ class FlextDbOracleMetadataManager:
             return FlextResult.ok(table)
 
         except (ValueError, TypeError) as e:
-            return FlextResult.fail(f"Failed to create table: {e}")
+            return self._handle_creation_error("table", e)
 
     def get_schema_metadata(self, schema_name: str) -> FlextResult[FlextDbOracleSchema]:
         """Get complete schema metadata."""
@@ -468,9 +525,7 @@ class FlextDbOracleMetadataManager:
             return FlextResult.ok(schema)
 
         except (ValueError, TypeError, AttributeError) as e:
-            error_msg = f"Failed to get schema metadata: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_metadata_error_with_logging("schema metadata", e)
 
 
 __all__ = [

@@ -34,14 +34,14 @@ def _get_cli_examples() -> list[dict[str, object]]:
         },
         {
             "name": "List Database Schemas",
-            "command": ["flext-oracle", "schemas", "--output", "json"],
-            "description": "List all available schemas in JSON format",
+            "command": ["flext-oracle", "schemas"],
+            "description": "List all available schemas",
             "env_required": True,
         },
         {
             "name": "List Database Tables",
-            "command": ["flext-oracle", "tables", "--output", "table"],
-            "description": "List all tables in table format",
+            "command": ["flext-oracle", "tables"],
+            "description": "List all tables",
             "env_required": True,
         },
         {
@@ -51,15 +51,13 @@ def _get_cli_examples() -> list[dict[str, object]]:
                 "query",
                 "--sql",
                 "SELECT SYSDATE FROM DUAL",
-                "--output",
-                "json",
             ],
-            "description": "Execute a simple query and get JSON output",
+            "description": "Execute a simple query",
             "env_required": True,
         },
         {
             "name": "Check Database Health",
-            "command": ["flext-oracle", "health", "--output", "table"],
+            "command": ["flext-oracle", "health"],
             "description": "Check database connection health",
             "env_required": True,
         },
@@ -97,10 +95,14 @@ def _run_example_command(example: dict[str, object]) -> None:
             preview = lines[:MAX_OUTPUT_LINES]
             if len(lines) > MAX_OUTPUT_LINES:
                 preview.append("   ...")
-            for _line in preview:
-                pass
+            print(f"✅ {example['name']} - SUCCESS:")
+            for line in preview:
+                print(f"   {line}")
     elif stderr.strip():
-        pass
+        print(f"❌ {example['name']} - ERROR:")
+        error_lines = stderr.strip().split("\n")[:2]  # Show first 2 error lines
+        for line in error_lines:
+            print(f"   {line}")
 
 
 def _check_oracle_env() -> bool:
@@ -136,6 +138,8 @@ def demo_cli_commands() -> None:
     examples = _get_cli_examples()
 
     if not _check_oracle_env():
+        print("❌ Oracle environment not configured - skipping CLI demos")
+        print("💡 Set environment variables or run: python examples/cli_examples.py setup")
         return
 
     # Run each example - refatoração DRY real
@@ -192,8 +196,18 @@ def main() -> None:
 
         configured = sum(1 for var in env_vars if os.getenv(var))
 
+        print("=== ORACLE CLI EXAMPLES STATUS ===")
+        print(f"Environment variables configured: {configured}/{len(env_vars)}")
+
         if configured == 0:
-            pass
+            print("❌ No Oracle environment variables configured")
+            print("💡 Run: python examples/cli_examples.py setup")
+        elif configured == len(env_vars):
+            print("✅ All Oracle environment variables configured")
+            print("💡 Run: python examples/cli_examples.py demo")
+        else:
+            print("⚠️  Partial Oracle environment configuration")
+            print("💡 Check your environment variables")
 
 
 if __name__ == "__main__":

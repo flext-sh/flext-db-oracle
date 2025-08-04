@@ -98,6 +98,24 @@ class OracleConnectionManager:
         self._connection: FlextDbOracleConnection | None = None
         self._is_connected = False
 
+    def _handle_error_with_logging(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle errors with logging - DRY pattern for error handling."""
+        error_msg = f"{operation}: {exception}"
+        self._logger.error(error_msg)
+        return FlextResult.fail(error_msg)
+
+    def _handle_error_simple(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle errors without logging - DRY pattern for simple error handling."""
+        return FlextResult.fail(f"{operation}: {exception}")
+
     @property
     def is_connected(self) -> bool:
         """Check if connected to database."""
@@ -146,9 +164,7 @@ class OracleConnectionManager:
             return FlextResult.ok(None)
 
         except Exception as e:
-            error_msg = f"Error during disconnect: {e}"
-            self._logger.exception(error_msg)
-            return FlextResult.fail(error_msg)
+            return self._handle_error_with_logging("Error during disconnect", e)
 
     def test_connection(self) -> FlextResult[bool]:
         """Test Oracle database connection."""
@@ -163,7 +179,7 @@ class OracleConnectionManager:
             return FlextResult.fail("No active connection")
 
         except (OSError, ValueError) as e:
-            return FlextResult.fail(f"Connection test failed: {e}")
+            return self._handle_error_simple("Connection test failed", e)
 
     def _init_connection_attempt(self) -> None:
         """Initialize connection attempt metrics."""
@@ -267,6 +283,16 @@ class OracleQueryExecutor:
         self._observability = observability
         self._logger = get_logger(f"OracleQueryExecutor.{context_name}")
 
+    def _handle_error_with_logging(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[None]:
+        """Handle errors with logging - DRY pattern for error handling."""
+        error_msg = f"{operation}: {exception}"
+        self._logger.error(error_msg)
+        return FlextResult.fail(error_msg)
+
     def execute_query(
         self,
         sql: str,
@@ -319,10 +345,8 @@ class OracleQueryExecutor:
             return FlextResult.ok(query_result)
 
         except Exception as e:
-            error_msg = f"Query execution error: {e}"
-            self._logger.exception(error_msg)
             self._observability.record_metric("query.exceptions", 1, "count")
-            return FlextResult.fail(error_msg)
+            return self._handle_error_with_logging("Query execution error", e)
 
     def execute_query_single(
         self,
@@ -581,9 +605,9 @@ class FlextDbOracleApi:
                 },
             )
         except (OSError, ValueError, TypeError, ConnectionError) as e:
-            return FlextResult.fail(f"Connection test failed: {e}")
+            return self._handle_error_simple("Connection test failed", e)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"Connection test failed: {e}")
+            return self._handle_error_simple("Connection test failed", e)
 
     @property
     def config(self) -> FlextDbOracleConfig | None:
@@ -800,9 +824,9 @@ class FlextDbOracleApi:
             self._plugins[plugin.name] = plugin
             return FlextResult.ok(None)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
-            return FlextResult.fail(f"Plugin registration error: {e}")
+            return self._handle_error_simple("Plugin registration error", e)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"Plugin registration error: {e}")
+            return self._handle_error_simple("Plugin registration error", e)
 
     def unregister_plugin(self, plugin_name: str) -> FlextResult[None]:
         """Unregister a plugin from the platform."""
@@ -827,7 +851,7 @@ class FlextDbOracleApi:
             return self._get_simple_plugin(plugin_name)
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
-            return FlextResult.fail(f"Failed to get plugin: {e}")
+            return self._handle_error_simple("Failed to get plugin", e)
 
     def execute_plugin(
         self,
@@ -865,7 +889,7 @@ class FlextDbOracleApi:
             return FlextResult.ok(list(self._plugins.values()))
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
-            return FlextResult.fail(f"Failed to list plugins: {e}")
+            return self._handle_error_simple("Failed to list plugins", e)
 
     def _try_get_complex_plugin(
         self,
@@ -914,7 +938,7 @@ class FlextDbOracleApi:
             result = callable_obj(**kwargs)
             return FlextResult.ok(result)
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
-            return FlextResult.fail(f"Plugin execution failed: {e}")
+            return self._handle_error_simple("Plugin execution failed", e)
 
     def _try_list_complex_plugins(self) -> FlextResult[list[Any]] | None:
         """SOLID REFACTORING: Extract Method for complex plugin platform listing."""
@@ -1098,9 +1122,9 @@ class FlextDbOracleApi:
             }
             return FlextResult.ok(metrics)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
-            return FlextResult.fail(f"Failed to get metrics: {e}")
+            return self._handle_error_simple("Failed to get metrics", e)
         except Exception as e:  # noqa: BLE001
-            return FlextResult.fail(f"Failed to get metrics: {e}")
+            return self._handle_error_simple("Failed to get metrics", e)
 
     def execute_connection_monitor(
         self,

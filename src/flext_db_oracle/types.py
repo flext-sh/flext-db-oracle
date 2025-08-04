@@ -65,6 +65,33 @@ from .constants import (
 )
 
 
+def _handle_validation_error(context: str, exception: Exception) -> FlextResult[None]:
+    """DRY helper: Handle validation errors with consistent formatting.
+
+    Args:
+        context: The validation context (e.g., "Column", "Table", "Schema")
+        exception: The exception that occurred during validation
+
+    Returns:
+        FlextResult with failure containing formatted error message
+
+    """
+    return FlextResult.fail(f"{context} validation failed: {exception}")
+
+
+def _is_empty_string(value: str | None) -> bool:
+    """DRY helper: Check if string is None, empty, or whitespace-only.
+
+    Args:
+        value: String value to check
+
+    Returns:
+        True if string is empty or whitespace-only, False otherwise
+
+    """
+    return not value or not value.strip()
+
+
 class TDbOracleColumn(FlextValueObject):
     """Oracle column type definition."""
 
@@ -91,10 +118,10 @@ class TDbOracleColumn(FlextValueObject):
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate column type domain rules."""
         try:
-            if not self.name or not self.name.strip():
+            if _is_empty_string(self.name):
                 return FlextResult.fail(ERROR_MSG_COLUMN_NAME_EMPTY)
 
-            if not self.data_type or not self.data_type.strip():
+            if _is_empty_string(self.data_type):
                 return FlextResult.fail(ERROR_MSG_DATA_TYPE_EMPTY)
 
             if self.position <= 0:
@@ -102,7 +129,7 @@ class TDbOracleColumn(FlextValueObject):
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Column validation failed: {e}")
+            return _handle_validation_error("Column", e)
 
     @property
     def full_type_spec(self) -> str:
@@ -157,14 +184,14 @@ class TDbOracleTable(FlextValueObject):
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Table validation failed: {e}")
+            return _handle_validation_error("Table", e)
 
     def _get_basic_validation_error(self) -> str | None:
         """SOLID REFACTORING: Extract Method for basic validations."""
-        if not self.name or not self.name.strip():
+        if _is_empty_string(self.name):
             return ERROR_MSG_TABLE_NAME_EMPTY
 
-        if not self.schema_name or not self.schema_name.strip():
+        if _is_empty_string(self.schema_name):
             return ERROR_MSG_SCHEMA_NAME_EMPTY
 
         if not self.columns:
@@ -222,7 +249,7 @@ class TDbOracleSchema(FlextValueObject):
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate schema type domain rules."""
         try:
-            if not self.name or not self.name.strip():
+            if _is_empty_string(self.name):
                 return FlextResult.fail(ERROR_MSG_SCHEMA_NAME_EMPTY)
 
             # Validate tables
@@ -233,7 +260,7 @@ class TDbOracleSchema(FlextValueObject):
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Schema validation failed: {e}")
+            return _handle_validation_error("Schema", e)
 
     def get_table(self, table_name: str) -> TDbOracleTable | None:
         """Get table by name."""
@@ -278,7 +305,7 @@ class TDbOracleQueryResult(FlextValueObject):
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Query result validation failed: {e}")
+            return _handle_validation_error("Query result", e)
 
     def to_dict_list(self) -> list[dict[str, object]]:
         """Convert rows to list of dictionaries."""
@@ -307,18 +334,18 @@ class TDbOracleConnectionStatus(FlextValueObject):
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate connection status domain rules."""
         try:
-            if not self.host or not self.host.strip():
+            if _is_empty_string(self.host):
                 return FlextResult.fail(ERROR_MSG_HOST_EMPTY)
 
             if self.port <= 0 or self.port > MAX_PORT:
                 return FlextResult.fail(ERROR_MSG_PORT_INVALID)
 
-            if not self.username or not self.username.strip():
+            if _is_empty_string(self.username):
                 return FlextResult.fail(ERROR_MSG_USERNAME_EMPTY)
 
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Connection status validation failed: {e}")
+            return _handle_validation_error("Connection status", e)
 
     @property
     def connection_string(self) -> str:

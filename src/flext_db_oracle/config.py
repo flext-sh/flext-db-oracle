@@ -61,6 +61,36 @@ from .constants import (
 logger = get_logger(__name__)
 
 
+def _handle_config_operation_error(
+    operation: str,
+    exception: Exception,
+) -> FlextResult[None]:
+    """DRY helper: Handle configuration operation errors with consistent formatting.
+
+    Args:
+        operation: The operation that failed (e.g., "create config from environment")
+        exception: The exception that occurred
+
+    Returns:
+        FlextResult with failure containing formatted error message
+
+    """
+    return FlextResult.fail(f"Failed to {operation}: {exception}")
+
+
+def _handle_config_validation_error(exception: Exception) -> FlextResult[None]:
+    """DRY helper: Handle configuration validation errors.
+
+    Args:
+        exception: The validation exception that occurred
+
+    Returns:
+        FlextResult with failure containing formatted error message
+
+    """
+    return FlextResult.fail(f"Configuration validation failed: {exception}")
+
+
 class FlextDbOracleConfig(FlextOracleConfig):
     """Oracle database configuration extending flext-core centralized config."""
 
@@ -154,7 +184,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             return FlextResult.ok(None)
 
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Configuration validation failed: {e}")
+            return _handle_config_validation_error(e)
 
     # Host and username validation inherited from FlextOracleConfig
 
@@ -194,7 +224,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             )
             return FlextResult.ok(config)
         except (ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Failed to create config from environment: {e}")
+            return _handle_config_operation_error("create config from environment", e)
 
     @classmethod
     def from_url(cls, url: str) -> FlextResult[FlextDbOracleConfig]:
@@ -224,7 +254,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             )
             return FlextResult.ok(config)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Failed to parse URL: {e}")
+            return _handle_config_operation_error("parse URL", e)
 
     # Connection identifier and pool validation inherited from FlextOracleConfig
 
@@ -343,7 +373,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             return FlextResult.ok(config)
 
         except (ValueError, TypeError, KeyError) as e:
-            return FlextResult.fail(f"Configuration creation failed: {e}")
+            return _handle_config_operation_error("create configuration", e)
 
     def __str__(self) -> str:
         """Return string representation without sensitive data."""

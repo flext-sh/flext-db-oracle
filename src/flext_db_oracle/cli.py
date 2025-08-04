@@ -75,6 +75,33 @@ from .constants import ORACLE_DEFAULT_PORT
 console = Console()
 
 
+def _print_error(message: str) -> None:
+    """Print error message with red formatting - DRY pattern for CLI errors."""
+    console.print(f"[red]{message}[/red]")
+
+
+def _print_error_exception(exception: Exception) -> None:
+    """Print exception as error - DRY pattern for exception handling."""
+    console.print(f"[red]Error: {exception}[/red]")
+
+
+def _print_no_data_error(operation: str) -> None:
+    """Print no data error - DRY pattern for data validation."""
+    console.print(f"[red]{operation} returned no data[/red]")
+
+
+def _handle_no_data_error_with_cli_exception(operation: str) -> None:
+    """Handle no data error with print and CLI exception - DRY pattern for no data scenarios."""
+    _print_no_data_error(operation)
+    _raise_cli_error(f"{operation} returned no data")
+
+
+def _handle_operation_failure_with_cli_exception(operation: str, error: str) -> None:
+    """Handle operation failure with print and CLI exception - DRY pattern for operation failures."""
+    _print_error(f"{operation} failed: {error}")
+    _raise_cli_error(f"{operation} failed: {error}")
+
+
 class ConfigProtocol(Protocol):
     """Protocol for CLI config objects."""
 
@@ -102,6 +129,11 @@ class ConnectionParams:
 def _raise_cli_error(message: str) -> None:
     """Raise ClickException with message - DRY error handling pattern."""
     raise click.ClickException(message)
+
+
+def _raise_cli_exception_from_exception(exception: Exception) -> None:
+    """Raise ClickException from exception - DRY pattern for exception chaining."""
+    raise click.ClickException(str(exception)) from exception
 
 
 def _safe_get_test_data(
@@ -336,8 +368,7 @@ class _ConnectionTestExecutor:
         test_data = getattr(test_result, "data", None)
 
         if test_data is None:
-            console.print("[red]Connection test returned no data[/red]")
-            _raise_cli_error("Connection test returned no data")
+            _handle_no_data_error_with_cli_exception("Connection test")
 
         self._display_success_panel(test_data)
         self._display_health_data(test_data)
@@ -407,13 +438,12 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
     def _handle_failed_test(self, test_result: object) -> None:
         """Handle failed connection test - Single Responsibility."""
         error = getattr(test_result, "error", "Unknown error")
-        console.print(f"[red]Connection failed: {error}[/red]")
-        _raise_cli_error(f"Connection failed: {error}")
+        _handle_operation_failure_with_cli_exception("Connection", error)
 
     def _handle_exception(self, exception: Exception) -> None:
         """Handle exceptions during connection test - Single Responsibility."""
-        console.print(f"[red]Error: {exception}[/red]")
-        raise click.ClickException(str(exception)) from exception
+        _print_error_exception(exception)
+        _raise_cli_exception_from_exception(exception)
 
 
 @oracle.command()
@@ -445,8 +475,7 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
 
             # Null check para test_data - refatoração DRY real
             if test_data is None:
-                console.print("[red]Connection test returned no data[/red]")
-                _raise_cli_error("Connection test returned no data")
+                _handle_no_data_error_with_cli_exception("Connection test")
 
             console.print(
                 Panel(
@@ -464,12 +493,14 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
             if health_data and config.output_format != "table":
                 format_output(health_data, config.output_format, console)
         else:
-            console.print(f"[red]Connection failed: {test_result.error}[/red]")
-            _raise_cli_error(f"Connection failed: {test_result.error}")
+            _handle_operation_failure_with_cli_exception(
+                "Connection",
+                test_result.error,
+            )
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 class QueryResultProcessor:
@@ -603,8 +634,7 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
 
                 # Null check for query_data
                 if query_data is None:
-                    console.print("[red]Query execution returned no data[/red]")
-                    _raise_cli_error("Query execution returned no data")
+                    _handle_no_data_error_with_cli_exception("Query execution")
 
                 results: list[object] = cast(
                     "list[object]",
@@ -616,12 +646,14 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                 processor.process_success(query_data, results, limit)
 
             else:
-                console.print(f"[red]Query failed: {query_result.error}[/red]")
-                _raise_cli_error(f"Query failed: {query_result.error}")
+                _handle_operation_failure_with_cli_exception(
+                    "Query",
+                    query_result.error,
+                )
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -641,8 +673,7 @@ def schemas(ctx: click.Context) -> None:
 
                 # Null check para schema_list - refatoração DRY real
                 if schema_list is None:
-                    console.print("[red]Schema retrieval returned no data[/red]")
-                    _raise_cli_error("Schema retrieval returned no data")
+                    _handle_no_data_error_with_cli_exception("Schema retrieval")
 
                 console.print(
                     Panel(
@@ -675,8 +706,8 @@ Total Schemas: {len(_safe_iterate_list(schema_list))}""",
                 _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -700,8 +731,7 @@ def tables(ctx: click.Context, schema: str | None) -> None:
 
                 # Null check para table_list - refatoração DRY real
                 if table_list is None:
-                    console.print("[red]Table retrieval returned no data[/red]")
-                    _raise_cli_error("Table retrieval returned no data")
+                    _handle_no_data_error_with_cli_exception("Table retrieval")
 
                 title = f"Oracle Tables{f' in {schema}' if schema else ''}"
                 console.print(
@@ -735,8 +765,8 @@ Schema: {schema or "All"}""",
                 _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 class PluginManagerProcessor:
@@ -845,8 +875,7 @@ def plugins(ctx: click.Context) -> None:
 
                 # Null check for registration_results
                 if registration_results is None:
-                    console.print("[red]Plugin registration returned no data[/red]")
-                    _raise_cli_error("Plugin registration returned no data")
+                    _handle_no_data_error_with_cli_exception("Plugin registration")
 
                 # Validation for production safety - no assert needed after explicit checks
                 if registration_results is None:
@@ -871,8 +900,8 @@ def plugins(ctx: click.Context) -> None:
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -897,8 +926,7 @@ def optimize(ctx: click.Context, sql: str) -> None:
 
                 # Null check para optimization_data - refatoração DRY real
                 if optimization_data is None:
-                    console.print("[red]Query optimization returned no data[/red]")
-                    _raise_cli_error("Query optimization returned no data")
+                    _handle_no_data_error_with_cli_exception("Query optimization")
 
                 suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
@@ -933,8 +961,8 @@ Suggestions: {_safe_get_list_length(suggestions)}""",
                 _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -954,8 +982,7 @@ def health(ctx: click.Context) -> None:
 
                 # Null check para health data - refatoração DRY real
                 if health_data is None:
-                    console.print("[red]Health check returned no data[/red]")
-                    _raise_cli_error("Health check returned no data")
+                    _handle_no_data_error_with_cli_exception("Health check")
 
                 status = getattr(health_data, "status", "unknown")
                 status_color = {
@@ -1007,12 +1034,12 @@ Timestamp: {timestamp_str}""",
                         # format_output precisa de console como primeiro argumento
                         format_output(health_dict, config.output_format, console)
             else:
-                console.print(f"[red]Health check failed: {health_result.error}[/red]")
+                _print_error(f"Health check failed: {health_result.error}")
                 _raise_cli_error(f"Health check failed: {health_result.error}")
 
     except Exception as e:
-        console.print(f"[red]Error: {e}[/red]")
-        raise click.ClickException(str(e)) from e
+        _print_error_exception(e)
+        _raise_cli_exception_from_exception(e)
 
 
 def main() -> None:

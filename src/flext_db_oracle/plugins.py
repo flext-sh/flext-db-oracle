@@ -317,9 +317,14 @@ class OraclePluginHandler:
         return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
 
 
+def _create_plugin_via_factory(factory_method) -> FlextResult[FlextPlugin]:
+    """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
+    return factory_method()
+
+
 def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
     """Create a performance monitoring plugin using DRY factory."""
-    return OraclePluginFactory.create_performance_monitor()
+    return _create_plugin_via_factory(OraclePluginFactory.create_performance_monitor)
 
 
 def performance_monitor_plugin_handler(
@@ -382,7 +387,7 @@ def performance_monitor_plugin_handler(
 
 def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
     """Create a security audit plugin using DRY factory."""
-    return OraclePluginFactory.create_security_audit()
+    return _create_plugin_via_factory(OraclePluginFactory.create_security_audit)
 
 
 def security_audit_plugin_handler(
@@ -516,7 +521,7 @@ def _determine_compliance_status(security_warnings: list[str]) -> str:
 
 def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
     """Create a data validation plugin using DRY factory."""
-    return OraclePluginFactory.create_data_validation()
+    return _create_plugin_via_factory(OraclePluginFactory.create_data_validation)
 
 
 def data_validation_plugin_handler(
@@ -587,28 +592,34 @@ ORACLE_PLUGINS = {
 }
 
 
+def _register_single_plugin(
+    api: FlextDbOracleApi,
+    plugin_name: str,
+    plugin_creator,
+) -> str:
+    """DRY helper: Register single plugin and return status message."""
+    try:
+        plugin_result = plugin_creator()
+        if plugin_result.is_success:
+            plugin = plugin_result.data
+            # Type annotation explícita para plugin - refatoração DRY real
+            if plugin is not None:
+                register_result = api.register_plugin(plugin)
+                if register_result.is_success:
+                    return "registered"
+                return f"failed: {register_result.error}"
+            return "failed: plugin is None"
+        return f"creation_failed: {plugin_result.error}"
+    except Exception as e:  # noqa: BLE001
+        return f"error: {e}"
+
+
 def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, str]]:
-    """Register all Oracle plugins with the API."""
+    """Register all Oracle plugins with the API using DRY helper."""
     results = {}
 
     for plugin_name, plugin_creator in ORACLE_PLUGINS.items():
-        try:
-            plugin_result = plugin_creator()
-            if plugin_result.is_success:
-                plugin = plugin_result.data
-                # Type annotation explícita para plugin - refatoração DRY real
-                if plugin is not None:
-                    register_result = api.register_plugin(plugin)
-                    if register_result.is_success:
-                        results[plugin_name] = "registered"
-                    else:
-                        results[plugin_name] = f"failed: {register_result.error}"
-                else:
-                    results[plugin_name] = "failed: plugin is None"
-            else:
-                results[plugin_name] = f"creation_failed: {plugin_result.error}"
-        except Exception as e:  # noqa: BLE001
-            results[plugin_name] = f"error: {e}"
+        results[plugin_name] = _register_single_plugin(api, plugin_name, plugin_creator)
 
     return FlextResult.ok(results)
 

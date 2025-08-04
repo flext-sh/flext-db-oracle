@@ -58,11 +58,11 @@ logger = get_logger(__name__)
 def create_sample_config() -> FlextDbOracleConfig:
     """Create sample Oracle configuration for examples."""
     return FlextDbOracleConfig(
-        host=os.getenv("ORACLE_HOST", "localhost"),
-        port=int(os.getenv("ORACLE_PORT", "1521")),
-        username=os.getenv("ORACLE_USERNAME", "system"),
-        password=os.getenv("ORACLE_PASSWORD", "oracle"),
-        service_name=os.getenv("ORACLE_SERVICE_NAME", "ORCLPDB1"),
+        host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
+        port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
+        username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
+        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
+        service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
     )
 

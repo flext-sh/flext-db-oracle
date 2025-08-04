@@ -179,7 +179,7 @@ class FlextDbOracleConnection:
 
         """
         error_msg = f"{operation}: {exception}"
-        self._logger.exception(error_msg)
+        self._logger.error(error_msg)
         return FlextResult.fail(error_msg)
 
     def _handle_database_error_simple(
@@ -330,15 +330,22 @@ class FlextDbOracleConnection:
         except (SQLAlchemyError, OSError, ValueError, AttributeError, Exception) as e:
             return self._handle_database_error_simple("Connection test failed", e)
 
+    def _build_table_names_query(
+        self, schema_name: str | None = None,
+    ) -> tuple[str, dict[str, object]]:
+        """Build table names query with parameters - DRY pattern for table queries."""
+        if schema_name:
+            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            params: dict[str, object] = {"schema_name": schema_name}
+        else:
+            sql = "SELECT table_name FROM user_tables ORDER BY table_name"
+            params: dict[str, object] = {}
+        return sql, params
+
     def get_table_names(self, schema_name: str | None = None) -> FlextResult[list[str]]:
         """Get table names from schema."""
         try:
-            if schema_name:
-                sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-                params: dict[str, object] = {"schema_name": schema_name}
-            else:
-                sql = "SELECT table_name FROM user_tables ORDER BY table_name"
-                params = {}
+            sql, params = self._build_table_names_query(schema_name)
 
             result = self.execute(sql, params)
             if result.is_failure:
@@ -358,7 +365,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(table_names)
         except (SQLAlchemyError, OSError, ValueError, AttributeError, Exception) as e:
-            return FlextResult.fail(f"Error retrieving table names: {e}")
+            return self._handle_database_error_simple("Error retrieving table names", e)
 
     def get_schemas(self) -> FlextResult[list[str]]:
         """Get available schema names."""
@@ -769,7 +776,30 @@ class FlextDbOracleConnection:
             return FlextResult.ok(oracle_type)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"Type conversion failed: {e}")
+            return self._handle_database_error_simple("Type conversion failed", e)
+
+    def _validate_singer_properties(
+        self, singer_schema: dict[str, object],
+    ) -> FlextResult[dict[str, object]]:
+        """Validate Singer schema properties - Single Responsibility."""
+        properties = singer_schema.get("properties", {})
+        if not isinstance(properties, dict):
+            return FlextResult.fail("Schema properties must be a dictionary")
+        return FlextResult.ok(properties)
+
+    def _map_single_field(
+        self, field_name: str, field_def: dict[str, object],
+    ) -> FlextResult[tuple[str, str]]:
+        """Map single Singer field to Oracle column - Single Responsibility."""
+        field_type = field_def.get("type", "string")
+        format_hint = field_def.get("format")
+
+        type_result = self.convert_singer_type(field_type, format_hint)
+        if type_result.is_failure:
+            return FlextResult.fail(type_result.error or "Type conversion failed")
+
+        oracle_type = type_result.data or "VARCHAR2(4000)"
+        return FlextResult.ok((field_name, oracle_type))
 
     def map_singer_schema(
         self,
@@ -777,30 +807,30 @@ class FlextDbOracleConnection:
     ) -> FlextResult[dict[str, str]]:
         """Map Singer schema to Oracle column definitions (consolidated from services)."""
         try:
+            # Validate properties
+            properties_result = self._validate_singer_properties(singer_schema)
+            if properties_result.is_failure:
+                return properties_result
+
+            properties = properties_result.data
             oracle_columns: dict[str, str] = {}
 
-            properties = singer_schema.get("properties", {})
-            # MYPY FIX: Cast to proper type for iteration
-            if not isinstance(properties, dict):
-                return FlextResult.fail("Schema properties must be a dictionary")
+            # Process each field
             for field_name, field_def in properties.items():
                 if not isinstance(field_def, dict):
                     continue  # Skip invalid field definitions
-                field_type = field_def.get("type", "string")
-                format_hint = field_def.get("format")
 
-                type_result = self.convert_singer_type(field_type, format_hint)
-                if type_result.is_failure:
-                    return FlextResult.fail(
-                        type_result.error or "Type conversion failed",
-                    )
+                field_result = self._map_single_field(field_name, field_def)
+                if field_result.is_failure:
+                    return field_result
 
-                oracle_columns[field_name] = type_result.data or "VARCHAR2(4000)"
+                name, oracle_type = field_result.data
+                oracle_columns[name] = oracle_type
 
             return FlextResult.ok(oracle_columns)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"Schema mapping failed: {e}")
+            return self._handle_database_error_simple("Schema mapping failed", e)
 
     def _build_connection_url(self) -> FlextResult[str]:
         """Build Oracle connection URL for SQLAlchemy."""
@@ -822,7 +852,7 @@ class FlextDbOracleConnection:
             return FlextResult.ok(url)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
-            return FlextResult.fail(f"URL building failed: {e}")
+            return self._handle_database_error_simple("URL building failed", e)
 
 
 __all__ = ["FlextDbOracleConnection"]
