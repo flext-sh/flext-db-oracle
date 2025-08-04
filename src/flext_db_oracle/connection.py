@@ -26,11 +26,11 @@ Example:
     >>> config = FlextDbOracleConfig.from_env().value
     >>> connection = FlextDbOracleConnection(config)
     >>> connect_result = connection.connect()
-    >>> if connect_result.is_success:
+    >>> if connect_result.success:
     ...     result = connection.execute(
     ...         "SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10}
     ...     )
-    ...     if result.is_success:
+    ...     if result.success:
     ...         for row in result.value:
     ...             print(row)
 
@@ -50,7 +50,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, cast
 from urllib.parse import quote_plus
 
 from flext_core import FlextResult, get_logger
@@ -70,11 +70,13 @@ from .constants import (
 ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Generator, Sequence
 
     from sqlalchemy.engine import Engine
 
     from .config import FlextDbOracleConfig
+
+T = TypeVar("T")
 
 logger = get_logger(__name__)
 
@@ -167,7 +169,7 @@ class FlextDbOracleConnection:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle database errors with logging - DRY pattern for error handling.
 
         Args:
@@ -178,7 +180,7 @@ class FlextDbOracleConnection:
             FlextResult with failure containing formatted error message
 
         """
-        error_msg = f"{operation}: {exception}"
+        error_msg: str = f"{operation}: {exception}"
         self._logger.error(error_msg)
         return FlextResult.fail(error_msg)
 
@@ -186,7 +188,7 @@ class FlextDbOracleConnection:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle database errors without logging - DRY pattern for simple error handling.
 
         Args:
@@ -207,9 +209,11 @@ class FlextDbOracleConnection:
         """Execute SQL statement using SQLAlchemy 2."""
         connection_check = self._ensure_connected()
         if connection_check.is_failure:
-            return FlextResult.fail(connection_check.error)
+            return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
+            if self._engine is None:  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail("Database engine is None after connection check")
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters or {})
 
@@ -231,9 +235,11 @@ class FlextDbOracleConnection:
         """Execute SQL with multiple parameter sets."""
         connection_check = self._ensure_connected()
         if connection_check.is_failure:
-            return FlextResult.fail(connection_check.error)
+            return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
+            if self._engine is None:  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail("Database engine is None after connection check")
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters_list)
                 conn.commit()
@@ -250,9 +256,11 @@ class FlextDbOracleConnection:
         """Fetch single row."""
         connection_check = self._ensure_connected()
         if connection_check.is_failure:
-            return FlextResult.fail(connection_check.error)
+            return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
+            if self._engine is None:  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail("Database engine is None after connection check")
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters or {})
                 return FlextResult.ok(result.fetchone())
@@ -282,8 +290,11 @@ class FlextDbOracleConnection:
         """Context manager for database transactions."""
         connection_check = self._ensure_connected()
         if connection_check.is_failure:
-            raise ValueError(connection_check.error)
+            raise ValueError(connection_check.error or "Connection failed")
 
+        if self._engine is None:  # Additional safety check beyond _ensure_connected()
+            msg = "Database engine is None after connection check"
+            raise ValueError(msg)
         with self._engine.connect() as conn:
             trans = conn.begin()
             try:
@@ -306,7 +317,7 @@ class FlextDbOracleConnection:
             # Clean up references even if disposal fails
             self._engine = None
             self._session_factory = None
-            error_msg = f"Failed to close connection: {e}"
+            error_msg: str = f"Failed to close connection: {e}"
             self._logger.exception(error_msg)
             return FlextResult.fail(error_msg)
 
@@ -322,16 +333,17 @@ class FlextDbOracleConnection:
         """Test database connection."""
         connection_check = self._ensure_connected()
         if connection_check.is_failure:
-            return FlextResult.fail(connection_check.error)
+            return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
             result = self.execute(ORACLE_TEST_QUERY)
-            return FlextResult.ok(result.is_success)
+            return FlextResult.ok(result.success)
         except (SQLAlchemyError, OSError, ValueError, AttributeError, Exception) as e:
             return self._handle_database_error_simple("Connection test failed", e)
 
     def _build_table_names_query(
-        self, schema_name: str | None = None,
+        self,
+        schema_name: str | None = None,
     ) -> tuple[str, dict[str, object]]:
         """Build table names query with parameters - DRY pattern for table queries."""
         if schema_name:
@@ -339,7 +351,7 @@ class FlextDbOracleConnection:
             params: dict[str, object] = {"schema_name": schema_name}
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
-            params: dict[str, object] = {}
+            params = {}
         return sql, params
 
     def get_table_names(self, schema_name: str | None = None) -> FlextResult[list[str]]:
@@ -437,7 +449,7 @@ class FlextDbOracleConnection:
         sql = base_sql.format(table_view=table_view, where_clause=where_clause)
         return sql, params
 
-    def _convert_column_row_to_dict(self, row: object) -> dict[str, object]:
+    def _convert_column_row_to_dict(self, row: Sequence[object]) -> dict[str, object]:
         """Convert Oracle column row to dictionary - Single Responsibility."""
         return {
             "column_name": str(row[0]),
@@ -463,7 +475,7 @@ class FlextDbOracleConnection:
 
         # MYPY FIX: Safe type conversion for column information
         columns: list[dict[str, object]] = [
-            self._convert_column_row_to_dict(row)
+            self._convert_column_row_to_dict(cast("Sequence[object]", row))
             for row in result.data or []
             if hasattr(row, "__getitem__")
             and hasattr(row, "__len__")
@@ -690,14 +702,15 @@ class FlextDbOracleConnection:
         """Generate CREATE TABLE DDL (consolidated from services)."""
         try:
             full_table_name = self._build_table_name(table_name, schema_name)
-            column_defs = []
+            column_defs: list[str] = []
 
             # Build column definitions
             for col in columns:
                 col_def_result = self._build_column_definition(col)
                 if col_def_result.is_failure:
                     return col_def_result
-                column_defs.append(col_def_result.data)
+                # col_def_result.data is guaranteed to be str from FlextResult.ok(col_def)
+                column_defs.append(col_def_result.data or "")
 
             # Add PRIMARY KEY constraint if any columns are marked as primary key
             primary_key_columns = self._collect_primary_key_columns(columns)
@@ -736,7 +749,7 @@ class FlextDbOracleConnection:
         """Execute DDL statement (consolidated from services)."""
         try:
             result = self.execute(ddl)
-            if result.is_success:
+            if result.success:
                 return FlextResult.ok(data=True)
             return FlextResult.fail(result.error or "DDL execution failed")
 
@@ -779,7 +792,8 @@ class FlextDbOracleConnection:
             return self._handle_database_error_simple("Type conversion failed", e)
 
     def _validate_singer_properties(
-        self, singer_schema: dict[str, object],
+        self,
+        singer_schema: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         """Validate Singer schema properties - Single Responsibility."""
         properties = singer_schema.get("properties", {})
@@ -788,11 +802,25 @@ class FlextDbOracleConnection:
         return FlextResult.ok(properties)
 
     def _map_single_field(
-        self, field_name: str, field_def: dict[str, object],
+        self,
+        field_name: str,
+        field_def: dict[str, object],
     ) -> FlextResult[tuple[str, str]]:
         """Map single Singer field to Oracle column - Single Responsibility."""
-        field_type = field_def.get("type", "string")
-        format_hint = field_def.get("format")
+        field_type_obj = field_def.get("type", "string")
+        format_hint_obj = field_def.get("format")
+
+        # Safe casting for Singer field types
+        if isinstance(field_type_obj, (str, list)):
+            field_type = field_type_obj
+        else:
+            field_type = "string"  # Default fallback
+
+        # Safe casting for format hint
+        if isinstance(format_hint_obj, str) or format_hint_obj is None:
+            format_hint = format_hint_obj
+        else:
+            format_hint = None  # Default fallback
 
         type_result = self.convert_singer_type(field_type, format_hint)
         if type_result.is_failure:
@@ -810,9 +838,15 @@ class FlextDbOracleConnection:
             # Validate properties
             properties_result = self._validate_singer_properties(singer_schema)
             if properties_result.is_failure:
-                return properties_result
+                # Convert FlextResult[dict[str, object]] to FlextResult[dict[str, str]]
+                return FlextResult.fail(
+                    properties_result.error or "Schema validation failed",
+                )
 
             properties = properties_result.data
+            if not properties:
+                return FlextResult.ok({})
+
             oracle_columns: dict[str, str] = {}
 
             # Process each field
@@ -822,10 +856,15 @@ class FlextDbOracleConnection:
 
                 field_result = self._map_single_field(field_name, field_def)
                 if field_result.is_failure:
-                    return field_result
+                    # Convert FlextResult[tuple[str, str]] to FlextResult[dict[str, str]]
+                    return FlextResult.fail(
+                        field_result.error or "Field mapping failed",
+                    )
 
-                name, oracle_type = field_result.data
-                oracle_columns[name] = oracle_type
+                field_data = field_result.data
+                if field_data:  # field_data is tuple[str, str]
+                    name, oracle_type = field_data
+                    oracle_columns[name] = oracle_type
 
             return FlextResult.ok(oracle_columns)
 
@@ -855,4 +894,4 @@ class FlextDbOracleConnection:
             return self._handle_database_error_simple("URL building failed", e)
 
 
-__all__ = ["FlextDbOracleConnection"]
+__all__: list[str] = ["FlextDbOracleConnection"]

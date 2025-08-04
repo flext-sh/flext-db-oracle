@@ -84,7 +84,7 @@ FlextDbOracleMetadataError = _create_oracle_domain_exception_class(
 )
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextDbOracleAuthenticationError",
     "FlextDbOracleConfigurationError",
     "FlextDbOracleConnectionError",

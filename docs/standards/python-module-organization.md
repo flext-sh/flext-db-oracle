@@ -70,7 +70,7 @@ connection = FlextDbOracleConnection(config)
 
 # Connection with enterprise features
 connect_result = connection.create_pool()
-if connect_result.is_success:
+if connect_result.success:
     # Oracle connection pool ready with SSL/TLS
     pass
 ```
@@ -95,7 +95,7 @@ from flext_db_oracle import FlextDbOracleApi
 api = FlextDbOracleApi.from_env("production")
 connect_result = api.connect()
 
-if connect_result.is_success:
+if connect_result.success:
     # Execute queries with Oracle optimizations
     query_result = api.execute_query(
         "SELECT * FROM employees WHERE department_id = :dept_id",
@@ -147,7 +147,7 @@ class FlextDbOracleSchema(FlextEntity):
 metadata_manager = FlextDbOracleMetadataManager(connection)
 schema_result = metadata_manager.get_schema_metadata("HR")
 
-if schema_result.is_success:
+if schema_result.success:
     schema = schema_result.value
     docs_result = schema.generate_documentation()
 ```
@@ -179,7 +179,7 @@ class MyOracleTap(FlextOracleBaseTap):
         # Use FLEXT DB Oracle metadata for automatic discovery
         schema_result = self.oracle_api.get_schema_metadata(self.config.schema)
 
-        if schema_result.is_success:
+        if schema_result.success:
             return oracle_schema_to_singer_catalog(schema_result.value)
 
         return []
@@ -574,7 +574,7 @@ class RobustOracleConnection:
 
         result = operation()
 
-        if result.is_success:
+        if result.success:
             return result
 
         # Check for recoverable Oracle errors
@@ -583,7 +583,7 @@ class RobustOracleConnection:
             time.sleep(self.retry_delay)
             reconnect_result = self.connection.create_pool()
 
-            if reconnect_result.is_success:
+            if reconnect_result.success:
                 return self._retry_operation(operation, attempts - 1)
 
         return result
@@ -934,7 +934,7 @@ class TestOracleIntegration:
         """Test Oracle database connection"""
         status_result = oracle_api.get_connection_status()
 
-        assert status_result.is_success
+        assert status_result.success
         assert status_result.value.is_connected
         assert status_result.value.active_connections > 0
 
@@ -951,7 +951,7 @@ class TestOracleIntegration:
             "salary": 75000.00
         })
 
-        assert insert_result.is_success
+        assert insert_result.success
 
         # Query test data
         query_result = oracle_api.execute_query("""
@@ -960,7 +960,7 @@ class TestOracleIntegration:
             WHERE employee_id = :emp_id
         """, {"emp_id": 1})
 
-        assert query_result.is_success
+        assert query_result.success
         assert len(query_result.value.rows) == 1
 
         row = query_result.value.rows[0]
@@ -985,7 +985,7 @@ class TestOracleIntegration:
             batch_size=1000
         )
 
-        assert bulk_result.is_success
+        assert bulk_result.success
         assert bulk_result.value == 3  # 3 rows inserted
 
         # Verify bulk insert
@@ -993,14 +993,14 @@ class TestOracleIntegration:
             "SELECT COUNT(*) FROM test_employees WHERE employee_id IN (2, 3, 4)"
         )
 
-        assert count_result.is_success
+        assert count_result.success
         assert count_result.value.rows[0][0] == 3
 
     def test_oracle_metadata_extraction(self, oracle_api: FlextDbOracleApi):
         """Test Oracle schema metadata extraction"""
         metadata_result = oracle_api.get_schema_metadata("TESTSCHEMA")
 
-        assert metadata_result.is_success
+        assert metadata_result.success
 
         schema = metadata_result.value
         assert schema.name == "TESTSCHEMA"
@@ -1048,7 +1048,7 @@ class TestOraclePerformance:
         execution_time = time.time() - start_time
 
         # Verify all queries succeeded
-        assert all(result.is_success for result in query_results)
+        assert all(result.success for result in query_results)
 
         # Performance assertion (adjust based on environment)
         assert execution_time < 10.0  # Should complete in under 10 seconds
@@ -1079,7 +1079,7 @@ class TestOraclePerformance:
 
         execution_time = time.time() - start_time
 
-        assert bulk_result.is_success
+        assert bulk_result.success
         assert bulk_result.value == 10000
 
         # Performance assertion (adjust based on environment)

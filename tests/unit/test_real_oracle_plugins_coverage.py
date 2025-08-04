@@ -10,6 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleConfig
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -24,22 +28,24 @@ class TestRealOraclePluginsCoverageBoost:
     """Test Oracle plugins to boost coverage from 16% to higher."""
 
     def test_real_plugins_data_validation_internal_functions(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test data validation plugin internal functions (lines 69-83)."""
         # Connect first
-        connected_api = oracle_api.connect()
+        oracle_api.connect()
 
         # Create validation plugin (no parameters needed)
         plugin_result = create_data_validation_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Test the plugin with various data types to trigger validation paths
         test_data_sets = [
             {"employee_id": 123, "name": "John Doe"},  # Valid
-            {"employee_id": "abc", "name": "Jane"},    # String ID
+            {"employee_id": "abc", "name": "Jane"},  # String ID
             {"employee_id": 456, "description": "x" * 5000},  # Long string
-            {"invalid_id": None, "name": "Test"},      # None ID value
+            {"invalid_id": None, "name": "Test"},  # None ID value
         ]
 
         plugin = plugin_result.data
@@ -49,22 +55,24 @@ class TestRealOraclePluginsCoverageBoost:
             assert result is not None
 
     def test_real_plugins_business_rules_validation(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test business rules validation (lines 86-103)."""
         # Connect first
-        connected_api = oracle_api.connect()
+        oracle_api.connect()
 
         # Create validation plugin (no parameters needed)
         plugin_result = create_data_validation_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Test business rule validation paths
         business_test_data = [
-            {"salary": -1000},                    # Negative salary
-            {"hire_date": "2030-01-01"},         # Future hire date
-            {"email": "invalid-email"},          # Invalid email format
-            {"department_id": 999999},           # Non-existent department
+            {"salary": -1000},  # Negative salary
+            {"hire_date": "2030-01-01"},  # Future hire date
+            {"email": "invalid-email"},  # Invalid email format
+            {"department_id": 999999},  # Non-existent department
         ]
 
         plugin = plugin_result.data
@@ -74,15 +82,17 @@ class TestRealOraclePluginsCoverageBoost:
             assert result is not None
 
     def test_real_plugins_performance_monitoring_execution(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test performance monitoring plugin execution (lines 337-385)."""
         # Connect first
-        connected_api = oracle_api.connect()
+        oracle_api.connect()
 
         # Create performance monitor plugin (no parameters needed)
         plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Execute plugin with different query types to trigger monitoring paths
         query_types = [
@@ -98,15 +108,17 @@ class TestRealOraclePluginsCoverageBoost:
             assert result is not None
 
     def test_real_plugins_security_audit_comprehensive(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test security audit plugin comprehensive functionality (lines 111-148)."""
         # Connect first
-        connected_api = oracle_api.connect()
+        oracle_api.connect()
 
         # Create security audit plugin (no parameters needed)
         plugin_result = create_security_audit_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Test security audit with various scenarios
         security_scenarios = [
@@ -123,16 +135,18 @@ class TestRealOraclePluginsCoverageBoost:
             assert result is not None
 
     def test_real_plugins_registration_comprehensive(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test comprehensive plugin registration (lines 223-241)."""
         # Connect first
         connected_api = oracle_api.connect()
 
         # Test plugin registration multiple times
-        for i in range(3):
+        for _i in range(3):
             result = register_all_oracle_plugins(connected_api)
-            assert result.is_success
+            assert result.success
 
             # Should maintain consistent plugin count
             plugins = result.data
@@ -140,12 +154,13 @@ class TestRealOraclePluginsCoverageBoost:
             assert len(plugins) >= 3  # At least validation, performance, security
 
     def test_real_plugins_error_handling_paths(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test plugin error handling paths (lines 156-196)."""
-
         # Create API with valid config but don't connect
-        api = FlextDbOracleApi(real_oracle_config)
+        FlextDbOracleApi(real_oracle_config)
 
         # Try to create plugins without connection (should handle gracefully)
         validation_result = create_data_validation_plugin()
@@ -154,20 +169,22 @@ class TestRealOraclePluginsCoverageBoost:
 
         # Should handle missing connection gracefully
         # (May succeed with default behavior or fail gracefully)
-        assert validation_result.is_success or validation_result.is_failure
-        assert performance_result.is_success or performance_result.is_failure
-        assert security_result.is_success or security_result.is_failure
+        assert validation_result.success or validation_result.is_failure
+        assert performance_result.success or performance_result.is_failure
+        assert security_result.success or security_result.is_failure
 
     def test_real_plugins_monitoring_advanced_features(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test advanced monitoring features (lines 534-584)."""
         # Connect first
-        connected_api = oracle_api.connect()
+        oracle_api.connect()
 
         # Create performance monitor (no parameters needed)
         plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Test advanced monitoring scenarios
         advanced_scenarios = [
@@ -188,7 +205,9 @@ class TestRealOraclePluginsIntegration:
     """Test plugin integration scenarios for maximum coverage."""
 
     def test_real_plugins_full_workflow_integration(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test full plugin workflow integration."""
         # Connect first
@@ -196,26 +215,20 @@ class TestRealOraclePluginsIntegration:
 
         # Register all plugins
         register_result = register_all_oracle_plugins(connected_api)
-        assert register_result.is_success
+        assert register_result.success
 
         plugins = register_result.data
 
         # Test each plugin type with realistic data
-        test_data = {
-            "employee_id": 1001,
-            "first_name": "John",
-            "last_name": "Doe",
-            "email": "john.doe@company.com",
-            "salary": 75000,
-            "hire_date": "2024-01-15",
-        }
 
         # Should have registered multiple plugins
         assert len(plugins) >= 3
         assert "data_validation" in plugins or "validation" in str(plugins).lower()
 
     def test_real_plugins_performance_under_load(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test plugin performance under load scenarios."""
         # Connect first
@@ -223,15 +236,17 @@ class TestRealOraclePluginsIntegration:
 
         # Create performance plugin
         plugin_result = create_performance_monitor_plugin(connected_api)
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         plugin = plugin_result.data
 
         # Simulate load testing
         for i in range(10):
-            result = plugin({
-                "query": f"SELECT {i} FROM DUAL",
-                "iteration": i,
-                "batch": "load_test",
-            })
+            result = plugin(
+                {
+                    "query": f"SELECT {i} FROM DUAL",
+                    "iteration": i,
+                    "batch": "load_test",
+                },
+            )
             assert result is not None

@@ -110,14 +110,14 @@ def test_oracle_connection():
     print("🔌 Testing Oracle connection...")
     connect_result = api.connect()
 
-    if connect_result.is_success:
+    if connect_result.success:
         print("✅ Connection successful!")
 
         # Test basic query
         print("🔍 Testing basic query...")
         query_result = api.execute_query("SELECT 1 FROM DUAL")
 
-        if query_result.is_success:
+        if query_result.success:
             print("✅ Query test successful!")
             print(f"Result: {query_result.value.rows}")
         else:
@@ -162,11 +162,11 @@ api = FlextDbOracleApi(config)
 
 # Connect and execute query
 connect_result = api.connect()
-if connect_result.is_success:
+if connect_result.success:
     # Simple query
     result = api.execute_query("SELECT * FROM employees WHERE department_id = 10")
 
-    if result.is_success:
+    if result.success:
         print(f"Found {len(result.value.rows)} employees")
         for row in result.value.rows:
             print(row)
@@ -177,7 +177,7 @@ if connect_result.is_success:
         {"dept_id": 10, "min_salary": 50000}
     )
 
-    if result.is_success:
+    if result.success:
         print(f"Found {len(result.value.rows)} high-paid employees")
 
     api.disconnect()
@@ -194,7 +194,7 @@ api.connect()
 
 # Get schema metadata
 schema_result = api.get_schema_metadata("HR")
-if schema_result.is_success:
+if schema_result.success:
     schema = schema_result.value
 
     print(f"📊 Schema '{schema.name}' Analysis:")
@@ -239,7 +239,7 @@ bulk_result = api.bulk_insert(
     batch_size=1000
 )
 
-if bulk_result.is_success:
+if bulk_result.success:
     print(f"✅ Successfully inserted {bulk_result.value} rows")
 else:
     print(f"❌ Bulk insert failed: {bulk_result.error}")
@@ -287,7 +287,7 @@ def test_docker_oracle():
     print("🐳 Testing Docker Oracle XE connection...")
     connect_result = api.connect()
 
-    if connect_result.is_success:
+    if connect_result.success:
         print("✅ Docker Oracle connection successful!")
 
         # Create test table
@@ -300,7 +300,7 @@ def test_docker_oracle():
         """
 
         create_result = api.execute_ddl(ddl)
-        if create_result.is_success:
+        if create_result.success:
             print("✅ Test table created")
 
             # Insert test data
@@ -309,12 +309,12 @@ def test_docker_oracle():
                 {"id": 1, "name": "Quick Start Test"}
             )
 
-            if insert_result.is_success:
+            if insert_result.success:
                 print("✅ Test data inserted")
 
                 # Query test data
                 select_result = api.execute_query("SELECT * FROM test_quickstart")
-                if select_result.is_success:
+                if select_result.success:
                     print(f"✅ Retrieved {len(select_result.value.rows)} rows")
                     print(f"Data: {select_result.value.rows}")
 
@@ -338,8 +338,8 @@ python -c "
 from flext_db_oracle import FlextDbOracleApi
 api = FlextDbOracleApi.from_env()
 result = api.connect()
-print('✅ Connected!' if result.is_success else f'❌ Failed: {result.error}')
-api.disconnect() if result.is_success else None
+print('✅ Connected!' if result.success else f'❌ Failed: {result.error}')
+api.disconnect() if result.success else None
 "
 ```
 
@@ -362,7 +362,7 @@ from flext_db_oracle import FlextDbOracleApi
 api = FlextDbOracleApi.from_env()
 api.connect()
 result = api.execute_query('SELECT COUNT(*) FROM user_tables')
-print(f'✅ Schema access OK: {result.value.rows[0][0]} tables' if result.is_success else f'❌ Schema access failed: {result.error}')
+print(f'✅ Schema access OK: {result.value.rows[0][0]} tables' if result.success else f'❌ Schema access failed: {result.error}')
 api.disconnect()
 "
 ```

@@ -27,7 +27,7 @@ Example:
     >>>
     >>> # Register all built-in plugins
     >>> register_result = register_all_oracle_plugins(api)
-    >>> if register_result.is_success:
+    >>> if register_result.success:
     ...     print("All plugins registered successfully")
     >>>
     >>> # Use performance monitoring plugin
@@ -50,7 +50,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from flext_core import FlextResult, get_logger
 from flext_plugin import FlextPlugin, create_flext_plugin
@@ -181,7 +181,7 @@ def _validate_table_structure(
     # Check if table exists - usando API real - refatoração DRY
     try:
         tables_result = api.get_tables()
-        if tables_result.is_success and tables_result.data:
+        if tables_result.success and tables_result.data:
             table_names = [
                 getattr(t, "name", str(t)) if hasattr(t, "name") else str(t)
                 for t in tables_result.data
@@ -317,9 +317,14 @@ class OraclePluginHandler:
         return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
 
 
-def _create_plugin_via_factory(factory_method) -> FlextResult[FlextPlugin]:
+def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
     """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
-    return factory_method()
+    if callable(factory_method):
+        result = factory_method()
+        if hasattr(result, "success") and hasattr(result, "data"):
+            return cast("FlextResult[FlextPlugin]", result)
+        return FlextResult.fail("Factory method returned invalid result")
+    return FlextResult.fail("Factory method is not callable")
 
 
 def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
@@ -595,21 +600,25 @@ ORACLE_PLUGINS = {
 def _register_single_plugin(
     api: FlextDbOracleApi,
     plugin_name: str,
-    plugin_creator,
+    plugin_creator: object,
 ) -> str:
     """DRY helper: Register single plugin and return status message."""
     try:
-        plugin_result = plugin_creator()
-        if plugin_result.is_success:
-            plugin = plugin_result.data
-            # Type annotation explícita para plugin - refatoração DRY real
-            if plugin is not None:
-                register_result = api.register_plugin(plugin)
-                if register_result.is_success:
-                    return "registered"
-                return f"failed: {register_result.error}"
-            return "failed: plugin is None"
-        return f"creation_failed: {plugin_result.error}"
+        if callable(plugin_creator):
+            plugin_result = plugin_creator()
+        else:
+            return f"❌ {plugin_name}: Plugin creator is not callable"
+        if not plugin_result.success:
+            return f"creation_failed: {plugin_result.error}"
+
+        plugin = plugin_result.data
+        # Type annotation explícita para plugin - refatoração DRY real
+        if plugin is not None:
+            register_result = api.register_plugin(plugin)
+            if register_result.success:
+                return "registered"
+            return f"failed: {register_result.error}"
+        return "failed: plugin is None"  # noqa: TRY300
     except Exception as e:  # noqa: BLE001
         return f"error: {e}"
 
@@ -624,7 +633,7 @@ def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, 
     return FlextResult.ok(results)
 
 
-__all__ = [
+__all__: list[str] = [
     "ORACLE_PLUGINS",
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",

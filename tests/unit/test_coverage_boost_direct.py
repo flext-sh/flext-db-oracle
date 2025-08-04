@@ -10,15 +10,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleApi
 
 
 class TestDirectCoverageBoostAPI:
     """Direct tests for API module missed lines (40% → higher)."""
 
     def test_api_connection_error_paths_571_610(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
@@ -34,19 +40,21 @@ class TestDirectCoverageBoostAPI:
 
         # Try operations that should trigger connection error paths
         operations = [
-            lambda: api.test_connection(),
-            lambda: api.get_schemas(),
-            lambda: api.get_tables(),
+            api.test_connection,
+            api.get_schemas,
+            api.get_tables,
             lambda: api.query("SELECT 1 FROM DUAL"),
         ]
 
         for operation in operations:
             result = operation()
             # Should handle errors gracefully
-            assert result.is_failure or result.is_success
+            assert result.is_failure or result.success
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
         # Connect first
@@ -60,18 +68,24 @@ class TestDirectCoverageBoostAPI:
             for schema in schema_names:
                 # These should exercise different code paths
                 tables_result = connected_api.get_tables(schema)
-                columns_result = connected_api.get_columns("DUAL", schema) if schema != "NONEXISTENT" else None
+                columns_result = (
+                    connected_api.get_columns("DUAL", schema)
+                    if schema != "NONEXISTENT"
+                    else None
+                )
 
                 # Should handle various scenarios
-                assert tables_result.is_success or tables_result.is_failure
+                assert tables_result.success or tables_result.is_failure
                 if columns_result:
-                    assert columns_result.is_success or columns_result.is_failure
+                    assert columns_result.success or columns_result.is_failure
 
         finally:
             connected_api.disconnect()
 
     def test_api_query_optimization_758_798(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test API query optimization paths (lines 758-798)."""
         # Connect first
@@ -89,7 +103,7 @@ class TestDirectCoverageBoostAPI:
             for query in complex_queries:
                 result = connected_api.query(query)
                 # Should handle different query types
-                assert result.is_success or result.is_failure
+                assert result.success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -103,14 +117,56 @@ class TestDirectCoverageBoostConfig:
         # Test various config scenarios that might not be covered
         test_cases = [
             # Empty/invalid values
-            {"host": "", "port": 1521, "username": "test", "password": "test", "service_name": "test"},
-            {"host": "localhost", "port": 0, "username": "test", "password": "test", "service_name": "test"},
-            {"host": "localhost", "port": 1521, "username": "", "password": "test", "service_name": "test"},
-            {"host": "localhost", "port": 1521, "username": "test", "password": "", "service_name": "test"},
-            {"host": "localhost", "port": 1521, "username": "test", "password": "test", "service_name": ""},
+            {
+                "host": "",
+                "port": 1521,
+                "username": "test",
+                "password": "test",
+                "service_name": "test",
+            },
+            {
+                "host": "localhost",
+                "port": 0,
+                "username": "test",
+                "password": "test",
+                "service_name": "test",
+            },
+            {
+                "host": "localhost",
+                "port": 1521,
+                "username": "",
+                "password": "test",
+                "service_name": "test",
+            },
+            {
+                "host": "localhost",
+                "port": 1521,
+                "username": "test",
+                "password": "",
+                "service_name": "test",
+            },
+            {
+                "host": "localhost",
+                "port": 1521,
+                "username": "test",
+                "password": "test",
+                "service_name": "",
+            },
             # Edge values
-            {"host": "localhost", "port": 65535, "username": "test", "password": "test", "service_name": "test"},
-            {"host": "localhost", "port": 1, "username": "test", "password": "test", "service_name": "test"},
+            {
+                "host": "localhost",
+                "port": 65535,
+                "username": "test",
+                "password": "test",
+                "service_name": "test",
+            },
+            {
+                "host": "localhost",
+                "port": 1,
+                "username": "test",
+                "password": "test",
+                "service_name": "test",
+            },
         ]
 
         for case in test_cases:
@@ -167,7 +223,7 @@ class TestDirectCoverageBoostConfig:
 class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
-    def test_connection_edge_cases(self, real_oracle_config) -> None:
+    def test_connection_edge_cases(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test connection edge cases for missed lines."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -175,9 +231,9 @@ class TestDirectCoverageBoostConnection:
         connection = FlextDbOracleConnection(real_oracle_config)
 
         # Test multiple connect/disconnect cycles
-        for i in range(3):
+        for _i in range(3):
             result = connection.connect()
-            if result.is_success:
+            if result.success:
                 # Test connection status
                 assert connection._engine is not None
 
@@ -202,8 +258,8 @@ class TestDirectCoverageBoostConnection:
 
         # Test operations on invalid connection
         operations = [
-            lambda: connection.test_connection(),
-            lambda: connection.get_schemas(),
+            connection.test_connection,
+            connection.get_schemas,
             lambda: connection.get_table_names("test"),
             lambda: connection.execute_query("SELECT 1 FROM DUAL"),
         ]
@@ -212,7 +268,7 @@ class TestDirectCoverageBoostConnection:
             try:
                 result = operation()
                 # Should handle errors gracefully
-                assert result.is_failure or result.is_success
+                assert result.is_failure or result.success
             except (AttributeError, TypeError):
                 # Some operations might not exist or have different signatures
                 pass
@@ -225,8 +281,8 @@ class TestDirectCoverageBoostTypes:
         """Test comprehensive type validation for missed lines."""
         from flext_db_oracle.types import (
             TDbOracleColumn,
-            TDbOracleTable,
             TDbOracleSchema,
+            TDbOracleTable,
         )
 
         # Test various type validation scenarios
@@ -312,15 +368,17 @@ class TestDirectCoverageBoostObservability:
         try:
             obs = FlextDbOracleObservabilityManager()
             # Test basic functionality if available
-            if hasattr(obs, 'start_monitoring'):
+            if hasattr(obs, "start_monitoring"):
                 obs.start_monitoring()
-            if hasattr(obs, 'stop_monitoring'):
+            if hasattr(obs, "stop_monitoring"):
                 obs.stop_monitoring()
         except (TypeError, AttributeError, ImportError):
             # Handle if observability not fully implemented
             pass
 
-    def test_observability_metrics_collection(self, oracle_api, oracle_container) -> None:
+    def test_observability_metrics_collection(
+        self, oracle_api, oracle_container,
+    ) -> None:
         """Test observability metrics collection."""
         # Connect first
         connected_api = oracle_api.connect()

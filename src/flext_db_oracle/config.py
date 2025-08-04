@@ -25,7 +25,7 @@ Example:
     >>> os.environ["FLEXT_TARGET_ORACLE_HOST"] = "oracle-prod.company.com"
     >>> os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "app_user"
     >>> config_result = FlextDbOracleConfig.from_env()
-    >>> if config_result.is_success:
+    >>> if config_result.success:
     ...     config = config_result.value
     ...     print(f"Connected to {config.get_connection_string()}")
 
@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import os
 import urllib.parse
+from typing import TypeVar
 
 from flext_core import (
     FlextOracleConfig,
@@ -58,13 +59,15 @@ from .constants import (
     ORACLE_DEFAULT_PORT,
 )
 
+T = TypeVar("T")
+
 logger = get_logger(__name__)
 
 
 def _handle_config_operation_error(
     operation: str,
     exception: Exception,
-) -> FlextResult[None]:
+) -> FlextResult[T]:
     """DRY helper: Handle configuration operation errors with consistent formatting.
 
     Args:
@@ -380,4 +383,4 @@ class FlextDbOracleConfig(FlextOracleConfig):
         return f"FlextDbOracleConfig(host={self.host}, port={self.port}, username={self.username}, service_name={self.service_name})"
 
 
-__all__ = ["FlextDbOracleConfig"]
+__all__: list[str] = ["FlextDbOracleConfig"]

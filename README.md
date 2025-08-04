@@ -133,7 +133,7 @@ if connection_result.is_failure:
 
 # Execute query with type safety
 query_result = api.execute_query("SELECT * FROM employees WHERE department_id = :dept_id", {"dept_id": 10})
-if query_result.is_success:
+if query_result.success:
     for row in query_result.value.rows:
         print(row)
 else:
@@ -153,7 +153,7 @@ metadata_manager = FlextDbOracleMetadataManager(api.connection)
 
 # Extract complete schema information
 schema_result = metadata_manager.get_schema_metadata("HR")
-if schema_result.is_success:
+if schema_result.success:
     schema = schema_result.value
     print(f"Schema has {len(schema.tables)} tables")
     for table in schema.tables:
@@ -161,7 +161,7 @@ if schema_result.is_success:
 
 # Generate DDL for specific table
 ddl_result = metadata_manager.generate_table_ddl("EMPLOYEES", "HR")
-if ddl_result.is_success:
+if ddl_result.success:
     print(ddl_result.value)
 ```
 
@@ -180,7 +180,7 @@ validation_result = api.execute_with_plugins("data_validation", {
     "validation_rules": ["not_null", "foreign_key"]
 })
 
-if validation_result.is_success:
+if validation_result.success:
     print("Data validation passed")
 else:
     print(f"Validation errors: {validation_result.error}")

@@ -10,7 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleConfig
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
@@ -19,7 +23,9 @@ class TestAPIMissedLines:
     """Target specific missed lines in api.py (40% → ~100%)."""
 
     def test_api_error_handling_methods_107_109(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test API error handling methods (EXACT lines 107-109)."""
         # Connect to have a real API instance
@@ -29,7 +35,9 @@ class TestAPIMissedLines:
         # We need to trigger the _handle_error_with_logging method
         try:
             # Mock an internal method to raise an exception
-            with patch.object(connected_api._connection, 'get_table_names') as mock_method:
+            with patch.object(
+                connected_api._connection, "get_table_names",
+            ) as mock_method:
                 mock_method.side_effect = Exception("Forced test exception")
 
                 # This should trigger the error handling path
@@ -43,7 +51,9 @@ class TestAPIMissedLines:
             connected_api.disconnect()
 
     def test_api_connection_manager_lines_117_133(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config,
+        oracle_container,
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
         # Create API without connecting
@@ -51,18 +61,20 @@ class TestAPIMissedLines:
 
         # Try to call methods that should trigger connection manager paths
         operations_to_test = [
-            lambda: api.test_connection(),
-            lambda: api.get_schemas(),
-            lambda: api.get_tables(),
+            api.test_connection,
+            api.get_schemas,
+            api.get_tables,
         ]
 
         for operation in operations_to_test:
             result = operation()
             # These should either succeed (if connection works) or fail gracefully
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
     def test_api_query_operations_571_610(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test query operations error paths (EXACT lines 571-610)."""
         # Connect first
@@ -87,7 +99,9 @@ class TestAPIMissedLines:
             connected_api.disconnect()
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test schema operations paths (EXACT lines 1038-1058)."""
         # Connect first
@@ -97,15 +111,17 @@ class TestAPIMissedLines:
             # Test operations that should trigger schema operation paths
             schema_operations = [
                 lambda: connected_api.get_tables("NONEXISTENT_SCHEMA"),
-                lambda: connected_api.get_columns("NONEXISTENT_TABLE", "NONEXISTENT_SCHEMA"),
-                lambda: connected_api.get_schemas(),  # Should work
+                lambda: connected_api.get_columns(
+                    "NONEXISTENT_TABLE", "NONEXISTENT_SCHEMA",
+                ),
+                connected_api.get_schemas,  # Should work
                 lambda: connected_api.get_tables("FLEXTTEST"),  # Should work
             ]
 
             for operation in schema_operations:
                 result = operation()
                 # Should handle both success and failure cases
-                assert result.is_success or result.is_failure
+                assert result.success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -114,7 +130,7 @@ class TestAPIMissedLines:
 class TestConnectionMissedLines:
     """Target specific missed lines in connection.py (54% → ~100%)."""
 
-    def test_connection_error_paths_73_77(self, real_oracle_config) -> None:
+    def test_connection_error_paths_73_77(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -131,18 +147,20 @@ class TestConnectionMissedLines:
 
         # Try operations that should trigger error handling paths
         error_operations = [
-            lambda: connection.connect(),
-            lambda: connection.test_connection(),
-            lambda: connection.get_schemas(),
+            connection.connect,
+            connection.test_connection,
+            connection.get_schemas,
         ]
 
         for operation in error_operations:
             result = operation()
             # Should handle connection errors gracefully
             # Note: test_connection() returns success=False for not connected state
-            assert result.is_failure or (hasattr(result, 'data') and result.data is False)
+            assert result.is_failure or (
+                hasattr(result, "data") and result.data is False
+            )
 
-    def test_connection_lifecycle_140_147(self, real_oracle_config) -> None:
+    def test_connection_lifecycle_140_147(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -151,10 +169,10 @@ class TestConnectionMissedLines:
         # Test connection lifecycle to trigger specific paths
         # Connect
         result1 = connection.connect()
-        if result1.is_success:
+        if result1.success:
             # Test connection status
             result2 = connection.test_connection()
-            assert result2.is_success or result2.is_failure
+            assert result2.success or result2.is_failure
 
             # Disconnect
             connection.disconnect()
@@ -216,9 +234,9 @@ class TestTypesMissedLines:
                 str_repr = str(column)
                 assert str_repr is not None
 
-            except (TypeError, ValueError) as e:
+            except (TypeError, ValueError):
                 # Should handle validation errors gracefully
-                assert str(e) is not None
+                pass  # Expected validation error
 
     def test_types_property_methods_175_187(self) -> None:
         """Test type property methods (EXACT lines 175-187)."""
@@ -336,9 +354,9 @@ class TestPluginsMissedLines:
         for plugin_creator in plugins_to_test:
             result = plugin_creator()
             # Should create plugin successfully or fail gracefully
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
-            if result.is_success:
+            if result.success:
                 plugin = result.data
                 # Plugin should be some kind of object
                 assert plugin is not None
@@ -350,6 +368,7 @@ class TestCLIMissedLines:
     def test_cli_parameter_processing_267_274(self) -> None:
         """Test CLI parameter processing (EXACT lines 267-274)."""
         from click.testing import CliRunner
+
         from flext_db_oracle import oracle_cli
 
         runner = CliRunner()
@@ -369,6 +388,7 @@ class TestCLIMissedLines:
     def test_cli_output_formatting_721_769(self) -> None:
         """Test CLI output formatting (EXACT lines 721-769)."""
         from click.testing import CliRunner
+
         from flext_db_oracle import oracle_cli
 
         runner = CliRunner()
@@ -377,8 +397,8 @@ class TestCLIMissedLines:
         # Only test formats that actually exist in the CLI
         format_tests = [
             ["schemas"],  # Default format
-            ["tables"],   # Default format
-            ["health"],   # Default format
+            ["tables"],  # Default format
+            ["health"],  # Default format
         ]
 
         for cmd in format_tests:

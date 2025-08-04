@@ -244,7 +244,7 @@ Following FLEXT Core patterns for consistent testing:
 ```python
 # FlextResult pattern testing
 result = api.connect()
-assert result.is_success
+assert result.success
 assert result.value is not None
 
 # Error testing
@@ -254,7 +254,7 @@ assert "Configuration invalid" in result.error
 
 # Domain validation testing
 validation_result = entity.validate_domain_rules()
-assert validation_result.is_success
+assert validation_result.success
 ```
 
 ## 🔧 Test Development Guidelines

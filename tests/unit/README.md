@@ -89,7 +89,7 @@ def test_connection_with_mocked_engine(mock_create_engine):
     result = connection.connect()
 
     # Assert
-    assert result.is_success
+    assert result.success
     mock_create_engine.assert_called_once()
 ```
 

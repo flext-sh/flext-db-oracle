@@ -23,33 +23,33 @@ from flext_db_oracle import (
 class TestRealOraclePlugins:
     """Test Oracle plugin system with real container."""
 
-    def test_real_plugins_create_performance(self, oracle_container) -> None:
+    def test_real_plugins_create_performance(self, oracle_container: None) -> None:
         """Test creating performance plugin with real Oracle."""
         plugin_result = create_performance_monitor_plugin()
 
-        assert plugin_result.is_success
+        assert plugin_result.success
         assert plugin_result.data is not None
         plugin = plugin_result.data
 
         # Test plugin was created successfully
         assert plugin is not None
 
-    def test_real_plugins_create_security(self, oracle_container) -> None:
+    def test_real_plugins_create_security(self, oracle_container: None) -> None:
         """Test creating security plugin with real Oracle."""
         plugin_result = create_security_audit_plugin()
 
-        assert plugin_result.is_success
+        assert plugin_result.success
         assert plugin_result.data is not None
         plugin = plugin_result.data
 
         # Test plugin was created successfully
         assert plugin is not None
 
-    def test_real_plugins_create_validation(self, oracle_container) -> None:
+    def test_real_plugins_create_validation(self, oracle_container: None) -> None:
         """Test creating validation plugin with real Oracle."""
         plugin_result = create_data_validation_plugin()
 
-        assert plugin_result.is_success
+        assert plugin_result.success
         assert plugin_result.data is not None
         plugin = plugin_result.data
 
@@ -57,7 +57,9 @@ class TestRealOraclePlugins:
         assert plugin is not None
 
     def test_real_plugins_register_all(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config,
+        oracle_container,
     ) -> None:
         """Test registering all Oracle plugins."""
         plugins_dict = {}
@@ -65,7 +67,7 @@ class TestRealOraclePlugins:
         # Register all plugins
         result = register_all_oracle_plugins(plugins_dict, real_oracle_config)
 
-        assert result.is_success
+        assert result.success
         assert isinstance(plugins_dict, dict)
         # May be empty if no plugins are registered by default
         assert len(plugins_dict) >= 0
@@ -78,30 +80,34 @@ class TestRealOraclePluginErrorHandling:
         """Test creating all plugin types."""
         # Performance plugin
         plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.is_success
+        assert plugin_result.success
 
         # Security plugin
         security_result = create_security_audit_plugin()
-        assert security_result.is_success
+        assert security_result.success
 
         # Validation plugin
         validation_result = create_data_validation_plugin()
-        assert validation_result.is_success
+        assert validation_result.success
 
     def test_real_plugins_register_with_empty_dict(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config,
+        oracle_container,
     ) -> None:
         """Test registering plugins with empty dictionary."""
         plugins_dict = {}
 
         result = register_all_oracle_plugins(plugins_dict, real_oracle_config)
 
-        assert result.is_success
+        assert result.success
         # Dictionary may be empty or populated depending on implementation
         assert isinstance(plugins_dict, dict)
 
     def test_real_plugins_register_multiple_times(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test registering plugins multiple times."""
         # Connect first
@@ -109,12 +115,12 @@ class TestRealOraclePluginErrorHandling:
 
         # Register once
         result1 = register_all_oracle_plugins(connected_api)
-        assert result1.is_success
+        assert result1.success
         first_count = len(result1.data)
 
         # Register again - should not fail
         result2 = register_all_oracle_plugins(connected_api)
-        assert result2.is_success
+        assert result2.success
 
         # Count should be consistent
         assert len(result2.data) >= first_count
@@ -124,39 +130,45 @@ class TestRealOraclePluginIntegration:
     """Test plugin integration with real Oracle operations."""
 
     def test_real_plugins_with_oracle_metadata(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test plugins integration with Oracle metadata operations."""
         # Create plugins
         perf_result = create_performance_monitor_plugin()
-        assert perf_result.is_success
+        assert perf_result.success
 
         security_result = create_security_audit_plugin()
-        assert security_result.is_success
+        assert security_result.success
 
         validation_result = create_data_validation_plugin()
-        assert validation_result.is_success
+        assert validation_result.success
 
         # Test that API operations still work with plugins created
         tables_result = oracle_api.get_tables()
-        assert tables_result.is_success
+        assert tables_result.success
 
     def test_real_plugins_with_oracle_connection(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test plugins with Oracle connection operations."""
         plugins_dict = {}
 
         # Register all plugins
         register_result = register_all_oracle_plugins(plugins_dict, oracle_api._config)
-        assert register_result.is_success
+        assert register_result.success
 
         # Test connection still works
         connection_result = oracle_api.test_connection()
-        assert connection_result.is_success
+        assert connection_result.success
 
     def test_real_plugins_with_query_operations(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test plugins with Oracle query operations."""
         # Create individual plugins
@@ -164,24 +176,26 @@ class TestRealOraclePluginIntegration:
         security_plugin = create_security_audit_plugin()
         validation_plugin = create_data_validation_plugin()
 
-        assert perf_plugin.is_success
-        assert security_plugin.is_success
-        assert validation_plugin.is_success
+        assert perf_plugin.success
+        assert security_plugin.success
+        assert validation_plugin.success
 
         # Test query operations still work
         query_result = oracle_api.query("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
-        assert query_result.is_success
+        assert query_result.success
         assert len(query_result.data) > 0
 
     def test_real_plugins_comprehensive_coverage(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test comprehensive plugin coverage with various Oracle operations."""
         plugins_dict = {}
 
         # Register all plugins
         register_result = register_all_oracle_plugins(plugins_dict, oracle_api._config)
-        assert register_result.is_success
+        assert register_result.success
 
         # Test various API operations to ensure plugins don't interfere
         operations = [
@@ -196,8 +210,8 @@ class TestRealOraclePluginIntegration:
             try:
                 result = operation()
                 # Operations should either succeed or fail gracefully
-                assert hasattr(result, "is_success")
-            except Exception as e:
+                assert hasattr(result, "success")
+            except (ValueError, TypeError, RuntimeError) as e:
                 # Should not raise unhandled exceptions
                 pytest.fail(f"Operation raised unhandled exception: {e}")
 
@@ -211,14 +225,16 @@ class TestRealOraclePluginIntegration:
         ]
 
         for plugin_result in plugins:
-            assert plugin_result.is_success
+            assert plugin_result.success
             plugin = plugin_result.data
             assert plugin is not None
             # Plugin should have some basic attributes or methods
             assert hasattr(plugin, "__class__")
 
     def test_real_plugins_with_different_configs(
-        self, real_oracle_config, oracle_container,
+        self,
+        real_oracle_config,
+        oracle_container,
     ) -> None:
         """Test plugins with different configuration objects."""
         from flext_db_oracle import FlextDbOracleConfig
@@ -240,8 +256,8 @@ class TestRealOraclePluginIntegration:
         result1 = register_all_oracle_plugins(plugins_dict1, real_oracle_config)
         result2 = register_all_oracle_plugins(plugins_dict2, alt_config)
 
-        assert result1.is_success
-        assert result2.is_success
+        assert result1.success
+        assert result2.success
 
         # Both should work with equivalent configs
         assert len(plugins_dict1) == len(plugins_dict2)

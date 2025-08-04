@@ -291,14 +291,14 @@ def test_api_query_execution(mock_oracle_connection):
     api = FlextDbOracleApi(config)
     api._connection = mock_oracle_connection
     result = api.query("SELECT 1 FROM DUAL")
-    assert result.is_success
+    assert result.success
 
 # Integration testing with real Oracle
 @pytest.mark.integration
 def test_oracle_connection_integration(oracle_config):
     connection = FlextDbOracleConnection(oracle_config)
     pool_result = connection.create_pool()
-    assert pool_result.is_success
+    assert pool_result.success
 ```
 
 ## 🔍 Development Guidelines

@@ -117,13 +117,13 @@ class TestOracleIntegration:
 
             # Execute query
             result = api.query("SELECT * FROM test_table")
-            assert result.is_success
+            assert result.success
             # Fix: result.data is a TDbOracleQueryResult object, access rows attribute directly
             assert result.data.rows == [("result",)]
 
             # Test single query
             single_result = api.query_one("SELECT COUNT(*) FROM test_table")
-            assert single_result.is_success
+            assert single_result.success
             assert single_result.data == ("single_result",)
 
             # Test DDL generation
@@ -134,7 +134,7 @@ class TestOracleIntegration:
                     {"name": "name", "type": "varchar2(100)", "nullable": True},
                 ],
             )
-            assert ddl_result.is_success
+            assert ddl_result.success
             assert "CREATE TABLE" in ddl_result.data
 
             # Disconnect
@@ -170,7 +170,7 @@ class TestOracleIntegration:
             # Test successful transaction
             with api.transaction() as tx_api:
                 result = tx_api.query("SELECT 1 FROM DUAL")
-                assert result.is_success
+                assert result.success
                 assert tx_api is api  # Should return the same API instance
 
     def test_batch_operations(
@@ -221,7 +221,7 @@ class TestOracleIntegration:
                 ]
 
                 result = api.execute_batch(operations)
-                assert result.is_success
+                assert result.success
                 assert len(result.data) == 3
                 # Fix: Access the actual TDbOracleQueryResult objects correctly
                 first_result = result.data[0]
@@ -256,16 +256,16 @@ class TestOracleIntegration:
 
             # Test table metadata
             table_meta_result = api.get_table_metadata("TEST_TABLE")
-            assert table_meta_result.is_success
+            assert table_meta_result.success
 
             # Test schema listing
             tables_result = api.get_tables()
-            assert tables_result.is_success
+            assert tables_result.success
             assert tables_result.data == ["TEST_TABLE"]
 
             # Test column information
             columns_result = api.get_columns("TEST_TABLE")
-            assert columns_result.is_success
+            assert columns_result.success
             assert len(columns_result.data) > 0
 
     def test_configuration_from_environment(self) -> None:
@@ -280,7 +280,7 @@ class TestOracleIntegration:
 
         with patch.dict(os.environ, env_vars):
             result = FlextDbOracleConfig.from_env()
-            assert result.is_success
+            assert result.success
 
             config = result.data
             assert config.host == "internal.invalid"
@@ -346,7 +346,7 @@ class TestOracleIntegration:
         ):
             with FlextDbOracleApi(mock_oracle_config) as api:
                 result = api.query("SELECT 1 FROM DUAL")
-                assert result.is_success
+                assert result.success
 
             # Verify connection was established and closed
             mock_connection.connect.assert_called()
@@ -394,7 +394,7 @@ class TestOracleIntegration:
 
             for singer_type, expected_oracle_type in conversions:
                 result = api.convert_singer_type(singer_type)
-                assert result.is_success
+                assert result.success
                 assert result.data == expected_oracle_type
 
     def test_ddl_generation_integration(
@@ -441,7 +441,7 @@ class TestOracleIntegration:
             ]
 
             create_result = api.create_table_ddl("users", columns, schema="test_schema")
-            assert create_result.is_success
+            assert create_result.success
             ddl = create_result.data
             assert "CREATE TABLE test_schema.users" in ddl
             assert "id number(10) NOT NULL" in ddl
@@ -451,5 +451,5 @@ class TestOracleIntegration:
 
             # Test DROP TABLE DDL
             drop_result = api.drop_table_ddl("users", schema="test_schema")
-            assert drop_result.is_success
+            assert drop_result.success
             assert drop_result.data == "DROP TABLE test_schema.users"

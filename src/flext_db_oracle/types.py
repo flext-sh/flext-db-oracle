@@ -30,7 +30,7 @@ Example:
     ...     is_primary_key=True,
     ... )
     >>> validation_result = column.validate_domain_rules()
-    >>> if validation_result.is_success:
+    >>> if validation_result.success:
     ...     print(f"Column type: {column.full_type_spec}")  # "NUMBER(10)"
 
 Integration:
@@ -353,7 +353,7 @@ class TDbOracleConnectionStatus(FlextValueObject):
         return f"{self.username}@{self.host}:{self.port}/{self.database}"
 
 
-__all__ = [
+__all__: list[str] = [
     "TDbOracleColumn",
     "TDbOracleConnectionStatus",
     "TDbOracleQueryResult",

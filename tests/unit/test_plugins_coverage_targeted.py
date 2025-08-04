@@ -1,7 +1,7 @@
 """Targeted Plugins Coverage Tests - Hit specific missed lines exactly.
 
 Focus on plugins.py lines that are not covered:
-- Lines 69-83: _validate_data_types function  
+- Lines 69-83: _validate_data_types function
 - Lines 91-103: _validate_business_rules function
 - Lines 223-241: Plugin creation functions
 
@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
 
 
 class TestPluginsValidationFunctions:
@@ -24,8 +23,8 @@ class TestPluginsValidationFunctions:
         # Data that triggers VARCHAR2 length warning (line 73-76)
         long_string_data = {
             "description": "x" * 5000,  # Exceeds VARCHAR2(4000) limit
-            "comment": "y" * 4500,      # Also exceeds limit
-            "normal_field": "test",     # Normal field
+            "comment": "y" * 4500,  # Also exceeds limit
+            "normal_field": "test",  # Normal field
         }
 
         errors, warnings = _validate_data_types(long_string_data)
@@ -46,10 +45,10 @@ class TestPluginsValidationFunctions:
 
         # Data that triggers ID validation errors (lines 78-81)
         invalid_id_data = {
-            "user_id": {"complex": "object"},    # Invalid ID type (not int/str)
-            "product_id": [1, 2, 3],            # List is not valid for ID
-            "category_id": 123,                 # Valid ID (int)
-            "supplier_id": "SUPP_001",          # Valid ID (str)
+            "user_id": {"complex": "object"},  # Invalid ID type (not int/str)
+            "product_id": [1, 2, 3],  # List is not valid for ID
+            "category_id": 123,  # Valid ID (int)
+            "supplier_id": "SUPP_001",  # Valid ID (str)
         }
 
         errors, warnings = _validate_data_types(invalid_id_data)
@@ -70,11 +69,11 @@ class TestPluginsValidationFunctions:
 
         # Data that triggers both validation paths
         combined_data = {
-            "huge_description": "z" * 6000,     # VARCHAR2 warning (lines 73-76)
-            "bad_user_id": None,                # Invalid ID error (lines 78-81)
+            "huge_description": "z" * 6000,  # VARCHAR2 warning (lines 73-76)
+            "bad_user_id": None,  # Invalid ID error (lines 78-81)
             "invalid_item_id": {"key": "val"},  # Invalid ID error (lines 78-81)
-            "valid_id": 42,                     # Valid ID
-            "normal_text": "normal",            # Normal field
+            "valid_id": 42,  # Valid ID
+            "normal_text": "normal",  # Normal field
         }
 
         errors, warnings = _validate_data_types(combined_data)
@@ -82,7 +81,7 @@ class TestPluginsValidationFunctions:
         # Should have both errors and warnings
         assert isinstance(errors, list)
         assert isinstance(warnings, list)
-        assert len(errors) >= 2   # ID validation errors
+        assert len(errors) >= 2  # ID validation errors
         assert len(warnings) >= 1  # VARCHAR2 length warning
 
         # Verify specific validations
@@ -111,13 +110,19 @@ class TestPluginsValidationFunctions:
             errors = _validate_business_rules(data)
 
             # Should always return a list
-            assert isinstance(errors, list), f"Test case {i}: Expected list, got {type(errors)}"
+            assert isinstance(errors, list), (
+                f"Test case {i}: Expected list, got {type(errors)}"
+            )
 
             # Check email validation logic
             if "email" in data and data["email"] and "@" not in data["email"]:
                 # Should have email format error
-                assert len(errors) > 0, f"Test case {i}: Expected error for invalid email"
-                assert any("email" in error.lower() for error in errors), f"Test case {i}: Expected email error"
+                assert len(errors) > 0, (
+                    f"Test case {i}: Expected error for invalid email"
+                )
+                assert any("email" in error.lower() for error in errors), (
+                    f"Test case {i}: Expected email error"
+                )
             elif "email" in data and "@" in data["email"]:
                 # Valid email or other validation might pass
                 pass  # errors might be empty for valid email
@@ -131,17 +136,17 @@ class TestPluginsCreationFunctions:
         from flext_db_oracle import create_data_validation_plugin
 
         # Call plugin creation function multiple times to ensure coverage
-        for i in range(3):
+        for _i in range(3):
             result = create_data_validation_plugin()
 
             # Should return FlextResult
-            assert hasattr(result, 'is_success')
-            assert hasattr(result, 'is_failure')
+            assert hasattr(result, "success")
+            assert hasattr(result, "is_failure")
 
             # Plugin creation should succeed or fail gracefully
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
-            if result.is_success:
+            if result.success:
                 # Should have plugin data
                 assert result.data is not None
                 plugin = result.data
@@ -155,10 +160,10 @@ class TestPluginsCreationFunctions:
         result = create_performance_monitor_plugin()
 
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert result.is_success or result.is_failure
+        assert hasattr(result, "success")
+        assert result.success or result.is_failure
 
-        if result.is_success:
+        if result.success:
             plugin = result.data
             assert plugin is not None
 
@@ -170,10 +175,10 @@ class TestPluginsCreationFunctions:
         result = create_security_audit_plugin()
 
         # Should return FlextResult
-        assert hasattr(result, 'is_success')
-        assert result.is_success or result.is_failure
+        assert hasattr(result, "success")
+        assert result.success or result.is_failure
 
-        if result.is_success:
+        if result.success:
             plugin = result.data
             assert plugin is not None
 
@@ -198,12 +203,11 @@ class TestPluginsCreationFunctions:
 
             # Basic FlextResult validation
             assert result is not None
-            assert hasattr(result, 'is_success')
-            assert hasattr(result, 'is_failure')
-            assert hasattr(result, 'data')
+            assert hasattr(result, "success")
+            assert hasattr(result, "is_failure")
+            assert hasattr(result, "data")
 
             # Should either succeed or fail (not crash)
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
             # Log result for debugging
-            print(f"Plugin function {func.__name__}: success={result.is_success}")

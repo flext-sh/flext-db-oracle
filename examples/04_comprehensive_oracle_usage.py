@@ -336,7 +336,7 @@ def demonstrate_transaction_patterns() -> None:
 
         # This would be real code with actual connection:
         # with api.transaction() as txn:
-        #     if result1.is_success and result2.is_success:
+        #     if result1.success and result2.success:
         #         txn.commit()
         #         txn.rollback()
 
@@ -378,7 +378,7 @@ def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
     """Demonstrate fallback operations when primary operations fail."""
     # Try primary operation
     primary_result = api.test_connection()
-    if primary_result.is_success:
+    if primary_result.success:
         return "Primary operation succeeded"
 
     # Primary failed, try fallback

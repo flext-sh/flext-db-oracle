@@ -30,7 +30,7 @@ Example:
     >>> connection.connect()
     >>> metadata_manager = FlextDbOracleMetadataManager(connection)
     >>> schema_result = metadata_manager.get_schema_metadata("HR")
-    >>> if schema_result.is_success:
+    >>> if schema_result.success:
     ...     schema = schema_result.value
     ...     print(f"Schema {schema.name} has {schema.table_count} tables")
     ...     for table in schema.tables:
@@ -52,7 +52,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, cast
 
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import Field
@@ -106,6 +106,8 @@ class ValidationMixin:
 
 if TYPE_CHECKING:
     from .connection import FlextDbOracleConnection
+
+T = TypeVar("T")
 
 logger = get_logger(__name__)
 
@@ -284,7 +286,7 @@ class FlextDbOracleMetadataManager:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle metadata errors with logging - DRY pattern for error handling.
 
         Args:
@@ -295,15 +297,15 @@ class FlextDbOracleMetadataManager:
             FlextResult with failure containing formatted error message
 
         """
-        error_msg = f"Failed to get {operation}: {exception}"
+        error_msg: str = f"Failed to get {operation}: {exception}"
         self._logger.error(error_msg)
         return FlextResult.fail(error_msg)
 
     def _handle_result_failure_with_fallback(
         self,
-        result: FlextResult,
+        result: FlextResult[object],
         fallback_message: str,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle FlextResult failure with fallback message - DRY pattern.
 
         Args:
@@ -320,7 +322,7 @@ class FlextDbOracleMetadataManager:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle creation errors - DRY pattern for object creation failures.
 
         Args:
@@ -348,9 +350,12 @@ class FlextDbOracleMetadataManager:
             # SOLID Extract Method - Get and validate columns
             columns_result = self._get_validated_columns(table_name, schema_name)
             if columns_result.is_failure:
-                return self._handle_result_failure_with_fallback(
-                    columns_result,
-                    "Failed to get columns",
+                return cast(
+                    "FlextResult[FlextDbOracleTable]",
+                    self._handle_result_failure_with_fallback(
+                        cast("FlextResult[object]", columns_result),
+                        "Failed to get columns",
+                    ),
                 )
 
             # SOLID Extract Method - Create and validate table
@@ -360,9 +365,12 @@ class FlextDbOracleMetadataManager:
                 columns_result.data or [],
             )
             if table_result.is_failure:
-                return self._handle_result_failure_with_fallback(
-                    table_result,
-                    "Failed to create table",
+                return cast(
+                    "FlextResult[FlextDbOracleTable]",
+                    self._handle_result_failure_with_fallback(
+                        cast("FlextResult[object]", table_result),
+                        "Failed to create table",
+                    ),
                 )
 
             # MYPY FIX: Safe access to table_result.data with None check
@@ -397,7 +405,7 @@ class FlextDbOracleMetadataManager:
         columns: list[FlextDbOracleColumn] = []
         for col_info in columns_result.data or []:
             column_result = self._create_validated_column(col_info)
-            if column_result.is_success and column_result.data:
+            if column_result.success and column_result.data:
                 columns.append(column_result.data)
 
         return FlextResult.ok(columns)
@@ -503,7 +511,7 @@ class FlextDbOracleMetadataManager:
             tables: list[FlextDbOracleTable] = []
             for table_name in tables_result.data or []:
                 table_result = self.get_table_metadata(table_name, schema_name)
-                if table_result.is_success and table_result.data:
+                if table_result.success and table_result.data:
                     tables.append(table_result.data)
 
             # Create schema metadata
@@ -528,7 +536,7 @@ class FlextDbOracleMetadataManager:
             return self._handle_metadata_error_with_logging("schema metadata", e)
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextDbOracleColumn",
     "FlextDbOracleMetadataManager",
     "FlextDbOracleSchema",

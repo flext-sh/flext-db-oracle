@@ -150,7 +150,7 @@ def test_oracle_connection_with_real_database():
     result = connection.connect()
 
     # Assert
-    assert result.is_success
+    assert result.success
     assert connection.is_connected()
 
     # Cleanup
@@ -172,7 +172,7 @@ def test_query_execution_with_real_oracle():
         result = api.execute_query(test_sql)
 
     # Assert
-    assert result.is_success
+    assert result.success
     assert result.value.row_count >= 0
     assert len(result.value.columns) == 1
     assert result.value.columns[0] == "employee_count"
@@ -193,7 +193,7 @@ def test_schema_metadata_extraction():
         result = metadata_manager.get_schema_metadata("FLEXT_TEST")
 
     # Assert
-    assert result.is_success
+    assert result.success
     schema = result.value
     assert schema.name == "FLEXT_TEST"
     assert len(schema.tables) >= 0

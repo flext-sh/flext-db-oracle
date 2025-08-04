@@ -10,6 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleMetadataManager
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleMetadataManager
@@ -19,14 +24,14 @@ class TestRealOracleMetadata:
     """Test Oracle metadata operations with real container."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
         # Create connection first (correct pattern)
         connection = FlextDbOracleConnection(real_oracle_config)
         connect_result = connection.connect()
-        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
 
         manager = FlextDbOracleMetadataManager(connection)
         yield manager
@@ -35,12 +40,14 @@ class TestRealOracleMetadata:
         connection.disconnect()
 
     def test_real_metadata_get_schema_metadata(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test getting schema metadata from real Oracle."""
         result = metadata_manager.get_schema_metadata("FLEXTTEST")
 
-        assert result.is_success, f"Schema metadata failed: {result.error}"
+        assert result.success, f"Schema metadata failed: {result.error}"
         # Returns FlextDbOracleSchema object, not dict
         schema = result.data
         assert schema.name == "FLEXTTEST"
@@ -54,12 +61,14 @@ class TestRealOracleMetadata:
         assert "DEPARTMENTS" in table_names
 
     def test_real_metadata_get_table_metadata(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test getting table metadata from real Oracle."""
         result = metadata_manager.get_table_metadata("EMPLOYEES", "FLEXTTEST")
 
-        assert result.is_success, f"Table metadata failed: {result.error}"
+        assert result.success, f"Table metadata failed: {result.error}"
         # Returns FlextDbOracleTable object, not dict
         table = result.data
         assert table.name == "EMPLOYEES"
@@ -72,12 +81,14 @@ class TestRealOracleMetadata:
         assert "FIRST_NAME" in column_names
 
     def test_real_metadata_schema_with_tables(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test schema metadata includes table information."""
         result = metadata_manager.get_schema_metadata("FLEXTTEST")
 
-        assert result.is_success
+        assert result.success
         schema_data = result.data
 
         # Should have some tables
@@ -90,12 +101,14 @@ class TestRealOracleMetadata:
             assert any("EMPLOYEES" in name for name in table_names)
 
     def test_real_metadata_table_with_columns(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test table metadata includes column information."""
         result = metadata_manager.get_table_metadata("EMPLOYEES", "FLEXTTEST")
 
-        assert result.is_success
+        assert result.success
         table_data = result.data
 
         # Should have column information
@@ -111,12 +124,14 @@ class TestRealOracleMetadata:
             assert "FIRST_NAME" in column_names
 
     def test_real_metadata_table_constraints(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test table metadata includes constraint information."""
         result = metadata_manager.get_table_metadata("EMPLOYEES", "FLEXTTEST")
 
-        assert result.is_success
+        assert result.success
         table_data = result.data
 
         # May have constraint information
@@ -124,7 +139,9 @@ class TestRealOracleMetadata:
             assert isinstance(table_data["constraints"], list)
 
     def test_real_metadata_multiple_tables(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test metadata for multiple tables."""
         test_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
@@ -133,7 +150,7 @@ class TestRealOracleMetadata:
             result = metadata_manager.get_table_metadata(table_name, "FLEXTTEST")
 
             # May succeed or fail depending on table existence
-            if result.is_success:
+            if result.success:
                 table = result.data
                 assert table.name == table_name
                 assert table.schema_name == "FLEXTTEST"
@@ -143,14 +160,14 @@ class TestRealOracleMetadataErrorHandling:
     """Test metadata error handling with real Oracle."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
         # Create connection first (correct pattern)
         connection = FlextDbOracleConnection(real_oracle_config)
         connect_result = connection.connect()
-        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
 
         manager = FlextDbOracleMetadataManager(connection)
         yield manager
@@ -159,13 +176,15 @@ class TestRealOracleMetadataErrorHandling:
         connection.disconnect()
 
     def test_real_metadata_invalid_table(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test metadata for non-existent table."""
         result = metadata_manager.get_table_metadata("NONEXISTENT_TABLE", "FLEXTTEST")
 
         # Should fail gracefully or return None
-        if result.is_success:
+        if result.success:
             # If successful, should return None for non-existent table
             assert result.data is None
         else:
@@ -174,15 +193,18 @@ class TestRealOracleMetadataErrorHandling:
             assert isinstance(result.error, str)
 
     def test_real_metadata_invalid_schema(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test metadata for non-existent schema."""
         result = metadata_manager.get_schema_metadata("NONEXISTENT_SCHEMA")
 
         # Should fail gracefully or return empty data
-        if result.is_success:
+        if result.success:
             # If successful, schema should have no tables (empty schema)
             from flext_db_oracle.metadata import FlextDbOracleSchema
+
             assert isinstance(result.data, FlextDbOracleSchema)
             assert result.data.table_count == 0  # No tables in non-existent schema
         else:
@@ -190,7 +212,7 @@ class TestRealOracleMetadataErrorHandling:
             assert result.is_failure
             assert isinstance(result.error, str)
 
-    def test_real_metadata_with_connection_issues(self, real_oracle_config) -> None:
+    def test_real_metadata_with_connection_issues(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test metadata handling when connection has issues."""
         from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
 
@@ -225,14 +247,14 @@ class TestRealOracleMetadataIntegration:
     """Test metadata integration with real Oracle operations."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
         # Create connection first (correct pattern)
         connection = FlextDbOracleConnection(real_oracle_config)
         connect_result = connection.connect()
-        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
 
         manager = FlextDbOracleMetadataManager(connection)
         yield manager
@@ -241,7 +263,9 @@ class TestRealOracleMetadataIntegration:
         connection.disconnect()
 
     def test_real_metadata_with_api_integration(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api,
+        oracle_container,
     ) -> None:
         """Test metadata manager integration with Oracle API."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -249,37 +273,38 @@ class TestRealOracleMetadataIntegration:
         # Create connection with same config as API
         connection = FlextDbOracleConnection(oracle_api._config)
         connect_result = connection.connect()
-        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
 
         try:
             manager = FlextDbOracleMetadataManager(connection)
 
             # Test schema metadata
             schema_result = manager.get_schema_metadata("FLEXTTEST")
-            assert schema_result.is_success, (
+            assert schema_result.success, (
                 f"Schema metadata failed: {schema_result.error}"
             )
 
             # Test table metadata
             table_result = manager.get_table_metadata("EMPLOYEES", "FLEXTTEST")
-            assert table_result.is_success, (
-                f"Table metadata failed: {table_result.error}"
-            )
+            assert table_result.success, f"Table metadata failed: {table_result.error}"
 
         finally:
             connection.disconnect()
 
     def test_real_metadata_comprehensive_schema_info(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test comprehensive schema information retrieval."""
         result = metadata_manager.get_schema_metadata("FLEXTTEST")
 
-        assert result.is_success
+        assert result.success
         schema_data = result.data
 
         # Should be FlextDbOracleSchema object (API evolved from dicts)
         from flext_db_oracle.metadata import FlextDbOracleSchema
+
         assert isinstance(schema_data, FlextDbOracleSchema)
         assert schema_data.name == "FLEXTTEST"
 
@@ -290,16 +315,19 @@ class TestRealOracleMetadataIntegration:
         assert "EMPLOYEES" in table_names
 
     def test_real_metadata_comprehensive_table_info(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test comprehensive table information retrieval."""
         result = metadata_manager.get_table_metadata("EMPLOYEES", "FLEXTTEST")
 
-        assert result.is_success
+        assert result.success
         table_data = result.data
 
         # Should be FlextDbOracleTable object (API evolved from dicts)
         from flext_db_oracle.metadata import FlextDbOracleTable
+
         assert isinstance(table_data, FlextDbOracleTable)
         assert table_data.name == "EMPLOYEES"
         assert table_data.schema_name == "FLEXTTEST"
@@ -311,7 +339,9 @@ class TestRealOracleMetadataIntegration:
         assert "FIRST_NAME" in table_data.column_names
 
     def test_real_metadata_system_schemas(
-        self, metadata_manager, oracle_container,
+        self,
+        metadata_manager: FlextDbOracleMetadataManager,
+        oracle_container: None,
     ) -> None:
         """Test metadata for system schemas."""
         # Test well-known Oracle system schemas
@@ -321,8 +351,9 @@ class TestRealOracleMetadataIntegration:
             result = metadata_manager.get_schema_metadata(schema)
 
             # May succeed or fail depending on permissions
-            if result.is_success:
+            if result.success:
                 from flext_db_oracle.metadata import FlextDbOracleSchema
+
                 assert isinstance(result.data, FlextDbOracleSchema)
                 assert result.data.name == schema
             else:

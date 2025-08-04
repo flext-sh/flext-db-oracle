@@ -16,13 +16,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import sys
 from contextlib import contextmanager
-from typing import Iterator
+from typing import TYPE_CHECKING
 
 from sqlalchemy import text
-from sqlalchemy.engine import Engine
 
 from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from sqlalchemy.engine import Engine
 
 
 def create_oracle_config() -> FlextDbOracleConfig:
@@ -43,108 +48,87 @@ def oracle_connection() -> Iterator[Engine]:
     config = create_oracle_config()
     connection = FlextDbOracleConnection(config)
 
-    print("🔗 Connecting to Oracle using SQLAlchemy 2...")
     connect_result = connection.connect()
 
     if connect_result.is_failure:
-        print(f"❌ Connection failed: {connect_result.error}")
-        raise RuntimeError(f"Failed to connect to Oracle: {connect_result.error}")
-
-    print("✅ Connected to Oracle successfully")
+        msg = f"Failed to connect to Oracle: {connect_result.error}"
+        raise RuntimeError(msg)
 
     try:
         # Get SQLAlchemy engine from connection
         engine = connection._engine
         if engine is None:
-            raise RuntimeError("Engine not available from connection")
+            msg = "Engine not available from connection"
+            raise RuntimeError(msg)
 
         yield engine
 
     finally:
-        print("🔒 Disconnecting from Oracle...")
         connection.disconnect()
-        print("✅ Disconnected successfully")
 
 
 def demonstrate_basic_queries() -> None:
     """Demonstrate basic SQLAlchemy 2 queries."""
-    print("\n=== BASIC SQLALCHEMY 2 QUERIES ===")
-
     with oracle_connection() as engine:
         # Simple system query
-        print("\n1. System Date Query:")
         with engine.connect() as conn:
             result = conn.execute(text("SELECT SYSDATE FROM DUAL"))
-            sysdate = result.fetchone()
-            print(f"   Current system date: {sysdate[0]}")
+            result.fetchone()
 
         # Database version query
-        print("\n2. Database Version:")
         with engine.connect() as conn:
             result = conn.execute(text("SELECT BANNER FROM V$VERSION WHERE ROWNUM = 1"))
-            version = result.fetchone()
-            print(f"   Database version: {version[0]}")
+            result.fetchone()
 
         # Session information
-        print("\n3. Session Information:")
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT 
+                SELECT
                     USER as current_user,
                     SYS_CONTEXT('USERENV', 'SESSION_USER') as session_user,
                     SYS_CONTEXT('USERENV', 'SERVER_HOST') as server_host
                 FROM DUAL
             """))
-            session_info = result.fetchone()
-            print(f"   Current user: {session_info[0]}")
-            print(f"   Session user: {session_info[1]}")
-            print(f"   Server host: {session_info[2]}")
+            result.fetchone()
 
 
 def demonstrate_table_operations() -> None:
     """Demonstrate table operations with SQLAlchemy 2."""
-    print("\n=== TABLE OPERATIONS ===")
-
     with oracle_connection() as engine:
         # List tables in schema
-        print("\n1. Tables in FLEXTTEST Schema:")
         with engine.connect() as conn:
             result = conn.execute(text("""
                 SELECT table_name, num_rows, last_analyzed
-                FROM all_tables 
+                FROM all_tables
                 WHERE owner = 'FLEXTTEST'
                 ORDER BY table_name
             """))
 
             tables = result.fetchall()
-            for table in tables:
-                print(f"   📋 {table[0]} (rows: {table[1]}, analyzed: {table[2]})")
+            for _table in tables:
+                pass
 
         # Query EMPLOYEES table data
-        print("\n2. Sample Data from EMPLOYEES:")
         with engine.connect() as conn:
             result = conn.execute(text("""
                 SELECT employee_id, first_name, last_name, email, hire_date
-                FROM FLEXTTEST.EMPLOYEES 
+                FROM FLEXTTEST.EMPLOYEES
                 WHERE ROWNUM <= 5
                 ORDER BY employee_id
             """))
 
             employees = result.fetchall()
-            for emp in employees:
-                print(f"   👤 ID: {emp[0]}, Name: {emp[1]} {emp[2]}, Email: {emp[3]}, Hired: {emp[4]}")
+            for _emp in employees:
+                pass
 
 
 def demonstrate_metadata_introspection() -> None:
     """Demonstrate SQLAlchemy 2 metadata introspection."""
-    print("\n=== METADATA INTROSPECTION ===")
-
     with oracle_connection() as engine:
         # Column information for EMPLOYEES table
-        print("\n1. EMPLOYEES Table Structure:")
         with engine.connect() as conn:
             result = conn.execute(text("""
-                SELECT 
+                SELECT
                     column_name,
                     data_type,
                     data_length,
@@ -152,62 +136,49 @@ def demonstrate_metadata_introspection() -> None:
                     data_scale,
                     nullable,
                     column_id
-                FROM all_tab_columns 
-                WHERE owner = 'FLEXTTEST' 
+                FROM all_tab_columns
+                WHERE owner = 'FLEXTTEST'
                 AND table_name = 'EMPLOYEES'
                 ORDER BY column_id
             """))
 
             columns = result.fetchall()
             for col in columns:
-                nullable = "NULL" if col[5] == "Y" else "NOT NULL"
+                "NULL" if col[5] == "Y" else "NOT NULL"
                 if col[3]:  # Has precision
-                    data_type = f"{col[1]}({col[3]},{col[4] or 0})"
+                    f"{col[1]}({col[3]},{col[4] or 0})"
                 elif col[2]:  # Has length
-                    data_type = f"{col[1]}({col[2]})"
+                    f"{col[1]}({col[2]})"
                 else:
-                    data_type = col[1]
-
-                print(f"   📊 {col[0]}: {data_type} {nullable}")
+                    col[1]
 
 
 def demonstrate_transaction_management() -> None:
     """Demonstrate SQLAlchemy 2 transaction management."""
-    print("\n=== TRANSACTION MANAGEMENT ===")
-
     with oracle_connection() as engine:
         # Demonstrate transaction with rollback
-        print("\n1. Transaction with Rollback (Safe Test):")
         with engine.connect() as conn:
             with conn.begin() as trans:
                 try:
                     # Count before
                     result = conn.execute(text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"))
-                    count_before = result.fetchone()[0]
-                    print(f"   Records before: {count_before}")
+                    result.fetchone()[0]
 
                     # This would normally insert, but we'll rollback
-                    print("   🔄 Rolling back transaction (no actual changes)")
                     trans.rollback()
 
                     # Count after rollback
                     result = conn.execute(text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"))
-                    count_after = result.fetchone()[0]
-                    print(f"   Records after rollback: {count_after}")
+                    result.fetchone()[0]
 
-                except Exception as e:
-                    print(f"   ❌ Transaction error: {e}")
+                except Exception:
                     trans.rollback()
 
 
 def main() -> None:
     """Main demonstration function."""
-    print("=== FLEXT DB ORACLE - SQLALCHEMY 2 EXAMPLE ===")
-
     # Check environment
-    config = create_oracle_config()
-    print(f"📋 Connecting to: {config.host}:{config.port}/{config.service_name}")
-    print(f"👤 User: {config.username}")
+    create_oracle_config()
 
     try:
         # Run all demonstrations
@@ -216,14 +187,11 @@ def main() -> None:
         demonstrate_metadata_introspection()
         demonstrate_transaction_management()
 
-        print("\n🎉 SQLAlchemy 2 example completed successfully!")
-
-    except Exception as e:
-        print(f"\n❌ Example failed: {e}")
+    except Exception:
         return 1
 
     return 0
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

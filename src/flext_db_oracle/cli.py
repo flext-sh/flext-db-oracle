@@ -358,7 +358,7 @@ class _ConnectionTestExecutor:
 
     def _handle_test_result(self, test_result: object) -> None:
         """Handle test result based on success/failure - Single Responsibility."""
-        if hasattr(test_result, "is_success") and test_result.is_success:
+        if hasattr(test_result, "success") and test_result.success:
             self._handle_successful_test(test_result)
         else:
             self._handle_failed_test(test_result)
@@ -470,7 +470,7 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
         # Test connection
         test_result = api.test_connection_with_observability()
 
-        if test_result.is_success:
+        if test_result.success:
             test_data = test_result.data
 
             # Null check para test_data - refatoração DRY real
@@ -495,10 +495,10 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
         else:
             _handle_operation_failure_with_cli_exception(
                 "Connection",
-                test_result.error,
+                test_result.error or "Unknown connection error",
             )
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -629,7 +629,7 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             # Execute query with timing
             query_result = api.query_with_timing(sql)
 
-            if query_result.is_success:
+            if query_result.success:
                 query_data = query_result.data
 
                 # Null check for query_data
@@ -648,10 +648,10 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             else:
                 _handle_operation_failure_with_cli_exception(
                     "Query",
-                    query_result.error,
+                    query_result.error or "Unknown query error",
                 )
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -668,7 +668,7 @@ def schemas(ctx: click.Context) -> None:
         with api:
             schemas_result = api.get_schemas()
 
-            if schemas_result.is_success:
+            if schemas_result.success:
                 schema_list = schemas_result.data
 
                 # Null check para schema_list - refatoração DRY real
@@ -705,7 +705,7 @@ Total Schemas: {len(_safe_iterate_list(schema_list))}""",
                 )
                 _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -726,7 +726,7 @@ def tables(ctx: click.Context, schema: str | None) -> None:
         with api:
             tables_result = api.get_tables(schema)
 
-            if tables_result.is_success:
+            if tables_result.success:
                 table_list = tables_result.data
 
                 # Null check para table_list - refatoração DRY real
@@ -764,7 +764,7 @@ Schema: {schema or "All"}""",
                 )
                 _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -870,7 +870,7 @@ def plugins(ctx: click.Context) -> None:
             # Register all Oracle plugins
             register_result = register_all_oracle_plugins(api)
 
-            if register_result.is_success:
+            if register_result.success:
                 registration_results = register_result.data
 
                 # Null check for registration_results
@@ -891,7 +891,7 @@ def plugins(ctx: click.Context) -> None:
 
                 # List all plugins
                 plugins_result = api.list_plugins()
-                if plugins_result.is_success and plugins_result.data:
+                if plugins_result.success and plugins_result.data:
                     processor.handle_plugin_list_success(plugins_result.data)
             else:
                 console.print(
@@ -899,7 +899,7 @@ def plugins(ctx: click.Context) -> None:
                 )
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -921,7 +921,7 @@ def optimize(ctx: click.Context, sql: str) -> None:
         with api:
             optimize_result = api.optimize_query(sql)
 
-            if optimize_result.is_success:
+            if optimize_result.success:
                 optimization_data = optimize_result.data
 
                 # Null check para optimization_data - refatoração DRY real
@@ -960,7 +960,7 @@ Suggestions: {_safe_get_list_length(suggestions)}""",
                 )
                 _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -977,7 +977,7 @@ def health(ctx: click.Context) -> None:
         with api:
             health_result = api.get_health_status()
 
-            if health_result.is_success:
+            if health_result.success:
                 health_data = health_result.data
 
                 # Null check para health data - refatoração DRY real
@@ -1037,7 +1037,7 @@ Timestamp: {timestamp_str}""",
                 _print_error(f"Health check failed: {health_result.error}")
                 _raise_cli_error(f"Health check failed: {health_result.error}")
 
-    except Exception as e:
+    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 

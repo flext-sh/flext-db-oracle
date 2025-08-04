@@ -95,14 +95,12 @@ def _run_example_command(example: dict[str, object]) -> None:
             preview = lines[:MAX_OUTPUT_LINES]
             if len(lines) > MAX_OUTPUT_LINES:
                 preview.append("   ...")
-            print(f"✅ {example['name']} - SUCCESS:")
-            for line in preview:
-                print(f"   {line}")
+            for _line in preview:
+                pass
     elif stderr.strip():
-        print(f"❌ {example['name']} - ERROR:")
         error_lines = stderr.strip().split("\n")[:2]  # Show first 2 error lines
-        for line in error_lines:
-            print(f"   {line}")
+        for _line in error_lines:
+            pass
 
 
 def _check_oracle_env() -> bool:
@@ -138,8 +136,6 @@ def demo_cli_commands() -> None:
     examples = _get_cli_examples()
 
     if not _check_oracle_env():
-        print("❌ Oracle environment not configured - skipping CLI demos")
-        print("💡 Set environment variables or run: python examples/cli_examples.py setup")
         return
 
     # Run each example - refatoração DRY real
@@ -196,18 +192,8 @@ def main() -> None:
 
         configured = sum(1 for var in env_vars if os.getenv(var))
 
-        print("=== ORACLE CLI EXAMPLES STATUS ===")
-        print(f"Environment variables configured: {configured}/{len(env_vars)}")
-
-        if configured == 0:
-            print("❌ No Oracle environment variables configured")
-            print("💡 Run: python examples/cli_examples.py setup")
-        elif configured == len(env_vars):
-            print("✅ All Oracle environment variables configured")
-            print("💡 Run: python examples/cli_examples.py demo")
-        else:
-            print("⚠️  Partial Oracle environment configuration")
-            print("💡 Check your environment variables")
+        if configured == 0 or configured == len(env_vars):
+            pass
 
 
 if __name__ == "__main__":

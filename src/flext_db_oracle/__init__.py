@@ -36,7 +36,7 @@ Example:
     ...         "SELECT employee_id, name FROM employees WHERE dept_id = :dept",
     ...         {"dept": 10},
     ...     )
-    ...     if result.is_success:
+    ...     if result.success:
     ...         print(f"Found {result.value.row_count} employees")
     ...
     ...     # Bulk operations
@@ -59,7 +59,7 @@ Example:
     >>>
     >>> metadata_manager = FlextDbOracleMetadataManager(api.connection)
     >>> schema_result = metadata_manager.get_schema_metadata("HR")
-    >>> if schema_result.is_success:
+    >>> if schema_result.success:
     ...     schema = schema_result.value
     ...     print(f"Schema {schema.name} has {len(schema.tables)} tables")
     ...     for table in schema.tables:
@@ -109,7 +109,7 @@ from .types import (
     TDbOracleTable,
 )
 
-__all__ = [
+__all__: list[str] = [
     # Plugins
     "ORACLE_PLUGINS",
     # Core API

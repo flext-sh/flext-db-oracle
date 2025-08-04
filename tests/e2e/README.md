@@ -196,12 +196,12 @@ def test_api_integration_workflow():
 
         # Test schema operations
         schemas_result = api.get_schemas()
-        assert schemas_result.is_success
+        assert schemas_result.success
         assert "FLEXT_E2E" in schemas_result.value
 
         # Test table operations
         tables_result = api.get_tables("FLEXT_E2E")
-        assert tables_result.is_success
+        assert tables_result.success
         assert len(tables_result.value) >= 2
 
         # Test data query
@@ -210,7 +210,7 @@ def test_api_integration_workflow():
             "FROM customers c LEFT JOIN orders o ON c.id = o.customer_id "
             "GROUP BY c.name ORDER BY order_count DESC"
         )
-        assert query_result.is_success
+        assert query_result.success
         assert query_result.value.row_count > 0
 
         # Test plugin operations
@@ -218,7 +218,7 @@ def test_api_integration_workflow():
             "sql": "SELECT * FROM customers WHERE status = 'ACTIVE'",
             "threshold_ms": 1000
         })
-        assert plugin_result.is_success
+        assert plugin_result.success
 ```
 
 ### **Data Pipeline Workflow Test**
@@ -233,7 +233,7 @@ def test_data_pipeline_workflow():
         # Step 1: Extract schema metadata
         metadata_manager = FlextDbOracleMetadataManager(api.connection)
         schema_result = metadata_manager.get_schema_metadata("FLEXT_E2E")
-        assert schema_result.is_success
+        assert schema_result.success
 
         schema = schema_result.value
         assert len(schema.tables) >= 2
@@ -255,14 +255,14 @@ def test_data_pipeline_workflow():
             columns=["name", "email", "phone"],
             values=bulk_data
         )
-        assert bulk_result.is_success
+        assert bulk_result.success
         assert bulk_result.value == len(bulk_data)
 
         # Step 4: Verify data integrity
         verify_result = api.execute_query(
             "SELECT COUNT(*) FROM customers WHERE name LIKE 'Test Customer%'"
         )
-        assert verify_result.is_success
+        assert verify_result.success:
         assert verify_result.value.rows[0][0] == len(bulk_data)
 ```
 
@@ -296,7 +296,7 @@ def test_high_volume_operations():
 
             for future in concurrent.futures.as_completed(future_to_query):
                 result = future.result()
-                assert result.is_success
+                assert result.success
                 results.append(result)
 
         execution_time = time.time() - start_time
@@ -304,7 +304,7 @@ def test_high_volume_operations():
         # Performance assertions
         assert execution_time < 30.0  # Should complete within 30 seconds
         assert len(results) == len(concurrent_queries)
-        assert all(r.is_success for r in results)
+        assert all(r.success for r in results)
 ```
 
 ## 🔧 Test Environment Management

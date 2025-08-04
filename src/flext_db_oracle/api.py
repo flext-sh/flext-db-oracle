@@ -29,7 +29,7 @@ Example:
     ...     result = connected_api.query(
     ...         "SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10}
     ...     )
-    ...     if result.is_success:
+    ...     if result.success:
     ...         print(f"Retrieved {result.value.row_count} employees")
 
 Integration:
@@ -46,7 +46,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from time import perf_counter
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self, TypeVar
 
 from flext_core import (
     FlextLogger,
@@ -68,6 +68,7 @@ if TYPE_CHECKING:
     from flext_observability import FlextHealthCheck
     from flext_plugin import FlextPlugin
 
+T = TypeVar("T")
 
 # =============================================================================
 # REFACTORING: Extract Class - Connection Manager
@@ -102,9 +103,9 @@ class OracleConnectionManager:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle errors with logging - DRY pattern for error handling."""
-        error_msg = f"{operation}: {exception}"
+        error_msg: str = f"{operation}: {exception}"
         self._logger.error(error_msg)
         return FlextResult.fail(error_msg)
 
@@ -112,7 +113,7 @@ class OracleConnectionManager:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle errors without logging - DRY pattern for simple error handling."""
         return FlextResult.fail(f"{operation}: {exception}")
 
@@ -163,7 +164,7 @@ class OracleConnectionManager:
             self._logger.info("Disconnected from Oracle database")
             return FlextResult.ok(None)
 
-        except Exception as e:
+        except (OSError, ValueError, AttributeError, RuntimeError) as e:
             return self._handle_error_with_logging("Error during disconnect", e)
 
     def test_connection(self) -> FlextResult[bool]:
@@ -175,7 +176,7 @@ class OracleConnectionManager:
             # Simple query to test connection
             if self._connection:
                 test_result = self._connection.execute_query("SELECT 1 FROM DUAL")
-                return FlextResult.ok(test_result.is_success)
+                return FlextResult.ok(test_result.success)
             return FlextResult.fail("No active connection")
 
         except (OSError, ValueError) as e:
@@ -194,7 +195,7 @@ class OracleConnectionManager:
             try:
                 connection_result = self._attempt_single_connection(attempt)
 
-                if connection_result.is_success and connection_result.data:
+                if connection_result.success and connection_result.data:
                     self._handle_successful_connection(
                         connection_result.data,
                         start_time,
@@ -287,9 +288,9 @@ class OracleQueryExecutor:
         self,
         operation: str,
         exception: Exception,
-    ) -> FlextResult[None]:
+    ) -> FlextResult[T]:
         """Handle errors with logging - DRY pattern for error handling."""
-        error_msg = f"{operation}: {exception}"
+        error_msg: str = f"{operation}: {exception}"
         self._logger.error(error_msg)
         return FlextResult.fail(error_msg)
 
@@ -344,7 +345,7 @@ class OracleQueryExecutor:
             self._logger.debug("Query executed successfully in %.2fms", duration_ms)
             return FlextResult.ok(query_result)
 
-        except Exception as e:
+        except (OSError, ValueError, AttributeError, RuntimeError, TypeError) as e:
             self._observability.record_metric("query.exceptions", 1, "count")
             return self._handle_error_with_logging("Query execution error", e)
 
@@ -356,7 +357,7 @@ class OracleQueryExecutor:
         """Execute query expecting single result."""
         result = self.execute_query(sql, params)
 
-        if not result.is_success:
+        if not result.success:
             return FlextResult.fail(result.error or "Query failed")
 
         query_result = result.data
@@ -382,7 +383,7 @@ class OracleQueryExecutor:
             result = self.execute_query(sql, params)
 
             # Stop on first failure for transaction consistency
-            if not result.is_success:
+            if not result.success:
                 self._logger.error(
                     "Batch operation %d failed: %s",
                     step_num,
@@ -456,6 +457,28 @@ class FlextDbOracleApi:
 
         # Initialize observability
         self._observability.initialize()
+
+    # =============================================================================
+    # Error Handling Methods (DRY Pattern)
+    # =============================================================================
+
+    def _handle_error_simple(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[T]:
+        """Handle errors without logging - DRY pattern for simple error handling."""
+        return FlextResult.fail(f"{operation}: {exception}")
+
+    def _handle_error_with_logging(
+        self,
+        operation: str,
+        exception: Exception,
+    ) -> FlextResult[T]:
+        """Handle errors with logging - DRY pattern for error handling."""
+        error_msg: str = f"{operation}: {exception}"
+        self._logger.error(error_msg)
+        return FlextResult.fail(error_msg)
 
     # =============================================================================
     # Factory Methods (Dependency Injection Pattern)
@@ -583,7 +606,7 @@ class FlextDbOracleApi:
 
             test_result = self.test_connection()
 
-            if test_result.is_success:
+            if test_result.success:
                 return FlextResult.ok(
                     {
                         "status": "healthy",
@@ -765,7 +788,7 @@ class FlextDbOracleApi:
         # Test connection using API query method (for better testability)
         try:
             health_test = self.query("SELECT 1 FROM DUAL")
-            if health_test.is_success:
+            if health_test.success:
                 return self._observability.create_health_check(
                     status="healthy",
                     message="Database connection operational",
@@ -873,7 +896,7 @@ class FlextDbOracleApi:
             **kwargs,
         )
 
-    def list_plugins(self) -> FlextResult[list[Any]]:
+    def list_plugins(self) -> FlextResult[list[FlextPlugin]]:
         """List all registered plugins.
 
         SOLID REFACTORING: Reduced from 6 returns to 3 using Guard Clauses
@@ -940,7 +963,7 @@ class FlextDbOracleApi:
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return self._handle_error_simple("Plugin execution failed", e)
 
-    def _try_list_complex_plugins(self) -> FlextResult[list[Any]] | None:
+    def _try_list_complex_plugins(self) -> FlextResult[list[FlextPlugin]] | None:
         """SOLID REFACTORING: Extract Method for complex plugin platform listing."""
         if hasattr(self._plugin_platform, "plugin_service"):
             if self._plugin_platform.plugin_service is None:
@@ -975,7 +998,7 @@ class FlextDbOracleApi:
         result = self._query_executor.execute_query(sql, params)
         duration_ms = (perf_counter() - start_time) * 1000
 
-        if result.is_success:
+        if result.success:
             timing_result = self._create_timing_result(result.data, duration_ms)
             return FlextResult.ok(timing_result)
 
@@ -1057,13 +1080,22 @@ class FlextDbOracleApi:
 
         return FlextResult.ok(analysis)
 
-    def get_health_status(self) -> FlextResult[Any]:
+    def get_health_status(self) -> FlextResult[dict[str, object]]:
         """Get database health status."""
         # Delegate to existing health check method
         health_check_result = self.get_health_check()
-        if health_check_result.is_success:
-            return FlextResult.ok(health_check_result.data)
-        return health_check_result
+        if health_check_result.success and health_check_result.data:
+            # Convert FlextHealthCheck to dict for compatibility
+            health_data = health_check_result.data
+            health_dict: dict[str, object] = {
+                "status": health_data.status,
+                "timestamp": health_data.timestamp.isoformat(),
+                "message": health_data.message or "",
+                "metrics": health_data.metrics,
+                "component": health_data.component,
+            }
+            return FlextResult.ok(health_dict)
+        return FlextResult.fail(health_check_result.error or "Health check failed")
 
     def build_select(
         self,
@@ -1093,7 +1125,7 @@ class FlextDbOracleApi:
 
         result = self._connection_manager.connection.map_singer_schema(singer_schema)
         # Convert dict[str, str] to dict[str, object] for type compatibility
-        if result.is_success and result.data:
+        if result.success and result.data:
             return FlextResult.ok(dict(result.data))
         return result  # type: ignore[return-value]
 
@@ -1200,7 +1232,7 @@ class FlextDbOracleApi:
         # Execute DDL using query method (DDL statements don't return data)
         result = self._query_executor.execute_query(sql, None)
 
-        if result.is_success:
+        if result.success:
             return FlextResult.ok(None)
         return FlextResult.fail(result.error or "DDL execution failed")
 
@@ -1220,11 +1252,12 @@ class _TransactionContextManager:
     ) -> None:
         self.api = api
         self.connection = connection
-        self._transaction_context: Any = None
+        self._transaction_context: object | None = None
 
     def __enter__(self) -> FlextDbOracleApi:
         self._transaction_context = self.connection.transaction()
-        self._transaction_context.__enter__()
+        if hasattr(self._transaction_context, "__enter__"):
+            self._transaction_context.__enter__()
         return self.api
 
     def __exit__(
@@ -1233,7 +1266,7 @@ class _TransactionContextManager:
         exc_val: BaseException | None,
         exc_tb: types.TracebackType | None,
     ) -> None:
-        if self._transaction_context:
+        if self._transaction_context and hasattr(self._transaction_context, "__exit__"):
             self._transaction_context.__exit__(exc_type, exc_val, exc_tb)
 
 
@@ -1258,7 +1291,7 @@ def create_oracle_api_from_env(
     return FlextDbOracleApi.from_env(env_prefix, context_name)
 
 
-__all__ = [
+__all__: list[str] = [
     "FlextDbOracleApi",
     "OracleConnectionManager",
     "OracleQueryExecutor",

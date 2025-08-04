@@ -10,6 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleConfig
 
 
 class TestPluginsInternalFunctions:
@@ -23,16 +27,12 @@ class TestPluginsInternalFunctions:
         test_cases = [
             # Long string - should trigger warning (line 74-76)
             {"field1": "x" * 5000, "normal_field": "test"},
-
             # ID field with wrong type - should trigger error (line 78-81)
             {"user_id": 12.5, "item_id": [1, 2, 3]},  # Float and list IDs
-
             # String ID - should be OK (line 78-81)
             {"product_id": "ABC123", "category_id": 456},
-
             # No ID fields - should be OK
             {"name": "test", "description": "normal field"},
-
             # Multiple violations
             {"huge_field": "x" * 6000, "bad_id": {"complex": "object"}},
         ]
@@ -64,16 +64,12 @@ class TestPluginsInternalFunctions:
         test_cases = [
             # Negative salary - should trigger error
             {"salary": -1000, "name": "John"},
-
             # Future hire date - should trigger error
             {"hire_date": "2030-01-01", "name": "Jane"},
-
             # Invalid email - should trigger error
             {"email": "invalid-email-format", "name": "Bob"},
-
             # Valid data - should pass
             {"salary": 50000, "hire_date": "2023-01-01", "email": "valid@email.com"},
-
             # Edge cases
             {"salary": 0, "hire_date": "1900-01-01"},
         ]
@@ -87,14 +83,16 @@ class TestPluginsInternalFunctions:
             # Check for actual business rule violations based on real function behavior
             # Only email format validation seems to be implemented
             has_invalid_email = (
-                "email" in data and
-                "@" not in str(data["email"]) and
-                data["email"] is not None
+                "email" in data
+                and "@" not in str(data["email"])
+                and data["email"] is not None
             )
 
             # Should detect actual business rule violations
             if has_invalid_email:
-                assert len(errors) > 0, f"Expected error for invalid email but got: {errors}"
+                assert len(errors) > 0, (
+                    f"Expected error for invalid email but got: {errors}"
+                )
 
     def test_plugin_creation_functions_multiple_calls(self) -> None:
         """Test plugin creation functions multiple times (lines 223-241)."""
@@ -113,11 +111,11 @@ class TestPluginsInternalFunctions:
 
         for func in creation_functions:
             # Call multiple times to test different code paths
-            for i in range(3):
+            for _i in range(3):
                 result = func()
 
                 # Should create plugin successfully
-                assert result.is_success
+                assert result.success
                 assert result.data is not None
 
                 # Plugin should be some kind of object
@@ -142,7 +140,6 @@ class TestTypesInternalMethods:
                 max_length=100,
                 position=1,
             ),
-
             # NUMBER column with precision/scale
             TDbOracleColumn(
                 name="SALARY",
@@ -152,7 +149,6 @@ class TestTypesInternalMethods:
                 scale=2,
                 position=2,
             ),
-
             # Primary key column
             TDbOracleColumn(
                 name="ID",
@@ -163,7 +159,6 @@ class TestTypesInternalMethods:
                 position=3,
                 is_primary_key=True,
             ),
-
             # DATE column
             TDbOracleColumn(
                 name="CREATED_DATE",
@@ -177,13 +172,13 @@ class TestTypesInternalMethods:
             # Test property methods that might not be covered
             try:
                 # Test full_type_spec property (if exists)
-                if hasattr(column, 'full_type_spec'):
+                if hasattr(column, "full_type_spec"):
                     type_spec = column.full_type_spec
                     assert type_spec is not None
                     assert column.data_type in type_spec
 
                 # Test is_key_column property (if exists)
-                if hasattr(column, 'is_key_column'):
+                if hasattr(column, "is_key_column"):
                     is_key = column.is_key_column
                     assert isinstance(is_key, bool)
 
@@ -233,19 +228,19 @@ class TestTypesInternalMethods:
         # Test table property methods
         try:
             # Test column_names property
-            if hasattr(table, 'column_names'):
+            if hasattr(table, "column_names"):
                 names = table.column_names
                 assert "ID" in names
                 assert "NAME" in names
 
             # Test qualified_name property
-            if hasattr(table, 'qualified_name'):
+            if hasattr(table, "qualified_name"):
                 qualified = table.qualified_name
                 assert "TEST_SCHEMA" in qualified
                 assert "TEST_TABLE" in qualified
 
             # Test primary_key_columns property
-            if hasattr(table, 'primary_key_columns'):
+            if hasattr(table, "primary_key_columns"):
                 pk_cols = table.primary_key_columns
                 assert len(pk_cols) >= 0  # May or may not have PK columns
 
@@ -271,7 +266,6 @@ class TestConfigInternalMethods:
                 "password": "test",
                 "service_name": "TEST",
             },
-
             # Edge case values
             {
                 "host": "127.0.0.1",
@@ -280,7 +274,6 @@ class TestConfigInternalMethods:
                 "password": "b",
                 "service_name": "X",
             },
-
             # Maximum values
             {
                 "host": "very.long.hostname.example.com",
@@ -306,14 +299,14 @@ class TestConfigInternalMethods:
                 assert config.host in str_repr
 
                 # Test connection string generation (if exists)
-                if hasattr(config, 'connection_string'):
+                if hasattr(config, "connection_string"):
                     conn_str = config.connection_string
                     assert isinstance(conn_str, str)
                     assert len(conn_str) > 0
 
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError):
                 # Should handle validation errors gracefully
-                assert str(e) is not None
+                pass  # Expected validation error
 
 
 class TestConnectionInternalMethods:
@@ -321,7 +314,7 @@ class TestConnectionInternalMethods:
 
     def test_connection_error_handling_direct(self) -> None:
         """Test connection error handling directly."""
-        from flext_db_oracle import FlextDbOracleConnection, FlextDbOracleConfig
+        from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
 
         # Create connection with invalid config
         invalid_config = FlextDbOracleConfig(
@@ -336,9 +329,9 @@ class TestConnectionInternalMethods:
 
         # Test operations that should trigger error handling paths
         error_operations = [
-            lambda: connection.connect(),
-            lambda: connection.test_connection(),
-            lambda: connection.get_schemas(),
+            connection.connect,
+            connection.test_connection,
+            connection.get_schemas,
             lambda: connection.get_table_names("test"),
         ]
 
@@ -346,14 +339,16 @@ class TestConnectionInternalMethods:
             try:
                 result = operation()
                 # Should handle errors gracefully - test_connection returns success=False for not connected
-                assert result.is_failure or (hasattr(result, 'data') and result.data is False)
+                assert result.is_failure or (
+                    hasattr(result, "data") and result.data is False
+                )
                 if result.is_failure:
                     assert result.error is not None
             except (AttributeError, TypeError):
                 # Some methods might not exist or have different signatures
                 pass
 
-    def test_connection_state_management_direct(self, real_oracle_config) -> None:
+    def test_connection_state_management_direct(self, real_oracle_config: FlextDbOracleConfig) -> None:
         """Test connection state management directly."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -362,18 +357,22 @@ class TestConnectionInternalMethods:
         # Test connection lifecycle
         # 1. Initial state - not connected
         initial_test = connection.test_connection()
-        assert initial_test.is_failure or (hasattr(initial_test, 'data') and initial_test.data is False)
+        assert initial_test.is_failure or (
+            hasattr(initial_test, "data") and initial_test.data is False
+        )
 
         # 2. Connect
         connect_result = connection.connect()
-        if connect_result.is_success:
+        if connect_result.success:
             # 3. Test while connected
             connected_test = connection.test_connection()
-            assert connected_test.is_success
+            assert connected_test.success
 
             # 4. Disconnect
             connection.disconnect()
 
             # 5. Test after disconnect
             disconnected_test = connection.test_connection()
-            assert disconnected_test.is_failure or (hasattr(disconnected_test, 'data') and disconnected_test.data is False)
+            assert disconnected_test.is_failure or (
+                hasattr(disconnected_test, "data") and disconnected_test.data is False
+            )

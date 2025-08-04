@@ -66,7 +66,7 @@ from flext_core import FlextResult
 
 # Method 1: Load from environment (recommended)
 config_result = FlextDbOracleConfig.from_env()
-if config_result.is_success:
+if config_result.success:
     config = config_result.value
     api = FlextDbOracleApi(config)
 else:
@@ -86,7 +86,7 @@ api = FlextDbOracleApi(config)
 url_config_result = FlextDbOracleConfig.from_url(
     "oracle://app_user:secure_password@oracle-server:1521/PROD"
 )
-if url_config_result.is_success:
+if url_config_result.success:
     api = FlextDbOracleApi(url_config_result.value)
 ```
 
@@ -730,12 +730,12 @@ def main():
         api = FlextDbOracleApi(config)
         connect_result = api.connect()
 
-        if connect_result.is_success:
+        if connect_result.success:
             print("✅ Connection test successful")
 
             # Test basic query
             query_result = api.execute_query("SELECT 1 FROM DUAL")
-            if query_result.is_success:
+            if query_result.success:
                 print("✅ Query test successful")
             else:
                 print(f"❌ Query test failed: {query_result.error}")

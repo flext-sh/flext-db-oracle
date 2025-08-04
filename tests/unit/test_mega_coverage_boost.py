@@ -10,13 +10,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 import os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleApi
 
 
 class TestMegaCoverageBoostMultiModule:
     """MEGA test attacking ALL modules with low coverage simultaneously."""
 
-    def test_massive_multi_module_coverage_boost(self, oracle_api, oracle_container) -> None:
+    def test_massive_multi_module_coverage_boost(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+    ) -> None:
         """MASSIVE test hitting multiple modules at once."""
         # Connect to Oracle for real operations
         connected_api = oracle_api.connect()
@@ -24,8 +31,8 @@ class TestMegaCoverageBoostMultiModule:
         try:
             # 1. API OPERATIONS (hit API missed lines)
             api_operations = [
-                lambda: connected_api.test_connection(),
-                lambda: connected_api.get_schemas(),
+                connected_api.test_connection,
+                connected_api.get_schemas,
                 lambda: connected_api.get_tables("FLEXTTEST"),
                 lambda: connected_api.get_columns("EMPLOYEES", "FLEXTTEST"),
                 lambda: connected_api.query("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
@@ -36,8 +43,8 @@ class TestMegaCoverageBoostMultiModule:
             for op in api_operations:
                 try:
                     result = op()
-                    assert result.is_success or result.is_failure
-                except Exception:
+                    assert result.success or result.is_failure
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # 2. CONNECTION OPERATIONS (hit Connection missed lines)
@@ -45,31 +52,59 @@ class TestMegaCoverageBoostMultiModule:
 
             # Test connection properties and methods
             connection_operations = [
-                lambda: connection.is_connected(),
+                connection.is_connected,
                 lambda: str(connection),
                 lambda: repr(connection),
-                lambda: connection.test_connection(),
+                connection.test_connection,
             ]
 
             for op in connection_operations:
-                try:
+                with contextlib.suppress(Exception):
                     result = op()
-                except Exception:
-                    pass
 
             # 3. TYPES OPERATIONS (hit Types missed lines)
             from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
 
             # Create various type instances to hit missed lines
-            type_operations = []
 
             # Test different column types
             column_configs = [
-                {"name": "ID", "data_type": "NUMBER", "nullable": False, "position": 1, "precision": 10, "scale": 0},
-                {"name": "NAME", "data_type": "VARCHAR2", "nullable": True, "position": 2, "max_length": 100},
-                {"name": "SALARY", "data_type": "NUMBER", "nullable": True, "position": 3, "precision": 10, "scale": 2},
-                {"name": "HIRE_DATE", "data_type": "DATE", "nullable": True, "position": 4},
-                {"name": "EMAIL", "data_type": "VARCHAR2", "nullable": True, "position": 5, "max_length": 200},
+                {
+                    "name": "ID",
+                    "data_type": "NUMBER",
+                    "nullable": False,
+                    "position": 1,
+                    "precision": 10,
+                    "scale": 0,
+                },
+                {
+                    "name": "NAME",
+                    "data_type": "VARCHAR2",
+                    "nullable": True,
+                    "position": 2,
+                    "max_length": 100,
+                },
+                {
+                    "name": "SALARY",
+                    "data_type": "NUMBER",
+                    "nullable": True,
+                    "position": 3,
+                    "precision": 10,
+                    "scale": 2,
+                },
+                {
+                    "name": "HIRE_DATE",
+                    "data_type": "DATE",
+                    "nullable": True,
+                    "position": 4,
+                },
+                {
+                    "name": "EMAIL",
+                    "data_type": "VARCHAR2",
+                    "nullable": True,
+                    "position": 5,
+                    "max_length": 200,
+                },
             ]
 
             columns = []
@@ -87,12 +122,12 @@ class TestMegaCoverageBoostMultiModule:
                     _ = column.position
 
                     # Test conditional properties
-                    if hasattr(column, 'full_type_spec'):
+                    if hasattr(column, "full_type_spec"):
                         _ = column.full_type_spec
-                    if hasattr(column, 'is_key_column'):
+                    if hasattr(column, "is_key_column"):
                         _ = column.is_key_column
 
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # Test table creation with columns
@@ -111,30 +146,39 @@ class TestMegaCoverageBoostMultiModule:
                 _ = table.columns
 
                 # Test conditional table properties
-                if hasattr(table, 'column_names'):
+                if hasattr(table, "column_names"):
                     _ = table.column_names
-                if hasattr(table, 'qualified_name'):
+                if hasattr(table, "qualified_name"):
                     _ = table.qualified_name
-                if hasattr(table, 'primary_key_columns'):
+                if hasattr(table, "primary_key_columns"):
                     _ = table.primary_key_columns
 
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 pass
 
             # 4. PLUGINS OPERATIONS (hit Plugins missed lines)
-            from flext_db_oracle.plugins import _validate_data_types, _validate_business_rules
             from flext_db_oracle import (
                 create_data_validation_plugin,
                 create_performance_monitor_plugin,
                 create_security_audit_plugin,
+            )
+            from flext_db_oracle.plugins import (
+                _validate_business_rules,
+                _validate_data_types,
             )
 
             # Test validation functions with various data
             validation_test_data = [
                 {"name": "John", "email": "john@email.com", "salary": 50000},
                 {"description": "x" * 5000, "user_id": 123},  # Long string + valid ID
-                {"item_id": [1, 2, 3], "bad_field": {"complex": "object"}},  # Invalid ID types
-                {"email": "invalid-email", "hire_date": "2030-01-01"},  # Invalid email + future date
+                {
+                    "item_id": [1, 2, 3],
+                    "bad_field": {"complex": "object"},
+                },  # Invalid ID types
+                {
+                    "email": "invalid-email",
+                    "hire_date": "2030-01-01",
+                },  # Invalid email + future date
                 {},  # Empty data
             ]
 
@@ -143,13 +187,13 @@ class TestMegaCoverageBoostMultiModule:
                     errors, warnings = _validate_data_types(data)
                     assert isinstance(errors, list)
                     assert isinstance(warnings, list)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
                 try:
                     errors = _validate_business_rules(data)
                     assert isinstance(errors, list)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # Test plugin creation functions
@@ -162,8 +206,8 @@ class TestMegaCoverageBoostMultiModule:
             for creator in plugin_creators:
                 try:
                     result = creator()
-                    assert result.is_success or result.is_failure
-                except Exception:
+                    assert result.success or result.is_failure
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # 5. CONFIG OPERATIONS (hit Config missed lines)
@@ -172,12 +216,35 @@ class TestMegaCoverageBoostMultiModule:
             # Test various config scenarios
             config_scenarios = [
                 # Valid configs
-                {"host": "localhost", "port": 1521, "username": "test", "password": "test", "service_name": "TEST"},
-                {"host": "test.example.com", "port": 1522, "username": "user", "password": "pass", "service_name": "DB"},
-
+                {
+                    "host": "localhost",
+                    "port": 1521,
+                    "username": "test",
+                    "password": "test",
+                    "service_name": "TEST",
+                },
+                {
+                    "host": "test.example.com",
+                    "port": 1522,
+                    "username": "user",
+                    "password": "pass",
+                    "service_name": "DB",
+                },
                 # Edge case configs
-                {"host": "h", "port": 1, "username": "u", "password": "p", "service_name": "s"},
-                {"host": "very.long.hostname.example.com", "port": 65535, "username": "very_long_username", "password": "very_long_password", "service_name": "VERY_LONG_SERVICE"},
+                {
+                    "host": "h",
+                    "port": 1,
+                    "username": "u",
+                    "password": "p",
+                    "service_name": "s",
+                },
+                {
+                    "host": "very.long.hostname.example.com",
+                    "port": 65535,
+                    "username": "very_long_username",
+                    "password": "very_long_password",
+                    "service_name": "VERY_LONG_SERVICE",
+                },
             ]
 
             for scenario in config_scenarios:
@@ -193,15 +260,13 @@ class TestMegaCoverageBoostMultiModule:
                     _ = config.service_name
 
                     # Test conditional config methods
-                    if hasattr(config, 'connection_string'):
+                    if hasattr(config, "connection_string"):
                         _ = config.connection_string
-                    if hasattr(config, 'validate'):
-                        try:
+                    if hasattr(config, "validate"):
+                        with contextlib.suppress(Exception):
                             _ = config.validate()
-                        except Exception:
-                            pass
 
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # 6. OBSERVABILITY OPERATIONS (hit Observability missed lines)
@@ -212,13 +277,13 @@ class TestMegaCoverageBoostMultiModule:
 
                 # Test observability methods
                 obs_methods = [
-                    'initialize',
-                    'start_monitoring',
-                    'stop_monitoring',
-                    'is_monitoring_active',
-                    'record_operation',
-                    'record_error',
-                    'get_metrics',
+                    "initialize",
+                    "start_monitoring",
+                    "stop_monitoring",
+                    "is_monitoring_active",
+                    "record_operation",
+                    "record_error",
+                    "get_metrics",
                 ]
 
                 for method_name in obs_methods:
@@ -230,11 +295,9 @@ class TestMegaCoverageBoostMultiModule:
                                     result = method()
                                 except TypeError:
                                     # Try with parameters
-                                    try:
+                                    with contextlib.suppress(Exception):
                                         result = method("test_param")
-                                    except Exception:
-                                        pass
-                        except Exception:
+                        except (ValueError, TypeError, RuntimeError):
                             pass
 
                 # Test error logging with various contexts
@@ -248,14 +311,18 @@ class TestMegaCoverageBoostMultiModule:
 
                 for context in error_contexts:
                     try:
-                        if hasattr(obs_manager, '_log_error'):
-                            obs_manager._log_error("Test", Exception("Test error"), context)
-                        elif hasattr(obs_manager, 'log_error'):
-                            obs_manager.log_error("Test", Exception("Test error"), context)
-                    except Exception:
+                        if hasattr(obs_manager, "_log_error"):
+                            obs_manager._log_error(
+                                "Test", Exception("Test error"), context,
+                            )
+                        elif hasattr(obs_manager, "log_error"):
+                            obs_manager.log_error(
+                                "Test", Exception("Test error"), context,
+                            )
+                    except (ValueError, TypeError, RuntimeError):
                         pass
 
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 pass
 
             # 7. METADATA OPERATIONS (hit Metadata missed lines)
@@ -268,18 +335,20 @@ class TestMegaCoverageBoostMultiModule:
                 # Test metadata operations
                 metadata_operations = [
                     lambda: metadata_manager.get_schema_metadata("FLEXTTEST"),
-                    lambda: metadata_manager.get_table_metadata("EMPLOYEES", "FLEXTTEST"),
-                    lambda: metadata_manager.get_all_schemas(),
+                    lambda: metadata_manager.get_table_metadata(
+                        "EMPLOYEES", "FLEXTTEST",
+                    ),
+                    metadata_manager.get_all_schemas,
                 ]
 
                 for op in metadata_operations:
                     try:
                         result = op()
-                        assert result.is_success or result.is_failure
-                    except Exception:
+                        assert result.success or result.is_failure
+                    except (ValueError, TypeError, RuntimeError):
                         pass
 
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 pass
 
         finally:
@@ -302,10 +371,10 @@ class TestMegaCoverageBoostMultiModule:
 
         # Test all API operations with invalid config (should trigger error paths)
         error_operations = [
-            lambda: api.connect(),
-            lambda: api.test_connection(),
-            lambda: api.get_schemas(),
-            lambda: api.get_tables(),
+            api.connect,
+            api.test_connection,
+            api.get_schemas,
+            api.get_tables,
             lambda: api.get_columns("table", "schema"),
             lambda: api.query("SELECT 1 FROM DUAL"),
         ]
@@ -314,8 +383,8 @@ class TestMegaCoverageBoostMultiModule:
             try:
                 result = op()
                 # Should handle errors gracefully
-                assert result.is_failure or result.is_success
-            except Exception:
+                assert result.is_failure or result.success
+            except (ValueError, TypeError, RuntimeError):
                 # Exception paths also contribute to coverage
                 pass
 
@@ -329,23 +398,30 @@ class TestMegaCoverageBoostMultiModule:
                 FlextDbOracleApi,
                 FlextDbOracleConfig,
             )
-            from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
             from flext_db_oracle.observability import FlextDbOracleObservabilityManager
+            from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
 
             # Test edge case constructions
             edge_constructions = [
                 # Minimal valid config
-                lambda: FlextDbOracleConfig(host="h", port=1, username="u", password="p", service_name="s"),
-
+                lambda: FlextDbOracleConfig(
+                    host="h", port=1, username="u", password="p", service_name="s",
+                ),
                 # Edge case columns
-                lambda: TDbOracleColumn(name="A", data_type="NUMBER", nullable=True, position=1),
-                lambda: TDbOracleColumn(name="VERY_LONG_COLUMN_NAME", data_type="VARCHAR2", nullable=False, position=999, max_length=4000),
-
+                lambda: TDbOracleColumn(
+                    name="A", data_type="NUMBER", nullable=True, position=1,
+                ),
+                lambda: TDbOracleColumn(
+                    name="VERY_LONG_COLUMN_NAME",
+                    data_type="VARCHAR2",
+                    nullable=False,
+                    position=999,
+                    max_length=4000,
+                ),
                 # Edge case tables
                 lambda: TDbOracleTable(name="T", schema_name="S", columns=[]),
-
                 # Observability manager
-                lambda: FlextDbOracleObservabilityManager(),
+                FlextDbOracleObservabilityManager,
             ]
 
             for construction in edge_constructions:
@@ -354,11 +430,11 @@ class TestMegaCoverageBoostMultiModule:
                     # Test basic operations on constructed objects
                     _ = str(obj)
                     _ = repr(obj)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Construction/operation exceptions also contribute
                     pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Import exceptions also contribute
             pass
 
@@ -405,12 +481,12 @@ class TestMegaCoverageBoostMultiModule:
                     # Test API creation from environment
                     from flext_db_oracle import FlextDbOracleApi
 
-                    if hasattr(FlextDbOracleApi, 'from_env'):
+                    if hasattr(FlextDbOracleApi, "from_env"):
                         api = FlextDbOracleApi.from_env()
                         # Test basic operations
                         _ = str(api)
                         _ = repr(api)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Environment-based construction exceptions
                     pass
 
@@ -424,7 +500,7 @@ class TestMegaCoverageBoostMultiModule:
 
     def test_mega_string_representations(self) -> None:
         """MEGA test for string representations across ALL classes."""
-        from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleApi
+        from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
         from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
 
         # Test string representations for all major classes
@@ -448,7 +524,7 @@ class TestMegaCoverageBoostMultiModule:
                 try:
                     result = test()
                     assert isinstance(result, str)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # API representations
@@ -457,11 +533,13 @@ class TestMegaCoverageBoostMultiModule:
                 try:
                     result = test()
                     assert isinstance(result, str)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     pass
 
             # Type representations
-            column = TDbOracleColumn(name="TEST", data_type="VARCHAR2", nullable=True, position=1)
+            column = TDbOracleColumn(
+                name="TEST", data_type="VARCHAR2", nullable=True, position=1,
+            )
             table = TDbOracleTable(name="TEST", schema_name="TEST", columns=[column])
 
             for obj in [column, table]:
@@ -469,9 +547,9 @@ class TestMegaCoverageBoostMultiModule:
                     try:
                         result = test()
                         assert isinstance(result, str)
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Global exception handling
             pass

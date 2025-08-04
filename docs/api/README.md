@@ -81,7 +81,7 @@ class FlextDbOracleApi:
         >>> config = FlextDbOracleConfig.from_env().value
         >>> api = FlextDbOracleApi(config)
         >>> connect_result = api.connect()
-        >>> if connect_result.is_success:
+        >>> if connect_result.success:
         ...     query_result = api.execute_query("SELECT * FROM employees")
     """
 
@@ -111,7 +111,7 @@ class FlextDbOracleApi:
         Example:
             >>> api = FlextDbOracleApi(config)
             >>> result = api.connect()
-            >>> if result.is_success:
+            >>> if result.success:
             ...     print("Connected successfully")
             ... else:
             ...     print(f"Connection failed: {result.error}")
@@ -145,7 +145,7 @@ class FlextDbOracleApi:
             ...     "SELECT * FROM employees WHERE department_id = :dept_id",
             ...     {"dept_id": 10}
             ... )
-            >>> if result.is_success:
+            >>> if result.success:
             ...     for row in result.value.rows:
             ...         print(row)
         """
@@ -162,7 +162,7 @@ class FlextDbOracleApi:
         Example:
             >>> ddl = "CREATE TABLE test_table (id NUMBER, name VARCHAR2(100))"
             >>> result = api.execute_ddl(ddl)
-            >>> if result.is_success:
+            >>> if result.success:
             ...     print("Table created successfully")
         """
 
@@ -193,7 +193,7 @@ class FlextDbOracleApi:
             ...     columns=["ID", "NAME", "SALARY"],
             ...     values=[[1, "John", 50000], [2, "Jane", 60000]]
             ... )
-            >>> if result.is_success:
+            >>> if result.success:
             ...     print(f"Inserted {result.value} rows")
         """
 
@@ -208,7 +208,7 @@ class FlextDbOracleApi:
 
         Example:
             >>> result = api.get_schema_metadata("HR")
-            >>> if result.is_success:
+            >>> if result.success:
             ...     schema = result.value
             ...     print(f"Schema has {len(schema.tables)} tables")
         """
@@ -343,7 +343,7 @@ class FlextDbOracleConfig(BaseSettings):
 
         Example:
             >>> config_result = FlextDbOracleConfig.from_env()
-            >>> if config_result.is_success:
+            >>> if config_result.success:
             ...     config = config_result.value
         """
 
@@ -733,7 +733,7 @@ query_result = api.execute_query(
     {"dept": 10}
 )
 
-if query_result.is_success:
+if query_result.success:
     for row in query_result.value.rows:
         print(f"Employee: {row}")
 else:
@@ -757,7 +757,7 @@ metadata_manager = FlextDbOracleMetadataManager(api.connection)
 
 # Analyze schema
 schema_result = metadata_manager.get_schema_metadata("HR")
-if schema_result.is_success:
+if schema_result.success:
     schema = schema_result.value
 
     print(f"Schema {schema.name} contains:")
@@ -766,7 +766,7 @@ if schema_result.is_success:
 
     # Generate DDL for a specific table
     ddl_result = metadata_manager.generate_table_ddl("HR", "EMPLOYEES")
-    if ddl_result.is_success:
+    if ddl_result.success:
         print(f"DDL:\n{ddl_result.value}")
 ```
 
@@ -781,7 +781,7 @@ api.connect()
 
 # Register all built-in plugins
 register_result = register_all_oracle_plugins(api.plugin_manager)
-if register_result.is_success:
+if register_result.success:
     print("Plugins registered successfully")
 
 # Execute operation with plugins
@@ -791,7 +791,7 @@ validation_result = api.execute_with_plugins("data_validation", {
     "validation_rules": ["not_null", "foreign_key"]
 })
 
-if validation_result.is_success:
+if validation_result.success:
     print("Data validation passed")
 else:
     print(f"Validation failed: {validation_result.error}")
@@ -806,7 +806,7 @@ All API methods return `FlextResult[T]` for consistent error handling:
 ```python
 # Check for success/failure
 result = api.execute_query("SELECT * FROM employees")
-if result.is_success:
+if result.success:
     data = result.value  # Type: TDbOracleQueryResult
     print(f"Retrieved {len(data.rows)} rows")
 else:
@@ -815,17 +815,17 @@ else:
 
 # Pattern matching (Python 3.10+)
 match result:
-    case FlextResult(is_success=True, value=data):
+    case FlextResult(success=True, value=data):
         print(f"Success: {len(data.rows)} rows")
-    case FlextResult(is_success=False, error=error):
+    case FlextResult(success=False, error=error):
         print(f"Error: {error}")
 
 # Chaining operations
 config_result = FlextDbOracleConfig.from_env()
-if config_result.is_success:
+if config_result.success:
     api = FlextDbOracleApi(config_result.value)
     connect_result = api.connect()
-    if connect_result.is_success:
+    if connect_result.success:
         # Proceed with operations
         pass
 ```

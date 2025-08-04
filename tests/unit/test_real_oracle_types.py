@@ -11,6 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleApi
 
 from flext_db_oracle.types import (
     TDbOracleColumn,
@@ -24,14 +28,14 @@ from flext_db_oracle.types import (
 class TestRealOracleTypeValidation:
     """Test Oracle type validation with real data."""
 
-    def test_real_oracle_column_from_db(self, oracle_api, oracle_container) -> None:
+    def test_real_oracle_column_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
         """Test creating Oracle column type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
 
         # Get real column data from Oracle
         columns_result = connected_api.get_columns("EMPLOYEES")
-        assert columns_result.is_success
+        assert columns_result.success
 
         # Find the EMPLOYEE_ID column
         employee_id_col = None
@@ -56,20 +60,20 @@ class TestRealOracleTypeValidation:
 
         # Validate domain rules
         validation = column.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Test properties
         assert column.is_key_column
         assert "NUMBER" in column.full_type_spec
 
-    def test_real_oracle_table_from_db(self, oracle_api, oracle_container) -> None:
+    def test_real_oracle_table_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
         """Test creating Oracle table type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
 
         # Get real table and column data
         columns_result = connected_api.get_columns("EMPLOYEES")
-        assert columns_result.is_success
+        assert columns_result.success
 
         # Create column objects
         columns = []
@@ -96,7 +100,7 @@ class TestRealOracleTypeValidation:
 
         # Validate domain rules
         validation = table.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Test properties
         assert table.qualified_name == "FLEXTTEST.EMPLOYEES"
@@ -104,14 +108,14 @@ class TestRealOracleTypeValidation:
         assert table.primary_key_columns[0].name == "EMPLOYEE_ID"
         assert "EMPLOYEE_ID" in table.column_names
 
-    def test_real_oracle_schema_from_db(self, oracle_api, oracle_container) -> None:
+    def test_real_oracle_schema_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
         """Test creating Oracle schema type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
 
         # Get real schema data
         tables_result = connected_api.get_tables()
-        assert tables_result.is_success
+        assert tables_result.success
 
         # Create table objects for a few key tables
         tables = []
@@ -119,7 +123,7 @@ class TestRealOracleTypeValidation:
             if table_name in tables_result.data:
                 # Get columns for this table
                 columns_result = connected_api.get_columns(table_name)
-                if columns_result.is_success:
+                if columns_result.success:
                     columns = []
                     for col_data in columns_result.data:
                         column = TDbOracleColumn(
@@ -146,7 +150,7 @@ class TestRealOracleTypeValidation:
 
         # Validate domain rules
         validation = schema.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Test properties
         assert schema.table_count >= 3
@@ -154,7 +158,9 @@ class TestRealOracleTypeValidation:
         assert schema.get_table("EMPLOYEES") is not None
 
     def test_real_oracle_query_result_from_db(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test creating query result type from real database query."""
         # Connect first
@@ -164,7 +170,7 @@ class TestRealOracleTypeValidation:
         query_result = connected_api.query(
             "SELECT employee_id, first_name, last_name FROM EMPLOYEES WHERE ROWNUM <= 3",
         )
-        assert query_result.is_success
+        assert query_result.success
 
         # Create TDbOracleQueryResult from real data
         query_result_obj = TDbOracleQueryResult(
@@ -176,7 +182,7 @@ class TestRealOracleTypeValidation:
 
         # Validate domain rules
         validation = query_result_obj.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Test properties and methods
         assert not query_result_obj.is_empty
@@ -189,12 +195,14 @@ class TestRealOracleTypeValidation:
         assert "FIRST_NAME" in dict_list[0]
 
     def test_real_oracle_connection_status_from_db(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test creating connection status type from real connection."""
         # Test connection first
         connection_result = oracle_api.test_connection()
-        assert connection_result.is_success
+        assert connection_result.success
 
         # Create connection status object
         connection_status = TDbOracleConnectionStatus(
@@ -208,7 +216,7 @@ class TestRealOracleTypeValidation:
 
         # Validate domain rules
         validation = connection_status.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Test properties
         assert connection_status.connection_string == "flexttest@localhost:1521/XEPDB1"
@@ -217,11 +225,11 @@ class TestRealOracleTypeValidation:
 class TestRealOracleTypeConversions:
     """Test Oracle type conversions with real data."""
 
-    def test_real_oracle_data_type_mapping(self, oracle_api, oracle_container) -> None:
+    def test_real_oracle_data_type_mapping(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
         """Test mapping Oracle data types to Python types."""
         # Get real column data with various Oracle types
         columns_result = oracle_api.get_columns("EMPLOYEES")
-        assert columns_result.is_success
+        assert columns_result.success
 
         type_mappings = {}
         for col_data in columns_result.data:
@@ -243,12 +251,14 @@ class TestRealOracleTypeConversions:
         assert any("DATE" in spec for spec in type_mappings.values())
 
     def test_real_oracle_singer_type_conversion(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test converting Oracle types to Singer schema types."""
         # Get real column data
         columns_result = oracle_api.get_columns("EMPLOYEES")
-        assert columns_result.is_success
+        assert columns_result.success
 
         # Test Singer schema generation
         singer_schema = {
@@ -277,12 +287,14 @@ class TestRealOracleTypeConversions:
         assert "FIRST_NAME" in singer_schema["properties"]
 
     def test_real_oracle_constraint_validation(
-        self, oracle_api, oracle_container,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test Oracle constraint validation with real data."""
         # Get real table with constraints
         columns_result = oracle_api.get_columns("EMPLOYEES")
-        assert columns_result.is_success
+        assert columns_result.success
 
         # Create table with validation rules
         columns = []
@@ -304,7 +316,7 @@ class TestRealOracleTypeConversions:
 
         # Test constraint validation
         validation = table.validate_domain_rules()
-        assert validation.is_success
+        assert validation.success
 
         # Verify primary key constraints
         pk_columns = table.primary_key_columns

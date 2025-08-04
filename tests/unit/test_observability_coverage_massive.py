@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 from unittest.mock import patch
 
 
@@ -24,16 +25,22 @@ class TestObservabilityErrorLogging:
             obs_manager = FlextDbOracleObservabilityManager()
 
             # Test logging methods that should trigger lines 102-108
-            long_sql = "SELECT * FROM VERY_LONG_TABLE_NAME_THAT_EXCEEDS_100_CHARACTERS_" * 3
+            long_sql = (
+                "SELECT * FROM VERY_LONG_TABLE_NAME_THAT_EXCEEDS_100_CHARACTERS_" * 3
+            )
             context_with_long_sql = {"sql": long_sql}
 
             # Force error logging with long SQL context (lines 102-108)
-            if hasattr(obs_manager, '_log_error'):
-                obs_manager._log_error("Database", Exception("Test error"), context_with_long_sql)
-            elif hasattr(obs_manager, 'log_error'):
-                obs_manager.log_error("Database", Exception("Test error"), context_with_long_sql)
+            if hasattr(obs_manager, "_log_error"):
+                obs_manager._log_error(
+                    "Database", Exception("Test error"), context_with_long_sql,
+                )
+            elif hasattr(obs_manager, "log_error"):
+                obs_manager.log_error(
+                    "Database", Exception("Test error"), context_with_long_sql,
+                )
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Exception paths also contribute to coverage
             pass
 
@@ -55,15 +62,19 @@ class TestObservabilityErrorLogging:
             for context in context_cases:
                 try:
                     # Should trigger lines 109-118 (single context handling)
-                    if hasattr(obs_manager, '_log_error'):
-                        obs_manager._log_error("Plugin", Exception("Context error"), context)
-                    elif hasattr(obs_manager, 'log_error'):
-                        obs_manager.log_error("Plugin", Exception("Context error"), context)
-                except Exception:
+                    if hasattr(obs_manager, "_log_error"):
+                        obs_manager._log_error(
+                            "Plugin", Exception("Context error"), context,
+                        )
+                    elif hasattr(obs_manager, "log_error"):
+                        obs_manager.log_error(
+                            "Plugin", Exception("Context error"), context,
+                        )
+                except (ValueError, TypeError, RuntimeError):
                     # Exception paths also contribute
                     pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor/access exceptions also contribute
             pass
 
@@ -76,17 +87,21 @@ class TestObservabilityErrorLogging:
 
             # Test logging without context (lines 119-120)
             try:
-                if hasattr(obs_manager, '_log_error'):
+                if hasattr(obs_manager, "_log_error"):
                     obs_manager._log_error("General", Exception("No context error"), {})
-                    obs_manager._log_error("General", Exception("No context error"), None)
-                elif hasattr(obs_manager, 'log_error'):
+                    obs_manager._log_error(
+                        "General", Exception("No context error"), None,
+                    )
+                elif hasattr(obs_manager, "log_error"):
                     obs_manager.log_error("General", Exception("No context error"), {})
-                    obs_manager.log_error("General", Exception("No context error"), None)
-            except Exception:
+                    obs_manager.log_error(
+                        "General", Exception("No context error"), None,
+                    )
+            except (ValueError, TypeError, RuntimeError):
                 # Exception paths also contribute
                 pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor exceptions also contribute
             pass
 
@@ -104,10 +119,10 @@ class TestObservabilityInitialization:
 
             # Test initialization methods that might trigger warning paths
             initialization_methods = [
-                'initialize',
-                'start_monitoring',
-                'setup_observability',
-                'init_monitoring',
+                "initialize",
+                "start_monitoring",
+                "setup_observability",
+                "init_monitoring",
             ]
 
             for method_name in initialization_methods:
@@ -115,13 +130,13 @@ class TestObservabilityInitialization:
                     try:
                         method = getattr(obs_manager, method_name)
                         if callable(method):
-                            result = method()
+                            method()
                             # Any result contributes to coverage (lines 156-166)
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         # Exception handling paths (lines 165-166)
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor exception handling
             pass
 
@@ -133,18 +148,18 @@ class TestObservabilityInitialization:
             obs_manager = FlextDbOracleObservabilityManager()
 
             # Mock initialization to force AttributeError (lines 165-166)
-            with patch.object(obs_manager, '_logger', None):  # Force AttributeError
+            with patch.object(obs_manager, "_logger", None):  # Force AttributeError
                 try:
-                    if hasattr(obs_manager, 'initialize'):
+                    if hasattr(obs_manager, "initialize"):
                         obs_manager.initialize()
                 except (AttributeError, ValueError):
                     # Should trigger lines 165-166
                     pass
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Other exceptions also contribute
                     pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Construction exceptions
             pass
 
@@ -156,18 +171,21 @@ class TestObservabilityInitialization:
             obs_manager = FlextDbOracleObservabilityManager()
 
             # Force ValueError during initialization (lines 165-166)
-            with patch('flext_db_oracle.observability.get_logger', side_effect=ValueError("Forced error")):
+            with patch(
+                "flext_db_oracle.observability.get_logger",
+                side_effect=ValueError("Forced error"),
+            ):
                 try:
-                    if hasattr(obs_manager, 'initialize'):
+                    if hasattr(obs_manager, "initialize"):
                         obs_manager.initialize()
                 except (AttributeError, ValueError):
                     # Should handle ValueError (line 166)
                     pass
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Other exception paths
                     pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Construction/patching exceptions
             pass
 
@@ -184,11 +202,11 @@ class TestObservabilityMonitoringOperations:
 
             # Test monitoring lifecycle methods
             lifecycle_methods = [
-                'start_monitoring',
-                'stop_monitoring',
-                'is_monitoring_active',
-                'reset_monitoring',
-                'get_monitoring_status',
+                "start_monitoring",
+                "stop_monitoring",
+                "is_monitoring_active",
+                "reset_monitoring",
+                "get_monitoring_status",
             ]
 
             for method_name in lifecycle_methods:
@@ -196,13 +214,13 @@ class TestObservabilityMonitoringOperations:
                     try:
                         method = getattr(obs_manager, method_name)
                         if callable(method):
-                            result = method()
+                            method()
                             # Any result acceptable for coverage
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         # Exception paths contribute to coverage
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor exceptions
             pass
 
@@ -215,11 +233,11 @@ class TestObservabilityMonitoringOperations:
 
             # Test metrics collection methods
             metrics_methods = [
-                'collect_metrics',
-                'get_metrics',
-                'record_operation',
-                'record_error',
-                'record_performance',
+                "collect_metrics",
+                "get_metrics",
+                "record_operation",
+                "record_error",
+                "record_performance",
             ]
 
             for method_name in metrics_methods:
@@ -229,18 +247,16 @@ class TestObservabilityMonitoringOperations:
                         if callable(method):
                             # Try calling with various parameters
                             try:
-                                result = method()
+                                method()
                             except TypeError:
                                 # Try with parameters
-                                try:
-                                    result = method("test_metric")
-                                except Exception:
-                                    pass
-                    except Exception:
+                                with contextlib.suppress(Exception):
+                                    method("test_metric")
+                    except (ValueError, TypeError, RuntimeError):
                         # All exception paths contribute
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor exceptions
             pass
 
@@ -253,10 +269,10 @@ class TestObservabilityMonitoringOperations:
 
             # Test context management methods
             context_methods = [
-                'set_context',
-                'get_context',
-                'clear_context',
-                'with_context',
+                "set_context",
+                "get_context",
+                "clear_context",
+                "with_context",
             ]
 
             for method_name in context_methods:
@@ -274,25 +290,25 @@ class TestObservabilityMonitoringOperations:
 
                             for context in contexts:
                                 try:
-                                    result = method(context)
+                                    method(context)
                                 except TypeError:
-                                    try:
-                                        result = method()
-                                    except Exception:
-                                        pass
-                                except Exception:
+                                    with contextlib.suppress(Exception):
+                                        method()
+                                except (ValueError, TypeError, RuntimeError):
                                     pass
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             pass
 
 
 class TestObservabilityIntegrationWithOracle:
     """Test observability integration with Oracle operations."""
 
-    def test_observability_with_oracle_operations(self, oracle_api, oracle_container) -> None:
+    def test_observability_with_oracle_operations(
+        self, oracle_api, oracle_container,
+    ) -> None:
         """Test observability integration with real Oracle operations."""
         from flext_db_oracle.observability import FlextDbOracleObservabilityManager
 
@@ -304,38 +320,38 @@ class TestObservabilityIntegrationWithOracle:
             obs_manager = FlextDbOracleObservabilityManager()
 
             # Initialize observability
-            if hasattr(obs_manager, 'initialize'):
+            if hasattr(obs_manager, "initialize"):
                 obs_manager.initialize()
 
             # Perform Oracle operations while observability is active
             oracle_operations = [
-                lambda: connected_api.test_connection(),
-                lambda: connected_api.get_schemas(),
+                connected_api.test_connection,
+                connected_api.get_schemas,
                 lambda: connected_api.query("SELECT SYSDATE FROM DUAL"),
             ]
 
             for operation in oracle_operations:
                 try:
                     # Record operation start
-                    if hasattr(obs_manager, 'record_operation'):
+                    if hasattr(obs_manager, "record_operation"):
                         obs_manager.record_operation("oracle_operation_start")
 
                     # Execute operation
                     result = operation()
 
                     # Record operation result
-                    if hasattr(obs_manager, 'record_operation'):
-                        if result.is_success:
+                    if hasattr(obs_manager, "record_operation"):
+                        if result.success:
                             obs_manager.record_operation("oracle_operation_success")
                         else:
                             obs_manager.record_operation("oracle_operation_failure")
 
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError) as e:
                     # Record error
-                    if hasattr(obs_manager, 'record_error'):
+                    if hasattr(obs_manager, "record_error"):
                         obs_manager.record_error("oracle_operation_error", str(e))
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Integration exception handling
             pass
         finally:
@@ -343,8 +359,8 @@ class TestObservabilityIntegrationWithOracle:
 
     def test_observability_error_scenarios(self) -> None:
         """Test observability in error scenarios."""
-        from flext_db_oracle.observability import FlextDbOracleObservabilityManager
         from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+        from flext_db_oracle.observability import FlextDbOracleObservabilityManager
 
         try:
             obs_manager = FlextDbOracleObservabilityManager()
@@ -362,29 +378,29 @@ class TestObservabilityIntegrationWithOracle:
 
             # Test observability during failed operations
             failed_operations = [
-                lambda: api.connect(),
-                lambda: api.test_connection(),
-                lambda: api.get_schemas(),
+                api.connect,
+                api.test_connection,
+                api.get_schemas,
             ]
 
             for operation in failed_operations:
                 try:
                     # Record operation attempt
-                    if hasattr(obs_manager, 'record_operation'):
+                    if hasattr(obs_manager, "record_operation"):
                         obs_manager.record_operation("failed_operation_attempt")
 
                     result = operation()
 
                     # Should be failure - record it
-                    if hasattr(obs_manager, 'record_error') and result.is_failure:
+                    if hasattr(obs_manager, "record_error") and result.is_failure:
                         obs_manager.record_error("operation_failed", result.error)
 
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError) as e:
                     # Record exception
-                    if hasattr(obs_manager, 'record_error'):
+                    if hasattr(obs_manager, "record_error"):
                         obs_manager.record_error("operation_exception", str(e))
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Global exception handling
             pass
 
@@ -401,30 +417,27 @@ class TestObservabilityUtilityMethods:
 
             # Test all possible properties and methods
             properties_and_methods = [
-                'is_initialized',
-                'is_monitoring_active',
-                'monitoring_status',
-                'logger',
-                'metrics',
-                'context',
-                '__str__',
-                '__repr__',
+                "is_initialized",
+                "is_monitoring_active",
+                "monitoring_status",
+                "logger",
+                "metrics",
+                "context",
+                "__str__",
+                "__repr__",
             ]
 
             for prop_name in properties_and_methods:
                 if hasattr(obs_manager, prop_name):
                     try:
                         prop = getattr(obs_manager, prop_name)
-                        if callable(prop):
-                            result = prop()
-                        else:
-                            result = prop
+                        prop() if callable(prop) else prop
                         # Any result contributes to coverage
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         # Exception access paths also contribute
                         pass
 
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Constructor exceptions
             pass
 
@@ -434,28 +447,28 @@ class TestObservabilityUtilityMethods:
 
         # Test multiple instance creation
         instances = []
-        for i in range(3):
+        for _i in range(3):
             try:
                 obs = FlextDbOracleObservabilityManager()
                 instances.append(obs)
 
                 # Test operations on each instance
-                if hasattr(obs, 'initialize'):
+                if hasattr(obs, "initialize"):
                     obs.initialize()
-                if hasattr(obs, 'start_monitoring'):
+                if hasattr(obs, "start_monitoring"):
                     obs.start_monitoring()
 
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # Multi-instance exception handling
                 pass
 
         # Test cleanup
         for obs in instances:
             try:
-                if hasattr(obs, 'stop_monitoring'):
+                if hasattr(obs, "stop_monitoring"):
                     obs.stop_monitoring()
-                if hasattr(obs, 'cleanup'):
+                if hasattr(obs, "cleanup"):
                     obs.cleanup()
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # Cleanup exception handling
                 pass

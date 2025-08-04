@@ -2,7 +2,7 @@
 
 Focus on cli.py lines that are not covered:
 - Lines 267-274: Connection parameter processing
-- Lines 458-503: Environment configuration and API creation  
+- Lines 458-503: Environment configuration and API creation
 - Lines 721-769: Output formatting functions
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+
 from click.testing import CliRunner
 
 
@@ -33,7 +34,7 @@ class TestCLIParameterProcessing:
             "--port", "1521",
             "--username", "testuser",
             "--password", "testpass",
-            "--service-name", "TESTDB"
+            "--service-name", "TESTDB",
         ])
 
         # Command should process parameters (might fail connection but processing should work)
@@ -267,9 +268,15 @@ class TestCLIComprehensivePathCoverage:
                 result = runner.invoke(oracle_cli, cmd)
                 # Should not crash - any exit code is acceptable
                 assert result.exit_code in {0, 1, 2}
-            except Exception:
-                # Even exceptions are acceptable - we just want code paths executed
-                pass
+            except (SystemExit, KeyboardInterrupt):
+                # Expected exceptions from CLI framework
+                continue
+            except (ImportError, ModuleNotFoundError):
+                # Module import issues - skip command
+                continue
+            except (ValueError, TypeError, RuntimeError):
+                # Expected errors during testing - skip command
+                continue
 
     def test_error_handling_paths(self) -> None:
         """Test error handling paths in CLI."""
@@ -295,6 +302,12 @@ class TestCLIComprehensivePathCoverage:
                 result = runner.invoke(oracle_cli, cmd)
                 # Error handling should work - exit codes 1 or 2 expected
                 assert result.exit_code in {0, 1, 2}
-            except Exception:
-                # Exception handling paths are also coverage
-                pass
+            except (SystemExit, KeyboardInterrupt):
+                # Expected exceptions from CLI framework
+                continue
+            except (ImportError, ModuleNotFoundError):
+                # Module import issues - skip command
+                continue
+            except (ValueError, TypeError, RuntimeError):
+                # Expected errors during testing - skip command
+                continue
