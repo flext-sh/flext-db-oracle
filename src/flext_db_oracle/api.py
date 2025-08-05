@@ -537,9 +537,9 @@ class FlextDbOracleApi:
     ) -> Self:
         """Create Oracle API with configuration dictionary or keyword arguments."""
         if config_dict is not None:
-            config = FlextDbOracleConfig(**config_dict)  # type: ignore[arg-type]
+            config = FlextDbOracleConfig(**config_dict)
         else:
-            config = FlextDbOracleConfig(**kwargs)  # type: ignore[arg-type]
+            config = FlextDbOracleConfig(**kwargs)
         return cls(config, context_name)
 
     @classmethod
@@ -1127,7 +1127,7 @@ class FlextDbOracleApi:
         # Convert dict[str, str] to dict[str, object] for type compatibility
         if result.success and result.data:
             return FlextResult.ok(dict(result.data))
-        return result  # type: ignore[return-value]
+        return result
 
     def get_primary_keys(
         self,
@@ -1235,6 +1235,98 @@ class FlextDbOracleApi:
         if result.success:
             return FlextResult.ok(None)
         return FlextResult.fail(result.error or "DDL execution failed")
+
+    # =============================================================================
+    # DML Statement Builders (Delegated to Connection)
+    # =============================================================================
+
+    def build_insert_statement(
+        self,
+        table_name: str,
+        columns: list[str],
+        schema_name: str | None = None,
+        returning_columns: list[str] | None = None,
+        hints: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build INSERT statement with Oracle-specific features."""
+        if not self._connection_manager or not self._connection_manager.connection:
+            return FlextResult.fail("No database connection available")
+
+        return self._connection_manager.connection.build_insert_statement(
+            table_name, columns, schema_name, returning_columns, hints,
+        )
+
+    def build_update_statement(
+        self,
+        table_name: str,
+        set_columns: list[str],
+        where_columns: list[str],
+        schema_name: str | None = None,
+        returning_columns: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build UPDATE statement with Oracle-specific features."""
+        if not self._connection_manager or not self._connection_manager.connection:
+            return FlextResult.fail("No database connection available")
+
+        return self._connection_manager.connection.build_update_statement(
+            table_name, set_columns, where_columns, schema_name, returning_columns,
+        )
+
+    def build_merge_statement(
+        self,
+        target_table: str,
+        source_columns: list[str],
+        merge_keys: list[str],
+        update_columns: list[str] | None = None,
+        insert_columns: list[str] | None = None,
+        schema_name: str | None = None,
+        hints: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build Oracle MERGE statement for upsert operations."""
+        if not self._connection_manager or not self._connection_manager.connection:
+            return FlextResult.fail("No database connection available")
+
+        return self._connection_manager.connection.build_merge_statement(
+            target_table, source_columns, merge_keys, update_columns,
+            insert_columns, schema_name, hints,
+        )
+
+    def build_delete_statement(
+        self,
+        table_name: str,
+        where_columns: list[str],
+        schema_name: str | None = None,
+    ) -> FlextResult[str]:
+        """Build DELETE statement."""
+        if not self._connection_manager or not self._connection_manager.connection:
+            return FlextResult.fail("No database connection available")
+
+        return self._connection_manager.connection.build_delete_statement(
+            table_name, where_columns, schema_name,
+        )
+
+    def build_create_index_statement(
+        self,
+        index_name: str,
+        table_name: str,
+        columns: list[str],
+        *,
+        schema_name: str | None = None,
+        unique: bool = False,
+        tablespace: str | None = None,
+        parallel: int | None = None,
+    ) -> FlextResult[str]:
+        """Build CREATE INDEX statement with Oracle-specific features."""
+        if not self._connection_manager or not self._connection_manager.connection:
+            return FlextResult.fail("No database connection available")
+
+        return self._connection_manager.connection.build_create_index_statement(
+            index_name, table_name, columns,
+            schema_name=schema_name,
+            unique=unique,
+            tablespace=tablespace,
+            parallel=parallel,
+        )
 
 
 # =============================================================================

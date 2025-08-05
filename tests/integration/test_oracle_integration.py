@@ -14,9 +14,6 @@ import os
 from typing import TYPE_CHECKING, Any
 from unittest.mock import MagicMock, patch
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-
 import pytest
 from flext_core import FlextResult
 
@@ -24,6 +21,9 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 class TestOracleIntegration:

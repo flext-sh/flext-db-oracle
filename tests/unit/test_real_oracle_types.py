@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -95,7 +95,7 @@ class TestRealOracleTypeValidation:
             name="EMPLOYEES",
             schema_name="FLEXTTEST",
             columns=columns,
-            created_date=datetime.now(),
+            created_date=datetime.now(UTC),
         )
 
         # Validate domain rules
@@ -145,7 +145,7 @@ class TestRealOracleTypeValidation:
         schema = TDbOracleSchema(
             name="FLEXTTEST",
             tables=tables,
-            created_date=datetime.now(),
+            created_date=datetime.now(UTC),
         )
 
         # Validate domain rules
@@ -211,7 +211,7 @@ class TestRealOracleTypeValidation:
             port=1521,
             database="XEPDB1",
             username="flexttest",
-            last_check=datetime.now(),
+            last_check=datetime.now(UTC),
         )
 
         # Validate domain rules
@@ -384,7 +384,7 @@ class TestRealOracleTypeErrorHandling:
             port=999999,  # Invalid port
             database="TEST",
             username="test",
-            last_check=datetime.now(),
+            last_check=datetime.now(UTC),
         )
 
         validation = connection_status.validate_domain_rules()

@@ -893,5 +893,251 @@ class FlextDbOracleConnection:
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return self._handle_database_error_simple("URL building failed", e)
 
+    # =============================================================================
+    # DML Operations (INSERT, UPDATE, DELETE, MERGE)
+    # =============================================================================
+
+    def build_insert_statement(
+        self,
+        table_name: str,
+        columns: list[str],
+        schema_name: str | None = None,
+        returning_columns: list[str] | None = None,
+        hints: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build INSERT statement with Oracle-specific features.
+
+        Args:
+            table_name: Target table name
+            columns: Column names to insert
+            schema_name: Optional schema name
+            returning_columns: Columns to return after insert (Oracle RETURNING clause)
+            hints: Oracle optimizer hints (e.g., ['APPEND', 'PARALLEL(4)'])
+
+        Returns:
+            FlextResult containing the INSERT statement
+
+        """
+        try:
+            full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Build hints if provided
+            hint_clause = ""
+            if hints:
+                hint_clause = f"/*+ {' '.join(hints)} */ "
+
+            # Build column list and parameter placeholders
+            col_list = ", ".join(columns)
+            param_list = ", ".join([f":{col}" for col in columns])
+
+            # Build basic INSERT
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
+
+            # Add RETURNING clause if specified
+            if returning_columns:
+                returning_list = ", ".join(returning_columns)
+                sql += f" RETURNING {returning_list} INTO {', '.join([f':out_{col}' for col in returning_columns])}"
+
+            return FlextResult.ok(sql)
+
+        except Exception as e:
+            return self._handle_database_error_simple("INSERT statement build failed", e)
+
+    def build_update_statement(
+        self,
+        table_name: str,
+        set_columns: list[str],
+        where_columns: list[str],
+        schema_name: str | None = None,
+        returning_columns: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build UPDATE statement with Oracle-specific features.
+
+        Args:
+            table_name: Target table name
+            set_columns: Columns to update
+            where_columns: Columns for WHERE clause
+            schema_name: Optional schema name
+            returning_columns: Columns to return after update
+
+        Returns:
+            FlextResult containing the UPDATE statement
+
+        """
+        try:
+            full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Build SET clause
+            set_clause = ", ".join([f"{col} = :{col}" for col in set_columns])
+
+            # Build WHERE clause
+            where_clause = " AND ".join([f"{col} = :where_{col}" for col in where_columns])
+
+            # Build UPDATE statement
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
+
+            # Add RETURNING clause if specified
+            if returning_columns:
+                returning_list = ", ".join(returning_columns)
+                sql += f" RETURNING {returning_list} INTO {', '.join([f':out_{col}' for col in returning_columns])}"
+
+            return FlextResult.ok(sql)
+
+        except Exception as e:
+            return self._handle_database_error_simple("UPDATE statement build failed", e)
+
+    def build_merge_statement(
+        self,
+        target_table: str,
+        source_columns: list[str],
+        merge_keys: list[str],
+        update_columns: list[str] | None = None,
+        insert_columns: list[str] | None = None,
+        schema_name: str | None = None,
+        hints: list[str] | None = None,
+    ) -> FlextResult[str]:
+        """Build Oracle MERGE statement for upsert operations.
+
+        Args:
+            target_table: Target table name
+            source_columns: All source columns
+            merge_keys: Columns to match on (ON clause)
+            update_columns: Columns to update when matched (None = all non-key columns)
+            insert_columns: Columns to insert when not matched (None = all columns)
+            schema_name: Optional schema name
+            hints: Oracle optimizer hints
+
+        Returns:
+            FlextResult containing the MERGE statement
+
+        """
+        try:
+            full_table_name = self._build_table_name(target_table, schema_name)
+
+            # Default update columns to all non-key columns
+            if update_columns is None:
+                update_columns = [col for col in source_columns if col not in merge_keys]
+
+            # Default insert columns to all source columns
+            if insert_columns is None:
+                insert_columns = source_columns
+
+            # Build hints if provided
+            hint_clause = ""
+            if hints:
+                hint_clause = f"/*+ {' '.join(hints)} */ "
+
+            # Build source subquery with parameters
+            source_select = ", ".join([f":src_{col} AS {col}" for col in source_columns])
+
+            # Build ON clause
+            on_conditions = " AND ".join([f"tgt.{key} = src.{key}" for key in merge_keys])
+
+            # Build UPDATE SET clause
+            update_set = ", ".join([f"tgt.{col} = src.{col}" for col in update_columns])
+
+            # Build INSERT columns and values
+            insert_cols = ", ".join(insert_columns)
+            insert_vals = ", ".join([f"src.{col}" for col in insert_columns])
+
+            # Build complete MERGE statement
+            sql = f"""
+                MERGE {hint_clause}INTO {full_table_name} tgt
+                USING (SELECT {source_select} FROM DUAL) src
+                ON ({on_conditions})
+                WHEN MATCHED THEN
+                    UPDATE SET {update_set}
+                WHEN NOT MATCHED THEN
+                    INSERT ({insert_cols})
+                    VALUES ({insert_vals})
+            """
+
+            return FlextResult.ok(sql.strip())
+
+        except Exception as e:
+            return self._handle_database_error_simple("MERGE statement build failed", e)
+
+    def build_delete_statement(
+        self,
+        table_name: str,
+        where_columns: list[str],
+        schema_name: str | None = None,
+    ) -> FlextResult[str]:
+        """Build DELETE statement.
+
+        Args:
+            table_name: Target table name
+            where_columns: Columns for WHERE clause
+            schema_name: Optional schema name
+
+        Returns:
+            FlextResult containing the DELETE statement
+
+        """
+        try:
+            full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Build WHERE clause
+            where_clause = " AND ".join([f"{col} = :{col}" for col in where_columns])
+
+            # Build DELETE statement
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
+
+            return FlextResult.ok(sql)
+
+        except Exception as e:
+            return self._handle_database_error_simple("DELETE statement build failed", e)
+
+    def build_create_index_statement(
+        self,
+        index_name: str,
+        table_name: str,
+        columns: list[str],
+        *,
+        schema_name: str | None = None,
+        unique: bool = False,
+        tablespace: str | None = None,
+        parallel: int | None = None,
+    ) -> FlextResult[str]:
+        """Build CREATE INDEX statement with Oracle-specific features.
+
+        Args:
+            index_name: Name of the index
+            table_name: Table to index
+            columns: Column names to index
+            schema_name: Optional schema name
+            unique: Whether to create unique index
+            tablespace: Optional tablespace name
+            parallel: Degree of parallelism for index creation
+
+        Returns:
+            FlextResult containing the CREATE INDEX statement
+
+        """
+        try:
+            full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Build index type
+            index_type = "UNIQUE INDEX" if unique else "INDEX"
+
+            # Build column list
+            col_list = ", ".join(columns)
+
+            # Build basic CREATE INDEX
+            sql = f"CREATE {index_type} {schema_name}.{index_name} ON {full_table_name} ({col_list})"
+
+            # Add tablespace if specified
+            if tablespace:
+                sql += f" TABLESPACE {tablespace}"
+
+            # Add parallel option if specified
+            if parallel:
+                sql += f" PARALLEL {parallel}"
+
+            return FlextResult.ok(sql)
+
+        except Exception as e:
+            return self._handle_database_error_simple("CREATE INDEX statement build failed", e)
+
 
 __all__: list[str] = ["FlextDbOracleConnection"]

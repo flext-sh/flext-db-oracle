@@ -25,7 +25,7 @@ class TestRealOracleCli:
     """Test Oracle CLI operations with real container."""
 
     @pytest.fixture
-    def cli_runner(self):
+    def cli_runner(self) -> CliRunner:
         """Create CLI runner for tests."""
         return CliRunner()
 
@@ -122,7 +122,7 @@ class TestRealOracleCliErrorHandling:
     """Test CLI error handling with real Oracle container."""
 
     @pytest.fixture
-    def cli_runner(self):
+    def cli_runner(self) -> CliRunner:
         """Create CLI runner for tests."""
         return CliRunner()
 
@@ -199,12 +199,12 @@ class TestRealOracleCliCoverageBoost:
     """Tests specifically designed to boost CLI coverage for missed lines."""
 
     @pytest.fixture
-    def cli_runner(self):
+    def cli_runner(self) -> CliRunner:
         """Create CLI runner for tests."""
         return CliRunner()
 
     def test_real_cli_connection_parameters_processing(
-        self, cli_runner, oracle_container,
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test connection parameter processing (lines 267-274)."""
         # Test with explicit connection parameters
@@ -224,7 +224,7 @@ class TestRealOracleCliCoverageBoost:
         assert result.exit_code in {0, 1}  # May succeed or fail gracefully
 
     def test_real_cli_error_handling_paths(
-        self, cli_runner, oracle_container,
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI error handling paths (lines 289-317)."""
         # Test with invalid host (should be quick to fail)
@@ -244,7 +244,7 @@ class TestRealOracleCliCoverageBoost:
         assert result.exit_code != 0  # Should fail with invalid params
 
     def test_real_cli_interactive_commands(
-        self, cli_runner, oracle_container,
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test interactive command paths (lines 458-503)."""
         # Test command that might trigger interactive paths
@@ -257,7 +257,7 @@ class TestRealOracleCliCoverageBoost:
         assert result.exit_code in {0, 1, 2}  # Various valid exit codes
 
     def test_real_cli_advanced_output_formatting(
-        self, cli_runner, oracle_container,
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test advanced output formatting (lines 721-769)."""
         # Test multiple output formats to trigger formatting code
@@ -273,7 +273,7 @@ class TestRealOracleCliCoverageBoost:
             assert result.exit_code in {0, 1, 2}  # Allow various outcomes
 
     def test_real_cli_all_commands_coverage(
-        self, cli_runner, oracle_container,
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test all CLI commands to maximize coverage."""
         commands = [

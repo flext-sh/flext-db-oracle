@@ -29,8 +29,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_data_validation_internal_functions(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test data validation plugin internal functions (lines 69-83)."""
         # Connect first
@@ -56,8 +56,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_business_rules_validation(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test business rules validation (lines 86-103)."""
         # Connect first
@@ -83,8 +83,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_performance_monitoring_execution(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test performance monitoring plugin execution (lines 337-385)."""
         # Connect first
@@ -109,8 +109,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_security_audit_comprehensive(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test security audit plugin comprehensive functionality (lines 111-148)."""
         # Connect first
@@ -136,8 +136,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_registration_comprehensive(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test comprehensive plugin registration (lines 223-241)."""
         # Connect first
@@ -175,8 +175,8 @@ class TestRealOraclePluginsCoverageBoost:
 
     def test_real_plugins_monitoring_advanced_features(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test advanced monitoring features (lines 534-584)."""
         # Connect first
@@ -206,8 +206,8 @@ class TestRealOraclePluginsIntegration:
 
     def test_real_plugins_full_workflow_integration(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test full plugin workflow integration."""
         # Connect first
@@ -227,8 +227,8 @@ class TestRealOraclePluginsIntegration:
 
     def test_real_plugins_performance_under_load(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test plugin performance under load scenarios."""
         # Connect first

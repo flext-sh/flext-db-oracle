@@ -17,14 +17,14 @@ if TYPE_CHECKING:
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleMetadataManager
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleMetadataManager
 
 
 class TestRealOracleMetadata:
     """Test Oracle metadata operations with real container."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -160,7 +160,7 @@ class TestRealOracleMetadataErrorHandling:
     """Test metadata error handling with real Oracle."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -247,7 +247,7 @@ class TestRealOracleMetadataIntegration:
     """Test metadata integration with real Oracle operations."""
 
     @pytest.fixture
-    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig):
+    def metadata_manager(self, real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -264,8 +264,8 @@ class TestRealOracleMetadataIntegration:
 
     def test_real_metadata_with_api_integration(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test metadata manager integration with Oracle API."""
         from flext_db_oracle import FlextDbOracleConnection

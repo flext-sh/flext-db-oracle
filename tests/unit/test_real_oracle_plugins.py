@@ -13,6 +13,8 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConfig,
     create_data_validation_plugin,
     create_performance_monitor_plugin,
     create_security_audit_plugin,
@@ -58,8 +60,8 @@ class TestRealOraclePlugins:
 
     def test_real_plugins_register_all(
         self,
-        real_oracle_config,
-        oracle_container,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test registering all Oracle plugins."""
         plugins_dict = {}
@@ -92,8 +94,8 @@ class TestRealOraclePluginErrorHandling:
 
     def test_real_plugins_register_with_empty_dict(
         self,
-        real_oracle_config,
-        oracle_container,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test registering plugins with empty dictionary."""
         plugins_dict = {}
@@ -106,12 +108,12 @@ class TestRealOraclePluginErrorHandling:
 
     def test_real_plugins_register_multiple_times(
         self,
-        oracle_api,
-        oracle_container,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test registering plugins multiple times."""
         # Connect first
-        connected_api = oracle_api.connect()
+        connected_api = real_oracle_config.connect()
 
         # Register once
         result1 = register_all_oracle_plugins(connected_api)
@@ -131,8 +133,8 @@ class TestRealOraclePluginIntegration:
 
     def test_real_plugins_with_oracle_metadata(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test plugins integration with Oracle metadata operations."""
         # Create plugins
@@ -151,8 +153,8 @@ class TestRealOraclePluginIntegration:
 
     def test_real_plugins_with_oracle_connection(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test plugins with Oracle connection operations."""
         plugins_dict = {}
@@ -167,8 +169,8 @@ class TestRealOraclePluginIntegration:
 
     def test_real_plugins_with_query_operations(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test plugins with Oracle query operations."""
         # Create individual plugins
@@ -187,8 +189,8 @@ class TestRealOraclePluginIntegration:
 
     def test_real_plugins_comprehensive_coverage(
         self,
-        oracle_api,
-        oracle_container,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test comprehensive plugin coverage with various Oracle operations."""
         plugins_dict = {}
@@ -233,12 +235,10 @@ class TestRealOraclePluginIntegration:
 
     def test_real_plugins_with_different_configs(
         self,
-        real_oracle_config,
-        oracle_container,
+        real_oracle_config: FlextDbOracleConfig,
+        oracle_container: None,
     ) -> None:
         """Test plugins with different configuration objects."""
-        from flext_db_oracle import FlextDbOracleConfig
-
         # Create alternative config
         alt_config = FlextDbOracleConfig(
             host=real_oracle_config.host,

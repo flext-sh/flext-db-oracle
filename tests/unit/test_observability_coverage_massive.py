@@ -11,7 +11,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleApi
 
 
 class TestObservabilityErrorLogging:
@@ -306,7 +310,7 @@ class TestObservabilityIntegrationWithOracle:
     """Test observability integration with Oracle operations."""
 
     def test_observability_with_oracle_operations(
-        self, oracle_api, oracle_container,
+        self, oracle_api: FlextDbOracleApi, oracle_container: None,
     ) -> None:
         """Test observability integration with real Oracle operations."""
         from flext_db_oracle.observability import FlextDbOracleObservabilityManager

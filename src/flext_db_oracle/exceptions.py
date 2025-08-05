@@ -54,7 +54,7 @@ def _create_oracle_domain_exception_class(
         context.update(kwargs)
 
         formatted_message = f"Oracle DB {message_prefix}: {message}"
-        super(type(self), self).__init__(formatted_message, **context)  # type: ignore[misc]
+        super(type(self), self).__init__(formatted_message, **context)
 
     # Create the class dynamically
     return type(
