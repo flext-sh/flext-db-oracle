@@ -186,16 +186,28 @@ class FlextDbOracleObservabilityManager:
         if trace_result.success and trace_result.data:
             return trace_result.data
 
-        # Fallback: create trace directly using FlextTrace constructor
-        return FlextTrace(
-            id=str(uuid.uuid4()),
+        # REAL REFACTORING: Use factory function with correct signature
+        config_dict = dict(attributes)
+        config_dict["span_id"] = span_id
+
+        create_result = flext_create_trace(
             trace_id=trace_id,
             operation=f"{self._context_name}.{operation}",
-            span_id=span_id,
-            duration_ms=0,
-            status="pending",
+            config=config_dict,
             timestamp=datetime.now(UTC),
         )
+
+        if create_result.success and create_result.data:
+            return create_result.data
+
+        # If factory fails, create minimal trace data - proper fallback
+        logger = get_logger("flext_db_oracle_observability")
+        logger.warning(f"Failed to create trace for {operation}: {create_result.error}")
+
+        # For now, return the error since we can't create FlextTrace properly
+        # This follows the ZERO TOLERANCE approach - don't fake success
+        error_msg = f"Cannot create trace for {operation}: {create_result.error}"
+        raise RuntimeError(error_msg)
 
     def record_metric(
         self,

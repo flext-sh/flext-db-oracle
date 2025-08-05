@@ -58,6 +58,8 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
+from .config_types import CreateIndexStatementConfig, MergeStatementConfig
+
 from .constants import (
     ORACLE_DATE_TYPE,
     ORACLE_DEFAULT_VARCHAR_TYPE,
@@ -988,50 +990,42 @@ class FlextDbOracleConnection:
 
     def build_merge_statement(
         self,
-        target_table: str,
-        source_columns: list[str],
-        merge_keys: list[str],
-        update_columns: list[str] | None = None,
-        insert_columns: list[str] | None = None,
-        schema_name: str | None = None,
-        hints: list[str] | None = None,
+        config: MergeStatementConfig,
     ) -> FlextResult[str]:
-        """Build Oracle MERGE statement for upsert operations.
+        """Build Oracle MERGE statement for upsert operations - SOLID refactoring.
 
         Args:
-            target_table: Target table name
-            source_columns: All source columns
-            merge_keys: Columns to match on (ON clause)
-            update_columns: Columns to update when matched (None = all non-key columns)
-            insert_columns: Columns to insert when not matched (None = all columns)
-            schema_name: Optional schema name
-            hints: Oracle optimizer hints
+            config: Merge statement configuration with all required parameters
 
         Returns:
             FlextResult containing the MERGE statement
 
         """
         try:
-            full_table_name = self._build_table_name(target_table, schema_name)
+            full_table_name = self._build_table_name(config.target_table, config.schema_name)
 
             # Default update columns to all non-key columns
-            if update_columns is None:
-                update_columns = [col for col in source_columns if col not in merge_keys]
+            if config.update_columns is None:
+                update_columns = [col for col in config.source_columns if col not in config.merge_keys]
+            else:
+                update_columns = config.update_columns
 
             # Default insert columns to all source columns
-            if insert_columns is None:
-                insert_columns = source_columns
+            if config.insert_columns is None:
+                insert_columns = config.source_columns
+            else:
+                insert_columns = config.insert_columns
 
             # Build hints if provided
             hint_clause = ""
-            if hints:
-                hint_clause = f"/*+ {' '.join(hints)} */ "
+            if config.hints:
+                hint_clause = f"/*+ {' '.join(config.hints)} */ "
 
             # Build source subquery with parameters
-            source_select = ", ".join([f":src_{col} AS {col}" for col in source_columns])
+            source_select = ", ".join([f":src_{col} AS {col}" for col in config.source_columns])
 
             # Build ON clause
-            on_conditions = " AND ".join([f"tgt.{key} = src.{key}" for key in merge_keys])
+            on_conditions = " AND ".join([f"tgt.{key} = src.{key}" for key in config.merge_keys])
 
             # Build UPDATE SET clause
             update_set = ", ".join([f"tgt.{col} = src.{col}" for col in update_columns])

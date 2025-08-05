@@ -47,7 +47,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 from flext_core import FlextResult, FlextValueObject
 from pydantic import Field
@@ -63,6 +63,9 @@ from .constants import (
     ERROR_MSG_USERNAME_EMPTY,
     MAX_PORT,
 )
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 def _handle_validation_error(context: str, exception: Exception) -> FlextResult[None]:
@@ -293,6 +296,10 @@ class TDbOracleQueryResult(FlextValueObject):
         default=0.0,
         description="Execution time in milliseconds",
     )
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """REAL REFACTORING: Implement abstract method from FlextValueObject."""
+        return self.validate_domain_rules()
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate query result domain rules."""

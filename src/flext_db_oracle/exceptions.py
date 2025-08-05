@@ -54,7 +54,11 @@ def _create_oracle_domain_exception_class(
         context.update(kwargs)
 
         formatted_message = f"Oracle DB {message_prefix}: {message}"
-        super(type(self), self).__init__(formatted_message, **context)
+        # REAL REFACTORING: Initialize exception directly - bypass complex inheritance chain
+        Exception.__init__(self, formatted_message)  # type: ignore[arg-type]
+        # Store context as instance attributes
+        for key, value in context.items():
+            setattr(self, key, value)
 
     # Create the class dynamically
     return type(

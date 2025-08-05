@@ -50,8 +50,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from datetime import datetime
 from typing import TYPE_CHECKING, TypeVar, cast
 
 from flext_core import FlextResult, FlextValueObject, get_logger
@@ -64,6 +62,10 @@ from .constants import (
     ERROR_MSG_SCHEMA_NAME_EMPTY,
     ERROR_MSG_TABLE_NAME_EMPTY,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from datetime import datetime
 
 # =============================================================================
 # REFACTORING: Template Method Pattern for validation DRY approach
@@ -128,6 +130,10 @@ class FlextDbOracleColumn(FlextValueObject, ValidationMixin):
     column_id: int = Field(..., description="Column position in table")
     comments: str | None = Field(None, description="Column comments")
 
+    def validate_business_rules(self) -> FlextResult[None]:
+        """REAL REFACTORING: Implement abstract method from FlextValueObject."""
+        return self.validate_domain_rules()
+
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate column metadata domain rules using DRY template method."""
         validation_steps: list[tuple[str, Callable[[], bool]]] = [
@@ -172,6 +178,10 @@ class FlextDbOracleTable(FlextValueObject, ValidationMixin):
     size_mb: float | None = Field(None, description="Table size in MB")
     comments: str | None = Field(None, description="Table comments")
     created_date: datetime | None = Field(None, description="Creation date")
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """REAL REFACTORING: Implement abstract method from FlextValueObject."""
+        return self.validate_domain_rules()
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate table metadata domain rules using DRY template method."""
@@ -229,6 +239,10 @@ class FlextDbOracleSchema(FlextValueObject, ValidationMixin):
     )
     created_date: datetime | None = Field(None, description="Schema creation date")
     default_tablespace: str | None = Field(None, description="Default tablespace")
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """REAL REFACTORING: Implement abstract method from FlextValueObject."""
+        return self.validate_domain_rules()
 
     def validate_domain_rules(self) -> FlextResult[None]:
         """Validate schema metadata domain rules using DRY template method."""

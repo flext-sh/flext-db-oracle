@@ -56,6 +56,7 @@ from flext_core import (
 )
 
 from .config import FlextDbOracleConfig
+from .config_types import CreateIndexStatementConfig, MergeStatementConfig
 from .connection import FlextDbOracleConnection
 from .observability import (
     FlextDbOracleObservabilityManager,
@@ -537,9 +538,11 @@ class FlextDbOracleApi:
     ) -> Self:
         """Create Oracle API with configuration dictionary or keyword arguments."""
         if config_dict is not None:
-            config = FlextDbOracleConfig(**config_dict)
+            # REAL REFACTORING: Use model_validate for proper type handling
+            config = FlextDbOracleConfig.model_validate(config_dict)
         else:
-            config = FlextDbOracleConfig(**kwargs)
+            # REAL REFACTORING: Use model_validate for proper type handling
+            config = FlextDbOracleConfig.model_validate(kwargs)
         return cls(config, context_name)
 
     @classmethod
@@ -1124,10 +1127,12 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         result = self._connection_manager.connection.map_singer_schema(singer_schema)
-        # Convert dict[str, str] to dict[str, object] for type compatibility
+        # REAL REFACTORING: Properly convert dict[str, str] to dict[str, object]
         if result.success and result.data:
-            return FlextResult.ok(dict(result.data))
-        return result
+            converted_data: dict[str, object] = dict(result.data)
+            return FlextResult.ok(converted_data)
+        # If failure, create properly typed failure result
+        return FlextResult.fail(result.error or "Schema mapping failed")
 
     def get_primary_keys(
         self,
@@ -1274,21 +1279,15 @@ class FlextDbOracleApi:
 
     def build_merge_statement(
         self,
-        target_table: str,
-        source_columns: list[str],
-        merge_keys: list[str],
-        update_columns: list[str] | None = None,
-        insert_columns: list[str] | None = None,
-        schema_name: str | None = None,
-        hints: list[str] | None = None,
+        config: MergeStatementConfig,
     ) -> FlextResult[str]:
-        """Build Oracle MERGE statement for upsert operations."""
+        """Build Oracle MERGE statement for upsert operations - SOLID refactoring."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_merge_statement(
-            target_table, source_columns, merge_keys, update_columns,
-            insert_columns, schema_name, hints,
+            config.target_table, config.source_columns, config.merge_keys,
+            config.update_columns, config.insert_columns, config.schema_name, config.hints,
         )
 
     def build_delete_statement(
@@ -1307,25 +1306,18 @@ class FlextDbOracleApi:
 
     def build_create_index_statement(
         self,
-        index_name: str,
-        table_name: str,
-        columns: list[str],
-        *,
-        schema_name: str | None = None,
-        unique: bool = False,
-        tablespace: str | None = None,
-        parallel: int | None = None,
+        config: CreateIndexStatementConfig,
     ) -> FlextResult[str]:
-        """Build CREATE INDEX statement with Oracle-specific features."""
+        """Build CREATE INDEX statement with Oracle-specific features - SOLID refactoring."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_create_index_statement(
-            index_name, table_name, columns,
-            schema_name=schema_name,
-            unique=unique,
-            tablespace=tablespace,
-            parallel=parallel,
+            config.index_name, config.table_name, config.columns,
+            schema_name=config.schema_name,
+            unique=config.unique,
+            tablespace=config.tablespace,
+            parallel=config.parallel,
         )
 
 

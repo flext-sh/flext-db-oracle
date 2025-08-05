@@ -360,8 +360,9 @@ class FlextDbOracleConfig(FlextOracleConfig):
             }
             # Filter out None values for optional parameters
             filtered_config = {k: v for k, v in typed_config.items() if v is not None}
-            # MYPY FIX: Type ignore since values are properly cast above
-            config = cls(**filtered_config)
+
+            # REAL REFACTORING: Use model_validate for proper type handling
+            config = cls.model_validate(filtered_config)
             validation_result = config.validate_domain_rules()
 
             if validation_result.is_failure:
