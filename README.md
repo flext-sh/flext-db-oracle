@@ -1,20 +1,39 @@
-# FLEXT DB Oracle
+# flext-db-oracle - Oracle Database Integration
 
-[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Version 0.9.0](https://img.shields.io/badge/version-0.9.0-orange.svg)](https://github.com/flext-sh/flext-db-oracle)
-[![SQLAlchemy 2](https://img.shields.io/badge/SQLAlchemy-2.x-orange.svg)](https://www.sqlalchemy.org/)
-[![MIT License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Clean Architecture](https://img.shields.io/badge/Architecture-Clean%20Architecture%20%2B%20DDD-green.svg)](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+**Type**: Infrastructure Library | **Status**: Development | **Dependencies**: flext-core
 
-**Enterprise Oracle Database Integration for the FLEXT Data Platform**
+Oracle database connectivity and operations for the FLEXT ecosystem.
 
-FLEXT DB Oracle is a production-ready Oracle Database integration library that serves as the foundational data infrastructure component for the FLEXT ecosystem. Built with Python 3.13+, SQLAlchemy 2.x, and the modern `oracledb` driver, it implements Clean Architecture, Domain-Driven Design (DDD), and enterprise-grade quality standards to provide reliable, scalable Oracle database operations.
+> **⚠️ Development Status**: Core connection and query functionality working, Singer integration incomplete
 
-## 🎯 Project Mission
+## Quick Start
 
-**Enable enterprise-grade Oracle database integration across the FLEXT data platform**
+```bash
+# Install dependencies
+poetry install
 
-FLEXT DB Oracle exists to solve the critical challenge of providing consistent, reliable, and performant Oracle database connectivity for data-intensive applications. As the infrastructure foundation for Oracle-based data operations, it ensures that all Oracle interactions across the FLEXT ecosystem follow the same enterprise-grade patterns, error handling, and performance optimization strategies.
+# Test Oracle connection
+python -c "from flext_db_oracle import FlextDbOracleApi; api = FlextDbOracleApi(); print('✅ Working')"
+
+# Run with Docker Oracle
+docker-compose -f docker-compose.oracle.yml up -d
+```
+
+## Current Reality
+
+**What Actually Works:**
+
+- Oracle database connections with SQLAlchemy 2.x
+- Schema introspection and metadata extraction
+- Query execution with connection pooling
+- CLI tools for database operations
+
+**What Needs Work:**
+
+- Singer ecosystem integration (tap/target compatibility)
+- FLEXT observability integration
+- Performance optimization features
+- Advanced plugin system completion
 
 ## 🏗️ Architecture Role in FLEXT Ecosystem
 

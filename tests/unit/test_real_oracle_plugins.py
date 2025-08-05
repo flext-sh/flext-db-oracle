@@ -60,19 +60,17 @@ class TestRealOraclePlugins:
 
     def test_real_plugins_register_all(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        oracle_api: FlextDbOracleApi,
         oracle_container: None,
     ) -> None:
         """Test registering all Oracle plugins."""
-        plugins_dict = {}
-
         # Register all plugins
-        result = register_all_oracle_plugins(plugins_dict, real_oracle_config)
+        result = register_all_oracle_plugins(oracle_api)
 
         assert result.success
-        assert isinstance(plugins_dict, dict)
+        assert isinstance(result.data, dict)
         # May be empty if no plugins are registered by default
-        assert len(plugins_dict) >= 0
+        assert len(result.data) >= 0
 
 
 class TestRealOraclePluginErrorHandling:
@@ -94,17 +92,15 @@ class TestRealOraclePluginErrorHandling:
 
     def test_real_plugins_register_with_empty_dict(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        oracle_api: FlextDbOracleApi,
         oracle_container: None,
     ) -> None:
         """Test registering plugins with empty dictionary."""
-        plugins_dict = {}
-
-        result = register_all_oracle_plugins(plugins_dict, real_oracle_config)
+        result = register_all_oracle_plugins(oracle_api)
 
         assert result.success
         # Dictionary may be empty or populated depending on implementation
-        assert isinstance(plugins_dict, dict)
+        assert isinstance(result.data, dict)
 
     def test_real_plugins_register_multiple_times(
         self,
@@ -157,10 +153,9 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test plugins with Oracle connection operations."""
-        plugins_dict = {}
 
         # Register all plugins
-        register_result = register_all_oracle_plugins(plugins_dict, oracle_api._config)
+        register_result = register_all_oracle_plugins(oracle_api)
         assert register_result.success
 
         # Test connection still works
@@ -193,10 +188,9 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test comprehensive plugin coverage with various Oracle operations."""
-        plugins_dict = {}
 
         # Register all plugins
-        register_result = register_all_oracle_plugins(plugins_dict, oracle_api._config)
+        register_result = register_all_oracle_plugins(oracle_api)
         assert register_result.success
 
         # Test various API operations to ensure plugins don't interfere
@@ -249,15 +243,15 @@ class TestRealOraclePluginIntegration:
             encoding="UTF-8",
         )
 
-        # Test register with different configs
-        plugins_dict1 = {}
-        plugins_dict2 = {}
+        # Create APIs with different configs
+        api1 = FlextDbOracleApi(real_oracle_config)
+        api2 = FlextDbOracleApi(alt_config)
 
-        result1 = register_all_oracle_plugins(plugins_dict1, real_oracle_config)
-        result2 = register_all_oracle_plugins(plugins_dict2, alt_config)
+        result1 = register_all_oracle_plugins(api1)
+        result2 = register_all_oracle_plugins(api2)
 
         assert result1.success
         assert result2.success
 
         # Both should work with equivalent configs
-        assert len(plugins_dict1) == len(plugins_dict2)
+        assert len(result1.data) == len(result2.data)

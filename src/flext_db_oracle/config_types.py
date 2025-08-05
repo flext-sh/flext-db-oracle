@@ -29,7 +29,7 @@ class MergeStatementConfig:
     hints: list[str] | None = None
 
 
-@dataclass 
+@dataclass
 class CreateIndexStatementConfig:
     """Configuration for Oracle CREATE INDEX statement generation - SOLID refactoring."""
 
@@ -43,6 +43,6 @@ class CreateIndexStatementConfig:
 
 
 __all__ = [
-    "MergeStatementConfig",
     "CreateIndexStatementConfig",
+    "MergeStatementConfig",
 ]

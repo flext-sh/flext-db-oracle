@@ -23,7 +23,9 @@ if TYPE_CHECKING:
 class TestConnectionErrorHandlingPaths:
     """Aggressively test connection error handling - lines 73-77, 140-147."""
 
-    def test_disconnect_error_handling_lines_140_147(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_disconnect_error_handling_lines_140_147(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test disconnect error handling (EXACT lines 140-147)."""
         from sqlalchemy.exc import SQLAlchemyError
 
@@ -64,7 +66,9 @@ class TestConnectionErrorHandlingPaths:
             # Import error handling would be at lines 73-77
             pytest.fail(f"Import error: {e}")
 
-    def test_multiple_disconnect_cycles(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_multiple_disconnect_cycles(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test multiple disconnect cycles for error path coverage."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -93,7 +97,9 @@ class TestConnectionErrorHandlingPaths:
 class TestConnectionSessionManagement:
     """Aggressively test session management - lines 266-278."""
 
-    def test_session_context_manager_lines_266_278(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_session_context_manager_lines_266_278(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test session context manager (EXACT lines 266-278)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -121,7 +127,9 @@ class TestConnectionSessionManagement:
             finally:
                 connection.disconnect()
 
-    def test_session_error_handling_lines_274_278(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_session_error_handling_lines_274_278(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test session error handling and rollback (lines 274-278)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -143,7 +151,9 @@ class TestConnectionSessionManagement:
             finally:
                 connection.disconnect()
 
-    def test_session_without_connection_lines_266_268(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_session_without_connection_lines_266_268(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test session access without connection (lines 266-268)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -165,7 +175,8 @@ class TestConnectionLifecycleComprehensive:
     """Comprehensive connection lifecycle testing."""
 
     def test_connection_state_management_comprehensive(
-        self, real_oracle_config: object,
+        self,
+        real_oracle_config: object,
     ) -> None:
         """Test comprehensive connection state management."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -192,12 +203,9 @@ class TestConnectionLifecycleComprehensive:
             ]
 
             for operation in operations:
-                try:
+                with contextlib.suppress(ValueError, TypeError, RuntimeError):
                     operation()
                     # Any result is acceptable - we want code paths executed
-                except (ValueError, TypeError, RuntimeError):
-                    # Exception paths also contribute to coverage
-                    pass
 
             # 5. Disconnect
             disconnect_result = connection.disconnect()
@@ -261,7 +269,9 @@ class TestConnectionLifecycleComprehensive:
 class TestConnectionDatabaseOperations:
     """Test database operations to hit missed lines."""
 
-    def test_database_operations_error_paths(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_database_operations_error_paths(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test database operations error paths."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -293,7 +303,9 @@ class TestConnectionDatabaseOperations:
             finally:
                 connection.disconnect()
 
-    def test_connection_with_mocked_errors(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_with_mocked_errors(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection with forced internal errors."""
         from sqlalchemy.exc import SQLAlchemyError
 
@@ -311,7 +323,9 @@ class TestConnectionDatabaseOperations:
             assert connect_result.is_failure
             assert "Forced engine error" in str(connect_result.error)
 
-    def test_session_operations_comprehensive(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_session_operations_comprehensive(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test comprehensive session operations."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -323,12 +337,13 @@ class TestConnectionDatabaseOperations:
                 # Test multiple session contexts to hit all session management paths
                 for _i in range(3):
                     try:
-                        with connection.get_session() as session:
+                        with connection.session() as session:
                             # Test different session operations
+                            from sqlalchemy import text
                             session_operations = [
-                                lambda: session.execute("SELECT 1 FROM DUAL"),
-                                lambda: session.execute("SELECT SYSDATE FROM DUAL"),
-                                lambda: session.execute("SELECT USER FROM DUAL"),
+                                lambda: session.execute(text("SELECT 1 FROM DUAL")),
+                                lambda: session.execute(text("SELECT SYSDATE FROM DUAL")),
+                                lambda: session.execute(text("SELECT USER FROM DUAL")),
                             ]
 
                             for op in session_operations:
@@ -352,7 +367,9 @@ class TestConnectionDatabaseOperations:
 class TestConnectionUtilityMethods:
     """Test connection utility methods for additional coverage."""
 
-    def test_connection_string_generation(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_string_generation(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection string generation methods."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -378,7 +395,9 @@ class TestConnectionUtilityMethods:
                     # Exception paths also contribute to coverage
                     pass
 
-    def test_connection_properties_comprehensive(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_properties_comprehensive(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test all connection properties comprehensively."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -392,12 +411,9 @@ class TestConnectionUtilityMethods:
         ]
 
         for prop_test in properties_to_test:
-            try:
+            with contextlib.suppress(ValueError, TypeError, RuntimeError):
                 prop_test()
                 # Any result contributes to coverage
-            except (ValueError, TypeError, RuntimeError):
-                # Exception paths also contribute
-                pass
 
         # Connect and test properties while connected
         connect_result = connection.connect()
@@ -453,12 +469,9 @@ class TestConnectionUtilityMethods:
                 ]
 
                 for op in operations:
-                    try:
+                    with contextlib.suppress(ValueError, TypeError, RuntimeError):
                         op()
                         # Any result acceptable
-                    except (ValueError, TypeError, RuntimeError):
-                        # Exceptions also contribute to coverage
-                        pass
 
             except (ValueError, TypeError, RuntimeError):
                 # Configuration errors also contribute

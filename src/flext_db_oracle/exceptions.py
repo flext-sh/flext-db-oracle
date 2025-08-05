@@ -9,83 +9,199 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core.exceptions import create_module_exception_classes
-
-# Create all standard exception classes using factory pattern - eliminates 150+ lines of duplication
-oracle_exceptions = create_module_exception_classes("flext_db_oracle")
-
-# Import generated classes for clean usage
-FlextDbOracleError = oracle_exceptions["FlextDbOracleError"]
-FlextDbOracleValidationError = oracle_exceptions["FlextDbOracleValidationError"]
-FlextDbOracleConfigurationError = oracle_exceptions["FlextDbOracleConfigurationError"]
-FlextDbOracleConnectionError = oracle_exceptions["FlextDbOracleConnectionError"]
-FlextDbOracleProcessingError = oracle_exceptions["FlextDbOracleProcessingError"]
-FlextDbOracleAuthenticationError = oracle_exceptions["FlextDbOracleAuthenticationError"]
-FlextDbOracleTimeoutError = oracle_exceptions["FlextDbOracleTimeoutError"]
+from flext_core.exceptions import (
+    FlextAuthenticationError,
+    FlextConfigurationError,
+    FlextConnectionError,
+    FlextError,
+    FlextProcessingError,
+    FlextTimeoutError,
+    FlextValidationError,
+)
 
 
-# Factory function to create domain-specific Oracle exceptions - eliminates ALL duplication
-def _create_oracle_domain_exception_class(
-    class_name: str,
-    message_prefix: str,
-    default_message: str,
-    context_params: dict[str, type],
-) -> type:
-    """Create Oracle domain exception class dynamically - complete DRY solution."""
+# SOLID Implementation: Explicit exception classes with proper inheritance
+class FlextDbOracleError(FlextError):
+    """Base exception for Oracle database operations."""
 
-    def init_method(
-        self: object,
-        message: str = default_message,
+    def __init__(
+        self,
+        message: str = "Oracle database error",
+        *,
+        error_code: str | None = None,
         **kwargs: object,
     ) -> None:
-        """Initialize Oracle domain exception with context."""
-        context: dict[str, object] = {}
-
-        # Process context parameters
-        for param_name in context_params:
-            value = kwargs.pop(param_name, None)
-            if value is not None:
-                if param_name == "query" and isinstance(value, str):
-                    context[param_name] = value[:200]  # Truncate long queries
-                else:
-                    context[param_name] = value
-
-        # Add remaining kwargs to context
-        context.update(kwargs)
-
-        formatted_message = f"Oracle DB {message_prefix}: {message}"
-        # REAL REFACTORING: Initialize exception directly - bypass complex inheritance chain
-        Exception.__init__(self, formatted_message)  # type: ignore[arg-type]
-        # Store context as instance attributes
-        for key, value in context.items():
-            setattr(self, key, value)
-
-    # Create the class dynamically
-    return type(
-        class_name,
-        (FlextDbOracleError,),
-        {
-            "__init__": init_method,
-            "__doc__": f"Oracle database {message_prefix} errors with {message_prefix}-specific context.",
-            "__module__": __name__,
-        },
-    )
+        """Initialize Oracle database error with context."""
+        formatted_message = f"Oracle DB: {message}"
+        context = dict(kwargs)
+        super().__init__(formatted_message, error_code=error_code, context=context)
 
 
-# Create domain-specific exceptions using factory - eliminates 40+ lines of duplication
-FlextDbOracleQueryError = _create_oracle_domain_exception_class(
-    "FlextDbOracleQueryError",
-    "query",
-    "Oracle database query error",
-    {"query": str, "error_code": str},
-)
+class FlextDbOracleValidationError(FlextValidationError):
+    """Oracle database validation errors."""
 
-FlextDbOracleMetadataError = _create_oracle_domain_exception_class(
-    "FlextDbOracleMetadataError",
-    "metadata",
-    "Oracle database metadata error",
-    {"schema_name": str, "object_name": str},
-)
+    def __init__(
+        self,
+        message: str = "Oracle database validation failed",
+        *,
+        field: str | None = None,
+        value: object = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle validation error with context."""
+        validation_details: dict[str, object] = {}
+        if field is not None:
+            validation_details["field"] = field
+        if value is not None:
+            validation_details["value"] = str(value)[:100]
+
+        context = dict(kwargs)
+        super().__init__(
+            f"Oracle DB: {message}",
+            validation_details=validation_details,
+            context=context,
+        )
+
+
+class FlextDbOracleConfigurationError(FlextConfigurationError):
+    """Oracle database configuration errors."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database configuration error",
+        *,
+        config_key: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle configuration error with context."""
+        context = dict(kwargs)
+        if config_key is not None:
+            context["config_key"] = config_key
+        super().__init__(f"Oracle DB config: {message}", **context)
+
+
+class FlextDbOracleConnectionError(FlextConnectionError):
+    """Oracle database connection errors."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database connection failed",
+        *,
+        service_name: str | None = None,
+        endpoint: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle connection error with context."""
+        context = dict(kwargs)
+        if service_name is not None:
+            context["service_name"] = service_name
+        if endpoint is not None:
+            context["endpoint"] = endpoint
+        super().__init__(f"Oracle DB connection: {message}", **context)
+
+
+class FlextDbOracleProcessingError(FlextProcessingError):
+    """Oracle database processing errors."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database processing failed",
+        *,
+        operation: str | None = None,
+        file_path: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle processing error with context."""
+        context = dict(kwargs)
+        if operation is not None:
+            context["operation"] = operation
+        if file_path is not None:
+            context["file_path"] = file_path
+        super().__init__(f"Oracle DB processing: {message}", **context)
+
+
+class FlextDbOracleAuthenticationError(FlextAuthenticationError):
+    """Oracle database authentication errors."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database authentication failed",
+        *,
+        username: str | None = None,
+        auth_method: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle authentication error with context."""
+        context = dict(kwargs)
+        if username is not None:
+            context["username"] = username
+        if auth_method is not None:
+            context["auth_method"] = auth_method
+        super().__init__(f"Oracle DB: {message}", **context)
+
+
+class FlextDbOracleTimeoutError(FlextTimeoutError):
+    """Oracle database timeout errors."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database operation timed out",
+        *,
+        timeout_duration: float | None = None,
+        operation: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize Oracle timeout error with context."""
+        context = dict(kwargs)
+        if timeout_duration is not None:
+            context["timeout_duration"] = timeout_duration
+        if operation is not None:
+            context["operation"] = operation
+        super().__init__(f"Oracle DB: {message}", **context)
+
+
+class FlextDbOracleQueryError(FlextDbOracleError):
+    """Oracle database query errors with query-specific context."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database query error",
+        *,
+        query: str | None = None,
+        error_code: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize query error with context."""
+        formatted_message = f"Oracle DB query: {message}"
+        context = dict(kwargs)
+        if query is not None:
+            context["query"] = query[:200]  # Truncate long queries
+        super().__init__(formatted_message, error_code=error_code, **context)
+
+
+class FlextDbOracleMetadataError(FlextDbOracleError):
+    """Oracle database metadata errors with metadata-specific context."""
+
+    def __init__(
+        self,
+        message: str = "Oracle database metadata error",
+        *,
+        schema_name: str | None = None,
+        object_name: str | None = None,
+        error_code: str | None = None,
+        **kwargs: object,
+    ) -> None:
+        """Initialize metadata error with context."""
+        formatted_message = f"Oracle DB metadata: {message}"
+        context = dict(kwargs)
+        if schema_name is not None:
+            context["schema_name"] = schema_name
+        if object_name is not None:
+            context["object_name"] = object_name
+        super().__init__(formatted_message, error_code=error_code, **context)
+
+
+# Domain-specific exceptions now implemented as explicit classes above
 
 
 __all__: list[str] = [

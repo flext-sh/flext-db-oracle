@@ -28,14 +28,22 @@ class TestCLIParameterProcessing:
 
         # Test CLI command with explicit parameters to trigger parameter processing
         # This should trigger lines 267-274 (ConnectionParams creation)
-        result = runner.invoke(oracle_cli, [
-            "connect",
-            "--host", "localhost",
-            "--port", "1521",
-            "--username", "testuser",
-            "--password", "testpass",
-            "--service-name", "TESTDB",
-        ])
+        result = runner.invoke(
+            oracle_cli,
+            [
+                "connect",
+                "--host",
+                "localhost",
+                "--port",
+                "1521",
+                "--username",
+                "testuser",
+                "--password",
+                "testpass",
+                "--service-name",
+                "TESTDB",
+            ],
+        )
 
         # Command should process parameters (might fail connection but processing should work)
         assert result.exit_code in {0, 1, 2}  # Valid exit codes
@@ -107,7 +115,7 @@ class TestCLIEnvironmentConfiguration:
         commands_to_test = [
             ["connect-env"],
             ["connect-env", "--debug"],  # Should trigger debug path (line 462-465)
-            ["health"],                  # Might trigger config loading
+            ["health"],  # Might trigger config loading
         ]
 
         for cmd in commands_to_test:
@@ -139,11 +147,19 @@ class TestCLIEnvironmentConfiguration:
 
         # Set up complete environment for observability test
         env_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
+            "FLEXT_TARGET_ORACLE_HOST": os.getenv(
+                "FLEXT_TARGET_ORACLE_HOST", "localhost"
+            ),
             "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
-            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "test"),
-            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "test"),
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"),
+            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
+                "FLEXT_TARGET_ORACLE_USERNAME", "test"
+            ),
+            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
+                "FLEXT_TARGET_ORACLE_PASSWORD", "test"
+            ),
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"
+            ),
         }
 
         runner = CliRunner(env=env_vars)
@@ -164,21 +180,29 @@ class TestCLIOutputFormatting:
 
         # Set up Oracle environment for real data formatting
         env_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
+            "FLEXT_TARGET_ORACLE_HOST": os.getenv(
+                "FLEXT_TARGET_ORACLE_HOST", "localhost"
+            ),
             "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
-            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "test"),
-            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "test"),
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"),
+            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
+                "FLEXT_TARGET_ORACLE_USERNAME", "test"
+            ),
+            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
+                "FLEXT_TARGET_ORACLE_PASSWORD", "test"
+            ),
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"
+            ),
         }
 
         runner = CliRunner(env=env_vars)
 
         # Test commands that should trigger output formatting (lines 721-769)
         formatting_commands = [
-            ["schemas"],         # Should format schema output
-            ["tables"],          # Should format table output
-            ["health"],          # Should format health output
-            ["connect-env"],     # Should format connection output
+            ["schemas"],  # Should format schema output
+            ["tables"],  # Should format table output
+            ["health"],  # Should format health output
+            ["connect-env"],  # Should format connection output
         ]
 
         for cmd in formatting_commands:
@@ -198,8 +222,8 @@ class TestCLIOutputFormatting:
 
         # Test commands that should trigger error formatting
         error_commands = [
-            ["schemas"],      # No connection - should format error
-            ["tables"],       # No connection - should format error
+            ["schemas"],  # No connection - should format error
+            ["tables"],  # No connection - should format error
             ["connect-env"],  # No env vars - should format error
         ]
 
@@ -241,23 +265,31 @@ class TestCLIComprehensivePathCoverage:
         # Test many different command combinations to hit various paths
         command_variations = [
             # Connection commands
-            ["connect", "--host", "test", "--port", "1521", "--username", "u", "--password", "p", "--service-name", "s"],
+            [
+                "connect",
+                "--host",
+                "test",
+                "--port",
+                "1521",
+                "--username",
+                "u",
+                "--password",
+                "p",
+                "--service-name",
+                "s",
+            ],
             ["connect-env"],
-
             # Schema/table commands
             ["schemas"],
             ["tables"],
             ["tables", "--schema", "TEST"],
-
             # Utility commands
             ["health"],
             ["--version"],
-
             # Help variations
             ["--help"],
             ["connect", "--help"],
             ["schemas", "--help"],
-
             # Debug variations
             ["--debug", "health"],
             ["--debug", "schemas"],
@@ -289,10 +321,8 @@ class TestCLIComprehensivePathCoverage:
             # Invalid parameters
             ["connect", "--port", "invalid"],
             ["connect", "--host", ""],
-
             # Missing required parameters
             ["connect"],
-
             # Invalid combinations
             ["nonexistent-command"],
         ]

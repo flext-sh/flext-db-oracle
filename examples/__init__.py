@@ -67,7 +67,6 @@ def demo_basic_usage() -> None:
         test_result = connected_api.test_connection()
 
         if test_result.success:
-
             # Quick functionality test
             schemas_result = connected_api.get_schemas()
             if schemas_result.success:

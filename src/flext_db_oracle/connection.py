@@ -58,8 +58,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from .config_types import CreateIndexStatementConfig, MergeStatementConfig
-
+from .config_types import MergeStatementConfig
 from .constants import (
     ORACLE_DATE_TYPE,
     ORACLE_DEFAULT_VARCHAR_TYPE,
@@ -67,6 +66,7 @@ from .constants import (
     ORACLE_TIMESTAMP_TYPE,
     SINGER_TO_ORACLE_TYPE_MAP,
 )
+from .types import CreateIndexConfig
 
 # Oracle column information constants
 ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
@@ -77,6 +77,8 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Engine
 
     from .config import FlextDbOracleConfig
+    from .config_types import MergeStatementConfig
+    from .types import CreateIndexConfig
 
 T = TypeVar("T")
 
@@ -214,8 +216,12 @@ class FlextDbOracleConnection:
             return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
-            if self._engine is None:  # Additional safety check beyond _ensure_connected()
-                return FlextResult.fail("Database engine is None after connection check")
+            if (
+                self._engine is None
+            ):  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail(
+                    "Database engine is None after connection check",
+                )
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters or {})
 
@@ -240,8 +246,12 @@ class FlextDbOracleConnection:
             return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
-            if self._engine is None:  # Additional safety check beyond _ensure_connected()
-                return FlextResult.fail("Database engine is None after connection check")
+            if (
+                self._engine is None
+            ):  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail(
+                    "Database engine is None after connection check",
+                )
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters_list)
                 conn.commit()
@@ -261,8 +271,12 @@ class FlextDbOracleConnection:
             return FlextResult.fail(connection_check.error or "Connection failed")
 
         try:
-            if self._engine is None:  # Additional safety check beyond _ensure_connected()
-                return FlextResult.fail("Database engine is None after connection check")
+            if (
+                self._engine is None
+            ):  # Additional safety check beyond _ensure_connected()
+                return FlextResult.fail(
+                    "Database engine is None after connection check",
+                )
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), parameters or {})
                 return FlextResult.ok(result.fetchone())
@@ -933,7 +947,7 @@ class FlextDbOracleConnection:
             param_list = ", ".join([f":{col}" for col in columns])
 
             # Build basic INSERT
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -943,7 +957,9 @@ class FlextDbOracleConnection:
             return FlextResult.ok(sql)
 
         except Exception as e:
-            return self._handle_database_error_simple("INSERT statement build failed", e)
+            return self._handle_database_error_simple(
+                "INSERT statement build failed", e,
+            )
 
     def build_update_statement(
         self,
@@ -973,10 +989,12 @@ class FlextDbOracleConnection:
             set_clause = ", ".join([f"{col} = :{col}" for col in set_columns])
 
             # Build WHERE clause
-            where_clause = " AND ".join([f"{col} = :where_{col}" for col in where_columns])
+            where_clause = " AND ".join(
+                [f"{col} = :where_{col}" for col in where_columns],
+            )
 
             # Build UPDATE statement
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -986,7 +1004,9 @@ class FlextDbOracleConnection:
             return FlextResult.ok(sql)
 
         except Exception as e:
-            return self._handle_database_error_simple("UPDATE statement build failed", e)
+            return self._handle_database_error_simple(
+                "UPDATE statement build failed", e,
+            )
 
     def build_merge_statement(
         self,
@@ -1002,11 +1022,15 @@ class FlextDbOracleConnection:
 
         """
         try:
-            full_table_name = self._build_table_name(config.target_table, config.schema_name)
+            full_table_name = self._build_table_name(
+                config.target_table, config.schema_name,
+            )
 
             # Default update columns to all non-key columns
             if config.update_columns is None:
-                update_columns = [col for col in config.source_columns if col not in config.merge_keys]
+                update_columns = [
+                    col for col in config.source_columns if col not in config.merge_keys
+                ]
             else:
                 update_columns = config.update_columns
 
@@ -1022,10 +1046,14 @@ class FlextDbOracleConnection:
                 hint_clause = f"/*+ {' '.join(config.hints)} */ "
 
             # Build source subquery with parameters
-            source_select = ", ".join([f":src_{col} AS {col}" for col in config.source_columns])
+            source_select = ", ".join(
+                [f":src_{col} AS {col}" for col in config.source_columns],
+            )
 
             # Build ON clause
-            on_conditions = " AND ".join([f"tgt.{key} = src.{key}" for key in config.merge_keys])
+            on_conditions = " AND ".join(
+                [f"tgt.{key} = src.{key}" for key in config.merge_keys],
+            )
 
             # Build UPDATE SET clause
             update_set = ", ".join([f"tgt.{col} = src.{col}" for col in update_columns])
@@ -1044,7 +1072,7 @@ class FlextDbOracleConnection:
                 WHEN NOT MATCHED THEN
                     INSERT ({insert_cols})
                     VALUES ({insert_vals})
-            """
+            """  # noqa: S608
 
             return FlextResult.ok(sql.strip())
 
@@ -1075,63 +1103,59 @@ class FlextDbOracleConnection:
             where_clause = " AND ".join([f"{col} = :{col}" for col in where_columns])
 
             # Build DELETE statement
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608
 
             return FlextResult.ok(sql)
 
         except Exception as e:
-            return self._handle_database_error_simple("DELETE statement build failed", e)
+            return self._handle_database_error_simple(
+                "DELETE statement build failed", e,
+            )
 
     def build_create_index_statement(
         self,
-        index_name: str,
-        table_name: str,
-        columns: list[str],
-        *,
-        schema_name: str | None = None,
-        unique: bool = False,
-        tablespace: str | None = None,
-        parallel: int | None = None,
+        config: CreateIndexConfig,
     ) -> FlextResult[str]:
         """Build CREATE INDEX statement with Oracle-specific features.
 
         Args:
-            index_name: Name of the index
-            table_name: Table to index
-            columns: Column names to index
-            schema_name: Optional schema name
-            unique: Whether to create unique index
-            tablespace: Optional tablespace name
-            parallel: Degree of parallelism for index creation
+            config: Create index configuration
 
         Returns:
             FlextResult containing the CREATE INDEX statement
 
         """
+        # Validate configuration first
+        validation_result = config.validate_domain_rules()
+        if not validation_result.success:
+            return FlextResult.fail(f"Invalid config: {validation_result.error}")
+
         try:
-            full_table_name = self._build_table_name(table_name, schema_name)
+            full_table_name = self._build_table_name(config.table_name, config.schema_name)
 
             # Build index type
-            index_type = "UNIQUE INDEX" if unique else "INDEX"
+            index_type = "UNIQUE INDEX" if config.unique else "INDEX"
 
             # Build column list
-            col_list = ", ".join(columns)
+            col_list = ", ".join(config.columns)
 
             # Build basic CREATE INDEX
-            sql = f"CREATE {index_type} {schema_name}.{index_name} ON {full_table_name} ({col_list})"
+            sql = f"CREATE {index_type} {config.schema_name}.{config.index_name} ON {full_table_name} ({col_list})"
 
             # Add tablespace if specified
-            if tablespace:
-                sql += f" TABLESPACE {tablespace}"
+            if config.tablespace:
+                sql += f" TABLESPACE {config.tablespace}"
 
             # Add parallel option if specified
-            if parallel:
-                sql += f" PARALLEL {parallel}"
+            if config.parallel:
+                sql += f" PARALLEL {config.parallel}"
 
             return FlextResult.ok(sql)
 
         except Exception as e:
-            return self._handle_database_error_simple("CREATE INDEX statement build failed", e)
+            return self._handle_database_error_simple(
+                "CREATE INDEX statement build failed", e,
+            )
 
 
 __all__: list[str] = ["FlextDbOracleConnection"]

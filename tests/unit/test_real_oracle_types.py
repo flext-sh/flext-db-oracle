@@ -28,7 +28,9 @@ from flext_db_oracle.types import (
 class TestRealOracleTypeValidation:
     """Test Oracle type validation with real data."""
 
-    def test_real_oracle_column_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
+    def test_real_oracle_column_from_db(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None
+    ) -> None:
         """Test creating Oracle column type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
@@ -66,7 +68,9 @@ class TestRealOracleTypeValidation:
         assert column.is_key_column
         assert "NUMBER" in column.full_type_spec
 
-    def test_real_oracle_table_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
+    def test_real_oracle_table_from_db(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None
+    ) -> None:
         """Test creating Oracle table type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
@@ -108,7 +112,9 @@ class TestRealOracleTypeValidation:
         assert table.primary_key_columns[0].name == "EMPLOYEE_ID"
         assert "EMPLOYEE_ID" in table.column_names
 
-    def test_real_oracle_schema_from_db(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
+    def test_real_oracle_schema_from_db(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None
+    ) -> None:
         """Test creating Oracle schema type from real database metadata."""
         # Connect first
         connected_api = oracle_api.connect()
@@ -225,7 +231,9 @@ class TestRealOracleTypeValidation:
 class TestRealOracleTypeConversions:
     """Test Oracle type conversions with real data."""
 
-    def test_real_oracle_data_type_mapping(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
+    def test_real_oracle_data_type_mapping(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None
+    ) -> None:
         """Test mapping Oracle data types to Python types."""
         # Get real column data with various Oracle types
         columns_result = oracle_api.get_columns("EMPLOYEES")

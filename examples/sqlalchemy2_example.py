@@ -82,13 +82,15 @@ def demonstrate_basic_queries() -> None:
 
         # Session information
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     USER as current_user,
                     SYS_CONTEXT('USERENV', 'SESSION_USER') as session_user,
                     SYS_CONTEXT('USERENV', 'SERVER_HOST') as server_host
                 FROM DUAL
-            """))
+            """)
+            )
             result.fetchone()
 
 
@@ -97,12 +99,14 @@ def demonstrate_table_operations() -> None:
     with oracle_connection() as engine:
         # List tables in schema
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT table_name, num_rows, last_analyzed
                 FROM all_tables
                 WHERE owner = 'FLEXTTEST'
                 ORDER BY table_name
-            """))
+            """)
+            )
 
             tables = result.fetchall()
             for _table in tables:
@@ -110,12 +114,14 @@ def demonstrate_table_operations() -> None:
 
         # Query EMPLOYEES table data
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT employee_id, first_name, last_name, email, hire_date
                 FROM FLEXTTEST.EMPLOYEES
                 WHERE ROWNUM <= 5
                 ORDER BY employee_id
-            """))
+            """)
+            )
 
             employees = result.fetchall()
             for _emp in employees:
@@ -127,7 +133,8 @@ def demonstrate_metadata_introspection() -> None:
     with oracle_connection() as engine:
         # Column information for EMPLOYEES table
         with engine.connect() as conn:
-            result = conn.execute(text("""
+            result = conn.execute(
+                text("""
                 SELECT
                     column_name,
                     data_type,
@@ -140,7 +147,8 @@ def demonstrate_metadata_introspection() -> None:
                 WHERE owner = 'FLEXTTEST'
                 AND table_name = 'EMPLOYEES'
                 ORDER BY column_id
-            """))
+            """)
+            )
 
             columns = result.fetchall()
             for col in columns:
@@ -161,14 +169,18 @@ def demonstrate_transaction_management() -> None:
             with conn.begin() as trans:
                 try:
                     # Count before
-                    result = conn.execute(text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"))
+                    result = conn.execute(
+                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
+                    )
                     result.fetchone()[0]
 
                     # This would normally insert, but we'll rollback
                     trans.rollback()
 
                     # Count after rollback
-                    result = conn.execute(text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"))
+                    result = conn.execute(
+                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
+                    )
                     result.fetchone()[0]
 
                 except Exception:

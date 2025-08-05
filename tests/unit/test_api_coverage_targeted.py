@@ -22,7 +22,9 @@ if TYPE_CHECKING:
 class TestAPIErrorHandlingPaths:
     """Test API error handling to hit missed lines 571-610."""
 
-    def test_disconnected_status_path_lines_571_610(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_disconnected_status_path_lines_571_610(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test disconnected status handling (EXACT lines 571-610)."""
         from flext_db_oracle import FlextDbOracleApi
 
@@ -58,7 +60,8 @@ class TestAPIErrorHandlingPaths:
                     )
 
     def test_connection_error_handling_with_exceptions(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection error handling with forced exceptions."""
         from flext_db_oracle import FlextDbOracleApi
@@ -81,7 +84,9 @@ class TestAPIErrorHandlingPaths:
             assert "Forced connection error" in str(result.error)
 
     def test_api_internal_error_handling_paths(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test API internal error handling paths."""
         # Connect first to have a valid API
@@ -90,7 +95,8 @@ class TestAPIErrorHandlingPaths:
         try:
             # Force internal errors to trigger error handling paths
             with patch.object(
-                connected_api._connection, "execute_query",
+                connected_api._connection,
+                "execute_query",
             ) as mock_execute:
                 mock_execute.side_effect = Exception("Internal SQL error")
 
@@ -109,7 +115,9 @@ class TestAPIQueryOptimization:
     """Test API query optimization to hit missed lines 758-798."""
 
     def test_query_optimization_paths_lines_758_798(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test query optimization paths (EXACT lines 758-798)."""
         # Connect first
@@ -141,7 +149,9 @@ class TestAPIQueryOptimization:
             connected_api.disconnect()
 
     def test_query_error_handling_optimization(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test query error handling with optimization paths."""
         # Connect first
@@ -172,7 +182,9 @@ class TestAPISchemaOperations:
     """Test API schema operations to hit missed lines 1038-1058."""
 
     def test_schema_operations_error_handling_lines_1038_1058(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test schema operations error handling (EXACT lines 1038-1058)."""
         # Connect first
@@ -188,7 +200,8 @@ class TestAPISchemaOperations:
                 # Operations that might trigger error paths
                 lambda: connected_api.get_tables("NONEXISTENT_SCHEMA_XYZ"),
                 lambda: connected_api.get_columns(
-                    "NONEXISTENT_TABLE", "NONEXISTENT_SCHEMA",
+                    "NONEXISTENT_TABLE",
+                    "NONEXISTENT_SCHEMA",
                 ),
                 lambda: connected_api.get_columns("NONEXISTENT_TABLE", "FLEXTTEST"),
             ]
@@ -210,7 +223,9 @@ class TestAPISchemaOperations:
             connected_api.disconnect()
 
     def test_schema_operations_with_forced_errors(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test schema operations with forced internal errors."""
         # Connect first
@@ -219,7 +234,8 @@ class TestAPISchemaOperations:
         try:
             # Force internal errors in schema operations
             with patch.object(
-                connected_api._connection, "get_table_names",
+                connected_api._connection,
+                "get_table_names",
             ) as mock_get_tables:
                 mock_get_tables.side_effect = Exception("Forced schema error")
 
@@ -237,7 +253,9 @@ class TestAPISchemaOperations:
 class TestAPIConnectionManagement:
     """Test API connection management paths."""
 
-    def test_connection_lifecycle_error_paths(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_lifecycle_error_paths(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection lifecycle with error paths."""
         # Test with invalid config to trigger connection error paths
         from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -267,7 +285,9 @@ class TestAPIConnectionManagement:
             assert result.error is not None
 
     def test_api_with_connection_state_changes(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test API with connection state changes."""
         # Test connection -> disconnect -> reconnect cycle
@@ -304,7 +324,9 @@ class TestAPIConnectionManagement:
 class TestAPIObservabilityIntegration:
     """Test API observability integration paths."""
 
-    def test_api_observability_paths(self, oracle_api: FlextDbOracleApi, oracle_container: None) -> None:
+    def test_api_observability_paths(
+        self, oracle_api: FlextDbOracleApi, oracle_container: None
+    ) -> None:
         """Test API observability integration paths."""
         # Connect with observability
         connected_api = oracle_api.connect()

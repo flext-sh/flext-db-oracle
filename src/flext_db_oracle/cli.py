@@ -50,13 +50,11 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-from flext_cli import (
-    format_output,
-    get_config,
-)
+from flext_cli import get_config
+from flext_cli.core.formatters import format_output
 from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
@@ -219,7 +217,7 @@ def oracle(
     # Setup CLI context
     config = get_config()
     config.profile = profile
-    config.output_format = output
+    config.output_format = cast("Literal['table', 'json', 'yaml', 'csv', 'plain']", output)
     config.debug = debug
 
     ctx.ensure_object(dict)
@@ -498,7 +496,14 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
                 test_result.error or "Unknown connection error",
             )
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -651,7 +656,14 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                     query_result.error or "Unknown query error",
                 )
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -705,7 +717,14 @@ Total Schemas: {len(_safe_iterate_list(schema_list))}""",
                 )
                 _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -764,7 +783,14 @@ Schema: {schema or "All"}""",
                 )
                 _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -899,7 +925,14 @@ def plugins(ctx: click.Context) -> None:
                 )
                 _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -960,7 +993,14 @@ Suggestions: {_safe_get_list_length(suggestions)}""",
                 )
                 _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 
@@ -1037,7 +1077,14 @@ Timestamp: {timestamp_str}""",
                 _print_error(f"Health check failed: {health_result.error}")
                 _raise_cli_error(f"Health check failed: {health_result.error}")
 
-    except (OSError, ValueError, AttributeError, RuntimeError, TypeError, KeyError) as e:
+    except (
+        OSError,
+        ValueError,
+        AttributeError,
+        RuntimeError,
+        TypeError,
+        KeyError,
+    ) as e:
         _print_error_exception(e)
         _raise_cli_exception_from_exception(e)
 

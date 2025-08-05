@@ -56,18 +56,19 @@ from flext_core import (
 )
 
 from .config import FlextDbOracleConfig
-from .config_types import CreateIndexStatementConfig, MergeStatementConfig
 from .connection import FlextDbOracleConnection
 from .observability import (
     FlextDbOracleObservabilityManager,
 )
-from .types import TDbOracleQueryResult
+from .types import CreateIndexConfig, TDbOracleQueryResult
 
 if TYPE_CHECKING:
     import types
 
     from flext_observability import FlextHealthCheck
     from flext_plugin import FlextPlugin
+
+    from .config_types import MergeStatementConfig
 
 T = TypeVar("T")
 
@@ -86,7 +87,7 @@ class OracleConnectionManager:
     def __init__(
         self,
         config: FlextDbOracleConfig,
-        observability: FlextDbOracleObservabilityManager,
+        observability: FlextDbOracleObservabilityManager | None,
         context_name: str,
         retry_attempts: int = 3,
     ) -> None:
@@ -186,7 +187,8 @@ class OracleConnectionManager:
     def _init_connection_attempt(self) -> None:
         """Initialize connection attempt metrics."""
         self._logger.info("Connecting to Oracle database")
-        self._observability.record_metric("connection.attempts", 1, "count")
+        if self._observability:
+            self._observability.record_metric("connection.attempts", 1, "count")
 
     def _execute_connection_with_retries(self, start_time: float) -> str | None:
         """Execute connection with retry logic using Template Method."""
@@ -230,16 +232,18 @@ class OracleConnectionManager:
         self._is_connected = True
 
         duration_ms = (perf_counter() - start_time) * 1000
-        self._observability.record_metric(
-            "connection.duration_ms",
-            duration_ms,
-            "histogram",
-        )
-        self._observability.record_metric("connection.success", 1, "count")
+        if self._observability:
+            self._observability.record_metric(
+                "connection.duration_ms",
+                duration_ms,
+                "histogram",
+            )
+            self._observability.record_metric("connection.success", 1, "count")
 
     def _record_connection_failure(self, attempt: int, error: str) -> None:
         """Record connection failure metrics."""
-        self._observability.record_metric("connection.failures", 1, "count")
+        if self._observability:
+            self._observability.record_metric("connection.failures", 1, "count")
         self._logger.warning("Connection attempt %d failed: %s", attempt + 1, error)
 
     def _handle_connection_failure(
@@ -249,11 +253,12 @@ class OracleConnectionManager:
     ) -> FlextResult[None]:
         """Handle final connection failure."""
         duration_ms = (perf_counter() - start_time) * 1000
-        self._observability.record_metric(
-            "connection.total_failure_duration_ms",
-            duration_ms,
-            "histogram",
-        )
+        if self._observability:
+            self._observability.record_metric(
+                "connection.total_failure_duration_ms",
+                duration_ms,
+                "histogram",
+            )
 
         error_msg = (
             f"Failed to connect after {self._retry_attempts + 1} attempts: {error}"
@@ -277,7 +282,7 @@ class OracleQueryExecutor:
     def __init__(
         self,
         connection_manager: OracleConnectionManager,
-        observability: FlextDbOracleObservabilityManager,
+        observability: FlextDbOracleObservabilityManager | None,
         context_name: str,
     ) -> None:
         """Initialize query executor."""
@@ -316,14 +321,16 @@ class OracleQueryExecutor:
 
             # Record metrics
             duration_ms = (perf_counter() - start_time) * 1000
-            self._observability.record_metric(
-                "query.duration_ms",
-                duration_ms,
-                "histogram",
-            )
+            if self._observability:
+                self._observability.record_metric(
+                    "query.duration_ms",
+                    duration_ms,
+                    "histogram",
+                )
 
             if raw_result.is_failure:
-                self._observability.record_metric("query.failures", 1, "count")
+                if self._observability:
+                    self._observability.record_metric("query.failures", 1, "count")
                 self._logger.warning("Query failed: %s", raw_result.error)
                 return FlextResult.fail(raw_result.error or "Query execution failed")
 
@@ -342,12 +349,14 @@ class OracleQueryExecutor:
                 execution_time_ms=duration_ms,
             )
 
-            self._observability.record_metric("query.success", 1, "count")
+            if self._observability:
+                self._observability.record_metric("query.success", 1, "count")
             self._logger.debug("Query executed successfully in %.2fms", duration_ms)
             return FlextResult.ok(query_result)
 
         except (OSError, ValueError, AttributeError, RuntimeError, TypeError) as e:
-            self._observability.record_metric("query.exceptions", 1, "count")
+            if self._observability:
+                self._observability.record_metric("query.exceptions", 1, "count")
             return self._handle_error_with_logging("Query execution error", e)
 
     def execute_query_single(
@@ -1285,10 +1294,7 @@ class FlextDbOracleApi:
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.build_merge_statement(
-            config.target_table, config.source_columns, config.merge_keys,
-            config.update_columns, config.insert_columns, config.schema_name, config.hints,
-        )
+        return self._connection_manager.connection.build_merge_statement(config)
 
     def build_delete_statement(
         self,
@@ -1306,19 +1312,13 @@ class FlextDbOracleApi:
 
     def build_create_index_statement(
         self,
-        config: CreateIndexStatementConfig,
+        config: CreateIndexConfig,
     ) -> FlextResult[str]:
         """Build CREATE INDEX statement with Oracle-specific features - SOLID refactoring."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.build_create_index_statement(
-            config.index_name, config.table_name, config.columns,
-            schema_name=config.schema_name,
-            unique=config.unique,
-            tablespace=config.tablespace,
-            parallel=config.parallel,
-        )
+        return self._connection_manager.connection.build_create_index_statement(config)
 
 
 # =============================================================================

@@ -37,11 +37,15 @@ class TestObservabilityErrorLogging:
             # Force error logging with long SQL context (lines 102-108)
             if hasattr(obs_manager, "_log_error"):
                 obs_manager._log_error(
-                    "Database", Exception("Test error"), context_with_long_sql,
+                    "Database",
+                    Exception("Test error"),
+                    context_with_long_sql,
                 )
             elif hasattr(obs_manager, "log_error"):
                 obs_manager.log_error(
-                    "Database", Exception("Test error"), context_with_long_sql,
+                    "Database",
+                    Exception("Test error"),
+                    context_with_long_sql,
                 )
 
         except (ValueError, TypeError, RuntimeError):
@@ -68,11 +72,15 @@ class TestObservabilityErrorLogging:
                     # Should trigger lines 109-118 (single context handling)
                     if hasattr(obs_manager, "_log_error"):
                         obs_manager._log_error(
-                            "Plugin", Exception("Context error"), context,
+                            "Plugin",
+                            Exception("Context error"),
+                            context,
                         )
                     elif hasattr(obs_manager, "log_error"):
                         obs_manager.log_error(
-                            "Plugin", Exception("Context error"), context,
+                            "Plugin",
+                            Exception("Context error"),
+                            context,
                         )
                 except (ValueError, TypeError, RuntimeError):
                     # Exception paths also contribute
@@ -94,12 +102,16 @@ class TestObservabilityErrorLogging:
                 if hasattr(obs_manager, "_log_error"):
                     obs_manager._log_error("General", Exception("No context error"), {})
                     obs_manager._log_error(
-                        "General", Exception("No context error"), None,
+                        "General",
+                        Exception("No context error"),
+                        None,
                     )
                 elif hasattr(obs_manager, "log_error"):
                     obs_manager.log_error("General", Exception("No context error"), {})
                     obs_manager.log_error(
-                        "General", Exception("No context error"), None,
+                        "General",
+                        Exception("No context error"),
+                        None,
                     )
             except (ValueError, TypeError, RuntimeError):
                 # Exception paths also contribute
@@ -310,7 +322,9 @@ class TestObservabilityIntegrationWithOracle:
     """Test observability integration with Oracle operations."""
 
     def test_observability_with_oracle_operations(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test observability integration with real Oracle operations."""
         from flext_db_oracle.observability import FlextDbOracleObservabilityManager

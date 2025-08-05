@@ -22,7 +22,9 @@ class TestMegaCoverageBoostMultiModule:
     """MEGA test attacking ALL modules with low coverage simultaneously."""
 
     def test_massive_multi_module_coverage_boost(  # noqa: C901
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """MASSIVE test hitting multiple modules at once."""
         # Connect to Oracle for real operations
@@ -313,11 +315,15 @@ class TestMegaCoverageBoostMultiModule:
                     try:
                         if hasattr(obs_manager, "_log_error"):
                             obs_manager._log_error(
-                                "Test", Exception("Test error"), context,
+                                "Test",
+                                Exception("Test error"),
+                                context,
                             )
                         elif hasattr(obs_manager, "log_error"):
                             obs_manager.log_error(
-                                "Test", Exception("Test error"), context,
+                                "Test",
+                                Exception("Test error"),
+                                context,
                             )
                     except (ValueError, TypeError, RuntimeError):
                         pass
@@ -336,7 +342,8 @@ class TestMegaCoverageBoostMultiModule:
                 metadata_operations = [
                     lambda: metadata_manager.get_schema_metadata("FLEXTTEST"),
                     lambda: metadata_manager.get_table_metadata(
-                        "EMPLOYEES", "FLEXTTEST",
+                        "EMPLOYEES",
+                        "FLEXTTEST",
                     ),
                     metadata_manager.get_all_schemas,
                 ]
@@ -405,11 +412,18 @@ class TestMegaCoverageBoostMultiModule:
             edge_constructions = [
                 # Minimal valid config
                 lambda: FlextDbOracleConfig(
-                    host="h", port=1, username="u", password="p", service_name="s",
+                    host="h",
+                    port=1,
+                    username="u",
+                    password="p",
+                    service_name="s",
                 ),
                 # Edge case columns
                 lambda: TDbOracleColumn(
-                    name="A", data_type="NUMBER", nullable=True, position=1,
+                    name="A",
+                    data_type="NUMBER",
+                    nullable=True,
+                    position=1,
                 ),
                 lambda: TDbOracleColumn(
                     name="VERY_LONG_COLUMN_NAME",
@@ -538,7 +552,10 @@ class TestMegaCoverageBoostMultiModule:
 
             # Type representations
             column = TDbOracleColumn(
-                name="TEST", data_type="VARCHAR2", nullable=True, position=1,
+                name="TEST",
+                data_type="VARCHAR2",
+                nullable=True,
+                position=1,
             )
             table = TDbOracleTable(name="TEST", schema_name="TEST", columns=[column])
 

@@ -189,7 +189,10 @@ class TestTypesValidationMethods:
         try:
             # Create table with various configurations
             test_column = TDbOracleColumn(
-                name="TEST", data_type="VARCHAR2", nullable=True, position=1,
+                name="TEST",
+                data_type="VARCHAR2",
+                nullable=True,
+                position=1,
             )
 
             table_cases = [

@@ -36,7 +36,8 @@ class TestAPIMissedLines:
         try:
             # Mock an internal method to raise an exception
             with patch.object(
-                connected_api._connection, "get_table_names",
+                connected_api._connection,
+                "get_table_names",
             ) as mock_method:
                 mock_method.side_effect = Exception("Forced test exception")
 
@@ -112,7 +113,8 @@ class TestAPIMissedLines:
             schema_operations = [
                 lambda: connected_api.get_tables("NONEXISTENT_SCHEMA"),
                 lambda: connected_api.get_columns(
-                    "NONEXISTENT_TABLE", "NONEXISTENT_SCHEMA",
+                    "NONEXISTENT_TABLE",
+                    "NONEXISTENT_SCHEMA",
                 ),
                 connected_api.get_schemas,  # Should work
                 lambda: connected_api.get_tables("FLEXTTEST"),  # Should work
@@ -130,7 +132,9 @@ class TestAPIMissedLines:
 class TestConnectionMissedLines:
     """Target specific missed lines in connection.py (54% → ~100%)."""
 
-    def test_connection_error_paths_73_77(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_error_paths_73_77(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -160,7 +164,9 @@ class TestConnectionMissedLines:
                 hasattr(result, "data") and result.data is False
             )
 
-    def test_connection_lifecycle_140_147(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_lifecycle_140_147(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
         from flext_db_oracle import FlextDbOracleConnection
 

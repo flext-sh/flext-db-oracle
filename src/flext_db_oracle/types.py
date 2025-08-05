@@ -47,6 +47,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from flext_core import FlextResult, FlextValueObject
@@ -134,6 +135,10 @@ class TDbOracleColumn(FlextValueObject):
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_validation_error("Column", e)
 
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate business rules - delegates to domain rules."""
+        return self.validate_domain_rules()
+
     @property
     def full_type_spec(self) -> str:
         """Get complete Oracle type specification."""
@@ -188,6 +193,10 @@ class TDbOracleTable(FlextValueObject):
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_validation_error("Table", e)
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate business rules - delegates to domain rules."""
+        return self.validate_domain_rules()
 
     def _get_basic_validation_error(self) -> str | None:
         """SOLID REFACTORING: Extract Method for basic validations."""
@@ -264,6 +273,10 @@ class TDbOracleSchema(FlextValueObject):
             return FlextResult.ok(None)
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_validation_error("Schema", e)
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate business rules - delegates to domain rules."""
+        return self.validate_domain_rules()
 
     def get_table(self, table_name: str) -> TDbOracleTable | None:
         """Get table by name."""
@@ -354,13 +367,61 @@ class TDbOracleConnectionStatus(FlextValueObject):
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_validation_error("Connection status", e)
 
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate business rules - delegates to domain rules."""
+        return self.validate_domain_rules()
+
     @property
     def connection_string(self) -> str:
         """Get connection string representation."""
         return f"{self.username}@{self.host}:{self.port}/{self.database}"
 
 
+class CreateIndexConfig(FlextValueObject):
+    """Configuration for CREATE INDEX statement building."""
+
+    index_name: str = Field(..., description="Index name")
+    table_name: str = Field(..., description="Table name")
+    columns: list[str] = Field(..., description="Index columns")
+    schema_name: str | None = Field(None, description="Schema name")
+    unique: bool = Field(default=False, description="Unique index")
+    tablespace: str | None = Field(None, description="Tablespace")
+    parallel: int | None = Field(None, description="Parallel degree")
+
+    def validate_domain_rules(self) -> FlextResult[None]:
+        """Validate create index configuration."""
+        try:
+            # Collect all validation errors
+            errors = []
+
+            if _is_empty_string(self.index_name):
+                errors.append("Index name cannot be empty")
+
+            if _is_empty_string(self.table_name):
+                errors.append("Table name cannot be empty")
+
+            if not self.columns:
+                errors.append("At least one column is required")
+            elif any(_is_empty_string(col) for col in self.columns):
+                errors.append("Column names cannot be empty")
+
+            if self.parallel is not None and self.parallel <= 0:
+                errors.append("Parallel degree must be positive")
+
+            if errors:
+                return FlextResult.fail("; ".join(errors))
+
+            return FlextResult.ok(None)
+        except (ValueError, TypeError, AttributeError) as e:
+            return _handle_validation_error("Create index config", e)
+
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate business rules - delegates to domain rules."""
+        return self.validate_domain_rules()
+
+
 __all__: list[str] = [
+    "CreateIndexConfig",
     "TDbOracleColumn",
     "TDbOracleConnectionStatus",
     "TDbOracleQueryResult",

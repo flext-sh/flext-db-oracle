@@ -188,9 +188,9 @@ class TestDirectCoverageBoostConfig:
         }
 
         # Save original values
-        for var in test_vars:
+        for var, value in test_vars.items():
             original_vars[var] = os.getenv(var)
-            os.environ[var] = test_vars[var]
+            os.environ[var] = value
 
         try:
             # Test config creation from environment (if supported)
@@ -218,7 +218,9 @@ class TestDirectCoverageBoostConfig:
 class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
-    def test_connection_edge_cases(self, real_oracle_config: FlextDbOracleConfig) -> None:
+    def test_connection_edge_cases(
+        self, real_oracle_config: FlextDbOracleConfig
+    ) -> None:
         """Test connection edge cases for missed lines."""
         from flext_db_oracle import FlextDbOracleConnection
 
@@ -372,7 +374,9 @@ class TestDirectCoverageBoostObservability:
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api: object, oracle_container: object,
+        self,
+        oracle_api: object,
+        oracle_container: object,
     ) -> None:
         """Test observability metrics collection."""
         # Connect first
