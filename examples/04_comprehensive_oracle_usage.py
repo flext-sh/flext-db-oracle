@@ -147,7 +147,7 @@ def demonstrate_connection_patterns() -> None:
             host="example.oracle.com",
             port=1521,
             username="demo_user",
-            password="demo_pass",  # noqa: S106
+            password="demo_pass",
             service_name="DEMO_DB",
         )
         logger.info("✅ Created API with configuration parameters")
@@ -178,7 +178,7 @@ def demonstrate_configuration_patterns() -> None:
         FlextDbOracleConfig(
             host="localhost",
             username="user",
-            password="pass",  # noqa: S106
+            password="pass",
             service_name="DB",
         )
         logger.info("✅ Created minimal configuration")
@@ -188,7 +188,7 @@ def demonstrate_configuration_patterns() -> None:
             host="prod.oracle.company.com",
             port=1521,
             username="prod_user",
-            password="secure_password",  # noqa: S106
+            password="secure_password",
             service_name="PROD_DB",
             encoding="UTF-8",
             schema="PROD_SCHEMA",
@@ -337,8 +337,8 @@ def demonstrate_transaction_patterns() -> None:
         # This would be real code with actual connection:
         # with api.transaction() as txn:
         #     if result1.success and result2.success:
-        #         txn.commit()  # noqa: ERA001
-        #         txn.rollback()  # noqa: ERA001
+        #         txn.commit()
+        #         txn.rollback()
 
     demonstrator.demonstrate_with_api_operations(_perform_transaction_operations)
 

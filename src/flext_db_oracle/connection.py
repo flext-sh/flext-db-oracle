@@ -947,7 +947,7 @@ class FlextDbOracleConnection:
             param_list = ", ".join([f":{col}" for col in columns])
 
             # Build basic INSERT
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -994,7 +994,7 @@ class FlextDbOracleConnection:
             )
 
             # Build UPDATE statement
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1072,7 +1072,7 @@ class FlextDbOracleConnection:
                 WHEN NOT MATCHED THEN
                     INSERT ({insert_cols})
                     VALUES ({insert_vals})
-            """  # noqa: S608
+            """
 
             return FlextResult.ok(sql.strip())
 
@@ -1103,7 +1103,7 @@ class FlextDbOracleConnection:
             where_clause = " AND ".join([f"{col} = :{col}" for col in where_columns])
 
             # Build DELETE statement
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
 
             return FlextResult.ok(sql)
 

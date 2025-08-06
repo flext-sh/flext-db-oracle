@@ -244,7 +244,7 @@ class TestRealOraclePluginsIntegration:
         for i in range(10):
             result = plugin(
                 {
-                    "query": f"SELECT {i} FROM DUAL",  # noqa: S608
+                    "query": f"SELECT {i} FROM DUAL",
                     "iteration": i,
                     "batch": "load_test",
                 },

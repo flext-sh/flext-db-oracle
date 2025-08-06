@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 class TestMegaCoverageBoostMultiModule:
     """MEGA test attacking ALL modules with low coverage simultaneously."""
 
-    def test_massive_multi_module_coverage_boost(  # noqa: C901
+    def test_massive_multi_module_coverage_boost(
         self,
         oracle_api: FlextDbOracleApi,
         oracle_container: None,
@@ -395,7 +395,7 @@ class TestMegaCoverageBoostMultiModule:
                 # Exception paths also contribute to coverage
                 pass
 
-    def test_mega_edge_cases_comprehensive(self) -> None:  # noqa: C901
+    def test_mega_edge_cases_comprehensive(self) -> None:
         """MEGA test for edge cases across ALL modules."""
         # Test various edge cases that might not be covered
 

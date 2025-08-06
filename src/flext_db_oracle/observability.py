@@ -238,7 +238,7 @@ class FlextDbOracleObservabilityManager:
         self,
         status: str,
         message: str,
-        metrics: dict[str, object] | None = None,  # noqa: ARG002
+        metrics: dict[str, object] | None = None,
     ) -> FlextResult[FlextHealthCheck]:
         """Create health check (DRY pattern)."""
         # Use flext_create_health_check with proper parameters
@@ -363,7 +363,7 @@ class FlextDbOracleErrorHandler:
         """Initialize error handler."""
         self._observability = observability
         self._logger = get_logger(
-            f"FlextDbOracleErrorHandler.{observability._context_name}",  # noqa: SLF001
+            f"FlextDbOracleErrorHandler.{observability._context_name}",
         )
 
     def handle_connection_error(self, error: str | None) -> None:

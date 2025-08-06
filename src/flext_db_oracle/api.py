@@ -641,7 +641,7 @@ class FlextDbOracleApi:
             )
         except (OSError, ValueError, TypeError, ConnectionError) as e:
             return self._handle_error_simple("Connection test failed", e)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return self._handle_error_simple("Connection test failed", e)
 
     @property
@@ -667,7 +667,7 @@ class FlextDbOracleApi:
         if (
             self._connection_manager
             and hasattr(self._connection_manager, "_is_connected")
-            and self._connection_manager._is_connected  # noqa: SLF001
+            and self._connection_manager._is_connected
             and self._connection_manager.connection is not None
         ):
             return True
@@ -686,7 +686,7 @@ class FlextDbOracleApi:
         """BACKWARD COMPATIBILITY: Set connection status."""
         if self._connection_manager:
             # Access private member for backward compatibility
-            self._connection_manager._is_connected = value  # noqa: SLF001
+            self._connection_manager._is_connected = value
         else:
             # For tests - create a simple flag
             self.__dict__["_test_is_connected"] = value
@@ -701,7 +701,7 @@ class FlextDbOracleApi:
         """BACKWARD COMPATIBILITY: Set connection."""
         if self._connection_manager:
             # Access private member for backward compatibility
-            self._connection_manager._connection = value  # noqa: SLF001
+            self._connection_manager._connection = value
 
     @property
     def _retry_attempts(self) -> int:
@@ -829,7 +829,7 @@ class FlextDbOracleApi:
                     "last_query_success": False,
                 },
             )
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return self._observability.create_health_check(
                 status="degraded",
                 message=f"Database connection issues: {e}",
@@ -860,7 +860,7 @@ class FlextDbOracleApi:
             return FlextResult.ok(None)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
             return self._handle_error_simple("Plugin registration error", e)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return self._handle_error_simple("Plugin registration error", e)
 
     def unregister_plugin(self, plugin_name: str) -> FlextResult[None]:
@@ -1169,7 +1169,7 @@ class FlextDbOracleApi:
             return FlextResult.ok(metrics)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
             return self._handle_error_simple("Failed to get metrics", e)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             return self._handle_error_simple("Failed to get metrics", e)
 
     def execute_connection_monitor(

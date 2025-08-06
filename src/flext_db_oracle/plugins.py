@@ -188,7 +188,7 @@ def _validate_table_structure(
             ]
             if table_name.upper() not in [t.upper() for t in table_names]:
                 errors.append(f"Table '{table_name}' does not exist")
-    except Exception as e:  # noqa: BLE001 # broad exception for plugin safety
+    except Exception as e:
         # Log but don't fail validation if table check fails - refatoração DRY real
         logger = get_logger(f"{__name__}._validate_table_structure")
         logger.debug("Table existence check failed: %s", str(e))
@@ -300,7 +300,7 @@ class OraclePluginHandler:
         """Template method: Create base result data structure."""
         base_data: dict[str, object] = {
             "plugin_name": plugin_name,
-            "timestamp": api._observability.get_current_timestamp(),  # noqa: SLF001
+            "timestamp": api._observability.get_current_timestamp(),
         }
 
         if additional_fields:
@@ -378,7 +378,7 @@ def performance_monitor_plugin_handler(
 
             # Log slow query if configured
             if kwargs.get("log_slow_queries", True):
-                api._logger.warning(  # noqa: SLF001
+                api._logger.warning(
                     "Slow query detected: %.2fms > %.2fms threshold",
                     execution_time_ms,
                     threshold_ms,
@@ -504,7 +504,7 @@ def _audit_ddl_operations(
                 warnings.append(
                     f"DDL operation detected: {operation}",
                 )
-                api._logger.info(  # noqa: SLF001
+                api._logger.info(
                     "DDL operation audited: %s",
                     operation,
                 )
@@ -618,8 +618,8 @@ def _register_single_plugin(
             if register_result.success:
                 return "registered"
             return f"failed: {register_result.error}"
-        return "failed: plugin is None"  # noqa: TRY300
-    except Exception as e:  # noqa: BLE001
+        return "failed: plugin is None"
+    except Exception as e:
         return f"error: {e}"
 
 
