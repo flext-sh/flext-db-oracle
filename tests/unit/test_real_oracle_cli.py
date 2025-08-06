@@ -176,7 +176,11 @@ class TestRealOracleCliErrorHandling:
         )
 
         # Should handle gracefully - may return 0 (success with empty result), 1 (warning), or 2 (error)
-        assert result.exit_code in {0, 1, 2}  # May succeed with empty result, warning, or controlled error
+        assert result.exit_code in {
+            0,
+            1,
+            2,
+        }  # May succeed with empty result, warning, or controlled error
 
     def test_real_cli_help_command(
         self, cli_runner: CliRunner, oracle_container: None

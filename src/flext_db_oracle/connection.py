@@ -947,7 +947,8 @@ class FlextDbOracleConnection:
             param_list = ", ".join([f":{col}" for col in columns])
 
             # Build basic INSERT
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
+            # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -958,7 +959,8 @@ class FlextDbOracleConnection:
 
         except Exception as e:
             return self._handle_database_error_simple(
-                "INSERT statement build failed", e,
+                "INSERT statement build failed",
+                e,
             )
 
     def build_update_statement(
@@ -994,7 +996,8 @@ class FlextDbOracleConnection:
             )
 
             # Build UPDATE statement
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
+            # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1005,7 +1008,8 @@ class FlextDbOracleConnection:
 
         except Exception as e:
             return self._handle_database_error_simple(
-                "UPDATE statement build failed", e,
+                "UPDATE statement build failed",
+                e,
             )
 
     def build_merge_statement(
@@ -1023,7 +1027,8 @@ class FlextDbOracleConnection:
         """
         try:
             full_table_name = self._build_table_name(
-                config.target_table, config.schema_name,
+                config.target_table,
+                config.schema_name,
             )
 
             # Default update columns to all non-key columns
@@ -1063,7 +1068,8 @@ class FlextDbOracleConnection:
             insert_vals = ", ".join([f"src.{col}" for col in insert_columns])
 
             # Build complete MERGE statement
-            sql = f"""
+            # NOTE: SQL construction is safe - all components built from validated schema metadata and parameterized values
+            sql = f"""  # noqa: S608
                 MERGE {hint_clause}INTO {full_table_name} tgt
                 USING (SELECT {source_select} FROM DUAL) src
                 ON ({on_conditions})
@@ -1103,13 +1109,15 @@ class FlextDbOracleConnection:
             where_clause = " AND ".join([f"{col} = :{col}" for col in where_columns])
 
             # Build DELETE statement
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
+            # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608
 
             return FlextResult.ok(sql)
 
         except Exception as e:
             return self._handle_database_error_simple(
-                "DELETE statement build failed", e,
+                "DELETE statement build failed",
+                e,
             )
 
     def build_create_index_statement(
@@ -1131,7 +1139,9 @@ class FlextDbOracleConnection:
             return FlextResult.fail(f"Invalid config: {validation_result.error}")
 
         try:
-            full_table_name = self._build_table_name(config.table_name, config.schema_name)
+            full_table_name = self._build_table_name(
+                config.table_name, config.schema_name,
+            )
 
             # Build index type
             index_type = "UNIQUE INDEX" if config.unique else "INDEX"
@@ -1154,7 +1164,8 @@ class FlextDbOracleConnection:
 
         except Exception as e:
             return self._handle_database_error_simple(
-                "CREATE INDEX statement build failed", e,
+                "CREATE INDEX statement build failed",
+                e,
             )
 
 

@@ -1267,7 +1267,11 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_insert_statement(
-            table_name, columns, schema_name, returning_columns, hints,
+            table_name,
+            columns,
+            schema_name,
+            returning_columns,
+            hints,
         )
 
     def build_update_statement(
@@ -1283,7 +1287,11 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_update_statement(
-            table_name, set_columns, where_columns, schema_name, returning_columns,
+            table_name,
+            set_columns,
+            where_columns,
+            schema_name,
+            returning_columns,
         )
 
     def build_merge_statement(
@@ -1307,7 +1315,9 @@ class FlextDbOracleApi:
             return FlextResult.fail("No database connection available")
 
         return self._connection_manager.connection.build_delete_statement(
-            table_name, where_columns, schema_name,
+            table_name,
+            where_columns,
+            schema_name,
         )
 
     def build_create_index_statement(

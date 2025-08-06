@@ -23,7 +23,7 @@ dependencies = [
     "pydantic-settings (>=2.10.1)",
     "flext-observability @ file:///home/marlonsc/flext/flext-observability",
     "flext-plugin @ file:///home/marlonsc/flext/flext-plugin",
-    "flext-cli @ file:///home/marlonsc/flext/flext-cli",
+    "flext-cli @ file:///home/marlonsc/flext/flext-cli",  # CLI UTILITIES LIBRARY - provides CLI tools and helpers
     "flext-core @ file:///home/marlonsc/flext/flext-core",
     "oracledb (>=3.2.0)",
     "pydantic (>=2.11.7)",

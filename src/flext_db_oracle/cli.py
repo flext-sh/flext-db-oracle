@@ -53,8 +53,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-from flext_cli import get_config
 from flext_cli.core.formatters import format_output
+from flext_cli.ecosystem_integration import FlextCliConfigFactory
 from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
@@ -215,10 +215,20 @@ def oracle(
 ) -> None:
     """Oracle Database CLI commands."""
     # Setup CLI context
-    config = get_config()
-    config.profile = profile
-    config.output_format = cast("Literal['table', 'json', 'yaml', 'csv', 'plain']", output)
-    config.debug = debug
+    config_result = FlextCliConfigFactory.create_project_config(
+        project_name="flext-db-oracle",  # Fixed project name
+        profile=profile,
+        output_format=cast(
+            "Literal['table', 'json', 'yaml', 'csv', 'plain']",
+            output,
+        ),
+        debug=debug,
+    )
+
+    if not config_result.success:
+        _raise_cli_error(f"Failed to create config: {config_result.error}")
+
+    config = config_result.unwrap()
 
     ctx.ensure_object(dict)
     ctx.obj["config"] = config

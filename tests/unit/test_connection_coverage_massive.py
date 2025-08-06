@@ -340,9 +340,12 @@ class TestConnectionDatabaseOperations:
                         with connection.session() as session:
                             # Test different session operations
                             from sqlalchemy import text
+
                             session_operations = [
                                 lambda: session.execute(text("SELECT 1 FROM DUAL")),
-                                lambda: session.execute(text("SELECT SYSDATE FROM DUAL")),
+                                lambda: session.execute(
+                                    text("SELECT SYSDATE FROM DUAL")
+                                ),
                                 lambda: session.execute(text("SELECT USER FROM DUAL")),
                             ]
 
