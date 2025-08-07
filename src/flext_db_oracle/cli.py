@@ -53,15 +53,35 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-from flext_cli.core.formatters import format_output
-from flext_cli.ecosystem_integration import FlextCliConfigFactory
+
+if TYPE_CHECKING:
+    from flext_cli.core.formatters import format_output
+    from flext_cli.ecosystem_integration import FlextCliConfigFactory
+else:
+    try:
+        from flext_cli.core.formatters import format_output
+        from flext_cli.ecosystem_integration import FlextCliConfigFactory
+    except ImportError:
+        # Handle missing flext_cli gracefully
+        def format_output(*args: object, **_kwargs: object) -> str:
+            """Fallback format_output when flext_cli is not available."""
+            return str(args[0]) if args else ""
+
+        class FlextCliConfigFactory:
+            """Fallback FlextCliConfigFactory when flext_cli is not available."""
+
+            @staticmethod
+            def create() -> dict[str, object]:
+                """Create empty config as fallback."""
+                return {}
+from flext_core import get_logger
 from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_plugin import FlextPlugin
+    from flext_core.interfaces import FlextPlugin
 
 # Direct imports to avoid circular dependency - DRY refactoring
 from flext_db_oracle.api import FlextDbOracleApi
@@ -163,16 +183,47 @@ def _safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
 
 
 def _safe_get_list_length(obj: object) -> int:
-    """Safely get length of list-like object - DRY pattern for type-safe length checking."""
+    """Safely get length of list-like object for display purposes.
+
+    This function is specifically designed for CLI display where we need a numeric
+    representation. Returns 0 for any object that cannot provide a meaningful length,
+    with explicit logging for transparency.
+
+    Args:
+        obj: Object to get length from
+
+    Returns:
+        Length as integer, 0 if object cannot provide length
+
+    """
+    logger = get_logger(__name__)
+
+    # Explicit null handling
     if obj is None:
+        logger.debug("Object is None, returning 0 for display")
         return 0
+
+    # Direct list handling - most common case
     if isinstance(obj, list):
-        return len(obj)
+        length = len(obj)
+        logger.debug(f"List object has {length} items")
+        return length
+
+    # Handle other sequence-like objects with explicit error transparency
     if hasattr(obj, "__len__"):
         try:
-            return len(obj)
-        except (TypeError, AttributeError):
+            length = len(obj)
+            logger.debug(f"Successfully got length {length} from {type(obj).__name__}")
+            return length
+        except (TypeError, AttributeError) as e:
+            # EXPLICIT TRANSPARENCY: This is for display purposes only
+            # We log the actual error and explicitly document the fallback behavior
+            logger.info(f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}")
+            logger.info("Returning 0 for display purposes - this is expected for some object types")
             return 0
+
+    # Objects without __len__ - explicit logging for transparency
+    logger.debug(f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display")
     return 0
 
 

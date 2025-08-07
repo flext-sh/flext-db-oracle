@@ -52,6 +52,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar, cast
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from datetime import datetime
+
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import Field
 
@@ -65,7 +69,6 @@ from .constants import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from datetime import datetime
 
 # =============================================================================
 # REFACTORING: Template Method Pattern for validation DRY approach
@@ -556,3 +559,8 @@ __all__: list[str] = [
     "FlextDbOracleSchema",
     "FlextDbOracleTable",
 ]
+
+# Rebuild Pydantic models to resolve forward references
+FlextDbOracleSchema.model_rebuild()
+FlextDbOracleTable.model_rebuild()
+FlextDbOracleColumn.model_rebuild()

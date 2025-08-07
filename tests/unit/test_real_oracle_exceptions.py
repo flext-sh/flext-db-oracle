@@ -359,7 +359,7 @@ class TestRealOracleExceptionHierarchy:
             query="SELECT FROM WHERE",
             error_code="ORA-00936",
         )
-        assert "Oracle DB query: Invalid SQL syntax" in str(query_error)
+        assert "[FLEXT_DB_ORACLE_ERROR] Invalid SQL syntax" in str(query_error)
 
         # Test FlextDbOracleMetadataError with context
         metadata_error = FlextDbOracleMetadataError(
@@ -367,11 +367,11 @@ class TestRealOracleExceptionHierarchy:
             schema_name="INVALID_SCHEMA",
             object_name="SOME_TABLE",
         )
-        assert "Oracle DB metadata: Schema not found" in str(metadata_error)
+        assert "[FLEXT_DB_ORACLE_ERROR] Schema not found" in str(metadata_error)
 
         # Test base FlextDbOracleError
         base_error = FlextDbOracleError("General Oracle error")
-        assert "General Oracle error" in str(base_error)
+        assert "[FLEXT_DB_ORACLE_ERROR] General Oracle error" in str(base_error)
 
     def test_real_exception_context_handling(self) -> None:
         """Test that Oracle exceptions handle context parameters properly."""
@@ -388,6 +388,6 @@ class TestRealOracleExceptionHierarchy:
 
         # Query should be truncated to 200 characters in context
         error_str = str(query_error)
-        assert "Oracle DB query: Query too complex" in error_str
+        assert "[FLEXT_DB_ORACLE_ERROR] Query too complex" in error_str
         assert len(long_query) > 200  # Original query is long
         # The actual query in context should be truncated (internal implementation)

@@ -53,7 +53,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from flext_core import FlextResult, get_logger
-from flext_plugin import FlextPlugin, create_flext_plugin
+from flext_core.interfaces import FlextPlugin, FlextPluginContext
 
 if TYPE_CHECKING:
     from flext_db_oracle.api import FlextDbOracleApi
@@ -197,6 +197,63 @@ def _validate_table_structure(
 
 
 # =============================================================================
+# ORACLE PLUGIN IMPLEMENTATION - FLEXT-CORE INTERFACE COMPLIANCE
+# =============================================================================
+
+
+class FlextOraclePlugin(FlextPlugin):
+    """Concrete Oracle plugin implementation using flext-core FlextPlugin interface.
+
+    COMPLIANCE: Pure implementation of FlextPlugin from flext-core, no mixing with flext-plugin.
+    NO MIXING: Uses composition with configuration data, implements abstract interface behavior.
+    """
+
+    def __init__(self, name: str, version: str, config: dict[str, object], handler: object = None) -> None:
+        """Initialize Oracle plugin with configuration and handler."""
+        self._name = name
+        self._version = version
+        self._config = config.copy()
+        self._handler = handler
+        self._logger = get_logger(f"FlextOraclePlugin.{name}")
+
+    @property
+    def name(self) -> str:
+        """Plugin name from abstract interface."""
+        return self._name
+
+    @property
+    def version(self) -> str:
+        """Plugin version from abstract interface."""
+        return self._version
+
+    def initialize(self, context: FlextPluginContext) -> FlextResult[None]:
+        """Initialize plugin with context from abstract interface."""
+        try:
+            # Use context for initialization if needed
+            _ = context  # Acknowledge parameter for interface compliance
+            self._logger.info("Oracle plugin initialized", plugin_name=self.name)
+            return FlextResult.ok(None)
+        except Exception as e:
+            return FlextResult.fail(f"Oracle plugin initialization failed: {e}")
+
+    def shutdown(self) -> FlextResult[None]:
+        """Shutdown plugin and release resources from abstract interface."""
+        try:
+            self._logger.info("Oracle plugin shutdown", plugin_name=self.name)
+            return FlextResult.ok(None)
+        except Exception as e:
+            return FlextResult.fail(f"Oracle plugin shutdown failed: {e}")
+
+    def get_config(self) -> dict[str, object]:
+        """Get plugin configuration."""
+        return self._config.copy()
+
+    def get_handler(self) -> object:
+        """Get plugin handler."""
+        return self._handler
+
+
+# =============================================================================
 # REFACTORING: Template Method + Factory Pattern for DRY plugin creation
 # =============================================================================
 
@@ -229,16 +286,17 @@ class OraclePluginFactory:
         # Merge base config with specific config
         full_config: dict[str, object] = {**base_config, **specific_config}
 
-        plugin: FlextPlugin | None = create_flext_plugin(
-            name=name,
-            version=cls._PLUGIN_VERSION,
-            config=full_config,
-        )
-
-        if plugin is None:
-            return FlextResult.fail(f"Failed to create plugin '{name}'")
-
-        return FlextResult.ok(plugin)
+        try:
+            # Create concrete FlextOraclePlugin implementation
+            plugin = FlextOraclePlugin(
+                name=name,
+                version=cls._PLUGIN_VERSION,
+                config=full_config,
+                handler=specific_config.get("callable_obj"),
+            )
+            return FlextResult.ok(plugin)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create Oracle plugin '{name}': {e}")
 
     @classmethod
     def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:

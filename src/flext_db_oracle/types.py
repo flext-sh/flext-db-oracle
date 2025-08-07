@@ -428,3 +428,8 @@ __all__: list[str] = [
     "TDbOracleSchema",
     "TDbOracleTable",
 ]
+
+# Rebuild Pydantic models to resolve forward references
+TDbOracleSchema.model_rebuild()
+TDbOracleTable.model_rebuild()
+TDbOracleColumn.model_rebuild()

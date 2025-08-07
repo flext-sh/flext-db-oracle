@@ -1069,7 +1069,7 @@ class FlextDbOracleConnection:
 
             # Build complete MERGE statement
             # NOTE: SQL construction is safe - all components built from validated schema metadata and parameterized values
-            sql = f"""  # noqa: S608
+            sql = f"""
                 MERGE {hint_clause}INTO {full_table_name} tgt
                 USING (SELECT {source_select} FROM DUAL) src
                 ON ({on_conditions})
@@ -1078,7 +1078,7 @@ class FlextDbOracleConnection:
                 WHEN NOT MATCHED THEN
                     INSERT ({insert_cols})
                     VALUES ({insert_vals})
-            """
+            """  # noqa: S608
 
             return FlextResult.ok(sql.strip())
 

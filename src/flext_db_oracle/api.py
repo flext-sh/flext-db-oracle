@@ -65,8 +65,8 @@ from .types import CreateIndexConfig, TDbOracleQueryResult
 if TYPE_CHECKING:
     import types
 
+    from flext_core.interfaces import FlextPlugin
     from flext_observability import FlextHealthCheck
-    from flext_plugin import FlextPlugin
 
     from .config_types import MergeStatementConfig
 
