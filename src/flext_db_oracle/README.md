@@ -240,9 +240,9 @@ container = get_flext_container()
 oracle_api = container.get("oracle_api").value
 
 # Configuration management
-from flext_core import FlextBaseSettings
+from flext_core import FlextSettings
 
-class OracleSettings(FlextBaseSettings):
+class OracleSettings(FlextSettings):
     oracle: FlextDbOracleConfig = Field(default_factory=FlextDbOracleConfig)
 ```
 

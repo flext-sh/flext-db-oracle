@@ -1323,10 +1323,10 @@ class OracleEcosystemOrchestrator:
 
 ```python
 # Consistent configuration patterns across Oracle projects
-from flext_core import FlextBaseSettings
+from flext_core import FlextSettings
 from flext_db_oracle import FlextDbOracleConfig
 
-class FlextEcosystemOracleSettings(FlextBaseSettings):
+class FlextEcosystemOracleSettings(FlextSettings):
     """Unified Oracle settings for entire FLEXT ecosystem"""
 
     # Base Oracle connection (shared across all Oracle projects)
@@ -1402,7 +1402,7 @@ def setup_oracle_ecosystem(container: FlextContainer) -> FlextResult[None]:
 ### **FLEXT Ecosystem Integration Checklist**
 
 - [ ] **FlextResult**: All operations return FlextResult[T] consistently
-- [ ] **FLEXT Core Integration**: Uses FlextContainer and FlextBaseSettings
+- [ ] **FLEXT Core Integration**: Uses FlextContainer and FlextSettings
 - [ ] **Configuration**: Follows FLEXT configuration patterns
 - [ ] **Type Safety**: Complete type annotations with Oracle-specific types
 - [ ] **Documentation**: Comprehensive docstrings with Oracle examples

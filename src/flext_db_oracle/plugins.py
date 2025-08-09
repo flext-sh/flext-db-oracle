@@ -53,7 +53,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from flext_core import FlextResult, get_logger
-from flext_core.interfaces import FlextPlugin, FlextPluginContext
+from flext_core.protocols import FlextPlugin, FlextPluginContext
 
 if TYPE_CHECKING:
     from flext_db_oracle.api import FlextDbOracleApi
@@ -247,6 +247,16 @@ class FlextOraclePlugin(FlextPlugin):
     def get_config(self) -> dict[str, object]:
         """Get plugin configuration."""
         return self._config.copy()
+
+    def get_info(self) -> dict[str, object]:
+        """Get plugin information."""
+        return {
+            "name": self._name,
+            "version": self._version,
+            "plugin_type": self._config.get("plugin_type", "unknown"),
+            "description": self._config.get("description", ""),
+            "author": self._config.get("author", "FLEXT Team"),
+        }
 
     def get_handler(self) -> object:
         """Get plugin handler."""

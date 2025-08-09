@@ -202,7 +202,9 @@ class FlextDbOracleObservabilityManager:
 
         # If factory fails, create minimal trace data - proper fallback
         logger = get_logger("flext_db_oracle_observability")
-        logger.warning("Failed to create trace for %s: %s", operation, create_result.error)
+        logger.warning(
+            "Failed to create trace for %s: %s", operation, create_result.error
+        )
 
         # For now, return the error since we can't create FlextTrace properly
         # This follows the ZERO TOLERANCE approach - don't fake success
@@ -238,7 +240,7 @@ class FlextDbOracleObservabilityManager:
         self,
         status: str,
         message: str,
-        metrics: dict[str, object] | None = None,  # noqa: ARG002
+        metrics: dict[str, object] | None = None,
     ) -> FlextResult[FlextHealthCheck]:
         """Create health check (DRY pattern).
 

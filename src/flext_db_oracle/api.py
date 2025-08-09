@@ -49,8 +49,8 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Self, TypeVar
 
 from flext_core import (
-    FlextLogger,
     FlextResult,
+    FlextLogger,
     get_flext_container,
     get_logger,
 )
@@ -65,7 +65,7 @@ from .types import CreateIndexConfig, TDbOracleQueryResult
 if TYPE_CHECKING:
     import types
 
-    from flext_core.interfaces import FlextPlugin
+    from flext_core.protocols import FlextPlugin
     from flext_observability import FlextHealthCheck
 
     from .config_types import MergeStatementConfig
@@ -855,8 +855,10 @@ class FlextDbOracleApi:
                         f"Failed to register plugin: {load_result.error}",
                     )
 
-            # Fall back to simple plugin dict
-            self._plugins[plugin.name] = plugin
+            # Fall back to simple plugin dict using get_info() for name
+            plugin_info = plugin.get_info()
+            plugin_name = plugin_info.get("name", "unknown")
+            self._plugins[str(plugin_name)] = plugin
             return FlextResult.ok(None)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
             return self._handle_error_simple("Plugin registration error", e)

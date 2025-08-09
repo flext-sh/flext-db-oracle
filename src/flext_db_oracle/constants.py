@@ -11,15 +11,15 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_core.constants import FlextSemanticConstants
+from flext_core.constants import FlextConstants
 
 # =============================================================================
 # ORACLE-SPECIFIC SEMANTIC CONSTANTS - Modern Python 3.13 Structure
 # =============================================================================
 
 
-class FlextOracleDbSemanticConstants(FlextSemanticConstants):
-    """Oracle Database semantic constants extending FlextSemanticConstants.
+class FlextOracleDbSemanticConstants(FlextConstants):
+    """Oracle Database semantic constants extending FlextConstants.
 
     Modern Python 3.13 constants following semantic grouping patterns.
     Extends the FLEXT ecosystem constants with Oracle Database specific
@@ -30,17 +30,17 @@ class FlextOracleDbSemanticConstants(FlextSemanticConstants):
         """Oracle connection configuration constants."""
 
         # CONSUME from single source - NO DUPLICATION
-        DEFAULT_PORT = FlextSemanticConstants.Infrastructure.DEFAULT_ORACLE_PORT
-        MAX_PORT = FlextSemanticConstants.Platform.MAX_PORT_NUMBER
+        DEFAULT_PORT = FlextConstants.Infrastructure.DEFAULT_ORACLE_PORT
+        MAX_PORT = FlextConstants.Platform.MAX_PORT_NUMBER
         DEFAULT_CHARSET = "UTF8"
         DEFAULT_SERVICE_NAME = "XEPDB1"
-        DEFAULT_TIMEOUT = FlextSemanticConstants.Defaults.TIMEOUT
+        DEFAULT_TIMEOUT = FlextConstants.Defaults.TIMEOUT
 
         # Connection pool settings
-        DEFAULT_POOL_MIN = FlextSemanticConstants.Infrastructure.MIN_POOL_SIZE
-        DEFAULT_POOL_MAX = FlextSemanticConstants.Infrastructure.DEFAULT_POOL_SIZE
+        DEFAULT_POOL_MIN = FlextConstants.Infrastructure.MIN_POOL_SIZE
+        DEFAULT_POOL_MAX = FlextConstants.Infrastructure.DEFAULT_POOL_SIZE
         DEFAULT_POOL_INCREMENT = 1
-        DEFAULT_POOL_TIMEOUT = FlextSemanticConstants.Defaults.TIMEOUT
+        DEFAULT_POOL_TIMEOUT = FlextConstants.Defaults.TIMEOUT
 
     class Query:
         """Oracle query and operation constants."""
@@ -106,8 +106,8 @@ class FlextOracleDbSemanticConstants(FlextSemanticConstants):
 
         DEFAULT_COMMIT_SIZE = 1000
         # CONSUME from single source - NO DUPLICATION
-        DEFAULT_BATCH_SIZE = FlextSemanticConstants.Performance.DEFAULT_BATCH_SIZE
-        MAX_BATCH_SIZE = FlextSemanticConstants.Performance.MAX_BATCH_SIZE
+        DEFAULT_BATCH_SIZE = FlextConstants.Performance.DEFAULT_BATCH_SIZE
+        MAX_BATCH_SIZE = FlextConstants.Performance.MAX_BATCH_SIZE
 
         # Oracle hints
         INDEX_HINT = "/*+ INDEX */"

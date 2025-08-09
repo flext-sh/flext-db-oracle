@@ -81,7 +81,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_core.interfaces import FlextPlugin
+    from flext_core.protocols import FlextPlugin
 
 # Direct imports to avoid circular dependency - DRY refactoring
 from flext_db_oracle.api import FlextDbOracleApi
@@ -918,26 +918,27 @@ class PluginManagerProcessor:
         plugin_table.add_column("Description", style="white")
 
         for plugin in plugin_list:
+            plugin_info = plugin.get_info()
             plugin_table.add_row(
-                str(plugin.name),
-                str(plugin.version),
-                str(getattr(plugin, "plugin_type", "unknown") or "unknown"),
-                str(getattr(plugin, "description", "") or ""),
+                str(plugin_info.get("name", "unknown")),
+                str(plugin_info.get("version", "unknown")),
+                str(plugin_info.get("plugin_type", "unknown")),
+                str(plugin_info.get("description", "")),
             )
 
         self.console.print(plugin_table)
 
     def _display_plugins_structured(self, plugin_list: list[FlextPlugin]) -> None:
         """Display plugins as structured output."""
-        plugin_data: list[dict[str, object]] = [
-            {
-                "name": p.name,
-                "version": p.version,
-                "type": getattr(p, "plugin_type", "unknown"),
-                "description": getattr(p, "description", ""),
-            }
-            for p in plugin_list
-        ]
+        plugin_data: list[dict[str, object]] = []
+        for p in plugin_list:
+            plugin_info = p.get_info()
+            plugin_data.append({
+                "name": plugin_info.get("name", "unknown"),
+                "version": plugin_info.get("version", "unknown"),
+                "type": plugin_info.get("plugin_type", "unknown"),
+                "description": plugin_info.get("description", ""),
+            })
         format_output({"plugins": plugin_data}, self.config.output_format, self.console)
 
 

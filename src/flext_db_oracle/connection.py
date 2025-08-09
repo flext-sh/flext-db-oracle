@@ -948,7 +948,7 @@ class FlextDbOracleConnection:
 
             # Build basic INSERT
             # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -997,7 +997,7 @@ class FlextDbOracleConnection:
 
             # Build UPDATE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1078,7 +1078,7 @@ class FlextDbOracleConnection:
                 WHEN NOT MATCHED THEN
                     INSERT ({insert_cols})
                     VALUES ({insert_vals})
-            """  # noqa: S608
+            """
 
             return FlextResult.ok(sql.strip())
 
@@ -1110,7 +1110,7 @@ class FlextDbOracleConnection:
 
             # Build DELETE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
 
             return FlextResult.ok(sql)
 
@@ -1140,7 +1140,8 @@ class FlextDbOracleConnection:
 
         try:
             full_table_name = self._build_table_name(
-                config.table_name, config.schema_name,
+                config.table_name,
+                config.schema_name,
             )
 
             # Build index type

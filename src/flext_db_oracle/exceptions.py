@@ -10,24 +10,41 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextError, create_module_exception_classes
+from flext_core import FlextError
 
-# Create Oracle DB-specific exception classes using flext-core factory
-# This eliminates the need for manual exception class creation and duplicated __init__ methods
-_db_oracle_exceptions = create_module_exception_classes("flext_db_oracle")
+# Oracle DB-specific exception classes following FLEXT patterns
+# Manual implementation instead of factory pattern to fix MyPy issues
 
-# Extract factory-created exception classes with type annotations for MyPy
-FlextDbOracleError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleError"]
-FlextDbOracleValidationError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleValidationError"]
-FlextDbOracleConfigurationError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleConfigurationError"]
-FlextDbOracleConnectionError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleConnectionError"]
-FlextDbOracleProcessingError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleProcessingError"]
-FlextDbOracleAuthenticationError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleAuthenticationError"]
-FlextDbOracleTimeoutError: type[FlextError] = _db_oracle_exceptions["FlextDbOracleTimeoutError"]
+class FlextDbOracleError(FlextError):
+    """Base Oracle database error."""
+
+
+class FlextDbOracleValidationError(FlextDbOracleError):
+    """Oracle database validation error."""
+
+
+class FlextDbOracleConfigurationError(FlextDbOracleError):
+    """Oracle database configuration error."""
+
+
+class FlextDbOracleConnectionError(FlextDbOracleError):
+    """Oracle database connection error."""
+
+
+class FlextDbOracleProcessingError(FlextDbOracleError):
+    """Oracle database processing error."""
+
+
+class FlextDbOracleAuthenticationError(FlextDbOracleError):
+    """Oracle database authentication error."""
+
+
+class FlextDbOracleTimeoutError(FlextDbOracleError):
+    """Oracle database timeout error."""
 
 
 # Domain-specific exceptions for Oracle database business logic
-class FlextDbOracleQueryError(FlextDbOracleError):  # type: ignore[valid-type,misc]
+class FlextDbOracleQueryError(FlextDbOracleError):
     """Oracle database query errors with SQL query context."""
 
     def __init__(
@@ -43,10 +60,11 @@ class FlextDbOracleQueryError(FlextDbOracleError):  # type: ignore[valid-type,mi
         if query is not None:
             context["query"] = query[:200]  # Truncate long queries for safety
 
-        super().__init__(message, operation=operation, **context)
+        context["operation"] = operation
+        super().__init__(message, context=context)
 
 
-class FlextDbOracleMetadataError(FlextDbOracleError):  # type: ignore[valid-type,misc]
+class FlextDbOracleMetadataError(FlextDbOracleError):
     """Oracle database metadata errors with schema context."""
 
     def __init__(
@@ -65,7 +83,8 @@ class FlextDbOracleMetadataError(FlextDbOracleError):  # type: ignore[valid-type
         if object_name is not None:
             context["object_name"] = object_name
 
-        super().__init__(message, operation=operation, **context)
+        context["operation"] = operation
+        super().__init__(message, context=context)
 
 
 # Export all exceptions - factory-created + domain-specific

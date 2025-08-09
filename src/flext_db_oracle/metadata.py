@@ -50,11 +50,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, TypeVar, cast
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-    from datetime import datetime
 
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import Field
