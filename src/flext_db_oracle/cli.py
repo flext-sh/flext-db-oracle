@@ -81,7 +81,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 if TYPE_CHECKING:
-    from flext_core.protocols import FlextPlugin
+    from flext_core import FlextPlugin
 
 # Direct imports to avoid circular dependency - DRY refactoring
 from flext_db_oracle.api import FlextDbOracleApi

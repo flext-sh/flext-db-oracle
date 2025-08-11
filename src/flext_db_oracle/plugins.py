@@ -52,8 +52,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from flext_core import FlextResult, get_logger
-from flext_core.protocols import FlextPlugin, FlextPluginContext
+from flext_core import FlextPlugin, FlextPluginContext, FlextResult, get_logger
 
 if TYPE_CHECKING:
     from flext_db_oracle.api import FlextDbOracleApi

@@ -49,8 +49,8 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Self, TypeVar
 
 from flext_core import (
-    FlextResult,
     FlextLogger,
+    FlextResult,
     get_flext_container,
     get_logger,
 )
@@ -65,7 +65,7 @@ from .types import CreateIndexConfig, TDbOracleQueryResult
 if TYPE_CHECKING:
     import types
 
-    from flext_core.protocols import FlextPlugin
+    from flext_core import FlextPlugin
     from flext_observability import FlextHealthCheck
 
     from .config_types import MergeStatementConfig
