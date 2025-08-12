@@ -55,17 +55,19 @@ from typing import TYPE_CHECKING, Literal, Protocol, cast
 import click
 
 if TYPE_CHECKING:
-    from flext_cli.core.formatters import format_output
+    from flext_cli.core.formatters import OutputFormatter
     from flext_cli.ecosystem_integration import FlextCliConfigFactory
 else:
     try:
-        from flext_cli.core.formatters import format_output
+        from flext_cli.core.formatters import OutputFormatter
         from flext_cli.ecosystem_integration import FlextCliConfigFactory
     except ImportError:
         # Handle missing flext_cli gracefully
-        def format_output(*args: object, **_kwargs: object) -> str:
-            """Fallback format_output when flext_cli is not available."""
-            return str(args[0]) if args else ""
+        class OutputFormatter:
+            """Fallback OutputFormatter when flext_cli is not available."""
+
+            def format(self, data: object, console: Console) -> None:
+                """Print formatted data to console (fallback implementation)."""
 
         class FlextCliConfigFactory:
             """Fallback FlextCliConfigFactory when flext_cli is not available."""
@@ -74,8 +76,9 @@ else:
             def create() -> dict[str, object]:
                 """Create empty config as fallback."""
                 return {}
+
+
 from flext_core import get_logger
-from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -89,6 +92,17 @@ from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.plugins import register_all_oracle_plugins
 
 from .constants import ORACLE_DEFAULT_PORT
+
+
+# Helper function to wrap OutputFormatter
+def format_output(data: object, format_type: str = "table", console: Console | None = None) -> str:
+    """Format output using OutputFormatter."""
+    formatter = OutputFormatter()
+    # OutputFormatter.format prints to console and returns None
+    target_console = console or globals().get("console", Console())
+    formatter.format(data, target_console)
+    return str(data)  # Return string representation as expected by callers
+
 
 console = Console()
 
@@ -218,12 +232,18 @@ def _safe_get_list_length(obj: object) -> int:
         except (TypeError, AttributeError) as e:
             # EXPLICIT TRANSPARENCY: This is for display purposes only
             # We log the actual error and explicitly document the fallback behavior
-            logger.info(f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}")
-            logger.info("Returning 0 for display purposes - this is expected for some object types")
+            logger.info(
+                f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
+            )
+            logger.info(
+                "Returning 0 for display purposes - this is expected for some object types",
+            )
             return 0
 
     # Objects without __len__ - explicit logging for transparency
-    logger.debug(f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display")
+    logger.debug(
+        f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
+    )
     return 0
 
 
@@ -387,7 +407,8 @@ class _ConnectionTestExecutor:
             port=self.params.port,
             service_name=self.params.service_name,
             username=self.params.username,
-            password=SecretStr(self.params.password),
+            password=self.params.password,
+            oracle_schema="DEFAULT",
             sid=None,  # Usando service_name
             pool_min=1,
             pool_max=10,
@@ -933,12 +954,14 @@ class PluginManagerProcessor:
         plugin_data: list[dict[str, object]] = []
         for p in plugin_list:
             plugin_info = p.get_info()
-            plugin_data.append({
-                "name": plugin_info.get("name", "unknown"),
-                "version": plugin_info.get("version", "unknown"),
-                "type": plugin_info.get("plugin_type", "unknown"),
-                "description": plugin_info.get("description", ""),
-            })
+            plugin_data.append(
+                {
+                    "name": plugin_info.get("name", "unknown"),
+                    "version": plugin_info.get("version", "unknown"),
+                    "type": plugin_info.get("plugin_type", "unknown"),
+                    "description": plugin_info.get("description", ""),
+                },
+            )
         format_output({"plugins": plugin_data}, self.config.output_format, self.console)
 
 

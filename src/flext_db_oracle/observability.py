@@ -203,7 +203,9 @@ class FlextDbOracleObservabilityManager:
         # If factory fails, create minimal trace data - proper fallback
         logger = get_logger("flext_db_oracle_observability")
         logger.warning(
-            "Failed to create trace for %s: %s", operation, create_result.error
+            "Failed to create trace for %s: %s",
+            operation,
+            create_result.error,
         )
 
         # For now, return the error since we can't create FlextTrace properly

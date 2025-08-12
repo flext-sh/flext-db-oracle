@@ -15,6 +15,7 @@ from flext_core import FlextError
 # Oracle DB-specific exception classes following FLEXT patterns
 # Manual implementation instead of factory pattern to fix MyPy issues
 
+
 class FlextDbOracleError(FlextError):
     """Base Oracle database error."""
 

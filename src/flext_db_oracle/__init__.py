@@ -1,57 +1,74 @@
-"""FLEXT DB Oracle - Enterprise Oracle Database Integration Library.
+"""FLEXT DB Oracle - Enterprise Oracle Database Integration Library for FLEXT ecosystem.
 
 Modern Oracle database integration library providing enterprise-grade connectivity,
 performance optimization, and comprehensive Oracle-specific functionality. Built on
 FLEXT Core patterns with Clean Architecture principles for reliable, scalable Oracle
-database operations within the FLEXT ecosystem.
+database operations within the FLEXT data integration ecosystem.
 
-Architecture:
-    Clean Architecture implementation with clear layer separation:
+This library serves as the foundation for Oracle-based data integration pipelines,
+providing robust database connectivity, metadata management, and performance optimization
+specifically tailored for Oracle Database environments.
+
+Architecture (Clean Architecture + DDD):
     - Application Layer: FlextDbOracleApi (main service interface)
-    - Domain Layer: Metadata models and Oracle-specific entities
-    - Infrastructure Layer: Connection management and configuration
-    - Foundation Layer: FLEXT Core integration (FlextResult, FlextContainer)
+    - Domain Layer: Oracle metadata models and database-specific entities
+    - Infrastructure Layer: Connection management, pooling, and configuration
+    - Foundation Layer: FLEXT Core integration (FlextResult, FlextContainer, logging)
 
 Key Features:
-    - Enterprise connection pooling with SSL/TLS support
-    - Comprehensive Oracle schema introspection and metadata management
-    - Type-safe query execution with FlextResult[T] error handling patterns
-    - Plugin system for extensible Oracle-specific functionality
-    - Singer ecosystem foundation for data pipeline development
-    - Performance optimization with Oracle-specific hints and bulk operations
-    - Security features including audit logging and credential management
+    - Enterprise Connection Management: Advanced connection pooling with SSL/TLS support
+    - Schema Introspection: Comprehensive Oracle schema discovery and metadata management
+    - Type-Safe Operations: Query execution with FlextResult[T] error handling patterns
+    - Performance Optimization: Oracle-specific hints, bulk operations, and query tuning
+    - Security & Compliance: Audit logging, credential management, and access control
+    - Plugin Architecture: Extensible system for Oracle-specific functionality
+    - Singer Integration: Foundation support for Singer tap/target development
+    - RAC Support: Oracle Real Application Clusters connectivity and failover
+    - Data Pipeline Support: Optimized for ETL/ELT operations in FLEXT ecosystem
+
+Oracle-Specific Features:
+    - Advanced data types support (CLOB, BLOB, XMLType, JSON, etc.)
+    - Partition-aware operations for performance optimization
+    - Oracle-specific SQL features (hierarchical queries, analytic functions)
+    - Flashback query support for data recovery and auditing
+    - PL/SQL execution and stored procedure integration
 
 Example:
-    Basic Oracle database operations:
+    Basic Oracle database operations with FLEXT patterns:
 
     >>> from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+    >>> from flext_core import FlextResult
     >>>
     >>> # Environment-based configuration (recommended)
     >>> api = FlextDbOracleApi.from_env("production")
     >>>
-    >>> # Connect and execute operations
+    >>> # Connect and execute operations with FlextResult error handling
     >>> with api.connect() as oracle:
-    ...     # Simple query
+    ...     # Type-safe query with parameter binding
     ...     result = oracle.query(
     ...         "SELECT employee_id, name FROM employees WHERE dept_id = :dept",
     ...         {"dept": 10},
     ...     )
-    ...     if result.success:
-    ...         print(f"Found {result.value.row_count} employees")
+    ...     if result.is_success:
+    ...         print(f"Found {len(result.data)} employees")
+    ...         for row in result.data:
+    ...             print(f"ID: {row['employee_id']}, Name: {row['name']}")
+    ...     else:
+    ...         print(f"Query failed: {result.error}")
+
+    Advanced metadata operations:
+    >>> # Schema discovery and metadata management
+    >>> metadata_result = api.get_schema_metadata("HR")
+    >>> if metadata_result.is_success:
+    ...     schema = metadata_result.data
+    ...     for table in schema.tables:
+    ...         print(f"Table: {table.name}, Columns: {len(table.columns)}")
     ...
     ...     # Bulk operations
-    ...     bulk_result = oracle.execute_batch(
-    ...         [
-    ...             (
-    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
-    ...                 {"id": 1, "name": "John"},
-    ...             ),
-    ...             (
-    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
-    ...                 {"id": 2, "name": "Jane"},
-    ...             ),
-    ...         ]
-    ...     )
+    ...     bulk_result = oracle.execute_batch([
+    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 1, "name": "John"}),
+    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 2, "name": "Jane"}),
+    ...     ])
 
     Schema introspection and metadata:
 
@@ -79,15 +96,35 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+# Import from consolidated PEP8 modules
 from .api import FlextDbOracleApi
-from .cli import oracle as oracle_cli
+from .cli import oracle
 from .config import FlextDbOracleConfig
 from .connection import FlextDbOracleConnection
+from .exceptions import (
+    FlextDbOracleAuthenticationError,
+    FlextDbOracleConfigurationError,
+    FlextDbOracleConnectionError,
+    FlextDbOracleError,
+    FlextDbOracleMetadataError,
+    FlextDbOracleProcessingError,
+    FlextDbOracleQueryError,
+    FlextDbOracleTimeoutError,
+    FlextDbOracleValidationError,
+)
 from .metadata import (
     FlextDbOracleColumn,
     FlextDbOracleMetadataManager,
     FlextDbOracleSchema,
     FlextDbOracleTable,
+)
+from .typings import (
+    CreateIndexConfig,
+    TDbOracleColumn,
+    TDbOracleConnectionStatus,
+    TDbOracleQueryResult,
+    TDbOracleSchema,
+    TDbOracleTable,
 )
 from .observability import (
     FlextDbOracleErrorHandler,
@@ -101,42 +138,57 @@ from .plugins import (
     create_security_audit_plugin,
     register_all_oracle_plugins,
 )
-from .types import (
-    TDbOracleColumn,
-    TDbOracleConnectionStatus,
-    TDbOracleQueryResult,
-    TDbOracleSchema,
-    TDbOracleTable,
-)
+
+# Backward compatibility aliases - maintain 100% compatibility
+oracle_cli = oracle  # CLI alias for backward compatibility
+# Backward compatibility class alias expected by older imports
+FlextDbOracleAPI = FlextDbOracleApi
 
 __all__: list[str] = [
-    # Plugins
-    "ORACLE_PLUGINS",
     # Core API
     "FlextDbOracleApi",
-    # Metadata
-    "FlextDbOracleColumn",
     "FlextDbOracleConfig",
     "FlextDbOracleConnection",
-    # Observability (DRY Patterns)
-    "FlextDbOracleErrorHandler",
+    # Exceptions
+    "FlextDbOracleAuthenticationError",
+    "FlextDbOracleConfigurationError",
+    "FlextDbOracleConnectionError",
+    "FlextDbOracleError",
+    "FlextDbOracleMetadataError",
+    "FlextDbOracleProcessingError",
+    "FlextDbOracleQueryError",
+    "FlextDbOracleTimeoutError",
+    "FlextDbOracleValidationError",
+    # Metadata
+    "FlextDbOracleColumn",
     "FlextDbOracleMetadataManager",
-    "FlextDbOracleObservabilityManager",
-    "FlextDbOracleOperationTracker",
     "FlextDbOracleSchema",
     "FlextDbOracleTable",
+    # Models and Constants
+    "CreateIndexConfig",
+    "FlextOracleDbConstants",
+    "MergeStatementConfig",
+    # Observability
+    "FlextDbOracleErrorHandler",
+    "FlextDbOracleObservabilityManager",
+    "FlextDbOracleOperationTracker",
+    # Plugins
+    "ORACLE_PLUGINS",
+    "create_data_validation_plugin",
+    "create_performance_monitor_plugin",
+    "create_security_audit_plugin",
+    "register_all_oracle_plugins",
     # Types
     "TDbOracleColumn",
     "TDbOracleConnectionStatus",
     "TDbOracleQueryResult",
     "TDbOracleSchema",
     "TDbOracleTable",
-    "create_data_validation_plugin",
-    "create_performance_monitor_plugin",
-    "create_security_audit_plugin",
-    # CLI
+    # CLI and Back-compat
+    "oracle",
     "oracle_cli",
-    "register_all_oracle_plugins",
+    "FlextDbOracleAPI",
+    "__version__",
 ]
 
 __version__ = "0.9.0"

@@ -49,9 +49,7 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Self, TypeVar
 
 from flext_core import (
-    FlextLogger,
     FlextResult,
-    get_flext_container,
     get_logger,
 )
 
@@ -60,7 +58,7 @@ from .connection import FlextDbOracleConnection
 from .observability import (
     FlextDbOracleObservabilityManager,
 )
-from .types import CreateIndexConfig, TDbOracleQueryResult
+from .typings import CreateIndexConfig, TDbOracleQueryResult
 
 if TYPE_CHECKING:
     import types
@@ -343,7 +341,7 @@ class OracleQueryExecutor:
                 for row in raw_data
             ]
             query_result = TDbOracleQueryResult(
-                rows=rows_list,
+                rows=[list(row) for row in rows_list],
                 columns=[],  # Column names would need to be extracted from cursor/metadata
                 row_count=len(rows_list),
                 execution_time_ms=duration_ms,
@@ -429,7 +427,10 @@ class FlextDbOracleApi:
     ) -> None:
         """Initialize Oracle API with composition pattern."""
         self._context_name = context_name
-        self._container = get_flext_container()
+        # Use FlextContainer directly to avoid non-exported helper
+        from flext_core import FlextContainer
+
+        self._container = FlextContainer()
         self._logger = get_logger(f"FlextDbOracleApi.{context_name}")
 
         # Configuration
@@ -499,7 +500,7 @@ class FlextDbOracleApi:
         cls,
         config_result: FlextResult[FlextDbOracleConfig],
         context_name: str,
-        logger: FlextLogger,  # flext_core logger type
+        logger: object,
         operation_name: str,
     ) -> Self:
         """SOLID REFACTORING: Extract Method to eliminate code duplication.
@@ -507,13 +508,13 @@ class FlextDbOracleApi:
         DRY Pattern - Single source of truth for API creation from config result.
         """
         if config_result.is_failure:
-            logger.error("Failed to load configuration: %s", config_result.error)
+            logger.error("Failed to load configuration: %s", config_result.error)  # type: ignore[attr-defined]
             config_error = f"Configuration error: {config_result.error}"
             raise ValueError(config_error)
 
         if config_result.data is None:
             error_msg = "Configuration data is None - this should not happen"
-            logger.error(error_msg)
+            logger.error(error_msg)  # type: ignore[attr-defined]
             raise ValueError(error_msg)
 
         # SOLID FIX: Use operation_name to create more specific context
@@ -530,7 +531,7 @@ class FlextDbOracleApi:
         logger = get_logger(f"FlextDbOracleApi.{context_name}")
         logger.info("Loading Oracle configuration from environment")
 
-        config_result = FlextDbOracleConfig.from_env(env_prefix)
+        config_result = FlextDbOracleConfig.from_env_with_result(f"{env_prefix}_")
         return cls._create_api_from_config_result(
             config_result,
             context_name,
@@ -596,9 +597,13 @@ class FlextDbOracleApi:
 
     def test_connection(self) -> FlextResult[bool]:
         """Test Oracle database connection."""
+        # Ensure connection is established for test environments without DB
         if not self._connection_manager:
             return FlextResult.fail("No connection manager available")
-
+        if not self._connection_manager.is_connected:
+            connect_result = self._connection_manager.connect()
+            if connect_result.is_failure:
+                return FlextResult.fail(connect_result.error or "Connection failed")
         return self._connection_manager.test_connection()
 
     def test_connection_with_observability(self) -> FlextResult[dict[str, object]]:

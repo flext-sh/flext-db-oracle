@@ -158,7 +158,6 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test plugins with Oracle connection operations."""
-
         # Register all plugins
         register_result = register_all_oracle_plugins(oracle_api)
         assert register_result.success
@@ -193,7 +192,6 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test comprehensive plugin coverage with various Oracle operations."""
-
         # Register all plugins
         register_result = register_all_oracle_plugins(oracle_api)
         assert register_result.success

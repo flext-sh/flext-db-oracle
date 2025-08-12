@@ -55,7 +55,7 @@ from urllib.parse import quote_plus
 
 from flext_core import FlextResult, get_logger
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import DatabaseError, OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
 from .config_types import MergeStatementConfig
@@ -66,7 +66,7 @@ from .constants import (
     ORACLE_TIMESTAMP_TYPE,
     SINGER_TO_ORACLE_TYPE_MAP,
 )
-from .types import CreateIndexConfig
+from .typings import CreateIndexConfig
 
 # Oracle column information constants
 ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
@@ -78,7 +78,7 @@ if TYPE_CHECKING:
 
     from .config import FlextDbOracleConfig
     from .config_types import MergeStatementConfig
-    from .types import CreateIndexConfig
+    from .typings import CreateIndexConfig
 
 T = TypeVar("T")
 
@@ -295,7 +295,7 @@ class FlextDbOracleConnection:
         try:
             yield session
             session.commit()
-        except Exception:
+        except (DatabaseError, OperationalError, TypeError, ValueError):
             session.rollback()
             raise
         finally:
@@ -316,7 +316,7 @@ class FlextDbOracleConnection:
             try:
                 yield conn
                 trans.commit()
-            except Exception:
+            except (DatabaseError, OperationalError, TypeError, ValueError):
                 trans.rollback()
                 raise
 
@@ -329,7 +329,7 @@ class FlextDbOracleConnection:
                 self._session_factory = None
                 self._logger.info("Database connection closed")
             return FlextResult.ok(None)
-        except Exception as e:
+        except (DatabaseError, OperationalError, OSError, RuntimeError) as e:
             # Clean up references even if disposal fails
             self._engine = None
             self._session_factory = None
@@ -642,7 +642,7 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build SQL - safe for internal use only (basic escaping applied)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec # noqa: S608
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec
             return FlextResult.ok(sql)
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -676,7 +676,7 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build safe SQL with parameterized conditions (fully secure)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec # noqa: S608
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec
             return FlextResult.ok((sql, params))
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -891,7 +891,7 @@ class FlextDbOracleConnection:
         """Build Oracle connection URL for SQLAlchemy."""
         try:
             username = quote_plus(self.config.username)
-            password = quote_plus(self.config.password.get_secret_value())
+            password = quote_plus(self.config.password)
             host = self.config.host
             port = self.config.port
 
@@ -938,9 +938,8 @@ class FlextDbOracleConnection:
             full_table_name = self._build_table_name(table_name, schema_name)
 
             # Build hints if provided
-            hint_clause = ""
             if hints:
-                hint_clause = f"/*+ {' '.join(hints)} */ "
+                f"/*+ {' '.join(hints)} */ "
 
             # Build column list and parameter placeholders
             col_list = ", ".join(columns)
@@ -948,7 +947,7 @@ class FlextDbOracleConnection:
 
             # Build basic INSERT
             # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"
+            sql = f"INSERT INTO {full_table_name} ({col_list}) VALUES ({param_list})"
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -957,7 +956,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(sql)
 
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValueError) as e:
             return self._handle_database_error_simple(
                 "INSERT statement build failed",
                 e,
@@ -1006,7 +1005,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(sql)
 
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValueError) as e:
             return self._handle_database_error_simple(
                 "UPDATE statement build failed",
                 e,
@@ -1082,7 +1081,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(sql.strip())
 
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValueError) as e:
             return self._handle_database_error_simple("MERGE statement build failed", e)
 
     def build_delete_statement(
@@ -1114,7 +1113,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(sql)
 
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValueError) as e:
             return self._handle_database_error_simple(
                 "DELETE statement build failed",
                 e,
@@ -1134,7 +1133,7 @@ class FlextDbOracleConnection:
 
         """
         # Validate configuration first
-        validation_result = config.validate_domain_rules()
+        validation_result = config.validate_business_rules()
         if not validation_result.success:
             return FlextResult.fail(f"Invalid config: {validation_result.error}")
 
@@ -1163,7 +1162,7 @@ class FlextDbOracleConnection:
 
             return FlextResult.ok(sql)
 
-        except Exception as e:
+        except (DatabaseError, OperationalError, TypeError, ValueError) as e:
             return self._handle_database_error_simple(
                 "CREATE INDEX statement build failed",
                 e,

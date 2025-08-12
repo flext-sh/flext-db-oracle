@@ -207,7 +207,9 @@ class FlextOraclePlugin(FlextPlugin):
     NO MIXING: Uses composition with configuration data, implements abstract interface behavior.
     """
 
-    def __init__(self, name: str, version: str, config: dict[str, object], handler: object = None) -> None:
+    def __init__(
+        self, name: str, version: str, config: dict[str, object], handler: object = None,
+    ) -> None:
         """Initialize Oracle plugin with configuration and handler."""
         self._name = name
         self._version = version

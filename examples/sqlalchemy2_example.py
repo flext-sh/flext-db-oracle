@@ -36,7 +36,7 @@ def create_oracle_config() -> FlextDbOracleConfig:
         host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
         port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
         username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
+        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"  # noqa: S105),
         service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
     )

@@ -49,7 +49,7 @@ def demo_basic_usage() -> None:
             host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
             port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
             username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "user"),
-            password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "password"),
+            password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "password"  # noqa: S105),
             service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "ORCLPDB1"),
         )
     except Exception:

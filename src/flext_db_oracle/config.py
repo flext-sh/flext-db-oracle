@@ -46,12 +46,9 @@ import os
 import urllib.parse
 from typing import TypeVar
 
-from flext_core import (
-    FlextOracleConfig,
-    FlextResult,
-    get_logger,
-)
-from pydantic import Field, SecretStr, field_validator, model_validator
+from flext_core import FlextResult, get_logger
+from flext_core.config import FlextOracleConfig
+from pydantic import Field, field_validator, model_validator
 
 from .constants import (
     ERROR_MSG_HOST_EMPTY,
@@ -98,7 +95,10 @@ class FlextDbOracleConfig(FlextOracleConfig):
     """Oracle database configuration extending flext-core centralized config."""
 
     # Additional Oracle-specific options not in base class
-    autocommit: bool = Field(default=False, description="Auto-commit transactions")
+    sid: str | None = Field(
+        default=None, description="Oracle SID (alternative to service_name)",
+    )
+    ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
     ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")
     ssl_key_path: str | None = Field(default=None, description="SSL key path")
     ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
@@ -106,6 +106,12 @@ class FlextDbOracleConfig(FlextOracleConfig):
         None,
         description="SSL server certificate DN",
     )
+    timeout: int = Field(default=30, description="Connection timeout seconds")
+    encoding: str = Field(default="UTF-8", description="Character encoding")
+    protocol: str = Field(default="tcp", description="Connection protocol")
+
+    # Ensure all required base class fields have defaults if not already defined
+    oracle_schema: str = Field(default="DEFAULT", description="Oracle schema")
 
     @field_validator("host")
     @classmethod
@@ -192,7 +198,21 @@ class FlextDbOracleConfig(FlextOracleConfig):
     # Host and username validation inherited from FlextOracleConfig
 
     @classmethod
-    def from_env(
+    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextDbOracleConfig:
+        """Create configuration from environment variables (base class override)."""
+        result = cls.from_env_with_result(f"{prefix}_")
+        if result.is_failure:
+            # For base class compatibility, we need to raise exception on failure
+            msg = f"Failed to create configuration from environment: {result.error}"
+            raise ValueError(msg)
+        # MYPY FIX: Safe access to result.data with None check
+        if result.data is None:
+            msg = "Configuration creation returned None - should not happen"
+            raise ValueError(msg)
+        return result.data
+
+    @classmethod
+    def from_env_with_result(
         cls,
         prefix: str = "FLEXT_TARGET_ORACLE_",
     ) -> FlextResult[FlextDbOracleConfig]:
@@ -202,7 +222,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 host=os.getenv(f"{prefix}HOST", "localhost"),
                 port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
-                password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
+                password=os.getenv(f"{prefix}PASSWORD", "oracle"),
                 service_name=os.getenv(f"{prefix}SERVICE_NAME")
                 or os.getenv(f"{prefix}SID")
                 or "ORCLPDB1",
@@ -240,8 +260,8 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 host=parsed.hostname or "localhost",
                 port=parsed.port or ORACLE_DEFAULT_PORT,
                 username=parsed.username or "oracle",
-                password=SecretStr(parsed.password or "oracle"),
-                service_name=parsed.path.lstrip("/") if parsed.path else None,
+                password=parsed.password or "oracle",
+                service_name=parsed.path.lstrip("/") if parsed.path else "ORCLPDB1",
                 sid=None,  # URL format typically uses service_name
                 pool_min=1,
                 pool_max=10,
@@ -264,7 +284,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
     def to_connect_params(self) -> dict[str, object]:
         """Convert to Oracle connection parameters with Oracle-specific extensions."""
         # Get base params from parent class and convert to mutable dict
-        params: dict[str, object] = dict(super().to_oracle_dict())
+        params: dict[str, object] = dict(super().to_dict())
 
         # Oracle driver expects 'user', not 'username'
         if "username" in params:
@@ -311,7 +331,20 @@ class FlextDbOracleConfig(FlextOracleConfig):
         return f"{self.host}:{self.port}"
 
     @classmethod
-    def from_dict(
+    def from_dict(cls, data: dict[str, object]) -> FlextDbOracleConfig:
+        """Create from dictionary (base class override)."""
+        result = cls.from_dict_with_result(data)
+        if result.is_failure:
+            msg = f"Failed to create configuration from dict: {result.error}"
+            raise ValueError(msg)
+        # MYPY FIX: Safe access to result.data with None check
+        if result.data is None:
+            msg = "Configuration creation returned None - should not happen"
+            raise ValueError(msg)
+        return result.data
+
+    @classmethod
+    def from_dict_with_result(
         cls,
         config_dict: dict[str, object],
     ) -> FlextResult[FlextDbOracleConfig]:
@@ -331,7 +364,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 "service_name": config_dict.get("service_name")
                 and str(config_dict["service_name"]),
                 "username": str(config_dict.get("username", "user")),
-                "password": SecretStr(str(config_dict.get("password", "password"))),
+                "password": str(config_dict.get("password", "password")),
                 "pool_min": int(pool_min_val)
                 if isinstance(pool_min_val, (int, str))
                 else 1,
