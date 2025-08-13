@@ -2,7 +2,7 @@
 
 **Type**: Infrastructure Library | **Status**: Active Development | **Dependencies**: flext-core
 
-Oracle database connectivity and operations for the FLEXT ecosystem.
+Oracle database connectivity and operations.
 
 > ⚠️ Development Status: Core connection and query functionality working; Singer integration incomplete.
 
@@ -35,11 +35,11 @@ docker-compose -f docker-compose.oracle.yml up -d
 - Performance optimization features
 - Advanced plugin system completion
 
-## 🏗️ Architecture Role in FLEXT Ecosystem
+## 🏗️ Architecture Role
 
 ### **Infrastructure Layer Component**
 
-FLEXT DB Oracle operates as a critical infrastructure component in the FLEXT ecosystem:
+FLEXT DB Oracle operates as a critical infrastructure component:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -82,7 +82,7 @@ FLEXT DB Oracle operates as a critical infrastructure component in the FLEXT eco
 - **Schema Comparison**: Efficient diff algorithms for large-scale schemas
 - **Dependency Analysis**: Complex object relationship mapping
 
-### **FLEXT Core Integration**
+### **Core Integration**
 
 - **FlextResult Pattern**: Type-safe error handling without exceptions
 - **Dependency Injection**: Consistent service location via FlextContainer
