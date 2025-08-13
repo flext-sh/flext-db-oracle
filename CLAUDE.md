@@ -532,4 +532,4 @@ pytest -v -s --log-cli-level=DEBUG
 
 ---
 
-**FLEXT DB Oracle** - Enterprise Oracle database integration for the FLEXT data platform. Built with ❤️ following Clean Architecture, DDD, and FLEXT ecosystem patterns.
+**FLEXT DB Oracle** - Enterprise Oracle database integration for the FLEXT data platform.

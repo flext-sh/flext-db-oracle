@@ -534,4 +534,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**FLEXT DB Oracle** - Reliable Oracle integration for enterprise data platforms. Built with ❤️ by the FLEXT team.
+**FLEXT DB Oracle** - Reliable Oracle integration for enterprise data platforms.
