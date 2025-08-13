@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import contextlib
 import os
-import subprocess  # legacy import kept only for typing
+
+# Removed subprocess dependency; do not rely on subprocess exceptions in tests
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -156,14 +157,14 @@ def oracle_container() -> Generator[None]:
         container_manager.ensure_container_ready()
         yield
 
-    except subprocess.CalledProcessError as e:
+    except RuntimeError as e:
         pytest.exit(f"Failed to manage Oracle container: {e}")
     except FileNotFoundError:
         pytest.exit(
             "Docker/Docker Compose not available - cannot run tests without Docker",
         )
-    except subprocess.SubprocessError as e:
-        pytest.exit(f"Subprocess error managing Oracle container: {e}")
+    except Exception as e:
+        pytest.exit(f"Error managing Oracle container: {e}")
     except OSError as e:
         pytest.exit(f"OS error managing Oracle container: {e}")
 
