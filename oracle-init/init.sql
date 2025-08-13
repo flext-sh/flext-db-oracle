@@ -15,8 +15,8 @@ GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE SEQUENCE, CREATE SYNONYM TO flextte
 GRANT SELECT ANY DICTIONARY TO flexttest;
 GRANT CREATE SESSION TO flexttest;
 
--- Connect as test user to create test schema
-CONNECT flexttest/FlextTest123@//localhost:1521/XEPDB1;
+-- NOTE: When running inside docker-compose network, use service hostname
+CONNECT flexttest/FlextTest123@//oracle-xe:1521/XEPDB1;
 
 -- Create test tables for functional validation
 CREATE TABLE employees (

@@ -24,7 +24,8 @@ class TestConnectionErrorHandlingPaths:
     """Aggressively test connection error handling - lines 73-77, 140-147."""
 
     def test_disconnect_error_handling_lines_140_147(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test disconnect error handling (EXACT lines 140-147)."""
         from sqlalchemy.exc import SQLAlchemyError
@@ -67,7 +68,8 @@ class TestConnectionErrorHandlingPaths:
             pytest.fail(f"Import error: {e}")
 
     def test_multiple_disconnect_cycles(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test multiple disconnect cycles for error path coverage."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -98,7 +100,8 @@ class TestConnectionSessionManagement:
     """Aggressively test session management - lines 266-278."""
 
     def test_session_context_manager_lines_266_278(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test session context manager (EXACT lines 266-278)."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -128,7 +131,8 @@ class TestConnectionSessionManagement:
                 connection.disconnect()
 
     def test_session_error_handling_lines_274_278(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test session error handling and rollback (lines 274-278)."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -152,7 +156,8 @@ class TestConnectionSessionManagement:
                 connection.disconnect()
 
     def test_session_without_connection_lines_266_268(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test session access without connection (lines 266-268)."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -270,7 +275,8 @@ class TestConnectionDatabaseOperations:
     """Test database operations to hit missed lines."""
 
     def test_database_operations_error_paths(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test database operations error paths."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -304,7 +310,8 @@ class TestConnectionDatabaseOperations:
                 connection.disconnect()
 
     def test_connection_with_mocked_errors(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection with forced internal errors."""
         from sqlalchemy.exc import SQLAlchemyError
@@ -324,7 +331,8 @@ class TestConnectionDatabaseOperations:
             assert "Forced engine error" in str(connect_result.error)
 
     def test_session_operations_comprehensive(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test comprehensive session operations."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -371,7 +379,8 @@ class TestConnectionUtilityMethods:
     """Test connection utility methods for additional coverage."""
 
     def test_connection_string_generation(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection string generation methods."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -399,7 +408,8 @@ class TestConnectionUtilityMethods:
                     pass
 
     def test_connection_properties_comprehensive(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test all connection properties comprehensively."""
         from flext_db_oracle import FlextDbOracleConnection

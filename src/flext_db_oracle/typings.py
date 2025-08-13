@@ -146,6 +146,22 @@ class TDbOracleConnectionStatus(FlextValueObject):
 
         return FlextResult.ok(None)
 
+    def to_dict_list(self) -> list[dict[str, object]]:
+        """Convert rows and columns into list of dictionaries for convenience.
+
+        Provides a helper expected by some tests to access row data by column names.
+        """
+        results: list[dict[str, object]] = []
+        if not self.rows or not self.columns:
+            return results
+        for row in self.rows:
+            # Safeguard: ensure lengths align
+            row_values = list(row) if isinstance(row, (list, tuple)) else [row]
+            # Zip up to the shorter of the two
+            mapped = dict(zip(self.columns, row_values, strict=False))
+            results.append(mapped)
+        return results
+
     @property
     def connection_string(self) -> str:
         """Get connection string without password."""

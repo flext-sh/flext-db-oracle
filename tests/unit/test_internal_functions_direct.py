@@ -349,7 +349,8 @@ class TestConnectionInternalMethods:
                 pass
 
     def test_connection_state_management_direct(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection state management directly."""
         from flext_db_oracle import FlextDbOracleConnection

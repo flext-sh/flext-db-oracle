@@ -48,7 +48,11 @@ class DockerCommandExecutor:
             client = docker.from_env()
             # Fallback: assume container name present in compose file
             containers = client.containers.list(all=True)
-            return any("oracle" in ",".join(c.name for c in [ctr]) or "oracle" in str(ctr.image.tags) for ctr in containers)  # type: ignore[name-defined]
+            return any(
+                "oracle" in ",".join(c.name for c in [ctr])
+                or "oracle" in str(ctr.image.tags)
+                for ctr in containers
+            )  # type: ignore[name-defined]
         except Exception:
             return False
 
@@ -62,9 +66,7 @@ class DockerCommandExecutor:
                 if ctr.name == "flext-oracle-test":
                     details = client.api.inspect_container(ctr.id)
                     status = (
-                        details.get("State", {})
-                        .get("Health", {})
-                        .get("Status", "")
+                        details.get("State", {}).get("Health", {}).get("Status", "")
                     )
                     return status == "healthy"
         except Exception:
@@ -79,6 +81,26 @@ class DockerCommandExecutor:
         """Run database setup script."""
         # Not supported without docker-compose CLI; require manual run for test env
         return False
+
+    def is_setup_completed(self) -> bool:
+        """Check if the setup container has completed successfully."""
+        try:
+            import docker  # type: ignore[import-not-found]
+
+            client = docker.from_env()
+            try:
+                setup_ctr = client.containers.get("flext-oracle-setup")
+            except Exception:
+                return False
+
+            setup_ctr.reload()
+            # Consider success when container exited with code 0
+            state = setup_ctr.attrs.get("State", {})
+            status = state.get("Status", "")
+            exit_code = state.get("ExitCode", 1)
+            return status == "exited" and exit_code == 0
+        except Exception:
+            return False
 
 
 class OracleContainerManager:
@@ -99,6 +121,8 @@ class OracleContainerManager:
 
         if not container_running or not is_healthy:
             self._start_and_wait_for_health()
+        # Always wait for setup completion to ensure test user exists
+        self._wait_for_setup_completion()
 
     def _start_and_wait_for_health(self) -> None:
         """Start container and wait for it to become healthy."""
@@ -116,6 +140,16 @@ class OracleContainerManager:
 
         pytest.exit(
             "Oracle container failed to become healthy - cannot run tests without Oracle",
+        )
+
+    def _wait_for_setup_completion(self) -> None:
+        """Wait until the setup container has created the test user/schema."""
+        for _attempt in range(self.max_health_attempts):
+            if self.docker_executor.is_setup_completed():
+                return
+            time.sleep(self.health_check_interval)
+        pytest.exit(
+            "Oracle setup container did not complete in time - test user may be missing",
         )
 
 

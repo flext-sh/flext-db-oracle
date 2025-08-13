@@ -54,7 +54,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, TypeVar, cast
 
 from flext_core import FlextResult, FlextValueObject, get_logger
-from pydantic import Field
+from pydantic import ConfigDict, Field, model_validator
 
 from flext_db_oracle.constants import (
     ERROR_MSG_COLUMN_ID_INVALID,
@@ -124,6 +124,9 @@ logger = get_logger(__name__)
 class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
     """Oracle column metadata using flext-core patterns with DRY validation."""
 
+    # Accept unknown/legacy fields without validation errors
+    model_config = ConfigDict(extra="ignore")
+
     name: str = Field(..., description="Column name")
     data_type: str = Field(..., description="Oracle data type")
     nullable: bool = Field(
@@ -136,6 +139,27 @@ class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
     data_scale: int | None = Field(None, description="Numeric scale")
     column_id: int = Field(..., description="Column position in table")
     comments: str | None = Field(None, description="Column comments")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _map_legacy_field_aliases(cls, data: object) -> object:
+        """Support legacy field names used by older tests/types.
+
+        Maps: precision->data_precision, scale->data_scale,
+        position->column_id, max_length->data_length. Ignores extras.
+        """
+        if isinstance(data, dict):
+            mapped = dict(data)
+            if "precision" in mapped and "data_precision" not in mapped:
+                mapped["data_precision"] = mapped.pop("precision")
+            if "scale" in mapped and "data_scale" not in mapped:
+                mapped["data_scale"] = mapped.pop("scale")
+            if "position" in mapped and "column_id" not in mapped:
+                mapped["column_id"] = mapped.pop("position")
+            if "max_length" in mapped and "data_length" not in mapped:
+                mapped["data_length"] = mapped.pop("max_length")
+            return mapped
+        return data
 
     def validate_business_rules(self) -> FlextResult[None]:
         """REAL REFACTORING: Implement abstract method from FlextValueObject."""

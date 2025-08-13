@@ -29,7 +29,9 @@ class TestRealOracleTypeValidation:
     """Test Oracle type validation with real data."""
 
     def test_real_oracle_column_from_db(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test creating Oracle column type from real database metadata."""
         # Connect first
@@ -69,7 +71,9 @@ class TestRealOracleTypeValidation:
         assert "NUMBER" in column.full_type_spec
 
     def test_real_oracle_table_from_db(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test creating Oracle table type from real database metadata."""
         # Connect first
@@ -113,7 +117,9 @@ class TestRealOracleTypeValidation:
         assert "EMPLOYEE_ID" in table.column_names
 
     def test_real_oracle_schema_from_db(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test creating Oracle schema type from real database metadata."""
         # Connect first
@@ -232,7 +238,9 @@ class TestRealOracleTypeConversions:
     """Test Oracle type conversions with real data."""
 
     def test_real_oracle_data_type_mapping(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None,
+        self,
+        oracle_api: FlextDbOracleApi,
+        oracle_container: None,
     ) -> None:
         """Test mapping Oracle data types to Python types."""
         # Get real column data with various Oracle types

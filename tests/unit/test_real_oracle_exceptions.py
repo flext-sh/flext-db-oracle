@@ -258,7 +258,7 @@ class TestRealOracleExceptionsAdvanced:
 
             # Try to insert NULL into NOT NULL column - should fail
             insert_sql = (
-                f"INSERT INTO {table_name} (id, required_field) VALUES (1, NULL)"  # noqa: S608
+                f"INSERT INTO {table_name} (id, required_field) VALUES (1, NULL)"
             )
             result = connected_oracle_api.query(insert_sql)
             assert result.is_failure  # Should fail constraint violation
@@ -377,7 +377,7 @@ class TestRealOracleExceptionHierarchy:
         """Test that Oracle exceptions handle context parameters properly."""
         # Test query truncation for long queries
         long_query = (
-            "SELECT " + ", ".join(f"col{i}" for i in range(100)) + " FROM table"  # noqa: S608
+            "SELECT " + ", ".join(f"col{i}" for i in range(100)) + " FROM table"
         )
 
         query_error = FlextDbOracleQueryError(

@@ -21,7 +21,7 @@ Example:
     Basic Oracle database operations:
 
     >>> from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-    >>> config = FlextDbOracleConfig.from_env().value
+    >>> config = FlextDbOracleConfig.from_env().data  # FlextResult
     >>> api = FlextDbOracleApi(config)
     >>>
     >>> # Connect and execute query
@@ -535,13 +535,43 @@ class FlextDbOracleApi:
 
         # Ensure single underscore separator regardless of provided prefix
         normalized_prefix = env_prefix.rstrip("_")
-        config_result = FlextDbOracleConfig.from_env_with_result(f"{normalized_prefix}_")
+        config_result = FlextDbOracleConfig.from_env_with_result(
+            f"{normalized_prefix}_",
+        )
         return cls._create_api_from_config_result(
             config_result,
             context_name,
             logger,
             "environment",
         )
+
+    # Backward-compatibility helpers expected by some tests
+    @classmethod
+    def from_config(cls, config: object) -> Self:
+        """Create API directly from a configuration-like object.
+
+        Accepts either FlextDbOracleConfig or a compatible object with
+        Oracle connection attributes and constructs a proper config.
+        """
+        if isinstance(config, FlextDbOracleConfig):
+            return cls(config, "oracle")
+
+        # Try to coerce from a foreign config object (e.g., client-b config)
+        try:
+            cfg_dict = {
+                "host": config.host,
+                "port": int(getattr(config, "port", 1521)),
+                "username": config.username,
+                "password": config.password,
+                "service_name": getattr(config, "service_name", None)
+                or getattr(config, "sid", None)
+                or "ORCLPDB1",
+            }
+            coerced = FlextDbOracleConfig.model_validate(cfg_dict)
+            return cls(coerced, "oracle")
+        except Exception as e:
+            msg = f"Invalid configuration provided: {e}"
+            raise ValueError(msg) from e
 
     @classmethod
     def with_config(

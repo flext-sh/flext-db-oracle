@@ -28,7 +28,8 @@ class TestRealOracleMetadata:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -166,7 +167,8 @@ class TestRealOracleMetadataErrorHandling:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -220,7 +222,8 @@ class TestRealOracleMetadataErrorHandling:
             assert isinstance(result.error, str)
 
     def test_real_metadata_with_connection_issues(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test metadata handling when connection has issues."""
         from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
@@ -257,7 +260,8 @@ class TestRealOracleMetadataIntegration:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig,
+        self,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection

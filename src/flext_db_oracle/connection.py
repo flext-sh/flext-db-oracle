@@ -23,7 +23,7 @@ Example:
     Basic connection and query execution:
 
     >>> from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
-    >>> config = FlextDbOracleConfig.from_env().value
+    >>> config = FlextDbOracleConfig.from_env().data  # FlextResult
     >>> connection = FlextDbOracleConnection(config)
     >>> connect_result = connection.connect()
     >>> if connect_result.success:

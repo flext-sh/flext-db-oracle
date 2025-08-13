@@ -115,6 +115,7 @@ def _check_oracle_env() -> bool:
 
 def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell)."""
+
     async def _run() -> tuple[int, str, str]:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
