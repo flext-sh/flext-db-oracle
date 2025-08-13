@@ -239,23 +239,26 @@ def demonstrate_cli_patterns():
         'FLEXT_TARGET_ORACLE_PASSWORD': 'flext_password'
     })
 
-    # Test connection
+    # Test connection (pseudo-code; prefer in-process or asyncio wrappers)
     print("Testing connection...")
-    result = subprocess.run([
-        'python', '-m', 'flext_db_oracle.cli', 'connect-env'
-    ], env=env, capture_output=True, text=True)
+    # rc, out, err = await run_async([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
+    # Simulated result object below for documentation purposes:
+    class Result:  # noqa: D401 (doc)
+        """Lightweight result for documentation."""
+        def __init__(self, returncode: int, stdout: str = '', stderr: str = '') -> None:
+            self.returncode = returncode
+            self.stdout = stdout
+            self.stderr = stderr
+    result = Result(0, 'Connected OK')
 
     if result.returncode == 0:
         print("✅ Connection successful")
 
         # Execute sample query
         print("\nExecuting query...")
-        query_result = subprocess.run([
-            'python', '-m', 'flext_db_oracle.cli', 'query',
-            '--sql', 'SELECT table_name FROM user_tables'
-        ], env=env, capture_output=True, text=True)
-
-        print(query_result.stdout)
+        # rc2, out2, err2 = await run_async([sys.executable, '-m', 'flext_db_oracle.cli', 'query', '--sql', 'SELECT table_name FROM user_tables'], env=env)
+        out2 = "TABLE_NAME\nUSERS\nORDERS\n"  # simulated
+        print(out2)
     else:
         print(f"❌ Connection failed: {result.stderr}")
 

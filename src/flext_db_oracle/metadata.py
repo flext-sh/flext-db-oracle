@@ -97,10 +97,16 @@ class ValidationMixin:
         """
         try:
             # Execute all validation steps
+            errors: list[str] = []
             for error_msg, validation_func in validation_steps:
-                if not validation_func():
-                    return FlextResult.fail(error_msg)
+                try:
+                    if not validation_func():
+                        errors.append(error_msg)
+                except Exception as e:  # Defensive: validation callable failed
+                    errors.append(f"Validation error: {e}")
 
+            if errors:
+                return FlextResult.fail("; ".join(errors))
             return FlextResult.ok(None)
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -115,7 +121,7 @@ T = TypeVar("T")
 logger = get_logger(__name__)
 
 
-class FlextDbOracleColumn(FlextValueObject):
+class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
     """Oracle column metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Column name")
@@ -148,16 +154,7 @@ class FlextDbOracleColumn(FlextValueObject):
             ),
             (ERROR_MSG_COLUMN_ID_INVALID, lambda: bool(self.column_id > 0)),
         ]
-        # Execute validation steps inline since _execute_validation_template doesn't exist
-        errors = []
-        for error_msg, validation_func in validation_steps:
-            try:
-                if not validation_func():
-                    errors.append(error_msg)
-            except Exception as e:
-                errors.append(f"Validation error: {e}")
-
-        return FlextResult.fail("; ".join(errors)) if errors else FlextResult.ok(None)
+        return self._execute_validation_template(validation_steps, "Column")
 
     @property
     def full_type_definition(self) -> str:
@@ -175,7 +172,7 @@ class FlextDbOracleColumn(FlextValueObject):
         return type_def
 
 
-class FlextDbOracleTable(FlextValueObject):
+class FlextDbOracleTable(ValidationMixin, FlextValueObject):
     """Oracle table metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Table name")
@@ -205,17 +202,13 @@ class FlextDbOracleTable(FlextValueObject):
             ("Table must have at least one column", lambda: bool(self.columns)),
         ]
 
-        # Execute basic validations first
-        errors = []
-        for error_msg, validation_func in validation_steps:
-            try:
-                if not validation_func():
-                    errors.append(error_msg)
-            except Exception as e:
-                errors.append(f"Validation error: {e}")
-
-        if errors:
-            return FlextResult.fail("; ".join(errors))
+        # Execute basic validations first via template
+        basic_validation = self._execute_validation_template(
+            validation_steps,
+            "Table",
+        )
+        if basic_validation.is_failure:
+            return basic_validation
 
         # Validate each column using Railway-Oriented Programming pattern
         return self._validate_columns_collection()
@@ -246,7 +239,7 @@ class FlextDbOracleTable(FlextValueObject):
         return [col.name for col in self.columns]
 
 
-class FlextDbOracleSchema(FlextValueObject):
+class FlextDbOracleSchema(ValidationMixin, FlextValueObject):
     """Oracle schema metadata using flext-core patterns with DRY validation."""
 
     name: str = Field(..., description="Schema name")
@@ -271,17 +264,13 @@ class FlextDbOracleSchema(FlextValueObject):
             ),
         ]
 
-        # Execute basic validations first
-        errors = []
-        for error_msg, validation_func in validation_steps:
-            try:
-                if not validation_func():
-                    errors.append(error_msg)
-            except Exception as e:
-                errors.append(f"Validation error: {e}")
-
-        if errors:
-            return FlextResult.fail("; ".join(errors))
+        # Execute basic validations first via template
+        basic_validation = self._execute_validation_template(
+            validation_steps,
+            "Schema",
+        )
+        if basic_validation.is_failure:
+            return basic_validation
 
         # Validate tables collection using Railway-Oriented Programming pattern
         return self._validate_tables_collection()

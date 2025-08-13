@@ -938,8 +938,9 @@ class FlextDbOracleConnection:
             full_table_name = self._build_table_name(table_name, schema_name)
 
             # Build hints if provided
+            hint_clause = ""
             if hints:
-                f"/*+ {' '.join(hints)} */ "
+                hint_clause = f"/*+ {' '.join(hints)} */ "
 
             # Build column list and parameter placeholders
             col_list = ", ".join(columns)
@@ -947,7 +948,7 @@ class FlextDbOracleConnection:
 
             # Build basic INSERT
             # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
-            sql = f"INSERT INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608 - Schema metadata validated, using bind variables
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608 - Schema metadata validated, using bind variables
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1150,7 +1151,13 @@ class FlextDbOracleConnection:
             col_list = ", ".join(config.columns)
 
             # Build basic CREATE INDEX
-            sql = f"CREATE {index_type} {config.schema_name}.{config.index_name} ON {full_table_name} ({col_list})"
+            # Build index name (with optional schema)
+            qualified_index_name = (
+                f"{config.schema_name}.{config.index_name}"
+                if config.schema_name
+                else config.index_name
+            )
+            sql = f"CREATE {index_type} {qualified_index_name} ON {full_table_name} ({col_list})"
 
             # Add tablespace if specified
             if config.tablespace:

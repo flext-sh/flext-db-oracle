@@ -50,6 +50,24 @@ flext-oracle = "flext_db_oracle.cli:main"
 extend = "../.ruff-shared.toml"
 lint.isort.known-first-party = ["flext_db_oracle"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "PLC0415",  # import at top of file enforcement
+    "B904",     # raise-with-from in tests
+    "TRY301",   # raise inside try in tests
+    "EM101",    # exception strings
+    "EM102",    # f-string exceptions
+    "S608",     # SQL string format in tests
+    "S101",     # assert usage in tests
+    "S105",     # hardcoded passwords in tests
+    "S106",     # hardcoded passwords in args in tests
+    "PLR2004",  # magic values in tests
+    "ARG001",   # unused function args in tests
+    "ARG002",   # unused method args in tests
+    "PLR0912",  # too many branches in tests
+    "PLR0915",  # too many statements in tests
+]
+
 [tool.mypy]
 # Strict mode - enables all recommended checks
 strict = true

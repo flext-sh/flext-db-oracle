@@ -30,7 +30,6 @@ TDbOracleColumn = FlextDbOracleColumn
 TDbOracleTable = FlextDbOracleTable
 TDbOracleSchema = FlextDbOracleSchema
 
-# Backward compatibility aliases for historical Flext* names
 FlextDbOracleQueryResult = None  # will be assigned after class definition
 FlextDbOracleConnectionStatus = None  # will be assigned after class definition
 
@@ -91,16 +90,14 @@ class TDbOracleQueryResult(FlextValueObject):
 
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate query result business rules."""
+        errors: list[str] = []
         if self.row_count < 0:
-            return FlextResult.fail("Row count cannot be negative")
-
+            errors.append("Row count cannot be negative")
         if self.execution_time_ms < 0:
-            return FlextResult.fail("Execution time cannot be negative")
-
+            errors.append("Execution time cannot be negative")
         if len(self.rows) != self.row_count:
-            return FlextResult.fail("Row count mismatch with actual rows")
-
-        return FlextResult.ok(None)
+            errors.append("Row count mismatch with actual rows")
+        return FlextResult.fail("; ".join(errors)) if errors else FlextResult.ok(None)
 
     @property
     def is_empty(self) -> bool:

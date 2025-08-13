@@ -9,8 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import asyncio
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -114,21 +114,29 @@ def _check_oracle_env() -> bool:
 
 
 def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
-    """Run CLI command and return exit code, stdout, stderr."""
-    try:
-        result = subprocess.run(  # noqa: S603 - CLI example for documentation
-            cmd,
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=30,
+    """Run CLI command and return exit code, stdout, stderr (no shell)."""
+    async def _run() -> tuple[int, str, str]:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
         )
-    except subprocess.TimeoutExpired:
-        return 1, "", "Command timed out"
-    except (OSError, subprocess.SubprocessError, ValueError) as e:
-        return 1, "", str(e)
-    else:
-        return result.returncode, result.stdout, result.stderr
+        try:
+            stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30)
+        except TimeoutError:
+            with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
+                proc.kill()
+            await proc.wait()
+            return 1, "", "Command timed out"
+        return (
+            int(proc.returncode or 0),
+            stdout_b.decode("utf-8", errors="replace") if stdout_b else "",
+            stderr_b.decode("utf-8", errors="replace") if stderr_b else "",
+        )
+
+    import contextlib
+
+    return asyncio.run(_run())
 
 
 def demo_cli_commands() -> None:

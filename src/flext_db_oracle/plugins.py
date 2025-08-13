@@ -324,6 +324,7 @@ class OraclePluginFactory:
                 "threshold_ms": 1000,
                 "log_slow_queries": True,
                 "collect_execution_plans": False,
+                "callable_obj": performance_monitor_plugin_handler,
             },
         )
 

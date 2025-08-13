@@ -107,7 +107,9 @@ from __future__ import annotations
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.cli import oracle
 from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.config_types import MergeStatementConfig
 from flext_db_oracle.connection import FlextDbOracleConnection
+from flext_db_oracle.constants import FlextOracleDbConstants
 from flext_db_oracle.exceptions import (
     FlextDbOracleAuthenticationError,
     FlextDbOracleConfigurationError,
@@ -125,14 +127,6 @@ from flext_db_oracle.metadata import (
     FlextDbOracleSchema,
     FlextDbOracleTable,
 )
-from flext_db_oracle.typings import (
-    CreateIndexConfig,
-    TDbOracleColumn,
-    TDbOracleConnectionStatus,
-    TDbOracleQueryResult,
-    TDbOracleSchema,
-    TDbOracleTable,
-)
 from flext_db_oracle.observability import (
     FlextDbOracleErrorHandler,
     FlextDbOracleObservabilityManager,
@@ -145,6 +139,14 @@ from flext_db_oracle.plugins import (
     create_security_audit_plugin,
     register_all_oracle_plugins,
 )
+from flext_db_oracle.typings import (
+    CreateIndexConfig,
+    TDbOracleColumn,
+    TDbOracleConnectionStatus,
+    TDbOracleQueryResult,
+    TDbOracleSchema,
+    TDbOracleTable,
+)
 
 # Backward compatibility aliases - maintain 100% compatibility
 oracle_cli = oracle  # CLI alias for backward compatibility
@@ -152,53 +154,47 @@ oracle_cli = oracle  # CLI alias for backward compatibility
 FlextDbOracleAPI = FlextDbOracleApi
 
 __all__: list[str] = [
-    # Core API
+    "ORACLE_PLUGINS",
+    "CreateIndexConfig",
+    "FlextDbOracleAPI",
     "FlextDbOracleApi",
-    "FlextDbOracleConfig",
-    "FlextDbOracleConnection",
-    # Exceptions
     "FlextDbOracleAuthenticationError",
+    "FlextDbOracleColumn",
+    "FlextDbOracleConfig",
     "FlextDbOracleConfigurationError",
+    "FlextDbOracleConnection",
     "FlextDbOracleConnectionError",
     "FlextDbOracleError",
-    "FlextDbOracleMetadataError",
-    "FlextDbOracleProcessingError",
-    "FlextDbOracleQueryError",
-    "FlextDbOracleTimeoutError",
-    "FlextDbOracleValidationError",
-    # Metadata
-    "FlextDbOracleColumn",
-    "FlextDbOracleMetadataManager",
-    "FlextDbOracleSchema",
-    "FlextDbOracleTable",
-    # Models and Constants
-    "CreateIndexConfig",
-    "FlextOracleDbConstants",
-    "MergeStatementConfig",
-    # Observability
     "FlextDbOracleErrorHandler",
+    "FlextDbOracleMetadataError",
+    "FlextDbOracleMetadataManager",
     "FlextDbOracleObservabilityManager",
     "FlextDbOracleOperationTracker",
-    # Plugins
-    "ORACLE_PLUGINS",
-    "create_data_validation_plugin",
-    "create_performance_monitor_plugin",
-    "create_security_audit_plugin",
-    "register_all_oracle_plugins",
-    # Types
+    "FlextDbOracleProcessingError",
+    "FlextDbOracleQueryError",
+    "FlextDbOracleSchema",
+    "FlextDbOracleTable",
+    "FlextDbOracleTimeoutError",
+    "FlextDbOracleValidationError",
+    "FlextOracleDbConstants",
+    "MergeStatementConfig",
     "TDbOracleColumn",
     "TDbOracleConnectionStatus",
     "TDbOracleQueryResult",
     "TDbOracleSchema",
     "TDbOracleTable",
-    # CLI and Back-compat
+    "__version__",
+    "__version_info__",
+    "create_data_validation_plugin",
+    "create_performance_monitor_plugin",
+    "create_security_audit_plugin",
     "oracle",
     "oracle_cli",
-    "FlextDbOracleAPI",
-    "__version__",
+    "register_all_oracle_plugins",
 ]
 
 __version__ = "0.9.0"
+__version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())
 __author__ = "flext-team"
 __description__ = (
     "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "

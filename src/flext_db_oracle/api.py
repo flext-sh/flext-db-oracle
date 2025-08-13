@@ -526,14 +526,16 @@ class FlextDbOracleApi:
     @classmethod
     def from_env(
         cls,
-        env_prefix: str = "FLEXT_TARGET_ORACLE_",
+        env_prefix: str = "FLEXT_TARGET_ORACLE",
         context_name: str = "oracle",
     ) -> Self:
         """Create Oracle API from environment variables."""
         logger = get_logger(f"FlextDbOracleApi.{context_name}")
         logger.info("Loading Oracle configuration from environment")
 
-        config_result = FlextDbOracleConfig.from_env_with_result(f"{env_prefix}_")
+        # Ensure single underscore separator regardless of provided prefix
+        normalized_prefix = env_prefix.rstrip("_")
+        config_result = FlextDbOracleConfig.from_env_with_result(f"{normalized_prefix}_")
         return cls._create_api_from_config_result(
             config_result,
             context_name,
