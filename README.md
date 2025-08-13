@@ -1,10 +1,10 @@
 # flext-db-oracle - Oracle Database Integration
 
-**Type**: Infrastructure Library | **Status**: Development | **Dependencies**: flext-core
+**Type**: Infrastructure Library | **Status**: Active Development | **Dependencies**: flext-core
 
 Oracle database connectivity and operations for the FLEXT ecosystem.
 
-> **⚠️ Development Status**: Core connection and query functionality working, Singer integration incomplete
+> ⚠️ Development Status: Core connection and query functionality working; Singer integration incomplete.
 
 ## Quick Start
 
@@ -326,13 +326,13 @@ config = config_result.value
 
 ## 🏆 Quality Standards
 
-### **Zero Tolerance Quality Gates**
+### **Quality Targets**
 
-- **Coverage**: Minimum 90% test coverage enforced (`--cov-fail-under=90`)
-- **Type Safety**: Strict MyPy configuration with comprehensive rules
-- **Linting**: Ruff with ALL rules enabled (`select = ["ALL"]`)
-- **Security**: Bandit security scanning and pip-audit
-- **Performance**: Benchmark tests for critical paths
+- **Coverage**: 90% target (enforceable with `--cov-fail-under=90`)
+- **Type Safety**: MyPy strict mode plan (incremental adoption)
+- **Linting**: Ruff with comprehensive rules (continuous improvement)
+- **Security**: Bandit + pip-audit scanning
+- **Performance**: Benchmarks for critical paths
 
 ### **Architectural Standards**
 

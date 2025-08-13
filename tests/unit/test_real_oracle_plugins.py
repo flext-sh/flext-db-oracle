@@ -110,6 +110,7 @@ class TestRealOraclePluginErrorHandling:
         """Test registering plugins multiple times."""
         # Connect first
         from flext_db_oracle import FlextDbOracleApi
+
         api = FlextDbOracleApi.with_config(real_oracle_config)
         connected_api = api.connect()  # Returns self, fluent API pattern
 

@@ -116,7 +116,7 @@ def _check_oracle_env() -> bool:
 def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr."""
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603 - CLI example for documentation
             cmd,
             capture_output=True,
             text=True,

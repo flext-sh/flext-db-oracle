@@ -10,11 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from click.testing import CliRunner
-
 import pytest
 from click.testing import CliRunner
 
@@ -30,7 +25,7 @@ class TestRealOracleCli:
         return CliRunner()
 
     def test_real_cli_connect_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI connect command with real Oracle container."""
         result = cli_runner.invoke(oracle_cli, ["connect-env"])
@@ -42,7 +37,7 @@ class TestRealOracleCli:
         )
 
     def test_real_cli_query_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI query command with real Oracle container."""
         result = cli_runner.invoke(
@@ -60,7 +55,7 @@ class TestRealOracleCli:
         assert result.exit_code == 0
 
     def test_real_cli_schemas_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI schemas command with real Oracle container."""
         result = cli_runner.invoke(oracle_cli, ["--output", "table", "schemas"])
@@ -71,7 +66,7 @@ class TestRealOracleCli:
         assert len(result.output) > 10
 
     def test_real_cli_tables_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI tables command with real Oracle container."""
         result = cli_runner.invoke(oracle_cli, ["--output", "table", "tables"])
@@ -82,7 +77,7 @@ class TestRealOracleCli:
         assert len(result.output) > 10
 
     def test_real_cli_health_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI health command with real Oracle container."""
         result = cli_runner.invoke(oracle_cli, ["--output", "table", "health"])
@@ -91,7 +86,7 @@ class TestRealOracleCli:
         assert result.exit_code == 0
 
     def test_real_cli_tables_schema_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI tables command with schema filtering."""
         result = cli_runner.invoke(
@@ -109,7 +104,7 @@ class TestRealOracleCli:
         assert result.exit_code == 0
 
     def test_real_cli_optimize_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI optimize command with real Oracle container."""
         result = cli_runner.invoke(
@@ -125,7 +120,7 @@ class TestRealOracleCli:
         assert result.exit_code == 0
 
     def test_real_cli_plugins_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI plugins command with real Oracle container."""
         result = cli_runner.invoke(oracle_cli, ["plugins"])
@@ -143,7 +138,7 @@ class TestRealOracleCliErrorHandling:
         return CliRunner()
 
     def test_real_cli_invalid_sql_query(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI with invalid SQL query."""
         result = cli_runner.invoke(
@@ -161,7 +156,7 @@ class TestRealOracleCliErrorHandling:
         assert result.exit_code != 0
 
     def test_real_cli_invalid_table_name(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI with invalid table name."""
         result = cli_runner.invoke(
@@ -183,7 +178,7 @@ class TestRealOracleCliErrorHandling:
         }  # May succeed with empty result, warning, or controlled error
 
     def test_real_cli_help_command(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI help command."""
         result = cli_runner.invoke(oracle_cli, ["--help"])
@@ -193,7 +188,7 @@ class TestRealOracleCliErrorHandling:
         assert "Usage:" in result.output or "usage:" in result.output
 
     def test_real_cli_verbose_debug_mode(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI debug mode."""
         result = cli_runner.invoke(oracle_cli, ["--debug", "connect-env"])
@@ -202,7 +197,7 @@ class TestRealOracleCliErrorHandling:
         assert result.exit_code == 0
 
     def test_real_cli_json_output(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI JSON output format."""
         result = cli_runner.invoke(oracle_cli, ["--output", "json", "schemas"])
@@ -211,7 +206,7 @@ class TestRealOracleCliErrorHandling:
         assert result.exit_code == 0
 
     def test_real_cli_yaml_output(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI YAML output format."""
         result = cli_runner.invoke(oracle_cli, ["--output", "yaml", "tables"])
@@ -220,7 +215,7 @@ class TestRealOracleCliErrorHandling:
         assert result.exit_code == 0
 
     def test_real_cli_csv_output(
-        self, cli_runner: CliRunner, oracle_container: None
+        self, cli_runner: CliRunner, oracle_container: None,
     ) -> None:
         """Test CLI CSV output format."""
         result = cli_runner.invoke(oracle_cli, ["--output", "csv", "tables"])

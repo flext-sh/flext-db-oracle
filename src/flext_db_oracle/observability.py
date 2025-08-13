@@ -249,14 +249,17 @@ class FlextDbOracleObservabilityManager:
         Args:
             status: Health check status
             message: Health check message
-            metrics: Metrics data (unused, kept for API compatibility)
+            metrics: Metrics data (included in message if provided)
 
         Returns:
             FlextResult containing the health check
 
         """
+        # Include metrics in message if provided
+        if metrics:
+            message = f"{message} | Metrics: {metrics}"
+
         # Use flext_create_health_check with proper parameters
-        # Note: metrics parameter kept for API compatibility but not used by flext_create_health_check
         return flext_create_health_check(
             component=f"oracle.{self._context_name}",
             status=status,

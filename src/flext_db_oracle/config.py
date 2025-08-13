@@ -50,7 +50,7 @@ from flext_core import FlextResult, get_logger
 from flext_core.config import FlextOracleConfig
 from pydantic import Field, field_validator, model_validator
 
-from .constants import (
+from flext_db_oracle.constants import (
     ERROR_MSG_HOST_EMPTY,
     ERROR_MSG_USERNAME_EMPTY,
     ORACLE_DEFAULT_PORT,
@@ -96,7 +96,8 @@ class FlextDbOracleConfig(FlextOracleConfig):
 
     # Additional Oracle-specific options not in base class
     sid: str | None = Field(
-        default=None, description="Oracle SID (alternative to service_name)",
+        default=None,
+        description="Oracle SID (alternative to service_name)",
     )
     ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
     ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")

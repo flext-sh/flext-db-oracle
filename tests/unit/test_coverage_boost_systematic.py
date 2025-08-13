@@ -10,11 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import patch
-
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleConfig
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
@@ -133,7 +129,7 @@ class TestConnectionMissedLines:
     """Target specific missed lines in connection.py (54% → ~100%)."""
 
     def test_connection_error_paths_73_77(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -165,7 +161,7 @@ class TestConnectionMissedLines:
             )
 
     def test_connection_lifecycle_140_147(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
         from flext_db_oracle import FlextDbOracleConnection

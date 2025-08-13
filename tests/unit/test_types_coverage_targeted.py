@@ -12,14 +12,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
+
 
 class TestTypesValidationMethods:
     """Test types validation methods to hit missed lines 120-132, 175-187."""
 
     def test_column_validation_methods_lines_120_132(self) -> None:
         """Test column validation methods (EXACT lines 120-132)."""
-        from flext_db_oracle.types import TDbOracleColumn
-
         # Test different column configurations to trigger property access (lines 120-132)
         column_configs = [
             # Valid configurations
@@ -70,8 +70,6 @@ class TestTypesValidationMethods:
 
     def test_table_validation_methods_lines_175_187(self) -> None:
         """Test table validation methods (EXACT lines 175-187)."""
-        from flext_db_oracle.types import TDbOracleColumn, TDbOracleTable
-
         # Create test columns
         valid_columns = [
             TDbOracleColumn(

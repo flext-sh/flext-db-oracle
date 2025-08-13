@@ -219,7 +219,7 @@ class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
     def test_connection_edge_cases(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
         from flext_db_oracle import FlextDbOracleConnection

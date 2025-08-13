@@ -49,16 +49,17 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Self, TypeVar
 
 from flext_core import (
+    FlextContainer,
     FlextResult,
     get_logger,
 )
 
-from .config import FlextDbOracleConfig
-from .connection import FlextDbOracleConnection
-from .observability import (
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.connection import FlextDbOracleConnection
+from flext_db_oracle.observability import (
     FlextDbOracleObservabilityManager,
 )
-from .typings import CreateIndexConfig, TDbOracleQueryResult
+from flext_db_oracle.typings import CreateIndexConfig, TDbOracleQueryResult
 
 if TYPE_CHECKING:
     import types
@@ -427,16 +428,17 @@ class FlextDbOracleApi:
     ) -> None:
         """Initialize Oracle API with composition pattern."""
         self._context_name = context_name
-        # Use FlextContainer directly to avoid non-exported helper
-        from flext_core import FlextContainer
-
-        self._container = FlextContainer()
+        # Store container lazily to satisfy import position rules
+        self._container = None
         self._logger = get_logger(f"FlextDbOracleApi.{context_name}")
 
         # Configuration
         self._config = config
 
         # Composed managers using Dependency Injection
+        # Create observability manager with a container on demand
+
+        self._container = FlextContainer()
         self._observability = FlextDbOracleObservabilityManager(
             self._container,
             self._context_name,

@@ -64,4 +64,6 @@ def get_legacy_module_mapping() -> dict[str, str]:
     return _LEGACY_MODULE_MAPPING.copy()
 
 
-logger.debug("Legacy module loaded - provides backward compatibility for deprecated PEP8 violations")
+logger.debug(
+    "Legacy module loaded - provides backward compatibility for deprecated PEP8 violations",
+)

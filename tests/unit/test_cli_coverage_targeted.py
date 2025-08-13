@@ -148,17 +148,17 @@ class TestCLIEnvironmentConfiguration:
         # Set up complete environment for observability test
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": os.getenv(
-                "FLEXT_TARGET_ORACLE_HOST", "localhost"
+                "FLEXT_TARGET_ORACLE_HOST", "localhost",
             ),
             "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
             "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_USERNAME", "test"
+                "FLEXT_TARGET_ORACLE_USERNAME", "test",
             ),
             "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
-                "FLEXT_TARGET_ORACLE_PASSWORD", "test"
+                "FLEXT_TARGET_ORACLE_PASSWORD", "test",
             ),
             "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB",
             ),
         }
 
@@ -181,17 +181,17 @@ class TestCLIOutputFormatting:
         # Set up Oracle environment for real data formatting
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": os.getenv(
-                "FLEXT_TARGET_ORACLE_HOST", "localhost"
+                "FLEXT_TARGET_ORACLE_HOST", "localhost",
             ),
             "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
             "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_USERNAME", "test"
+                "FLEXT_TARGET_ORACLE_USERNAME", "test",
             ),
             "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
-                "FLEXT_TARGET_ORACLE_PASSWORD", "test"
+                "FLEXT_TARGET_ORACLE_PASSWORD", "test",
             ),
             "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB"
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME", "TESTDB",
             ),
         }
 

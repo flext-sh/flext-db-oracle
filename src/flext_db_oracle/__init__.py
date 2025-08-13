@@ -65,10 +65,18 @@ Example:
     ...         print(f"Table: {table.name}, Columns: {len(table.columns)}")
     ...
     ...     # Bulk operations
-    ...     bulk_result = oracle.execute_batch([
-    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 1, "name": "John"}),
-    ...         ("INSERT INTO employees (id, name) VALUES (:id, :name)", {"id": 2, "name": "Jane"}),
-    ...     ])
+    ...     bulk_result = oracle.execute_batch(
+    ...         [
+    ...             (
+    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
+    ...                 {"id": 1, "name": "John"},
+    ...             ),
+    ...             (
+    ...                 "INSERT INTO employees (id, name) VALUES (:id, :name)",
+    ...                 {"id": 2, "name": "Jane"},
+    ...             ),
+    ...         ]
+    ...     )
 
     Schema introspection and metadata:
 
@@ -96,12 +104,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# Import from consolidated PEP8 modules
-from .api import FlextDbOracleApi
-from .cli import oracle
-from .config import FlextDbOracleConfig
-from .connection import FlextDbOracleConnection
-from .exceptions import (
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.cli import oracle
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.connection import FlextDbOracleConnection
+from flext_db_oracle.exceptions import (
     FlextDbOracleAuthenticationError,
     FlextDbOracleConfigurationError,
     FlextDbOracleConnectionError,
@@ -112,13 +119,13 @@ from .exceptions import (
     FlextDbOracleTimeoutError,
     FlextDbOracleValidationError,
 )
-from .metadata import (
+from flext_db_oracle.metadata import (
     FlextDbOracleColumn,
     FlextDbOracleMetadataManager,
     FlextDbOracleSchema,
     FlextDbOracleTable,
 )
-from .typings import (
+from flext_db_oracle.typings import (
     CreateIndexConfig,
     TDbOracleColumn,
     TDbOracleConnectionStatus,
@@ -126,12 +133,12 @@ from .typings import (
     TDbOracleSchema,
     TDbOracleTable,
 )
-from .observability import (
+from flext_db_oracle.observability import (
     FlextDbOracleErrorHandler,
     FlextDbOracleObservabilityManager,
     FlextDbOracleOperationTracker,
 )
-from .plugins import (
+from flext_db_oracle.plugins import (
     ORACLE_PLUGINS,
     create_data_validation_plugin,
     create_performance_monitor_plugin,

@@ -23,7 +23,7 @@ class TestAPIErrorHandlingPaths:
     """Test API error handling to hit missed lines 571-610."""
 
     def test_disconnected_status_path_lines_571_610(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test disconnected status handling (EXACT lines 571-610)."""
         from flext_db_oracle import FlextDbOracleApi
@@ -254,7 +254,7 @@ class TestAPIConnectionManagement:
     """Test API connection management paths."""
 
     def test_connection_lifecycle_error_paths(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection lifecycle with error paths."""
         # Test with invalid config to trigger connection error paths
@@ -325,7 +325,7 @@ class TestAPIObservabilityIntegration:
     """Test API observability integration paths."""
 
     def test_api_observability_paths(
-        self, oracle_api: FlextDbOracleApi, oracle_container: None
+        self, oracle_api: FlextDbOracleApi, oracle_container: None,
     ) -> None:
         """Test API observability integration paths."""
         # Connect with observability

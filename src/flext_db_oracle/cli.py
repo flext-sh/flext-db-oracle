@@ -53,55 +53,35 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-
-if TYPE_CHECKING:
-    from flext_cli.core.formatters import OutputFormatter
-    from flext_cli.ecosystem_integration import FlextCliConfigFactory
-else:
-    try:
-        from flext_cli.core.formatters import OutputFormatter
-        from flext_cli.ecosystem_integration import FlextCliConfigFactory
-    except ImportError:
-        # Handle missing flext_cli gracefully
-        class OutputFormatter:
-            """Fallback OutputFormatter when flext_cli is not available."""
-
-            def format(self, data: object, console: Console) -> None:
-                """Print formatted data to console (fallback implementation)."""
-
-        class FlextCliConfigFactory:
-            """Fallback FlextCliConfigFactory when flext_cli is not available."""
-
-            @staticmethod
-            def create() -> dict[str, object]:
-                """Create empty config as fallback."""
-                return {}
-
-
+from flext_cli.core.formatters import OutputFormatter
+from flext_cli.ecosystem_integration import FlextCliConfigFactory
 from flext_core import get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.constants import ORACLE_DEFAULT_PORT
+from flext_db_oracle.plugins import register_all_oracle_plugins
+
 if TYPE_CHECKING:
     from flext_core import FlextPlugin
 
-# Direct imports to avoid circular dependency - DRY refactoring
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.plugins import register_all_oracle_plugins
-
-from .constants import ORACLE_DEFAULT_PORT
-
 
 # Helper function to wrap OutputFormatter
-def format_output(data: object, format_type: str = "table", console: Console | None = None) -> str:
+def format_output(
+    data: object,
+    _format_type: str = "table",
+    console: Console | None = None,
+) -> str:
     """Format output using OutputFormatter."""
     formatter = OutputFormatter()
     # OutputFormatter.format prints to console and returns None
+    # Note: _format_type is preserved for future use when OutputFormatter supports multiple formats
     target_console = console or globals().get("console", Console())
     formatter.format(data, target_console)
-    return str(data)  # Return string representation as expected by callers
+    return str(data)
 
 
 console = Console()

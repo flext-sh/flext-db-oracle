@@ -12,12 +12,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleMetadataManager
-
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleMetadataManager
+from flext_db_oracle import FlextDbOracleMetadataManager
+
+if TYPE_CHECKING:
+    from flext_db_oracle import (
+        FlextDbOracleApi,
+        FlextDbOracleConfig,
+    )
 
 
 class TestRealOracleMetadata:
@@ -25,7 +28,7 @@ class TestRealOracleMetadata:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -163,7 +166,7 @@ class TestRealOracleMetadataErrorHandling:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection
@@ -217,7 +220,7 @@ class TestRealOracleMetadataErrorHandling:
             assert isinstance(result.error, str)
 
     def test_real_metadata_with_connection_issues(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test metadata handling when connection has issues."""
         from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
@@ -254,7 +257,7 @@ class TestRealOracleMetadataIntegration:
 
     @pytest.fixture
     def metadata_manager(
-        self, real_oracle_config: FlextDbOracleConfig
+        self, real_oracle_config: FlextDbOracleConfig,
     ) -> FlextDbOracleMetadataManager:
         """Create metadata manager for tests."""
         from flext_db_oracle import FlextDbOracleConnection

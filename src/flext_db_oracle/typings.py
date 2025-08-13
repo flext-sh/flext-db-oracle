@@ -3,13 +3,14 @@
 This module centralizes type/value object definitions for flext-db-oracle,
 following the flext-core typing pattern. Prefer importing from here.
 """
+
 from __future__ import annotations
 
 from flext_core import FlextResult, FlextValueObject, get_logger
 from pydantic import Field
 
-from .constants import MAX_PORT
-from .metadata import (
+from flext_db_oracle.constants import MAX_PORT
+from flext_db_oracle.metadata import (
     FlextDbOracleColumn,
     FlextDbOracleSchema,
     FlextDbOracleTable,
@@ -28,6 +29,11 @@ logger = get_logger(__name__)
 TDbOracleColumn = FlextDbOracleColumn
 TDbOracleTable = FlextDbOracleTable
 TDbOracleSchema = FlextDbOracleSchema
+
+# Backward compatibility aliases for historical Flext* names
+FlextDbOracleQueryResult = None  # will be assigned after class definition
+FlextDbOracleConnectionStatus = None  # will be assigned after class definition
+
 
 # =============================================================================
 # UNIQUE VALUE OBJECTS - Not duplicated in metadata.py
@@ -164,8 +170,18 @@ class TDbOracleConnectionStatus(FlextValueObject):
         )
 
 
+# Assign compatibility aliases after classes are defined
+FlextDbOracleQueryResult = TDbOracleQueryResult
+FlextDbOracleConnectionStatus = TDbOracleConnectionStatus
+
+
 __all__ = [
     "CreateIndexConfig",
+    "FlextDbOracleColumn",
+    "FlextDbOracleConnectionStatus",
+    "FlextDbOracleQueryResult",
+    "FlextDbOracleSchema",
+    "FlextDbOracleTable",
     "TDbOracleColumn",
     "TDbOracleConnectionStatus",
     "TDbOracleQueryResult",

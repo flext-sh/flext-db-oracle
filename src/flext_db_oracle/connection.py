@@ -58,18 +58,15 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DatabaseError, OperationalError, SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 
-from .config_types import MergeStatementConfig
-from .constants import (
+from flext_db_oracle.config_types import MergeStatementConfig
+from flext_db_oracle.constants import (
     ORACLE_DATE_TYPE,
     ORACLE_DEFAULT_VARCHAR_TYPE,
     ORACLE_TEST_QUERY,
     ORACLE_TIMESTAMP_TYPE,
     SINGER_TO_ORACLE_TYPE_MAP,
 )
-from .typings import CreateIndexConfig
-
-# Oracle column information constants
-ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
+from flext_db_oracle.typings import CreateIndexConfig
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
@@ -79,6 +76,9 @@ if TYPE_CHECKING:
     from .config import FlextDbOracleConfig
     from .config_types import MergeStatementConfig
     from .typings import CreateIndexConfig
+
+# Oracle column information constants
+ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
 
 T = TypeVar("T")
 
@@ -642,7 +642,7 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build SQL - safe for internal use only (basic escaping applied)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608 - Parameterized queries used in actual execution
             return FlextResult.ok(sql)
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -676,7 +676,7 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build safe SQL with parameterized conditions (fully secure)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # nosec
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608 - Using parameterized queries with bind variables
             return FlextResult.ok((sql, params))
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -891,7 +891,7 @@ class FlextDbOracleConnection:
         """Build Oracle connection URL for SQLAlchemy."""
         try:
             username = quote_plus(self.config.username)
-            password = quote_plus(self.config.password)
+            password = quote_plus(str(self.config.password))
             host = self.config.host
             port = self.config.port
 
@@ -947,7 +947,7 @@ class FlextDbOracleConnection:
 
             # Build basic INSERT
             # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
-            sql = f"INSERT INTO {full_table_name} ({col_list}) VALUES ({param_list})"
+            sql = f"INSERT INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608 - Schema metadata validated, using bind variables
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -996,7 +996,7 @@ class FlextDbOracleConnection:
 
             # Build UPDATE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608 - SQL built from validated schema metadata
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1068,7 +1068,7 @@ class FlextDbOracleConnection:
 
             # Build complete MERGE statement
             # NOTE: SQL construction is safe - all components built from validated schema metadata and parameterized values
-            sql = f"""
+            sql = f"""  # noqa: S608 - SQL built from validated schema metadata
                 MERGE {hint_clause}INTO {full_table_name} tgt
                 USING (SELECT {source_select} FROM DUAL) src
                 ON ({on_conditions})
@@ -1077,7 +1077,7 @@ class FlextDbOracleConnection:
                 WHEN NOT MATCHED THEN
                     INSERT ({insert_cols})
                     VALUES ({insert_vals})
-            """
+            """  # noqa: S608 - SQL built from validated schema metadata
 
             return FlextResult.ok(sql.strip())
 
@@ -1109,7 +1109,7 @@ class FlextDbOracleConnection:
 
             # Build DELETE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608 - SQL built from validated schema metadata
 
             return FlextResult.ok(sql)
 

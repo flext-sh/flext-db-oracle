@@ -93,7 +93,7 @@ class TestOracleE2E:
 
             try:
                 # Test data insertion
-                insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES (:id, :name, :email)"
+                insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES (:id, :name, :email)"  # noqa: S608
 
                 # Insert test data
                 test_data = [
@@ -110,7 +110,7 @@ class TestOracleE2E:
 
                 # Test data querying
                 select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID",
+                    f"SELECT * FROM {test_table_name} ORDER BY ID",  # noqa: S608
                 )
                 assert select_result.success, (
                     f"Data query failed: {select_result.error}"
@@ -120,7 +120,7 @@ class TestOracleE2E:
                 )
 
                 # Test single row query
-                single_result = api.query_one(f"SELECT COUNT(*) FROM {test_table_name}")
+                single_result = api.query_one(f"SELECT COUNT(*) FROM {test_table_name}")  # noqa: S608
                 assert single_result.success, (
                     f"Single query failed: {single_result.error}"
                 )
@@ -155,7 +155,7 @@ class TestOracleE2E:
                 # Test transaction
                 with api.transaction():
                     update_result = api.query(
-                        f"UPDATE {test_table_name} SET EMAIL = :email WHERE ID = :id",
+                        f"UPDATE {test_table_name} SET EMAIL = :email WHERE ID = :id",  # noqa: S608
                         {"id": 3, "email": "bob@example.com"},
                     )
                     assert update_result.success, (
@@ -164,7 +164,7 @@ class TestOracleE2E:
 
                 # Verify transaction committed
                 verify_result = api.query_one(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
+                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",  # noqa: S608
                 )
                 assert verify_result.success
                 assert verify_result.data[0][0] == "bob@example.com"

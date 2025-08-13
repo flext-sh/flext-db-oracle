@@ -61,7 +61,7 @@ def create_sample_config() -> FlextDbOracleConfig:
         host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
         port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
         username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"  # noqa: S105),
+        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
         service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
     )
@@ -147,7 +147,7 @@ def demonstrate_connection_patterns() -> None:
             host="example.oracle.com",
             port=1521,
             username="demo_user",
-            password="demo_pass"  # noqa: S105,
+            password="demo_pass",  # noqa: S106 - Demo password argument for example
             service_name="DEMO_DB",
         )
         logger.info("✅ Created API with configuration parameters")
@@ -178,7 +178,7 @@ def demonstrate_configuration_patterns() -> None:
         FlextDbOracleConfig(
             host="localhost",
             username="user",
-            password="pass"  # noqa: S105,
+            password="pass",  # noqa: S106 - Demo password argument for config example
             service_name="DB",
         )
         logger.info("✅ Created minimal configuration")
@@ -188,7 +188,7 @@ def demonstrate_configuration_patterns() -> None:
             host="prod.oracle.company.com",
             port=1521,
             username="prod_user",
-            password="secure_password"  # noqa: S105,
+            password="secure_password",  # noqa: S106 - Demo password argument for example
             service_name="PROD_DB",
             encoding="UTF-8",
             schema="PROD_SCHEMA",
@@ -598,8 +598,8 @@ def main() -> None:
         logger.info("  • Implement comprehensive monitoring and logging")
         logger.info("  • Integrate with FLEXT ecosystem patterns")
 
-    except Exception as e:
-        logger.exception("❌ Example execution failed: %s", e)
+    except Exception:
+        logger.exception("❌ Example execution failed")
         raise
 
 

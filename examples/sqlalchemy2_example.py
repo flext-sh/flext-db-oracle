@@ -36,7 +36,7 @@ def create_oracle_config() -> FlextDbOracleConfig:
         host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
         port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
         username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"  # noqa: S105),
+        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
         service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
     )
@@ -89,7 +89,7 @@ def demonstrate_basic_queries() -> None:
                     SYS_CONTEXT('USERENV', 'SESSION_USER') as session_user,
                     SYS_CONTEXT('USERENV', 'SERVER_HOST') as server_host
                 FROM DUAL
-            """)
+            """),
             )
             result.fetchone()
 
@@ -105,7 +105,7 @@ def demonstrate_table_operations() -> None:
                 FROM all_tables
                 WHERE owner = 'FLEXTTEST'
                 ORDER BY table_name
-            """)
+            """),
             )
 
             tables = result.fetchall()
@@ -120,7 +120,7 @@ def demonstrate_table_operations() -> None:
                 FROM FLEXTTEST.EMPLOYEES
                 WHERE ROWNUM <= 5
                 ORDER BY employee_id
-            """)
+            """),
             )
 
             employees = result.fetchall()
@@ -147,7 +147,7 @@ def demonstrate_metadata_introspection() -> None:
                 WHERE owner = 'FLEXTTEST'
                 AND table_name = 'EMPLOYEES'
                 ORDER BY column_id
-            """)
+            """),
             )
 
             columns = result.fetchall()
@@ -170,7 +170,7 @@ def demonstrate_transaction_management() -> None:
                 try:
                     # Count before
                     result = conn.execute(
-                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
+                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
                     )
                     result.fetchone()[0]
 
@@ -179,7 +179,7 @@ def demonstrate_transaction_management() -> None:
 
                     # Count after rollback
                     result = conn.execute(
-                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
+                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
                     )
                     result.fetchone()[0]
 

@@ -12,9 +12,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleConfig
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     create_data_validation_plugin,
@@ -22,6 +19,9 @@ from flext_db_oracle import (
     create_security_audit_plugin,
     register_all_oracle_plugins,
 )
+
+if TYPE_CHECKING:
+    from flext_db_oracle import FlextDbOracleConfig
 
 
 class TestRealOraclePluginsCoverageBoost:

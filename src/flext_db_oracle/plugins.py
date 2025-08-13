@@ -208,7 +208,11 @@ class FlextOraclePlugin(FlextPlugin):
     """
 
     def __init__(
-        self, name: str, version: str, config: dict[str, object], handler: object = None,
+        self,
+        name: str,
+        version: str,
+        config: dict[str, object],
+        handler: object = None,
     ) -> None:
         """Initialize Oracle plugin with configuration and handler."""
         self._name = name
