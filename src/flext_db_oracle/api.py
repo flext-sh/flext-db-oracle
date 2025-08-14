@@ -559,10 +559,10 @@ class FlextDbOracleApi:
         # Try to coerce from a foreign config object (e.g., client-b config)
         try:
             cfg_dict = {
-                "host": config.host,
+                "host": getattr(config, "host", "localhost"),
                 "port": int(getattr(config, "port", 1521)),
-                "username": config.username,
-                "password": config.password,
+                "username": getattr(config, "username", ""),
+                "password": getattr(config, "password", ""),
                 "service_name": getattr(config, "service_name", None)
                 or getattr(config, "sid", None)
                 or "ORCLPDB1",

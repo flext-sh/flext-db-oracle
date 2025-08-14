@@ -146,21 +146,24 @@ class TDbOracleConnectionStatus(FlextValueObject):
 
         return FlextResult.ok(None)
 
-    def to_dict_list(self) -> list[dict[str, object]]:
-        """Convert rows and columns into list of dictionaries for convenience.
+    def to_dict(self) -> dict[str, object]:
+        """Convert connection status to dictionary for convenience.
 
-        Provides a helper expected by some tests to access row data by column names.
+        Provides a helper expected by some tests to access connection data.
         """
-        results: list[dict[str, object]] = []
-        if not self.rows or not self.columns:
-            return results
-        for row in self.rows:
-            # Safeguard: ensure lengths align
-            row_values = list(row) if isinstance(row, (list, tuple)) else [row]
-            # Zip up to the shorter of the two
-            mapped = dict(zip(self.columns, row_values, strict=False))
-            results.append(mapped)
-        return results
+        return {
+            "is_connected": self.is_connected,
+            "host": self.host,
+            "port": self.port,
+            "service_name": self.service_name,
+            "username": self.username,
+            "connection_time_ms": self.connection_time_ms,
+            "last_error": self.last_error,
+            "active_sessions": self.active_sessions,
+            "max_sessions": self.max_sessions,
+            "session_utilization_percent": self.session_utilization_percent,
+            "is_healthy": self.is_healthy(),
+        }
 
     @property
     def connection_string(self) -> str:

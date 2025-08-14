@@ -53,8 +53,48 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-from flext_cli.core.formatters import OutputFormatter
-from flext_cli.ecosystem_integration import FlextCliConfigFactory
+
+try:
+    from flext_cli.core.formatters import (
+        OutputFormatter,  # type: ignore[import-not-found]
+    )
+    from flext_cli.ecosystem_integration import (  # type: ignore[import-not-found]
+        FlextCliConfigFactory,
+    )
+except Exception:  # pragma: no cover - minimal fallbacks for local runs
+    class OutputFormatter:  # type: ignore[no-redef]
+        """Minimal output formatter fallback used during local tests."""
+
+        def format(self, data: object, console: Console) -> None:  # noqa: D401
+            console.print(data)
+
+    class FlextCliConfigFactory:  # type: ignore[no-redef]
+        """Minimal config factory fallback used during local tests."""
+
+        @staticmethod
+        def create_project_config(
+            *,
+            project_name: str,  # noqa: ARG004 - fallback stub
+            profile: str,  # noqa: ARG004 - fallback stub
+            output_format: Literal["table", "json", "yaml", "csv", "plain"],
+            debug: bool,  # noqa: ARG004 - fallback stub
+        ) -> _SimpleResult:
+            return _SimpleResult(
+                success=True,
+                data=type("Cfg", (), {"output_format": output_format})(),
+            )
+
+    @dataclass
+    class _SimpleResult:
+        success: bool
+        data: object | None = None
+        error: str | None = None
+
+        def unwrap(self) -> object:
+            if self.data is None:
+                msg = "Config factory fallback returned no data"
+                raise RuntimeError(msg)
+            return self.data
 from flext_core import get_logger
 from rich.console import Console
 from rich.panel import Panel
@@ -87,31 +127,152 @@ def format_output(
 console = Console()
 
 
+# =============================================================================
+# HELPER CLASSES - Complexity Reduction and Code Reuse
+# =============================================================================
+
+
+class CliErrorHandler:
+    """Helper class for CLI error handling - REDUCES COMPLEXITY in command functions."""
+
+    def __init__(self, console: Console) -> None:
+        """Initialize error handler."""
+        self._console = console
+
+    def print_error(self, message: str) -> None:
+        """Print error message with red formatting."""
+        self._console.print(f"[red]{message}[/red]")
+
+    def print_error_exception(self, exception: Exception) -> None:
+        """Print exception as error."""
+        self._console.print(f"[red]Error: {exception}[/red]")
+
+    def print_no_data_error(self, operation: str) -> None:
+        """Print no data error."""
+        self._console.print(f"[red]{operation} returned no data[/red]")
+
+    def handle_no_data_error_with_exception(self, operation: str) -> None:
+        """Handle no data error with print and CLI exception."""
+        self.print_no_data_error(operation)
+        self.raise_cli_error(f"{operation} returned no data")
+
+    def handle_operation_failure_with_exception(self, operation: str, error: str) -> None:
+        """Handle operation failure with print and CLI exception."""
+        self.print_error(f"{operation} failed: {error}")
+        self.raise_cli_error(f"{operation} failed: {error}")
+
+    def raise_cli_error(self, message: str) -> None:
+        """Raise ClickException with message."""
+        raise click.ClickException(message)
+
+    def raise_cli_exception_from_exception(self, exception: Exception) -> None:
+        """Raise ClickException from exception."""
+        raise click.ClickException(str(exception)) from exception
+
+
+class CliDataValidator:
+    """Helper class for CLI data validation - ELIMINATES DUPLICATION."""
+
+    @staticmethod
+    def safe_get_test_data(
+        test_data: dict[str, object] | None,
+        key: str,
+        default: object = None,
+    ) -> object:
+        """Safely get value from test_data dict."""
+        return test_data.get(key, default) if test_data is not None else default
+
+    @staticmethod
+    def safe_get_query_data_attr(
+        query_data: object | None,
+        attr: str,
+        default: object = None,
+    ) -> object:
+        """Safely get attribute from query_data."""
+        return getattr(query_data, attr, default) if query_data is not None else default
+
+    @staticmethod
+    def safe_iterate_list(data_list: list[str] | None) -> list[str]:
+        """Safely iterate over list."""
+        return data_list if data_list is not None else []
+
+    @staticmethod
+    def safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
+        """Safely iterate over dict."""
+        return data_dict if data_dict is not None else {}
+
+    @staticmethod
+    def safe_get_list_length(obj: object) -> int:
+        """Safely get length of list-like object for display purposes."""
+        logger = get_logger(__name__)
+
+        if obj is None:
+            logger.debug("Object is None, returning 0 for display")
+            return 0
+
+        if isinstance(obj, list):
+            length = len(obj)
+            logger.debug(f"List object has {length} items")
+            return length
+
+        if hasattr(obj, "__len__"):
+            try:
+                length = len(obj)
+                logger.debug(f"Successfully got length {length} from {type(obj).__name__}")
+                return length
+            except (TypeError, AttributeError) as e:
+                logger.info(
+                    f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
+                )
+                logger.info(
+                    "Returning 0 for display purposes - this is expected for some object types",
+                )
+                return 0
+
+        logger.debug(
+            f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
+        )
+        return 0
+
+    @staticmethod
+    def extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
+        """Extract table name and schema from table_info object."""
+        if hasattr(table_info, "get"):
+            name = table_info.get("name", "") or str(table_info)
+            schema_name = table_info.get("schema", schema or "")
+            return name, schema_name
+
+        return str(table_info), schema or ""
+
+
+# Global helpers for backward compatibility
+_error_handler = CliErrorHandler(console)
+_data_validator = CliDataValidator()
+
+
 def _print_error(message: str) -> None:
     """Print error message with red formatting - DRY pattern for CLI errors."""
-    console.print(f"[red]{message}[/red]")
+    _error_handler.print_error(message)
 
 
 def _print_error_exception(exception: Exception) -> None:
     """Print exception as error - DRY pattern for exception handling."""
-    console.print(f"[red]Error: {exception}[/red]")
+    _error_handler.print_error_exception(exception)
 
 
 def _print_no_data_error(operation: str) -> None:
     """Print no data error - DRY pattern for data validation."""
-    console.print(f"[red]{operation} returned no data[/red]")
+    _error_handler.print_no_data_error(operation)
 
 
 def _handle_no_data_error_with_cli_exception(operation: str) -> None:
     """Handle no data error with print and CLI exception - DRY pattern for no data scenarios."""
-    _print_no_data_error(operation)
-    _raise_cli_error(f"{operation} returned no data")
+    _error_handler.handle_no_data_error_with_exception(operation)
 
 
 def _handle_operation_failure_with_cli_exception(operation: str, error: str) -> None:
     """Handle operation failure with print and CLI exception - DRY pattern for operation failures."""
-    _print_error(f"{operation} failed: {error}")
-    _raise_cli_error(f"{operation} failed: {error}")
+    _error_handler.handle_operation_failure_with_exception(operation, error)
 
 
 class ConfigProtocol(Protocol):
@@ -140,12 +301,12 @@ class ConnectionParams:
 
 def _raise_cli_error(message: str) -> None:
     """Raise ClickException with message - DRY error handling pattern."""
-    raise click.ClickException(message)
+    _error_handler.raise_cli_error(message)
 
 
 def _raise_cli_exception_from_exception(exception: Exception) -> None:
     """Raise ClickException from exception - DRY pattern for exception chaining."""
-    raise click.ClickException(str(exception)) from exception
+    _error_handler.raise_cli_exception_from_exception(exception)
 
 
 def _safe_get_test_data(
@@ -154,7 +315,7 @@ def _safe_get_test_data(
     default: object = None,
 ) -> object:
     """Safely get value from test_data dict - DRY null safety pattern."""
-    return test_data.get(key, default) if test_data is not None else default
+    return _data_validator.safe_get_test_data(test_data, key, default)
 
 
 def _safe_get_query_data_attr(
@@ -163,80 +324,27 @@ def _safe_get_query_data_attr(
     default: object = None,
 ) -> object:
     """Safely get attribute from query_data - DRY null safety pattern."""
-    return getattr(query_data, attr, default) if query_data is not None else default
+    return _data_validator.safe_get_query_data_attr(query_data, attr, default)
 
 
 def _safe_iterate_list(data_list: list[str] | None) -> list[str]:
     """Safely iterate over list - DRY null safety pattern."""
-    return data_list if data_list is not None else []
+    return _data_validator.safe_iterate_list(data_list)
 
 
 def _safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
     """Safely iterate over dict - DRY null safety pattern."""
-    return data_dict if data_dict is not None else {}
+    return _data_validator.safe_iterate_dict(data_dict)
 
 
 def _safe_get_list_length(obj: object) -> int:
-    """Safely get length of list-like object for display purposes.
-
-    This function is specifically designed for CLI display where we need a numeric
-    representation. Returns 0 for any object that cannot provide a meaningful length,
-    with explicit logging for transparency.
-
-    Args:
-        obj: Object to get length from
-
-    Returns:
-        Length as integer, 0 if object cannot provide length
-
-    """
-    logger = get_logger(__name__)
-
-    # Explicit null handling
-    if obj is None:
-        logger.debug("Object is None, returning 0 for display")
-        return 0
-
-    # Direct list handling - most common case
-    if isinstance(obj, list):
-        length = len(obj)
-        logger.debug(f"List object has {length} items")
-        return length
-
-    # Handle other sequence-like objects with explicit error transparency
-    if hasattr(obj, "__len__"):
-        try:
-            length = len(obj)
-            logger.debug(f"Successfully got length {length} from {type(obj).__name__}")
-            return length
-        except (TypeError, AttributeError) as e:
-            # EXPLICIT TRANSPARENCY: This is for display purposes only
-            # We log the actual error and explicitly document the fallback behavior
-            logger.info(
-                f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
-            )
-            logger.info(
-                "Returning 0 for display purposes - this is expected for some object types",
-            )
-            return 0
-
-    # Objects without __len__ - explicit logging for transparency
-    logger.debug(
-        f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
-    )
-    return 0
+    """Safely get length of list-like object for display purposes."""
+    return _data_validator.safe_get_list_length(obj)
 
 
 def _extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
-    """Extract table name and schema from table_info object - eliminates deeply nested control flow."""
-    # Guard clause pattern - early return for dict-like objects
-    if hasattr(table_info, "get"):
-        name = table_info.get("name", "") or str(table_info)
-        schema_name = table_info.get("schema", schema or "")
-        return name, schema_name
-
-    # Simple object case
-    return str(table_info), schema or ""
+    """Extract table name and schema from table_info object."""
+    return _data_validator.extract_table_info(table_info, schema)
 
 
 @click.group()

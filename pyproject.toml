@@ -176,6 +176,7 @@ known_first_party = ["flext_db_oracle"]
 [tool.pytest.ini_options]
 minversion = "8.0"
 asyncio_mode = "auto"
+pythonpath = ["src"]
 addopts = [
     "-ra",
     "--strict-markers",
