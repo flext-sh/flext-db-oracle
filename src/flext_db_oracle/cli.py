@@ -53,48 +53,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Protocol, cast
 
 import click
-
-try:
-    from flext_cli.core.formatters import (
-        OutputFormatter,  # type: ignore[import-not-found]
-    )
-    from flext_cli.ecosystem_integration import (  # type: ignore[import-not-found]
-        FlextCliConfigFactory,
-    )
-except Exception:  # pragma: no cover - minimal fallbacks for local runs
-    class OutputFormatter:  # type: ignore[no-redef]
-        """Minimal output formatter fallback used during local tests."""
-
-        def format(self, data: object, console: Console) -> None:  # noqa: D401
-            console.print(data)
-
-    class FlextCliConfigFactory:  # type: ignore[no-redef]
-        """Minimal config factory fallback used during local tests."""
-
-        @staticmethod
-        def create_project_config(
-            *,
-            project_name: str,  # noqa: ARG004 - fallback stub
-            profile: str,  # noqa: ARG004 - fallback stub
-            output_format: Literal["table", "json", "yaml", "csv", "plain"],
-            debug: bool,  # noqa: ARG004 - fallback stub
-        ) -> _SimpleResult:
-            return _SimpleResult(
-                success=True,
-                data=type("Cfg", (), {"output_format": output_format})(),
-            )
-
-    @dataclass
-    class _SimpleResult:
-        success: bool
-        data: object | None = None
-        error: str | None = None
-
-        def unwrap(self) -> object:
-            if self.data is None:
-                msg = "Config factory fallback returned no data"
-                raise RuntimeError(msg)
-            return self.data
+from flext_cli.core.formatters import OutputFormatter
+from flext_cli.ecosystem_integration import FlextCliConfigFactory
 from flext_core import get_logger
 from rich.console import Console
 from rich.panel import Panel

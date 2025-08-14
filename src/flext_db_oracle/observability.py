@@ -54,68 +54,14 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Self
 
 from flext_core import FlextResult, get_logger
-
-try:
-    # Prefer real observability package if available
-    from flext_observability import (  # type: ignore[import-not-found]
-        FlextHealthCheck,
-        FlextObservabilityMonitor,
-        FlextTrace,
-        flext_create_health_check,
-        flext_create_metric,
-        flext_create_trace,
-    )
-except Exception:  # pragma: no cover - dev env fallback only
-    # Lightweight internal fallbacks to keep tests self-contained
-    from dataclasses import dataclass, field
-
-    @dataclass(frozen=True)
-    class FlextTrace:  # minimal stub
-        trace_id: str
-        operation: str
-        span_id: str
-        span_attributes: dict[str, object] = field(default_factory=dict)
-
-    @dataclass(frozen=True)
-    class FlextHealthCheck:  # minimal stub
-        component: str
-        status: str
-        message: str
-        timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
-        metrics: dict[str, object] = field(default_factory=dict)
-
-    class FlextObservabilityMonitor:  # minimal stub
-        def __init__(self, _container: object) -> None:
-            self._active = False
-
-        def flext_initialize_observability(self) -> FlextResult[None]:
-            self._active = True
-            return FlextResult.ok(None)
-
-        def flext_start_monitoring(self) -> FlextResult[None]:
-            self._active = True
-            return FlextResult.ok(None)
-
-        def flext_is_monitoring_active(self) -> bool:
-            return self._active
-
-    def flext_create_trace(
-        *, trace_id: str, operation: str, config: dict[str, object] | None = None, timestamp: datetime | None = None,  # noqa: ARG001
-    ) -> FlextResult[FlextTrace]:  # pragma: no cover - trivial
-        cfg = config or {}
-        span_id = str(cfg.get("span_id", uuid.uuid4()))
-        trace = FlextTrace(trace_id=trace_id, operation=operation, span_id=span_id, span_attributes=cfg)
-        return FlextResult.ok(trace)
-
-    def flext_create_metric(
-        *, name: str, value: float, unit: str = "", tags: dict[str, str] | None = None,  # noqa: ARG001
-    ) -> FlextResult[None]:  # pragma: no cover - trivial
-        return FlextResult.ok(None)
-
-    def flext_create_health_check(
-        *, component: str, status: str, message: str,
-    ) -> FlextResult[FlextHealthCheck]:  # pragma: no cover - trivial
-        return FlextResult.ok(FlextHealthCheck(component=component, status=status, message=message))
+from flext_observability import (
+    FlextHealthCheck,
+    FlextObservabilityMonitor,
+    FlextTrace,
+    flext_create_health_check,
+    flext_create_metric,
+    flext_create_trace,
+)
 
 # Constants for observability configuration
 MAX_SQL_LOG_LENGTH = 100  # Maximum SQL length to display in logs
@@ -188,12 +134,13 @@ class FlextDbOracleObservabilityManager:
             **tags: Additional tags for the metric
 
         """
-        self._monitor.flext_record_metric(
-            f"{error_type}.errors",
-            1,
-            "count",
-            **tags,
-        )
+        if hasattr(self._monitor, "flext_record_metric"):
+            self._monitor.flext_record_metric(
+                f"{error_type}.errors",
+                1,
+                "count",
+                **tags,
+            )
 
     def initialize(self) -> FlextResult[None]:
         """Initialize observability system."""
@@ -231,41 +178,27 @@ class FlextDbOracleObservabilityManager:
         span_id = str(uuid.uuid4())
 
         # Use flext_create_trace with proper parameters
-        trace_result = flext_create_trace(
-            trace_id=trace_id,
-            operation=f"{self._context_name}.{operation}",
-            config=attributes,
-        )
+        config_dict = dict(attributes)
+        config_dict["span_id"] = span_id
+
+        try:
+            trace_result = flext_create_trace(
+                trace_id=trace_id,
+                operation=f"{self._context_name}.{operation}",
+                config=config_dict,
+                timestamp=datetime.now(UTC),
+            )
+        except Exception as e:
+            self._logger.warning("Failed to create trace for %s: %s", operation, e)
+            msg = f"Cannot create trace for {operation}: {e}"
+            raise RuntimeError(msg) from e
 
         if trace_result.success and trace_result.data:
             return trace_result.data
 
-        # REAL REFACTORING: Use factory function with correct signature
-        config_dict = dict(attributes)
-        config_dict["span_id"] = span_id
-
-        create_result = flext_create_trace(
-            trace_id=trace_id,
-            operation=f"{self._context_name}.{operation}",
-            config=config_dict,
-            timestamp=datetime.now(UTC),
-        )
-
-        if create_result.success and create_result.data:
-            return create_result.data
-
-        # If factory fails, create minimal trace data - proper fallback
-        logger = get_logger("flext_db_oracle_observability")
-        logger.warning(
-            "Failed to create trace for %s: %s",
-            operation,
-            create_result.error,
-        )
-
-        # For now, return the error since we can't create FlextTrace properly
-        # This follows the ZERO TOLERANCE approach - don't fake success
-        error_msg = f"Cannot create trace for {operation}: {create_result.error}"
-        raise RuntimeError(error_msg)
+        message = f"Trace creation failed: {trace_result.error}"
+        self._logger.warning(message)
+        raise RuntimeError(message)
 
     def record_metric(
         self,
@@ -275,22 +208,18 @@ class FlextDbOracleObservabilityManager:
         **tags: str,
     ) -> None:
         """Record metric (DRY pattern)."""
-        # Use flext_create_metric with proper parameters
-        metric_result = flext_create_metric(
-            name=f"{self._context_name}.{name}",
-            value=value,
-            unit=unit,
-            tags={"context": self._context_name, **tags},
-        )
-
-        if metric_result.success:
-            self._logger.debug("Metric %s created successfully", name)
-        else:
-            self._logger.warning(
-                "Failed to create metric %s: %s",
-                name,
-                metric_result.error,
+        try:
+            metric_result = flext_create_metric(
+                name=f"{self._context_name}.{name}",
+                value=value,
+                unit=unit,
+                tags={"context": self._context_name, **tags},
             )
+
+            if not getattr(metric_result, "success", False):
+                self._logger.warning("Failed to create metric %s: %s", name, getattr(metric_result, "error", None))
+        except Exception as e:
+            self._logger.warning("Failed to create metric %s: %s", name, e)
 
     def create_health_check(
         self,
@@ -313,12 +242,20 @@ class FlextDbOracleObservabilityManager:
         if metrics:
             message = f"{message} | Metrics: {metrics}"
 
-        # Use flext_create_health_check with proper parameters
-        return flext_create_health_check(
-            component=f"oracle.{self._context_name}",
-            status=status,
-            message=message,
-        )
+        try:
+            health_result = flext_create_health_check(
+                component=f"oracle.{self._context_name}",
+                status=status,
+                message=message,
+            )
+
+            if health_result.success and health_result.data:
+                return health_result
+
+            return FlextResult.fail(health_result.error or "flext_create_health_check failed")
+
+        except Exception as e:
+            return FlextResult.fail(f"Failed to create health check: {e}")
 
     def finish_trace(
         self,
@@ -340,11 +277,15 @@ class FlextDbOracleObservabilityManager:
             "status": status,
         }
 
-        trace_result = flext_create_trace(
-            trace_id=trace.trace_id,
-            operation=trace.operation,
-            config=config,
-        )
+        try:
+            trace_result = flext_create_trace(
+                trace_id=trace.trace_id,
+                operation=trace.operation,
+                config=config,
+            )
+        except Exception as e:
+            msg3 = f"Failed to create updated trace: {e}"
+            raise RuntimeError(msg3) from e
 
         if trace_result.success and trace_result.data:
             # Copy span attributes to new trace
@@ -353,9 +294,8 @@ class FlextDbOracleObservabilityManager:
             self._logger.debug("Trace finished: %s", new_trace.span_id)
             return new_trace
 
-        # Fallback: return original trace (should not happen)
-        self._logger.warning("Failed to create updated trace, returning original")
-        return trace
+        message2 = trace_result.error or "flext_create_trace failed"
+        raise RuntimeError(message2)
 
     def get_current_timestamp(self) -> str:
         """Get current UTC timestamp in ISO format (DRY pattern)."""
@@ -485,4 +425,5 @@ __all__: list[str] = [
     "FlextDbOracleErrorHandler",
     "FlextDbOracleObservabilityManager",
     "FlextDbOracleOperationTracker",
+    "FlextHealthCheck",
 ]

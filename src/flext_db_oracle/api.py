@@ -46,10 +46,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from time import perf_counter
-from typing import TYPE_CHECKING, Self, TypeVar
+from typing import TYPE_CHECKING, Self, TypeVar, cast
 
 from flext_core import (
     FlextContainer,
+    FlextPlugin,
     FlextResult,
     get_logger,
 )
@@ -64,9 +65,9 @@ from flext_db_oracle.typings import CreateIndexConfig, TDbOracleQueryResult
 if TYPE_CHECKING:
     import types
 
-    from flext_core import FlextPlugin
-    from flext_observability import FlextHealthCheck
+from flext_db_oracle.observability import FlextHealthCheck
 
+if TYPE_CHECKING:
     from .config_types import MergeStatementConfig
 
 T = TypeVar("T")
@@ -267,6 +268,169 @@ class OracleConnectionManager:
 
 
 # =============================================================================
+# REFACTORING: Helper Classes to Reduce Complexity
+# =============================================================================
+
+
+class ApiResponseFormatter:
+    """Helper class for formatting API responses - REDUCES COMPLEXITY in API methods."""
+
+    def __init__(self, logger: object) -> None:
+        """Initialize response formatter."""
+        self._logger = logger
+
+    def format_health_status(self, health_check: object) -> dict[str, object]:
+        """Format health check object to dict for API compatibility."""
+        if not hasattr(health_check, "status"):
+            return {"status": "unknown", "message": "Invalid health check object"}
+
+        # Safe access to timestamp with proper typing
+        timestamp_obj = getattr(health_check, "timestamp", None)
+        timestamp_str = ""
+        if timestamp_obj is not None:
+            if hasattr(timestamp_obj, "isoformat"):
+                timestamp_str = timestamp_obj.isoformat()
+            else:
+                timestamp_str = str(timestamp_obj)
+
+        health_dict: dict[str, object] = {
+            "status": getattr(health_check, "status", "unknown"),
+            "timestamp": timestamp_str,
+            "message": getattr(health_check, "message", "") or "",
+            "metrics": getattr(health_check, "metrics", {}),
+            "component": getattr(health_check, "component", "oracle"),
+        }
+        return health_dict
+
+    def create_connection_status(
+        self,
+        *,
+        connected: bool,
+        query_success: bool,
+        observability_active: bool,
+        error: str | None = None,
+    ) -> dict[str, object]:
+        """Create standardized connection status response."""
+        base_status: dict[str, object] = {
+            "connected": connected,
+            "query_success": query_success,
+            "observability_active": observability_active,
+            "metrics_collected": connected and query_success,
+        }
+
+        if connected and query_success:
+            base_status["status"] = "healthy"
+        elif connected:
+            base_status["status"] = "degraded"
+        else:
+            base_status["status"] = "disconnected"
+
+        if error:
+            base_status["error"] = error
+
+        return base_status
+
+
+class ApiPluginManager:
+    """Helper class for plugin management operations - ELIMINATES DUPLICATION."""
+
+    def __init__(self, plugins: dict[str, object], plugin_platform: object) -> None:
+        """Initialize plugin manager."""
+        self._plugins = plugins
+        self._plugin_platform = plugin_platform
+
+    def try_get_complex_plugin(self, plugin_name: str) -> FlextResult[object] | None:
+        """Try to get plugin from complex plugin platform."""
+        if not hasattr(self._plugin_platform, "plugin_service"):
+            return None
+
+        service = self._plugin_platform.plugin_service
+        if not hasattr(service, "registry"):
+            return None
+
+        registry = service.registry
+        if not hasattr(registry, "get_plugin"):
+            return None
+
+        plugin = registry.get_plugin(plugin_name)
+        if plugin is not None:
+            return FlextResult.ok(plugin)
+        return FlextResult.fail(f"Plugin {plugin_name} not found")
+
+    def get_simple_plugin(self, plugin_name: str) -> FlextResult[object]:
+        """Get plugin from simple plugin dictionary."""
+        if plugin_name not in self._plugins:
+            return FlextResult.fail(f"Plugin {plugin_name} not found")
+        return FlextResult.ok(self._plugins[plugin_name])
+
+    def try_list_complex_plugins(self) -> FlextResult[list[object]] | None:
+        """Try to list plugins from complex plugin platform."""
+        if not hasattr(self._plugin_platform, "plugin_service"):
+            return None
+
+        service = self._plugin_platform.plugin_service
+        if not hasattr(service, "registry"):
+            return None
+
+        registry = service.registry
+        if not hasattr(registry, "list_plugins"):
+            return None
+
+        try:
+            plugins = registry.list_plugins()
+            return FlextResult.ok(plugins)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to list plugins: {e}")
+
+    def register_plugin_simple(self, plugin: object) -> str:
+        """Register plugin in simple dictionary using plugin info."""
+        plugin_info = plugin.get_info() if hasattr(plugin, "get_info") else {"name": "unknown"}
+        plugin_name = plugin_info.get("name", "unknown")
+        self._plugins[str(plugin_name)] = plugin
+        return str(plugin_name)
+    def try_register_complex_plugin(self, plugin: object) -> FlextResult[None] | None:
+        """Try to register plugin in complex platform."""
+        if not hasattr(self._plugin_platform, "load_plugin"):
+            return None
+        load_result = self._plugin_platform.load_plugin(plugin)
+        if load_result.is_failure:
+            return FlextResult.fail(f"Failed to register plugin: {load_result.error}")
+        return FlextResult.ok(None)
+    def list_simple_plugins(self) -> FlextResult[list[object]]:
+        """List plugins from simple dictionary."""
+        return FlextResult.ok(list(self._plugins.values()))
+
+
+class ApiConnectionValidator:
+    """Helper class for connection validation - REDUCES COMPLEXITY in connection methods."""
+
+    def __init__(self, logger: object) -> None:
+        """Initialize connection validator."""
+        self._logger = logger
+
+    def validate_connection_manager(self, connection_manager: object | None,
+                                  operation: str) -> FlextResult[None]:
+        """Validate connection manager is available for operation."""
+        if not connection_manager:
+            return FlextResult.fail(f"No connection manager available for {operation}")
+        return FlextResult.ok(None)
+
+    def validate_connection_active(self, connection_manager: object,
+                                 operation: str) -> FlextResult[None]:
+        """Validate connection is active for operation."""
+        if not hasattr(connection_manager, "connection") or not connection_manager.connection:
+            return FlextResult.fail(f"No database connection available for {operation}")
+        return FlextResult.ok(None)
+
+    def validate_query_executor(self, query_executor: object | None,
+                              operation: str) -> FlextResult[None]:
+        """Validate query executor is available for operation."""
+        if not query_executor:
+            return FlextResult.fail(f"No query executor available for {operation}")
+        return FlextResult.ok(None)
+
+
+# =============================================================================
 # REFACTORING: Extract Class - Query Executor
 # =============================================================================
 
@@ -462,11 +626,16 @@ class FlextDbOracleApi:
             self._query_executor = None
 
         # Plugin system - using mock implementation for now
-        self._plugins: dict[str, FlextPlugin] = {}
+        self._plugins: dict[str, object] = {}
         self._plugin_platform = self._plugins  # Simple compatibility layer
 
         # Error handler for observability integration
         self._error_handler = self._observability
+
+        # Helper classes to reduce complexity
+        self._response_formatter = ApiResponseFormatter(self._logger)
+        self._plugin_manager = ApiPluginManager(self._plugins, self._plugin_platform)
+        self._connection_validator = ApiConnectionValidator(self._logger)
 
         # Initialize observability
         self._observability.initialize()
@@ -643,41 +812,35 @@ class FlextDbOracleApi:
     def test_connection_with_observability(self) -> FlextResult[dict[str, object]]:
         """Test connection with observability metrics for CLI compatibility."""
         try:
-            # If not connected, return disconnected status
+            observability_active = self._observability.is_monitoring_active()
+
+            # If not connected, return disconnected status using helper
             if not self.is_connected:
-                return FlextResult.ok(
-                    {
-                        "status": "disconnected",
-                        "connected": False,
-                        "query_success": False,
-                        "observability_active": self._observability.is_monitoring_active(),
-                        "metrics_collected": False,
-                    },
+                status = self._response_formatter.create_connection_status(
+                    connected=False,
+                    query_success=False,
+                    observability_active=observability_active,
                 )
+                return FlextResult.ok(status)
 
             test_result = self.test_connection()
 
             if test_result.success:
-                return FlextResult.ok(
-                    {
-                        "status": "healthy",
-                        "connected": test_result.data,
-                        "query_success": test_result.data,
-                        "observability_active": self._observability.is_monitoring_active(),
-                        "metrics_collected": True,
-                    },
+                status = self._response_formatter.create_connection_status(
+                    connected=bool(test_result.data),
+                    query_success=bool(test_result.data),
+                    observability_active=observability_active,
+                )
+            else:
+                status = self._response_formatter.create_connection_status(
+                    connected=False,
+                    query_success=False,
+                    observability_active=observability_active,
+                    error=test_result.error or "Connection test failed",
                 )
 
-            return FlextResult.ok(
-                {
-                    "status": "unhealthy",
-                    "connected": False,
-                    "query_success": False,
-                    "observability_active": self._observability.is_monitoring_active(),
-                    "metrics_collected": False,
-                    "error": test_result.error or "Connection test failed",
-                },
-            )
+            return FlextResult.ok(status)
+
         except (OSError, ValueError, TypeError, ConnectionError) as e:
             return self._handle_error_simple("Connection test failed", e)
         except Exception as e:
@@ -884,20 +1047,15 @@ class FlextDbOracleApi:
     # =============================================================================
 
     def register_plugin(self, plugin: FlextPlugin) -> FlextResult[None]:
-        """Register a plugin with the platform."""
+        """Register a plugin with the platform using ApiPluginManager helper."""
         try:
-            # Try complex plugin platform first (for compatibility with tests)
-            if hasattr(self._plugin_platform, "load_plugin"):
-                load_result = self._plugin_platform.load_plugin(plugin)
-                if load_result.is_failure:
-                    return FlextResult.fail(
-                        f"Failed to register plugin: {load_result.error}",
-                    )
+            # Use helper class to reduce complexity - delegates to ApiPluginManager
+            complex_result = self._plugin_manager.try_register_complex_plugin(plugin)
+            if complex_result is not None:
+                return complex_result
 
-            # Fall back to simple plugin dict using get_info() for name
-            plugin_info = plugin.get_info()
-            plugin_name = plugin_info.get("name", "unknown")
-            self._plugins[str(plugin_name)] = plugin
+            # Fall back to simple registration via helper
+            self._plugin_manager.register_plugin_simple(plugin)
             return FlextResult.ok(None)
         except (TypeError, ValueError, AttributeError, RuntimeError) as e:
             return self._handle_error_simple("Plugin registration error", e)
@@ -912,19 +1070,23 @@ class FlextDbOracleApi:
         return FlextResult.fail(f"Plugin {plugin_name} not found")
 
     def get_plugin(self, plugin_name: str) -> FlextResult[FlextPlugin]:
-        """Get a registered plugin.
+        """Get a registered plugin using ApiPluginManager helper.
 
-        SOLID REFACTORING: Reduced from 6 returns to 3 using Guard Clauses
-        and Extract Method patterns.
+        SOLID REFACTORING: Delegated to ApiPluginManager to reduce complexity.
         """
         try:
-            # Try complex plugin platform first
-            complex_plugin_result = self._try_get_complex_plugin(plugin_name)
-            if complex_plugin_result is not None:
-                return complex_plugin_result
+            # Delegate to helper class - reduces complexity in main API class
+            complex_result = self._plugin_manager.try_get_complex_plugin(plugin_name)
+            if complex_result is not None:
+                if complex_result.success and complex_result.data:
+                    return FlextResult.ok(cast("FlextPlugin", complex_result.data))
+                return cast("FlextResult[FlextPlugin]", complex_result)
 
-            # Fall back to simple plugin dict
-            return self._get_simple_plugin(plugin_name)
+            # Fall back to simple plugin retrieval via helper
+            simple_result = self._plugin_manager.get_simple_plugin(plugin_name)
+            if simple_result.success and simple_result.data:
+                return FlextResult.ok(cast("FlextPlugin", simple_result.data))
+            return cast("FlextResult[FlextPlugin]", simple_result)
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return self._handle_error_simple("Failed to get plugin", e)
@@ -950,45 +1112,27 @@ class FlextDbOracleApi:
         )
 
     def list_plugins(self) -> FlextResult[list[FlextPlugin]]:
-        """List all registered plugins.
+        """List all registered plugins using ApiPluginManager helper.
 
-        SOLID REFACTORING: Reduced from 6 returns to 3 using Guard Clauses
-        and Extract Method patterns.
+        SOLID REFACTORING: Delegated to ApiPluginManager to reduce complexity.
         """
         try:
-            # Try complex plugin platform first
-            complex_list_result = self._try_list_complex_plugins()
-            if complex_list_result is not None:
-                return complex_list_result
+            # Delegate to helper class - reduces complexity in main API class
+            complex_result = self._plugin_manager.try_list_complex_plugins()
+            if complex_result is not None:
+                if complex_result.success and complex_result.data:
+                    return FlextResult.ok([cast("FlextPlugin", p) for p in complex_result.data])
+                return cast("FlextResult[list[FlextPlugin]]", complex_result)
 
-            # Fall back to simple plugin dict
-            return FlextResult.ok(list(self._plugins.values()))
+            # Fall back to simple plugin list via helper
+            simple_result = self._plugin_manager.list_simple_plugins()
+            if simple_result.success and simple_result.data:
+                return FlextResult.ok([cast("FlextPlugin", p) for p in simple_result.data])
+            return cast("FlextResult[list[FlextPlugin]]", simple_result)
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return self._handle_error_simple("Failed to list plugins", e)
 
-    def _try_get_complex_plugin(
-        self,
-        plugin_name: str,
-    ) -> FlextResult[FlextPlugin] | None:
-        """SOLID REFACTORING: Extract Method for complex plugin platform logic."""
-        if hasattr(self._plugin_platform, "plugin_service") and hasattr(
-            self._plugin_platform.plugin_service,
-            "registry",
-        ):
-            registry = self._plugin_platform.plugin_service.registry
-            if hasattr(registry, "get_plugin"):
-                plugin = registry.get_plugin(plugin_name)
-                if plugin is not None:
-                    return FlextResult.ok(plugin)
-                return FlextResult.fail(f"Plugin {plugin_name} not found")
-        return None
-
-    def _get_simple_plugin(self, plugin_name: str) -> FlextResult[FlextPlugin]:
-        """SOLID REFACTORING: Extract Method for simple plugin dict logic."""
-        if plugin_name not in self._plugins:
-            return FlextResult.fail(f"Plugin {plugin_name} not found")
-        return FlextResult.ok(self._plugins[plugin_name])
 
     def _execute_plugin_with_validation(
         self,
