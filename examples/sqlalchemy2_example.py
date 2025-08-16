@@ -130,11 +130,10 @@ def demonstrate_table_operations() -> None:
 
 def demonstrate_metadata_introspection() -> None:
     """Demonstrate SQLAlchemy 2 metadata introspection."""
-    with oracle_connection() as engine:
+    with oracle_connection() as engine, engine.connect() as conn:
         # Column information for EMPLOYEES table
-        with engine.connect() as conn:
-            result = conn.execute(
-                text("""
+        result = conn.execute(
+            text("""
                 SELECT
                     column_name,
                     data_type,
@@ -148,43 +147,41 @@ def demonstrate_metadata_introspection() -> None:
                 AND table_name = 'EMPLOYEES'
                 ORDER BY column_id
             """),
-            )
+        )
 
-            columns = result.fetchall()
-            for col in columns:
-                "NULL" if col[5] == "Y" else "NOT NULL"
-                if col[3]:  # Has precision
-                    f"{col[1]}({col[3]},{col[4] or 0})"
-                elif col[2]:  # Has length
-                    f"{col[1]}({col[2]})"
-                else:
-                    col[1]
+        columns = result.fetchall()
+        for col in columns:
+            "NULL" if col[5] == "Y" else "NOT NULL"
+            if col[3]:  # Has precision
+                f"{col[1]}({col[3]},{col[4] or 0})"
+            elif col[2]:  # Has length
+                f"{col[1]}({col[2]})"
+            else:
+                col[1]
 
 
 def demonstrate_transaction_management() -> None:
     """Demonstrate SQLAlchemy 2 transaction management."""
-    with oracle_connection() as engine:
+    with oracle_connection() as engine, engine.connect() as conn, conn.begin() as trans:
         # Demonstrate transaction with rollback
-        with engine.connect() as conn:
-            with conn.begin() as trans:
-                try:
-                    # Count before
-                    result = conn.execute(
-                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
-                    )
-                    result.fetchone()[0]
+        try:
+            # Count before
+            result = conn.execute(
+                text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
+            )
+            result.fetchone()[0]
 
-                    # This would normally insert, but we'll rollback
-                    trans.rollback()
+            # This would normally insert, but we'll rollback
+            trans.rollback()
 
-                    # Count after rollback
-                    result = conn.execute(
-                        text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
-                    )
-                    result.fetchone()[0]
+            # Count after rollback
+            result = conn.execute(
+                text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
+            )
+            result.fetchone()[0]
 
-                except Exception:
-                    trans.rollback()
+        except Exception:
+            trans.rollback()
 
 
 def main() -> None:

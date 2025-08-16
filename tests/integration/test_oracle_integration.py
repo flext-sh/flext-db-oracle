@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -84,7 +84,7 @@ class TestOracleIntegration:
 
         # Mock transaction context manager
         @contextmanager
-        def mock_transaction() -> Generator[Any]:
+        def mock_transaction() -> Generator[object]:
             yield mock_conn
 
         mock_conn.transaction = mock_transaction

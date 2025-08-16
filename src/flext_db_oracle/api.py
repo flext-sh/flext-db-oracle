@@ -384,10 +384,13 @@ class ApiPluginManager:
 
     def register_plugin_simple(self, plugin: object) -> str:
         """Register plugin in simple dictionary using plugin info."""
-        plugin_info = plugin.get_info() if hasattr(plugin, "get_info") else {"name": "unknown"}
+        plugin_info = (
+            plugin.get_info() if hasattr(plugin, "get_info") else {"name": "unknown"}
+        )
         plugin_name = plugin_info.get("name", "unknown")
         self._plugins[str(plugin_name)] = plugin
         return str(plugin_name)
+
     def try_register_complex_plugin(self, plugin: object) -> FlextResult[None] | None:
         """Try to register plugin in complex platform."""
         if not hasattr(self._plugin_platform, "load_plugin"):
@@ -396,6 +399,7 @@ class ApiPluginManager:
         if load_result.is_failure:
             return FlextResult.fail(f"Failed to register plugin: {load_result.error}")
         return FlextResult.ok(None)
+
     def list_simple_plugins(self) -> FlextResult[list[object]]:
         """List plugins from simple dictionary."""
         return FlextResult.ok(list(self._plugins.values()))
@@ -408,22 +412,28 @@ class ApiConnectionValidator:
         """Initialize connection validator."""
         self._logger = logger
 
-    def validate_connection_manager(self, connection_manager: object | None,
-                                  operation: str) -> FlextResult[None]:
+    def validate_connection_manager(
+        self, connection_manager: object | None, operation: str,
+    ) -> FlextResult[None]:
         """Validate connection manager is available for operation."""
         if not connection_manager:
             return FlextResult.fail(f"No connection manager available for {operation}")
         return FlextResult.ok(None)
 
-    def validate_connection_active(self, connection_manager: object,
-                                 operation: str) -> FlextResult[None]:
+    def validate_connection_active(
+        self, connection_manager: object, operation: str,
+    ) -> FlextResult[None]:
         """Validate connection is active for operation."""
-        if not hasattr(connection_manager, "connection") or not connection_manager.connection:
+        if (
+            not hasattr(connection_manager, "connection")
+            or not connection_manager.connection
+        ):
             return FlextResult.fail(f"No database connection available for {operation}")
         return FlextResult.ok(None)
 
-    def validate_query_executor(self, query_executor: object | None,
-                              operation: str) -> FlextResult[None]:
+    def validate_query_executor(
+        self, query_executor: object | None, operation: str,
+    ) -> FlextResult[None]:
         """Validate query executor is available for operation."""
         if not query_executor:
             return FlextResult.fail(f"No query executor available for {operation}")
@@ -506,7 +516,7 @@ class OracleQueryExecutor:
                 for row in raw_data
             ]
             query_result = TDbOracleQueryResult(
-                rows=[list(row) for row in rows_list],
+                rows=rows_list,
                 columns=[],  # Column names would need to be extracted from cursor/metadata
                 row_count=len(rows_list),
                 execution_time_ms=duration_ms,
@@ -547,12 +557,20 @@ class OracleQueryExecutor:
 
     def execute_batch(
         self,
-        operations: list[tuple[str, dict[str, object] | None]],
+        operations: list[tuple[str, dict[str, object] | None]] | list[tuple[str, object]],
     ) -> FlextResult[list[TDbOracleQueryResult]]:
         """Execute batch of SQL operations."""
         results: list[TDbOracleQueryResult] = []
+        # Normalize operations that might have generic object as params
+        normalized_ops: list[tuple[str, dict[str, object] | None]] = []
+        for sql, params in operations:
+            if params is None or isinstance(params, dict):
+                normalized_ops.append((sql, params))
+            else:
+                # Best-effort to coerce unexpected param types
+                normalized_ops.append((sql, None))
 
-        for step_num, (sql, params) in enumerate(operations, 1):
+        for step_num, (sql, params) in enumerate(normalized_ops, 1):
             result = self.execute_query(sql, params)
 
             # Stop on first failure for transaction consistency
@@ -683,10 +701,7 @@ class FlextDbOracleApi:
             config_error = f"Configuration error: {config_result.error}"
             raise ValueError(config_error)
 
-        if config_result.data is None:
-            error_msg = "Configuration data is None - this should not happen"
-            logger.error(error_msg)  # type: ignore[attr-defined]
-            raise ValueError(error_msg)
+        # data is non-None by API contract
 
         # SOLID FIX: Use operation_name to create more specific context
         full_context_name = f"{context_name}.{operation_name}"
@@ -745,12 +760,14 @@ class FlextDbOracleApi:
     @classmethod
     def with_config(
         cls,
-        config_dict: dict[str, object] | None = None,
+        config_dict: dict[str, object] | FlextDbOracleConfig | None = None,
         context_name: str = "oracle",
         **kwargs: object,
     ) -> Self:
         """Create Oracle API with configuration dictionary or keyword arguments."""
-        if config_dict is not None:
+        if isinstance(config_dict, FlextDbOracleConfig):
+            config = config_dict
+        elif config_dict is not None:
             # REAL REFACTORING: Use model_validate for proper type handling
             config = FlextDbOracleConfig.model_validate(config_dict)
         else:
@@ -1121,18 +1138,21 @@ class FlextDbOracleApi:
             complex_result = self._plugin_manager.try_list_complex_plugins()
             if complex_result is not None:
                 if complex_result.success and complex_result.data:
-                    return FlextResult.ok([cast("FlextPlugin", p) for p in complex_result.data])
+                    return FlextResult.ok(
+                        [cast("FlextPlugin", p) for p in complex_result.data],
+                    )
                 return cast("FlextResult[list[FlextPlugin]]", complex_result)
 
             # Fall back to simple plugin list via helper
             simple_result = self._plugin_manager.list_simple_plugins()
             if simple_result.success and simple_result.data:
-                return FlextResult.ok([cast("FlextPlugin", p) for p in simple_result.data])
+                return FlextResult.ok(
+                    [cast("FlextPlugin", p) for p in simple_result.data],
+                )
             return cast("FlextResult[list[FlextPlugin]]", simple_result)
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return self._handle_error_simple("Failed to list plugins", e)
-
 
     def _execute_plugin_with_validation(
         self,
@@ -1232,14 +1252,20 @@ class FlextDbOracleApi:
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.get_schemas()
+        result = self._connection_manager.connection.get_schemas()
+        if result.is_failure:
+            return result
+        return FlextResult.ok(result.data or [])
 
     def get_tables(self, schema: str | None = None) -> FlextResult[list[str]]:
         """Get list of tables in schema."""
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.get_table_names(schema)
+        result = self._connection_manager.connection.get_table_names(schema)
+        if result.is_failure:
+            return result
+        return FlextResult.ok(result.data or [])
 
     def get_columns(
         self,
@@ -1250,7 +1276,10 @@ class FlextDbOracleApi:
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.get_column_info(table_name, schema)
+        result = self._connection_manager.connection.get_column_info(table_name, schema)
+        if result.is_failure:
+            return result
+        return FlextResult.ok(result.data or [])
 
     def optimize_query(self, sql: str) -> FlextResult[dict[str, object]]:
         """Analyze and provide optimization suggestions for SQL query."""
@@ -1337,10 +1366,13 @@ class FlextDbOracleApi:
         if not self._connection_manager or not self._connection_manager.connection:
             return FlextResult.fail("No database connection available")
 
-        return self._connection_manager.connection.get_primary_key_columns(
+        result = self._connection_manager.connection.get_primary_key_columns(
             table_name,
             schema,
         )
+        if result.is_failure:
+            return result
+        return FlextResult.ok(result.data or [])
 
     def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get observability metrics from the API."""

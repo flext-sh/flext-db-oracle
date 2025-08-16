@@ -50,12 +50,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Protocol, cast
+from typing import TYPE_CHECKING, Literal, NoReturn, Protocol, cast
 
 import click
 from flext_cli.core.formatters import OutputFormatter
 from flext_cli.ecosystem_integration import FlextCliConfigFactory
 from flext_core import get_logger
+from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -111,21 +112,23 @@ class CliErrorHandler:
         """Print no data error."""
         self._console.print(f"[red]{operation} returned no data[/red]")
 
-    def handle_no_data_error_with_exception(self, operation: str) -> None:
+    def handle_no_data_error_with_exception(self, operation: str) -> NoReturn:
         """Handle no data error with print and CLI exception."""
         self.print_no_data_error(operation)
         self.raise_cli_error(f"{operation} returned no data")
 
-    def handle_operation_failure_with_exception(self, operation: str, error: str) -> None:
+    def handle_operation_failure_with_exception(
+        self, operation: str, error: str,
+    ) -> None:
         """Handle operation failure with print and CLI exception."""
         self.print_error(f"{operation} failed: {error}")
         self.raise_cli_error(f"{operation} failed: {error}")
 
-    def raise_cli_error(self, message: str) -> None:
+    def raise_cli_error(self, message: str) -> NoReturn:
         """Raise ClickException with message."""
         raise click.ClickException(message)
 
-    def raise_cli_exception_from_exception(self, exception: Exception) -> None:
+    def raise_cli_exception_from_exception(self, exception: Exception) -> NoReturn:
         """Raise ClickException from exception."""
         raise click.ClickException(str(exception)) from exception
 
@@ -178,7 +181,9 @@ class CliDataValidator:
         if hasattr(obj, "__len__"):
             try:
                 length = len(obj)
-                logger.debug(f"Successfully got length {length} from {type(obj).__name__}")
+                logger.debug(
+                    f"Successfully got length {length} from {type(obj).__name__}",
+                )
                 return length
             except (TypeError, AttributeError) as e:
                 logger.info(
@@ -455,7 +460,7 @@ class _ConnectionTestExecutor:
             port=self.params.port,
             service_name=self.params.service_name,
             username=self.params.username,
-            password=self.params.password,
+            password=SecretStr(self.params.password),
             oracle_schema="DEFAULT",
             sid=None,  # Usando service_name
             pool_min=1,
@@ -601,9 +606,6 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
         if test_result.success:
             test_data = test_result.data
 
-            # Null check para test_data - refatoração DRY real
-            if test_data is None:
-                _handle_no_data_error_with_cli_exception("Connection test")
 
             console.print(
                 Panel(
@@ -767,9 +769,6 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             if query_result.success:
                 query_data = query_result.data
 
-                # Null check for query_data
-                if query_data is None:
-                    _handle_no_data_error_with_cli_exception("Query execution")
 
                 results: list[object] = cast(
                     "list[object]",
@@ -813,9 +812,6 @@ def schemas(ctx: click.Context) -> None:
             if schemas_result.success:
                 schema_list = schemas_result.data
 
-                # Null check para schema_list - refatoração DRY real
-                if schema_list is None:
-                    _handle_no_data_error_with_cli_exception("Schema retrieval")
 
                 console.print(
                     Panel(
@@ -878,9 +874,6 @@ def tables(ctx: click.Context, schema: str | None) -> None:
             if tables_result.success:
                 table_list = tables_result.data
 
-                # Null check para table_list - refatoração DRY real
-                if table_list is None:
-                    _handle_no_data_error_with_cli_exception("Table retrieval")
 
                 title = f"Oracle Tables{f' in {schema}' if schema else ''}"
                 console.print(
@@ -1031,22 +1024,7 @@ def plugins(ctx: click.Context) -> None:
 
             if register_result.success:
                 registration_results = register_result.data
-
-                # Null check for registration_results
-                if registration_results is None:
-                    _handle_no_data_error_with_cli_exception("Plugin registration")
-
-                # Validation for production safety - no assert needed after explicit checks
-                if registration_results is None:
-                    console.print(
-                        "[red]❌ Plugin registration succeeded but returned None[/red]",
-                    )
-                    _raise_cli_error("Plugin registration succeeded but returned None")
-
-                # registration_results is guaranteed non-None after validation above
-                processor.handle_registration_success(
-                    cast("dict[str, str]", registration_results),
-                )
+                processor.handle_registration_success(registration_results)
 
                 # List all plugins
                 plugins_result = api.list_plugins()
@@ -1090,9 +1068,6 @@ def optimize(ctx: click.Context, sql: str) -> None:
             if optimize_result.success:
                 optimization_data = optimize_result.data
 
-                # Null check para optimization_data - refatoração DRY real
-                if optimization_data is None:
-                    _handle_no_data_error_with_cli_exception("Query optimization")
 
                 suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
@@ -1153,9 +1128,6 @@ def health(ctx: click.Context) -> None:
             if health_result.success:
                 health_data = health_result.data
 
-                # Null check para health data - refatoração DRY real
-                if health_data is None:
-                    _handle_no_data_error_with_cli_exception("Health check")
 
                 status = getattr(health_data, "status", "unknown")
                 status_color = {

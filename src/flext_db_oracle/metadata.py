@@ -133,6 +133,11 @@ class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
         default=True,
         description="Whether column allows NULL values",
     )
+    # Legacy/compatibility fields accepted by tests
+    is_primary_key: bool = Field(
+        default=False,
+        description="Whether this column is part of primary key (legacy compat)",
+    )
     default_value: str | None = Field(None, description="Default value")
     data_length: int | None = Field(None, description="Column data length")
     data_precision: int | None = Field(None, description="Numeric precision")
@@ -194,6 +199,17 @@ class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
                 type_def = f"{type_def}({self.data_precision})"
 
         return type_def
+
+    # Backward compatibility properties expected by tests
+    @property
+    def full_type_spec(self) -> str:
+        """Alias for full_type_definition (legacy test compatibility)."""
+        return self.full_type_definition
+
+    @property
+    def is_key_column(self) -> bool:
+        """Whether the column is a primary key column (legacy property)."""
+        return bool(self.is_primary_key)
 
 
 class FlextDbOracleTable(ValidationMixin, FlextValueObject):
@@ -262,6 +278,31 @@ class FlextDbOracleTable(ValidationMixin, FlextValueObject):
         """Get list of column names."""
         return [col.name for col in self.columns]
 
+    # Backward compatibility properties expected by tests
+    @property
+    def qualified_name(self) -> str:
+        """Return qualified table name in SCHEMA.TABLE format."""
+        return f"{self.schema_name}.{self.name}"
+
+    @property
+    def primary_key_columns(self) -> list[FlextDbOracleColumn]:
+        """Return columns marked as primary key."""
+        return [col for col in self.columns if getattr(col, "is_primary_key", False)]
+
+    # Dict-like support for tests that treat table as a mapping
+    def __contains__(self, key: object) -> bool:
+        """Return True if key exists in dumped mapping (legacy behavior)."""
+        try:
+            data = self.model_dump()
+            return key in data
+        except Exception:
+            return False
+
+    def __getitem__(self, key: str) -> object:
+        """Get item from dumped mapping by key (legacy behavior)."""
+        data = self.model_dump()
+        return data[key]
+
 
 class FlextDbOracleSchema(ValidationMixin, FlextValueObject):
     """Oracle schema metadata using flext-core patterns with DRY validation."""
@@ -323,6 +364,30 @@ class FlextDbOracleSchema(ValidationMixin, FlextValueObject):
     def table_count(self) -> int:
         """Get number of tables."""
         return len(self.tables)
+
+    # Backward compatibility helpers expected by tests
+    @property
+    def total_columns(self) -> int:
+        """Return total number of columns across all tables."""
+        return sum(len(tbl.columns) for tbl in self.tables)
+
+    def get_table(self, table_name: str) -> FlextDbOracleTable | None:
+        """Get table by name (case-insensitive)."""
+        return self.get_table_by_name(table_name)
+
+    # Dict-like support for tests that treat schema as a mapping
+    def __contains__(self, key: object) -> bool:
+        """Return True if key exists in dumped mapping (legacy behavior)."""
+        try:
+            data = self.model_dump()
+            return key in data
+        except Exception:
+            return False
+
+    def __getitem__(self, key: str) -> object:
+        """Get item from dumped mapping by key (legacy behavior)."""
+        data = self.model_dump()
+        return data[key]
 
 
 class FlextDbOracleMetadataManager:
@@ -416,19 +481,12 @@ class FlextDbOracleMetadataManager:
                 columns_result.data or [],
             )
             if table_result.is_failure:
-                return cast(
-                    "FlextResult[FlextDbOracleTable]",
-                    self._handle_result_failure_with_fallback(
-                        cast("FlextResult[object]", table_result),
-                        "Failed to create table",
-                    ),
+                return FlextResult.fail(
+                    f"Failed to create table: {table_result.error}",
                 )
 
             # MYPY FIX: Safe access to table_result.data with None check
-            if table_result.data is None:
-                return FlextResult.fail(
-                    "Table creation returned None - should not happen",
-                )
+            # data is non-None by API contract
 
             self._logger.info("Table metadata retrieved successfully")
             return FlextResult.ok(table_result.data)

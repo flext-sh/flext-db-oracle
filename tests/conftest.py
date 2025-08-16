@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
+from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
@@ -33,33 +34,32 @@ class DockerCommandExecutor:
     def check_docker_availability(self) -> None:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
-            import docker  # type: ignore[import-not-found]
+            import docker
 
             client = docker.from_env()
-            client.ping()
+            client.ping()  # type: ignore[no-untyped-call]
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 
     def check_container_status(self) -> bool:
         """Check if Oracle container is running."""
         try:
-            import docker  # type: ignore[import-not-found]
+            import docker
 
             client = docker.from_env()
-            # Fallback: assume container name present in compose file
             containers = client.containers.list(all=True)
             return any(
-                "oracle" in ",".join(c.name for c in [ctr])
-                or "oracle" in str(ctr.image.tags)
+                (getattr(ctr, "name", "") and ("oracle" in ctr.name))
+                or any("oracle" in str(tag) for tag in getattr(ctr.image, "tags", []))
                 for ctr in containers
-            )  # type: ignore[name-defined]
+            )
         except Exception:
             return False
 
     def check_container_health(self) -> bool:
         """Check if Oracle container is healthy."""
         try:
-            import docker  # type: ignore[import-not-found]
+            import docker
 
             client = docker.from_env()
             for ctr in client.containers.list(all=True):
@@ -68,9 +68,10 @@ class DockerCommandExecutor:
                     status = (
                         details.get("State", {}).get("Health", {}).get("Status", "")
                     )
-                    return status == "healthy"
+                    return bool(status == "healthy")
         except Exception:
             return False
+        return False
 
     def start_container(self) -> None:
         """Start Oracle container."""
@@ -85,7 +86,7 @@ class DockerCommandExecutor:
     def is_setup_completed(self) -> bool:
         """Check if the setup container has completed successfully."""
         try:
-            import docker  # type: ignore[import-not-found]
+            import docker
 
             client = docker.from_env()
             try:
@@ -96,9 +97,10 @@ class DockerCommandExecutor:
             setup_ctr.reload()
             # Consider success when container exited with code 0
             state = setup_ctr.attrs.get("State", {})
-            status = state.get("Status", "")
-            exit_code = state.get("ExitCode", 1)
-            return status == "exited" and exit_code == 0
+            status = str(state.get("Status", ""))
+            exit_code_raw = state.get("ExitCode", 1)
+            exit_code = int(exit_code_raw) if isinstance(exit_code_raw, (int, str)) else 1
+            return bool(status == "exited" and exit_code == 0)
         except Exception:
             return False
 
@@ -211,7 +213,7 @@ def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         username=os.getenv("TEST_ORACLE_USER", "flexttest"),
-        password=os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123"),
+        password=SecretStr(os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123")),
         pool_min=1,
         pool_max=5,
         timeout=30,
@@ -225,7 +227,7 @@ def oracle_api(real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleApi:
 
 
 @pytest.fixture
-def connected_oracle_api(oracle_api: FlextDbOracleApi) -> FlextDbOracleApi:
+def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
     connected_api = oracle_api.connect()
     yield connected_api

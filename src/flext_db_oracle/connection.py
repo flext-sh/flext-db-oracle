@@ -106,7 +106,7 @@ class FlextDbOracleConnection:
         """Connect to Oracle database using SQLAlchemy 2."""
         try:
             # Validate configuration
-            config_validation = self.config.validate_domain_rules()
+            config_validation = self.config.validate_business_rules()
             if config_validation.is_failure:
                 return FlextResult.fail(
                     f"Configuration invalid: {config_validation.error}",

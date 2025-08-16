@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import os
 import sys
 from pathlib import Path
@@ -125,7 +126,7 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
         try:
             stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30)
         except TimeoutError:
-            with contextlib.suppress(ProcessLookupError):  # type: ignore[name-defined]
+            with contextlib.suppress(ProcessLookupError):
                 proc.kill()
             await proc.wait()
             return 1, "", "Command timed out"
@@ -134,8 +135,6 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
             stdout_b.decode("utf-8", errors="replace") if stdout_b else "",
             stderr_b.decode("utf-8", errors="replace") if stderr_b else "",
         )
-
-    import contextlib
 
     return asyncio.run(_run())
 

@@ -217,7 +217,11 @@ class FlextDbOracleObservabilityManager:
             )
 
             if not getattr(metric_result, "success", False):
-                self._logger.warning("Failed to create metric %s: %s", name, getattr(metric_result, "error", None))
+                self._logger.warning(
+                    "Failed to create metric %s: %s",
+                    name,
+                    getattr(metric_result, "error", None),
+                )
         except Exception as e:
             self._logger.warning("Failed to create metric %s: %s", name, e)
 
@@ -252,7 +256,9 @@ class FlextDbOracleObservabilityManager:
             if health_result.success and health_result.data:
                 return health_result
 
-            return FlextResult.fail(health_result.error or "flext_create_health_check failed")
+            return FlextResult.fail(
+                health_result.error or "flext_create_health_check failed",
+            )
 
         except Exception as e:
             return FlextResult.fail(f"Failed to create health check: {e}")

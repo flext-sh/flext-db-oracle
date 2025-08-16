@@ -19,14 +19,21 @@ from __future__ import annotations
 import logging
 import os
 
+# Prefer module-specific logger over root logger
+logger = logging.getLogger(__name__)
+
+# Import core components at module level to satisfy linting
+try:
+    from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+except Exception:  # pragma: no cover - optional import for examples
+    FlextDbOracleApi = None  # type: ignore[assignment]
+    FlextDbOracleConfig = None  # type: ignore[assignment]
+
 
 def demo_basic_usage() -> None:
     """Demonstrate basic flext-db-oracle usage."""
-    # Import core components
-    try:
-        from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-
-    except ImportError:
+    # Bail out if optional imports are unavailable
+    if FlextDbOracleApi is None or FlextDbOracleConfig is None:
         return
 
     # Check environment configuration
@@ -75,14 +82,14 @@ def demo_basic_usage() -> None:
             connected_api.disconnect()
 
     except Exception:
-        logging.exception("Demo usage failed")
+        logger.exception("Demo usage failed")
 
 
 def show_available_examples() -> None:
     """Show information about available examples."""
     examples = [
         {
-            "name": "04_comprehensive_oracle_usage.py",
+            "name": "example_04_comprehensive_oracle_usage.py",
             "description": "Complete Oracle operations demonstration",
             "features": [
                 "Connection management",

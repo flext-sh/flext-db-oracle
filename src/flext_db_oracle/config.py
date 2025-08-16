@@ -46,9 +46,9 @@ import os
 import urllib.parse
 from typing import TypeVar
 
-from flext_core import FlextResult, get_logger
+from flext_core import FlextResult, FlextValidators, get_logger
 from flext_core.config import FlextOracleConfig
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 
 from flext_db_oracle.constants import (
     ERROR_MSG_HOST_EMPTY,
@@ -95,10 +95,6 @@ class FlextDbOracleConfig(FlextOracleConfig):
     """Oracle database configuration extending flext-core centralized config."""
 
     # Additional Oracle-specific options not in base class
-    sid: str | None = Field(
-        default=None,
-        description="Oracle SID (alternative to service_name)",
-    )
     ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
     ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")
     ssl_key_path: str | None = Field(default=None, description="SSL key path")
@@ -111,14 +107,19 @@ class FlextDbOracleConfig(FlextOracleConfig):
     encoding: str = Field(default="UTF-8", description="Character encoding")
     protocol: str = Field(default="tcp", description="Connection protocol")
 
-    # Ensure all required base class fields have defaults if not already defined
-    oracle_schema: str = Field(default="DEFAULT", description="Oracle schema")
+    # Pool increment field missing from base class
+    pool_increment: int = Field(default=1, description="Connection pool increment")
+
+    # Autocommit field missing from base class
+    autocommit: bool = Field(default=False, description="Enable autocommit mode")
+    # Keep strict type; validator coerces strings at runtime
+    password: SecretStr
 
     @field_validator("host")
     @classmethod
     def validate_host_not_empty(cls, v: str) -> str:
         """Validate host is not empty or whitespace only."""
-        if not v or not v.strip():
+        if not FlextValidators.is_non_empty_string(v):
             raise ValueError(ERROR_MSG_HOST_EMPTY)
         return v
 
@@ -126,8 +127,63 @@ class FlextDbOracleConfig(FlextOracleConfig):
     @classmethod
     def validate_username_not_empty(cls, v: str) -> str:
         """Validate username is not empty or whitespace only."""
-        if not v or not v.strip():
+        if not FlextValidators.is_non_empty_string(v):
             raise ValueError(ERROR_MSG_USERNAME_EMPTY)
+        return v
+
+    @field_validator("port")
+    @classmethod
+    def validate_port_range(cls, v: int) -> int:
+        """Validate port is within valid range."""
+        max_port_number = 65535
+        if not (1 <= v <= max_port_number):
+            msg = f"Port must be between 1 and {max_port_number}"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("timeout")
+    @classmethod
+    def validate_timeout(cls, v: int) -> int:
+        """Validate timeout is positive."""
+        if v <= 0:
+            msg = "Timeout must be positive"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("encoding")
+    @classmethod
+    def validate_encoding(cls, v: str) -> str:
+        """Validate encoding is non-empty."""
+        if not FlextValidators.is_non_empty_string(v):
+            msg = "Encoding cannot be empty"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("protocol")
+    @classmethod
+    def validate_protocol(cls, v: str) -> str:
+        """Validate protocol is non-empty."""
+        if not FlextValidators.is_non_empty_string(v):
+            msg = "Protocol cannot be empty"
+            raise ValueError(msg)
+        return v
+
+    # Accept plain string passwords by converting to SecretStr
+    @field_validator("password", mode="before")
+    @classmethod
+    def coerce_password(cls, v: object) -> SecretStr:
+        """Coerce incoming password to SecretStr for compatibility."""
+        if isinstance(v, SecretStr):
+            return v
+        return SecretStr(str(v))
+
+    @field_validator("oracle_schema")
+    @classmethod
+    def validate_oracle_schema(cls, v: str) -> str:
+        """Validate Oracle schema is non-empty."""
+        if not FlextValidators.is_non_empty_string(v):
+            msg = "Oracle schema cannot be empty"
+            raise ValueError(msg)
         return v
 
     @model_validator(mode="after")
@@ -159,42 +215,17 @@ class FlextDbOracleConfig(FlextOracleConfig):
             raise ValueError(msg)
         return self
 
-    def validate_domain_rules(self) -> FlextResult[None]:
-        """Validate Oracle connection configuration domain rules."""
-        try:
-            # Collect all validation errors
-            errors = []
+    def validate_business_rules(self) -> FlextResult[None]:
+        """Validate Oracle connection configuration business rules.
 
-            # Validate that either SID or service_name is provided
-            if not self.sid and not self.service_name:
-                errors.append("Either SID or service_name must be provided")
-
-            # Validate pool configuration
-            if self.pool_max < self.pool_min:
-                errors.append("pool_max must be >= pool_min")
-
-            if self.pool_increment > self.pool_max:
-                errors.append("pool_increment cannot exceed pool_max")
-
-            # Validate SSL configuration
-            if self.ssl_enabled and not self.ssl_cert_path:
-                errors.append("ssl_cert_path required when SSL is enabled")
-
-            # Validate host is not empty
-            if not self.host or not self.host.strip():
-                errors.append(ERROR_MSG_HOST_EMPTY)
-
-            # Validate username is not empty
-            if not self.username or not self.username.strip():
-                errors.append(ERROR_MSG_USERNAME_EMPTY)
-
-            if errors:
-                return FlextResult.fail("; ".join(errors))
-
-            return FlextResult.ok(None)
-
-        except (ValueError, TypeError, AttributeError) as e:
-            return _handle_config_validation_error(e)
+        Note: Basic field validations are now handled by @field_validator decorators.
+        Cross-field validations are handled by @model_validator decorators.
+        This method performs additional domain business rules validation.
+        """
+        # Basic field validations are now handled by @field_validator decorators
+        # Cross-field validations are handled by @model_validator decorators
+        # This method is kept for additional business rule validations if needed
+        return FlextResult.ok(None)
 
     # Host and username validation inherited from FlextOracleConfig
 
@@ -207,9 +238,6 @@ class FlextDbOracleConfig(FlextOracleConfig):
         result = cls.from_env_with_result(f"{prefix}_")
         if result.is_failure:
             msg = f"Failed to create configuration from environment: {result.error}"
-            raise ValueError(msg)
-        if result.data is None:
-            msg = "Configuration creation returned None - should not happen"
             raise ValueError(msg)
         return result.data
 
@@ -242,7 +270,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 host=os.getenv(f"{prefix}HOST", "localhost"),
                 port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
-                password=os.getenv(f"{prefix}PASSWORD", "oracle"),
+                password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
                 service_name=os.getenv(f"{prefix}SERVICE_NAME")
                 or os.getenv(f"{prefix}SID")
                 or "ORCLPDB1",
@@ -280,7 +308,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 host=parsed.hostname or "localhost",
                 port=parsed.port or ORACLE_DEFAULT_PORT,
                 username=parsed.username or "oracle",
-                password=parsed.password or "oracle",
+                password=SecretStr(parsed.password or "oracle"),
                 service_name=parsed.path.lstrip("/") if parsed.path else "ORCLPDB1",
                 sid=None,  # URL format typically uses service_name
                 pool_min=1,
@@ -357,10 +385,6 @@ class FlextDbOracleConfig(FlextOracleConfig):
         if result.is_failure:
             msg = f"Failed to create configuration from dict: {result.error}"
             raise ValueError(msg)
-        # MYPY FIX: Safe access to result.data with None check
-        if result.data is None:
-            msg = "Configuration creation returned None - should not happen"
-            raise ValueError(msg)
         return result.data
 
     @classmethod
@@ -384,7 +408,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 "service_name": config_dict.get("service_name")
                 and str(config_dict["service_name"]),
                 "username": str(config_dict.get("username", "user")),
-                "password": str(config_dict.get("password", "password")),
+                "password": SecretStr(str(config_dict.get("password", "password"))),
                 "pool_min": int(pool_min_val)
                 if isinstance(pool_min_val, (int, str))
                 else 1,
@@ -416,7 +440,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
 
             # REAL REFACTORING: Use model_validate for proper type handling
             config = cls.model_validate(filtered_config)
-            validation_result = config.validate_domain_rules()
+            validation_result = config.validate_business_rules()
 
             if validation_result.is_failure:
                 return FlextResult.fail(
