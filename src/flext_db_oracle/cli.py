@@ -606,7 +606,6 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
         if test_result.success:
             test_data = test_result.data
 
-
             console.print(
                 Panel(
                     f"""✅ **Connection Successful (from environment)**
@@ -769,7 +768,6 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             if query_result.success:
                 query_data = query_result.data
 
-
                 results: list[object] = cast(
                     "list[object]",
                     _safe_get_query_data_attr(query_data, "rows", []),
@@ -811,7 +809,6 @@ def schemas(ctx: click.Context) -> None:
 
             if schemas_result.success:
                 schema_list = schemas_result.data
-
 
                 console.print(
                     Panel(
@@ -873,7 +870,6 @@ def tables(ctx: click.Context, schema: str | None) -> None:
 
             if tables_result.success:
                 table_list = tables_result.data
-
 
                 title = f"Oracle Tables{f' in {schema}' if schema else ''}"
                 console.print(
@@ -1068,7 +1064,6 @@ def optimize(ctx: click.Context, sql: str) -> None:
             if optimize_result.success:
                 optimization_data = optimize_result.data
 
-
                 suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
                 console.print(
@@ -1127,7 +1122,6 @@ def health(ctx: click.Context) -> None:
 
             if health_result.success:
                 health_data = health_result.data
-
 
                 status = getattr(health_data, "status", "unknown")
                 status_color = {
