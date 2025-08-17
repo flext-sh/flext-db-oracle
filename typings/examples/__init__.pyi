@@ -1,0 +1,6 @@
+from _typeshed import Incomplete
+
+logger: Incomplete
+
+def demo_basic_usage() -> None: ...
+def show_available_examples() -> None: ...

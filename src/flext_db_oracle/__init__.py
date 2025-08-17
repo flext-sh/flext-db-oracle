@@ -105,6 +105,6 @@ def __getattr__(name: str) -> object:  # pragma: no cover - import-time laziness
     preventing unnecessary Rich/Click imports during regular library usage.
     """
     if name in {"oracle", "oracle_cli"}:
-      # Import moved to top-level to fix PLC0415
-      return _oracle
+        # Import moved to top-level to fix PLC0415
+        return _oracle
     raise AttributeError(name)

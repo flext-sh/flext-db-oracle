@@ -47,9 +47,9 @@ FlextDbOracleConnectionInfo = FlextDbOracleConnectionStatus
 def _deprecation_warning(old_name: str, new_name: str) -> None:
     """Issue a deprecation warning for legacy imports."""
     warnings.warn(
-      f"{old_name} is deprecated, use {new_name} instead",
-      DeprecationWarning,
-      stacklevel=3,
+        f"{old_name} is deprecated, use {new_name} instead",
+        DeprecationWarning,
+        stacklevel=3,
     )
 
 
@@ -79,7 +79,7 @@ def OracleConnection(  # noqa: N802
     _deprecation_warning("OracleConnection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-      config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig()
     return FlextDbOracleConnection(config=config)
 
 
@@ -97,8 +97,8 @@ def OracleMetadata(  # noqa: N802
     _deprecation_warning("OracleMetadata", "FlextDbOracleMetadataManager")
     # Create default connection if not provided
     if connection is None:
-      config = FlextDbOracleConfig()
-      connection = FlextDbOracleConnection(config=config)
+        config = FlextDbOracleConfig()
+        connection = FlextDbOracleConnection(config=config)
     return FlextDbOracleMetadata(connection=connection)
 
 
@@ -114,10 +114,10 @@ def OracleError(  # noqa: N802
     _deprecation_warning("OracleError", "FlextDbOracleError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleError(message, code=code, context=merged_context)
 
 
@@ -132,10 +132,10 @@ def OracleConnectionError(  # noqa: N802
     _deprecation_warning("OracleConnectionError", "FlextDbOracleConnectionError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleConnectionError(message, code=code, context=merged_context)
 
 
@@ -154,23 +154,23 @@ def OracleQueryError(  # noqa: N802
     _deprecation_warning("OracleQueryError", "FlextDbOracleQueryError")
     # Convert code if needed
     if code is not None and not isinstance(code, FlextDbOracleErrorCodes):
-      # Use default code if conversion not possible
-      code = FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR
+        # Use default code if conversion not possible
+        code = FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR
 
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleQueryError(
-      message,
-      query=query,
-      operation=operation,
-      execution_time=execution_time,
-      rows_affected=rows_affected,
-      code=code,
-      context=merged_context,
+        message,
+        query=query,
+        operation=operation,
+        execution_time=execution_time,
+        rows_affected=rows_affected,
+        code=code,
+        context=merged_context,
     )
 
 
@@ -185,10 +185,10 @@ def OracleConfigurationError(  # noqa: N802
     _deprecation_warning("OracleConfigurationError", "FlextDbOracleConfigurationError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleConfigurationError(message, code=code, context=merged_context)
 
 
@@ -203,10 +203,10 @@ def OracleValidationError(  # noqa: N802
     _deprecation_warning("OracleValidationError", "FlextDbOracleValidationError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleValidationError(message, code=code, context=merged_context)
 
 
@@ -221,10 +221,10 @@ def OracleTimeoutError(  # noqa: N802
     _deprecation_warning("OracleTimeoutError", "FlextDbOracleTimeoutError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleTimeoutError(message, code=code, context=merged_context)
 
 
@@ -237,14 +237,15 @@ def OracleAuthenticationError(  # noqa: N802
 ) -> FlextDbOracleAuthenticationError:
     """Legacy alias for FlextDbOracleAuthenticationError."""
     _deprecation_warning(
-      "OracleAuthenticationError", "FlextDbOracleAuthenticationError",
+        "OracleAuthenticationError",
+        "FlextDbOracleAuthenticationError",
     )
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleAuthenticationError(message, code=code, context=merged_context)
 
 
@@ -259,10 +260,10 @@ def OracleProcessingError(  # noqa: N802
     _deprecation_warning("OracleProcessingError", "FlextDbOracleProcessingError")
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleProcessingError(message, code=code, context=merged_context)
 
 
@@ -281,23 +282,23 @@ def OracleMetadataError(  # noqa: N802
     _deprecation_warning("OracleMetadataError", "FlextDbOracleMetadataError")
     # Convert code if needed
     if code is not None and not isinstance(code, FlextDbOracleErrorCodes):
-      # Use default code if conversion not possible
-      code = FlextDbOracleErrorCodes.ORACLE_METADATA_ERROR
+        # Use default code if conversion not possible
+        code = FlextDbOracleErrorCodes.ORACLE_METADATA_ERROR
 
     # Merge kwargs into context if both provided
     if context is not None:
-      merged_context = dict(context)
-      merged_context.update(kwargs)
+        merged_context = dict(context)
+        merged_context.update(kwargs)
     else:
-      merged_context = kwargs
+        merged_context = kwargs
     return FlextDbOracleMetadataError(
-      message,
-      schema_name=schema_name,
-      object_name=object_name,
-      object_type=object_type,
-      operation=operation,
-      code=code,
-      context=merged_context,
+        message,
+        schema_name=schema_name,
+        object_name=object_name,
+        object_type=object_type,
+        operation=operation,
+        code=code,
+        context=merged_context,
     )
 
 
@@ -318,7 +319,7 @@ def SimpleOracleConnection(  # noqa: N802
     _deprecation_warning("SimpleOracleConnection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-      config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig()
     return FlextDbOracleConnection(config=config)
 
 
@@ -330,7 +331,7 @@ def create_oracle_connection(
     _deprecation_warning("create_oracle_connection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-      config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig()
     return FlextDbOracleConnection(config=config)
 
 
@@ -356,7 +357,8 @@ def setup_oracle_database(
 def OracleMetadataErrorParams(**kwargs: object) -> dict[str, object]:  # noqa: N802
     """Legacy parameter class replaced by keyword arguments."""
     _deprecation_warning(
-      "OracleMetadataErrorParams", "keyword arguments in FlextDbOracleMetadataError",
+        "OracleMetadataErrorParams",
+        "keyword arguments in FlextDbOracleMetadataError",
     )
     return dict(kwargs)
 
@@ -364,7 +366,8 @@ def OracleMetadataErrorParams(**kwargs: object) -> dict[str, object]:  # noqa: N
 def OracleQueryErrorParams(**kwargs: object) -> dict[str, object]:  # noqa: N802
     """Legacy parameter class replaced by keyword arguments."""
     _deprecation_warning(
-      "OracleQueryErrorParams", "keyword arguments in FlextDbOracleQueryError",
+        "OracleQueryErrorParams",
+        "keyword arguments in FlextDbOracleQueryError",
     )
     return dict(kwargs)
 

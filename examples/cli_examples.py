@@ -22,94 +22,94 @@ MAX_OUTPUT_LINES = 3
 def _get_cli_examples() -> list[dict[str, object]]:
     """Get CLI command examples - DRY pattern for example data."""
     return [
-      {
-          "name": "Show CLI Help",
-          "command": ["flext-oracle", "--help"],
-          "description": "Display all available CLI commands",
-      },
-      {
-          "name": "Connect using Environment Variables",
-          "command": ["flext-oracle", "connect-env", "--debug"],
-          "description": "Connect to Oracle using environment variables",
-          "env_required": True,
-      },
-      {
-          "name": "List Database Schemas",
-          "command": ["flext-oracle", "schemas"],
-          "description": "List all available schemas",
-          "env_required": True,
-      },
-      {
-          "name": "List Database Tables",
-          "command": ["flext-oracle", "tables"],
-          "description": "List all tables",
-          "env_required": True,
-      },
-      {
-          "name": "Execute Simple Query",
-          "command": [
-              "flext-oracle",
-              "query",
-              "--sql",
-              "SELECT SYSDATE FROM DUAL",
-          ],
-          "description": "Execute a simple query",
-          "env_required": True,
-      },
-      {
-          "name": "Check Database Health",
-          "command": ["flext-oracle", "health"],
-          "description": "Check database connection health",
-          "env_required": True,
-      },
-      {
-          "name": "Show Plugin Management",
-          "command": ["flext-oracle", "plugins"],
-          "description": "List and manage Oracle plugins",
-          "env_required": True,
-      },
-      {
-          "name": "Optimize Query",
-          "command": [
-              "flext-oracle",
-              "optimize",
-              "--sql",
-              "SELECT * FROM USER_TABLES WHERE ROWNUM <= 10",
-          ],
-          "description": "Analyze and optimize SQL query",
-          "env_required": True,
-      },
+        {
+            "name": "Show CLI Help",
+            "command": ["flext-oracle", "--help"],
+            "description": "Display all available CLI commands",
+        },
+        {
+            "name": "Connect using Environment Variables",
+            "command": ["flext-oracle", "connect-env", "--debug"],
+            "description": "Connect to Oracle using environment variables",
+            "env_required": True,
+        },
+        {
+            "name": "List Database Schemas",
+            "command": ["flext-oracle", "schemas"],
+            "description": "List all available schemas",
+            "env_required": True,
+        },
+        {
+            "name": "List Database Tables",
+            "command": ["flext-oracle", "tables"],
+            "description": "List all tables",
+            "env_required": True,
+        },
+        {
+            "name": "Execute Simple Query",
+            "command": [
+                "flext-oracle",
+                "query",
+                "--sql",
+                "SELECT SYSDATE FROM DUAL",
+            ],
+            "description": "Execute a simple query",
+            "env_required": True,
+        },
+        {
+            "name": "Check Database Health",
+            "command": ["flext-oracle", "health"],
+            "description": "Check database connection health",
+            "env_required": True,
+        },
+        {
+            "name": "Show Plugin Management",
+            "command": ["flext-oracle", "plugins"],
+            "description": "List and manage Oracle plugins",
+            "env_required": True,
+        },
+        {
+            "name": "Optimize Query",
+            "command": [
+                "flext-oracle",
+                "optimize",
+                "--sql",
+                "SELECT * FROM USER_TABLES WHERE ROWNUM <= 10",
+            ],
+            "description": "Analyze and optimize SQL query",
+            "env_required": True,
+        },
     ]
 
 
 def _run_example_command(example: dict[str, object]) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
-      return
+        return
 
     exit_code, stdout, stderr = run_cli_command(example["command"])
 
     if exit_code == 0:
-      if stdout.strip():
-          # Show first few lines of output
-          lines = stdout.strip().split("\n")
-          preview = lines[:MAX_OUTPUT_LINES]
-          if len(lines) > MAX_OUTPUT_LINES:
-              preview.append("   ...")
-          for _line in preview:
-              pass
+        if stdout.strip():
+            # Show first few lines of output
+            lines = stdout.strip().split("\n")
+            preview = lines[:MAX_OUTPUT_LINES]
+            if len(lines) > MAX_OUTPUT_LINES:
+                preview.append("   ...")
+            for _line in preview:
+                pass
     elif stderr.strip():
-      error_lines = stderr.strip().split("\n")[:2]  # Show first 2 error lines
-      for _line in error_lines:
-          pass
+        error_lines = stderr.strip().split("\n")[:2]  # Show first 2 error lines
+        for _line in error_lines:
+            pass
 
 
 def _check_oracle_env() -> bool:
     """Check if Oracle environment variables are set - DRY pattern."""
     required_vars = [
-      "FLEXT_TARGET_ORACLE_HOST",
-      "FLEXT_TARGET_ORACLE_USERNAME",
-      "FLEXT_TARGET_ORACLE_PASSWORD",
+        "FLEXT_TARGET_ORACLE_HOST",
+        "FLEXT_TARGET_ORACLE_USERNAME",
+        "FLEXT_TARGET_ORACLE_PASSWORD",
     ]
     return all(os.getenv(var) for var in required_vars)
 
@@ -118,23 +118,23 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell)."""
 
     async def _run() -> tuple[int, str, str]:
-      proc = await asyncio.create_subprocess_exec(
-          *cmd,
-          stdout=asyncio.subprocess.PIPE,
-          stderr=asyncio.subprocess.PIPE,
-      )
-      try:
-          stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30)
-      except TimeoutError:
-          with contextlib.suppress(ProcessLookupError):
-              proc.kill()
-          await proc.wait()
-          return 1, "", "Command timed out"
-      return (
-          int(proc.returncode or 0),
-          stdout_b.decode("utf-8", errors="replace") if stdout_b else "",
-          stderr_b.decode("utf-8", errors="replace") if stderr_b else "",
-      )
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30)
+        except TimeoutError:
+            with contextlib.suppress(ProcessLookupError):
+                proc.kill()
+            await proc.wait()
+            return 1, "", "Command timed out"
+        return (
+            int(proc.returncode or 0),
+            stdout_b.decode("utf-8", errors="replace") if stdout_b else "",
+            stderr_b.decode("utf-8", errors="replace") if stderr_b else "",
+        )
 
     return asyncio.run(_run())
 
@@ -144,12 +144,12 @@ def demo_cli_commands() -> None:
     examples = _get_cli_examples()
 
     if not _check_oracle_env():
-      return
+        return
 
     # Run each example - refatoração DRY real
     for example in examples:
-      if not example.get("interactive", False):
-          _run_example_command(example)
+        if not example.get("interactive", False):
+            _run_example_command(example)
 
 
 def show_environment_setup() -> None:
@@ -174,8 +174,8 @@ export FLEXT_CLI_LOG_LEVEL="debug"
 
     env_file = Path(".env")
     if not env_file.exists():
-      with env_file.open("w", encoding="utf-8") as f:
-          f.write(setup_script.strip())
+        with env_file.open("w", encoding="utf-8") as f:
+            f.write(setup_script.strip())
 
 
 def show_docker_example() -> None:
@@ -185,23 +185,23 @@ def show_docker_example() -> None:
 def main() -> None:
     """Execute main CLI demonstration."""
     if len(sys.argv) > 1:
-      if sys.argv[1] == "setup":
-          show_environment_setup()
-      elif sys.argv[1] == "docker":
-          show_docker_example()
-      elif sys.argv[1] == "demo":
-          demo_cli_commands()
+        if sys.argv[1] == "setup":
+            show_environment_setup()
+        elif sys.argv[1] == "docker":
+            show_docker_example()
+        elif sys.argv[1] == "demo":
+            demo_cli_commands()
     else:
-      # Show current environment status
-      env_vars = [
-          "FLEXT_TARGET_ORACLE_HOST",
-          "FLEXT_TARGET_ORACLE_USERNAME",
-      ]
+        # Show current environment status
+        env_vars = [
+            "FLEXT_TARGET_ORACLE_HOST",
+            "FLEXT_TARGET_ORACLE_USERNAME",
+        ]
 
-      configured = sum(1 for var in env_vars if os.getenv(var))
+        configured = sum(1 for var in env_vars if os.getenv(var))
 
-      if configured == 0 or configured == len(env_vars):
-          pass
+        if configured == 0 or configured == len(env_vars):
+            pass
 
 
 if __name__ == "__main__":
