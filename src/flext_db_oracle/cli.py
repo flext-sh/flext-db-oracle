@@ -50,12 +50,12 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, NoReturn, Protocol, cast
+from typing import Literal, NoReturn, Protocol, cast
 
 import click
 from flext_cli.core.formatters import OutputFormatter
 from flext_cli.ecosystem_integration import FlextCliConfigFactory
-from flext_core import get_logger
+from flext_core import FlextPlugin, get_logger
 from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
@@ -65,9 +65,6 @@ from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import ORACLE_DEFAULT_PORT
 from flext_db_oracle.plugins import register_all_oracle_plugins
-
-if TYPE_CHECKING:
-    from flext_core import FlextPlugin
 
 
 # Helper function to wrap OutputFormatter
@@ -97,40 +94,42 @@ class CliErrorHandler:
     """Helper class for CLI error handling - REDUCES COMPLEXITY in command functions."""
 
     def __init__(self, console: Console) -> None:
-        """Initialize error handler."""
-        self._console = console
+      """Initialize error handler."""
+      self._console = console
 
     def print_error(self, message: str) -> None:
-        """Print error message with red formatting."""
-        self._console.print(f"[red]{message}[/red]")
+      """Print error message with red formatting."""
+      self._console.print(f"[red]{message}[/red]")
 
     def print_error_exception(self, exception: Exception) -> None:
-        """Print exception as error."""
-        self._console.print(f"[red]Error: {exception}[/red]")
+      """Print exception as error."""
+      self._console.print(f"[red]Error: {exception}[/red]")
 
     def print_no_data_error(self, operation: str) -> None:
-        """Print no data error."""
-        self._console.print(f"[red]{operation} returned no data[/red]")
+      """Print no data error."""
+      self._console.print(f"[red]{operation} returned no data[/red]")
 
     def handle_no_data_error_with_exception(self, operation: str) -> NoReturn:
-        """Handle no data error with print and CLI exception."""
-        self.print_no_data_error(operation)
-        self.raise_cli_error(f"{operation} returned no data")
+      """Handle no data error with print and CLI exception."""
+      self.print_no_data_error(operation)
+      self.raise_cli_error(f"{operation} returned no data")
 
     def handle_operation_failure_with_exception(
-        self, operation: str, error: str,
+      self,
+      operation: str,
+      error: str,
     ) -> None:
-        """Handle operation failure with print and CLI exception."""
-        self.print_error(f"{operation} failed: {error}")
-        self.raise_cli_error(f"{operation} failed: {error}")
+      """Handle operation failure with print and CLI exception."""
+      self.print_error(f"{operation} failed: {error}")
+      self.raise_cli_error(f"{operation} failed: {error}")
 
     def raise_cli_error(self, message: str) -> NoReturn:
-        """Raise ClickException with message."""
-        raise click.ClickException(message)
+      """Raise ClickException with message."""
+      raise click.ClickException(message)
 
     def raise_cli_exception_from_exception(self, exception: Exception) -> NoReturn:
-        """Raise ClickException from exception."""
-        raise click.ClickException(str(exception)) from exception
+      """Raise ClickException from exception."""
+      raise click.ClickException(str(exception)) from exception
 
 
 class CliDataValidator:
@@ -138,76 +137,76 @@ class CliDataValidator:
 
     @staticmethod
     def safe_get_test_data(
-        test_data: dict[str, object] | None,
-        key: str,
-        default: object = None,
+      test_data: dict[str, object] | None,
+      key: str,
+      default: object = None,
     ) -> object:
-        """Safely get value from test_data dict."""
-        return test_data.get(key, default) if test_data is not None else default
+      """Safely get value from test_data dict."""
+      return test_data.get(key, default) if test_data is not None else default
 
     @staticmethod
     def safe_get_query_data_attr(
-        query_data: object | None,
-        attr: str,
-        default: object = None,
+      query_data: object | None,
+      attr: str,
+      default: object = None,
     ) -> object:
-        """Safely get attribute from query_data."""
-        return getattr(query_data, attr, default) if query_data is not None else default
+      """Safely get attribute from query_data."""
+      return getattr(query_data, attr, default) if query_data is not None else default
 
     @staticmethod
     def safe_iterate_list(data_list: list[str] | None) -> list[str]:
-        """Safely iterate over list."""
-        return data_list if data_list is not None else []
+      """Safely iterate over list."""
+      return data_list if data_list is not None else []
 
     @staticmethod
     def safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
-        """Safely iterate over dict."""
-        return data_dict if data_dict is not None else {}
+      """Safely iterate over dict."""
+      return data_dict if data_dict is not None else {}
 
     @staticmethod
     def safe_get_list_length(obj: object) -> int:
-        """Safely get length of list-like object for display purposes."""
-        logger = get_logger(__name__)
+      """Safely get length of list-like object for display purposes."""
+      logger = get_logger(__name__)
 
-        if obj is None:
-            logger.debug("Object is None, returning 0 for display")
-            return 0
+      if obj is None:
+          logger.debug("Object is None, returning 0 for display")
+          return 0
 
-        if isinstance(obj, list):
-            length = len(obj)
-            logger.debug(f"List object has {length} items")
-            return length
+      if isinstance(obj, list):
+          length = len(obj)
+          logger.debug(f"List object has {length} items")
+          return length
 
-        if hasattr(obj, "__len__"):
-            try:
-                length = len(obj)
-                logger.debug(
-                    f"Successfully got length {length} from {type(obj).__name__}",
-                )
-                return length
-            except (TypeError, AttributeError) as e:
-                logger.info(
-                    f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
-                )
-                logger.info(
-                    "Returning 0 for display purposes - this is expected for some object types",
-                )
-                return 0
+      if hasattr(obj, "__len__"):
+          try:
+              length = len(obj)
+              logger.debug(
+                  f"Successfully got length {length} from {type(obj).__name__}",
+              )
+              return length
+          except (TypeError, AttributeError) as e:
+              logger.info(
+                  f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
+              )
+              logger.info(
+                  "Returning 0 for display purposes - this is expected for some object types",
+              )
+              return 0
 
-        logger.debug(
-            f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
-        )
-        return 0
+      logger.debug(
+          f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
+      )
+      return 0
 
     @staticmethod
     def extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
-        """Extract table name and schema from table_info object."""
-        if hasattr(table_info, "get"):
-            name = table_info.get("name", "") or str(table_info)
-            schema_name = table_info.get("schema", schema or "")
-            return name, schema_name
+      """Extract table name and schema from table_info object."""
+      if hasattr(table_info, "get"):
+          name = table_info.get("name", "") or str(table_info)
+          schema_name = table_info.get("schema", schema or "")
+          return name, schema_name
 
-        return str(table_info), schema or ""
+      return str(table_info), schema or ""
 
 
 # Global helpers for backward compatibility
@@ -340,17 +339,17 @@ def oracle(
     """Oracle Database CLI commands."""
     # Setup CLI context
     config_result = FlextCliConfigFactory.create_project_config(
-        project_name="flext-db-oracle",  # Fixed project name
-        profile=profile,
-        output_format=cast(
-            "Literal['table', 'json', 'yaml', 'csv', 'plain']",
-            output,
-        ),
-        debug=debug,
+      project_name="flext-db-oracle",  # Fixed project name
+      profile=profile,
+      output_format=cast(
+          "Literal['table', 'json', 'yaml', 'csv', 'plain']",
+          output,
+      ),
+      debug=debug,
     )
 
     if not config_result.success:
-        _raise_cli_error(f"Failed to create config: {config_result.error}")
+      _raise_cli_error(f"Failed to create config: {config_result.error}")
 
     config = config_result.unwrap()
 
@@ -397,11 +396,11 @@ def connect(
     """Connect to Oracle database and test connection."""
     # Extract and validate connection args - refatoração DRY real
     params = ConnectionParams(
-        host=str(connection_args["host"]),
-        port=int(connection_args["port"]),
-        service_name=str(connection_args["service_name"]),
-        username=str(connection_args["username"]),
-        password=str(connection_args["password"]),
+      host=str(connection_args["host"]),
+      port=int(connection_args["port"]),
+      service_name=str(connection_args["service_name"]),
+      username=str(connection_args["username"]),
+      password=str(connection_args["password"]),
     )
     _execute_connection_test(ctx, params)
 
@@ -417,166 +416,166 @@ class _ConnectionTestExecutor:
     """Connection test executor using Strategy + Template Method patterns - Single Responsibility."""
 
     def __init__(self, ctx: click.Context, params: ConnectionParams) -> None:
-        """Initialize connection test executor."""
-        self.ctx = ctx
-        self.params = params
-        self.config = ctx.obj["config"]
-        self.debug = ctx.obj["debug"]
+      """Initialize connection test executor."""
+      self.ctx = ctx
+      self.params = params
+      self.config = ctx.obj["config"]
+      self.debug = ctx.obj["debug"]
 
     def execute(self) -> None:
-        """Template Method: Execute connection test with structured phases."""
-        try:
-            # Phase 1: Setup
-            api = self._setup_connection()
+      """Template Method: Execute connection test with structured phases."""
+      try:
+          # Phase 1: Setup
+          api = self._setup_connection()
 
-            # Phase 2: Connect
-            self._establish_connection(api)
+          # Phase 2: Connect
+          self._establish_connection(api)
 
-            # Phase 3: Test
-            test_result = self._perform_connection_test(api)
+          # Phase 3: Test
+          test_result = self._perform_connection_test(api)
 
-            # Phase 4: Handle Result
-            self._handle_test_result(test_result)
+          # Phase 4: Handle Result
+          self._handle_test_result(test_result)
 
-        except (
-            click.ClickException,
-            ValueError,
-            TypeError,
-            AttributeError,
-            ConnectionError,
-            OSError,
-        ) as e:
-            self._handle_exception(e)
+      except (
+          click.ClickException,
+          ValueError,
+          TypeError,
+          AttributeError,
+          ConnectionError,
+          OSError,
+      ) as e:
+          self._handle_exception(e)
 
     def _setup_connection(self) -> FlextDbOracleApi:
-        """Set up connection configuration - Single Responsibility."""
-        oracle_config = self._create_oracle_config()
-        return FlextDbOracleApi(oracle_config, context_name="cli")
+      """Set up connection configuration - Single Responsibility."""
+      oracle_config = self._create_oracle_config()
+      return FlextDbOracleApi(oracle_config, context_name="cli")
 
     def _create_oracle_config(self) -> FlextDbOracleConfig:
-        """Create Oracle configuration with defaults - Single Responsibility."""
-        return FlextDbOracleConfig(
-            host=self.params.host,
-            port=self.params.port,
-            service_name=self.params.service_name,
-            username=self.params.username,
-            password=SecretStr(self.params.password),
-            oracle_schema="DEFAULT",
-            sid=None,  # Usando service_name
-            pool_min=1,
-            pool_max=10,
-            pool_increment=1,
-            timeout=30,
-            encoding="UTF-8",
-            ssl_enabled=False,
-            ssl_cert_path=None,
-            ssl_key_path=None,
-            protocol="tcp",
-            ssl_server_dn_match=True,
-            ssl_server_cert_dn=None,
-            autocommit=False,
-        )
+      """Create Oracle configuration with defaults - Single Responsibility."""
+      return FlextDbOracleConfig(
+          host=self.params.host,
+          port=self.params.port,
+          service_name=self.params.service_name,
+          username=self.params.username,
+          password=SecretStr(self.params.password),
+          oracle_schema="DEFAULT",
+          sid=None,  # Usando service_name
+          pool_min=1,
+          pool_max=10,
+          pool_increment=1,
+          timeout=30,
+          encoding="UTF-8",
+          ssl_enabled=False,
+          ssl_cert_path=None,
+          ssl_key_path=None,
+          protocol="tcp",
+          ssl_server_dn_match=True,
+          ssl_server_cert_dn=None,
+          autocommit=False,
+      )
 
     def _establish_connection(self, api: FlextDbOracleApi) -> None:
-        """Establish database connection - Single Responsibility."""
-        if self.debug:
-            console.print(
-                f"[blue]Connecting to {self.params.host}:{self.params.port}/{self.params.service_name}...[/blue]",
-            )
-        api.connect()
+      """Establish database connection - Single Responsibility."""
+      if self.debug:
+          console.print(
+              f"[blue]Connecting to {self.params.host}:{self.params.port}/{self.params.service_name}...[/blue]",
+          )
+      api.connect()
 
     def _perform_connection_test(self, api: FlextDbOracleApi) -> object:
-        """Perform connection test with observability - Single Responsibility."""
-        return api.test_connection_with_observability()
+      """Perform connection test with observability - Single Responsibility."""
+      return api.test_connection_with_observability()
 
     def _handle_test_result(self, test_result: object) -> None:
-        """Handle test result based on success/failure - Single Responsibility."""
-        if hasattr(test_result, "success") and test_result.success:
-            self._handle_successful_test(test_result)
-        else:
-            self._handle_failed_test(test_result)
+      """Handle test result based on success/failure - Single Responsibility."""
+      if hasattr(test_result, "success") and test_result.success:
+          self._handle_successful_test(test_result)
+      else:
+          self._handle_failed_test(test_result)
 
     def _handle_successful_test(self, test_result: object) -> None:
-        """Handle successful connection test - Single Responsibility."""
-        test_data = getattr(test_result, "data", None)
+      """Handle successful connection test - Single Responsibility."""
+      test_data = getattr(test_result, "data", None)
 
-        if test_data is None:
-            _handle_no_data_error_with_cli_exception("Connection test")
+      if test_data is None:
+          _handle_no_data_error_with_cli_exception("Connection test")
 
-        self._display_success_panel(test_data)
-        self._display_health_data(test_data)
+      self._display_success_panel(test_data)
+      self._display_health_data(test_data)
 
     def _display_success_panel(self, test_data: object) -> None:
-        """Display connection success panel - Single Responsibility."""
-        # Type-safe conversion for _safe_get_test_data
-        test_data_dict = test_data if isinstance(test_data, dict) else None
+      """Display connection success panel - Single Responsibility."""
+      # Type-safe conversion for _safe_get_test_data
+      test_data_dict = test_data if isinstance(test_data, dict) else None
 
-        info_panel = Panel(
-            f"""✅ **Connection Successful**
+      info_panel = Panel(
+          f"""✅ **Connection Successful**
 
 Host: {self.params.host}
 Port: {self.params.port}
 Service: {self.params.service_name}
 Status: {_safe_get_test_data(test_data_dict, "status", "unknown")}
 Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms""",
-            title="Oracle Connection",
-            border_style="green",
-        )
-        console.print(info_panel)
+          title="Oracle Connection",
+          border_style="green",
+      )
+      console.print(info_panel)
 
     def _display_health_data(self, test_data: object) -> None:
-        """Display health data if available - Single Responsibility."""
-        # Type-safe conversion for _safe_get_test_data
-        test_data_dict = test_data if isinstance(test_data, dict) else None
+      """Display health data if available - Single Responsibility."""
+      # Type-safe conversion for _safe_get_test_data
+      test_data_dict = test_data if isinstance(test_data, dict) else None
 
-        health_data = _safe_get_test_data(test_data_dict, "health", {})
-        if not (health_data and isinstance(health_data, dict)):
-            return
+      health_data = _safe_get_test_data(test_data_dict, "health", {})
+      if not (health_data and isinstance(health_data, dict)):
+          return
 
-        output_data = self._prepare_health_output_data(test_data_dict, health_data)
+      output_data = self._prepare_health_output_data(test_data_dict, health_data)
 
-        if self.config.output_format == "table":
-            self._display_health_table(output_data)
-        else:
-            format_output(output_data, self.config.output_format, console)
+      if self.config.output_format == "table":
+          self._display_health_table(output_data)
+      else:
+          format_output(output_data, self.config.output_format, console)
 
     def _prepare_health_output_data(
-        self,
-        test_data: dict[str, object] | None,
-        health_data: dict[str, object],
+      self,
+      test_data: dict[str, object] | None,
+      health_data: dict[str, object],
     ) -> dict[str, object]:
-        """Prepare health data for output - Single Responsibility."""
-        return {
-            "connection_status": _safe_get_test_data(test_data, "status"),
-            "test_duration_ms": _safe_get_test_data(test_data, "test_duration_ms"),
-            "health_status": health_data.get("status"),
-            "health_message": health_data.get("message"),
-            "metrics": health_data.get("metrics", {}),
-        }
+      """Prepare health data for output - Single Responsibility."""
+      return {
+          "connection_status": _safe_get_test_data(test_data, "status"),
+          "test_duration_ms": _safe_get_test_data(test_data, "test_duration_ms"),
+          "health_status": health_data.get("status"),
+          "health_message": health_data.get("message"),
+          "metrics": health_data.get("metrics", {}),
+      }
 
     def _display_health_table(self, output_data: dict[str, object]) -> None:
-        """Display health data as table - Single Responsibility."""
-        table = Table(title="Connection Details")
-        table.add_column("Property", style="cyan")
-        table.add_column("Value", style="green")
+      """Display health data as table - Single Responsibility."""
+      table = Table(title="Connection Details")
+      table.add_column("Property", style="cyan")
+      table.add_column("Value", style="green")
 
-        for key, value in output_data.items():
-            formatted_value = (
-                json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
-            )
-            table.add_row(key.replace("_", " ").title(), formatted_value)
+      for key, value in output_data.items():
+          formatted_value = (
+              json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
+          )
+          table.add_row(key.replace("_", " ").title(), formatted_value)
 
-        console.print(table)
+      console.print(table)
 
     def _handle_failed_test(self, test_result: object) -> None:
-        """Handle failed connection test - Single Responsibility."""
-        error = getattr(test_result, "error", "Unknown error")
-        _handle_operation_failure_with_cli_exception("Connection", error)
+      """Handle failed connection test - Single Responsibility."""
+      error = getattr(test_result, "error", "Unknown error")
+      _handle_operation_failure_with_cli_exception("Connection", error)
 
     def _handle_exception(self, exception: Exception) -> None:
-        """Handle exceptions during connection test - Single Responsibility."""
-        _print_error_exception(exception)
-        _raise_cli_exception_from_exception(exception)
+      """Handle exceptions during connection test - Single Responsibility."""
+      _print_error_exception(exception)
+      _raise_cli_exception_from_exception(exception)
 
 
 @oracle.command()
@@ -592,149 +591,149 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
     debug = ctx.obj["debug"]
 
     try:
-        if debug:
-            console.print(
-                f"[blue]Loading configuration from environment (prefix: {env_prefix})...[/blue]",
-            )
+      if debug:
+          console.print(
+              f"[blue]Loading configuration from environment (prefix: {env_prefix})...[/blue]",
+          )
 
-        # Create API from environment
-        api = FlextDbOracleApi.from_env(env_prefix=env_prefix, context_name="cli")
+      # Create API from environment
+      api = FlextDbOracleApi.from_env(env_prefix=env_prefix, context_name="cli")
 
-        # Test connection
-        test_result = api.test_connection_with_observability()
+      # Test connection
+      test_result = api.test_connection_with_observability()
 
-        if test_result.success:
-            test_data = test_result.data
+      if test_result.success:
+          test_data = test_result.data
 
-            console.print(
-                Panel(
-                    f"""✅ **Connection Successful (from environment)**
+          console.print(
+              Panel(
+                  f"""✅ **Connection Successful (from environment)**
 
 Status: {_safe_get_test_data(test_data, "status", "unknown")}
 Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
-                    title="Oracle Connection",
-                    border_style="green",
-                ),
-            )
+                  title="Oracle Connection",
+                  border_style="green",
+              ),
+          )
 
-            # Output health data
-            health_data = _safe_get_test_data(test_data, "health", {})
-            if health_data and config.output_format != "table":
-                format_output(health_data, config.output_format, console)
-        else:
-            _handle_operation_failure_with_cli_exception(
-                "Connection",
-                test_result.error or "Unknown connection error",
-            )
+          # Output health data
+          health_data = _safe_get_test_data(test_data, "health", {})
+          if health_data and config.output_format != "table":
+              format_output(health_data, config.output_format, console)
+      else:
+          _handle_operation_failure_with_cli_exception(
+              "Connection",
+              test_result.error or "Unknown connection error",
+          )
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 class QueryResultProcessor:
     """refactoring: Single Responsibility for query result processing."""
 
     def __init__(self, config: ConfigProtocol, console: Console) -> None:
-        """Initialize result processor."""
-        self.config = config
-        self.console = console
+      """Initialize result processor."""
+      self.config = config
+      self.console = console
 
     def process_success(
-        self,
-        query_data: object,
-        results: list[object],
-        limit: int | None,
+      self,
+      query_data: object,
+      results: list[object],
+      limit: int | None,
     ) -> None:
-        """Process successful query results."""
-        # Apply limit if specified
-        limited_results = self._apply_limit(results, limit)
+      """Process successful query results."""
+      # Apply limit if specified
+      limited_results = self._apply_limit(results, limit)
 
-        # Display summary panel
-        self._display_summary_panel(query_data)
+      # Display summary panel
+      self._display_summary_panel(query_data)
 
-        # Display results based on format
-        if self.config.output_format == "table" and limited_results:
-            self._display_as_table(query_data, limited_results)
-        else:
-            self._display_as_structured_output(query_data, limited_results)
+      # Display results based on format
+      if self.config.output_format == "table" and limited_results:
+          self._display_as_table(query_data, limited_results)
+      else:
+          self._display_as_structured_output(query_data, limited_results)
 
     def _apply_limit(self, results: list[object], limit: int | None) -> list[object]:
-        """Apply row limit to results."""
-        if limit and isinstance(results, list) and len(results) > limit:
-            self.console.print(f"[yellow]Results limited to {limit} rows[/yellow]")
-            return results[:limit]
-        return results
+      """Apply row limit to results."""
+      if limit and isinstance(results, list) and len(results) > limit:
+          self.console.print(f"[yellow]Results limited to {limit} rows[/yellow]")
+          return results[:limit]
+      return results
 
     def _display_summary_panel(self, query_data: object) -> None:
-        """Display query execution summary."""
-        execution_time = _safe_get_query_data_attr(query_data, "execution_time_ms", 0)
-        row_count = _safe_get_query_data_attr(query_data, "row_count", 0)
-        columns = _safe_get_query_data_attr(query_data, "columns", [])
+      """Display query execution summary."""
+      execution_time = _safe_get_query_data_attr(query_data, "execution_time_ms", 0)
+      row_count = _safe_get_query_data_attr(query_data, "row_count", 0)
+      columns = _safe_get_query_data_attr(query_data, "columns", [])
 
-        self.console.print(
-            Panel(
-                f"""✅ **Query Executed Successfully**
+      self.console.print(
+          Panel(
+              f"""✅ **Query Executed Successfully**
 
 Execution Time: {execution_time:.2f}ms
 Rows Returned: {row_count}
 Columns: {_safe_get_list_length(columns)}""",
-                title="Query Results",
-                border_style="green",
-            ),
-        )
+              title="Query Results",
+              border_style="green",
+          ),
+      )
 
     def _display_as_table(
-        self,
-        query_data: object,
-        results: list[object],
+      self,
+      query_data: object,
+      results: list[object],
     ) -> None:
-        """Display results as rich table."""
-        table: Table = Table(title=f"Query Results ({len(results)} rows)")
+      """Display results as rich table."""
+      table: Table = Table(title=f"Query Results ({len(results)} rows)")
 
-        # Add columns
-        columns = _safe_get_query_data_attr(query_data, "columns", [])
-        if columns and isinstance(columns, list):
-            for col in columns:
-                table.add_column(str(col), style="cyan")
+      # Add columns
+      columns = _safe_get_query_data_attr(query_data, "columns", [])
+      if columns and isinstance(columns, list):
+          for col in columns:
+              table.add_column(str(col), style="cyan")
 
-        # Add rows
-        for row in results:
-            # Ensure row is iterable (tuple, list, etc.)
-            if hasattr(row, "__iter__") and not isinstance(row, (str, bytes)):
-                table.add_row(
-                    *[str(cell) if cell is not None else "NULL" for cell in row],
-                )
-            else:
-                # Single value row
-                table.add_row(str(row) if row is not None else "NULL")
+      # Add rows
+      for row in results:
+          # Ensure row is iterable (tuple, list, etc.)
+          if hasattr(row, "__iter__") and not isinstance(row, (str, bytes)):
+              table.add_row(
+                  *[str(cell) if cell is not None else "NULL" for cell in row],
+              )
+          else:
+              # Single value row
+              table.add_row(str(row) if row is not None else "NULL")
 
-        self.console.print(table)
+      self.console.print(table)
 
     def _display_as_structured_output(
-        self,
-        query_data: object,
-        results: list[object],
+      self,
+      query_data: object,
+      results: list[object],
     ) -> None:
-        """Display results as structured output."""
-        output_data = {
-            "execution_time_ms": _safe_get_query_data_attr(
-                query_data,
-                "execution_time_ms",
-                0,
-            ),
-            "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
-            "columns": _safe_get_query_data_attr(query_data, "columns", []),
-            "rows": results,
-        }
-        format_output(output_data, self.config.output_format, self.console)
+      """Display results as structured output."""
+      output_data = {
+          "execution_time_ms": _safe_get_query_data_attr(
+              query_data,
+              "execution_time_ms",
+              0,
+          ),
+          "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
+          "columns": _safe_get_query_data_attr(query_data, "columns", []),
+          "rows": results,
+      }
+      format_output(output_data, self.config.output_format, self.console)
 
 
 @oracle.command()
@@ -755,44 +754,44 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
     debug = ctx.obj["debug"]
 
     try:
-        # Create API from environment
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      # Create API from environment
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        if debug:
-            console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
+      if debug:
+          console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
 
-        with api:
-            # Execute query with timing
-            query_result = api.query_with_timing(sql)
+      with api:
+          # Execute query with timing
+          query_result = api.query_with_timing(sql)
 
-            if query_result.success:
-                query_data = query_result.data
+          if query_result.success:
+              query_data = query_result.data
 
-                results: list[object] = cast(
-                    "list[object]",
-                    _safe_get_query_data_attr(query_data, "rows", []),
-                )
+              results: list[object] = cast(
+                  "list[object]",
+                  _safe_get_query_data_attr(query_data, "rows", []),
+              )
 
-                # Use SOLID processor for result handling
-                processor = QueryResultProcessor(config, console)
-                processor.process_success(query_data, results, limit)
+              # Use SOLID processor for result handling
+              processor = QueryResultProcessor(config, console)
+              processor.process_success(query_data, results, limit)
 
-            else:
-                _handle_operation_failure_with_cli_exception(
-                    "Query",
-                    query_result.error or "Unknown query error",
-                )
+          else:
+              _handle_operation_failure_with_cli_exception(
+                  "Query",
+                  query_result.error or "Unknown query error",
+              )
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -802,54 +801,54 @@ def schemas(ctx: click.Context) -> None:
     config = ctx.obj["config"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        with api:
-            schemas_result = api.get_schemas()
+      with api:
+          schemas_result = api.get_schemas()
 
-            if schemas_result.success:
-                schema_list = schemas_result.data
+          if schemas_result.success:
+              schema_list = schemas_result.data
 
-                console.print(
-                    Panel(
-                        f"""✅ **Schemas Retrieved**
+              console.print(
+                  Panel(
+                      f"""✅ **Schemas Retrieved**
 
 Total Schemas: {len(_safe_iterate_list(schema_list))}""",
-                        title="Oracle Schemas",
-                        border_style="green",
-                    ),
-                )
+                      title="Oracle Schemas",
+                      border_style="green",
+                  ),
+              )
 
-                if config.output_format == "table":
-                    table = Table(title="Oracle Schemas")
-                    table.add_column("Schema Name", style="cyan")
+              if config.output_format == "table":
+                  table = Table(title="Oracle Schemas")
+                  table.add_column("Schema Name", style="cyan")
 
-                    for schema in _safe_iterate_list(schema_list):
-                        table.add_row(str(schema))
+                  for schema in _safe_iterate_list(schema_list):
+                      table.add_row(str(schema))
 
-                    console.print(table)
-                else:
-                    format_output(
-                        {"schemas": schema_list},
-                        config.output_format,
-                        console,
-                    )
-            else:
-                console.print(
-                    f"[red]Failed to retrieve schemas: {schemas_result.error}[/red]",
-                )
-                _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
+                  console.print(table)
+              else:
+                  format_output(
+                      {"schemas": schema_list},
+                      config.output_format,
+                      console,
+                  )
+          else:
+              console.print(
+                  f"[red]Failed to retrieve schemas: {schemas_result.error}[/red]",
+              )
+              _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -863,143 +862,143 @@ def tables(ctx: click.Context, schema: str | None) -> None:
     config = ctx.obj["config"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        with api:
-            tables_result = api.get_tables(schema)
+      with api:
+          tables_result = api.get_tables(schema)
 
-            if tables_result.success:
-                table_list = tables_result.data
+          if tables_result.success:
+              table_list = tables_result.data
 
-                title = f"Oracle Tables{f' in {schema}' if schema else ''}"
-                console.print(
-                    Panel(
-                        f"""✅ **Tables Retrieved**
+              title = f"Oracle Tables{f' in {schema}' if schema else ''}"
+              console.print(
+                  Panel(
+                      f"""✅ **Tables Retrieved**
 
 Total Tables: {len(_safe_iterate_list(table_list))}
 Schema: {schema or "All"}""",
-                        title=title,
-                        border_style="green",
-                    ),
-                )
+                      title=title,
+                      border_style="green",
+                  ),
+              )
 
-                if config.output_format == "table":
-                    table = Table(title=title)
-                    table.add_column("Table Name", style="cyan")
-                    table.add_column("Schema", style="yellow")
+              if config.output_format == "table":
+                  table = Table(title=title)
+                  table.add_column("Table Name", style="cyan")
+                  table.add_column("Schema", style="yellow")
 
-                    for table_info in _safe_iterate_list(table_list):
-                        # Extract table info using helper function - eliminates deep nesting
-                        name, schema_name = _extract_table_info(table_info, schema)
-                        table.add_row(name, schema_name)
+                  for table_info in _safe_iterate_list(table_list):
+                      # Extract table info using helper function - eliminates deep nesting
+                      name, schema_name = _extract_table_info(table_info, schema)
+                      table.add_row(name, schema_name)
 
-                    console.print(table)
-                else:
-                    format_output({"tables": table_list}, config.output_format, console)
-            else:
-                console.print(
-                    f"[red]Failed to retrieve tables: {tables_result.error}[/red]",
-                )
-                _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
+                  console.print(table)
+              else:
+                  format_output({"tables": table_list}, config.output_format, console)
+          else:
+              console.print(
+                  f"[red]Failed to retrieve tables: {tables_result.error}[/red]",
+              )
+              _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 class PluginManagerProcessor:
     """refactoring: Single Responsibility for plugin management operations."""
 
     def __init__(self, config: ConfigProtocol, console: Console) -> None:
-        """Initialize plugin manager processor."""
-        self.config = config
-        self.console = console
+      """Initialize plugin manager processor."""
+      self.config = config
+      self.console = console
 
     def handle_registration_success(self, registration_results: dict[str, str]) -> None:
-        """Handle successful plugin registration - Single Responsibility."""
-        self._display_registration_success_panel()
-        self._display_registration_results(registration_results)
+      """Handle successful plugin registration - Single Responsibility."""
+      self._display_registration_success_panel()
+      self._display_registration_results(registration_results)
 
     def handle_plugin_list_success(self, plugin_list: list[FlextPlugin]) -> None:
-        """Handle successful plugin listing - Single Responsibility."""
-        self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
+      """Handle successful plugin listing - Single Responsibility."""
+      self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
 
-        if self.config.output_format == "table":
-            self._display_plugins_table(plugin_list)
-        else:
-            self._display_plugins_structured(plugin_list)
+      if self.config.output_format == "table":
+          self._display_plugins_table(plugin_list)
+      else:
+          self._display_plugins_structured(plugin_list)
 
     def _display_registration_success_panel(self) -> None:
-        """Display registration success panel."""
-        self.console.print(
-            Panel(
-                """✅ **Plugin Registration Complete**""",
-                title="Oracle Plugins",
-                border_style="green",
-            ),
-        )
+      """Display registration success panel."""
+      self.console.print(
+          Panel(
+              """✅ **Plugin Registration Complete**""",
+              title="Oracle Plugins",
+              border_style="green",
+          ),
+      )
 
     def _display_registration_results(
-        self,
-        registration_results: dict[str, str],
+      self,
+      registration_results: dict[str, str],
     ) -> None:
-        """Display registration results based on output format."""
-        if self.config.output_format == "table":
-            self._display_registration_table(registration_results)
-        else:
-            format_output(registration_results, self.config.output_format, self.console)
+      """Display registration results based on output format."""
+      if self.config.output_format == "table":
+          self._display_registration_table(registration_results)
+      else:
+          format_output(registration_results, self.config.output_format, self.console)
 
     def _display_registration_table(self, registration_results: dict[str, str]) -> None:
-        """Display registration results as table."""
-        table = Table(title="Plugin Registration Results")
-        table.add_column("Plugin Name", style="cyan")
-        table.add_column("Status", style="green")
+      """Display registration results as table."""
+      table = Table(title="Plugin Registration Results")
+      table.add_column("Plugin Name", style="cyan")
+      table.add_column("Status", style="green")
 
-        for plugin_name, status in _safe_iterate_dict(registration_results).items():
-            table.add_row(plugin_name, status)
+      for plugin_name, status in _safe_iterate_dict(registration_results).items():
+          table.add_row(plugin_name, status)
 
-        self.console.print(table)
+      self.console.print(table)
 
     def _display_plugins_table(self, plugin_list: list[FlextPlugin]) -> None:
-        """Display plugins as rich table."""
-        plugin_table = Table(title="Available Plugins")
-        plugin_table.add_column("Name", style="cyan")
-        plugin_table.add_column("Version", style="yellow")
-        plugin_table.add_column("Type", style="magenta")
-        plugin_table.add_column("Description", style="white")
+      """Display plugins as rich table."""
+      plugin_table = Table(title="Available Plugins")
+      plugin_table.add_column("Name", style="cyan")
+      plugin_table.add_column("Version", style="yellow")
+      plugin_table.add_column("Type", style="magenta")
+      plugin_table.add_column("Description", style="white")
 
-        for plugin in plugin_list:
-            plugin_info = plugin.get_info()
-            plugin_table.add_row(
-                str(plugin_info.get("name", "unknown")),
-                str(plugin_info.get("version", "unknown")),
-                str(plugin_info.get("plugin_type", "unknown")),
-                str(plugin_info.get("description", "")),
-            )
+      for plugin in plugin_list:
+          plugin_info = plugin.get_info()
+          plugin_table.add_row(
+              str(plugin_info.get("name", "unknown")),
+              str(plugin_info.get("version", "unknown")),
+              str(plugin_info.get("plugin_type", "unknown")),
+              str(plugin_info.get("description", "")),
+          )
 
-        self.console.print(plugin_table)
+      self.console.print(plugin_table)
 
     def _display_plugins_structured(self, plugin_list: list[FlextPlugin]) -> None:
-        """Display plugins as structured output."""
-        plugin_data: list[dict[str, object]] = []
-        for p in plugin_list:
-            plugin_info = p.get_info()
-            plugin_data.append(
-                {
-                    "name": plugin_info.get("name", "unknown"),
-                    "version": plugin_info.get("version", "unknown"),
-                    "type": plugin_info.get("plugin_type", "unknown"),
-                    "description": plugin_info.get("description", ""),
-                },
-            )
-        format_output({"plugins": plugin_data}, self.config.output_format, self.console)
+      """Display plugins as structured output."""
+      plugin_data: list[dict[str, object]] = []
+      for p in plugin_list:
+          plugin_info = p.get_info()
+          plugin_data.append(
+              {
+                  "name": plugin_info.get("name", "unknown"),
+                  "version": plugin_info.get("version", "unknown"),
+                  "type": plugin_info.get("plugin_type", "unknown"),
+                  "description": plugin_info.get("description", ""),
+              },
+          )
+      format_output({"plugins": plugin_data}, self.config.output_format, self.console)
 
 
 @oracle.command()
@@ -1009,39 +1008,39 @@ def plugins(ctx: click.Context) -> None:
     config = ctx.obj["config"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        with api:
-            # Use SOLID processor for plugin management
-            processor = PluginManagerProcessor(config, console)
+      with api:
+          # Use SOLID processor for plugin management
+          processor = PluginManagerProcessor(config, console)
 
-            # Register all Oracle plugins
-            register_result = register_all_oracle_plugins(api)
+          # Register all Oracle plugins
+          register_result = register_all_oracle_plugins(api)
 
-            if register_result.success:
-                registration_results = register_result.data
-                processor.handle_registration_success(registration_results)
+          if register_result.success:
+              registration_results = register_result.data
+              processor.handle_registration_success(registration_results)
 
-                # List all plugins
-                plugins_result = api.list_plugins()
-                if plugins_result.success and plugins_result.data:
-                    processor.handle_plugin_list_success(plugins_result.data)
-            else:
-                console.print(
-                    f"[red]Plugin registration failed: {register_result.error}[/red]",
-                )
-                _raise_cli_error(f"Plugin registration failed: {register_result.error}")
+              # List all plugins
+              plugins_result = api.list_plugins()
+              if plugins_result.success and plugins_result.data:
+                  processor.handle_plugin_list_success(plugins_result.data)
+          else:
+              console.print(
+                  f"[red]Plugin registration failed: {register_result.error}[/red]",
+              )
+              _raise_cli_error(f"Plugin registration failed: {register_result.error}")
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -1056,56 +1055,56 @@ def optimize(ctx: click.Context, sql: str) -> None:
     config = ctx.obj["config"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        with api:
-            optimize_result = api.optimize_query(sql)
+      with api:
+          optimize_result = api.optimize_query(sql)
 
-            if optimize_result.success:
-                optimization_data = optimize_result.data
+          if optimize_result.success:
+              optimization_data = optimize_result.data
 
-                suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
+              suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
-                console.print(
-                    Panel(
-                        f"""✅ **Query Analysis Complete**
+              console.print(
+                  Panel(
+                      f"""✅ **Query Analysis Complete**
 
 SQL Length: {_safe_get_test_data(optimization_data, "sql_length", 0)} characters
 Has JOINs: {_safe_get_test_data(optimization_data, "has_joins", default=False)}
 Has Subqueries: {_safe_get_test_data(optimization_data, "has_subqueries", default=False)}
 Suggestions: {_safe_get_list_length(suggestions)}""",
-                        title="Query Optimization",
-                        border_style="green",
-                    ),
-                )
+                      title="Query Optimization",
+                      border_style="green",
+                  ),
+              )
 
-                if suggestions and isinstance(suggestions, list):
-                    console.print("\n[yellow]Optimization Suggestions:[/yellow]")
-                    for i, suggestion in enumerate(suggestions, 1):
-                        console.print(f"  {i}. {suggestion}")
-                else:
-                    console.print(
-                        "\n[green]No optimization suggestions - query looks good![/green]",
-                    )
+              if suggestions and isinstance(suggestions, list):
+                  console.print("\n[yellow]Optimization Suggestions:[/yellow]")
+                  for i, suggestion in enumerate(suggestions, 1):
+                      console.print(f"  {i}. {suggestion}")
+              else:
+                  console.print(
+                      "\n[green]No optimization suggestions - query looks good![/green]",
+                  )
 
-                if config.output_format != "table":
-                    format_output(optimization_data, config.output_format, console)
-            else:
-                console.print(
-                    f"[red]Query optimization failed: {optimize_result.error}[/red]",
-                )
-                _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
+              if config.output_format != "table":
+                  format_output(optimization_data, config.output_format, console)
+          else:
+              console.print(
+                  f"[red]Query optimization failed: {optimize_result.error}[/red]",
+              )
+              _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 @oracle.command()
@@ -1115,77 +1114,77 @@ def health(ctx: click.Context) -> None:
     config = ctx.obj["config"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+      api = FlextDbOracleApi.from_env(context_name="cli")
 
-        with api:
-            health_result = api.get_health_status()
+      with api:
+          health_result = api.get_health_status()
 
-            if health_result.success:
-                health_data = health_result.data
+          if health_result.success:
+              health_data = health_result.data
 
-                status = getattr(health_data, "status", "unknown")
-                status_color = {
-                    "healthy": "green",
-                    "degraded": "yellow",
-                    "unhealthy": "red",
-                }.get(status, "white")
+              status = getattr(health_data, "status", "unknown")
+              status_color = {
+                  "healthy": "green",
+                  "degraded": "yellow",
+                  "unhealthy": "red",
+              }.get(status, "white")
 
-                component = getattr(health_data, "component", "unknown")
-                message = getattr(health_data, "message", "No message")
-                timestamp = getattr(health_data, "timestamp", None)
-                timestamp_str = timestamp.isoformat() if timestamp else "N/A"
+              component = getattr(health_data, "component", "unknown")
+              message = getattr(health_data, "message", "No message")
+              timestamp = getattr(health_data, "timestamp", None)
+              timestamp_str = timestamp.isoformat() if timestamp else "N/A"
 
-                console.print(
-                    Panel(
-                        f"""**Health Status: [{status_color}]{status.upper()}[/{status_color}]**
+              console.print(
+                  Panel(
+                      f"""**Health Status: [{status_color}]{status.upper()}[/{status_color}]**
 
 Component: {component}
 Message: {message}
 Timestamp: {timestamp_str}""",
-                        title="Oracle Health Check",
-                        border_style=status_color,
-                    ),
-                )
+                      title="Oracle Health Check",
+                      border_style=status_color,
+                  ),
+              )
 
-                # Show metrics com null check - refatoração DRY real
-                metrics = getattr(health_data, "metrics", {})
-                if metrics:
-                    if config.output_format == "table":
-                        metrics_table = Table(title="Health Metrics")
-                        metrics_table.add_column("Metric", style="cyan")
-                        metrics_table.add_column("Value", style="green")
+              # Show metrics com null check - refatoração DRY real
+              metrics = getattr(health_data, "metrics", {})
+              if metrics:
+                  if config.output_format == "table":
+                      metrics_table = Table(title="Health Metrics")
+                      metrics_table.add_column("Metric", style="cyan")
+                      metrics_table.add_column("Value", style="green")
 
-                        for key, value in metrics.items():
-                            metrics_table.add_row(
-                                key.replace("_", " ").title(),
-                                str(value),
-                            )
+                      for key, value in metrics.items():
+                          metrics_table.add_row(
+                              key.replace("_", " ").title(),
+                              str(value),
+                          )
 
-                        console.print(metrics_table)
-                    else:
-                        health_dict = {
-                            "status": status,
-                            "component": component,
-                            "message": message,
-                            "metrics": metrics,
-                            "timestamp": timestamp_str,
-                        }
-                        # format_output precisa de console como primeiro argumento
-                        format_output(health_dict, config.output_format, console)
-            else:
-                _print_error(f"Health check failed: {health_result.error}")
-                _raise_cli_error(f"Health check failed: {health_result.error}")
+                      console.print(metrics_table)
+                  else:
+                      health_dict = {
+                          "status": status,
+                          "component": component,
+                          "message": message,
+                          "metrics": metrics,
+                          "timestamp": timestamp_str,
+                      }
+                      # format_output precisa de console como primeiro argumento
+                      format_output(health_dict, config.output_format, console)
+          else:
+              _print_error(f"Health check failed: {health_result.error}")
+              _raise_cli_error(f"Health check failed: {health_result.error}")
 
     except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
+      OSError,
+      ValueError,
+      AttributeError,
+      RuntimeError,
+      TypeError,
+      KeyError,
     ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+      _print_error_exception(e)
+      _raise_cli_exception_from_exception(e)
 
 
 def main() -> None:

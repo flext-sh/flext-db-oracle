@@ -321,7 +321,7 @@ def setup_production_environment():
     api = FlextDbOracleApi(config, context_name="production")
 
     # Register monitoring plugins
-    from flext_db_oracle.plugins import register_all_oracle_plugins
+from flext_db_oracle.plugins import register_all_oracle_plugins
     register_all_oracle_plugins(api)
 
     return api

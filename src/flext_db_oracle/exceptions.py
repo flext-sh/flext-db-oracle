@@ -1,24 +1,38 @@
-"""Oracle Database Exception Hierarchy.
+"""Oracle Database Exception Hierarchy - Modern Pydantic v2 Patterns.
 
-Exception hierarchy following FLEXT patterns using factory pattern from flext-core.
-Eliminates code duplication by using create_module_exception_classes() factory.
+This module provides Oracle-specific exceptions using modern patterns from flext-core.
+All exceptions follow the FlextErrorMixin pattern with keyword-only arguments and
+modern Python 3.13 type aliases for comprehensive error handling in Oracle operations.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2025 FLEXT Contributors
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from enum import Enum
 
 from flext_core import FlextError
-
-# Oracle DB-specific exception classes following FLEXT patterns
-# Manual implementation instead of factory pattern to fix MyPy issues
+from flext_core.exceptions import FlextErrorMixin
 
 
-class FlextDbOracleError(FlextError):
+class FlextDbOracleErrorCodes(Enum):
+    """Error codes for Oracle database domain operations."""
+
+    ORACLE_ERROR = "ORACLE_ERROR"
+    ORACLE_VALIDATION_ERROR = "ORACLE_VALIDATION_ERROR"
+    ORACLE_CONFIGURATION_ERROR = "ORACLE_CONFIGURATION_ERROR"
+    ORACLE_CONNECTION_ERROR = "ORACLE_CONNECTION_ERROR"
+    ORACLE_PROCESSING_ERROR = "ORACLE_PROCESSING_ERROR"
+    ORACLE_AUTHENTICATION_ERROR = "ORACLE_AUTHENTICATION_ERROR"
+    ORACLE_TIMEOUT_ERROR = "ORACLE_TIMEOUT_ERROR"
+    ORACLE_QUERY_ERROR = "ORACLE_QUERY_ERROR"
+    ORACLE_METADATA_ERROR = "ORACLE_METADATA_ERROR"
+
+
+# Base Oracle database exception hierarchy using FlextErrorMixin pattern
+class FlextDbOracleError(FlextError, FlextErrorMixin):
     """Base Oracle database error."""
 
 
@@ -46,105 +60,125 @@ class FlextDbOracleTimeoutError(FlextDbOracleError):
     """Oracle database timeout error."""
 
 
-# =============================================================================
-# PARAMETER CLASSES - Reduces parameter count for complex constructors
-# =============================================================================
-
-
-@dataclass
-class OracleMetadataErrorParams:
-    """Parameters for Oracle metadata errors - REDUCES PARAMETER COUNT."""
-
-    schema_name: str | None = None
-    object_name: str | None = None
-    operation: str = "metadata_processing"
-
-    def to_context(self, **kwargs: object) -> dict[str, object]:
-        """Convert parameters to error context dictionary."""
-        context = dict(kwargs)
-        if self.schema_name is not None:
-            context["schema_name"] = self.schema_name
-        if self.object_name is not None:
-            context["object_name"] = self.object_name
-        context["operation"] = self.operation
-        return context
-
-
-@dataclass
-class OracleQueryErrorParams:
-    """Parameters for Oracle query errors - REDUCES PARAMETER COUNT."""
-
-    query: str | None = None
-    operation: str = "query_execution"
-
-    def to_context(self, **kwargs: object) -> dict[str, object]:
-        """Convert parameters to error context dictionary."""
-        context = dict(kwargs)
-        if self.query is not None:
-            context["query"] = self.query[:200]  # Truncate long queries for safety
-        context["operation"] = self.operation
-        return context
-
-
-# =============================================================================
-# DOMAIN-SPECIFIC EXCEPTIONS
-# =============================================================================
+# Domain-specific exceptions for Oracle business logic
+# Using modern FlextErrorMixin pattern with context support
 
 
 class FlextDbOracleQueryError(FlextDbOracleError):
     """Oracle database query errors with SQL query context."""
 
     def __init__(
-        self,
-        message: str = "Oracle database query error",
-        *,
-        params: OracleQueryErrorParams | None = None,
-        # Backward compatibility parameters
-        query: str | None = None,
-        operation: str = "query_execution",
-        **kwargs: object,
+      self,
+      message: str,
+      *,
+      query: str | None = None,
+      operation: str | None = None,
+      execution_time: float | None = None,
+      rows_affected: int | None = None,
+      code: FlextDbOracleErrorCodes
+      | None = FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR,
+      context: Mapping[str, object] | None = None,
     ) -> None:
-        """Initialize Oracle query error with SQL query context."""
-        if params is None:
-            params = OracleQueryErrorParams(query=query, operation=operation)
+      """Initialize Oracle query error with SQL query context."""
+      context_dict: dict[str, object] = dict(context) if context else {}
+      if query is not None:
+          # Truncate long queries for safety and readability
+          max_query_length = 200
+          context_dict["query"] = (
+              query[:max_query_length] + "..."
+              if len(query) > max_query_length
+              else query
+          )
+      if operation is not None:
+          context_dict["operation"] = operation
+      if execution_time is not None:
+          context_dict["execution_time"] = execution_time
+      if rows_affected is not None:
+          context_dict["rows_affected"] = rows_affected
 
-        context = params.to_context(**kwargs)
-        super().__init__(message, context=context)
+      super().__init__(
+          message,
+          code=code,
+          context=context_dict,
+      )
 
 
 class FlextDbOracleMetadataError(FlextDbOracleError):
     """Oracle database metadata errors with schema context."""
 
     def __init__(
-        self,
-        message: str = "Oracle database metadata error",
-        *,
-        params: OracleMetadataErrorParams | None = None,
-        # Backward compatibility parameters
-        schema_name: str | None = None,
-        object_name: str | None = None,
-        operation: str = "metadata_processing",
-        **kwargs: object,
+      self,
+      message: str,
+      *,
+      schema_name: str | None = None,
+      object_name: str | None = None,
+      object_type: str | None = None,
+      operation: str | None = None,
+      code: FlextDbOracleErrorCodes
+      | None = FlextDbOracleErrorCodes.ORACLE_METADATA_ERROR,
+      context: Mapping[str, object] | None = None,
     ) -> None:
-        """Initialize Oracle metadata error with schema context."""
-        if params is None:
-            params = OracleMetadataErrorParams(
-                schema_name=schema_name,
-                object_name=object_name,
-                operation=operation,
-            )
+      """Initialize Oracle metadata error with schema context."""
+      context_dict: dict[str, object] = dict(context) if context else {}
+      if schema_name is not None:
+          context_dict["schema_name"] = schema_name
+      if object_name is not None:
+          context_dict["object_name"] = object_name
+      if object_type is not None:
+          context_dict["object_type"] = object_type
+      if operation is not None:
+          context_dict["operation"] = operation
 
-        context = params.to_context(**kwargs)
-        super().__init__(message, context=context)
+      super().__init__(
+          message,
+          code=code,
+          context=context_dict,
+      )
 
 
-# Export all exceptions - factory-created + domain-specific
-__all__ = [
-    # Alphabetically sorted for RUF022 compliance
+class FlextDbOracleConnectionOperationError(FlextDbOracleConnectionError):
+    """Oracle connection operation errors with connection context."""
+
+    def __init__(
+      self,
+      message: str,
+      *,
+      host: str | None = None,
+      port: int | None = None,
+      service_name: str | None = None,
+      username: str | None = None,
+      connection_timeout: float | None = None,
+      code: FlextDbOracleErrorCodes
+      | None = FlextDbOracleErrorCodes.ORACLE_CONNECTION_ERROR,
+      context: Mapping[str, object] | None = None,
+    ) -> None:
+      """Initialize Oracle connection error with connection context."""
+      context_dict: dict[str, object] = dict(context) if context else {}
+      if host is not None:
+          context_dict["host"] = host
+      if port is not None:
+          context_dict["port"] = port
+      if service_name is not None:
+          context_dict["service_name"] = service_name
+      if username is not None:
+          context_dict["username"] = username
+      if connection_timeout is not None:
+          context_dict["connection_timeout"] = connection_timeout
+
+      super().__init__(
+          message,
+          code=code,
+          context=context_dict,
+      )
+
+
+__all__: list[str] = [
     "FlextDbOracleAuthenticationError",
     "FlextDbOracleConfigurationError",
     "FlextDbOracleConnectionError",
+    "FlextDbOracleConnectionOperationError",
     "FlextDbOracleError",
+    "FlextDbOracleErrorCodes",
     "FlextDbOracleMetadataError",
     "FlextDbOracleProcessingError",
     "FlextDbOracleQueryError",

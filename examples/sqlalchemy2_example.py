@@ -2,32 +2,16 @@
 
 This example demonstrates how to use the flext-db-oracle library
 with SQLAlchemy 2 for Oracle database operations including:
-- Connection management with automatic environment configuration
-- Direct SQLAlchemy queries using Oracle engine
-- Table metadata introspection
-- Transaction management
-- Column information retrieval
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
 """
-
-from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
 
-from sqlalchemy import text
+from sqlalchemy import Engine, text
 
 from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-
-    from sqlalchemy.engine import Engine
 
 
 def create_oracle_config() -> FlextDbOracleConfig:
@@ -84,12 +68,12 @@ def demonstrate_basic_queries() -> None:
         with engine.connect() as conn:
             result = conn.execute(
                 text("""
-                SELECT
-                    USER as current_user,
-                    SYS_CONTEXT('USERENV', 'SESSION_USER') as session_user,
-                    SYS_CONTEXT('USERENV', 'SERVER_HOST') as server_host
-                FROM DUAL
-            """),
+              SELECT
+                  USER as current_user,
+                  SYS_CONTEXT('USERENV', 'SESSION_USER') as session_user,
+                  SYS_CONTEXT('USERENV', 'SERVER_HOST') as server_host
+              FROM DUAL
+          """),
             )
             result.fetchone()
 
@@ -101,11 +85,11 @@ def demonstrate_table_operations() -> None:
         with engine.connect() as conn:
             result = conn.execute(
                 text("""
-                SELECT table_name, num_rows, last_analyzed
-                FROM all_tables
-                WHERE owner = 'FLEXTTEST'
-                ORDER BY table_name
-            """),
+              SELECT table_name, num_rows, last_analyzed
+              FROM all_tables
+              WHERE owner = 'FLEXTTEST'
+              ORDER BY table_name
+          """),
             )
 
             tables = result.fetchall()
@@ -116,11 +100,11 @@ def demonstrate_table_operations() -> None:
         with engine.connect() as conn:
             result = conn.execute(
                 text("""
-                SELECT employee_id, first_name, last_name, email, hire_date
-                FROM FLEXTTEST.EMPLOYEES
-                WHERE ROWNUM <= 5
-                ORDER BY employee_id
-            """),
+              SELECT employee_id, first_name, last_name, email, hire_date
+              FROM FLEXTTEST.EMPLOYEES
+              WHERE ROWNUM <= 5
+              ORDER BY employee_id
+          """),
             )
 
             employees = result.fetchall()
@@ -134,19 +118,19 @@ def demonstrate_metadata_introspection() -> None:
         # Column information for EMPLOYEES table
         result = conn.execute(
             text("""
-                SELECT
-                    column_name,
-                    data_type,
-                    data_length,
-                    data_precision,
-                    data_scale,
-                    nullable,
-                    column_id
-                FROM all_tab_columns
-                WHERE owner = 'FLEXTTEST'
-                AND table_name = 'EMPLOYEES'
-                ORDER BY column_id
-            """),
+              SELECT
+                  column_name,
+                  data_type,
+                  data_length,
+                  data_precision,
+                  data_scale,
+                  nullable,
+                  column_id
+              FROM all_tab_columns
+              WHERE owner = 'FLEXTTEST'
+              AND table_name = 'EMPLOYEES'
+              ORDER BY column_id
+          """),
         )
 
         columns = result.fetchall()

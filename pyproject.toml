@@ -125,7 +125,7 @@ files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
 # Cache
-sqlite_cache = true
+# sqlite_cache = true
 cache_dir = ".mypy_cache"
 
 # Advanced checks
@@ -224,6 +224,10 @@ python = ">=3.13,<3.14"
 
 [tool.poetry.dependencies.flext-core]
 path = "../flext-core"
+develop = true
+
+[tool.poetry.dependencies.flext-observability]
+path = "../flext-observability"
 develop = true
 
 [tool.poetry.group.dev.dependencies]

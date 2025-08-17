@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from .connection import CreateIndexConfig
 from .typings import (
-    CreateIndexConfig,
     FlextDbOracleColumn,
     FlextDbOracleConnectionStatus,
     FlextDbOracleQueryResult,

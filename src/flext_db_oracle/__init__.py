@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.cli import oracle
+from flext_db_oracle.cli import oracle as _oracle
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.config_types import MergeStatementConfig
-from flext_db_oracle.connection import FlextDbOracleConnection
+from flext_db_oracle.connection import CreateIndexConfig, FlextDbOracleConnection
 from flext_db_oracle.constants import FlextOracleDbConstants
 from flext_db_oracle.exceptions import (
     FlextDbOracleAuthenticationError,
@@ -38,7 +38,6 @@ from flext_db_oracle.plugins import (
     register_all_oracle_plugins,
 )
 from flext_db_oracle.typings import (
-    CreateIndexConfig,
     TDbOracleColumn,
     TDbOracleConnectionStatus,
     TDbOracleQueryResult,
@@ -46,8 +45,6 @@ from flext_db_oracle.typings import (
     TDbOracleTable,
 )
 
-# Backward compatibility aliases - maintain 100% compatibility
-oracle_cli = oracle  # CLI alias for backward compatibility
 # Backward compatibility class alias expected by older imports
 FlextDbOracleAPI = FlextDbOracleApi
 
@@ -86,6 +83,7 @@ __all__: list[str] = [
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",
     "create_security_audit_plugin",
+    # CLI entrypoint is lazily provided via __getattr__ to avoid heavy deps at import time.
     "oracle",
     "oracle_cli",
     "register_all_oracle_plugins",
@@ -98,3 +96,15 @@ __description__ = (
     "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "
     "with flext-core patterns"
 )
+
+
+def __getattr__(name: str) -> object:  # pragma: no cover - import-time laziness
+    """Provide lazy access to CLI entrypoints to avoid heavy imports by default.
+
+    Tests may import `oracle_cli` or `oracle`. Only then we import the CLI module,
+    preventing unnecessary Rich/Click imports during regular library usage.
+    """
+    if name in {"oracle", "oracle_cli"}:
+      # Import moved to top-level to fix PLC0415
+      return _oracle
+    raise AttributeError(name)
