@@ -1,12 +1,9 @@
-from typing import TypeVar
 
 from flext_core import FlextResult
 from flext_core.config import FlextOracleConfig
 from pydantic import SecretStr
 
 __all__ = ["FlextDbOracleConfig"]
-
-T = TypeVar("T")
 
 class FlextDbOracleConfig(FlextOracleConfig):
     ssl_enabled: bool

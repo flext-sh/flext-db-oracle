@@ -1,5 +1,5 @@
 import types
-from typing import Self, TypeVar
+from typing import Self
 
 from _typeshed import Incomplete
 from flext_core import FlextPlugin, FlextResult
@@ -18,8 +18,6 @@ __all__ = [
     "create_oracle_api",
     "create_oracle_api_from_env",
 ]
-
-T = TypeVar("T")
 
 class OracleConnectionManager:
     def __init__(

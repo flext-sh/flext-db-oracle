@@ -31,7 +31,7 @@ class DockerCommandExecutor:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
             client = docker.from_env()
-            client.ping()  # type: ignore[no-untyped-call]
+            client.ping()
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 
@@ -182,10 +182,10 @@ def oracle_container() -> Generator[None]:
         pytest.exit(
             "Docker/Docker Compose not available - cannot run tests without Docker",
         )
-    except Exception as e:
-        pytest.exit(f"Error managing Oracle container: {e}")
     except OSError as e:
         pytest.exit(f"OS error managing Oracle container: {e}")
+    except Exception as e:
+        pytest.exit(f"Error managing Oracle container: {e}")
 
 
 @pytest.fixture

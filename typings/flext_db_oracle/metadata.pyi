@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TypeVar
+from typing import ClassVar
 
 from _typeshed import Incomplete
 from flext_core import FlextResult, FlextValueObject
@@ -15,10 +15,8 @@ __all__ = [
 
 class ValidationMixin: ...
 
-T = TypeVar("T")
-
 class FlextDbOracleColumn(ValidationMixin, FlextValueObject):
-    model_config: Incomplete
+    model_config: ClassVar[Incomplete]
     name: str
     data_type: str
     nullable: bool

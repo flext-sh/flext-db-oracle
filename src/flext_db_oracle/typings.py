@@ -78,8 +78,8 @@ class TDbOracleQueryResult(FlextValueObject):
         """
         # Cross-field validation: row count must match actual rows
         if len(self.rows) != self.row_count:
-            return FlextResult.fail("Row count mismatch with actual rows")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail("Row count mismatch with actual rows")
+        return FlextResult[None].ok(None)
 
     # Backward compatibility alias expected by some tests
     def validate_domain_rules(self) -> FlextResult[None]:  # pragma: no cover - alias
@@ -101,7 +101,7 @@ class TDbOracleQueryResult(FlextValueObject):
             for row in self.rows
         ]
 
-    def __iter__(self) -> Iterator[tuple[object, ...]]:  # type: ignore[override]
+    def __iter__(self) -> Iterator[tuple[object, ...]]:
         """Iterate over rows to satisfy tests that iterate result.data."""
         return iter(self.rows)
 
@@ -117,14 +117,14 @@ class TDbOracleQueryResult(FlextValueObject):
     def get_column_values(self, column_name: str) -> FlextResult[list[object]]:
         """Get values for a specific column."""
         if column_name not in self.columns:
-            return FlextResult.fail(f"Column '{column_name}' not found")
+            return FlextResult[list[object]].fail(f"Column '{column_name}' not found")
 
         column_index = self.columns.index(column_name)
         values = [
             row[column_index] if column_index < len(row) else None for row in self.rows
         ]
 
-        return FlextResult.ok(values)
+        return FlextResult[list[object]].ok(values)
 
 
 class TDbOracleConnectionStatus(FlextValueObject):
@@ -205,8 +205,8 @@ class TDbOracleConnectionStatus(FlextValueObject):
         """
         # Cross-field validation: active sessions cannot exceed max sessions
         if self.active_sessions > self.max_sessions:
-            return FlextResult.fail("Active sessions cannot exceed max sessions")
-        return FlextResult.ok(None)
+            return FlextResult[None].fail("Active sessions cannot exceed max sessions")
+        return FlextResult[None].ok(None)
 
     # Backward compatibility alias expected by some tests
     def validate_domain_rules(self) -> FlextResult[None]:  # pragma: no cover - alias

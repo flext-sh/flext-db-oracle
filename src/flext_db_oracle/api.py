@@ -515,14 +515,12 @@ class OracleQueryExecutor:
                 tuple(row) if isinstance(row, (list, tuple)) else (row,)
                 for row in raw_data
             ]
-            query_result = TDbOracleQueryResult.model_validate(
-                {
-                    "rows": rows_list,
-                    "columns": [],  # Column names would need to be extracted from cursor/metadata
-                    "row_count": len(rows_list),
-                    "execution_time_ms": duration_ms,
-                }
-            )
+            query_result = TDbOracleQueryResult.model_validate({
+                "rows": rows_list,
+                "columns": [],  # Column names would need to be extracted from cursor/metadata
+                "row_count": len(rows_list),
+                "execution_time_ms": duration_ms,
+            })
 
             if self._observability:
                 self._observability.record_metric("query.success", 1, "count")
@@ -700,7 +698,7 @@ class FlextDbOracleApi:
         DRY Pattern - Single source of truth for API creation from config result.
         """
         if config_result.is_failure:
-            logger.error("Failed to load configuration: %s", config_result.error)  # type: ignore[attr-defined]
+            logger.error("Failed to load configuration: %s", config_result.error)
             config_error = f"Configuration error: {config_result.error}"
             raise ValueError(config_error)
 
@@ -1232,27 +1230,23 @@ class FlextDbOracleApi:
         """SOLID REFACTORING: Extract Method for TDbOracleQueryResult creation."""
         # Handle None data case
         if data is None:
-            return TDbOracleQueryResult.model_validate(
-                {
-                    "rows": [],
-                    "columns": [],
-                    "row_count": 0,
-                    "execution_time_ms": duration_ms,
-                }
-            )
-
-        return TDbOracleQueryResult.model_validate(
-            {
-                "rows": data.rows if hasattr(data, "rows") else [],
-                "columns": data.columns if hasattr(data, "columns") else [],
-                "row_count": data.row_count
-                if hasattr(data, "row_count")
-                else len(data.rows)
-                if hasattr(data, "rows")
-                else 0,
+            return TDbOracleQueryResult.model_validate({
+                "rows": [],
+                "columns": [],
+                "row_count": 0,
                 "execution_time_ms": duration_ms,
-            }
-        )
+            })
+
+        return TDbOracleQueryResult.model_validate({
+            "rows": data.rows if hasattr(data, "rows") else [],
+            "columns": data.columns if hasattr(data, "columns") else [],
+            "row_count": data.row_count
+            if hasattr(data, "row_count")
+            else len(data.rows)
+            if hasattr(data, "rows")
+            else 0,
+            "execution_time_ms": duration_ms,
+        })
 
     def get_schemas(self) -> FlextResult[list[str]]:
         """Get list of database schemas."""

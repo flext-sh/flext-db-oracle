@@ -80,8 +80,6 @@ __all__ = [
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",
     "create_security_audit_plugin",
-    "oracle",
-    "oracle_cli",
     "register_all_oracle_plugins",
 ]
 

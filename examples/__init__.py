@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 try:
     from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 except Exception:  # pragma: no cover - optional import for examples
-    FlextDbOracleApi = None  # type: ignore[assignment]
-    FlextDbOracleConfig = None  # type: ignore[assignment]
+    FlextDbOracleApi = None
+    FlextDbOracleConfig = None
 
 
 def demo_basic_usage() -> None:

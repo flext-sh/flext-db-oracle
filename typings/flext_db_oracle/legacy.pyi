@@ -18,60 +18,60 @@ from flext_db_oracle.metadata import FlextDbOracleMetadataManager
 from flext_db_oracle.types import FlextDbOracleConnectionStatus
 
 __all__ = [
-    "FlextOracleApi",
-    "OracleApi",
-    "OracleAuthenticationError",
-    "OracleConfig",
-    "OracleConfigurationError",
-    "OracleConnection",
-    "OracleConnectionError",
-    "OracleDatabase",
-    "OracleError",
-    "OracleMetadata",
-    "OracleMetadataError",
-    "OracleMetadataErrorParams",
-    "OracleProcessingError",
-    "OracleQueryError",
-    "OracleQueryErrorParams",
-    "OracleTimeoutError",
-    "OracleValidationError",
-    "SimpleOracleConnection",
     "create_oracle_api",
     "create_oracle_connection",
+    "flext_oracle_api",
+    "oracle_api",
+    "oracle_authentication_error",
+    "oracle_config",
+    "oracle_configuration_error",
+    "oracle_connection",
+    "oracle_connection_error",
+    "oracle_database",
+    "oracle_error",
+    "oracle_metadata",
+    "oracle_metadata_error",
+    "oracle_metadata_error_params",
+    "oracle_processing_error",
+    "oracle_query_error",
+    "oracle_query_error_params",
+    "oracle_timeout_error",
+    "oracle_validation_error",
     "setup_oracle_database",
+    "simple_oracle_connection",
 ]
 
 FlextDbOracleMetadata = FlextDbOracleMetadataManager
 FlextDbOracleConnectionInfo = FlextDbOracleConnectionStatus
 
-def OracleApi(
+def oracle_api(
     config: FlextDbOracleConfig | None = None, context_name: str = "oracle"
 ) -> FlextDbOracleApi: ...
-def OracleDatabase(
+def oracle_database(
     config: FlextDbOracleConfig | None = None, context_name: str = "oracle"
 ) -> FlextDbOracleApi: ...
-def OracleConnection(
+def oracle_connection(
     config: FlextDbOracleConfig | None = None,
 ) -> FlextDbOracleConnection: ...
-def OracleConfig(**kwargs: object) -> FlextDbOracleConfig: ...
-def OracleMetadata(
+def oracle_config(**kwargs: object) -> FlextDbOracleConfig: ...
+def oracle_metadata(
     connection: FlextDbOracleConnection | None = None,
 ) -> FlextDbOracleMetadataManager: ...
-def OracleError(
+def oracle_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleError: ...
-def OracleConnectionError(
+def oracle_connection_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleConnectionError: ...
-def OracleQueryError(
+def oracle_query_error(
     message: str,
     *,
     query: str | None = None,
@@ -82,42 +82,42 @@ def OracleQueryError(
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleQueryError: ...
-def OracleConfigurationError(
+def oracle_configuration_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleConfigurationError: ...
-def OracleValidationError(
+def oracle_validation_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleValidationError: ...
-def OracleTimeoutError(
+def oracle_timeout_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleTimeoutError: ...
-def OracleAuthenticationError(
+def oracle_authentication_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleAuthenticationError: ...
-def OracleProcessingError(
+def oracle_processing_error(
     message: str,
     *,
     code: object | None = None,
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleProcessingError: ...
-def OracleMetadataError(
+def oracle_metadata_error(
     message: str,
     *,
     schema_name: str | None = None,
@@ -128,10 +128,10 @@ def OracleMetadataError(
     context: Mapping[str, object] | None = None,
     **kwargs: object,
 ) -> FlextDbOracleMetadataError: ...
-def FlextOracleApi(
+def flext_oracle_api(
     config: FlextDbOracleConfig | None = None, context_name: str = "oracle"
 ) -> FlextDbOracleApi: ...
-def SimpleOracleConnection(
+def simple_oracle_connection(
     config: FlextDbOracleConfig | None = None,
 ) -> FlextDbOracleConnection: ...
 def create_oracle_connection(
@@ -143,5 +143,5 @@ def create_oracle_api(
 def setup_oracle_database(
     config: FlextDbOracleConfig | None = None, context_name: str = "oracle"
 ) -> FlextDbOracleApi: ...
-def OracleMetadataErrorParams(**kwargs: object) -> dict[str, object]: ...
-def OracleQueryErrorParams(**kwargs: object) -> dict[str, object]: ...
+def oracle_metadata_error_params(**kwargs: object) -> dict[str, object]: ...
+def oracle_query_error_params(**kwargs: object) -> dict[str, object]: ...

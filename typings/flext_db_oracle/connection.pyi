@@ -1,6 +1,5 @@
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import TypeVar
 
 from _typeshed import Incomplete
 from flext_core import FlextResult, FlextValueObject
@@ -10,8 +9,6 @@ from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.config_types import MergeStatementConfig
 
 __all__ = ["FlextDbOracleConnection"]
-
-T = TypeVar("T")
 
 class CreateIndexConfig(FlextValueObject):
     index_name: str
