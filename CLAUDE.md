@@ -122,9 +122,9 @@ from flext_core import FlextResult
 def some_operation() -> FlextResult[str]:
     try:
         # Operation logic
-        return FlextResult.success(result)
+        return FlextResult[None].ok(result)
     except Exception as e:
-        return FlextResult.failure(f"Operation failed: {e}")
+        return FlextResult[None].fail(f"Operation failed: {e}")
 ```
 
 ### Configuration
@@ -200,7 +200,7 @@ This library serves as the foundation for Singer ecosystem components:
 - **Local testing**: Use `docker-compose.oracle.yml` for Oracle XE 21c
 - **Environment variables**: Follow Singer/Meltano conventions
 - **Connection pooling**: Always use for multi-operation scenarios
-- **Error handling**: Return `FlextResult.failure()` with detailed context
+- **Error handling**: Return `FlextResult[None].fail()` with detailed context
 
 ### Debugging Oracle Issues
 

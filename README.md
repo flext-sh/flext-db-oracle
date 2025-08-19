@@ -358,9 +358,9 @@ config = config_result.value
 def execute_query(self, sql: str) -> FlextResult[QueryResult]:
     try:
         result = self._connection.execute(sql)
-        return FlextResult.ok(QueryResult(rows=result.fetchall()))
+        return FlextResult[None].ok(QueryResult(rows=result.fetchall()))
     except Exception as e:
-        return FlextResult.fail(f"Query execution failed: {e}")
+        return FlextResult[None].fail(f"Query execution failed: {e}")
 
 # Dependency injection via FlextContainer
 from flext_core import get_flext_container

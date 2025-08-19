@@ -75,7 +75,7 @@ def _handle_config_operation_error(
       FlextResult with failure containing formatted error message
 
     """
-    return FlextResult.fail(f"Failed to {operation}: {exception}")
+    return FlextResult[None].fail(f"Failed to {operation}: {exception}")
 
 
 def _handle_config_validation_error(exception: Exception) -> FlextResult[None]:
@@ -88,7 +88,7 @@ def _handle_config_validation_error(exception: Exception) -> FlextResult[None]:
       FlextResult with failure containing formatted error message
 
     """
-    return FlextResult.fail(f"Configuration validation failed: {exception}")
+    return FlextResult[None].fail(f"Configuration validation failed: {exception}")
 
 
 class FlextDbOracleConfig(FlextOracleConfig):
@@ -225,7 +225,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
         # Basic field validations are now handled by @field_validator decorators
         # Cross-field validations are handled by @model_validator decorators
         # This method is kept for additional business rule validations if needed
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     # Host and username validation inherited from FlextOracleConfig
 
@@ -293,7 +293,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 protocol=os.getenv(f"{prefix}PROTOCOL", "tcp"),
                 ssl_server_cert_dn=os.getenv(f"{prefix}SSL_SERVER_CERT_DN"),
             )
-            return FlextResult.ok(config)
+            return FlextResult[None].ok(config)
         except (ValueError, TypeError, KeyError) as e:
             return _handle_config_operation_error("create config from environment", e)
 
@@ -323,7 +323,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 protocol="tcp",
                 ssl_server_cert_dn=None,
             )
-            return FlextResult.ok(config)
+            return FlextResult[None].ok(config)
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_config_operation_error("parse URL", e)
 
@@ -443,7 +443,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             validation_result = config.validate_business_rules()
 
             if validation_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Configuration validation failed: {validation_result.error}",
                 )
 
@@ -451,7 +451,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 "Created Oracle connection config for %s",
                 config.get_connection_string(),
             )
-            return FlextResult.ok(config)
+            return FlextResult[None].ok(config)
 
         except (ValueError, TypeError, KeyError) as e:
             return _handle_config_operation_error("create configuration", e)

@@ -236,17 +236,17 @@ class FlextOraclePlugin(FlextPlugin):
             # Use context for initialization if needed
             _ = context  # Acknowledge parameter for interface compliance
             self._logger.info("Oracle plugin initialized", plugin_name=self.name)
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult.fail(f"Oracle plugin initialization failed: {e}")
+            return FlextResult[None].fail(f"Oracle plugin initialization failed: {e}")
 
     def shutdown(self) -> FlextResult[None]:
         """Shutdown plugin and release resources from abstract interface."""
         try:
             self._logger.info("Oracle plugin shutdown", plugin_name=self.name)
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult.fail(f"Oracle plugin shutdown failed: {e}")
+            return FlextResult[None].fail(f"Oracle plugin shutdown failed: {e}")
 
     def get_config(self) -> dict[str, object]:
         """Get plugin configuration."""
@@ -308,9 +308,9 @@ class OraclePluginFactory:
                 config=full_config,
                 handler=specific_config.get("callable_obj"),
             )
-            return FlextResult.ok(plugin)
+            return FlextResult[None].ok(plugin)
         except Exception as e:
-            return FlextResult.fail(f"Failed to create Oracle plugin '{name}': {e}")
+            return FlextResult[None].fail(f"Failed to create Oracle plugin '{name}': {e}")
 
     @classmethod
     def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
@@ -387,7 +387,7 @@ class OraclePluginHandler:
         plugin_name: str,
     ) -> FlextResult[dict[str, object]]:
         """Template method: Consistent exception handling for plugins."""
-        return FlextResult.fail(f"{plugin_name} plugin failed: {e}")
+        return FlextResult[None].fail(f"{plugin_name} plugin failed: {e}")
 
 
 def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
@@ -396,8 +396,8 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugi
         result = factory_method()
         if hasattr(result, "success") and hasattr(result, "data"):
             return cast("FlextResult[FlextPlugin]", result)
-        return FlextResult.fail("Factory method returned invalid result")
-    return FlextResult.fail("Factory method is not callable")
+        return FlextResult[None].fail("Factory method returned invalid result")
+    return FlextResult[None].fail("Factory method is not callable")
 
 
 def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
@@ -457,7 +457,7 @@ def performance_monitor_plugin_handler(
                     threshold_ms,
                 )
 
-        return FlextResult.ok(result_data)
+        return FlextResult[None].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Performance monitor")
@@ -501,7 +501,7 @@ def security_audit_plugin_handler(
                 security_warnings,
             )
 
-        return FlextResult.ok(result_data)
+        return FlextResult[None].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Security audit")
@@ -656,7 +656,7 @@ def data_validation_plugin_handler(
         elif validation_warnings:
             result_data["validation_status"] = "warning"
 
-        return FlextResult.ok(result_data)
+        return FlextResult[None].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Data validation")
@@ -703,7 +703,7 @@ def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, 
     for plugin_name, plugin_creator in ORACLE_PLUGINS.items():
         results[plugin_name] = _register_single_plugin(api, plugin_name, plugin_creator)
 
-    return FlextResult.ok(results)
+    return FlextResult[None].ok(results)
 
 
 __all__: list[str] = [

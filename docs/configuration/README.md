@@ -366,21 +366,21 @@ def validate_configuration(config: FlextDbOracleConfig) -> FlextResult[None]:
     connect_result = api.connect()
 
     if connect_result.is_failure:
-        return FlextResult.fail(f"Connection test failed: {connect_result.error}")
+        return FlextResult[None].fail(f"Connection test failed: {connect_result.error}")
 
     # Test basic operations
     test_result = api.execute_query("SELECT 1 FROM DUAL")
     if test_result.is_failure:
-        return FlextResult.fail(f"Query test failed: {test_result.error}")
+        return FlextResult[None].fail(f"Query test failed: {test_result.error}")
 
     # Validate pool configuration
     if config.pool_max < config.pool_min:
-        return FlextResult.fail("pool_max must be >= pool_min")
+        return FlextResult[None].fail("pool_max must be >= pool_min")
 
     if config.pool_increment <= 0:
-        return FlextResult.fail("pool_increment must be positive")
+        return FlextResult[None].fail("pool_increment must be positive")
 
-    return FlextResult.ok(None)
+    return FlextResult[None].ok(None)
 
 # Usage
 config = FlextDbOracleConfig.from_env().value

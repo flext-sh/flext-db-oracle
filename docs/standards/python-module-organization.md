@@ -137,11 +137,11 @@ class FlextDbOracleSchema(FlextEntity):
 
     def generate_documentation(self) -> FlextResult[str]:
         """Generate schema documentation"""
-        return FlextResult.ok(self._build_schema_docs())
+        return FlextResult[None].ok(self._build_schema_docs())
 
     def analyze_dependencies(self) -> FlextResult[Dict[str, List[str]]]:
         """Analyze table dependencies"""
-        return FlextResult.ok(self._calculate_dependencies())
+        return FlextResult[None].ok(self._calculate_dependencies())
 
 # Usage with Oracle metadata
 metadata_manager = FlextDbOracleMetadataManager(connection)
@@ -411,7 +411,7 @@ class OracleService:
     def execute_business_operation(self, data: dict) -> FlextResult[ProcessedData]:
         """Business operation with proper error handling"""
         if not self._connected:
-            return FlextResult.fail("Oracle connection not established")
+            return FlextResult[None].fail("Oracle connection not established")
 
         return (
             self._validate_input(data)
@@ -520,7 +520,7 @@ def batch_oracle_processing(api: FlextDbOracleApi, items: List[dict]) -> FlextRe
 
     return (
         # Validate all items first
-        FlextResult.ok(items)
+        FlextResult[None].ok(items)
         .flat_map(_validate_batch_items)
 
         # Process in Oracle-optimized batches
@@ -570,7 +570,7 @@ class RobustOracleConnection:
     def _retry_operation(self, operation: Callable, attempts: int) -> FlextResult[Any]:
         """Generic retry pattern for Oracle operations"""
         if attempts <= 0:
-            return FlextResult.fail("Max retry attempts exceeded")
+            return FlextResult[None].fail("Max retry attempts exceeded")
 
         result = operation()
 
@@ -1247,7 +1247,7 @@ def handle_oracle_error(error_message: str) -> FlextResult[ErrorRecoveryPlan]:
         estimated_recovery_time=_estimate_recovery_time(category)
     )
 
-    return FlextResult.ok(recovery_plan)
+    return FlextResult[None].ok(recovery_plan)
 ```
 
 ---
@@ -1366,7 +1366,7 @@ def setup_oracle_ecosystem(container: FlextContainer) -> FlextResult[None]:
     # Register Oracle services in container
     return (
         # Base Oracle API
-        FlextResult.ok(FlextDbOracleApi(settings.oracle_base))
+        FlextResult[None].ok(FlextDbOracleApi(settings.oracle_base))
         .flat_map(lambda api: container.register("oracle_api", api))
 
         # Oracle tap service

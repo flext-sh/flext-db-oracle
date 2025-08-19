@@ -43,15 +43,15 @@ class TestOracleIntegration:
         from contextlib import contextmanager
 
         mock_conn = MagicMock()
-        mock_conn.connect.return_value = FlextResult.ok(data=True)
-        mock_conn.disconnect.return_value = FlextResult.ok(data=True)
-        mock_conn.execute.return_value = FlextResult.ok([("result",)])
+        mock_conn.connect.return_value = FlextResult[None].ok(True)
+        mock_conn.disconnect.return_value = FlextResult[None].ok(True)
+        mock_conn.execute.return_value = FlextResult[None].ok([("result",)])
 
         # Fix: connection execute_query should return raw data, API creates TDbOracleQueryResult
-        mock_conn.execute_query.return_value = FlextResult.ok([("result",)])
-        mock_conn.fetch_one.return_value = FlextResult.ok(("single_result",))
-        mock_conn.get_table_names.return_value = FlextResult.ok(["TEST_TABLE"])
-        mock_conn.get_column_info.return_value = FlextResult.ok(
+        mock_conn.execute_query.return_value = FlextResult[None].ok([("result",)])
+        mock_conn.fetch_one.return_value = FlextResult[None].ok(("single_result",))
+        mock_conn.get_table_names.return_value = FlextResult[None].ok(["TEST_TABLE"])
+        mock_conn.get_column_info.return_value = FlextResult[None].ok(
             [
                 {
                     "column_name": "ID",
@@ -66,11 +66,11 @@ class TestOracleIntegration:
                 },
             ],
         )
-        mock_conn.create_table_ddl.return_value = FlextResult.ok(
+        mock_conn.create_table_ddl.return_value = FlextResult[None].ok(
             "CREATE TABLE new_table (id NUMBER NOT NULL, name VARCHAR2(100))",
         )
-        mock_conn.drop_table_ddl.return_value = FlextResult.ok("DROP TABLE test_table")
-        mock_conn.get_table_metadata.return_value = FlextResult.ok(
+        mock_conn.drop_table_ddl.return_value = FlextResult[None].ok("DROP TABLE test_table")
+        mock_conn.get_table_metadata.return_value = FlextResult[None].ok(
             {
                 "table_name": "TEST_TABLE",
                 "schema": "test_schema",
@@ -85,9 +85,9 @@ class TestOracleIntegration:
             yield mock_conn
 
         mock_conn.transaction = mock_transaction
-        mock_conn.begin_transaction.return_value = FlextResult.ok(data=True)
-        mock_conn.commit_transaction.return_value = FlextResult.ok(data=True)
-        mock_conn.rollback_transaction.return_value = FlextResult.ok(data=True)
+        mock_conn.begin_transaction.return_value = FlextResult[None].ok(True)
+        mock_conn.commit_transaction.return_value = FlextResult[None].ok(True)
+        mock_conn.rollback_transaction.return_value = FlextResult[None].ok(True)
         return mock_conn
 
     def test_api_full_workflow(
@@ -97,7 +97,7 @@ class TestOracleIntegration:
     ) -> None:
         """Test complete API workflow from configuration to query execution."""
         # Mock DDL generation result
-        mock_connection.create_table_ddl.return_value = FlextResult.ok(
+        mock_connection.create_table_ddl.return_value = FlextResult[None].ok(
             "CREATE TABLE new_table (id NUMBER NOT NULL, name VARCHAR2(100))",
         )
 
@@ -144,7 +144,7 @@ class TestOracleIntegration:
         """Test connection error handling."""
         with patch("flext_db_oracle.api.FlextDbOracleConnection") as mock_conn_class:
             mock_conn = MagicMock()
-            mock_conn.connect.return_value = FlextResult.fail("Connection failed")
+            mock_conn.connect.return_value = FlextResult[None].fail("Connection failed")
             mock_conn_class.return_value = mock_conn
 
             api = FlextDbOracleApi(mock_oracle_config)
@@ -207,7 +207,7 @@ class TestOracleIntegration:
 
             # Mock the query executor's execute_batch method
             with patch.object(api, "_query_executor") as mock_executor:
-                mock_executor.execute_batch.return_value = FlextResult.ok(
+                mock_executor.execute_batch.return_value = FlextResult[None].ok(
                     [result1, result2, result3],
                 )
 
@@ -318,9 +318,9 @@ class TestOracleIntegration:
             mock_conn = MagicMock()
             # First two attempts fail, third succeeds
             mock_conn.connect.side_effect = [
-                FlextResult.fail("Connection timeout"),
-                FlextResult.fail("Network error"),
-                FlextResult.ok(data=True),
+                FlextResult[None].fail("Connection timeout"),
+                FlextResult[None].fail("Network error"),
+                FlextResult[None].ok(True),
             ]
             mock_conn_class.return_value = mock_conn
 
@@ -369,7 +369,7 @@ class TestOracleIntegration:
                 "array": "CLOB",
                 "object": "CLOB",
             }
-            return FlextResult.ok(type_map.get(singer_type, "VARCHAR2(4000)"))
+            return FlextResult[None].ok(type_map.get(singer_type, "VARCHAR2(4000)"))
 
         mock_connection.convert_singer_type.side_effect = mock_convert_type
 
@@ -401,7 +401,7 @@ class TestOracleIntegration:
     ) -> None:
         """Test DDL generation with various scenarios."""
         # Mock DDL generation methods
-        mock_connection.create_table_ddl.return_value = FlextResult.ok(
+        mock_connection.create_table_ddl.return_value = FlextResult[None].ok(
             "CREATE TABLE test_schema.users ("
             "id number(10) NOT NULL, "
             "name varchar2(100) NOT NULL, "
@@ -409,7 +409,7 @@ class TestOracleIntegration:
             "created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP"
             ")",
         )
-        mock_connection.drop_table_ddl.return_value = FlextResult.ok(
+        mock_connection.drop_table_ddl.return_value = FlextResult[None].ok(
             "DROP TABLE test_schema.users",
         )
 

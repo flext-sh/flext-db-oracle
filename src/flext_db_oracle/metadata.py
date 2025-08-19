@@ -104,11 +104,11 @@ class ValidationMixin:
                     errors.append(f"Validation error: {e}")
 
             if errors:
-                return FlextResult.fail("; ".join(errors))
-            return FlextResult.ok(None)
+                return FlextResult[None].fail("; ".join(errors))
+            return FlextResult[None].ok(None)
 
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"{context_name} validation failed: {e}")
+            return FlextResult[None].fail(f"{context_name} validation failed: {e}")
 
 
 T = TypeVar("T")
@@ -248,12 +248,12 @@ class FlextDbOracleTable(ValidationMixin, FlextValueObject):
             for column in self.columns:
                 validation_result = column.validate_domain_rules()
                 if validation_result.is_failure:
-                    return FlextResult.fail(
+                    return FlextResult[None].fail(
                         f"Column {column.name}: {validation_result.error}",
                     )
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Column collection validation failed: {e}")
+            return FlextResult[None].fail(f"Column collection validation failed: {e}")
 
     def get_column_by_name(self, column_name: str) -> FlextDbOracleColumn | None:
         """Get column metadata by name."""
@@ -333,12 +333,12 @@ class FlextDbOracleSchema(ValidationMixin, FlextValueObject):
             for table in self.tables:
                 validation_result = table.validate_domain_rules()
                 if validation_result.is_failure:
-                    return FlextResult.fail(
+                    return FlextResult[None].fail(
                         f"Table {table.name}: {validation_result.error}",
                     )
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult.fail(f"Table collection validation failed: {e}")
+            return FlextResult[None].fail(f"Table collection validation failed: {e}")
 
     def get_table_by_name(self, table_name: str) -> FlextDbOracleTable | None:
         """Get table metadata by name."""
@@ -401,7 +401,7 @@ class FlextDbOracleMetadataManager:
         """
         error_msg: str = f"Failed to get {operation}: {exception}"
         self._logger.error(error_msg)
-        return FlextResult.fail(error_msg)
+        return FlextResult[None].fail(error_msg)
 
     def _handle_result_failure_with_fallback(
         self,
@@ -417,7 +417,7 @@ class FlextDbOracleMetadataManager:
             FlextResult with failure containing error or fallback message
 
         """
-        return FlextResult.fail(result.error or fallback_message)
+        return FlextResult[None].fail(result.error or fallback_message)
 
     def _handle_creation_error(
         self,
@@ -433,7 +433,7 @@ class FlextDbOracleMetadataManager:
             FlextResult with failure containing formatted error message
 
         """
-        return FlextResult.fail(f"Failed to create {operation}: {exception}")
+        return FlextResult[None].fail(f"Failed to create {operation}: {exception}")
 
     def get_table_metadata(
         self,
@@ -463,13 +463,13 @@ class FlextDbOracleMetadataManager:
                 columns_result.data or [],
             )
             if table_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Failed to create table: {table_result.error}",
                 )
             # MYPY FIX: Safe access to table_result.data with None check
             # data is non-None by API contract
             self._logger.info("Table metadata retrieved successfully")
-            return FlextResult.ok(table_result.data)
+            return FlextResult[None].ok(table_result.data)
         except (ValueError, TypeError, AttributeError) as e:
             return self._handle_metadata_error_with_logging("table metadata", e)
 
@@ -485,7 +485,7 @@ class FlextDbOracleMetadataManager:
         # Get column information from database
         columns_result = self._connection.get_column_info(table_name, schema_name)
         if columns_result.is_failure:
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 f"Failed to get columns: {columns_result.error}",
             )
         # Convert and validate columns
@@ -494,7 +494,7 @@ class FlextDbOracleMetadataManager:
             column_result = self._create_validated_column(col_info)
             if column_result.success and column_result.data:
                 columns.append(column_result.data)
-        return FlextResult.ok(columns)
+        return FlextResult[None].ok(columns)
 
     def _create_validated_column(
         self,
@@ -541,10 +541,10 @@ class FlextDbOracleMetadataManager:
             # Validate column domain rules
             validation_result = column.validate_domain_rules()
             if validation_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Column validation failed: {validation_result.error}",
                 )
-            return FlextResult.ok(column)
+            return FlextResult[None].ok(column)
         except (ValueError, TypeError, KeyError) as e:
             return self._handle_creation_error("column", e)
 
@@ -574,10 +574,10 @@ class FlextDbOracleMetadataManager:
             # Validate table domain rules
             validation_result = table.validate_domain_rules()
             if validation_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Table validation failed: {validation_result.error}",
                 )
-            return FlextResult.ok(table)
+            return FlextResult[None].ok(table)
         except (ValueError, TypeError) as e:
             return self._handle_creation_error("table", e)
 
@@ -588,7 +588,7 @@ class FlextDbOracleMetadataManager:
             # Get table names
             tables_result = self._connection.get_table_names(schema_name)
             if tables_result.is_failure:
-                return FlextResult.fail(f"Failed to get tables: {tables_result.error}")
+                return FlextResult[None].fail(f"Failed to get tables: {tables_result.error}")
             # Get metadata for each table
             tables: list[FlextDbOracleTable] = []
             for table_name in tables_result.data or []:
@@ -607,11 +607,11 @@ class FlextDbOracleMetadataManager:
             # Validate schema
             validation_result = schema.validate_domain_rules()
             if validation_result.is_failure:
-                return FlextResult.fail(
+                return FlextResult[None].fail(
                     f"Schema validation failed: {validation_result.error}",
                 )
             self._logger.info("Schema metadata retrieved: %d tables", len(tables))
-            return FlextResult.ok(schema)
+            return FlextResult[None].ok(schema)
         except (ValueError, TypeError, AttributeError) as e:
             return self._handle_metadata_error_with_logging("schema metadata", e)
 

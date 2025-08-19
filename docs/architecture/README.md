@@ -104,9 +104,9 @@ from flext_core import FlextResult, get_flext_container, get_logger
 def execute_query(self, sql: str) -> FlextResult[QueryResult]:
     try:
         result = self._connection.execute(sql)
-        return FlextResult.ok(QueryResult(rows=result.fetchall()))
+        return FlextResult[None].ok(QueryResult(rows=result.fetchall()))
     except Exception as e:
-        return FlextResult.fail(f"Query execution failed: {e}")
+        return FlextResult[None].fail(f"Query execution failed: {e}")
 
 # Dependency injection via container
 container = get_flext_container()
@@ -238,9 +238,9 @@ class FlextDbOracleConnection:
                 min=self._config.pool_min,
                 max=self._config.pool_max
             )
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextResult.fail(f"Pool creation failed: {e}")
+            return FlextResult[None].fail(f"Pool creation failed: {e}")
 
 # Configuration Management (config.py)
 class FlextDbOracleConfig(BaseSettings):
@@ -299,7 +299,7 @@ class OraclePluginManager:
                 if result.is_failure:
                     return result
                 results.append(result.value)
-        return FlextResult.ok(results)
+        return FlextResult[None].ok(results)
 
 # Concrete Plugin Implementation (Infrastructure Layer)
 class DataValidationPlugin(IOraclePlugin):
@@ -310,7 +310,7 @@ class DataValidationPlugin(IOraclePlugin):
 
     def execute(self, context: OracleOperationContext) -> FlextResult[Any]:
         # Validation logic
-        return FlextResult.ok({"validation": "passed"})
+        return FlextResult[None].ok({"validation": "passed"})
 ```
 
 ## 🏢 Enterprise Patterns

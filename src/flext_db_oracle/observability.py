@@ -140,7 +140,7 @@ class FlextDbOracleObservabilityManager:
     def initialize(self) -> FlextResult[None]:
         """Initialize observability system."""
         if self._initialized:
-            return FlextResult.ok(None)
+            return FlextResult[None].ok(None)
         try:
             # Use the proper initialization pattern from flext-observability
             init_result = self._monitor.flext_initialize_observability()
@@ -163,7 +163,7 @@ class FlextDbOracleObservabilityManager:
         except (AttributeError, ValueError) as e:
             self._logger.warning("Failed to initialize observability: %s", e)
         self._initialized = True
-        return FlextResult.ok(None)
+        return FlextResult[None].ok(None)
 
     def create_trace(self, operation: str, **attributes: object) -> FlextTrace:
         """Create trace for operation (DRY pattern)."""
@@ -241,11 +241,11 @@ class FlextDbOracleObservabilityManager:
             )
             if health_result.success and health_result.data:
                 return health_result
-            return FlextResult.fail(
+            return FlextResult[None].fail(
                 health_result.error or "flext_create_health_check failed",
             )
         except Exception as e:
-            return FlextResult.fail(f"Failed to create health check: {e}")
+            return FlextResult[None].fail(f"Failed to create health check: {e}")
 
     def finish_trace(
         self,
@@ -394,7 +394,7 @@ class FlextDbOracleErrorHandler:
             self._observability.log_error_with_context("Query", error, sql=sql)
         else:
             self._observability.log_error_with_context("Query", error)
-        return FlextResult.fail(error)
+        return FlextResult[None].fail(error)
 
     def handle_plugin_error(self, plugin_name: str, error: str) -> FlextResult[None]:
         """Handle plugin errors."""
@@ -404,7 +404,7 @@ class FlextDbOracleErrorHandler:
             error,
             plugin_name=plugin_name,
         )
-        return FlextResult.fail(f"{plugin_name} plugin failed: {error}")
+        return FlextResult[None].fail(f"{plugin_name} plugin failed: {error}")
 
 
 __all__: list[str] = [
