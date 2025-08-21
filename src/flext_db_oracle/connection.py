@@ -53,7 +53,7 @@ from contextlib import contextmanager
 from typing import TypeVar, override
 from urllib.parse import quote_plus
 
-from flext_core import FlextResult, FlextValidators, FlextValueObject, get_logger
+from flext_core import FlextResult, FlextValidators, FlextValue, get_logger
 from pydantic import Field, field_validator
 from sqlalchemy import Row, create_engine, text
 from sqlalchemy.engine import Engine
@@ -81,7 +81,7 @@ T = TypeVar("T")
 
 
 # Moved from typings.py to resolve circular import
-class CreateIndexConfig(FlextValueObject):
+class CreateIndexConfig(FlextValue):
     """Configuration for CREATE INDEX statement building."""
 
     index_name: str = Field(..., description="Index name")
@@ -896,9 +896,8 @@ class FlextDbOracleConnection:
         try:
             result = self.execute(ddl)
             # Railway pattern: map success to True, unwrap_or return failure
-            return (
-                result.map(lambda _: FlextResult[bool].ok(True))  # noqa: FBT003
-                .unwrap_or(FlextResult[bool].fail(result.error or "DDL execution failed"))
+            return result.map(lambda _: FlextResult[bool].ok(True)).unwrap_or(  # noqa: FBT003
+                FlextResult[bool].fail(result.error or "DDL execution failed")
             )
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
@@ -1012,7 +1011,9 @@ class FlextDbOracleConnection:
                     continue  # Skip invalid field definitions
 
                 # Ensure field_def is properly typed
-                typed_field_def: DatabaseRowDict = {str(k): v for k, v in field_def.items()}
+                typed_field_def: DatabaseRowDict = {
+                    str(k): v for k, v in field_def.items()
+                }
                 field_result = self._map_single_field(field_name, typed_field_def)
                 if field_result.is_failure:
                     # Convert FlextResult[tuple[str, str]] to FlextResult[dict[str, str]]

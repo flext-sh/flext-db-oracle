@@ -4,36 +4,6 @@ This example demonstrates enterprise-grade Oracle database operations using FLEX
 with production-ready patterns, comprehensive error handling, and integration with the
 FLEXT ecosystem. It showcases real-world scenarios including connection management,
 transaction handling, metadata exploration, and observability integration.
-
-Key Demonstrations:
-    - Configuration management with environment variables and validation
-    - Connection pooling and lifecycle management with error recovery
-    - Query execution with performance monitoring and optimization
-    - Schema introspection and metadata extraction with business logic
-    - Plugin system integration for extensibility and monitoring
-    - Transaction management with proper rollback and error handling
-    - Observability integration with metrics collection and distributed tracing
-
-Architecture:
-    This example follows Clean Architecture principles with proper separation
-    of concerns, dependency injection, and domain-driven design patterns.
-    It demonstrates the Template Method pattern for eliminating code duplication
-    and the Strategy pattern for different demonstration scenarios.
-
-Prerequisites:
-    - Oracle database (XE/Standard/Enterprise) accessible via network
-    - Environment variables configured for database connection
-    - FLEXT ecosystem components installed and configured
-
-Usage:
-    # Set environment variables
-    export FLEXT_TARGET_ORACLE_HOST=localhost
-    export FLEXT_TARGET_ORACLE_USERNAME=flext_user
-    export FLEXT_TARGET_ORACLE_PASSWORD=secure_password
-
-    # Run comprehensive demonstration
-    python 04_comprehensive_oracle_usage.py
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
@@ -45,6 +15,7 @@ import asyncio
 import os
 
 from flext_core import get_logger
+from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -62,9 +33,10 @@ def create_sample_config() -> FlextDbOracleConfig:
         host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
         port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
         username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
+        password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123")),
         service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
+        ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
     )
 
 
@@ -179,8 +151,9 @@ def demonstrate_configuration_patterns() -> None:
         FlextDbOracleConfig(
             host="localhost",
             username="user",
-            password="pass",  # noqa: S106 - Demo password argument for config example
+            password=SecretStr("pass"),  # noqa: S106 - Demo password argument for config example
             service_name="DB",
+            ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
         )
         logger.info("✅ Created minimal configuration")
 
@@ -189,10 +162,11 @@ def demonstrate_configuration_patterns() -> None:
             host="prod.oracle.company.com",
             port=1521,
             username="prod_user",
-            password="secure_password",  # noqa: S106 - Demo password argument for example
+            password=SecretStr("secure_password"),  # noqa: S106 - Demo password argument for example
             service_name="PROD_DB",
             encoding="UTF-8",
-            schema="PROD_SCHEMA",
+            oracle_schema="PROD_SCHEMA",  # Use correct field name
+            ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
         )
         logger.info("✅ Created production configuration")
 
@@ -227,27 +201,46 @@ def demonstrate_query_patterns() -> None:
         # Pattern 1: Simple query using unwrap_or pattern for cleaner code
         query_result = api.query("SELECT 1 as test_value FROM DUAL")
         # Use unwrap_or for cleaner pattern - avoid verbose if/else
-        rows_count = len(query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows)
+        rows_count = len(
+            query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows
+        )
         # Use FlextResult.map for cleaner status handling
-        status = query_result.map(lambda _: "Success").unwrap_or(f"Failed - {query_result.error}")
-        logger.info("📝 Simple query pattern demonstrated: %s with %d rows", status, rows_count)
+        status = query_result.map(lambda _: "Success").unwrap_or(
+            f"Failed - {query_result.error}"
+        )
+        logger.info(
+            "📝 Simple query pattern demonstrated: %s with %d rows", status, rows_count
+        )
 
-        # Pattern 2: Parameterized query using unwrap_or pattern  
+        # Pattern 2: Parameterized query using unwrap_or pattern
         param_query_result = api.query(
             "SELECT * FROM employees WHERE department_id = :dept_id",
             {"dept_id": 10},
         )
         # Use unwrap_or for cleaner parameterized query handling
-        param_rows = len(param_query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows)
-        param_status = param_query_result.map(lambda _: "Success").unwrap_or(f"Failed - {param_query_result.error}")
-        logger.info("📝 Parameterized query pattern demonstrated: %s with %d rows", param_status, param_rows)
+        param_rows = len(
+            param_query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows
+        )
+        param_status = param_query_result.map(lambda _: "Success").unwrap_or(
+            f"Failed - {param_query_result.error}"
+        )
+        logger.info(
+            "📝 Parameterized query pattern demonstrated: %s with %d rows",
+            param_status,
+            param_rows,
+        )
 
         # Pattern 3: Single row query using unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
         if single_result.is_success and single_result.value is not None:
-            logger.info("📝 Single row query pattern demonstrated: Success - got result")
+            logger.info(
+                "📝 Single row query pattern demonstrated: Success - got result"
+            )
         else:
-            logger.info("📝 Single row query pattern demonstrated: Failed - %s", single_result.error or "No data")
+            logger.info(
+                "📝 Single row query pattern demonstrated: Failed - %s",
+                single_result.error or "No data",
+            )
 
         # Pattern 4: Batch operations
         operations: list[tuple[str, dict[str, object] | None]] = [
@@ -265,8 +258,14 @@ def demonstrate_query_patterns() -> None:
         batch_result = api.execute_batch(operations)
         # Use unwrap_or for cleaner batch result handling
         batch_count = len(batch_result.unwrap_or([]))
-        batch_status = batch_result.map(lambda _: "Success").unwrap_or(f"Failed - {batch_result.error}")
-        logger.info("📝 Batch operations pattern demonstrated: %s with %d operations", batch_status, batch_count)
+        batch_status = batch_result.map(lambda _: "Success").unwrap_or(
+            f"Failed - {batch_result.error}"
+        )
+        logger.info(
+            "📝 Batch operations pattern demonstrated: %s with %d operations",
+            batch_status,
+            batch_count,
+        )
 
     demonstrator.demonstrate_with_api_operations(_perform_query_operations)
 

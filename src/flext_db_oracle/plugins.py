@@ -182,10 +182,13 @@ def _validate_table_structure(
 
     # Check if table exists - usando API real - refatoração DRY
     try:
-        # Using unwrap_or pattern to reduce bloat
+        # Using railway pattern for proper error handling
         tables_result = api.get_tables()
-        tables = tables_result.unwrap_or([])
-        if tables:
+        if tables_result.is_failure:
+            # If we can't get tables, we can't validate - but continue anyway
+            pass
+        elif tables_result.value:
+            tables = tables_result.value
             table_names = [
                 getattr(t, "name", str(t)) if hasattr(t, "name") else str(t)
                 for t in tables
@@ -404,7 +407,11 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[object]:
         result = factory_method()
         if is_result_like(result) and has_unwrap_or_method(result):
             unwrap_or_method = getattr(result, "unwrap_or", None)
-            plugin_obj = unwrap_or_method(None) if unwrap_or_method and callable(unwrap_or_method) else None
+            plugin_obj = (
+                unwrap_or_method(None)
+                if unwrap_or_method and callable(unwrap_or_method)
+                else None
+            )
             if plugin_obj:
                 # Basic validation that the result has plugin-like attributes
                 if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
@@ -412,7 +419,10 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[object]:
                 return FlextResult[object].fail(
                     "Factory method returned object without required attributes"
                 )
-            error_msg = getattr(result, "error", "Factory method failed") or "Factory method failed"
+            error_msg = (
+                getattr(result, "error", "Factory method failed")
+                or "Factory method failed"
+            )
             return FlextResult[object].fail(str(error_msg))
         return FlextResult[object].fail("Factory method returned invalid result")
     return FlextResult[object].fail("Factory method is not callable")
@@ -719,7 +729,9 @@ def _register_single_plugin(
 
         # Register plugin and return result
         register_result = api.register_plugin(plugin)
-        return register_result.map(lambda _: "registered").unwrap_or(f"failed: {register_result.error}")
+        return register_result.map(lambda _: "registered").unwrap_or(
+            f"failed: {register_result.error}"
+        )
 
     except Exception as e:
         return f"error: {e}"

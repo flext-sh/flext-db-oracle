@@ -16,27 +16,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import logging
 import os
+from typing import cast
 
-# Prefer module-specific logger over root logger
-logger = logging.getLogger(__name__)
+from flext_core import get_logger
+from pydantic import SecretStr
 
-# Import core components at module level to satisfy linting
-try:
-    from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_db_oracle.utilities import FlextDbOracleUtilities
-except Exception:  # pragma: no cover - optional import for examples
-    FlextDbOracleApi = None
-    FlextDbOracleConfig = None
+
+logger = get_logger(__name__)
 
 
 def demo_basic_usage() -> None:
     """Demonstrate basic flext-db-oracle usage."""
-    # Bail out if optional imports are unavailable
-    if FlextDbOracleApi is None or FlextDbOracleConfig is None:
-        return
-
     # Check environment configuration
     env_vars = [
         "FLEXT_TARGET_ORACLE_HOST",
@@ -57,8 +50,9 @@ def demo_basic_usage() -> None:
             host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
             port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
             username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "user"),
-            password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "password"),
+            password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "password")),
             service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "ORCLPDB1"),
+            ssl_server_cert_dn=os.getenv("FLEXT_TARGET_ORACLE_SSL_SERVER_CERT_DN", ""),
         )
     except Exception:
         return
@@ -72,7 +66,7 @@ def demo_basic_usage() -> None:
     # Test connection
     try:
         connected_api = api.connect()
-        
+
         # Use utilities for cleaner railway-oriented code
         if FlextDbOracleUtilities.safe_test_connection(connected_api):
             # Quick functionality test using utilities
@@ -127,7 +121,7 @@ def show_available_examples() -> None:
     ]
 
     for example in examples:
-        features = example.get("features", [])
+        features: list[str] = cast("list[str]", example.get("features", []))
         if isinstance(features, list):
             for _feature in features:
                 pass

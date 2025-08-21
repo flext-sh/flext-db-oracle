@@ -68,6 +68,7 @@ else:
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
+
     # Runtime aliases for type safety
     _get_logger = get_logger
     _SecretStr = SecretStr
@@ -931,7 +932,9 @@ Schema: {schema or "All"}""",
 
             # Railway pattern: handle success and failure separately
             if tables_result.is_failure:
-                console.print(f"[red]Failed to retrieve tables: {tables_result.error}[/red]")
+                console.print(
+                    f"[red]Failed to retrieve tables: {tables_result.error}[/red]"
+                )
                 _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
             else:
                 _display_tables_success(tables_result.value)
@@ -1099,11 +1102,14 @@ def plugins(ctx: click.Context) -> None:
                 registration_results = register_result.value
                 processor.handle_registration_success(registration_results)
 
-                # List all plugins - Using unwrap_or pattern to reduce bloat
+                # List all plugins - Using railway pattern
                 plugins_result = api.list_plugins()
-                plugins = plugins_result.unwrap_or([])
-                if plugins:
-                    processor.handle_plugin_list_success(plugins)
+                if plugins_result.is_failure:
+                    console.print(f"[yellow]Warning: Failed to list plugins: {plugins_result.error}[/yellow]")
+                else:
+                    plugins = plugins_result.value
+                    if plugins:
+                        processor.handle_plugin_list_success(plugins)
             else:
                 console.print(
                     f"[red]Plugin registration failed: {register_result.error}[/red]",

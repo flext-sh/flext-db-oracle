@@ -209,10 +209,7 @@ def is_string_list(obj: object) -> TypeGuard[SafeStringList]:
 
 def is_database_row(obj: object) -> TypeGuard[DatabaseRowDict]:
     """Type guard for database row dictionary."""
-    return (
-        isinstance(obj, dict)
-        and all(isinstance(k, str) for k in obj)
-    )
+    return isinstance(obj, dict) and all(isinstance(k, str) for k in obj)
 
 
 def safe_str_list(obj: object) -> SafeStringList:

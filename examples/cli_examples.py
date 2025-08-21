@@ -92,7 +92,7 @@ def _run_example_command(example: dict[str, object]) -> None:
         command_list = [str(item) for item in command]
     else:
         command_list = [str(command)]
-    
+
     exit_code, stdout, stderr = run_cli_command(command_list)
 
     if exit_code == 0:

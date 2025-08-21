@@ -67,6 +67,7 @@ else:
         FlextResult,
         get_logger,
     )
+
     # Runtime aliases for type safety
     _FlextContainer = FlextContainer
     _FlextLogger = FlextLogger
@@ -655,7 +656,8 @@ class OracleQueryExecutor:
                 )
 
             # Convert raw result to FlextDbOracleQueryResult
-            raw_data = raw_result.unwrap_or([])
+            # Use .value directly since failure was already handled above
+            raw_data = raw_result.value
 
             # Convert list to FlextDbOracleQueryResult (raw_data is always a list from connection layer)
             rows_list = [
@@ -1249,11 +1251,15 @@ class FlextDbOracleApi:
             # Try complex plugin retrieval first
             complex_result = self._plugin_manager.try_get_complex_plugin(plugin_name)
             if complex_result is not None:
-                return self._validate_and_return_plugin(complex_result, plugin_name, "Complex")
+                return self._validate_and_return_plugin(
+                    complex_result, plugin_name, "Complex"
+                )
 
             # Fall back to simple plugin retrieval
             simple_result = self._plugin_manager.get_simple_plugin(plugin_name)
-            return self._validate_and_return_plugin(simple_result, plugin_name, "Simple")
+            return self._validate_and_return_plugin(
+                simple_result, plugin_name, "Simple"
+            )
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return _FlextResult[object].fail(f"Failed to get plugin: {e}")
@@ -1265,11 +1271,16 @@ class FlextDbOracleApi:
         source: str,
     ) -> _FlextResult[object]:
         """Helper method to validate and return plugin, reducing complexity."""
-        plugin_obj = plugin_result.unwrap_or(None)
-        if not plugin_obj:
+        # Handle failure case first using railway pattern
+        if plugin_result.is_failure:
             return _FlextResult[object].fail(
                 plugin_result.error or f"{source} plugin retrieval failed"
             )
+
+        # Use .value directly since success is guaranteed
+        plugin_obj = plugin_result.value
+        if not plugin_obj:
+            return _FlextResult[object].fail(f"{source} plugin object is None")
 
         if _is_valid_plugin(plugin_obj):
             return _FlextResult[object].ok(plugin_obj)
@@ -1309,35 +1320,28 @@ class FlextDbOracleApi:
         SOLID REFACTORING: Delegated to ApiPluginManager to reduce complexity.
         """
         try:
-            # Delegate to helper class - reduces complexity in main API class
-            complex_result = self._plugin_manager.try_list_complex_plugins()
-            if complex_result is not None:
-                plugins_list = complex_result.unwrap_or([])
-                if plugins_list:
-                    # Type-safe conversion: filter and verify each plugin
-                    valid_plugins = [
-                        plugin_obj
-                        for plugin_obj in plugins_list
-                        if _is_valid_plugin(plugin_obj)
-                    ]
-                    return _FlextResult[list[object]].ok(valid_plugins)
-                return _FlextResult[list[object]].fail(
-                    complex_result.error or "Complex plugin listing failed"
-                )
+            # Try complex plugins first, fall back to simple plugins
+            plugin_result = self._plugin_manager.try_list_complex_plugins()
+            if plugin_result is None:
+                plugin_result = self._plugin_manager.list_simple_plugins()
 
-            # Fall back to simple plugin list via helper
-            simple_result = self._plugin_manager.list_simple_plugins()
-            plugins_list = simple_result.unwrap_or([])
-            if plugins_list:
-                # Type-safe conversion: filter and verify each plugin
-                valid_plugins = []
-                for plugin_obj in plugins_list:
-                    if _is_valid_plugin(plugin_obj):
-                        valid_plugins.append(plugin_obj)
-                return _FlextResult[list[object]].ok(valid_plugins)
-            return _FlextResult[list[object]].fail(
-                simple_result.error or "Simple plugin listing failed"
-            )
+            # Handle plugin result with railway pattern
+            if plugin_result.is_failure:
+                error_msg = plugin_result.error or "Plugin listing failed"
+                return _FlextResult[list[object]].fail(error_msg)
+
+            # Use .value directly since success is guaranteed
+            plugins_list = plugin_result.value
+            if not plugins_list:
+                return _FlextResult[list[object]].ok([])  # Empty list is valid
+
+            # Type-safe conversion: filter and verify each plugin
+            valid_plugins = [
+                plugin_obj
+                for plugin_obj in plugins_list
+                if _is_valid_plugin(plugin_obj)
+            ]
+            return _FlextResult[list[object]].ok(valid_plugins)
 
         except (TypeError, ValueError, AttributeError, RuntimeError, Exception) as e:
             return _FlextResult[list[object]].fail(f"Failed to list plugins: {e}")
@@ -1424,10 +1428,16 @@ class FlextDbOracleApi:
         # Railway pattern: map success to timing result creation
         return (
             result.map(lambda data: self._create_timing_result(data, duration_ms))
-            .map(lambda timing_result: _FlextResult[FlextDbOracleQueryResult].ok(timing_result))
-            .unwrap_or(_FlextResult[FlextDbOracleQueryResult].fail(
-                result.error or "Query execution failed"
-            ))
+            .map(
+                lambda timing_result: _FlextResult[FlextDbOracleQueryResult].ok(
+                    timing_result
+                )
+            )
+            .unwrap_or(
+                _FlextResult[FlextDbOracleQueryResult].fail(
+                    result.error or "Query execution failed"
+                )
+            )
         )
 
     def _create_timing_result(
@@ -1469,7 +1479,8 @@ class FlextDbOracleApi:
         result = self._connection_manager.connection.get_schemas()
         if result.is_failure:
             return result
-        return _FlextResult[list[str]].ok(result.unwrap_or([]))
+        # Use .value directly since success is guaranteed after failure check
+        return _FlextResult[list[str]].ok(result.value)
 
     def get_tables(self, schema: str | None = None) -> _FlextResult[list[str]]:
         """Get list of tables in schema."""
@@ -1479,7 +1490,8 @@ class FlextDbOracleApi:
         result = self._connection_manager.connection.get_table_names(schema)
         if result.is_failure:
             return result
-        return _FlextResult[list[str]].ok(result.unwrap_or([]))
+        # Use .value directly since success is guaranteed after failure check
+        return _FlextResult[list[str]].ok(result.value)
 
     def get_columns(
         self,
@@ -1495,7 +1507,8 @@ class FlextDbOracleApi:
         result = self._connection_manager.connection.get_column_info(table_name, schema)
         if result.is_failure:
             return result
-        return _FlextResult[list[dict[str, object]]].ok(result.unwrap_or([]))
+        # Use .value directly since success is guaranteed after failure check
+        return _FlextResult[list[dict[str, object]]].ok(result.value)
 
     def optimize_query(self, sql: str) -> _FlextResult[dict[str, object]]:
         """Analyze and provide optimization suggestions for SQL query."""
@@ -1597,7 +1610,8 @@ class FlextDbOracleApi:
         )
         if result.is_failure:
             return result
-        return _FlextResult[list[str]].ok(result.unwrap_or([]))
+        # Use .value directly since success is guaranteed after failure check
+        return _FlextResult[list[str]].ok(result.value)
 
     def get_observability_metrics(self) -> _FlextResult[dict[str, object]]:
         """Get observability metrics from the API."""
@@ -1691,9 +1705,8 @@ class FlextDbOracleApi:
         result = self._query_executor.execute_query(sql, None)
 
         # Railway pattern: map success to Ok(None), unwrap_or return failure
-        return (
-            result.map(lambda _: _FlextResult[None].ok(None))
-            .unwrap_or(_FlextResult[None].fail(result.error or "DDL execution failed"))
+        return result.map(lambda _: _FlextResult[None].ok(None)).unwrap_or(
+            _FlextResult[None].fail(result.error or "DDL execution failed")
         )
 
     # =============================================================================
