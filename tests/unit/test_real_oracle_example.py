@@ -14,6 +14,7 @@ from flext_db_oracle import (
     FlextDbOracleConfig,
     FlextDbOracleConnection,
 )
+from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
 class TestRealOracleConnection:
@@ -154,22 +155,21 @@ class TestRealOracleApi:
             assert query_result.value.rows[0][0][0] == "Hello Oracle"
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
-        """Test real Oracle schema listing."""
-        result = connected_oracle_api.get_schemas()
-        assert result.is_success, f"Get schemas failed: {result.error}"
+        """Test real Oracle schema listing using utilities."""
+        # Use utilities for cleaner code
+        schemas = FlextDbOracleUtilities.safe_get_schemas(connected_oracle_api)
 
         # Should have at least FLEXTTEST and system schemas
-        schemas = result.value
         assert len(schemas) > 0
         assert any("FLEXTTEST" in str(schema).upper() for schema in schemas)
 
     def test_real_api_get_tables(self, connected_oracle_api: FlextDbOracleApi) -> None:
-        """Test real Oracle table listing."""
-        result = connected_oracle_api.get_tables()
-        assert result.is_success, f"Get tables failed: {result.error}"
+        """Test real Oracle table listing using utilities."""
+        # Use utilities for cleaner code
+        tables = FlextDbOracleUtilities.safe_get_tables(connected_oracle_api)
 
-        # Should have test tables from init.sql
-        tables = result.value
+        # Should succeed and have test tables from init.sql
+        assert isinstance(tables, list)
         assert len(tables) > 0
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:

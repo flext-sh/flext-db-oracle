@@ -51,17 +51,29 @@ from __future__ import annotations
 import json
 from collections.abc import Sized
 from dataclasses import dataclass
-from typing import NoReturn, Protocol
+from typing import TYPE_CHECKING, NoReturn, Protocol
 
 import click
 
-# from flext_cli.core.formatters import OutputFormatter  # Disabled - flext_cli not available
-# from flext_cli.ecosystem_integration import FlextCliConfigFactory  # Disabled - flext_cli not available
-from flext_core import get_logger
-from pydantic import SecretStr
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
+# Type annotations for external imports to resolve PyRight warnings
+if TYPE_CHECKING:
+    from flext_core.loggings import get_logger as _get_logger
+    from pydantic import SecretStr as _SecretStr
+    from rich.console import Console as _Console
+    from rich.panel import Panel as _Panel
+    from rich.table import Table as _Table
+else:
+    from flext_core import get_logger
+    from pydantic import SecretStr
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+    # Runtime aliases for type safety
+    _get_logger = get_logger
+    _SecretStr = SecretStr
+    _Console = Console
+    _Panel = Panel
+    _Table = Table
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -72,24 +84,25 @@ from flext_db_oracle.typings import (
     is_dict_like,
     is_result_like,
 )
+from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
 # Helper function to wrap OutputFormatter
 def format_output(
     data: object,
     _format_type: str = "table",
-    console: Console | None = None,
+    console: _Console | None = None,
 ) -> str:
     """Format output using OutputFormatter."""
     # formatter = OutputFormatter()  # Disabled - flext_cli not available
     # OutputFormatter.format prints to console and returns None
     # Note: _format_type is preserved for future use when OutputFormatter supports multiple formats
-    target_console = console or globals().get("console", Console())
+    target_console = console or globals().get("console", _Console())
     target_console.print(data)  # Simple print instead of formatter.format
     return str(data)
 
 
-console = Console()
+console = _Console()
 
 
 # =============================================================================
@@ -100,7 +113,7 @@ console = Console()
 class CliErrorHandler:
     """Helper class for CLI error handling - REDUCES COMPLEXITY in command functions."""
 
-    def __init__(self, console: Console) -> None:
+    def __init__(self, console: _Console) -> None:
         """Initialize error handler."""
         self._console = console
 
@@ -173,7 +186,7 @@ class CliDataValidator:
     @staticmethod
     def safe_get_list_length(obj: object) -> int:
         """Safely get length of list-like object for display purposes."""
-        logger = get_logger(__name__)
+        logger = _get_logger(__name__)
 
         if obj is None:
             logger.debug("Object is None, returning 0 for display")
@@ -470,7 +483,7 @@ class _ConnectionTestExecutor:
             port=self.params.port,
             service_name=self.params.service_name,
             username=self.params.username,
-            password=SecretStr(self.params.password),
+            password=_SecretStr(self.params.password),
             oracle_schema="DEFAULT",
             sid=None,  # Usando service_name
             pool_min=1,
@@ -508,7 +521,11 @@ class _ConnectionTestExecutor:
 
     def _handle_successful_test(self, test_result: object) -> None:
         """Handle successful connection test - Single Responsibility."""
-        test_data = getattr(test_result, "data", None)
+        if not is_result_like(test_result):
+            _handle_no_data_error_with_cli_exception("Connection test")
+            return
+
+        test_data = getattr(test_result, "value", None)
 
         if test_data is None:
             _handle_no_data_error_with_cli_exception("Connection test")
@@ -521,7 +538,7 @@ class _ConnectionTestExecutor:
         # Type-safe conversion for _safe_get_test_data
         test_data_dict = test_data if isinstance(test_data, dict) else None
 
-        info_panel = Panel(
+        info_panel = _Panel(
             f"""✅ **Connection Successful**
 
 Host: {self.params.host}
@@ -566,7 +583,7 @@ Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms"""
 
     def _display_health_table(self, output_data: dict[str, object]) -> None:
         """Display health data as table - Single Responsibility."""
-        table = Table(title="Connection Details")
+        table = _Table(title="Connection Details")
         table.add_column("Property", style="cyan")
         table.add_column("Value", style="green")
 
@@ -610,14 +627,12 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
         # Create API from environment
         api = FlextDbOracleApi.from_env(env_prefix=env_prefix, context_name="cli")
 
-        # Test connection
+        # Test connection using railway-oriented programming
         test_result = api.test_connection_with_observability()
 
-        if test_result.is_success:
-            test_data = test_result.value
-
+        def _display_success_panel(test_data: dict[str, object]) -> dict[str, object]:
             console.print(
-                Panel(
+                _Panel(
                     f"""✅ **Connection Successful (from environment)**
 
 Status: {_safe_get_test_data(test_data, "status", "unknown")}
@@ -631,11 +646,15 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
             health_data = _safe_get_test_data(test_data, "health", {})
             if health_data and config.output_format != "table":
                 format_output(health_data, config.output_format, console)
-        else:
+            return test_data
+
+        # Railway pattern: map success to display, handle error if failure
+        if test_result.is_failure:
             _handle_operation_failure_with_cli_exception(
-                "Connection",
-                test_result.error or "Unknown connection error",
+                "Connection", test_result.error or "Unknown connection error"
             )
+        else:
+            _display_success_panel(test_result.value)
 
     except (
         OSError,
@@ -652,7 +671,7 @@ Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
 class QueryResultProcessor:
     """refactoring: Single Responsibility for query result processing."""
 
-    def __init__(self, config: ConfigProtocol, console: Console) -> None:
+    def __init__(self, config: ConfigProtocol, console: _Console) -> None:
         """Initialize result processor."""
         self.config = config
         self.console = console
@@ -690,7 +709,7 @@ class QueryResultProcessor:
         columns = _safe_get_query_data_attr(query_data, "columns", [])
 
         self.console.print(
-            Panel(
+            _Panel(
                 f"""✅ **Query Executed Successfully**
 
 Execution Time: {execution_time:.2f}ms
@@ -707,7 +726,7 @@ Columns: {_safe_get_list_length(columns)}""",
         results: list[object],
     ) -> None:
         """Display results as rich table."""
-        table: Table = Table(title=f"Query Results ({len(results)} rows)")
+        table: _Table = _Table(title=f"Query Results ({len(results)} rows)")
 
         # Add columns
         columns = _safe_get_query_data_attr(query_data, "columns", [])
@@ -772,12 +791,10 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
 
         with api:
-            # Execute query with timing
+            # Execute query with timing using railway-oriented programming
             query_result = api.query_with_timing(sql)
 
-            if query_result.is_success:
-                query_data = query_result.value
-
+            def _process_query_success(query_data: object) -> object:
                 raw_results = _safe_get_query_data_attr(query_data, "rows", [])
                 results: list[object] = (
                     raw_results if isinstance(raw_results, list) else []
@@ -786,12 +803,15 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
                 # Use SOLID processor for result handling
                 processor = QueryResultProcessor(config, console)
                 processor.process_success(query_data, results, limit)
+                return query_data
 
-            else:
+            # Railway pattern: map success to processing, handle error if failure
+            if query_result.is_failure:
                 _handle_operation_failure_with_cli_exception(
-                    "Query",
-                    query_result.error or "Unknown query error",
+                    "Query", query_result.error or "Unknown query error"
                 )
+            else:
+                _process_query_success(query_result.value)
 
     except (
         OSError,
@@ -815,26 +835,25 @@ def schemas(ctx: click.Context) -> None:
         api = FlextDbOracleApi.from_env(context_name="cli")
 
         with api:
-            schemas_result = api.get_schemas()
+            # Use utilities for cleaner code with unwrap_or pattern
+            schema_list = FlextDbOracleUtilities.safe_get_schemas(api)
 
-            if schemas_result.is_success:
-                schema_list = schemas_result.value
-
+            if schema_list:  # Only show if schemas found
                 console.print(
-                    Panel(
+                    _Panel(
                         f"""✅ **Schemas Retrieved**
 
-Total Schemas: {len(_safe_iterate_list(schema_list))}""",
+Total Schemas: {len(schema_list)}""",
                         title="Oracle Schemas",
                         border_style="green",
                     ),
                 )
 
                 if config.output_format == "table":
-                    table = Table(title="Oracle Schemas")
+                    table = _Table(title="Oracle Schemas")
                     table.add_column("Schema Name", style="cyan")
 
-                    for schema in _safe_iterate_list(schema_list):
+                    for schema in schema_list:
                         table.add_row(str(schema))
 
                     console.print(table)
@@ -846,9 +865,12 @@ Total Schemas: {len(_safe_iterate_list(schema_list))}""",
                     )
             else:
                 console.print(
-                    f"[red]Failed to retrieve schemas: {schemas_result.error}[/red]",
+                    _Panel(
+                        "❌ **No schemas found or connection failed**",
+                        title="Oracle Schemas",
+                        border_style="red",
+                    ),
                 )
-                _raise_cli_error(f"Failed to retrieve schemas: {schemas_result.error}")
 
     except (
         OSError,
@@ -876,14 +898,13 @@ def tables(ctx: click.Context, schema: str | None) -> None:
         api = FlextDbOracleApi.from_env(context_name="cli")
 
         with api:
+            # Retrieve tables using railway-oriented programming
             tables_result = api.get_tables(schema)
 
-            if tables_result.is_success:
-                table_list = tables_result.value
-
+            def _display_tables_success(table_list: list[str]) -> list[str]:
                 title = f"Oracle Tables{f' in {schema}' if schema else ''}"
                 console.print(
-                    Panel(
+                    _Panel(
                         f"""✅ **Tables Retrieved**
 
 Total Tables: {len(_safe_iterate_list(table_list))}
@@ -894,7 +915,7 @@ Schema: {schema or "All"}""",
                 )
 
                 if config.output_format == "table":
-                    table = Table(title=title)
+                    table = _Table(title=title)
                     table.add_column("Table Name", style="cyan")
                     table.add_column("Schema", style="yellow")
 
@@ -906,11 +927,14 @@ Schema: {schema or "All"}""",
                     console.print(table)
                 else:
                     format_output({"tables": table_list}, config.output_format, console)
-            else:
-                console.print(
-                    f"[red]Failed to retrieve tables: {tables_result.error}[/red]",
-                )
+                return table_list
+
+            # Railway pattern: handle success and failure separately
+            if tables_result.is_failure:
+                console.print(f"[red]Failed to retrieve tables: {tables_result.error}[/red]")
                 _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
+            else:
+                _display_tables_success(tables_result.value)
 
     except (
         OSError,
@@ -927,7 +951,7 @@ Schema: {schema or "All"}""",
 class PluginManagerProcessor:
     """refactoring: Single Responsibility for plugin management operations."""
 
-    def __init__(self, config: ConfigProtocol, console: Console) -> None:
+    def __init__(self, config: ConfigProtocol, console: _Console) -> None:
         """Initialize plugin manager processor."""
         self.config = config
         self.console = console
@@ -949,7 +973,7 @@ class PluginManagerProcessor:
     def _display_registration_success_panel(self) -> None:
         """Display registration success panel."""
         self.console.print(
-            Panel(
+            _Panel(
                 """✅ **Plugin Registration Complete**""",
                 title="Oracle Plugins",
                 border_style="green",
@@ -968,7 +992,7 @@ class PluginManagerProcessor:
 
     def _display_registration_table(self, registration_results: dict[str, str]) -> None:
         """Display registration results as table."""
-        table = Table(title="Plugin Registration Results")
+        table = _Table(title="Plugin Registration Results")
         table.add_column("Plugin Name", style="cyan")
         table.add_column("Status", style="green")
 
@@ -979,7 +1003,7 @@ class PluginManagerProcessor:
 
     def _display_plugins_table(self, plugin_list: list[object]) -> None:
         """Display plugins as rich table."""
-        plugin_table = Table(title="Available Plugins")
+        plugin_table = _Table(title="Available Plugins")
         plugin_table.add_column("Name", style="cyan")
         plugin_table.add_column("Version", style="yellow")
         plugin_table.add_column("Type", style="magenta")
@@ -1121,7 +1145,7 @@ def optimize(ctx: click.Context, sql: str) -> None:
                 suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
                 console.print(
-                    Panel(
+                    _Panel(
                         f"""✅ **Query Analysis Complete**
 
 SQL Length: {_safe_get_test_data(optimization_data, "sql_length", 0)} characters
@@ -1190,7 +1214,7 @@ def health(ctx: click.Context) -> None:
                 timestamp_str = timestamp.isoformat() if timestamp else "N/A"
 
                 console.print(
-                    Panel(
+                    _Panel(
                         f"""**Health Status: [{status_color}]{status.upper()}[/{status_color}]**
 
 Component: {component}
@@ -1205,7 +1229,7 @@ Timestamp: {timestamp_str}""",
                 metrics = getattr(health_data, "metrics", {})
                 if metrics:
                     if config.output_format == "table":
-                        metrics_table = Table(title="Health Metrics")
+                        metrics_table = _Table(title="Health Metrics")
                         metrics_table.add_column("Metric", style="cyan")
                         metrics_table.add_column("Value", style="green")
 

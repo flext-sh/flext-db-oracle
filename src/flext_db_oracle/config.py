@@ -2,7 +2,7 @@
 
 This module provides enterprise-grade Oracle database configuration management with
 comprehensive validation, multiple configuration sources, and seamless integration
-with FLEXT Core patterns. It extends the centralized FlextOracleConfig from flext-core
+with FLEXT Core patterns. It extends the centralized FlextSettings from flext-core
 with Oracle-specific features and domain-driven validation rules.
 
 Key Components:
@@ -30,7 +30,7 @@ Example:
     ...     print(f"Connected to {config.get_connection_string()}")
 
 Integration:
-    - Built on flext-core FlextOracleConfig foundation
+    - Built on flext-core FlextSettings foundation
     - Integrates with flext-observability for configuration monitoring
     - Supports flext-cli configuration management commands
     - Compatible with FLEXT ecosystem service discovery
@@ -47,7 +47,7 @@ import urllib.parse
 from typing import TypeVar
 
 from flext_core import FlextResult, FlextValidators, get_logger
-from flext_core.config import FlextOracleConfig
+from flext_core.config import FlextSettings
 from pydantic import Field, SecretStr, field_validator, model_validator
 
 from flext_db_oracle.constants import (
@@ -91,8 +91,22 @@ def _handle_config_validation_error(exception: Exception) -> FlextResult[None]:
     return FlextResult[None].fail(f"Configuration validation failed: {exception}")
 
 
-class FlextDbOracleConfig(FlextOracleConfig):
+class FlextDbOracleConfig(FlextSettings):
     """Oracle database configuration extending flext-core centralized config."""
+
+    # Core Oracle connection fields
+    host: str = Field(description="Oracle database hostname")
+    port: int = Field(default=1521, description="Oracle database port")
+    username: str = Field(description="Oracle database username")
+    password: SecretStr = Field(description="Oracle database password")
+    service_name: str | None = Field(default=None, description="Oracle service name")
+    sid: str | None = Field(default=None, description="Oracle SID")
+    oracle_schema: str = Field(default="PUBLIC", description="Oracle schema name")
+
+    # Connection pool settings
+    pool_min: int = Field(default=1, description="Minimum pool connections")
+    pool_max: int = Field(default=10, description="Maximum pool connections")
+    pool_increment: int = Field(default=1, description="Connection pool increment")
 
     # Additional Oracle-specific options not in base class
     ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
@@ -107,13 +121,8 @@ class FlextDbOracleConfig(FlextOracleConfig):
     encoding: str = Field(default="UTF-8", description="Character encoding")
     protocol: str = Field(default="tcp", description="Connection protocol")
 
-    # Pool increment field missing from base class
-    pool_increment: int = Field(default=1, description="Connection pool increment")
-
     # Autocommit field missing from base class
     autocommit: bool = Field(default=False, description="Enable autocommit mode")
-    # Keep strict type; validator coerces strings at runtime
-    password: SecretStr
 
     @field_validator("host")
     @classmethod
@@ -227,7 +236,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
         # This method is kept for additional business rule validations if needed
         return FlextResult[None].ok(None)
 
-    # Host and username validation inherited from FlextOracleConfig
+    # Host and username validation using custom validators
 
     @classmethod
     def from_env(
@@ -327,12 +336,12 @@ class FlextDbOracleConfig(FlextOracleConfig):
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_config_operation_error("parse URL", e)
 
-    # Connection identifier and pool validation inherited from FlextOracleConfig
+    # Connection identifier and pool validation using custom validators
 
     def to_connect_params(self) -> dict[str, object]:
         """Convert to Oracle connection parameters with Oracle-specific extensions."""
         # Get base params from parent class and convert to mutable dict
-        params: dict[str, object] = dict(super().to_dict())
+        params: dict[str, object] = self.model_dump()
 
         # Oracle driver expects 'user', not 'username'
         if "username" in params:

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # Import core components at module level to satisfy linting
 try:
     from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle.utilities import FlextDbOracleUtilities
 except Exception:  # pragma: no cover - optional import for examples
     FlextDbOracleApi = None
     FlextDbOracleConfig = None
@@ -71,14 +72,12 @@ def demo_basic_usage() -> None:
     # Test connection
     try:
         connected_api = api.connect()
-        test_result = connected_api.test_connection()
-
-        if test_result.is_success:
-            # Quick functionality test
-            schemas_result = connected_api.get_schemas()
-            if schemas_result.is_success:
-                len(schemas_result.value)
-
+        
+        # Use utilities for cleaner railway-oriented code
+        if FlextDbOracleUtilities.safe_test_connection(connected_api):
+            # Quick functionality test using utilities
+            schemas = FlextDbOracleUtilities.safe_get_schemas(connected_api)
+            logger.info("Found %d schemas", len(schemas))
             connected_api.disconnect()
 
     except Exception:
@@ -87,7 +86,7 @@ def demo_basic_usage() -> None:
 
 def show_available_examples() -> None:
     """Show information about available examples."""
-    examples = [
+    examples: list[dict[str, object]] = [
         {
             "name": "example_04_comprehensive_oracle_usage.py",
             "description": "Complete Oracle operations demonstration",
@@ -128,8 +127,10 @@ def show_available_examples() -> None:
     ]
 
     for example in examples:
-        for _feature in example["features"]:
-            pass
+        features = example.get("features", [])
+        if isinstance(features, list):
+            for _feature in features:
+                pass
 
 
 if __name__ == "__main__":

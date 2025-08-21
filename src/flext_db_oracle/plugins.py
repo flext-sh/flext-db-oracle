@@ -719,7 +719,7 @@ def _register_single_plugin(
 
         # Register plugin and return result
         register_result = api.register_plugin(plugin)
-        return "registered" if register_result.is_success else f"failed: {register_result.error}"
+        return register_result.map(lambda _: "registered").unwrap_or(f"failed: {register_result.error}")
 
     except Exception as e:
         return f"error: {e}"

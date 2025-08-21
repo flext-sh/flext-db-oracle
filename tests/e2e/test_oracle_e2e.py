@@ -243,7 +243,9 @@ class TestOracleE2E:
             "FLEXT_TARGET_ORACLE_TIMEOUT": "60",
         }
 
-        with patch.dict(os.environ, test_env):
+        # Test configuration from environment without mocking
+        os.environ.update(test_env)
+        try:
             # Test configuration creation
             config_result = FlextDbOracleConfig.from_env()
             assert config_result.is_success, (
@@ -257,6 +259,10 @@ class TestOracleE2E:
             assert config.username == "e2e_user"
             assert config.password.get_secret_value() == "e2e_password"
             assert config.pool_min == 2
+        finally:
+            # Clean up environment
+            for key in test_env:
+                os.environ.pop(key, None)
             assert config.pool_max == 20
             assert config.timeout == 60
 

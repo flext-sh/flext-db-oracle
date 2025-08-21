@@ -18,18 +18,26 @@ from __future__ import annotations
 from typing import Protocol, TypedDict, TypeGuard, runtime_checkable
 
 __all__ = [
-    # TypedDict definitions
+    # Type aliases and dicts
+    "DatabaseColumnDict",
+    "DatabaseRowDict",
+    "DatabaseRowProtocol",
     "OracleColumnInfo",
     "OracleConnectionInfo",
     "OracleTableInfo",
-    # Type guards and protocols
     "PluginLikeProtocol",
+    "SafeStringList",
+    # Type guards and utilities
     "has_get_info_method",
     "has_unwrap_or_method",
+    "is_database_row",
     "is_dict_like",
     "is_flext_plugin",
     "is_plugin_like",
     "is_result_like",
+    "is_string_list",
+    "safe_database_row_dict",
+    "safe_str_list",
 ]
 
 # =============================================================================
@@ -143,7 +151,7 @@ def is_dict_like(obj: object) -> TypeGuard[dict[str, object]]:
     return hasattr(obj, "get") and hasattr(obj, "items") and hasattr(obj, "keys")
 
 
-def is_result_like(obj: object) -> bool:
+def is_result_like(obj: object) -> TypeGuard[object]:
     """Type guard for FlextResult-like objects.
 
     Checks if object has FlextResult-like interface.
@@ -171,3 +179,55 @@ def has_unwrap_or_method(obj: object) -> bool:
     Resolves 'Cannot access attribute "unwrap_or" for class "object"' warnings.
     """
     return hasattr(obj, "unwrap_or") and callable(getattr(obj, "unwrap_or", None))
+
+
+# =============================================================================
+# DATABASE TYPE SAFETY - Specific protocols for Oracle data
+# =============================================================================
+
+
+@runtime_checkable
+class DatabaseRowProtocol(Protocol):
+    """Protocol for database row-like objects."""
+
+    def keys(self) -> object: ...
+    def values(self) -> object: ...
+    def items(self) -> object: ...
+    def get(self, key: str, default: object = None) -> object: ...
+
+
+# Type aliases for common database patterns
+DatabaseRowDict = dict[str, object]
+DatabaseColumnDict = dict[str, str | int | None]
+SafeStringList = list[str]
+
+
+def is_string_list(obj: object) -> TypeGuard[SafeStringList]:
+    """Type guard for list of strings."""
+    return isinstance(obj, list) and all(isinstance(item, str) for item in obj)
+
+
+def is_database_row(obj: object) -> TypeGuard[DatabaseRowDict]:
+    """Type guard for database row dictionary."""
+    return (
+        isinstance(obj, dict)
+        and all(isinstance(k, str) for k in obj)
+    )
+
+
+def safe_str_list(obj: object) -> SafeStringList:
+    """Convert unknown list to typed string list safely."""
+    if is_string_list(obj):
+        return obj
+    if isinstance(obj, list):
+        return [str(item) for item in obj]
+    return []
+
+
+def safe_database_row_dict(obj: object) -> DatabaseRowDict:
+    """Convert unknown dict to typed database row dict safely."""
+    if is_database_row(obj):
+        return obj
+    if isinstance(obj, dict):
+        return {str(k): v for k, v in obj.items()}
+    return {}

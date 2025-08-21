@@ -2,7 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+import click
+
 from flext_db_oracle.api import FlextDbOracleApi
+
+if TYPE_CHECKING:
+    import click
 
 # from flext_db_oracle.cli import oracle as _oracle  # Temporarily disabled - CLI deps missing
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -39,6 +46,9 @@ from flext_db_oracle.plugins import (
     register_all_oracle_plugins,
 )
 from flext_db_oracle.utilities import FlextDbOracleUtilities
+
+# Type annotations using runtime annotation approach to avoid MyPy redefinition errors
+# PyRight will still benefit from the static type hints in the original imports
 
 # LEGACY IMPORTS REMOVED - Use models directly
 
@@ -92,7 +102,7 @@ __description__ = (
 )
 
 
-def __getattr__(name: str) -> object:  # pragma: no cover - import-time laziness
+def __getattr__(name: str) -> click.Command:  # pragma: no cover - import-time laziness
     """Provide lazy access to CLI entrypoints to avoid heavy imports by default.
 
     Tests may import `oracle_cli` or `oracle`. Only then we import the CLI module,

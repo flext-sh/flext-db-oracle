@@ -224,39 +224,33 @@ def demonstrate_query_patterns() -> None:
 
     def _perform_query_operations(api: FlextDbOracleApi) -> None:
         """Specific query pattern operations."""
-        # Pattern 1: Simple query using unwrap_or pattern
+        # Pattern 1: Simple query using unwrap_or pattern for cleaner code
         query_result = api.query("SELECT 1 as test_value FROM DUAL")
-        result_data = query_result.unwrap_or("Query failed - simulated")
-        logger.info(
-            "📝 Simple query pattern demonstrated: %s",
-            "Success"
-            if result_data != "Query failed - simulated"
-            else "Simulated failure",
-        )
+        # Use unwrap_or for cleaner pattern - avoid verbose if/else
+        rows_count = len(query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows)
+        # Use FlextResult.map for cleaner status handling
+        status = query_result.map(lambda _: "Success").unwrap_or(f"Failed - {query_result.error}")
+        logger.info("📝 Simple query pattern demonstrated: %s with %d rows", status, rows_count)
 
-        # Pattern 2: Parameterized query using unwrap_or pattern
+        # Pattern 2: Parameterized query using unwrap_or pattern  
         param_query_result = api.query(
             "SELECT * FROM employees WHERE department_id = :dept_id",
             {"dept_id": 10},
         )
-        param_data = param_query_result.unwrap_or("Parameterized query failed")
-        logger.info(
-            "📝 Parameterized query pattern demonstrated: %s",
-            "Success"
-            if param_data != "Parameterized query failed"
-            else "Simulated failure",
-        )
+        # Use unwrap_or for cleaner parameterized query handling
+        param_rows = len(param_query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows)
+        param_status = param_query_result.map(lambda _: "Success").unwrap_or(f"Failed - {param_query_result.error}")
+        logger.info("📝 Parameterized query pattern demonstrated: %s with %d rows", param_status, param_rows)
 
         # Pattern 3: Single row query using unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
-        single_data = single_result.unwrap_or("Single query failed")
-        logger.info(
-            "📝 Single row query pattern demonstrated: %s",
-            "Success" if single_data != "Single query failed" else "Simulated failure",
-        )
+        if single_result.is_success and single_result.value is not None:
+            logger.info("📝 Single row query pattern demonstrated: Success - got result")
+        else:
+            logger.info("📝 Single row query pattern demonstrated: Failed - %s", single_result.error or "No data")
 
         # Pattern 4: Batch operations
-        operations = [
+        operations: list[tuple[str, dict[str, object] | None]] = [
             (
                 "UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id",
                 {"dept_id": 10},
@@ -269,13 +263,10 @@ def demonstrate_query_patterns() -> None:
         ]
 
         batch_result = api.execute_batch(operations)
-        batch_data = batch_result.unwrap_or("Batch operations failed")
-        logger.info(
-            "📝 Batch operations pattern demonstrated: %s",
-            "Success"
-            if batch_data != "Batch operations failed"
-            else "Simulated failure",
-        )
+        # Use unwrap_or for cleaner batch result handling
+        batch_count = len(batch_result.unwrap_or([]))
+        batch_status = batch_result.map(lambda _: "Success").unwrap_or(f"Failed - {batch_result.error}")
+        logger.info("📝 Batch operations pattern demonstrated: %s with %d operations", batch_status, batch_count)
 
     demonstrator.demonstrate_with_api_operations(_perform_query_operations)
 

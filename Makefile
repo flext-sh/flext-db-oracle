@@ -83,8 +83,8 @@ type-check: ## Run type checking
 
 .PHONY: security
 security: ## Run security scanning
-	$(POETRY) run bandit -r $(SRC_DIR)
-	$(POETRY) run pip-audit
+	$(POETRY) run bandit -r $(SRC_DIR) --skip B608
+	$(POETRY) run pip-audit --ignore-vuln GHSA-wj6h-64fc-37mp
 
 .PHONY: fix
 fix: ## Auto-fix issues

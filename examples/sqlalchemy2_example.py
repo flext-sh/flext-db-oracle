@@ -33,9 +33,11 @@ def oracle_connection() -> Iterator[Engine]:
     connection = FlextDbOracleConnection(config)
 
     connect_result = connection.connect()
-
-    if connect_result.is_failure:
-        msg = f"Failed to connect to Oracle: {connect_result.error}"
+    
+    # Use unwrap_or pattern for clean error handling
+    if not connect_result.unwrap_or(False):
+        error_msg = connect_result.error or "Connection failed"
+        msg = f"Failed to connect to Oracle: {error_msg}"
         raise RuntimeError(msg)
 
     try:

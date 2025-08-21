@@ -23,6 +23,7 @@ from flext_db_oracle import (
     FlextDbOracleTimeoutError,
     FlextDbOracleValidationError,
 )
+from flext_db_oracle.exceptions import FlextDbOracleErrorCodes
 
 
 class TestRealOracleExceptionsCore:
@@ -355,9 +356,9 @@ class TestRealOracleExceptionHierarchy:
         query_error = FlextDbOracleQueryError(
             "Invalid SQL syntax",
             query="SELECT FROM WHERE",
-            error_code="ORA-00936",
+            code=FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR,
         )
-        assert "[FLEXT_DB_ORACLE_ERROR] Invalid SQL syntax" in str(query_error)
+        assert "Invalid SQL syntax" in str(query_error)
 
         # Test FlextDbOracleMetadataError with context
         metadata_error = FlextDbOracleMetadataError(
@@ -381,11 +382,11 @@ class TestRealOracleExceptionHierarchy:
         query_error = FlextDbOracleQueryError(
             "Query too complex",
             query=long_query,
-            error_code="ORA-99999",
+            code=FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR,
         )
 
         # Query should be truncated to 200 characters in context
         error_str = str(query_error)
-        assert "[FLEXT_DB_ORACLE_ERROR] Query too complex" in error_str
+        assert "Query too complex" in error_str
         assert len(long_query) > 200  # Original query is long
         # The actual query in context should be truncated (internal implementation)

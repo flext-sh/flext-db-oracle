@@ -50,7 +50,7 @@ from __future__ import annotations
 
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager
-from typing import TypeVar
+from typing import TypeVar, override
 from urllib.parse import quote_plus
 
 from flext_core import FlextResult, FlextValidators, FlextValueObject, get_logger
@@ -68,6 +68,10 @@ from flext_db_oracle.constants import (
     ORACLE_TEST_QUERY,
     ORACLE_TIMESTAMP_TYPE,
     SINGER_TO_ORACLE_TYPE_MAP,
+)
+from flext_db_oracle.typings import (
+    DatabaseRowDict,
+    SafeStringList,
 )
 
 # Oracle column information constants
@@ -127,6 +131,7 @@ class CreateIndexConfig(FlextValueObject):
             raise ValueError(msg)
         return v
 
+    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate create index configuration.
 
@@ -191,8 +196,7 @@ class FlextDbOracleConnection:
                 conn.execute(text(ORACLE_TEST_QUERY))
 
             self._logger.info("Connected using SQLAlchemy 2")
-            success = True
-            return FlextResult[bool].ok(success)
+            return FlextResult[bool].ok(True)  # noqa: FBT003
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return self._handle_database_error_with_logging("Failed to connect", e)
@@ -205,8 +209,7 @@ class FlextDbOracleConnection:
                 self._engine = None
                 self._session_factory = None
                 self._logger.info("Disconnected from Oracle database")
-            success = True
-            return FlextResult[bool].ok(success)
+            return FlextResult[bool].ok(True)  # noqa: FBT003
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return FlextResult[bool].fail(f"Disconnect failed: {e}")
 
@@ -413,7 +416,7 @@ class FlextDbOracleConnection:
             and isinstance(result.value[0], Row)
         ):
             # Type-safe verification: check all items are Row types
-            row_data = []
+            row_data: list[Row[tuple[object, ...]]] = []
             for item in result.value:
                 if isinstance(item, Row):
                     row_data.append(item)
@@ -751,7 +754,7 @@ class FlextDbOracleConnection:
             # Build WHERE clause - SECURITY: Only safe for trusted internal values
             where_clause = ""
             if conditions:
-                where_conditions = []
+                where_conditions: SafeStringList = []
                 for key, value in conditions.items():
                     # NOTE: This is only safe for internal/trusted values
                     # For user input, use execute() with parameters instead
@@ -766,7 +769,7 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build SQL - safe for internal use only (basic escaping applied)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608 - Parameterized queries used in actual execution
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608
             return FlextResult[str].ok(sql)
 
         except (ValueError, TypeError, AttributeError) as e:
@@ -789,9 +792,9 @@ class FlextDbOracleConnection:
 
             # Build WHERE clause with parameters (SECURITY: No SQL injection)
             where_clause = ""
-            params: dict[str, object] = {}
+            params: DatabaseRowDict = {}
             if conditions:
-                where_conditions = []
+                where_conditions: SafeStringList = []
                 for key, value in conditions.items():
                     # Use parameterized queries to prevent SQL injection
                     param_name = f"param_{key}"
@@ -800,11 +803,11 @@ class FlextDbOracleConnection:
                 where_clause = " WHERE " + " AND ".join(where_conditions)
 
             # Build safe SQL with parameterized conditions (fully secure)
-            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608 - Using parameterized queries with bind variables
-            return FlextResult[tuple[str, dict[str, object]]].ok((sql, params))
+            sql = f"SELECT {column_list} FROM {full_table_name}{where_clause}"  # noqa: S608
+            return FlextResult[tuple[str, DatabaseRowDict]].ok((sql, params))
 
         except (ValueError, TypeError, AttributeError) as e:
-            return FlextResult[tuple[str, dict[str, object]]].fail(
+            return FlextResult[tuple[str, DatabaseRowDict]].fail(
                 f"Query building failed: {e}"
             )
 
@@ -846,15 +849,14 @@ class FlextDbOracleConnection:
         """Generate CREATE TABLE DDL (consolidated from services)."""
         try:
             full_table_name = self._build_table_name(table_name, schema_name)
-            column_defs: list[str] = []
-
             # Build column definitions
+            column_defs: SafeStringList = []
             for col in columns:
                 col_def_result = self._build_column_definition(col)
                 if col_def_result.is_failure:
                     return col_def_result
-                # col_def_result.value is guaranteed to be str from FlextResult[None].ok(col_def)
-                column_defs.append(col_def_result.value or "")
+                # Use .value directly since success is guaranteed
+                column_defs.append(str(col_def_result.value))
 
             # Add PRIMARY KEY constraint if any columns are marked as primary key
             primary_key_columns = self._collect_primary_key_columns(columns)
@@ -893,10 +895,11 @@ class FlextDbOracleConnection:
         """Execute DDL statement (consolidated from services)."""
         try:
             result = self.execute(ddl)
-            if result.is_success:
-                success = True
-                return FlextResult[bool].ok(success)
-            return FlextResult[bool].fail(result.error or "DDL execution failed")
+            # Railway pattern: map success to True, unwrap_or return failure
+            return (
+                result.map(lambda _: FlextResult[bool].ok(True))  # noqa: FBT003
+                .unwrap_or(FlextResult[bool].fail(result.error or "DDL execution failed"))
+            )
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return FlextResult[bool].fail(f"DDL execution failed: {e}")
@@ -939,27 +942,31 @@ class FlextDbOracleConnection:
     def _validate_singer_properties(
         self,
         singer_schema: dict[str, object],
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[DatabaseRowDict]:
         """Validate Singer schema properties - Single Responsibility."""
         properties = singer_schema.get("properties", {})
         if not isinstance(properties, dict):
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[DatabaseRowDict].fail(
                 "Schema properties must be a dictionary"
             )
-        return FlextResult[dict[str, object]].ok(properties)
+
+        typed_properties: DatabaseRowDict = {str(k): v for k, v in properties.items()}
+        return FlextResult[DatabaseRowDict].ok(typed_properties)
 
     def _map_single_field(
         self,
         field_name: str,
-        field_def: dict[str, object],
+        field_def: DatabaseRowDict,
     ) -> FlextResult[tuple[str, str]]:
         """Map single Singer field to Oracle column - Single Responsibility."""
         field_type_obj = field_def.get("type", "string")
         format_hint_obj = field_def.get("format")
 
         # Safe casting for Singer field types
-        if isinstance(field_type_obj, (str, list)):
-            field_type = field_type_obj
+        if isinstance(field_type_obj, str):
+            field_type: str | list[str] = field_type_obj
+        elif isinstance(field_type_obj, list):
+            field_type = [str(item) for item in field_type_obj]
         else:
             field_type = "string"  # Default fallback
 
@@ -975,7 +982,8 @@ class FlextDbOracleConnection:
                 type_result.error or "Type conversion failed"
             )
 
-        oracle_type = type_result.value or "VARCHAR2(4000)"
+        # Use .value directly since success is guaranteed after failure check
+        oracle_type = type_result.value
         return FlextResult[tuple[str, str]].ok((field_name, oracle_type))
 
     def map_singer_schema(
@@ -1003,7 +1011,9 @@ class FlextDbOracleConnection:
                 if not isinstance(field_def, dict):
                     continue  # Skip invalid field definitions
 
-                field_result = self._map_single_field(field_name, field_def)
+                # Ensure field_def is properly typed
+                typed_field_def: DatabaseRowDict = {str(k): v for k, v in field_def.items()}
+                field_result = self._map_single_field(field_name, typed_field_def)
                 if field_result.is_failure:
                     # Convert FlextResult[tuple[str, str]] to FlextResult[dict[str, str]]
                     return FlextResult[dict[str, str]].fail(
@@ -1081,7 +1091,7 @@ class FlextDbOracleConnection:
 
             # Build basic INSERT
             # NOTE: SQL construction is safe - full_table_name, col_list, param_list are constructed from validated schema metadata
-            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608 - Schema metadata validated, using bind variables
+            sql = f"INSERT {hint_clause}INTO {full_table_name} ({col_list}) VALUES ({param_list})"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1127,7 +1137,7 @@ class FlextDbOracleConnection:
 
             # Build UPDATE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608 - SQL built from validated schema metadata
+            sql = f"UPDATE {full_table_name} SET {set_clause} WHERE {where_clause}"  # noqa: S608
 
             # Add RETURNING clause if specified
             if returning_columns:
@@ -1196,7 +1206,7 @@ class FlextDbOracleConnection:
 
             # Build complete MERGE statement
             # NOTE: SQL construction is safe - all components built from validated schema metadata and parameterized values
-            sql = f"""  # noqa: S608 - SQL built from validated schema metadata
+            sql = f"""  # noqa: S608
               MERGE {hint_clause}INTO {full_table_name} tgt
               USING (SELECT {source_select} FROM DUAL) src
               ON ({on_conditions})
@@ -1205,7 +1215,7 @@ class FlextDbOracleConnection:
               WHEN NOT MATCHED THEN
                   INSERT ({insert_cols})
                   VALUES ({insert_vals})
-          """  # noqa: S608 - SQL built from validated schema metadata
+          """  # noqa: S608
 
             return FlextResult[str].ok(sql.strip())
 
@@ -1237,7 +1247,7 @@ class FlextDbOracleConnection:
 
             # Build DELETE statement
             # NOTE: SQL construction is safe - components built from validated schema metadata and parameterized values
-            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608 - SQL built from validated schema metadata
+            sql = f"DELETE FROM {full_table_name} WHERE {where_clause}"  # noqa: S608
 
             return FlextResult[str].ok(sql)
 
