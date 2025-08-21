@@ -807,10 +807,10 @@ All API methods return `FlextResult[T]` for consistent error handling:
 # Check for success/failure
 result = api.execute_query("SELECT * FROM employees")
 if result.success:
-    data = result.value  # Type: TDbOracleQueryResult
+    data = result.value
     print(f"Retrieved {len(data.rows)} rows")
 else:
-    error = result.error  # Type: str
+    error = result.error
     print(f"Query failed: {error}")
 
 # Pattern matching (Python 3.10+)

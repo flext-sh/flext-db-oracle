@@ -162,9 +162,9 @@ def pytest_configure(config: pytest.Config) -> None:
     # PYTEST CONFIGURADO PARA USAR ORACLE REAL - SEM MOCKS!
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def oracle_container() -> Generator[None]:
-    """Ensure Oracle container is running for ALL tests - MANDATORY."""
+    """Ensure Oracle container is running for ORACLE tests only."""
     project_root = Path(__file__).parent.parent
     compose_file = project_root / "docker-compose.oracle.yml"
 
@@ -177,15 +177,13 @@ def oracle_container() -> Generator[None]:
         yield
 
     except RuntimeError as e:
-        pytest.exit(f"Failed to manage Oracle container: {e}")
+        pytest.skip(f"Oracle container not available: {e}")
     except FileNotFoundError:
-        pytest.exit(
-            "Docker/Docker Compose not available - cannot run tests without Docker",
-        )
+        pytest.skip("Docker/Docker Compose not available")
     except OSError as e:
-        pytest.exit(f"OS error managing Oracle container: {e}")
+        pytest.skip(f"OS error managing Oracle container: {e}")
     except Exception as e:
-        pytest.exit(f"Error managing Oracle container: {e}")
+        pytest.skip(f"Error managing Oracle container: {e}")
 
 
 @pytest.fixture

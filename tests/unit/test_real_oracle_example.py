@@ -28,12 +28,12 @@ class TestRealOracleConnection:
 
         # Test connect
         result = connection.connect()
-        assert result.success, f"Connection failed: {result.error}"
+        assert result.is_success, f"Connection failed: {result.error}"
         assert connection.is_connected()
 
         # Test disconnect
         result = connection.disconnect()
-        assert result.success, f"Disconnect failed: {result.error}"
+        assert result.is_success, f"Disconnect failed: {result.error}"
         assert not connection.is_connected()
 
     def test_real_connection_execute_query(
@@ -45,14 +45,14 @@ class TestRealOracleConnection:
 
         # Connect first
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute simple query
             result = connection.execute("SELECT 1 FROM DUAL")
-            assert result.success, f"Query failed: {result.error}"
-            assert len(result.data) == 1
-            assert result.data[0][0] == 1
+            assert result.is_success, f"Query failed: {result.error}"
+            assert len(result.value) == 1
+            assert result.value[0][0] == 1
 
         finally:
             connection.disconnect()
@@ -66,13 +66,13 @@ class TestRealOracleConnection:
 
         # Connect first
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Fetch one row
             result = connection.fetch_one("SELECT 42 FROM DUAL")
-            assert result.success, f"Fetch one failed: {result.error}"
-            assert result.data[0] == 42
+            assert result.is_success, f"Fetch one failed: {result.error}"
+            assert result.value[0] == 42
 
         finally:
             connection.disconnect()
@@ -86,7 +86,7 @@ class TestRealOracleConnection:
 
         # Connect first
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Drop table if it already exists (cleanup from previous runs)
@@ -101,7 +101,7 @@ class TestRealOracleConnection:
                   name VARCHAR2(100)
               ) ON COMMIT PRESERVE ROWS
           """)
-            assert create_result.success, (
+            assert create_result.is_success, (
                 f"Table creation failed: {create_result.error}"
             )
 
@@ -116,13 +116,13 @@ class TestRealOracleConnection:
                 "INSERT INTO temp_test_table (id, name) VALUES (:id, :name)",
                 params_list,
             )
-            assert result.success, f"Execute many failed: {result.error}"
-            assert result.data == 3  # Row count
+            assert result.is_success, f"Execute many failed: {result.error}"
+            assert result.value == 3  # Row count
 
             # Verify data
             select_result = connection.execute("SELECT COUNT(*) FROM temp_test_table")
-            assert select_result.success
-            assert select_result.data[0][0] == 3
+            assert select_result.is_success
+            assert select_result.value[0][0] == 3
 
         finally:
             # Cleanup - drop temp table manually since PRESERVE ROWS keeps data
@@ -142,32 +142,34 @@ class TestRealOracleApi:
         with FlextDbOracleApi(real_oracle_config) as api:
             # Test connection
             test_result = api.test_connection()
-            assert test_result.success, f"Connection test failed: {test_result.error}"
+            assert test_result.is_success, (
+                f"Connection test failed: {test_result.error}"
+            )
 
             # Test simple query
             query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-            assert query_result.success, f"Query failed: {query_result.error}"
+            assert query_result.is_success, f"Query failed: {query_result.error}"
             # SQLAlchemy Row objects are returned as tuples: rows[0][0] = ('Hello Oracle',)
             # To get the actual string value, we need to access the first element of the tuple
-            assert query_result.data.rows[0][0][0] == "Hello Oracle"
+            assert query_result.value.rows[0][0][0] == "Hello Oracle"
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle schema listing."""
         result = connected_oracle_api.get_schemas()
-        assert result.success, f"Get schemas failed: {result.error}"
+        assert result.is_success, f"Get schemas failed: {result.error}"
 
         # Should have at least FLEXTTEST and system schemas
-        schemas = result.data
+        schemas = result.value
         assert len(schemas) > 0
         assert any("FLEXTTEST" in str(schema).upper() for schema in schemas)
 
     def test_real_api_get_tables(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle table listing."""
         result = connected_oracle_api.get_tables()
-        assert result.success, f"Get tables failed: {result.error}"
+        assert result.is_success, f"Get tables failed: {result.error}"
 
         # Should have test tables from init.sql
-        tables = result.data
+        tables = result.value
         assert len(tables) > 0
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:
@@ -178,10 +180,10 @@ class TestRealOracleApi:
     def test_real_api_get_columns(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle column listing."""
         result = connected_oracle_api.get_columns("EMPLOYEES")
-        assert result.success, f"Get columns failed: {result.error}"
+        assert result.is_success, f"Get columns failed: {result.error}"
 
         # Should have columns from EMPLOYEES table
-        columns = result.data
+        columns = result.value
         assert len(columns) > 0
 
         # Check for expected columns
@@ -198,10 +200,10 @@ class TestRealOracleApi:
         result = connected_oracle_api.query_with_timing(
             "SELECT COUNT(*) FROM EMPLOYEES",
         )
-        assert result.success, f"Query with timing failed: {result.error}"
+        assert result.is_success, f"Query with timing failed: {result.error}"
 
         # Should have timing information
-        query_result = result.data
+        query_result = result.value
         assert hasattr(query_result, "execution_time_ms")
         assert query_result.execution_time_ms >= 0
         assert query_result.row_count >= 0
@@ -231,10 +233,10 @@ class TestRealOracleApi:
                     format_hint,
                 )
 
-            assert result.success, (
+            assert result.is_success, (
                 f"Type conversion failed for {singer_type}: {result.error}"
             )
-            assert expected in result.data, f"Expected {expected} in {result.data}"
+            assert expected in result.value, f"Expected {expected} in {result.value}"
 
     def test_real_api_table_operations(
         self,
@@ -257,27 +259,27 @@ class TestRealOracleApi:
             ]
 
             ddl_result = connected_oracle_api.create_table_ddl(table_name, columns)
-            assert ddl_result.success, f"DDL generation failed: {ddl_result.error}"
+            assert ddl_result.is_success, f"DDL generation failed: {ddl_result.error}"
 
             # Execute DDL
-            execute_result = connected_oracle_api.execute_ddl(ddl_result.data)
-            assert execute_result.success, (
+            execute_result = connected_oracle_api.execute_ddl(ddl_result.value)
+            assert execute_result.is_success, (
                 f"DDL execution failed: {execute_result.error}"
             )
 
             # Verify table exists
             tables_result = connected_oracle_api.get_tables()
-            assert tables_result.success
-            table_names = [str(t).upper() for t in tables_result.data]
+            assert tables_result.is_success
+            table_names = [str(t).upper() for t in tables_result.value]
             assert table_name.upper() in table_names
 
             # Get table metadata
             metadata_result = connected_oracle_api.get_table_metadata(table_name)
-            assert metadata_result.success, (
+            assert metadata_result.is_success, (
                 f"Get metadata failed: {metadata_result.error}"
             )
 
-            metadata = metadata_result.data
+            metadata = metadata_result.value
             assert metadata["table_name"].upper() == table_name.upper()
             assert len(metadata["columns"]) == 3
 
@@ -285,8 +287,8 @@ class TestRealOracleApi:
             # Cleanup - drop table
             with contextlib.suppress(Exception):
                 drop_ddl = connected_oracle_api.drop_table_ddl(table_name)
-                if drop_ddl.success:
-                    connected_oracle_api.execute_ddl(drop_ddl.data)
+                if drop_ddl.is_success:
+                    connected_oracle_api.execute_ddl(drop_ddl.value)
 
 
 class TestRealOracleErrorHandling:
@@ -319,7 +321,7 @@ class TestRealOracleErrorHandling:
         connection = FlextDbOracleConnection(real_oracle_config)
 
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute invalid SQL

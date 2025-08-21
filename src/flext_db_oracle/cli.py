@@ -49,13 +49,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
+from collections.abc import Sized
 from dataclasses import dataclass
-from typing import Literal, NoReturn, Protocol, cast
+from typing import NoReturn, Protocol
 
 import click
-from flext_cli.core.formatters import OutputFormatter
-from flext_cli.ecosystem_integration import FlextCliConfigFactory
-from flext_core import FlextPlugin, get_logger
+
+# from flext_cli.core.formatters import OutputFormatter  # Disabled - flext_cli not available
+# from flext_cli.ecosystem_integration import FlextCliConfigFactory  # Disabled - flext_cli not available
+from flext_core import get_logger
 from pydantic import SecretStr
 from rich.console import Console
 from rich.panel import Panel
@@ -65,6 +67,11 @@ from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import ORACLE_DEFAULT_PORT
 from flext_db_oracle.plugins import register_all_oracle_plugins
+from flext_db_oracle.typings import (
+    has_get_info_method,
+    is_dict_like,
+    is_result_like,
+)
 
 
 # Helper function to wrap OutputFormatter
@@ -74,11 +81,11 @@ def format_output(
     console: Console | None = None,
 ) -> str:
     """Format output using OutputFormatter."""
-    formatter = OutputFormatter()
+    # formatter = OutputFormatter()  # Disabled - flext_cli not available
     # OutputFormatter.format prints to console and returns None
     # Note: _format_type is preserved for future use when OutputFormatter supports multiple formats
     target_console = console or globals().get("console", Console())
-    formatter.format(data, target_console)
+    target_console.print(data)  # Simple print instead of formatter.format
     return str(data)
 
 
@@ -177,13 +184,17 @@ class CliDataValidator:
             logger.debug(f"List object has {length} items")
             return length
 
-        if hasattr(obj, "__len__"):
+        if hasattr(obj, "__len__") and callable(getattr(obj, "__len__", None)):
             try:
-                length = len(obj)
-                logger.debug(
-                    f"Successfully got length {length} from {type(obj).__name__}",
-                )
-                return length
+                # Type-safe check: if object has __len__, it's likely sized
+                if isinstance(obj, Sized):
+                    length = len(obj)
+                    logger.debug(
+                        f"Successfully got length {length} from {type(obj).__name__}",
+                    )
+                    return length
+                logger.info("Object has __len__ but is not Sized")
+                return 0
             except (TypeError, AttributeError) as e:
                 logger.info(
                     f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
@@ -201,9 +212,9 @@ class CliDataValidator:
     @staticmethod
     def extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
         """Extract table name and schema from table_info object."""
-        if hasattr(table_info, "get"):
-            name = table_info.get("name", "") or str(table_info)
-            schema_name = table_info.get("schema", schema or "")
+        if is_dict_like(table_info):
+            name = str(table_info.get("name", "") or table_info)
+            schema_name = str(table_info.get("schema", schema or ""))
             return name, schema_name
 
         return str(table_info), schema or ""
@@ -331,30 +342,30 @@ def _extract_table_info(table_info: object, schema: str | None) -> tuple[str, st
 @click.pass_context
 def oracle(
     ctx: click.Context,
-    profile: str,
-    output: str,
+    _profile: str,
+    _output: str,
     *,
     debug: bool,
 ) -> None:
     """Oracle Database CLI commands."""
     # Setup CLI context
-    config_result = FlextCliConfigFactory.create_project_config(
-        project_name="flext-db-oracle",  # Fixed project name
-        profile=profile,
-        output_format=cast(
-            "Literal['table', 'json', 'yaml', 'csv', 'plain']",
-            output,
-        ),
-        debug=debug,
-    )
+    # config_result = FlextCliConfigFactory.create_project_config(  # Disabled - flext_cli not available
+    #     project_name="flext-db-oracle",  # Fixed project name
+    #     profile=profile,
+    #     output_format=cast(
+    #         "Literal['table', 'json', 'yaml', 'csv', 'plain']",
+    #         output,
+    #     ),
+    #     debug=debug,
+    # )
 
-    if not config_result.success:
-        _raise_cli_error(f"Failed to create config: {config_result.error}")
+    # if not config_result.is_success:
+    #     _raise_cli_error(f"Failed to create config: {config_result.error}")
 
-    config = config_result.unwrap()
+    # config = config_result.value
 
     ctx.ensure_object(dict)
-    ctx.obj["config"] = config
+    # ctx.obj["config"] = config
     ctx.obj["console"] = console
     ctx.obj["debug"] = debug
 
@@ -490,7 +501,7 @@ class _ConnectionTestExecutor:
 
     def _handle_test_result(self, test_result: object) -> None:
         """Handle test result based on success/failure - Single Responsibility."""
-        if hasattr(test_result, "success") and test_result.success:
+        if is_result_like(test_result) and getattr(test_result, "is_success", False):
             self._handle_successful_test(test_result)
         else:
             self._handle_failed_test(test_result)
@@ -602,8 +613,8 @@ def connect_env(ctx: click.Context, env_prefix: str) -> None:
         # Test connection
         test_result = api.test_connection_with_observability()
 
-        if test_result.success:
-            test_data = test_result.data
+        if test_result.is_success:
+            test_data = test_result.value
 
             console.print(
                 Panel(
@@ -764,12 +775,12 @@ def query(ctx: click.Context, sql: str, limit: int | None) -> None:
             # Execute query with timing
             query_result = api.query_with_timing(sql)
 
-            if query_result.success:
-                query_data = query_result.data
+            if query_result.is_success:
+                query_data = query_result.value
 
-                results: list[object] = cast(
-                    "list[object]",
-                    _safe_get_query_data_attr(query_data, "rows", []),
+                raw_results = _safe_get_query_data_attr(query_data, "rows", [])
+                results: list[object] = (
+                    raw_results if isinstance(raw_results, list) else []
                 )
 
                 # Use SOLID processor for result handling
@@ -806,8 +817,8 @@ def schemas(ctx: click.Context) -> None:
         with api:
             schemas_result = api.get_schemas()
 
-            if schemas_result.success:
-                schema_list = schemas_result.data
+            if schemas_result.is_success:
+                schema_list = schemas_result.value
 
                 console.print(
                     Panel(
@@ -867,8 +878,8 @@ def tables(ctx: click.Context, schema: str | None) -> None:
         with api:
             tables_result = api.get_tables(schema)
 
-            if tables_result.success:
-                table_list = tables_result.data
+            if tables_result.is_success:
+                table_list = tables_result.value
 
                 title = f"Oracle Tables{f' in {schema}' if schema else ''}"
                 console.print(
@@ -926,7 +937,7 @@ class PluginManagerProcessor:
         self._display_registration_success_panel()
         self._display_registration_results(registration_results)
 
-    def handle_plugin_list_success(self, plugin_list: list[FlextPlugin]) -> None:
+    def handle_plugin_list_success(self, plugin_list: list[object]) -> None:
         """Handle successful plugin listing - Single Responsibility."""
         self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
 
@@ -966,7 +977,7 @@ class PluginManagerProcessor:
 
         self.console.print(table)
 
-    def _display_plugins_table(self, plugin_list: list[FlextPlugin]) -> None:
+    def _display_plugins_table(self, plugin_list: list[object]) -> None:
         """Display plugins as rich table."""
         plugin_table = Table(title="Available Plugins")
         plugin_table.add_column("Name", style="cyan")
@@ -975,29 +986,72 @@ class PluginManagerProcessor:
         plugin_table.add_column("Description", style="white")
 
         for plugin in plugin_list:
-            plugin_info = plugin.get_info()
-            plugin_table.add_row(
-                str(plugin_info.get("name", "unknown")),
-                str(plugin_info.get("version", "unknown")),
-                str(plugin_info.get("plugin_type", "unknown")),
-                str(plugin_info.get("description", "")),
-            )
+            # Safe access to plugin info with attribute checking
+            plugin_info = {}
+            if has_get_info_method(plugin):
+                get_info_method = getattr(plugin, "get_info", None)
+                if get_info_method and callable(get_info_method):
+                    plugin_info = get_info_method()
+            elif hasattr(plugin, "name"):
+                # Fallback to direct attribute access
+                plugin_info = {
+                    "name": getattr(plugin, "name", "unknown"),
+                    "version": getattr(plugin, "version", "unknown"),
+                    "plugin_type": getattr(plugin, "plugin_type", "unknown"),
+                    "description": getattr(plugin, "description", ""),
+                }
+
+            # Type-safe access with fallbacks
+            if is_dict_like(plugin_info):
+                plugin_table.add_row(
+                    str(plugin_info.get("name", "unknown")),
+                    str(plugin_info.get("version", "unknown")),
+                    str(plugin_info.get("plugin_type", "unknown")),
+                    str(plugin_info.get("description", "")),
+                )
+            else:
+                plugin_table.add_row("unknown", "unknown", "unknown", "")
 
         self.console.print(plugin_table)
 
-    def _display_plugins_structured(self, plugin_list: list[FlextPlugin]) -> None:
+    def _display_plugins_structured(self, plugin_list: list[object]) -> None:
         """Display plugins as structured output."""
         plugin_data: list[dict[str, object]] = []
         for p in plugin_list:
-            plugin_info = p.get_info()
-            plugin_data.append(
-                {
-                    "name": plugin_info.get("name", "unknown"),
-                    "version": plugin_info.get("version", "unknown"),
-                    "type": plugin_info.get("plugin_type", "unknown"),
-                    "description": plugin_info.get("description", ""),
-                },
-            )
+            # Safe access to plugin info with attribute checking
+            plugin_info = {}
+            if has_get_info_method(p):
+                get_info_method = getattr(p, "get_info", None)
+                if get_info_method and callable(get_info_method):
+                    plugin_info = get_info_method()
+            elif hasattr(p, "name"):
+                # Fallback to direct attribute access
+                plugin_info = {
+                    "name": getattr(p, "name", "unknown"),
+                    "version": getattr(p, "version", "unknown"),
+                    "plugin_type": getattr(p, "plugin_type", "unknown"),
+                    "description": getattr(p, "description", ""),
+                }
+
+            # Type-safe access with fallbacks
+            if is_dict_like(plugin_info):
+                plugin_data.append(
+                    {
+                        "name": plugin_info.get("name", "unknown"),
+                        "version": plugin_info.get("version", "unknown"),
+                        "type": plugin_info.get("plugin_type", "unknown"),
+                        "description": plugin_info.get("description", ""),
+                    },
+                )
+            else:
+                plugin_data.append(
+                    {
+                        "name": "unknown",
+                        "version": "unknown",
+                        "type": "unknown",
+                        "description": "",
+                    },
+                )
         format_output({"plugins": plugin_data}, self.config.output_format, self.console)
 
 
@@ -1017,14 +1071,15 @@ def plugins(ctx: click.Context) -> None:
             # Register all Oracle plugins
             register_result = register_all_oracle_plugins(api)
 
-            if register_result.success:
-                registration_results = register_result.data
+            if register_result.is_success:
+                registration_results = register_result.value
                 processor.handle_registration_success(registration_results)
 
-                # List all plugins
+                # List all plugins - Using unwrap_or pattern to reduce bloat
                 plugins_result = api.list_plugins()
-                if plugins_result.success and plugins_result.data:
-                    processor.handle_plugin_list_success(plugins_result.data)
+                plugins = plugins_result.unwrap_or([])
+                if plugins:
+                    processor.handle_plugin_list_success(plugins)
             else:
                 console.print(
                     f"[red]Plugin registration failed: {register_result.error}[/red]",
@@ -1060,8 +1115,8 @@ def optimize(ctx: click.Context, sql: str) -> None:
         with api:
             optimize_result = api.optimize_query(sql)
 
-            if optimize_result.success:
-                optimization_data = optimize_result.data
+            if optimize_result.is_success:
+                optimization_data = optimize_result.value
 
                 suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
 
@@ -1119,8 +1174,8 @@ def health(ctx: click.Context) -> None:
         with api:
             health_result = api.get_health_status()
 
-            if health_result.success:
-                health_data = health_result.data
+            if health_result.is_success:
+                health_data = health_result.value
 
                 status = getattr(health_data, "status", "unknown")
                 status_color = {
@@ -1189,7 +1244,7 @@ Timestamp: {timestamp_str}""",
 
 def main() -> None:
     """Execute main CLI entry point."""
-    oracle()
+    oracle.main(standalone_mode=False)
 
 
 if __name__ == "__main__":

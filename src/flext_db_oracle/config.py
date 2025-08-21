@@ -25,7 +25,7 @@ Example:
     >>> os.environ["FLEXT_TARGET_ORACLE_HOST"] = "oracle-prod.company.com"
     >>> os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "app_user"
     >>> config_result = FlextDbOracleConfig.from_env()
-    >>> if config_result.success:
+    >>> if config_result.is_success:
     ...     config = config_result.value
     ...     print(f"Connected to {config.get_connection_string()}")
 
@@ -64,7 +64,7 @@ logger = get_logger(__name__)
 def _handle_config_operation_error(
     operation: str,
     exception: Exception,
-) -> FlextResult[T]:
+) -> FlextResult[FlextDbOracleConfig]:
     """DRY helper: Handle configuration operation errors with consistent formatting.
 
     Args:
@@ -75,7 +75,7 @@ def _handle_config_operation_error(
       FlextResult with failure containing formatted error message
 
     """
-    return FlextResult[None].fail(f"Failed to {operation}: {exception}")
+    return FlextResult[FlextDbOracleConfig].fail(f"Failed to {operation}: {exception}")
 
 
 def _handle_config_validation_error(exception: Exception) -> FlextResult[None]:
@@ -239,10 +239,10 @@ class FlextDbOracleConfig(FlextOracleConfig):
         if result.is_failure:
             msg = f"Failed to create configuration from environment: {result.error}"
             raise ValueError(msg)
-        return result.data
+        return result.value
 
     # Compatibility helpers allowing tests to treat config instance
-    # similarly to a successful FlextResult (config.success/data).
+    # similarly to a successful FlextResult (config.is_success/data).
     @property
     def success(self) -> bool:  # pragma: no cover - trivial shim
         return True
@@ -293,7 +293,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 protocol=os.getenv(f"{prefix}PROTOCOL", "tcp"),
                 ssl_server_cert_dn=os.getenv(f"{prefix}SSL_SERVER_CERT_DN"),
             )
-            return FlextResult[None].ok(config)
+            return FlextResult[FlextDbOracleConfig].ok(config)
         except (ValueError, TypeError, KeyError) as e:
             return _handle_config_operation_error("create config from environment", e)
 
@@ -323,7 +323,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 protocol="tcp",
                 ssl_server_cert_dn=None,
             )
-            return FlextResult[None].ok(config)
+            return FlextResult[FlextDbOracleConfig].ok(config)
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_config_operation_error("parse URL", e)
 
@@ -385,7 +385,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
         if result.is_failure:
             msg = f"Failed to create configuration from dict: {result.error}"
             raise ValueError(msg)
-        return result.data
+        return result.value
 
     @classmethod
     def from_dict_with_result(
@@ -443,7 +443,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
             validation_result = config.validate_business_rules()
 
             if validation_result.is_failure:
-                return FlextResult[None].fail(
+                return FlextResult[FlextDbOracleConfig].fail(
                     f"Configuration validation failed: {validation_result.error}",
                 )
 
@@ -451,7 +451,7 @@ class FlextDbOracleConfig(FlextOracleConfig):
                 "Created Oracle connection config for %s",
                 config.get_connection_string(),
             )
-            return FlextResult[None].ok(config)
+            return FlextResult[FlextDbOracleConfig].ok(config)
 
         except (ValueError, TypeError, KeyError) as e:
             return _handle_config_operation_error("create configuration", e)

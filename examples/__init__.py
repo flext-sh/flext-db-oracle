@@ -73,11 +73,11 @@ def demo_basic_usage() -> None:
         connected_api = api.connect()
         test_result = connected_api.test_connection()
 
-        if test_result.success:
+        if test_result.is_success:
             # Quick functionality test
             schemas_result = connected_api.get_schemas()
-            if schemas_result.success:
-                len(schemas_result.data)
+            if schemas_result.is_success:
+                len(schemas_result.value)
 
             connected_api.disconnect()
 

@@ -152,16 +152,16 @@ def demonstrate_comprehensive_usage():
     with api:
         # Test connection
         connection_result = api.test_connection()
-        print(f"Connection: {'✅ Success' if connection_result.success else '❌ Failed'}")
+        print(f"Connection: {'✅ Success' if connection_result.is_success else '❌ Failed'}")
 
         # Query execution
         query_result = api.execute_query("SELECT SYSDATE FROM DUAL")
-        if query_result.success:
+        if query_result.is_success:
             print(f"Current time: {query_result.value.rows[0][0]}")
 
         # Schema operations
         schemas_result = api.get_schemas()
-        if schemas_result.success:
+        if schemas_result.is_success:
             print(f"Available schemas: {len(schemas_result.value)}")
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import TDbOracleColumn, TDbOracleTable
+from flext_db_oracle import FlextDbOracleColumn, FlextDbOracleTable
 
 
 class TestTypesValidationMethods:
@@ -24,45 +24,49 @@ class TestTypesValidationMethods:
         column_configs = [
             # Valid configurations
             {
-                "name": "VALID_COL",
+                "column_name": "VALID_COL",
                 "data_type": "VARCHAR2",
                 "nullable": True,
-                "position": 1,
+                "column_id": 1,
             },
             {
-                "name": "NUMBER_COL",
+                "column_name": "NUMBER_COL",
                 "data_type": "NUMBER",
                 "nullable": False,
-                "position": 2,
-                "precision": 10,
-                "scale": 2,
+                "column_id": 2,
+                "data_precision": 10,
+                "data_scale": 2,
             },
-            {"name": "DATE_COL", "data_type": "DATE", "nullable": True, "position": 3},
             {
-                "name": "PK_COL",
+                "column_name": "DATE_COL",
+                "data_type": "DATE",
+                "nullable": True,
+                "column_id": 3,
+            },
+            {
+                "column_name": "PK_COL",
                 "data_type": "NUMBER",
                 "nullable": False,
-                "position": 4,
-                "is_primary_key": True,
+                "column_id": 4,
             },
         ]
 
         for config in column_configs:
             try:
-                column = TDbOracleColumn(**config)
+                column = FlextDbOracleColumn(**config)
 
                 # Test basic properties to trigger property access paths
-                assert column.name == config["name"]
+                assert column.column_name == config["column_name"]
                 assert column.data_type == config["data_type"]
                 assert column.nullable == config["nullable"]
-                assert column.position == config["position"]
+                assert column.column_id == config["column_id"]
 
                 # Test string representations
                 str_repr = str(column)
-                assert config["name"] in str_repr
+                assert config["column_name"] in str_repr
 
                 repr_str = repr(column)
-                assert config["name"] in repr_str
+                assert config["column_name"] in repr_str
 
             except (ValueError, TypeError, RuntimeError):
                 # Construction/access errors also contribute to coverage
@@ -72,17 +76,17 @@ class TestTypesValidationMethods:
         """Test table validation methods (EXACT lines 175-187)."""
         # Create test columns
         valid_columns = [
-            TDbOracleColumn(
-                name="ID",
+            FlextDbOracleColumn(
+                column_name="ID",
                 data_type="NUMBER",
                 nullable=False,
-                position=1,
+                column_id=1,
             ),
-            TDbOracleColumn(
-                name="NAME",
+            FlextDbOracleColumn(
+                column_name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
-                position=2,
+                column_id=2,
             ),
         ]
 
@@ -90,28 +94,28 @@ class TestTypesValidationMethods:
         table_validation_cases = [
             # Valid table
             {
-                "name": "VALID_TABLE",
+                "table_name": "VALID_TABLE",
                 "schema_name": "VALID_SCHEMA",
                 "columns": valid_columns,
                 "expected_success": True,
             },
             # Empty table name - should trigger validation error
             {
-                "name": "",
+                "table_name": "",
                 "schema_name": "VALID_SCHEMA",
                 "columns": valid_columns,
                 "expected_success": False,
             },
             # Empty schema name - might trigger validation error
             {
-                "name": "VALID_TABLE",
+                "table_name": "VALID_TABLE",
                 "schema_name": "",
                 "columns": valid_columns,
                 "expected_success": False,
             },
             # No columns - might trigger validation error
             {
-                "name": "VALID_TABLE",
+                "table_name": "VALID_TABLE",
                 "schema_name": "VALID_SCHEMA",
                 "columns": [],
                 "expected_success": False,
@@ -120,23 +124,23 @@ class TestTypesValidationMethods:
 
         for test_case in table_validation_cases:
             try:
-                table = TDbOracleTable(
-                    name=test_case["name"],
+                table = FlextDbOracleTable(
+                    table_name=test_case["table_name"],
                     schema_name=test_case["schema_name"],
                     columns=test_case["columns"],
                 )
 
                 # Test basic properties to trigger property access paths (lines 175-187)
-                assert table.name == test_case["name"]
+                assert table.table_name == test_case["table_name"]
                 assert table.schema_name == test_case["schema_name"]
                 assert len(table.columns) == len(test_case["columns"])
 
                 # Test string representations
                 str_repr = str(table)
-                assert test_case["name"] in str_repr
+                assert test_case["table_name"] in str_repr
 
                 repr_str = repr(table)
-                assert test_case["name"] in repr_str
+                assert test_case["table_name"] in repr_str
 
             except (ValueError, TypeError, RuntimeError):
                 # Construction/access errors also contribute to coverage
@@ -144,38 +148,43 @@ class TestTypesValidationMethods:
 
     def test_validation_error_handling_lines_131_132_186_187(self) -> None:
         """Test validation error handling (lines 131-132, 186-187)."""
-        from flext_db_oracle import TDbOracleColumn, TDbOracleTable
+        from flext_db_oracle import FlextDbOracleColumn, FlextDbOracleTable
 
         # Test column construction with edge cases to trigger validation paths
         edge_cases = [
             # Test various column configurations
             {
-                "name": "EDGE_COL1",
+                "column_name": "EDGE_COL1",
                 "data_type": "VARCHAR2",
                 "nullable": True,
-                "position": 1,
-                "max_length": 4000,
+                "column_id": 1,
+                "data_length": 4000,
             },
             {
-                "name": "EDGE_COL2",
+                "column_name": "EDGE_COL2",
                 "data_type": "NUMBER",
                 "nullable": False,
-                "position": 2,
-                "precision": 38,
-                "scale": 127,
+                "column_id": 2,
+                "data_precision": 38,
+                "data_scale": 127,
             },
-            {"name": "EDGE_COL3", "data_type": "DATE", "nullable": True, "position": 3},
+            {
+                "column_name": "EDGE_COL3",
+                "data_type": "DATE",
+                "nullable": True,
+                "column_id": 3,
+            },
         ]
 
         for case in edge_cases:
             try:
-                column = TDbOracleColumn(**case)
+                column = FlextDbOracleColumn(**case)
 
                 # Test all accessible properties and methods
-                _ = column.name
+                _ = column.column_name
                 _ = column.data_type
                 _ = column.nullable
-                _ = column.position
+                _ = column.column_id
                 _ = str(column)
                 _ = repr(column)
 
@@ -186,24 +195,28 @@ class TestTypesValidationMethods:
         # Test table construction with edge cases
         try:
             # Create table with various configurations
-            test_column = TDbOracleColumn(
-                name="TEST",
+            test_column = FlextDbOracleColumn(
+                column_name="TEST",
                 data_type="VARCHAR2",
                 nullable=True,
-                position=1,
+                column_id=1,
             )
 
             table_cases = [
-                {"name": "TABLE1", "schema_name": "SCHEMA1", "columns": [test_column]},
-                {"name": "TABLE2", "schema_name": "SCHEMA2", "columns": []},
+                {
+                    "table_name": "TABLE1",
+                    "schema_name": "SCHEMA1",
+                    "columns": [test_column],
+                },
+                {"table_name": "TABLE2", "schema_name": "SCHEMA2", "columns": []},
             ]
 
             for case in table_cases:
                 try:
-                    table = TDbOracleTable(**case)
+                    table = FlextDbOracleTable(**case)
 
                     # Test property access
-                    _ = table.name
+                    _ = table.table_name
                     _ = table.schema_name
                     _ = table.columns
                     _ = str(table)
@@ -223,36 +236,35 @@ class TestTypesPropertyMethods:
 
     def test_column_property_methods_lines_191_200(self) -> None:
         """Test column property methods (EXACT lines 191-200)."""
-        from flext_db_oracle import TDbOracleColumn
+        from flext_db_oracle import FlextDbOracleColumn
 
         # Create columns with different configurations
         test_columns = [
             # VARCHAR2 column
-            TDbOracleColumn(
-                name="NAME",
+            FlextDbOracleColumn(
+                column_name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
-                max_length=100,
-                position=1,
+                data_length=100,
+                column_id=1,
             ),
             # NUMBER column with precision/scale
-            TDbOracleColumn(
-                name="SALARY",
+            FlextDbOracleColumn(
+                column_name="SALARY",
                 data_type="NUMBER",
                 nullable=False,
-                precision=10,
-                scale=2,
-                position=2,
+                data_precision=10,
+                data_scale=2,
+                column_id=2,
             ),
             # Primary key column
-            TDbOracleColumn(
-                name="ID",
+            FlextDbOracleColumn(
+                column_name="ID",
                 data_type="NUMBER",
                 nullable=False,
-                precision=10,
-                scale=0,
-                position=3,
-                is_primary_key=True,
+                data_precision=10,
+                data_scale=0,
+                column_id=3,
             ),
         ]
 
@@ -277,10 +289,10 @@ class TestTypesPropertyMethods:
 
                 # Test string representations
                 str_repr = str(column)
-                assert column.name in str_repr
+                assert column.column_name in str_repr
 
                 repr_str = repr(column)
-                assert column.name in repr_str
+                assert column.column_name in repr_str
 
             except (AttributeError, TypeError):
                 # Some properties might not exist or have different signatures
@@ -288,35 +300,34 @@ class TestTypesPropertyMethods:
 
     def test_table_property_methods_lines_204_208(self) -> None:
         """Test table property methods (EXACT lines 204-208)."""
-        from flext_db_oracle import TDbOracleColumn, TDbOracleTable
+        from flext_db_oracle import FlextDbOracleColumn, FlextDbOracleTable
 
         # Create table with columns
         columns = [
-            TDbOracleColumn(
-                name="ID",
+            FlextDbOracleColumn(
+                column_name="ID",
                 data_type="NUMBER",
                 nullable=False,
-                position=1,
-                is_primary_key=True,
+                column_id=1,
             ),
-            TDbOracleColumn(
-                name="NAME",
+            FlextDbOracleColumn(
+                column_name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
-                max_length=100,
-                position=2,
+                data_length=100,
+                column_id=2,
             ),
-            TDbOracleColumn(
-                name="EMAIL",
+            FlextDbOracleColumn(
+                column_name="EMAIL",
                 data_type="VARCHAR2",
                 nullable=True,
-                max_length=200,
-                position=3,
+                data_length=200,
+                column_id=3,
             ),
         ]
 
-        table = TDbOracleTable(
-            name="EMPLOYEES",
+        table = FlextDbOracleTable(
+            table_name="EMPLOYEES",
             schema_name="HR",
             columns=columns,
         )
@@ -362,12 +373,12 @@ class TestTypesUtilityFunctions:
 
     def test_types_utility_functions_comprehensive(self) -> None:
         """Test utility functions in types module."""
-        from flext_db_oracle import TDbOracleColumn
+        from flext_db_oracle import FlextDbOracleColumn
 
         # Test various type combinations to trigger different code paths
         type_combinations = [
-            ("VARCHAR2", {"max_length": 50}),
-            ("NUMBER", {"precision": 10, "scale": 2}),
+            ("VARCHAR2", {"data_length": 50}),
+            ("NUMBER", {"data_precision": 10, "data_scale": 2}),
             ("DATE", {}),
             ("TIMESTAMP", {}),
             ("CLOB", {}),
@@ -376,11 +387,11 @@ class TestTypesUtilityFunctions:
 
         for data_type, extra_params in type_combinations:
             try:
-                column = TDbOracleColumn(
-                    name=f"COL_{data_type}",
+                column = FlextDbOracleColumn(
+                    column_name=f"COL_{data_type}",
                     data_type=data_type,
                     nullable=True,
-                    position=1,
+                    column_id=1,
                     **extra_params,
                 )
 
@@ -388,7 +399,7 @@ class TestTypesUtilityFunctions:
                 methods_to_test = [
                     lambda col=column: str(col),
                     lambda col=column: repr(col),
-                    lambda col=column: col.name,
+                    lambda col=column: col.column_name,
                     lambda col=column: col.data_type,
                     lambda col=column: col.nullable,
                 ]
@@ -416,41 +427,57 @@ class TestTypesUtilityFunctions:
 
     def test_edge_case_validation_scenarios(self) -> None:
         """Test edge case validation scenarios."""
-        from flext_db_oracle import TDbOracleColumn
+        from flext_db_oracle import FlextDbOracleColumn
 
         # Edge cases that might trigger different validation paths
         edge_cases = [
             # Boundary values
-            {"name": "A", "data_type": "VARCHAR2", "position": 1},  # Single char name
-            {"name": "A" * 128, "data_type": "VARCHAR2", "position": 1},  # Long name
-            {"name": "COL", "data_type": "NUMBER", "position": 9999},  # High position
+            {
+                "column_name": "A",
+                "data_type": "VARCHAR2",
+                "column_id": 1,
+            },  # Single char name
+            {
+                "column_name": "A" * 128,
+                "data_type": "VARCHAR2",
+                "column_id": 1,
+            },  # Long name
+            {
+                "column_name": "COL",
+                "data_type": "NUMBER",
+                "column_id": 9999,
+            },  # High position
             # Special characters
-            {"name": "COL_WITH_UNDERSCORE", "data_type": "VARCHAR2", "position": 1},
-            {"name": "COL123", "data_type": "NUMBER", "position": 1},
+            {
+                "column_name": "COL_WITH_UNDERSCORE",
+                "data_type": "VARCHAR2",
+                "column_id": 1,
+            },
+            {"column_name": "COL123", "data_type": "NUMBER", "column_id": 1},
             # Different nullable combinations
             {
-                "name": "NULLABLE_COL",
+                "column_name": "NULLABLE_COL",
                 "data_type": "VARCHAR2",
                 "nullable": True,
-                "position": 1,
+                "column_id": 1,
             },
             {
-                "name": "NOT_NULL_COL",
+                "column_name": "NOT_NULL_COL",
                 "data_type": "VARCHAR2",
                 "nullable": False,
-                "position": 1,
+                "column_id": 1,
             },
         ]
 
         for case in edge_cases:
             try:
-                column = TDbOracleColumn(**case)
+                column = FlextDbOracleColumn(**case)
 
                 # Test validation if available
                 if hasattr(column, "validate"):
                     validation_result = column.validate()
                     # Any result is acceptable - we want code coverage
-                    assert validation_result.success or validation_result.is_failure
+                    assert validation_result.is_success or validation_result.is_failure
 
             except (ValueError, TypeError, RuntimeError):
                 # Exceptions are also valid outcomes and contribute to coverage

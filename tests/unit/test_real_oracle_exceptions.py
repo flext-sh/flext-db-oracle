@@ -123,7 +123,7 @@ class TestRealOracleExceptionsCore:
         connection = FlextDbOracleConnection(real_oracle_config)
 
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute real invalid SQL against Oracle
@@ -172,7 +172,7 @@ class TestRealOracleExceptionsCore:
 
         connection = FlextDbOracleConnection(timeout_config)
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute query that might timeout (sleep simulation)
@@ -218,14 +218,14 @@ class TestRealOracleExceptionsAdvanced:
                 # May succeed with empty results or fail - both are valid
                 # Focus on ensuring no crashes and proper error handling
                 assert (
-                    result.success or result.is_failure
+                    result.is_success or result.is_failure
                 )  # Should return valid FlextResult
 
         # Try to get columns for non-existent table
         result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
-        assert result.success  # Should return empty list, not crash
-        assert isinstance(result.data, list)
-        assert len(result.data) == 0  # No columns for non-existent table
+        assert result.is_success  # Should return empty list, not crash
+        assert isinstance(result.value, list)
+        assert len(result.value) == 0  # No columns for non-existent table
 
     def test_real_processing_error_scenario(
         self,
@@ -249,10 +249,10 @@ class TestRealOracleExceptionsAdvanced:
             ]
 
             ddl_result = connected_oracle_api.create_table_ddl(table_name, columns)
-            assert ddl_result.success
+            assert ddl_result.is_success
 
-            execute_result = connected_oracle_api.execute_ddl(ddl_result.data)
-            assert execute_result.success
+            execute_result = connected_oracle_api.execute_ddl(ddl_result.value)
+            assert execute_result.is_success
 
             # Try to insert NULL into NOT NULL column - should fail
             insert_sql = (
@@ -276,8 +276,8 @@ class TestRealOracleExceptionsAdvanced:
             # Cleanup
             with contextlib.suppress(Exception):
                 drop_ddl = connected_oracle_api.drop_table_ddl(table_name)
-                if drop_ddl.success:
-                    connected_oracle_api.execute_ddl(drop_ddl.data)
+                if drop_ddl.is_success:
+                    connected_oracle_api.execute_ddl(drop_ddl.value)
 
     def test_real_validation_error_scenario(self) -> None:
         """Test FlextDbOracleValidationError with real config validation."""
@@ -332,7 +332,7 @@ class TestRealOracleExceptionHierarchy:
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from FLEXT base classes."""
-        from flext_core.exceptions import FlextError
+        from flext_core import FlextError
 
         # Test exception class hierarchy - all should inherit from FlextError
         assert issubclass(FlextDbOracleError, FlextError)

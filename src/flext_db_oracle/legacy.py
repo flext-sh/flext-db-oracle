@@ -16,6 +16,8 @@ from __future__ import annotations
 import warnings
 from collections.abc import Mapping
 
+from pydantic import SecretStr
+
 # Import Oracle components for legacy aliases
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -35,7 +37,7 @@ from flext_db_oracle.exceptions import (
     FlextDbOracleValidationError,
 )
 from flext_db_oracle.metadata import FlextDbOracleMetadataManager
-from flext_db_oracle.types import (
+from flext_db_oracle.models import (
     FlextDbOracleConnectionStatus,
 )
 
@@ -79,7 +81,11 @@ def OracleConnection(  # noqa: N802
     _deprecation_warning("OracleConnection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig(
+            username="legacy_user",
+            password=SecretStr("legacy_password"),
+            ssl_server_cert_dn="CN=localhost",
+        )
     return FlextDbOracleConnection(config=config)
 
 
@@ -97,7 +103,11 @@ def OracleMetadata(  # noqa: N802
     _deprecation_warning("OracleMetadata", "FlextDbOracleMetadataManager")
     # Create default connection if not provided
     if connection is None:
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig(
+            username="legacy_user",
+            password=SecretStr("legacy_password"),
+            ssl_server_cert_dn="CN=localhost",
+        )
         connection = FlextDbOracleConnection(config=config)
     return FlextDbOracleMetadata(connection=connection)
 
@@ -319,7 +329,11 @@ def SimpleOracleConnection(  # noqa: N802
     _deprecation_warning("SimpleOracleConnection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig(
+            username="legacy_user",
+            password=SecretStr("legacy_password"),
+            ssl_server_cert_dn="CN=localhost",
+        )
     return FlextDbOracleConnection(config=config)
 
 
@@ -331,7 +345,11 @@ def create_oracle_connection(
     _deprecation_warning("create_oracle_connection", "FlextDbOracleConnection")
     # Create default config if not provided
     if config is None:
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleConfig(
+            username="legacy_user",
+            password=SecretStr("legacy_password"),
+            ssl_server_cert_dn="CN=localhost",
+        )
     return FlextDbOracleConnection(config=config)
 
 

@@ -27,7 +27,7 @@ Example:
     >>>
     >>> # Register all built-in plugins
     >>> register_result = register_all_oracle_plugins(api)
-    >>> if register_result.success:
+    >>> if register_result.is_success:
     ...     print("All plugins registered successfully")
     >>>
     >>> # Use performance monitoring plugin
@@ -50,11 +50,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
+from datetime import UTC, datetime
 
 from flext_core import FlextPlugin, FlextPluginContext, FlextResult, get_logger
 
 from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.typings import (
+    has_unwrap_or_method,
+    is_result_like,
+)
 
 # Constants for data validation - refatoração DRY real
 MAX_VARCHAR_LENGTH = 4000
@@ -178,11 +182,13 @@ def _validate_table_structure(
 
     # Check if table exists - usando API real - refatoração DRY
     try:
+        # Using unwrap_or pattern to reduce bloat
         tables_result = api.get_tables()
-        if tables_result.success and tables_result.data:
+        tables = tables_result.unwrap_or([])
+        if tables:
             table_names = [
                 getattr(t, "name", str(t)) if hasattr(t, "name") else str(t)
-                for t in tables_result.data
+                for t in tables
             ]
             if table_name.upper() not in [t.upper() for t in table_names]:
                 errors.append(f"Table '{table_name}' does not exist")
@@ -289,7 +295,7 @@ class OraclePluginFactory:
         description: str,
         plugin_type: str,
         specific_config: dict[str, object],
-    ) -> FlextResult[FlextPlugin]:
+    ) -> FlextResult[object]:
         """Template method for creating Oracle plugins with consistent patterns."""
         base_config: dict[str, object] = {
             "description": description,
@@ -308,12 +314,14 @@ class OraclePluginFactory:
                 config=full_config,
                 handler=specific_config.get("callable_obj"),
             )
-            return FlextResult[None].ok(plugin)
+            return FlextResult[object].ok(plugin)
         except Exception as e:
-            return FlextResult[None].fail(f"Failed to create Oracle plugin '{name}': {e}")
+            return FlextResult[object].fail(
+                f"Failed to create Oracle plugin '{name}': {e}"
+            )
 
     @classmethod
-    def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
+    def create_performance_monitor(cls) -> FlextResult[object]:
         """Create performance monitoring plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_performance_monitor",
@@ -328,7 +336,7 @@ class OraclePluginFactory:
         )
 
     @classmethod
-    def create_security_audit(cls) -> FlextResult[FlextPlugin]:
+    def create_security_audit(cls) -> FlextResult[object]:
         """Create security audit plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_security_audit",
@@ -343,7 +351,7 @@ class OraclePluginFactory:
         )
 
     @classmethod
-    def create_data_validation(cls) -> FlextResult[FlextPlugin]:
+    def create_data_validation(cls) -> FlextResult[object]:
         """Create data validation plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_data_validator",
@@ -367,13 +375,13 @@ class OraclePluginHandler:
     @staticmethod
     def create_base_result_data(
         plugin_name: str,
-        api: FlextDbOracleApi,
+        _api: FlextDbOracleApi,
         additional_fields: dict[str, object] | None = None,
     ) -> dict[str, object]:
         """Template method: Create base result data structure."""
         base_data: dict[str, object] = {
             "plugin_name": plugin_name,
-            "timestamp": api._observability.get_current_timestamp(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         if additional_fields:
@@ -387,20 +395,30 @@ class OraclePluginHandler:
         plugin_name: str,
     ) -> FlextResult[dict[str, object]]:
         """Template method: Consistent exception handling for plugins."""
-        return FlextResult[None].fail(f"{plugin_name} plugin failed: {e}")
+        return FlextResult[dict[str, object]].fail(f"{plugin_name} plugin failed: {e}")
 
 
-def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
+def _create_plugin_via_factory(factory_method: object) -> FlextResult[object]:
     """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
     if callable(factory_method):
         result = factory_method()
-        if hasattr(result, "success") and hasattr(result, "data"):
-            return cast("FlextResult[FlextPlugin]", result)
-        return FlextResult[None].fail("Factory method returned invalid result")
-    return FlextResult[None].fail("Factory method is not callable")
+        if is_result_like(result) and has_unwrap_or_method(result):
+            unwrap_or_method = getattr(result, "unwrap_or", None)
+            plugin_obj = unwrap_or_method(None) if unwrap_or_method and callable(unwrap_or_method) else None
+            if plugin_obj:
+                # Basic validation that the result has plugin-like attributes
+                if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
+                    return FlextResult[object].ok(plugin_obj)
+                return FlextResult[object].fail(
+                    "Factory method returned object without required attributes"
+                )
+            error_msg = getattr(result, "error", "Factory method failed") or "Factory method failed"
+            return FlextResult[object].fail(str(error_msg))
+        return FlextResult[object].fail("Factory method returned invalid result")
+    return FlextResult[object].fail("Factory method is not callable")
 
 
-def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
+def create_performance_monitor_plugin() -> FlextResult[object]:
     """Create a performance monitoring plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_performance_monitor)
 
@@ -457,13 +475,13 @@ def performance_monitor_plugin_handler(
                     threshold_ms,
                 )
 
-        return FlextResult[None].ok(result_data)
+        return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Performance monitor")
 
 
-def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
+def create_security_audit_plugin() -> FlextResult[object]:
     """Create a security audit plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_security_audit)
 
@@ -501,7 +519,7 @@ def security_audit_plugin_handler(
                 security_warnings,
             )
 
-        return FlextResult[None].ok(result_data)
+        return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Security audit")
@@ -597,7 +615,7 @@ def _determine_compliance_status(security_warnings: list[str]) -> str:
     return "warning"
 
 
-def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
+def create_data_validation_plugin() -> FlextResult[object]:
     """Create a data validation plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_data_validation)
 
@@ -656,7 +674,7 @@ def data_validation_plugin_handler(
         elif validation_warnings:
             result_data["validation_status"] = "warning"
 
-        return FlextResult[None].ok(result_data)
+        return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
         return OraclePluginHandler.handle_plugin_exception(e, "Data validation")
@@ -677,21 +695,32 @@ def _register_single_plugin(
 ) -> str:
     """DRY helper: Register single plugin and return status message."""
     try:
-        if callable(plugin_creator):
-            plugin_result = plugin_creator()
-        else:
+        # Guard clause: Check if creator is callable
+        if not callable(plugin_creator):
             return f"❌ {plugin_name}: Plugin creator is not callable"
-        if not plugin_result.success:
-            return f"creation_failed: {plugin_result.error}"
 
-        plugin = plugin_result.data
-        # Type annotation explícita para plugin - refatoração DRY real
-        if plugin is not None:
-            register_result = api.register_plugin(plugin)
-            if register_result.success:
-                return "registered"
-            return f"failed: {register_result.error}"
-        return "failed: plugin is None"
+        # Execute plugin creator
+        plugin_result = plugin_creator()
+
+        # Guard clause: Check if result is valid FlextResult-like
+        if not is_result_like(plugin_result):
+            return f"❌ {plugin_name}: Plugin creator returned invalid result"
+
+        # Check if plugin creation was successful
+        is_success = getattr(plugin_result, "is_success", False)
+        if not is_success:
+            error_msg = getattr(plugin_result, "error", "Unknown error")
+            return f"creation_failed: {error_msg}"
+
+        # Extract plugin from result
+        plugin = getattr(plugin_result, "value", None)
+        if plugin is None:
+            return "failed: plugin is None"
+
+        # Register plugin and return result
+        register_result = api.register_plugin(plugin)
+        return "registered" if register_result.is_success else f"failed: {register_result.error}"
+
     except Exception as e:
         return f"error: {e}"
 
@@ -703,7 +732,7 @@ def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, 
     for plugin_name, plugin_creator in ORACLE_PLUGINS.items():
         results[plugin_name] = _register_single_plugin(api, plugin_name, plugin_creator)
 
-    return FlextResult[None].ok(results)
+    return FlextResult[dict[str, str]].ok(results)
 
 
 __all__: list[str] = [

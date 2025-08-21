@@ -49,6 +49,7 @@ from flext_core import get_logger
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleUtilities,
 )
 
 # Setup logging
@@ -223,32 +224,36 @@ def demonstrate_query_patterns() -> None:
 
     def _perform_query_operations(api: FlextDbOracleApi) -> None:
         """Specific query pattern operations."""
-        # Pattern 1: Simple query
+        # Pattern 1: Simple query using unwrap_or pattern
         query_result = api.query("SELECT 1 as test_value FROM DUAL")
-        if query_result.is_failure:
-            logger.info(
-                "📝 Simple query pattern demonstrated (simulated): %s",
-                query_result.error,
-            )
+        result_data = query_result.unwrap_or("Query failed - simulated")
+        logger.info(
+            "📝 Simple query pattern demonstrated: %s",
+            "Success"
+            if result_data != "Query failed - simulated"
+            else "Simulated failure",
+        )
 
-        # Pattern 2: Parameterized query
+        # Pattern 2: Parameterized query using unwrap_or pattern
         param_query_result = api.query(
             "SELECT * FROM employees WHERE department_id = :dept_id",
             {"dept_id": 10},
         )
-        if param_query_result.is_failure:
-            logger.info(
-                "📝 Parameterized query pattern demonstrated (simulated): %s",
-                param_query_result.error,
-            )
+        param_data = param_query_result.unwrap_or("Parameterized query failed")
+        logger.info(
+            "📝 Parameterized query pattern demonstrated: %s",
+            "Success"
+            if param_data != "Parameterized query failed"
+            else "Simulated failure",
+        )
 
-        # Pattern 3: Single row query
+        # Pattern 3: Single row query using unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
-        if single_result.is_failure:
-            logger.info(
-                "📝 Single row query pattern demonstrated (simulated): %s",
-                single_result.error,
-            )
+        single_data = single_result.unwrap_or("Single query failed")
+        logger.info(
+            "📝 Single row query pattern demonstrated: %s",
+            "Success" if single_data != "Single query failed" else "Simulated failure",
+        )
 
         # Pattern 4: Batch operations
         operations = [
@@ -264,11 +269,13 @@ def demonstrate_query_patterns() -> None:
         ]
 
         batch_result = api.execute_batch(operations)
-        if batch_result.is_failure:
-            logger.info(
-                "📝 Batch operations pattern demonstrated (simulated): %s",
-                batch_result.error,
-            )
+        batch_data = batch_result.unwrap_or("Batch operations failed")
+        logger.info(
+            "📝 Batch operations pattern demonstrated: %s",
+            "Success"
+            if batch_data != "Batch operations failed"
+            else "Simulated failure",
+        )
 
     demonstrator.demonstrate_with_api_operations(_perform_query_operations)
 
@@ -283,37 +290,41 @@ def demonstrate_metadata_exploration() -> None:
 
     def _perform_metadata_operations(api: FlextDbOracleApi) -> None:
         """Specific metadata exploration operations."""
-        # Pattern 1: List all schemas
+        # Pattern 1: List all schemas using unwrap_or pattern
         schemas_result = api.get_schemas()
-        if schemas_result.is_failure:
-            logger.info(
-                "📝 Schema listing pattern demonstrated (simulated): %s",
-                schemas_result.error,
-            )
+        schemas_data = schemas_result.unwrap_or([])
+        logger.info(
+            "📝 Schema listing pattern demonstrated: %s schemas found",
+            len(schemas_data)
+            if isinstance(schemas_data, list)
+            else "Simulated failure",
+        )
 
-        # Pattern 2: List tables in a schema
+        # Pattern 2: List tables in a schema using unwrap_or pattern
         tables_result = api.get_tables("HR")
-        if tables_result.is_failure:
-            logger.info(
-                "📝 Table listing pattern demonstrated (simulated): %s",
-                tables_result.error,
-            )
+        tables_data = tables_result.unwrap_or([])
+        logger.info(
+            "📝 Table listing pattern demonstrated: %s tables found",
+            len(tables_data) if isinstance(tables_data, list) else "Simulated failure",
+        )
 
-        # Pattern 3: Get column information for a table
+        # Pattern 3: Get column information for a table using unwrap_or pattern
         columns_result = api.get_columns("EMPLOYEES")
-        if columns_result.is_failure:
-            logger.info(
-                "📝 Column information pattern demonstrated (simulated): %s",
-                columns_result.error,
-            )
+        columns_data = columns_result.unwrap_or([])
+        logger.info(
+            "📝 Column information pattern demonstrated: %s columns found",
+            len(columns_data)
+            if isinstance(columns_data, list)
+            else "Simulated failure",
+        )
 
-        # Pattern 4: Test connection health
+        # Pattern 4: Test connection health using unwrap_or pattern
         health_result = api.test_connection()
-        if health_result.is_failure:
-            logger.info(
-                "📝 Connection health check pattern demonstrated (simulated): %s",
-                health_result.error,
-            )
+        health_status = health_result.unwrap_or(False)
+        logger.info(
+            "📝 Connection health check pattern demonstrated: %s",
+            "Healthy" if health_status else "Simulated failure",
+        )
 
     demonstrator.demonstrate_with_api_operations(_perform_metadata_operations)
 
@@ -336,7 +347,7 @@ def demonstrate_transaction_patterns() -> None:
 
         # This would be real code with actual connection:
         # with api.transaction() as txn:
-        #     if result1.success and result2.success:
+        #     if result1.is_success and result2.is_success:
         #         txn.commit()
         #         txn.rollback()
 
@@ -362,10 +373,13 @@ def demonstrate_error_handling_patterns() -> None:
         except (ConnectionError, OSError, RuntimeError) as e:
             logger.info("✅ General connection error handled: %s", e)
 
-        # Pattern 2: Query error handling with FlextResult
+        # Pattern 2: Query error handling with FlextResult using unwrap_or
         result = api.query("INVALID SQL SYNTAX")
-        if result.is_failure:
-            logger.info("✅ Query error handled via FlextResult: {result.error}")
+        error_msg = result.unwrap_or("No error")
+        if error_msg == "No error":
+            logger.info("✅ Query succeeded (unexpected)")
+        else:
+            logger.info("✅ Query error handled via FlextResult: Pattern demonstrated")
 
         # Pattern 3: Graceful degradation
         demonstrate_fallback_operations(api)
@@ -375,10 +389,11 @@ def demonstrate_error_handling_patterns() -> None:
 
 
 def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
-    """Demonstrate fallback operations when primary operations fail."""
-    # Try primary operation
-    primary_result = api.test_connection()
-    if primary_result.success:
+    """Demonstrate fallback operations when primary operations fail using unwrap_or pattern."""
+    # Use unwrap_or for clean fallback logic - eliminates verbose success checking
+    primary_result = api.test_connection().unwrap_or("Primary operation failed")
+
+    if primary_result != "Primary operation failed":
         return "Primary operation succeeded"
 
     # Primary failed, try fallback
@@ -548,6 +563,59 @@ async def demonstrate_async_patterns() -> None:
     logger.info("  ✅ Async batch operations completed")
 
 
+def demonstrate_utilities_patterns() -> None:
+    """Demonstrate utility functions with unwrap_or patterns for cleaner code."""
+    logger.info("🛠️ Demonstrating Utility Functions with unwrap_or Patterns")
+
+    config = create_sample_config()
+    api = FlextDbOracleApi(config, "demo_utilities")
+
+    # Pattern 1: Safe operations with utility methods (eliminates verbose error checking)
+    logger.info("📝 Safe utility operations using unwrap_or pattern:")
+
+    schemas_count = len(FlextDbOracleUtilities.safe_get_schemas(api))
+    logger.info(f"  • Schemas found: {schemas_count} (using unwrap_or([]))")
+
+    tables_count = len(FlextDbOracleUtilities.safe_get_tables(api))
+    logger.info(f"  • Tables found: {tables_count} (using unwrap_or([]))")
+
+    connection_ok = FlextDbOracleUtilities.safe_test_connection(api)
+    logger.info(f"  • Connection healthy: {connection_ok} (using unwrap_or(False))")
+
+    # Pattern 2: Database summary using composition of utility methods
+    logger.info("📝 Database summary using utility composition:")
+    summary = FlextDbOracleUtilities.get_database_summary(api)
+    logger.info(
+        f"  • Connection: {'✅ Healthy' if summary['connection_healthy'] else '❌ Failed'}"
+    )
+    logger.info(f"  • Total schemas: {summary['schemas_count']}")
+    logger.info(f"  • Total tables: {summary['total_tables']}")
+
+    # Pattern 3: Query result formatting with unwrap_or
+    logger.info("📝 Query result formatting using unwrap_or pattern:")
+    query_result = api.query("SELECT 1 FROM DUAL")
+    formatted_result = FlextDbOracleUtilities.format_query_result(
+        query_result, "No data available"
+    )
+    logger.info(f"  • Query result: {formatted_result}")
+
+    # Pattern 4: Batch operations with boolean success indicator
+    logger.info("📝 Batch operations with unwrap_or boolean pattern:")
+    operations = [("SELECT 1 FROM DUAL", None), ("SELECT 2 FROM DUAL", None)]
+    batch_success = FlextDbOracleUtilities.safe_execute_batch(api, operations)
+    logger.info(f"  • Batch executed: {'✅ Success' if batch_success else '❌ Failed'}")
+
+    # Pattern 5: Connection validation with retry logic
+    logger.info("📝 Connection validation with retry using unwrap_or:")
+    validation_result = FlextDbOracleUtilities.validate_connection_with_retry(
+        api, max_retries=2
+    )
+    is_valid = validation_result.unwrap_or(False)
+    logger.info(f"  • Validation result: {'✅ Valid' if is_valid else '❌ Invalid'}")
+
+    logger.info("✅ All utility patterns demonstrated with unwrap_or for cleaner code!")
+
+
 def main() -> None:
     """Demonstrate all Oracle usage patterns."""
     logger.info("🚀 Starting Comprehensive Oracle Database Usage Examples")
@@ -585,12 +653,18 @@ def main() -> None:
         logger.info("\n⚡ 10. Async/Await Patterns")
         asyncio.run(demonstrate_async_patterns())
 
+        # New: Demonstrate utility functions with unwrap_or patterns
+        logger.info("\n🛠️ 11. Utility Functions with unwrap_or Patterns")
+        demonstrate_utilities_patterns()
+
         logger.info("\n🎉 All Oracle usage patterns demonstrated successfully!")
 
         # Summary
         logger.info("\n📚 Key Takeaways:")
         logger.info("  • Use FlextDbOracleApi for high-level operations")
         logger.info("  • Always handle errors with FlextResult pattern")
+        logger.info("  • Use unwrap_or() to reduce verbose success/failure checking")
+        logger.info("  • Leverage FlextDbOracleUtilities for common operations")
         logger.info("  • Use context managers for automatic resource cleanup")
         logger.info("  • Implement proper connection pooling for performance")
         logger.info("  • Leverage metadata exploration for schema discovery")

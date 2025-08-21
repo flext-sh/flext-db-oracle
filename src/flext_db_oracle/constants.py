@@ -74,8 +74,8 @@ class FlextOracleDbSemanticConstants(FlextConstants):
             "object": "CLOB",
         }
 
-    class Validation:
-        """Validation limits and patterns."""
+    class OracleValidation:
+        """Oracle-specific validation limits and patterns."""
 
         MAX_IDENTIFIER_LENGTH = 128
         MAX_TABLE_NAME_LENGTH = 128
@@ -101,8 +101,8 @@ class FlextOracleDbSemanticConstants(FlextConstants):
         CONNECTION_FAILED = "Failed to connect to Oracle database"
         QUERY_EXECUTION_FAILED = "Query execution failed"
 
-    class Performance:
-        """Performance tuning constants."""
+    class OraclePerformance:
+        """Oracle-specific performance tuning constants."""
 
         DEFAULT_COMMIT_SIZE = 1000
         # CONSUME from single source - NO DUPLICATION
@@ -151,12 +151,14 @@ class FlextOracleDbConstants(FlextOracleDbSemanticConstants):
     SINGER_TO_ORACLE_TYPE_MAP = FlextOracleDbSemanticConstants.DataTypes.SINGER_TYPE_MAP
 
     MAX_IDENTIFIER_LENGTH = (
-        FlextOracleDbSemanticConstants.Validation.MAX_IDENTIFIER_LENGTH
+        FlextOracleDbSemanticConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
     )
     MAX_COLUMN_NAME_LENGTH = (
-        FlextOracleDbSemanticConstants.Validation.MAX_COLUMN_NAME_LENGTH
+        FlextOracleDbSemanticConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH
     )
-    IDENTIFIER_PATTERN = FlextOracleDbSemanticConstants.Validation.IDENTIFIER_PATTERN
+    IDENTIFIER_PATTERN = (
+        FlextOracleDbSemanticConstants.OracleValidation.IDENTIFIER_PATTERN
+    )
 
 
 # =============================================================================
