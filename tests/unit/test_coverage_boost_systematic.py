@@ -39,7 +39,7 @@ class TestAPIMissedLines:
 
     def test_api_connection_manager_lines_117_133(
         self,
-        real_oracle_config: object,
+        real_oracle_config: FlextDbOracleConfig,
         oracle_container: object,
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
@@ -181,47 +181,47 @@ class TestTypesMissedLines:
 
     def test_types_validation_lines_120_132(self) -> None:
         """Test type validation paths (EXACT lines 120-132)."""
-        from flext_db_oracle import TDbOracleColumn
+        from flext_db_oracle import FlextDbOracleColumn
 
         # Test various column configurations to trigger validation paths
         test_configurations = [
             # Valid configuration
             {
-                "name": "TEST_COL",
+                "column_name": "TEST_COL",
+                "column_id": 1,
                 "data_type": "VARCHAR2",
                 "nullable": True,
-                "max_length": 100,
-                "precision": None,
-                "scale": None,
-                "position": 1,
+                "data_length": 100,
+                "data_precision": None,
+                "data_scale": None,
             },
             # Configuration with precision
             {
-                "name": "NUM_COL",
+                "column_name": "NUM_COL",
+                "column_id": 2,
                 "data_type": "NUMBER",
                 "nullable": False,
-                "max_length": None,
-                "precision": 10,
-                "scale": 2,
-                "position": 2,
+                "data_length": None,
+                "data_precision": 10,
+                "data_scale": 2,
             },
             # Edge case configuration
             {
-                "name": "EDGE_COL",
+                "column_name": "EDGE_COL",
+                "column_id": 3,
                 "data_type": "DATE",
                 "nullable": True,
-                "max_length": None,
-                "precision": None,
-                "scale": None,
-                "position": 3,
+                "data_length": None,
+                "data_precision": None,
+                "data_scale": None,
             },
         ]
 
         for config in test_configurations:
             try:
-                column = TDbOracleColumn(**config)
+                column = FlextDbOracleColumn(**config)
                 # Test property methods to trigger more lines
-                assert column.name == config["name"]
+                assert column.column_name == config["column_name"]
                 assert column.data_type == config["data_type"]
 
                 # Test string representations if they exist
@@ -234,17 +234,16 @@ class TestTypesMissedLines:
 
     def test_types_property_methods_175_187(self) -> None:
         """Test type property methods (EXACT lines 175-187)."""
-        from flext_db_oracle import TDbOracleColumn, TDbOracleTable
+        from flext_db_oracle import FlextDbOracleColumn, FlextDbOracleTable
 
         # Create column with specific properties
-        column = TDbOracleColumn(
-            name="ID",
+        column = FlextDbOracleColumn(
+            column_name="ID",
+            column_id=1,
             data_type="NUMBER",
             nullable=False,
-            precision=10,
-            scale=0,
-            position=1,
-            is_primary_key=True,
+            data_precision=10,
+            data_scale=0,
         )
 
         # Test property methods that might not be covered
@@ -263,8 +262,8 @@ class TestTypesMissedLines:
 
         # Test table with columns
         try:
-            table = TDbOracleTable(
-                name="TEST_TABLE",
+            table = FlextDbOracleTable(
+                table_name="TEST_TABLE",
                 schema_name="TEST_SCHEMA",
                 columns=[column],
             )

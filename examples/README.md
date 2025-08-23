@@ -152,17 +152,19 @@ def demonstrate_comprehensive_usage():
     with api:
         # Test connection
         connection_result = api.test_connection()
-        print(f"Connection: {'✅ Success' if connection_result.is_success else '❌ Failed'}")
+        print(f"Connection: {'✅ Success' if connection_result.unwrap_or(False) else '❌ Failed'}")
 
-        # Query execution
+        # Query execution using modern unwrap_or pattern
         query_result = api.execute_query("SELECT SYSDATE FROM DUAL")
-        if query_result.is_success:
-            print(f"Current time: {query_result.value.rows[0][0]}")
+        query_data = query_result.unwrap_or(None)
+        if query_data is not None:
+            print(f"Current time: {query_data.rows[0][0]}")
 
-        # Schema operations
+        # Schema operations using modern unwrap_or pattern
         schemas_result = api.get_schemas()
-        if schemas_result.is_success:
-            print(f"Available schemas: {len(schemas_result.value)}")
+        schemas_data = schemas_result.unwrap_or([])
+        if schemas_data:
+            print(f"Available schemas: {len(schemas_data)}")
 
 if __name__ == "__main__":
     demonstrate_comprehensive_usage()

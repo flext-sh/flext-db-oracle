@@ -278,64 +278,63 @@ class TestDirectCoverageBoostTypes:
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
         from flext_db_oracle import (
-            TDbOracleColumn,
-            TDbOracleSchema,
-            TDbOracleTable,
+            FlextDbOracleColumn,
+            FlextDbOracleSchema,
+            FlextDbOracleTable,
         )
 
         # Test various type validation scenarios
         # Column validation edge cases
         try:
-            column = TDbOracleColumn(
-                name="TEST_COLUMN",
+            column = FlextDbOracleColumn(
+                column_name="TEST_COLUMN",
+                column_id=1,
                 data_type="VARCHAR2",
                 nullable=True,
-                max_length=100,
-                precision=None,
-                scale=None,
-                position=1,
+                data_length=100,
+                data_precision=None,
+                data_scale=None,
             )
-            assert column.name == "TEST_COLUMN"
+            assert column.column_name == "TEST_COLUMN"
         except (TypeError, ValueError):
             # Should handle validation errors
             pass
 
         # Table validation edge cases
         try:
-            table = TDbOracleTable(
-                name="TEST_TABLE",
+            table = FlextDbOracleTable(
+                table_name="TEST_TABLE",
                 schema_name="TEST_SCHEMA",
                 columns=[],  # Empty columns
             )
-            assert table.name == "TEST_TABLE"
+            assert table.table_name == "TEST_TABLE"
         except (TypeError, ValueError):
             # Should handle validation errors
             pass
 
         # Schema validation edge cases
         try:
-            schema = TDbOracleSchema(
-                name="TEST_SCHEMA",
+            schema = FlextDbOracleSchema(
+                schema_name="TEST_SCHEMA",
                 tables=[],  # Empty tables
             )
-            assert schema.name == "TEST_SCHEMA"
+            assert schema.schema_name == "TEST_SCHEMA"
         except (TypeError, ValueError):
             # Should handle validation errors
             pass
 
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
-        from flext_db_oracle import TDbOracleColumn
+        from flext_db_oracle import FlextDbOracleColumn
 
         # Test property methods that might not be covered
-        column = TDbOracleColumn(
-            name="ID",
+        column = FlextDbOracleColumn(
+            column_name="ID",
+            column_id=1,
             data_type="NUMBER",
             nullable=False,
-            precision=10,
-            scale=0,
-            position=1,
-            is_primary_key=True,
+            data_precision=10,
+            data_scale=0,
         )
 
         # Test various property combinations
@@ -364,7 +363,9 @@ class TestDirectCoverageBoostObservability:
 
         # Test various initialization scenarios
         try:
-            obs = FlextDbOracleObservabilityManager()
+            from flext_core import FlextContainer
+            container = FlextContainer()
+            obs = FlextDbOracleObservabilityManager(container, "test_context")
             # Test basic functionality if available
             if hasattr(obs, "start_monitoring"):
                 obs.start_monitoring()

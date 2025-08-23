@@ -27,7 +27,8 @@ Example:
     >>>
     >>> # Register all built-in plugins
     >>> register_result = register_all_oracle_plugins(api)
-    >>> if register_result.is_success:
+    >>> registration_success = register_result.value if register_result.is_success else False
+    >>> if registration_success:
     ...     print("All plugins registered successfully")
     >>>
     >>> # Use performance monitoring plugin
@@ -50,6 +51,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 
 from flext_core import FlextPlugin, FlextPluginContext, FlextResult, get_logger
@@ -184,11 +186,13 @@ def _validate_table_structure(
     try:
         # Using railway pattern for proper error handling
         tables_result = api.get_tables()
-        if tables_result.is_failure:
-            # If we can't get tables, we can't validate - but continue anyway
-            pass
-        elif tables_result.value:
-            tables = tables_result.value
+        # Modern FlextResult pattern: use .value for tables validation
+        if tables_result.is_success:
+            tables_list = tables_result.value
+            if tables_list:
+                tables = tables_result.value
+        else:
+            tables_list = []
             table_names = [
                 getattr(t, "name", str(t)) if hasattr(t, "name") else str(t)
                 for t in tables
@@ -208,11 +212,13 @@ def _validate_table_structure(
 # =============================================================================
 
 
-class FlextOraclePlugin(FlextPlugin):
-    """Concrete Oracle plugin implementation using flext-core FlextPlugin interface.
+class FlextOraclePlugin:
+    """Concrete Oracle plugin implementation using flext-core FlextPlugin patterns.
 
-    COMPLIANCE: Pure implementation of FlextPlugin from flext-core, no mixing with flext-plugin.
-    NO MIXING: Uses composition with configuration data, implements abstract interface behavior.
+    COMPLIANCE: Pure implementation following FlextPlugin patterns from flext-core.
+    NO MIXING: Uses composition with configuration data, implements plugin interface behavior.
+
+    Note: FlextPlugin is now a TypeAlias for object in flext-core, so we implement the interface directly.
     """
 
     def __init__(
@@ -401,7 +407,7 @@ class OraclePluginHandler:
         return FlextResult[dict[str, object]].fail(f"{plugin_name} plugin failed: {e}")
 
 
-def _create_plugin_via_factory(factory_method: object) -> FlextResult[object]:
+def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
     """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
     if callable(factory_method):
         result = factory_method()
@@ -415,20 +421,20 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[object]:
             if plugin_obj:
                 # Basic validation that the result has plugin-like attributes
                 if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
-                    return FlextResult[object].ok(plugin_obj)
-                return FlextResult[object].fail(
+                    return FlextResult[FlextPlugin].ok(plugin_obj)
+                return FlextResult[FlextPlugin].fail(
                     "Factory method returned object without required attributes"
                 )
             error_msg = (
                 getattr(result, "error", "Factory method failed")
                 or "Factory method failed"
             )
-            return FlextResult[object].fail(str(error_msg))
-        return FlextResult[object].fail("Factory method returned invalid result")
-    return FlextResult[object].fail("Factory method is not callable")
+            return FlextResult[FlextPlugin].fail(str(error_msg))
+        return FlextResult[FlextPlugin].fail("Factory method returned invalid result")
+    return FlextResult[FlextPlugin].fail("Factory method is not callable")
 
 
-def create_performance_monitor_plugin() -> FlextResult[object]:
+def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
     """Create a performance monitoring plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_performance_monitor)
 
@@ -491,7 +497,7 @@ def performance_monitor_plugin_handler(
         return OraclePluginHandler.handle_plugin_exception(e, "Performance monitor")
 
 
-def create_security_audit_plugin() -> FlextResult[object]:
+def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
     """Create a security audit plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_security_audit)
 
@@ -625,7 +631,7 @@ def _determine_compliance_status(security_warnings: list[str]) -> str:
     return "warning"
 
 
-def create_data_validation_plugin() -> FlextResult[object]:
+def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
     """Create a data validation plugin using DRY factory."""
     return _create_plugin_via_factory(OraclePluginFactory.create_data_validation)
 
@@ -690,15 +696,15 @@ def data_validation_plugin_handler(
         return OraclePluginHandler.handle_plugin_exception(e, "Data validation")
 
 
-# Plugin registry for easy access - using DRY factory methods
-ORACLE_PLUGINS = {
-    "performance_monitor": OraclePluginFactory.create_performance_monitor,
-    "security_audit": OraclePluginFactory.create_security_audit,
-    "data_validator": OraclePluginFactory.create_data_validation,
+# Plugin registry for easy access - using wrapper functions that return correct types
+ORACLE_PLUGINS: dict[str, Callable[[], FlextResult[FlextPlugin]]] = {
+    "performance_monitor": create_performance_monitor_plugin,
+    "security_audit": create_security_audit_plugin,
+    "data_validator": create_data_validation_plugin,
 }
 
 
-def _register_single_plugin(
+def _register_single_plugin(  # noqa: PLR0911
     api: FlextDbOracleApi,
     plugin_name: str,
     plugin_creator: object,
@@ -716,22 +722,20 @@ def _register_single_plugin(
         if not is_result_like(plugin_result):
             return f"❌ {plugin_name}: Plugin creator returned invalid result"
 
-        # Check if plugin creation was successful
-        is_success = getattr(plugin_result, "is_success", False)
-        if not is_success:
+        # Modern FlextResult pattern: use unwrap_or for plugin creation
+        plugin = getattr(plugin_result, "unwrap_or", lambda _: None)(None)
+        if plugin is None:
             error_msg = getattr(plugin_result, "error", "Unknown error")
             return f"creation_failed: {error_msg}"
-
-        # Extract plugin from result
-        plugin = getattr(plugin_result, "value", None)
         if plugin is None:
             return "failed: plugin is None"
 
         # Register plugin and return result
         register_result = api.register_plugin(plugin)
-        return register_result.map(lambda _: "registered").unwrap_or(
-            f"failed: {register_result.error}"
-        )
+        # Modern FlextResult pattern: use .value for plugin registration
+        if register_result.is_success:
+            return "registered"
+        return f"failed: {register_result.error}"
 
     except Exception as e:
         return f"error: {e}"

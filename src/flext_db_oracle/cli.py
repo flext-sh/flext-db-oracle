@@ -1,1280 +1,921 @@
-"""FLEXT DB Oracle Command Line Interface.
+"""FLEXT DB Oracle CLI using flext-cli comprehensive patterns.
 
-This module provides a comprehensive command-line interface for Oracle database
-operations using FLEXT CLI patterns and Clean Architecture principles. It implements
-enterprise-grade CLI commands with rich formatting, comprehensive error handling,
-and seamless integration with the FLEXT ecosystem.
-
-Key Components:
-    - Oracle CLI Group: Main command group with connection, query, and management commands
-    - Connection Commands: connect, connect-env for database connectivity testing
-    - Query Commands: query, optimize for SQL execution and optimization
-    - Schema Commands: schemas, tables for database structure exploration
-    - Plugin Commands: plugins for extensibility management
-    - Health Commands: health for database status monitoring
-
-Architecture:
-    This module implements the Presentation layer's CLI concern following Clean
-    Architecture principles. It uses the Strategy pattern for output formatting,
-    Template Method pattern for command execution, and Single Responsibility
-    principle for command processors and result handlers.
-
-Example:
-    Basic Oracle CLI usage:
-
-    >>> # Connect to Oracle database
-    >>> oracle connect --host oracle-server --port 1521 --service-name PROD --username app_user
-    >>>
-    >>> # Execute query with environment configuration
-    >>> oracle connect-env && oracle query --sql "SELECT COUNT(*) FROM employees"
-    >>>
-    >>> # List schemas and tables
-    >>> oracle schemas && oracle tables --schema HR
-    >>>
-    >>> # Register and manage plugins
-    >>> oracle plugins
-
-Integration:
-    - Built on flext-cli foundation for consistent CLI patterns
-    - Integrates with Rich library for enhanced terminal formatting
-    - Supports multiple output formats (table, json, yaml, csv)
-    - Compatible with FLEXT ecosystem configuration and observability
-    - Provides comprehensive error handling and user feedback
+Enterprise-grade CLI application demonstrating all flext-cli patterns and capabilities
+for Oracle database operations with professional user experience.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 import json
-from collections.abc import Sized
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, NoReturn, Protocol
+from datetime import UTC, datetime
+from pathlib import Path
 
 import click
-
-# Type annotations for external imports to resolve PyRight warnings
-if TYPE_CHECKING:
-    from flext_core.loggings import get_logger as _get_logger
-    from pydantic import SecretStr as _SecretStr
-    from rich.console import Console as _Console
-    from rich.panel import Panel as _Panel
-    from rich.table import Table as _Table
-else:
-    from flext_core import get_logger
-    from pydantic import SecretStr
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.table import Table
-
-    # Runtime aliases for type safety
-    _get_logger = get_logger
-    _SecretStr = SecretStr
-    _Console = Console
-    _Panel = Panel
-    _Table = Table
-
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.constants import ORACLE_DEFAULT_PORT
-from flext_db_oracle.plugins import register_all_oracle_plugins
-from flext_db_oracle.typings import (
-    has_get_info_method,
-    is_dict_like,
-    is_result_like,
+from flext_cli import (
+    ExistingDir,
+    FlextApiClient,
+    FlextCliContext,
+    FlextCliEntityFactory,
+    FlextCliOutputFormat,
+    PositiveInt,
+    cli_enhanced,
+    cli_handle_keyboard_interrupt,
+    cli_measure_time,
+    create_cli_container,
+    get_cli_config,
+    setup_cli,
 )
+from flext_core import (
+    FlextDecorators,
+    FlextLoggingDecorators,
+    FlextPerformanceDecorators,
+    FlextResult,
+    get_logger,
+)
+from pydantic import SecretStr
+from rich.console import Console
+from rich.panel import Panel
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
+
+from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.plugins import register_all_oracle_plugins
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
-# Helper function to wrap OutputFormatter
-def format_output(
-    data: object,
-    _format_type: str = "table",
-    console: _Console | None = None,
-) -> str:
-    """Format output using OutputFormatter."""
-    # formatter = OutputFormatter()  # Disabled - flext_cli not available
-    # OutputFormatter.format prints to console and returns None
-    # Note: _format_type is preserved for future use when OutputFormatter supports multiple formats
-    target_console = console or globals().get("console", _Console())
-    target_console.print(data)  # Simple print instead of formatter.format
-    return str(data)
+class FlextDbOracleCliApplication:
+    """Enterprise Oracle CLI application with comprehensive flext-cli integration."""
 
+    def __init__(self) -> None:
+        """Initialize Oracle CLI application."""
+        self.console = Console()
+        self.logger = get_logger(__name__)
+        self.config = get_cli_config()
+        # Container with register method - cast for type safety
+        self.container: object = create_cli_container()
+        self.api_client = FlextApiClient()
+        self.entity_factory = FlextCliEntityFactory()
 
-console = _Console()
+        # Application state
+        self.current_connection: object | None = None
+        self.active_operations: list[str] = []
+        self.user_preferences = {
+            "default_output_format": "table",
+            "auto_confirm_operations": False,
+            "show_execution_time": True,
+            "color_output": True,
+            "verbose_errors": True,
+            "connection_timeout": 30,
+            "query_limit": 1000,
+            "enable_plugins": True,
+        }
 
-
-# =============================================================================
-# HELPER CLASSES - Complexity Reduction and Code Reuse
-# =============================================================================
-
-
-class CliErrorHandler:
-    """Helper class for CLI error handling - REDUCES COMPLEXITY in command functions."""
-
-    def __init__(self, console: _Console) -> None:
-        """Initialize error handler."""
-        self._console = console
-
-    def print_error(self, message: str) -> None:
-        """Print error message with red formatting."""
-        self._console.print(f"[red]{message}[/red]")
-
-    def print_error_exception(self, exception: Exception) -> None:
-        """Print exception as error."""
-        self._console.print(f"[red]Error: {exception}[/red]")
-
-    def print_no_data_error(self, operation: str) -> None:
-        """Print no data error."""
-        self._console.print(f"[red]{operation} returned no data[/red]")
-
-    def handle_no_data_error_with_exception(self, operation: str) -> NoReturn:
-        """Handle no data error with print and CLI exception."""
-        self.print_no_data_error(operation)
-        self.raise_cli_error(f"{operation} returned no data")
-
-    def handle_operation_failure_with_exception(
-        self,
-        operation: str,
-        error: str,
-    ) -> None:
-        """Handle operation failure with print and CLI exception."""
-        self.print_error(f"{operation} failed: {error}")
-        self.raise_cli_error(f"{operation} failed: {error}")
-
-    def raise_cli_error(self, message: str) -> NoReturn:
-        """Raise ClickException with message."""
-        raise click.ClickException(message)
-
-    def raise_cli_exception_from_exception(self, exception: Exception) -> NoReturn:
-        """Raise ClickException from exception."""
-        raise click.ClickException(str(exception)) from exception
-
-
-class CliDataValidator:
-    """Helper class for CLI data validation - ELIMINATES DUPLICATION."""
-
-    @staticmethod
-    def safe_get_test_data(
-        test_data: dict[str, object] | None,
-        key: str,
-        default: object = None,
-    ) -> object:
-        """Safely get value from test_data dict."""
-        return test_data.get(key, default) if test_data is not None else default
-
-    @staticmethod
-    def safe_get_query_data_attr(
-        query_data: object | None,
-        attr: str,
-        default: object = None,
-    ) -> object:
-        """Safely get attribute from query_data."""
-        return getattr(query_data, attr, default) if query_data is not None else default
-
-    @staticmethod
-    def safe_iterate_list(data_list: list[str] | None) -> list[str]:
-        """Safely iterate over list."""
-        return data_list if data_list is not None else []
-
-    @staticmethod
-    def safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
-        """Safely iterate over dict."""
-        return data_dict if data_dict is not None else {}
-
-    @staticmethod
-    def safe_get_list_length(obj: object) -> int:
-        """Safely get length of list-like object for display purposes."""
-        logger = _get_logger(__name__)
-
-        if obj is None:
-            logger.debug("Object is None, returning 0 for display")
-            return 0
-
-        if isinstance(obj, list):
-            length = len(obj)
-            logger.debug(f"List object has {length} items")
-            return length
-
-        if hasattr(obj, "__len__") and callable(getattr(obj, "__len__", None)):
-            try:
-                # Type-safe check: if object has __len__, it's likely sized
-                if isinstance(obj, Sized):
-                    length = len(obj)
-                    logger.debug(
-                        f"Successfully got length {length} from {type(obj).__name__}",
-                    )
-                    return length
-                logger.info("Object has __len__ but is not Sized")
-                return 0
-            except (TypeError, AttributeError) as e:
-                logger.info(
-                    f"Object {type(obj).__name__} has __len__ but failed to provide length: {e}",
+    def initialize_application(self) -> FlextResult[None]:
+        """Initialize the Oracle CLI application with setup and validation."""
+        try:
+            self.console.print(
+                Panel(
+                    "[bold cyan]FLEXT Oracle Database CLI[/bold cyan]\n\n"
+                    "[yellow]Enterprise Oracle operations with professional CLI experience...[/yellow]",
+                    expand=False,
                 )
-                logger.info(
-                    "Returning 0 for display purposes - this is expected for some object types",
-                )
-                return 0
+            )
 
-        logger.debug(
-            f"Object {type(obj).__name__} has no __len__ attribute, returning 0 for display",
-        )
-        return 0
+            # Setup CLI foundation
+            setup_result = setup_cli()
+            if setup_result.is_failure:
+                return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
 
-    @staticmethod
-    def extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
-        """Extract table name and schema from table_info object."""
-        if is_dict_like(table_info):
-            name = str(table_info.get("name", "") or table_info)
-            schema_name = str(table_info.get("schema", schema or ""))
-            return name, schema_name
+            # Register services in container
+            self._register_core_services()
 
-        return str(table_info), schema or ""
+            self.console.print("✅ Oracle CLI initialized successfully")
+            return FlextResult[None].ok(None)
 
+        except Exception as e:
+            return FlextResult[None].fail(f"Oracle CLI initialization failed: {e}")
 
-# Global helpers for backward compatibility
-_error_handler = CliErrorHandler(console)
-_data_validator = CliDataValidator()
+    def _register_core_services(self) -> None:
+        """Register core services in the DI container."""
+        services = [
+            ("console", self.console),
+            ("logger", self.logger),
+            ("config", self.config),
+            ("api_client", self.api_client),
+            ("entity_factory", self.entity_factory),
+        ]
 
-
-def _print_error(message: str) -> None:
-    """Print error message with red formatting - DRY pattern for CLI errors."""
-    _error_handler.print_error(message)
-
-
-def _print_error_exception(exception: Exception) -> None:
-    """Print exception as error - DRY pattern for exception handling."""
-    _error_handler.print_error_exception(exception)
+        for service_name, service_instance in services:
+            # Register services if container has register method
+            if hasattr(self.container, "register"):
+                self.container.register(service_name, service_instance)
 
 
-def _print_no_data_error(operation: str) -> None:
-    """Print no data error - DRY pattern for data validation."""
-    _error_handler.print_no_data_error(operation)
+# Global application instance
+app = FlextDbOracleCliApplication()
 
 
-def _handle_no_data_error_with_cli_exception(operation: str) -> None:
-    """Handle no data error with print and CLI exception - DRY pattern for no data scenarios."""
-    _error_handler.handle_no_data_error_with_exception(operation)
-
-
-def _handle_operation_failure_with_cli_exception(operation: str, error: str) -> None:
-    """Handle operation failure with print and CLI exception - DRY pattern for operation failures."""
-    _error_handler.handle_operation_failure_with_exception(operation, error)
-
-
-class ConfigProtocol(Protocol):
-    """Protocol for CLI config objects."""
-
-    output_format: str
-
-
-class PluginProtocol(Protocol):
-    """Protocol for plugin objects."""
-
-    name: str
-    version: str
-
-
-@dataclass
-class ConnectionParams:
-    """Oracle connection parameters - DRY pattern for connection data."""
-
-    host: str
-    port: int
-    service_name: str
-    username: str
-    password: str
-
-
-def _raise_cli_error(message: str) -> None:
-    """Raise ClickException with message - DRY error handling pattern."""
-    _error_handler.raise_cli_error(message)
-
-
-def _raise_cli_exception_from_exception(exception: Exception) -> None:
-    """Raise ClickException from exception - DRY pattern for exception chaining."""
-    _error_handler.raise_cli_exception_from_exception(exception)
-
-
-def _safe_get_test_data(
-    test_data: dict[str, object] | None,
-    key: str,
-    default: object = None,
-) -> object:
-    """Safely get value from test_data dict - DRY null safety pattern."""
-    return _data_validator.safe_get_test_data(test_data, key, default)
-
-
-def _safe_get_query_data_attr(
-    query_data: object | None,
-    attr: str,
-    default: object = None,
-) -> object:
-    """Safely get attribute from query_data - DRY null safety pattern."""
-    return _data_validator.safe_get_query_data_attr(query_data, attr, default)
-
-
-def _safe_iterate_list(data_list: list[str] | None) -> list[str]:
-    """Safely iterate over list - DRY null safety pattern."""
-    return _data_validator.safe_iterate_list(data_list)
-
-
-def _safe_iterate_dict(data_dict: dict[str, str] | None) -> dict[str, str]:
-    """Safely iterate over dict - DRY null safety pattern."""
-    return _data_validator.safe_iterate_dict(data_dict)
-
-
-def _safe_get_list_length(obj: object) -> int:
-    """Safely get length of list-like object for display purposes."""
-    return _data_validator.safe_get_list_length(obj)
-
-
-def _extract_table_info(table_info: object, schema: str | None) -> tuple[str, str]:
-    """Extract table name and schema from table_info object."""
-    return _data_validator.extract_table_info(table_info, schema)
-
-
-@click.group()
+# Main CLI group with comprehensive configuration
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option(
     "--profile",
     default="default",
-    help="Configuration profile to use",
+    envvar="FLEXT_DB_ORACLE_PROFILE",
+    help="Configuration profile (default/dev/staging/prod)",
 )
 @click.option(
     "--output",
-    type=click.Choice(["table", "json", "yaml", "csv"]),
+    "-o",
+    type=click.Choice(["table", "json", "yaml", "csv", "plain"]),
     default="table",
     help="Output format",
 )
 @click.option(
     "--debug/--no-debug",
     default=False,
+    envvar="FLEXT_DB_ORACLE_DEBUG",
     help="Enable debug mode",
 )
+@click.option("--verbose/--quiet", default=False, help="Verbose output")
 @click.pass_context
-def oracle(
+def oracle_cli(
     ctx: click.Context,
-    _profile: str,
-    _output: str,
+    profile: str,
+    output: str,
     *,
     debug: bool,
+    verbose: bool,
 ) -> None:
-    """Oracle Database CLI commands."""
-    # Setup CLI context
-    # config_result = FlextCliConfigFactory.create_project_config(  # Disabled - flext_cli not available
-    #     project_name="flext-db-oracle",  # Fixed project name
-    #     profile=profile,
-    #     output_format=cast(
-    #         "Literal['table', 'json', 'yaml', 'csv', 'plain']",
-    #         output,
-    #     ),
-    #     debug=debug,
-    # )
+    """FLEXT Oracle Database CLI - Enterprise Oracle Operations.
 
-    # if not config_result.is_success:
-    #     _raise_cli_error(f"Failed to create config: {config_result.error}")
+    Professional Oracle database management with comprehensive CLI capabilities
+    including connection management, query execution, schema operations, and more.
+    """
+    # Initialize application
+    init_result = app.initialize_application()
+    if init_result.is_failure:
+        app.console.print(f"[red]Initialization failed: {init_result.error}[/red]")
+        ctx.exit(1)
 
-    # config = config_result.value
-
+    # Setup Click context
     ctx.ensure_object(dict)
-    # ctx.obj["config"] = config
-    ctx.obj["console"] = console
+    ctx.obj["app"] = app
+    ctx.obj["profile"] = profile
+    ctx.obj["output_format"] = output
     ctx.obj["debug"] = debug
+    ctx.obj["verbose"] = verbose
 
-
-@oracle.command()
-@click.option(
-    "--host",
-    required=True,
-    help="Oracle database host",
-)
-@click.option(
-    "--port",
-    type=int,
-    default=ORACLE_DEFAULT_PORT,
-    help="Oracle database port",
-)
-@click.option(
-    "--service-name",
-    required=True,
-    help="Oracle service name",
-)
-@click.option(
-    "--username",
-    required=True,
-    help="Database username",
-)
-@click.option(
-    "--password",
-    prompt=True,
-    hide_input=True,
-    help="Database password",
-)
-@click.pass_context
-def connect(
-    ctx: click.Context,
-    /,
-    **connection_args: str | int,
-) -> None:  # necessary CLI args - / makes ctx positional-only
-    """Connect to Oracle database and test connection."""
-    # Extract and validate connection args - refatoração DRY real
-    params = ConnectionParams(
-        host=str(connection_args["host"]),
-        port=int(connection_args["port"]),
-        service_name=str(connection_args["service_name"]),
-        username=str(connection_args["username"]),
-        password=str(connection_args["password"]),
+    # Configure CLI context
+    cli_context = FlextCliContext(
+        console=app.console,
+        debug=debug,
+        quiet=not verbose,
+        verbose=verbose,
     )
-    _execute_connection_test(ctx, params)
+    ctx.obj["cli_context"] = cli_context
+
+    if debug:
+        app.console.print(
+            f"[dim]Profile: {profile} | Format: {output} | Debug: {debug} | Verbose: {verbose}[/dim]"
+        )
 
 
-def _execute_connection_test(ctx: click.Context, params: ConnectionParams) -> None:
-    """Execute connection test with parameters - DRY pattern."""
-    # Strategy Pattern: Create connection test execution strategy
-    executor = _ConnectionTestExecutor(ctx, params)
-    executor.execute()
+# Connection Management Commands Group
+@oracle_cli.group()
+@click.pass_context
+def connection(ctx: click.Context) -> None:
+    """Oracle database connection management commands."""
 
 
-class _ConnectionTestExecutor:
-    """Connection test executor using Strategy + Template Method patterns - Single Responsibility."""
+@connection.command()
+@click.option("--host", required=True, help="Oracle database host")
+@click.option("--port", type=int, default=1521, help="Oracle database port")
+@click.option("--service-name", required=True, help="Oracle service name")
+@click.option("--username", required=True, help="Oracle username")
+@click.option("--password", prompt=True, hide_input=True, help="Oracle password")
+@click.pass_context
+@cli_enhanced
+@FlextPerformanceDecorators.time_execution
+def test(
+    ctx: click.Context,
+    host: str,
+    port: int,
+    service_name: str,
+    username: str,
+    password: str,
+) -> None:
+    """Test Oracle database connection with specified parameters."""
+    app: FlextDbOracleCliApplication = ctx.obj["app"]
+    cli_context: FlextCliContext = ctx.obj["cli_context"]
 
-    def __init__(self, ctx: click.Context, params: ConnectionParams) -> None:
-        """Initialize connection test executor."""
-        self.ctx = ctx
-        self.params = params
-        self.config = ctx.obj["config"]
-        self.debug = ctx.obj["debug"]
+    app.console.print(
+        f"[green]Testing Oracle connection: {host}:{port}/{service_name}[/green]"
+    )
 
-    def execute(self) -> None:
-        """Template Method: Execute connection test with structured phases."""
+    try:
+        # Create configuration
+        config = FlextDbOracleConfig(
+            host=host,
+            port=port,
+            service_name=service_name,
+            username=username,
+            password=SecretStr(password),
+        )
+
+        # Create API and use context manager pattern for connection
+        api = FlextDbOracleUtilities.create_api_from_config(config)
+
         try:
-            # Phase 1: Setup
-            api = self._setup_connection()
+            with api as connected_api:
+                # Test connection
+                test_result = connected_api.test_connection()
+                if not test_result.success:
+                    app.console.print(
+                        f"[red]Connection test failed: {test_result.error}[/red]"
+                    )
+                    ctx.exit(1)
 
-            # Phase 2: Connect
-            self._establish_connection(api)
+                # Display success
+                if cli_context.debug:
+                    app.console.print(
+                        f"[green]✅ Successfully connected to {host}:{port}/{service_name}[/green]"
+                    )
 
-            # Phase 3: Test
-            test_result = self._perform_connection_test(api)
+                success_data = {
+                    "status": "connected",
+                    "host": host,
+                    "port": port,
+                    "service_name": service_name,
+                    "username": username,
+                }
 
-            # Phase 4: Handle Result
-            self._handle_test_result(test_result)
+                if cli_context.output == FlextCliOutputFormat.TABLE:
+                    success_panel = Panel(
+                        "✅ **Connection Successful**\n\n"
+                        f"Host: {host}\n"
+                        f"Port: {port}\n"
+                        f"Service: {service_name}\n"
+                        f"Username: {username}",
+                        title="Oracle Connection",
+                        border_style="green",
+                    )
+                    app.console.print(success_panel)
+                elif cli_context.output == FlextCliOutputFormat.JSON:
+                    app.console.print(json.dumps(success_data, indent=2))
+                else:
+                    app.console.print(str(success_data))
 
-        except (
-            click.ClickException,
-            ValueError,
-            TypeError,
-            AttributeError,
-            ConnectionError,
-            OSError,
-        ) as e:
-            self._handle_exception(e)
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
 
-    def _setup_connection(self) -> FlextDbOracleApi:
-        """Set up connection configuration - Single Responsibility."""
-        oracle_config = self._create_oracle_config()
-        return FlextDbOracleApi(oracle_config, context_name="cli")
-
-    def _create_oracle_config(self) -> FlextDbOracleConfig:
-        """Create Oracle configuration with defaults - Single Responsibility."""
-        return FlextDbOracleConfig(
-            host=self.params.host,
-            port=self.params.port,
-            service_name=self.params.service_name,
-            username=self.params.username,
-            password=_SecretStr(self.params.password),
-            oracle_schema="DEFAULT",
-            sid=None,  # Usando service_name
-            pool_min=1,
-            pool_max=10,
-            pool_increment=1,
-            timeout=30,
-            encoding="UTF-8",
-            ssl_enabled=False,
-            ssl_cert_path=None,
-            ssl_key_path=None,
-            protocol="tcp",
-            ssl_server_dn_match=True,
-            ssl_server_cert_dn=None,
-            autocommit=False,
-        )
-
-    def _establish_connection(self, api: FlextDbOracleApi) -> None:
-        """Establish database connection - Single Responsibility."""
-        if self.debug:
-            console.print(
-                f"[blue]Connecting to {self.params.host}:{self.params.port}/{self.params.service_name}...[/blue]",
-            )
-        api.connect()
-
-    def _perform_connection_test(self, api: FlextDbOracleApi) -> object:
-        """Perform connection test with observability - Single Responsibility."""
-        return api.test_connection_with_observability()
-
-    def _handle_test_result(self, test_result: object) -> None:
-        """Handle test result based on success/failure - Single Responsibility."""
-        if is_result_like(test_result) and getattr(test_result, "is_success", False):
-            self._handle_successful_test(test_result)
-        else:
-            self._handle_failed_test(test_result)
-
-    def _handle_successful_test(self, test_result: object) -> None:
-        """Handle successful connection test - Single Responsibility."""
-        if not is_result_like(test_result):
-            _handle_no_data_error_with_cli_exception("Connection test")
-            return
-
-        test_data = getattr(test_result, "value", None)
-
-        if test_data is None:
-            _handle_no_data_error_with_cli_exception("Connection test")
-
-        self._display_success_panel(test_data)
-        self._display_health_data(test_data)
-
-    def _display_success_panel(self, test_data: object) -> None:
-        """Display connection success panel - Single Responsibility."""
-        # Type-safe conversion for _safe_get_test_data
-        test_data_dict = test_data if isinstance(test_data, dict) else None
-
-        info_panel = _Panel(
-            f"""✅ **Connection Successful**
-
-Host: {self.params.host}
-Port: {self.params.port}
-Service: {self.params.service_name}
-Status: {_safe_get_test_data(test_data_dict, "status", "unknown")}
-Test Duration: {_safe_get_test_data(test_data_dict, "test_duration_ms", 0)}ms""",
-            title="Oracle Connection",
-            border_style="green",
-        )
-        console.print(info_panel)
-
-    def _display_health_data(self, test_data: object) -> None:
-        """Display health data if available - Single Responsibility."""
-        # Type-safe conversion for _safe_get_test_data
-        test_data_dict = test_data if isinstance(test_data, dict) else None
-
-        health_data = _safe_get_test_data(test_data_dict, "health", {})
-        if not (health_data and isinstance(health_data, dict)):
-            return
-
-        output_data = self._prepare_health_output_data(test_data_dict, health_data)
-
-        if self.config.output_format == "table":
-            self._display_health_table(output_data)
-        else:
-            format_output(output_data, self.config.output_format, console)
-
-    def _prepare_health_output_data(
-        self,
-        test_data: dict[str, object] | None,
-        health_data: dict[str, object],
-    ) -> dict[str, object]:
-        """Prepare health data for output - Single Responsibility."""
-        return {
-            "connection_status": _safe_get_test_data(test_data, "status"),
-            "test_duration_ms": _safe_get_test_data(test_data, "test_duration_ms"),
-            "health_status": health_data.get("status"),
-            "health_message": health_data.get("message"),
-            "metrics": health_data.get("metrics", {}),
-        }
-
-    def _display_health_table(self, output_data: dict[str, object]) -> None:
-        """Display health data as table - Single Responsibility."""
-        table = _Table(title="Connection Details")
-        table.add_column("Property", style="cyan")
-        table.add_column("Value", style="green")
-
-        for key, value in output_data.items():
-            formatted_value = (
-                json.dumps(value, indent=2) if isinstance(value, dict) else str(value)
-            )
-            table.add_row(key.replace("_", " ").title(), formatted_value)
-
-        console.print(table)
-
-    def _handle_failed_test(self, test_result: object) -> None:
-        """Handle failed connection test - Single Responsibility."""
-        error = getattr(test_result, "error", "Unknown error")
-        _handle_operation_failure_with_cli_exception("Connection", error)
-
-    def _handle_exception(self, exception: Exception) -> None:
-        """Handle exceptions during connection test - Single Responsibility."""
-        _print_error_exception(exception)
-        _raise_cli_exception_from_exception(exception)
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
-@oracle.command()
-@click.option(
-    "--env-prefix",
-    default="FLEXT_TARGET_ORACLE_",
-    help="Environment variable prefix",
-)
+@oracle_cli.command()
 @click.pass_context
-def connect_env(ctx: click.Context, env_prefix: str) -> None:
-    """Connect to Oracle using environment variables."""
-    config = ctx.obj["config"]
+def connect_env(ctx: click.Context) -> None:
+    """Connect to Oracle database using environment variables."""
     debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
 
     try:
-        if debug:
-            console.print(
-                f"[blue]Loading configuration from environment (prefix: {env_prefix})...[/blue]",
-            )
+        # Create configuration from environment
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
 
-        # Create API from environment
-        api = FlextDbOracleApi.from_env(env_prefix=env_prefix, context_name="cli")
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
 
-        # Test connection using railway-oriented programming
-        test_result = api.test_connection_with_observability()
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                # Test connection
+                test_result = connected_api.test_connection()
+                if not test_result.success:
+                    app.console.print(
+                        f"[red]Connection test failed: {test_result.error}[/red]"
+                    )
+                    ctx.exit(1)
 
-        def _display_success_panel(test_data: dict[str, object]) -> dict[str, object]:
-            console.print(
-                _Panel(
-                    f"""✅ **Connection Successful (from environment)**
+                if debug:
+                    app.console.print(
+                        "[green]✅ Successfully connected using environment variables[/green]"
+                    )
 
-Status: {_safe_get_test_data(test_data, "status", "unknown")}
-Test Duration: {_safe_get_test_data(test_data, "test_duration_ms", 0)}ms""",
-                    title="Oracle Connection",
-                    border_style="green",
-                ),
-            )
+                success_data = {
+                    "status": "connected",
+                    "host": config.host,
+                    "port": config.port,
+                    "service_name": config.service_name,
+                    "username": config.username,
+                }
 
-            # Output health data
-            health_data = _safe_get_test_data(test_data, "health", {})
-            if health_data and config.output_format != "table":
-                format_output(health_data, config.output_format, console)
-            return test_data
+                if output_format == "table":
+                    success_panel = Panel(
+                        "✅ **Connection Successful (Environment)**\n\n"
+                        f"Host: {config.host}\n"
+                        f"Port: {config.port}\n"
+                        f"Service: {config.service_name}\n"
+                        f"Username: {config.username}",
+                        title="Oracle Connection",
+                        border_style="green",
+                    )
+                    app.console.print(success_panel)
+                elif output_format == "json":
+                    app.console.print(json.dumps(success_data, indent=2))
+                else:
+                    app.console.print(str(success_data))
 
-        # Railway pattern: map success to display, handle error if failure
-        if test_result.is_failure:
-            _handle_operation_failure_with_cli_exception(
-                "Connection", test_result.error or "Unknown connection error"
-            )
-        else:
-            _display_success_panel(test_result.value)
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
 
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
-
-
-class QueryResultProcessor:
-    """refactoring: Single Responsibility for query result processing."""
-
-    def __init__(self, config: ConfigProtocol, console: _Console) -> None:
-        """Initialize result processor."""
-        self.config = config
-        self.console = console
-
-    def process_success(
-        self,
-        query_data: object,
-        results: list[object],
-        limit: int | None,
-    ) -> None:
-        """Process successful query results."""
-        # Apply limit if specified
-        limited_results = self._apply_limit(results, limit)
-
-        # Display summary panel
-        self._display_summary_panel(query_data)
-
-        # Display results based on format
-        if self.config.output_format == "table" and limited_results:
-            self._display_as_table(query_data, limited_results)
-        else:
-            self._display_as_structured_output(query_data, limited_results)
-
-    def _apply_limit(self, results: list[object], limit: int | None) -> list[object]:
-        """Apply row limit to results."""
-        if limit and isinstance(results, list) and len(results) > limit:
-            self.console.print(f"[yellow]Results limited to {limit} rows[/yellow]")
-            return results[:limit]
-        return results
-
-    def _display_summary_panel(self, query_data: object) -> None:
-        """Display query execution summary."""
-        execution_time = _safe_get_query_data_attr(query_data, "execution_time_ms", 0)
-        row_count = _safe_get_query_data_attr(query_data, "row_count", 0)
-        columns = _safe_get_query_data_attr(query_data, "columns", [])
-
-        self.console.print(
-            _Panel(
-                f"""✅ **Query Executed Successfully**
-
-Execution Time: {execution_time:.2f}ms
-Rows Returned: {row_count}
-Columns: {_safe_get_list_length(columns)}""",
-                title="Query Results",
-                border_style="green",
-            ),
-        )
-
-    def _display_as_table(
-        self,
-        query_data: object,
-        results: list[object],
-    ) -> None:
-        """Display results as rich table."""
-        table: _Table = _Table(title=f"Query Results ({len(results)} rows)")
-
-        # Add columns
-        columns = _safe_get_query_data_attr(query_data, "columns", [])
-        if columns and isinstance(columns, list):
-            for col in columns:
-                table.add_column(str(col), style="cyan")
-
-        # Add rows
-        for row in results:
-            # Ensure row is iterable (tuple, list, etc.)
-            if hasattr(row, "__iter__") and not isinstance(row, (str, bytes)):
-                table.add_row(
-                    *[str(cell) if cell is not None else "NULL" for cell in row],
-                )
-            else:
-                # Single value row
-                table.add_row(str(row) if row is not None else "NULL")
-
-        self.console.print(table)
-
-    def _display_as_structured_output(
-        self,
-        query_data: object,
-        results: list[object],
-    ) -> None:
-        """Display results as structured output."""
-        output_data = {
-            "execution_time_ms": _safe_get_query_data_attr(
-                query_data,
-                "execution_time_ms",
-                0,
-            ),
-            "row_count": _safe_get_query_data_attr(query_data, "row_count", 0),
-            "columns": _safe_get_query_data_attr(query_data, "columns", []),
-            "rows": results,
-        }
-        format_output(output_data, self.config.output_format, self.console)
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
-@oracle.command()
-@click.option(
-    "--sql",
-    required=True,
-    help="SQL query to execute",
-)
-@click.option(
-    "--limit",
-    type=int,
-    help="Limit number of results",
-)
+@oracle_cli.command()
+@click.option("--sql", required=True, help="SQL query to execute")
+@cli_enhanced
+@FlextPerformanceDecorators.time_execution
+@FlextLoggingDecorators.log_calls
+@FlextDecorators.safe_call((KeyboardInterrupt,))
 @click.pass_context
-def query(ctx: click.Context, sql: str, limit: int | None) -> None:
-    """Execute SQL query against Oracle database - SOLID refactored."""
-    config = ctx.obj["config"]
+def query(ctx: click.Context, sql: str) -> None:
+    """Execute SQL query against Oracle database."""
     debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
 
     try:
-        # Create API from environment
-        api = FlextDbOracleApi.from_env(context_name="cli")
+        # Create configuration from environment
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
 
-        if debug:
-            console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
 
-        with api:
-            # Execute query with timing using railway-oriented programming
-            query_result = api.query_with_timing(sql)
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                if debug:
+                    app.console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
 
-            def _process_query_success(query_data: object) -> object:
-                raw_results = _safe_get_query_data_attr(query_data, "rows", [])
-                results: list[object] = (
-                    raw_results if isinstance(raw_results, list) else []
+                # Execute query
+                query_result = connected_api.query(sql)
+                if not query_result.success:
+                    app.console.print(f"[red]Query failed: {query_result.error}[/red]")
+                    ctx.exit(1)
+
+                # Display result
+                result_data = query_result.value
+                FlextDbOracleUtilities.format_query_result(
+                    result_data, output_format, app.console
                 )
 
-                # Use SOLID processor for result handling
-                processor = QueryResultProcessor(config, console)
-                processor.process_success(query_data, results, limit)
-                return query_data
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
 
-            # Railway pattern: map success to processing, handle error if failure
-            if query_result.is_failure:
-                _handle_operation_failure_with_cli_exception(
-                    "Query", query_result.error or "Unknown query error"
-                )
-            else:
-                _process_query_success(query_result.value)
-
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
-@oracle.command()
+@oracle_cli.command()
 @click.pass_context
 def schemas(ctx: click.Context) -> None:
-    """List Oracle database schemas."""
-    config = ctx.obj["config"]
+    """List all database schemas."""
+    debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+        # Create configuration and API
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
 
-        with api:
-            # Use utilities for cleaner code with unwrap_or pattern
-            schema_list = FlextDbOracleUtilities.safe_get_schemas(api)
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
 
-            if schema_list:  # Only show if schemas found
-                console.print(
-                    _Panel(
-                        f"""✅ **Schemas Retrieved**
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                # Get schemas
+                schemas_result = connected_api.get_schemas()
+                if not schemas_result.success:
+                    app.console.print(
+                        f"[red]Failed to get schemas: {schemas_result.error}[/red]"
+                    )
+                    ctx.exit(1)
 
-Total Schemas: {len(schema_list)}""",
-                        title="Oracle Schemas",
-                        border_style="green",
-                    ),
-                )
+                schema_list = schemas_result.value
 
-                if config.output_format == "table":
-                    table = _Table(title="Oracle Schemas")
+                if debug:
+                    app.console.print(f"[blue]Found {len(schema_list)} schemas[/blue]")
+
+                # Display results
+                if output_format == "table":
+                    table = Table(title=f"Database Schemas ({len(schema_list)} found)")
                     table.add_column("Schema Name", style="cyan")
 
                     for schema in schema_list:
-                        table.add_row(str(schema))
+                        table.add_row(schema)
 
-                    console.print(table)
+                    app.console.print(table)
                 else:
-                    format_output(
-                        {"schemas": schema_list},
-                        config.output_format,
-                        console,
-                    )
-            else:
-                console.print(
-                    _Panel(
-                        "❌ **No schemas found or connection failed**",
-                        title="Oracle Schemas",
-                        border_style="red",
-                    ),
-                )
+                    data = {"schemas": schema_list, "count": len(schema_list)}
+                    if output_format == "json":
+                        app.console.print(json.dumps(data, indent=2))
+                    else:
+                        app.console.print(str(data))
 
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
+
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
-@oracle.command()
-@click.option(
-    "--schema",
-    help="Schema name to filter tables",
-)
+@oracle_cli.command()
+@click.option("--schema", help="Schema name to list tables for")
+@cli_enhanced
+@FlextPerformanceDecorators.time_execution
+@FlextLoggingDecorators.log_calls
+@FlextDecorators.safe_call((KeyboardInterrupt,))
 @click.pass_context
 def tables(ctx: click.Context, schema: str | None) -> None:
-    """List Oracle database tables."""
-    config = ctx.obj["config"]
+    """List tables in schema."""
+    debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+        # Create configuration and API
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
 
-        with api:
-            # Retrieve tables using railway-oriented programming
-            tables_result = api.get_tables(schema)
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
 
-            def _display_tables_success(table_list: list[str]) -> list[str]:
-                title = f"Oracle Tables{f' in {schema}' if schema else ''}"
-                console.print(
-                    _Panel(
-                        f"""✅ **Tables Retrieved**
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                # Get tables
+                tables_result = connected_api.get_tables(schema)
+                if not tables_result.success:
+                    app.console.print(
+                        f"[red]Failed to get tables: {tables_result.error}[/red]"
+                    )
+                    ctx.exit(1)
 
-Total Tables: {len(_safe_iterate_list(table_list))}
-Schema: {schema or "All"}""",
-                        title=title,
-                        border_style="green",
-                    ),
-                )
+                table_list = tables_result.value
+                schema_display = schema or "current"
 
-                if config.output_format == "table":
-                    table = _Table(title=title)
-                    table.add_column("Table Name", style="cyan")
-                    table.add_column("Schema", style="yellow")
-
-                    for table_info in _safe_iterate_list(table_list):
-                        # Extract table info using helper function - eliminates deep nesting
-                        name, schema_name = _extract_table_info(table_info, schema)
-                        table.add_row(name, schema_name)
-
-                    console.print(table)
-                else:
-                    format_output({"tables": table_list}, config.output_format, console)
-                return table_list
-
-            # Railway pattern: handle success and failure separately
-            if tables_result.is_failure:
-                console.print(
-                    f"[red]Failed to retrieve tables: {tables_result.error}[/red]"
-                )
-                _raise_cli_error(f"Failed to retrieve tables: {tables_result.error}")
-            else:
-                _display_tables_success(tables_result.value)
-
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
-
-
-class PluginManagerProcessor:
-    """refactoring: Single Responsibility for plugin management operations."""
-
-    def __init__(self, config: ConfigProtocol, console: _Console) -> None:
-        """Initialize plugin manager processor."""
-        self.config = config
-        self.console = console
-
-    def handle_registration_success(self, registration_results: dict[str, str]) -> None:
-        """Handle successful plugin registration - Single Responsibility."""
-        self._display_registration_success_panel()
-        self._display_registration_results(registration_results)
-
-    def handle_plugin_list_success(self, plugin_list: list[object]) -> None:
-        """Handle successful plugin listing - Single Responsibility."""
-        self.console.print(f"\n[blue]Available Plugins: {len(plugin_list)}[/blue]")
-
-        if self.config.output_format == "table":
-            self._display_plugins_table(plugin_list)
-        else:
-            self._display_plugins_structured(plugin_list)
-
-    def _display_registration_success_panel(self) -> None:
-        """Display registration success panel."""
-        self.console.print(
-            _Panel(
-                """✅ **Plugin Registration Complete**""",
-                title="Oracle Plugins",
-                border_style="green",
-            ),
-        )
-
-    def _display_registration_results(
-        self,
-        registration_results: dict[str, str],
-    ) -> None:
-        """Display registration results based on output format."""
-        if self.config.output_format == "table":
-            self._display_registration_table(registration_results)
-        else:
-            format_output(registration_results, self.config.output_format, self.console)
-
-    def _display_registration_table(self, registration_results: dict[str, str]) -> None:
-        """Display registration results as table."""
-        table = _Table(title="Plugin Registration Results")
-        table.add_column("Plugin Name", style="cyan")
-        table.add_column("Status", style="green")
-
-        for plugin_name, status in _safe_iterate_dict(registration_results).items():
-            table.add_row(plugin_name, status)
-
-        self.console.print(table)
-
-    def _display_plugins_table(self, plugin_list: list[object]) -> None:
-        """Display plugins as rich table."""
-        plugin_table = _Table(title="Available Plugins")
-        plugin_table.add_column("Name", style="cyan")
-        plugin_table.add_column("Version", style="yellow")
-        plugin_table.add_column("Type", style="magenta")
-        plugin_table.add_column("Description", style="white")
-
-        for plugin in plugin_list:
-            # Safe access to plugin info with attribute checking
-            plugin_info = {}
-            if has_get_info_method(plugin):
-                get_info_method = getattr(plugin, "get_info", None)
-                if get_info_method and callable(get_info_method):
-                    plugin_info = get_info_method()
-            elif hasattr(plugin, "name"):
-                # Fallback to direct attribute access
-                plugin_info = {
-                    "name": getattr(plugin, "name", "unknown"),
-                    "version": getattr(plugin, "version", "unknown"),
-                    "plugin_type": getattr(plugin, "plugin_type", "unknown"),
-                    "description": getattr(plugin, "description", ""),
-                }
-
-            # Type-safe access with fallbacks
-            if is_dict_like(plugin_info):
-                plugin_table.add_row(
-                    str(plugin_info.get("name", "unknown")),
-                    str(plugin_info.get("version", "unknown")),
-                    str(plugin_info.get("plugin_type", "unknown")),
-                    str(plugin_info.get("description", "")),
-                )
-            else:
-                plugin_table.add_row("unknown", "unknown", "unknown", "")
-
-        self.console.print(plugin_table)
-
-    def _display_plugins_structured(self, plugin_list: list[object]) -> None:
-        """Display plugins as structured output."""
-        plugin_data: list[dict[str, object]] = []
-        for p in plugin_list:
-            # Safe access to plugin info with attribute checking
-            plugin_info = {}
-            if has_get_info_method(p):
-                get_info_method = getattr(p, "get_info", None)
-                if get_info_method and callable(get_info_method):
-                    plugin_info = get_info_method()
-            elif hasattr(p, "name"):
-                # Fallback to direct attribute access
-                plugin_info = {
-                    "name": getattr(p, "name", "unknown"),
-                    "version": getattr(p, "version", "unknown"),
-                    "plugin_type": getattr(p, "plugin_type", "unknown"),
-                    "description": getattr(p, "description", ""),
-                }
-
-            # Type-safe access with fallbacks
-            if is_dict_like(plugin_info):
-                plugin_data.append(
-                    {
-                        "name": plugin_info.get("name", "unknown"),
-                        "version": plugin_info.get("version", "unknown"),
-                        "type": plugin_info.get("plugin_type", "unknown"),
-                        "description": plugin_info.get("description", ""),
-                    },
-                )
-            else:
-                plugin_data.append(
-                    {
-                        "name": "unknown",
-                        "version": "unknown",
-                        "type": "unknown",
-                        "description": "",
-                    },
-                )
-        format_output({"plugins": plugin_data}, self.config.output_format, self.console)
-
-
-@oracle.command()
-@click.pass_context
-def plugins(ctx: click.Context) -> None:
-    """Manage Oracle database plugins - SOLID refactored."""
-    config = ctx.obj["config"]
-
-    try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
-
-        with api:
-            # Use SOLID processor for plugin management
-            processor = PluginManagerProcessor(config, console)
-
-            # Register all Oracle plugins
-            register_result = register_all_oracle_plugins(api)
-
-            if register_result.is_success:
-                registration_results = register_result.value
-                processor.handle_registration_success(registration_results)
-
-                # List all plugins - Using railway pattern
-                plugins_result = api.list_plugins()
-                if plugins_result.is_failure:
-                    console.print(f"[yellow]Warning: Failed to list plugins: {plugins_result.error}[/yellow]")
-                else:
-                    plugins = plugins_result.value
-                    if plugins:
-                        processor.handle_plugin_list_success(plugins)
-            else:
-                console.print(
-                    f"[red]Plugin registration failed: {register_result.error}[/red]",
-                )
-                _raise_cli_error(f"Plugin registration failed: {register_result.error}")
-
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
-
-
-@oracle.command()
-@click.option(
-    "--sql",
-    required=True,
-    help="SQL query to optimize",
-)
-@click.pass_context
-def optimize(ctx: click.Context, sql: str) -> None:
-    """Optimize SQL query using built-in plugin."""
-    config = ctx.obj["config"]
-
-    try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
-
-        with api:
-            optimize_result = api.optimize_query(sql)
-
-            if optimize_result.is_success:
-                optimization_data = optimize_result.value
-
-                suggestions = _safe_get_test_data(optimization_data, "suggestions", [])
-
-                console.print(
-                    _Panel(
-                        f"""✅ **Query Analysis Complete**
-
-SQL Length: {_safe_get_test_data(optimization_data, "sql_length", 0)} characters
-Has JOINs: {_safe_get_test_data(optimization_data, "has_joins", default=False)}
-Has Subqueries: {_safe_get_test_data(optimization_data, "has_subqueries", default=False)}
-Suggestions: {_safe_get_list_length(suggestions)}""",
-                        title="Query Optimization",
-                        border_style="green",
-                    ),
-                )
-
-                if suggestions and isinstance(suggestions, list):
-                    console.print("\n[yellow]Optimization Suggestions:[/yellow]")
-                    for i, suggestion in enumerate(suggestions, 1):
-                        console.print(f"  {i}. {suggestion}")
-                else:
-                    console.print(
-                        "\n[green]No optimization suggestions - query looks good![/green]",
+                if debug:
+                    app.console.print(
+                        f"[blue]Found {len(table_list)} tables in schema '{schema_display}'[/blue]"
                     )
 
-                if config.output_format != "table":
-                    format_output(optimization_data, config.output_format, console)
-            else:
-                console.print(
-                    f"[red]Query optimization failed: {optimize_result.error}[/red]",
-                )
-                _raise_cli_error(f"Query optimization failed: {optimize_result.error}")
+                # Display results
+                if output_format == "table":
+                    table = Table(
+                        title=f"Tables in Schema '{schema_display}' ({len(table_list)} found)"
+                    )
+                    table.add_column("Table Name", style="cyan")
 
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+                    for table_name in table_list:
+                        table.add_row(table_name)
+
+                    app.console.print(table)
+                else:
+                    data = {
+                        "schema": schema_display,
+                        "tables": table_list,
+                        "count": len(table_list),
+                    }
+                    if output_format == "json":
+                        app.console.print(json.dumps(data, indent=2))
+                    else:
+                        app.console.print(str(data))
+
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
+
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
 
 
-@oracle.command()
+@oracle_cli.command()
 @click.pass_context
 def health(ctx: click.Context) -> None:
     """Check Oracle database health status."""
-    config = ctx.obj["config"]
+    debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
 
     try:
-        api = FlextDbOracleApi.from_env(context_name="cli")
+        # Create configuration and API
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
 
-        with api:
-            health_result = api.get_health_status()
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
 
-            if health_result.is_success:
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                if debug:
+                    app.console.print("[blue]Performing health check...[/blue]")
+
+                # Get health status
+                health_result = connected_api.get_health_check()
+                if not health_result.success:
+                    app.console.print(
+                        f"[red]Health check failed: {health_result.error}[/red]"
+                    )
+                    ctx.exit(1)
+
                 health_data = health_result.value
 
-                status = getattr(health_data, "status", "unknown")
-                status_color = {
-                    "healthy": "green",
-                    "degraded": "yellow",
-                    "unhealthy": "red",
-                }.get(status, "white")
-
-                component = getattr(health_data, "component", "unknown")
-                message = getattr(health_data, "message", "No message")
-                timestamp = getattr(health_data, "timestamp", None)
-                timestamp_str = timestamp.isoformat() if timestamp else "N/A"
-
-                console.print(
-                    _Panel(
-                        f"""**Health Status: [{status_color}]{status.upper()}[/{status_color}]**
-
-Component: {component}
-Message: {message}
-Timestamp: {timestamp_str}""",
-                        title="Oracle Health Check",
-                        border_style=status_color,
-                    ),
+                # Display health status
+                FlextDbOracleUtilities._display_health_data(
+                    health_data, output_format, app.console
                 )
 
-                # Show metrics com null check - refatoração DRY real
-                metrics = getattr(health_data, "metrics", {})
-                if metrics:
-                    if config.output_format == "table":
-                        metrics_table = _Table(title="Health Metrics")
-                        metrics_table.add_column("Metric", style="cyan")
-                        metrics_table.add_column("Value", style="green")
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
 
-                        for key, value in metrics.items():
-                            metrics_table.add_row(
-                                key.replace("_", " ").title(),
-                                str(value),
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
+
+
+@oracle_cli.command()
+@click.pass_context
+def plugins(ctx: click.Context) -> None:
+    """Manage Oracle database plugins."""
+    debug = ctx.obj["debug"]
+    output_format = ctx.obj["output_format"]
+
+    try:
+        # Create configuration and API
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
+
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
+
+        # Use context manager pattern for connection
+        try:
+            with api as connected_api:
+                if debug:
+                    app.console.print("[blue]Registering Oracle plugins...[/blue]")
+
+                # Register plugins
+                register_all_oracle_plugins(connected_api)
+
+                # List available plugins
+                plugin_list = [
+                    "data_validation_plugin",
+                    "performance_monitor_plugin",
+                    "security_audit_plugin",
+                ]
+
+                if output_format == "table":
+                    table = Table(title="Oracle Database Plugins")
+                    table.add_column("Plugin Name", style="cyan")
+                    table.add_column("Status", style="green")
+
+                    for plugin in plugin_list:
+                        table.add_row(plugin, "✅ Registered")
+
+                    app.console.print(table)
+                else:
+                    data = {
+                        "plugins": plugin_list,
+                        "count": len(plugin_list),
+                        "status": "registered",
+                    }
+                    if output_format == "json":
+                        app.console.print(json.dumps(data, indent=2))
+                    else:
+                        app.console.print(str(data))
+
+        except (ConnectionError, ValueError, OSError, RuntimeError) as e:
+            app.console.print(f"[red]Connection failed: {e}[/red]")
+            ctx.exit(1)
+
+    except Exception as e:
+        app.console.print(f"[red]Error: {e}[/red]")
+        ctx.exit(1)
+
+
+# Configuration Management Commands Group
+@oracle_cli.group()
+@click.pass_context
+def config(ctx: click.Context) -> None:
+    """Oracle CLI configuration management commands."""
+
+
+@config.command()
+@click.pass_context
+@cli_enhanced
+def show(ctx: click.Context) -> None:
+    """Show current Oracle CLI configuration."""
+    app: FlextDbOracleCliApplication = ctx.obj["app"]
+
+    app.console.print("[green]Oracle CLI Configuration[/green]")
+
+    # Display configuration
+    config_table = Table(title="Oracle CLI Configuration")
+    config_table.add_column("Setting", style="cyan")
+    config_table.add_column("Value", style="green")
+
+    config_table.add_row("Profile", ctx.obj["profile"])
+    config_table.add_row("Output Format", ctx.obj["output_format"])
+    config_table.add_row("Debug Mode", str(ctx.obj["debug"]))
+    config_table.add_row("Verbose Mode", str(ctx.obj["verbose"]))
+
+    app.console.print(config_table)
+
+    # Show user preferences
+    app.console.print("\n[yellow]User Preferences:[/yellow]")
+    prefs_table = Table()
+    prefs_table.add_column("Preference", style="cyan")
+    prefs_table.add_column("Value", style="green")
+
+    for pref_name, pref_value in app.user_preferences.items():
+        prefs_table.add_row(pref_name, str(pref_value))
+
+    app.console.print(prefs_table)
+
+
+@config.command()
+@click.option("--profile", help="Set default profile")
+@click.option(
+    "--output",
+    type=click.Choice(["table", "json", "yaml", "csv", "plain"]),
+    help="Set default output format",
+)
+@click.option("--timeout", type=PositiveInt, help="Set connection timeout")
+@click.option("--query-limit", type=PositiveInt, help="Set query result limit")
+@click.pass_context
+@cli_enhanced
+def set_config(
+    ctx: click.Context,
+    profile: str | None,
+    output: str | None,
+    timeout: int | None,
+    query_limit: int | None,
+) -> None:
+    """Set Oracle CLI configuration values."""
+    app: FlextDbOracleCliApplication = ctx.obj["app"]
+
+    if not any([profile, output, timeout, query_limit]):
+        app.console.print("[yellow]No configuration changes specified[/yellow]")
+        return
+
+    app.console.print("[green]Updating Oracle CLI configuration...[/green]")
+
+    changes = []
+
+    if profile:
+        app.user_preferences["default_profile"] = profile
+        changes.append(f"Profile: {profile}")
+
+    if output:
+        app.user_preferences["default_output_format"] = output
+        changes.append(f"Output format: {output}")
+
+    if timeout:
+        app.user_preferences["connection_timeout"] = timeout
+        changes.append(f"Connection timeout: {timeout}s")
+
+    if query_limit:
+        app.user_preferences["query_limit"] = query_limit
+        changes.append(f"Query limit: {query_limit} rows")
+
+    # Display changes
+    app.console.print("✅ Oracle CLI configuration updated:")
+    for change in changes:
+        app.console.print(f"   • {change}")
+
+
+# Interactive Commands Group
+@oracle_cli.group()
+@click.pass_context
+def interactive(ctx: click.Context) -> None:
+    """Interactive Oracle CLI commands and wizards."""
+
+
+@interactive.command()
+@click.pass_context
+@cli_handle_keyboard_interrupt
+@cli_enhanced
+def wizard(ctx: click.Context) -> None:
+    """Interactive Oracle connection setup wizard."""
+    app: FlextDbOracleCliApplication = ctx.obj["app"]
+
+    app.console.print(
+        Panel(
+            "[bold magenta]Oracle Database Connection Wizard[/bold magenta]\n\n"
+            "[yellow]This wizard will guide you through Oracle database configuration...[/yellow]",
+            expand=False,
+        )
+    )
+
+    try:
+        # Collect connection parameters
+        host = Prompt.ask("Oracle database host", default="localhost")
+        port = int(Prompt.ask("Oracle database port", default="1521"))
+        service_name = Prompt.ask("Oracle service name", default="XE")
+        username = Prompt.ask("Oracle username")
+        password = Prompt.ask("Oracle password", password=True)
+
+        # Optional advanced settings
+        use_advanced = Confirm.ask("Configure advanced settings?", default=False)
+
+        pool_size = 5
+        connection_timeout = 30
+        if use_advanced:
+            pool_size = int(Prompt.ask("Connection pool size", default="5"))
+            connection_timeout = int(
+                Prompt.ask("Connection timeout (seconds)", default="30")
+            )
+
+        # Display summary
+        wizard_table = Table(title="Oracle Connection Summary")
+        wizard_table.add_column("Setting", style="cyan")
+        wizard_table.add_column("Value", style="green")
+
+        wizard_table.add_row("Host", host)
+        wizard_table.add_row("Port", str(port))
+        wizard_table.add_row("Service Name", service_name)
+        wizard_table.add_row("Username", username)
+        wizard_table.add_row("Password", "***" * len(password))
+        wizard_table.add_row("Pool Size", str(pool_size))
+        wizard_table.add_row("Timeout", f"{connection_timeout}s")
+
+        app.console.print(wizard_table)
+
+        # Test connection
+        if Confirm.ask("Test connection with these settings?", default=True):
+            with app.console.status("[bold green]Testing Oracle connection..."):
+                try:
+                    config = FlextDbOracleConfig(
+                        host=host,
+                        port=port,
+                        service_name=service_name,
+                        username=username,
+                        password=SecretStr(password),
+                        pool_size=pool_size,
+                        connection_timeout=connection_timeout,
+                    )
+
+                    api = FlextDbOracleUtilities.create_api_from_config(config)
+                    with api as connected_api:
+                        test_result = connected_api.test_connection()
+                        if test_result.success:
+                            app.console.print("✅ Connection test successful!")
+
+                            # Store configuration
+                            wizard_config = {
+                                "host": host,
+                                "port": port,
+                                "service_name": service_name,
+                                "username": username,
+                                "pool_size": pool_size,
+                                "connection_timeout": connection_timeout,
+                                "configured_at": datetime.now(UTC).isoformat(),
+                            }
+
+                            app.user_preferences.update(wizard_config)
+                        else:
+                            app.console.print(
+                                f"[red]Connection test failed: {test_result.error}[/red]"
                             )
 
-                        console.print(metrics_table)
-                    else:
-                        health_dict = {
-                            "status": status,
-                            "component": component,
-                            "message": message,
-                            "metrics": metrics,
-                            "timestamp": timestamp_str,
-                        }
-                        # format_output precisa de console como primeiro argumento
-                        format_output(health_dict, config.output_format, console)
-            else:
-                _print_error(f"Health check failed: {health_result.error}")
-                _raise_cli_error(f"Health check failed: {health_result.error}")
+                except Exception as e:
+                    app.console.print(f"[red]Connection error: {e}[/red]")
+        else:
+            app.console.print("[yellow]Connection test skipped[/yellow]")
 
-    except (
-        OSError,
-        ValueError,
-        AttributeError,
-        RuntimeError,
-        TypeError,
-        KeyError,
-    ) as e:
-        _print_error_exception(e)
-        _raise_cli_exception_from_exception(e)
+    except KeyboardInterrupt:
+        app.console.print("\n[yellow]Wizard cancelled by user[/yellow]")
 
 
+# Database Analysis Commands Group
+@oracle_cli.group()
+@click.pass_context
+def analyze(ctx: click.Context) -> None:
+    """Oracle database analysis and statistics commands."""
+
+
+@analyze.command()
+@click.option(
+    "--directory", type=ExistingDir, default=".", help="Output directory for report"
+)
+@click.pass_context
+@cli_enhanced
+@cli_measure_time
+def database(ctx: click.Context, directory: Path) -> None:
+    """Analyze Oracle database and generate comprehensive report."""
+    app: FlextDbOracleCliApplication = ctx.obj["app"]
+
+    app.console.print("[green]Analyzing Oracle database...[/green]")
+
+    try:
+        # Create configuration and API
+        config_result = FlextDbOracleUtilities.create_config_from_env()
+        if not config_result.success:
+            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
+            ctx.exit(1)
+
+        config = config_result.value
+        api = FlextDbOracleUtilities.create_api_from_config(config)
+
+        with (
+            api as connected_api,
+            app.console.status("[bold green]Gathering database statistics..."),
+        ):
+            # Get comprehensive database information
+            schemas_result = connected_api.get_schemas()
+            total_schemas = len(schemas_result.value) if schemas_result.success else 0
+
+            # Get tables from current schema
+            tables_result = connected_api.get_tables()
+            total_tables = len(tables_result.value) if tables_result.success else 0
+
+            # Generate analysis report
+            analysis_table = Table(title="Oracle Database Analysis")
+            analysis_table.add_column("Metric", style="cyan")
+            analysis_table.add_column("Value", style="green")
+
+            analysis_table.add_row("Database Host", config.host)
+            analysis_table.add_row("Service Name", config.service_name)
+            analysis_table.add_row("Total Schemas", str(total_schemas))
+            analysis_table.add_row("Total Tables", str(total_tables))
+            analysis_table.add_row(
+                "Analysis Time", datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
+            )
+
+            app.console.print(analysis_table)
+
+            # Save report to file if requested
+            report_file = (
+                directory
+                / f"oracle_analysis_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+            )
+            report_data = {
+                "database_host": config.host,
+                "service_name": config.service_name,
+                "total_schemas": total_schemas,
+                "total_tables": total_tables,
+                "analysis_timestamp": datetime.now(UTC).isoformat(),
+            }
+
+            report_file.write_text(json.dumps(report_data, indent=2))
+            app.console.print(f"📄 Analysis report saved to: {report_file}")
+
+    except Exception as e:
+        app.console.print(f"[red]Analysis error: {e}[/red]")
+        ctx.exit(1)
+
+
+# Main CLI entry point with comprehensive error handling
 def main() -> None:
-    """Execute main CLI entry point."""
-    oracle.main(standalone_mode=False)
+    """Main CLI entry point with comprehensive error handling."""
+    try:
+        # Click CLI with proper argument handling
+        # oracle_cli is decorated with @click.group() so it will parse sys.argv automatically
+        oracle_cli()  # Click handles sys.argv automatically
+    except KeyboardInterrupt:
+        app.console.print("\n[yellow]Oracle CLI operation cancelled by user[/yellow]")
+        raise SystemExit(130) from None
+    except Exception as e:
+        app.console.print(f"[bold red]Oracle CLI error: {e}[/bold red]")
+        raise SystemExit(1) from e
 
 
 if __name__ == "__main__":

@@ -29,9 +29,12 @@ class TestRealOraclePlugins:
         """Test creating performance plugin with real Oracle."""
         plugin_result = create_performance_monitor_plugin()
 
-        assert plugin_result.is_success
-        assert plugin_result.value is not None
+        # Using modern pattern - handle failure first
+        if plugin_result.is_failure:
+            raise AssertionError(f"Performance plugin creation failed: {plugin_result.error}")
+        # Success case - use modern .value access
         plugin = plugin_result.value
+        assert plugin is not None
 
         # Test plugin was created successfully
         assert plugin is not None
@@ -40,9 +43,12 @@ class TestRealOraclePlugins:
         """Test creating security plugin with real Oracle."""
         plugin_result = create_security_audit_plugin()
 
-        assert plugin_result.is_success
-        assert plugin_result.value is not None
+        # Using modern pattern - handle failure first
+        if plugin_result.is_failure:
+            raise AssertionError(f"Security plugin creation failed: {plugin_result.error}")
+        # Success case - use modern .value access
         plugin = plugin_result.value
+        assert plugin is not None
 
         # Test plugin was created successfully
         assert plugin is not None
@@ -51,9 +57,12 @@ class TestRealOraclePlugins:
         """Test creating validation plugin with real Oracle."""
         plugin_result = create_data_validation_plugin()
 
-        assert plugin_result.is_success
-        assert plugin_result.value is not None
+        # Using modern pattern - handle failure first
+        if plugin_result.is_failure:
+            raise AssertionError(f"Validation plugin creation failed: {plugin_result.error}")
+        # Success case - use modern .value access
         plugin = plugin_result.value
+        assert plugin is not None
 
         # Test plugin was created successfully
         assert plugin is not None
@@ -64,11 +73,14 @@ class TestRealOraclePlugins:
         oracle_container: None,
     ) -> None:
         """Test registering all Oracle plugins."""
-        # Register all plugins
+        # Register all plugins - using modern pattern
         result = register_all_oracle_plugins(oracle_api)
 
-        assert result.is_success
-        assert isinstance(result.value, dict)
+        if result.is_failure:
+            raise AssertionError(f"Plugin registration failed: {result.error}")
+        # Success case - use modern .value access
+        plugins_dict = result.value
+        assert isinstance(plugins_dict, dict)
         # May be empty if no plugins are registered by default
         assert len(result.value) >= 0
 
@@ -78,17 +90,20 @@ class TestRealOraclePluginErrorHandling:
 
     def test_real_plugins_create_all_types(self) -> None:
         """Test creating all plugin types."""
-        # Performance plugin
+        # Performance plugin - using modern pattern
         plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.is_success
+        if plugin_result.is_failure:
+            raise AssertionError(f"Performance plugin creation failed: {plugin_result.error}")
 
-        # Security plugin
+        # Security plugin - using modern pattern
         security_result = create_security_audit_plugin()
-        assert security_result.is_success
+        if security_result.is_failure:
+            raise AssertionError(f"Security plugin creation failed: {security_result.error}")
 
-        # Validation plugin
+        # Validation plugin - using modern pattern
         validation_result = create_data_validation_plugin()
-        assert validation_result.is_success
+        if validation_result.is_failure:
+            raise AssertionError(f"Validation plugin creation failed: {validation_result.error}")
 
     def test_real_plugins_register_with_empty_dict(
         self,
@@ -98,7 +113,9 @@ class TestRealOraclePluginErrorHandling:
         """Test registering plugins with empty dictionary."""
         result = register_all_oracle_plugins(oracle_api)
 
-        assert result.is_success
+        # Using modern pattern - handle failure first
+        if result.is_failure:
+            raise AssertionError(f"Plugin registration failed: {result.error}")
         # Dictionary may be empty or populated depending on implementation
         assert isinstance(result.value, dict)
 
@@ -117,17 +134,21 @@ class TestRealOraclePluginErrorHandling:
         # Verify connection was successful
         assert connected_api.is_connected
 
-        # Register once
+        # Register once - using modern pattern
         result1 = register_all_oracle_plugins(connected_api)
-        assert result1.is_success
-        first_count = len(result1.value)
+        if result1.is_failure:
+            raise AssertionError(f"First plugin registration failed: {result1.error}")
+        plugins1 = result1.value
+        first_count = len(plugins1)
 
-        # Register again - should not fail
+        # Register again - should not fail - using modern pattern
         result2 = register_all_oracle_plugins(connected_api)
-        assert result2.is_success
+        if result2.is_failure:
+            raise AssertionError(f"Second plugin registration failed: {result2.error}")
+        plugins2 = result2.value
 
         # Count should be consistent
-        assert len(result2.value) >= first_count
+        assert len(plugins2) >= first_count
 
 
 class TestRealOraclePluginIntegration:
@@ -139,19 +160,23 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test plugins integration with Oracle metadata operations."""
-        # Create plugins
+        # Create plugins - using modern pattern
         perf_result = create_performance_monitor_plugin()
-        assert perf_result.is_success
+        if perf_result.is_failure:
+            raise AssertionError(f"Performance plugin creation failed: {perf_result.error}")
 
         security_result = create_security_audit_plugin()
-        assert security_result.is_success
+        if security_result.is_failure:
+            raise AssertionError(f"Security plugin creation failed: {security_result.error}")
 
         validation_result = create_data_validation_plugin()
-        assert validation_result.is_success
+        if validation_result.is_failure:
+            raise AssertionError(f"Validation plugin creation failed: {validation_result.error}")
 
-        # Test that API operations still work with plugins created
+        # Test that API operations still work with plugins created - using modern pattern
         tables_result = oracle_api.get_tables()
-        assert tables_result.is_success
+        if tables_result.is_failure:
+            raise AssertionError(f"Get tables failed: {tables_result.error}")
 
     def test_real_plugins_with_oracle_connection(
         self,
@@ -163,9 +188,11 @@ class TestRealOraclePluginIntegration:
         register_result = register_all_oracle_plugins(oracle_api)
         assert register_result.is_success
 
-        # Test connection still works
+        # Test connection still works - using modern pattern
         connection_result = oracle_api.test_connection()
-        assert connection_result.is_success
+        if connection_result.is_failure:
+            raise AssertionError(f"Connection test failed: {connection_result.error}")
+        # Success case - connection test passed
 
     def test_real_plugins_with_query_operations(
         self,
@@ -173,19 +200,28 @@ class TestRealOraclePluginIntegration:
         oracle_container: None,
     ) -> None:
         """Test plugins with Oracle query operations."""
-        # Create individual plugins
+        # Create individual plugins - using modern pattern
         perf_plugin = create_performance_monitor_plugin()
+        if perf_plugin.is_failure:
+            raise AssertionError(f"Performance plugin creation failed: {perf_plugin.error}")
+        # Success case - performance plugin created
+
         security_plugin = create_security_audit_plugin()
+        if security_plugin.is_failure:
+            raise AssertionError(f"Security plugin creation failed: {security_plugin.error}")
+        # Success case - security plugin created
+
         validation_plugin = create_data_validation_plugin()
+        if validation_plugin.is_failure:
+            raise AssertionError(f"Validation plugin creation failed: {validation_plugin.error}")
+        # Success case - validation plugin created
 
-        assert perf_plugin.is_success
-        assert security_plugin.is_success
-        assert validation_plugin.is_success
-
-        # Test query operations still work
+        # Test query operations still work - using modern pattern
         query_result = oracle_api.query("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES")
-        assert query_result.is_success
-        assert len(query_result.value) > 0
+        if query_result.is_failure:
+            raise AssertionError(f"Query failed: {query_result.error}")
+        query_data = query_result.value
+        assert len(query_data.rows) > 0
 
     def test_real_plugins_comprehensive_coverage(
         self,
@@ -198,7 +234,7 @@ class TestRealOraclePluginIntegration:
         assert register_result.is_success
 
         # Test various API operations to ensure plugins don't interfere
-        operations = [
+        operations: list[object] = [
             oracle_api.test_connection,
             oracle_api.get_schemas,
             oracle_api.get_tables,
@@ -208,9 +244,10 @@ class TestRealOraclePluginIntegration:
 
         for operation in operations:
             try:
-                result = operation()
-                # Operations should either succeed or fail gracefully
-                assert hasattr(result, "success")
+                if callable(operation):
+                    result = operation()
+                    # Operations should either succeed or fail gracefully
+                    assert hasattr(result, "success")
             except (ValueError, TypeError, RuntimeError) as e:
                 # Should not raise unhandled exceptions
                 pytest.fail(f"Operation raised unhandled exception: {e}")
@@ -225,7 +262,9 @@ class TestRealOraclePluginIntegration:
         ]
 
         for plugin_result in plugins:
-            assert plugin_result.is_success
+            if plugin_result.is_failure:
+                raise AssertionError(f"Plugin creation failed: {plugin_result.error}")
+            # Success case - use modern .value access
             plugin = plugin_result.value
             assert plugin is not None
             # Plugin should have some basic attributes or methods
@@ -254,8 +293,14 @@ class TestRealOraclePluginIntegration:
         result1 = register_all_oracle_plugins(api1)
         result2 = register_all_oracle_plugins(api2)
 
-        assert result1.is_success
-        assert result2.is_success
+        # Using modern pattern - handle failures first
+        if result1.is_failure:
+            raise AssertionError(f"API1 plugin registration failed: {result1.error}")
+        plugins1 = result1.value
+
+        if result2.is_failure:
+            raise AssertionError(f"API2 plugin registration failed: {result2.error}")
+        plugins2 = result2.value
 
         # Both should work with equivalent configs
-        assert len(result1.value) == len(result2.value)
+        assert len(plugins1) == len(plugins2)

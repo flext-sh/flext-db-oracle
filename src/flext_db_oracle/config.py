@@ -25,9 +25,11 @@ Example:
     >>> os.environ["FLEXT_TARGET_ORACLE_HOST"] = "oracle-prod.company.com"
     >>> os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "app_user"
     >>> config_result = FlextDbOracleConfig.from_env()
-    >>> if config_result.is_success:
+    >>> try:
     ...     config = config_result.value
     ...     print(f"Connected to {config.get_connection_string()}")
+    ... except TypeError:  # FlextResult failure
+    ...     config = None
 
 Integration:
     - Built on flext-core FlextSettings foundation
@@ -46,15 +48,11 @@ import os
 import urllib.parse
 from typing import TypeVar
 
-from flext_core import FlextResult, FlextValidators, get_logger
+from flext_core import FlextResult, FlextValidation, get_logger
 from flext_core.config import FlextSettings
 from pydantic import Field, SecretStr, field_validator, model_validator
 
-from flext_db_oracle.constants import (
-    ERROR_MSG_HOST_EMPTY,
-    ERROR_MSG_USERNAME_EMPTY,
-    ORACLE_DEFAULT_PORT,
-)
+from flext_db_oracle.constants import FlextOracleDbSemanticConstants
 
 T = TypeVar("T")
 
@@ -128,16 +126,18 @@ class FlextDbOracleConfig(FlextSettings):
     @classmethod
     def validate_host_not_empty(cls, v: str) -> str:
         """Validate host is not empty or whitespace only."""
-        if not FlextValidators.is_non_empty_string(v):
-            raise ValueError(ERROR_MSG_HOST_EMPTY)
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            raise ValueError(FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY)
         return v
 
     @field_validator("username")
     @classmethod
     def validate_username_not_empty(cls, v: str) -> str:
         """Validate username is not empty or whitespace only."""
-        if not FlextValidators.is_non_empty_string(v):
-            raise ValueError(ERROR_MSG_USERNAME_EMPTY)
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            raise ValueError(
+                FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY
+            )
         return v
 
     @field_validator("port")
@@ -163,7 +163,7 @@ class FlextDbOracleConfig(FlextSettings):
     @classmethod
     def validate_encoding(cls, v: str) -> str:
         """Validate encoding is non-empty."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Encoding cannot be empty"
             raise ValueError(msg)
         return v
@@ -172,7 +172,7 @@ class FlextDbOracleConfig(FlextSettings):
     @classmethod
     def validate_protocol(cls, v: str) -> str:
         """Validate protocol is non-empty."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Protocol cannot be empty"
             raise ValueError(msg)
         return v
@@ -190,7 +190,7 @@ class FlextDbOracleConfig(FlextSettings):
     @classmethod
     def validate_oracle_schema(cls, v: str) -> str:
         """Validate Oracle schema is non-empty."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Oracle schema cannot be empty"
             raise ValueError(msg)
         return v
@@ -245,8 +245,9 @@ class FlextDbOracleConfig(FlextSettings):
     ) -> FlextDbOracleConfig:
         """Create configuration from environment variables (base class override)."""
         result = cls.from_env_with_result(f"{prefix}_")
-        if result.is_failure:
-            msg = f"Failed to create configuration from environment: {result.error}"
+        # Modern FlextResult pattern: check success and access .value
+        if not result.success:
+            msg = f"Failed to create configuration from environment: {result.error or 'Config creation failed'}"
             raise ValueError(msg)
         return result.value
 
@@ -277,7 +278,12 @@ class FlextDbOracleConfig(FlextSettings):
         try:
             config = cls(
                 host=os.getenv(f"{prefix}HOST", "localhost"),
-                port=int(os.getenv(f"{prefix}PORT", str(ORACLE_DEFAULT_PORT))),
+                port=int(
+                    os.getenv(
+                        f"{prefix}PORT",
+                        str(FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT),
+                    )
+                ),
                 username=os.getenv(f"{prefix}USERNAME", "oracle"),
                 password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
                 service_name=os.getenv(f"{prefix}SERVICE_NAME")
@@ -315,7 +321,8 @@ class FlextDbOracleConfig(FlextSettings):
 
             config = cls(
                 host=parsed.hostname or "localhost",
-                port=parsed.port or ORACLE_DEFAULT_PORT,
+                port=parsed.port
+                or FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT,
                 username=parsed.username or "oracle",
                 password=SecretStr(parsed.password or "oracle"),
                 service_name=parsed.path.lstrip("/") if parsed.path else "ORCLPDB1",
@@ -391,8 +398,9 @@ class FlextDbOracleConfig(FlextSettings):
     def from_dict(cls, data: dict[str, object]) -> FlextDbOracleConfig:
         """Create from dictionary (base class override)."""
         result = cls.from_dict_with_result(data)
-        if result.is_failure:
-            msg = f"Failed to create configuration from dict: {result.error}"
+        # Modern FlextResult pattern: check success and access .value
+        if not result.success:
+            msg = f"Failed to create configuration from dict: {result.error or 'Dict config creation failed'}"
             raise ValueError(msg)
         return result.value
 
@@ -451,7 +459,8 @@ class FlextDbOracleConfig(FlextSettings):
             config = cls.model_validate(filtered_config)
             validation_result = config.validate_business_rules()
 
-            if validation_result.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of value
+            if validation_result.error:
                 return FlextResult[FlextDbOracleConfig].fail(
                     f"Configuration validation failed: {validation_result.error}",
                 )

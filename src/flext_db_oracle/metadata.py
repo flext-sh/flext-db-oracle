@@ -19,19 +19,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_core import FlextResult, get_logger
 
-from flext_db_oracle.constants import FlextOracleDbConstants
+from flext_db_oracle.connection import FlextDbOracleConnection
+from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import (
     FlextDbOracleColumn,
     FlextDbOracleSchema,
     FlextDbOracleTable,
 )
-
-if TYPE_CHECKING:
-    from flext_db_oracle.connection import FlextDbOracleConnection
 
 logger = get_logger(__name__)
 
@@ -71,15 +67,19 @@ class FlextDbOracleMetadataManager:
         >>>
         >>> # Get schema metadata
         >>> schema_result = metadata_manager.get_schema_metadata("HR")
-        >>> if schema_result.is_success:
+        >>> try:
         ...     schema = schema_result.value
         ...     print(f"Schema has {len(schema.tables)} tables")
+        ... except TypeError:  # FlextResult failure
+        ...     schema = None
         >>>
         >>> # Get table metadata
         >>> table_result = metadata_manager.get_table_metadata("EMPLOYEES", "HR")
-        >>> if table_result.is_success:
+        >>> try:
         ...     table = table_result.value
         ...     print(f"Table has {len(table.columns)} columns")
+        ... except TypeError:  # FlextResult failure
+        ...     table = None
 
     """
 
@@ -108,12 +108,17 @@ class FlextDbOracleMetadataManager:
         """
 
         result = self.connection.execute_query(query)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value with error handling
+        if not result.is_success:
             return FlextResult[list[str]].fail(
-                f"Failed to retrieve schemas: {result.error}"
+                f"Failed to retrieve schemas: {result.error or 'Query failed'}"
             )
 
-        schemas = [str(row[0]) for row in result.value]
+        raw_data = result.value
+        if not raw_data:
+            return FlextResult[list[str]].fail("No schemas found in database")
+
+        schemas = [str(row[0]) for row in raw_data]
         logger.debug(f"Retrieved {len(schemas)} schemas")
         return FlextResult[list[str]].ok(schemas)
 
@@ -144,12 +149,19 @@ class FlextDbOracleMetadataManager:
             params = {}
 
         result = self.connection.execute_query(query, params)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value with error handling
+        if not result.is_success:
             return FlextResult[list[str]].fail(
-                f"Failed to retrieve tables: {result.error}"
+                f"Failed to retrieve tables: {result.error or 'Query failed'}"
             )
 
-        tables = [str(row[0]) for row in result.value]
+        raw_data = result.value
+        if not raw_data:
+            return FlextResult[list[str]].fail(
+                f"Failed to retrieve tables: {result.error or 'No data returned'}"
+            )
+
+        tables = [str(row[0]) for row in raw_data]
         logger.debug(
             f"Retrieved {len(tables)} tables from schema {schema_name or 'current'}"
         )
@@ -190,18 +202,25 @@ class FlextDbOracleMetadataManager:
             params = {"table_name": table_name.upper()}
 
         result = self.connection.execute_query(query, params)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value with error handling
+        if not result.is_success:
             return FlextResult[list[str]].fail(
-                f"Failed to retrieve columns: {result.error}"
+                f"Failed to retrieve columns: {result.error or 'Query failed'}"
             )
 
-        columns = [str(row[0]) for row in result.value]
+        raw_data = result.value
+        if not raw_data:
+            return FlextResult[list[str]].fail(
+                f"No columns found for table {table_name}"
+            )
+
+        columns = [str(row[0]) for row in raw_data]
         logger.debug(
             f"Retrieved {len(columns)} columns from table {schema_name or 'current'}.{table_name}"
         )
         return FlextResult[list[str]].ok(columns)
 
-    def get_table_metadata(
+    def get_table_metadata(  # noqa: PLR0911
         self, table_name: str, schema_name: str | None = None
     ) -> FlextResult[FlextDbOracleTable]:
         """Get complete table metadata including columns.
@@ -235,9 +254,16 @@ class FlextDbOracleMetadataManager:
             schema_name = "USER"  # Default for current user
 
         table_result = self.connection.execute_query(table_query, table_params)
-        if table_result.is_failure:
+        # Modern FlextResult pattern: use .value with error handling
+        if not table_result.is_success:
             return FlextResult[FlextDbOracleTable].fail(
-                f"Failed to retrieve table info: {table_result.error}"
+                f"Failed to retrieve table metadata: {table_result.error or 'Query failed'}"
+            )
+
+        table_data = table_result.value
+        if not table_data:
+            return FlextResult[FlextDbOracleTable].fail(
+                f"Failed to retrieve table info: {table_result.error or 'No table data found'}"
             )
 
         if not table_result.value:
@@ -249,25 +275,33 @@ class FlextDbOracleMetadataManager:
 
         # Get column metadata
         column_result = self.get_column_metadata(table_name, schema_name)
-        if column_result.is_failure:
+        # Modern FlextResult pattern: use .value for cleaner column handling
+        if not column_result.is_success:
             return FlextResult[FlextDbOracleTable].fail(
-                f"Failed to retrieve column metadata: {column_result.error}"
+                f"Failed to get columns: {column_result.error}"
+            )
+
+        columns = column_result.value
+        if not columns:
+            return FlextResult[FlextDbOracleTable].fail(
+                f"Failed to retrieve column metadata: {column_result.error or 'No columns found'}"
             )
 
         try:
             table = FlextDbOracleTable(
                 table_name=str(table_row[0]),
                 schema_name=schema_name,
-                columns=column_result.value,
+                columns=columns,
                 tablespace_name=str(table_row[1]) if table_row[1] is not None else None,
                 table_comment=str(table_row[2]) if table_row[2] is not None else None,
             )
 
             # Validate business rules
             validation_result = table.validate_business_rules()
-            if validation_result.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+            if validation_result.error:
                 return FlextResult[FlextDbOracleTable].fail(
-                    f"Table validation failed: {validation_result.error}"
+                    f"Table validation failed: {validation_result.error or 'Validation rules not met'}"
                 )
 
             logger.debug(
@@ -332,13 +366,20 @@ class FlextDbOracleMetadataManager:
             params = {"table_name": table_name.upper()}
 
         result = self.connection.execute_query(query, params)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value with error handling
+        if not result.is_success:
             return FlextResult[list[FlextDbOracleColumn]].fail(
-                f"Failed to retrieve column metadata: {result.error}"
+                f"Failed to retrieve column metadata: {result.error or 'Query failed'}"
+            )
+
+        raw_data = result.value
+        if not raw_data:
+            return FlextResult[list[FlextDbOracleColumn]].fail(
+                f"Failed to retrieve column metadata: {result.error or 'No column data returned'}"
             )
 
         columns = []
-        for row in result.value:
+        for row in raw_data:
             try:
                 column = FlextDbOracleColumn(
                     column_name=str(row[0]),
@@ -354,9 +395,10 @@ class FlextDbOracleMetadataManager:
 
                 # Validate business rules
                 validation_result = column.validate_business_rules()
-                if validation_result.is_failure:
+                # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+                if validation_result.error:
                     logger.warning(
-                        f"Column {row[0]} validation warning: {validation_result.error}"
+                        f"Column {row[0]} validation warning: {validation_result.error or 'Validation failed'}"
                     )
 
                 columns.append(column)
@@ -381,21 +423,30 @@ class FlextDbOracleMetadataManager:
         """
         # Get table list
         tables_result = self.get_tables(schema_name)
-        if tables_result.is_failure:
+        # Modern FlextResult pattern: use .value for cleaner table handling
+        if not tables_result.is_success:
             return FlextResult[FlextDbOracleSchema].fail(
-                f"Failed to retrieve tables: {tables_result.error}"
+                f"Failed to get tables: {tables_result.error}"
+            )
+
+        tables_list = tables_result.value
+        if not tables_list:
+            return FlextResult[FlextDbOracleSchema].fail(
+                f"Failed to retrieve tables: {tables_result.error or 'No tables found'}"
             )
 
         # Get metadata for each table
         tables = []
-        for table_name in tables_result.value:
+        for table_name in tables_list:
             table_result = self.get_table_metadata(table_name, schema_name)
-            if table_result.is_failure:
+            # Modern FlextResult pattern: check success and access .value
+            if not table_result.success:
                 logger.warning(
-                    f"Failed to get metadata for table {table_name}: {table_result.error}"
+                    f"Failed to get metadata for table {table_name}: {table_result.error or 'No metadata available'}"
                 )
                 continue
-            tables.append(table_result.value)
+            table_metadata = table_result.value
+            tables.append(table_metadata)
 
         try:
             schema = FlextDbOracleSchema(
@@ -407,9 +458,10 @@ class FlextDbOracleMetadataManager:
 
             # Validate business rules
             validation_result = schema.validate_business_rules()
-            if validation_result.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+            if validation_result.error:
                 return FlextResult[FlextDbOracleSchema].fail(
-                    f"Schema validation failed: {validation_result.error}"
+                    f"Schema validation failed: {validation_result.error or 'Validation rules not met'}"
                 )
 
             logger.info(
@@ -459,9 +511,16 @@ class FlextDbOracleMetadataManager:
             FlextResult indicating success or failure of connection test
 
         """
-        result = self.connection.execute_query(FlextOracleDbConstants.Query.TEST_QUERY)
-        if result.is_failure:
-            return FlextResult[None].fail(f"Connection test failed: {result.error}")
+        result = self.connection.execute_query(FlextDbOracleConstants.Query.TEST_QUERY)
+        # Modern FlextResult pattern: use .value for connection test
+        if not result.is_success:
+            return FlextResult[None].fail(
+                f"Connection test failed: {result.error or 'Query failed'}"
+            )
+
+        test_data = result.value
+        if not test_data:
+            return FlextResult[None].fail("Connection test failed: No data returned")
 
         logger.debug("Connection test successful")
         return FlextResult[None].ok(None)

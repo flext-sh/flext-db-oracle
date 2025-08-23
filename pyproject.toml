@@ -55,6 +55,7 @@ lint.isort.known-first-party = ["flext_db_oracle"]
     "PLC0415",  # import at top of file enforcement
     "B904",     # raise-with-from in tests
     "TRY301",   # raise inside try in tests
+    "TRY003",   # long messages outside exception class in tests
     "EM101",    # exception strings
     "EM102",    # f-string exceptions
     "S608",     # SQL string format in tests

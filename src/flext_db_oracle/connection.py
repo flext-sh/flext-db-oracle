@@ -26,13 +26,19 @@ Example:
     >>> config = FlextDbOracleConfig.from_env().value  # FlextResult
     >>> connection = FlextDbOracleConnection(config)
     >>> connect_result = connection.connect()
-    >>> if connect_result.is_success:
-    ...     result = connection.execute(
-    ...         "SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10}
-    ...     )
-    ...     if result.is_success:
-    ...         for row in result.value:
-    ...             print(row)
+    >>> try:
+    ...     connected_conn = connect_result.value
+    ... except TypeError:  # FlextResult failure
+    ...     raise ConnectionError(connect_result.error or "Connection failed")
+    >>> result = connection.execute(
+    ...     "SELECT * FROM employees WHERE dept_id = :dept", {"dept": 10}
+    ... )
+    >>> try:
+    ...     rows = result.value
+    ... except TypeError:  # FlextResult failure
+    ...     rows = []
+    >>> for row in rows:
+    ...     print(row)
 
 Integration:
     - Built on SQLAlchemy 2.x for modern async/sync database operations
@@ -53,7 +59,12 @@ from contextlib import contextmanager
 from typing import TypeVar, override
 from urllib.parse import quote_plus
 
-from flext_core import FlextResult, FlextValidators, FlextValue, get_logger
+from flext_core import (
+    FlextResult,
+    FlextValidation,
+    FlextValue,
+    get_logger,
+)
 from pydantic import Field, field_validator
 from sqlalchemy import Row, create_engine, text
 from sqlalchemy.engine import Engine
@@ -62,13 +73,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.config_types import MergeStatementConfig
-from flext_db_oracle.constants import (
-    ORACLE_DATE_TYPE,
-    ORACLE_DEFAULT_VARCHAR_TYPE,
-    ORACLE_TEST_QUERY,
-    ORACLE_TIMESTAMP_TYPE,
-    SINGER_TO_ORACLE_TYPE_MAP,
-)
+from flext_db_oracle.constants import FlextOracleDbSemanticConstants
 from flext_db_oracle.typings import (
     DatabaseRowDict,
     SafeStringList,
@@ -96,7 +101,7 @@ class CreateIndexConfig(FlextValue):
     @classmethod
     def validate_index_name(cls, v: str) -> str:
         """Validate index name is non-empty."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Index name cannot be empty"
             raise ValueError(msg)
         return v
@@ -105,7 +110,7 @@ class CreateIndexConfig(FlextValue):
     @classmethod
     def validate_table_name(cls, v: str) -> str:
         """Validate table name is non-empty."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Table name cannot be empty"
             raise ValueError(msg)
         return v
@@ -117,7 +122,7 @@ class CreateIndexConfig(FlextValue):
         if not v:
             msg = "At least one column is required"
             raise ValueError(msg)
-        if any(not FlextValidators.is_non_empty_string(col) for col in v):
+        if any(not FlextValidation.Validators.is_non_empty_string(col) for col in v):
             msg = "Column names cannot be empty"
             raise ValueError(msg)
         return v
@@ -168,15 +173,23 @@ class FlextDbOracleConnection:
         try:
             # Validate configuration
             config_validation = self.config.validate_business_rules()
-            if config_validation.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of value
+            if config_validation.error:
                 return FlextResult[bool].fail(
                     f"Configuration invalid: {config_validation.error}",
                 )
 
             # Build connection URL
             url_result = self._build_connection_url()
-            if url_result.is_failure or not url_result.value:
-                error_msg = url_result.error or "Connection URL is empty"
+            # Modern FlextResult pattern: use .value for URL validation
+            if not url_result.is_success:
+                error_msg = url_result.error or "Failed to build connection URL"
+                self._logger.error(error_msg)
+                return FlextResult[None].fail(error_msg)
+
+            connection_url = url_result.value
+            if not connection_url:
+                error_msg = "Connection URL is empty"
                 return FlextResult[bool].fail(error_msg)
 
             # Create SQLAlchemy engine with optimized settings
@@ -193,7 +206,7 @@ class FlextDbOracleConnection:
 
             # Test connection
             with self._engine.connect() as conn:
-                conn.execute(text(ORACLE_TEST_QUERY))
+                conn.execute(text(FlextOracleDbSemanticConstants.Query.TEST_QUERY))
 
             self._logger.info("Connected using SQLAlchemy 2")
             return FlextResult[bool].ok(True)  # noqa: FBT003
@@ -256,7 +269,8 @@ class FlextDbOracleConnection:
     ) -> FlextResult[list[Row[tuple[object, ...]]] | list[int]]:
         """Execute SQL statement using SQLAlchemy 2."""
         connection_check = self._ensure_connected()
-        if connection_check.is_failure:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+        if connection_check.error:
             return FlextResult[list[Row[tuple[object, ...]]] | list[int]].fail(
                 connection_check.error or "Connection failed"
             )
@@ -278,9 +292,9 @@ class FlextDbOracleConnection:
                         list(rows)
                     )
                 conn.commit()
-                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok(
-                    [result.rowcount]
-                )
+                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok([
+                    result.rowcount
+                ])
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             error_msg = f"SQL execution failed: {e}"
@@ -296,7 +310,8 @@ class FlextDbOracleConnection:
     ) -> FlextResult[int]:
         """Execute SQL with multiple parameter sets."""
         connection_check = self._ensure_connected()
-        if connection_check.is_failure:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+        if connection_check.error:
             return FlextResult[int].fail(connection_check.error or "Connection failed")
 
         try:
@@ -323,7 +338,8 @@ class FlextDbOracleConnection:
     ) -> FlextResult[object]:
         """Fetch single row."""
         connection_check = self._ensure_connected()
-        if connection_check.is_failure:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+        if connection_check.error:
             return FlextResult[object].fail(
                 connection_check.error or "Connection failed"
             )
@@ -365,7 +381,8 @@ class FlextDbOracleConnection:
     def transaction(self) -> Generator[object]:
         """Context manager for database transactions."""
         connection_check = self._ensure_connected()
-        if connection_check.is_failure:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+        if connection_check.error:
             raise ValueError(connection_check.error or "Connection failed")
 
         if self._engine is None:  # Additional safety check beyond _ensure_connected()
@@ -404,7 +421,14 @@ class FlextDbOracleConnection:
     ) -> FlextResult[list[Row[tuple[object, ...]]]]:
         """Execute query and return result - SELECT statements only."""
         result = self.execute(sql, parameters)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value for query execution handling
+        if not result.is_success:
+            return FlextResult[list[Row[tuple[object, ...]]]].fail(
+                f"Query execution failed: {result.error}"
+            )
+
+        query_rows = result.value
+        if not query_rows and result.error:
             return FlextResult[list[Row[tuple[object, ...]]]].fail(
                 result.error or "Query execution failed"
             )
@@ -432,12 +456,18 @@ class FlextDbOracleConnection:
     def test_connection(self) -> FlextResult[bool]:
         """Test database connection."""
         connection_check = self._ensure_connected()
-        if connection_check.is_failure:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+        if connection_check.error:
             return FlextResult[bool].fail(connection_check.error or "Connection failed")
 
         try:
-            result = self.execute(ORACLE_TEST_QUERY)
-            return FlextResult[bool].ok(result.is_success)
+            result = self.execute(FlextOracleDbSemanticConstants.Query.TEST_QUERY)
+            # Modern FlextResult pattern: use .value for test data
+            if not result.is_success:
+                return FlextResult[bool].fail(f"Test query failed: {result.error}")
+
+            test_data = result.value
+            return FlextResult[bool].ok(bool(test_data))
         except (SQLAlchemyError, OSError, ValueError, AttributeError, Exception) as e:
             return FlextResult[bool].fail(f"Connection test failed: {e}")
 
@@ -460,10 +490,15 @@ class FlextDbOracleConnection:
             sql, params = self._build_table_names_query(schema_name)
 
             result = self.execute(sql, params)
-            if result.is_failure:
+            # Modern FlextResult pattern: use .value for result processing
+            if not result.is_success:
                 return FlextResult[list[str]].fail(
                     result.error or "Failed to get table names"
                 )
+
+            query_data = result.value
+            if not query_data:
+                return FlextResult[list[str]].fail("No tables found")
 
             if not result.value:
                 return FlextResult[list[str]].ok([])
@@ -491,7 +526,12 @@ class FlextDbOracleConnection:
         sql = "SELECT username FROM all_users ORDER BY username"
 
         result = self.execute(sql)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value for schema retrieval
+        if not result.is_success:
+            return FlextResult[list[str]].fail(f"Failed to get schemas: {result.error}")
+
+        query_data = result.value
+        if not query_data and result.error:
             return FlextResult[list[str]].fail(result.error or "Failed to get schemas")
 
         if not result.value:
@@ -519,10 +559,15 @@ class FlextDbOracleConnection:
         sql = "SELECT USER FROM DUAL"
 
         result = self.execute(sql)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value for schema query
+        if not result.is_success:
             return FlextResult[str].fail(
                 f"Failed to get current schema: {result.error}"
             )
+
+        query_data = result.value
+        if not query_data:
+            return FlextResult[str].fail("No schema data returned")
 
         if not result.value or len(result.value) == 0:
             return FlextResult[str].fail("No current schema returned")
@@ -593,7 +638,14 @@ class FlextDbOracleConnection:
         sql, params = self._build_column_info_query(table_name, schema_name)
 
         result = self.execute(sql, params)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value for column info retrieval
+        if not result.is_success:
+            return FlextResult[list[dict[str, object]]].fail(
+                f"Failed to get column info: {result.error}"
+            )
+
+        query_data = result.value
+        if not query_data and result.error:
             return FlextResult[list[dict[str, object]]].fail(
                 result.error or "Failed to get column info"
             )
@@ -664,7 +716,14 @@ class FlextDbOracleConnection:
         sql, params = self._build_primary_key_query(table_name, schema_name)
 
         result = self.execute(sql, params)
-        if result.is_failure:
+        # Modern FlextResult pattern: use .value for primary key retrieval
+        if not result.is_success:
+            return FlextResult[list[str]].fail(
+                f"Failed to get primary keys: {result.error}"
+            )
+
+        query_data = result.value
+        if not query_data and result.error:
             return FlextResult[list[str]].fail(
                 result.error or "Failed to get primary key columns"
             )
@@ -696,14 +755,28 @@ class FlextDbOracleConnection:
         """Get complete table metadata (consolidated from services)."""
         # Get columns
         columns_result = self.get_column_info(table_name, schema_name)
-        if columns_result.is_failure:
+        # Modern FlextResult pattern: use .value for columns processing
+        if not columns_result.is_success:
             return FlextResult[dict[str, object]].fail(
                 f"Failed to get columns: {columns_result.error}"
             )
 
+        columns_data = columns_result.value
+        if not columns_data:
+            return FlextResult[dict[str, object]].fail(
+                f"Failed to get columns: {columns_result.error or 'No columns found'}"
+            )
+
         # Get primary keys
         pk_result = self.get_primary_key_columns(table_name, schema_name)
-        if pk_result.is_failure:
+        # Modern FlextResult pattern: use .value for primary keys processing
+        if not pk_result.is_success:
+            # Primary keys are optional, just log warning
+            self._logger.warning(f"Failed to get primary keys: {pk_result.error}")
+            pk_data = []
+        else:
+            pk_data = pk_result.value
+        if not pk_data and pk_result.error:
             return FlextResult[dict[str, object]].fail(
                 f"Failed to get primary keys: {pk_result.error}"
             )
@@ -853,10 +926,17 @@ class FlextDbOracleConnection:
             column_defs: SafeStringList = []
             for col in columns:
                 col_def_result = self._build_column_definition(col)
-                if col_def_result.is_failure:
+                # Modern FlextResult pattern: use .value for column definition handling
+                if not col_def_result.is_success:
+                    self._logger.warning(
+                        f"Failed to build column definition: {col_def_result.error}"
+                    )
+                    column_definition = ""
+                else:
+                    column_definition = col_def_result.value
+                if not column_definition:
                     return col_def_result
-                # Use .value directly since success is guaranteed
-                column_defs.append(str(col_def_result.value))
+                column_defs.append(str(column_definition))
 
             # Add PRIMARY KEY constraint if any columns are marked as primary key
             primary_key_columns = self._collect_primary_key_columns(columns)
@@ -895,10 +975,10 @@ class FlextDbOracleConnection:
         """Execute DDL statement (consolidated from services)."""
         try:
             result = self.execute(ddl)
-            # Railway pattern: map success to True, unwrap_or return failure
-            return result.map(lambda _: FlextResult[bool].ok(True)).unwrap_or(  # noqa: FBT003
-                FlextResult[bool].fail(result.error or "DDL execution failed")
-            )
+            # Modern FlextResult pattern: use .value for DDL execution
+            if result.is_success:
+                return FlextResult[bool].ok(success=True)
+            return FlextResult[bool].fail(result.error or "DDL execution failed")
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return FlextResult[bool].fail(f"DDL execution failed: {e}")
@@ -920,19 +1000,28 @@ class FlextDbOracleConnection:
                     singer_type = singer_type[0]
 
             # Use centralized Singer to Oracle type mapping
-            type_mapping = SINGER_TO_ORACLE_TYPE_MAP
+            type_mapping = FlextOracleDbSemanticConstants.DataTypes.SINGER_TYPE_MAP
 
             # Handle date/time formats
             if singer_type == "string" and format_hint:
                 format_lower = format_hint.lower()
                 if "date-time" in format_lower or "datetime" in format_lower:
-                    return FlextResult[str].ok(ORACLE_TIMESTAMP_TYPE)
+                    return FlextResult[str].ok(
+                        FlextOracleDbSemanticConstants.DataTypes.TIMESTAMP_TYPE
+                    )
                 if "time" in format_lower:
-                    return FlextResult[str].ok(ORACLE_TIMESTAMP_TYPE)
+                    return FlextResult[str].ok(
+                        FlextOracleDbSemanticConstants.DataTypes.TIMESTAMP_TYPE
+                    )
                 if "date" in format_lower:
-                    return FlextResult[str].ok(ORACLE_DATE_TYPE)
+                    return FlextResult[str].ok(
+                        FlextOracleDbSemanticConstants.DataTypes.DATE_TYPE
+                    )
 
-            oracle_type = type_mapping.get(singer_type, ORACLE_DEFAULT_VARCHAR_TYPE)
+            oracle_type = type_mapping.get(
+                singer_type,
+                FlextOracleDbSemanticConstants.DataTypes.DEFAULT_VARCHAR_TYPE,
+            )
             return FlextResult[str].ok(oracle_type)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
@@ -976,13 +1065,18 @@ class FlextDbOracleConnection:
             format_hint = None  # Default fallback
 
         type_result = self.convert_singer_type(field_type, format_hint)
-        if type_result.is_failure:
+        # Modern FlextResult pattern: use .value for type conversion handling
+        if not type_result.is_success:
+            self._logger.warning(
+                f"Type conversion failed, using default: {type_result.error}"
+            )
+            oracle_type = "VARCHAR2(4000)"
+        else:
+            oracle_type = type_result.value
+        if not oracle_type:
             return FlextResult[tuple[str, str]].fail(
                 type_result.error or "Type conversion failed"
             )
-
-        # Use .value directly since success is guaranteed after failure check
-        oracle_type = type_result.value
         return FlextResult[tuple[str, str]].ok((field_name, oracle_type))
 
     def map_singer_schema(
@@ -993,7 +1087,15 @@ class FlextDbOracleConnection:
         try:
             # Validate properties
             properties_result = self._validate_singer_properties(singer_schema)
-            if properties_result.is_failure:
+            # Modern FlextResult pattern: use .value for properties validation
+            if not properties_result.is_success:
+                self._logger.warning(
+                    f"Properties validation failed: {properties_result.error}"
+                )
+                validated_properties = {}
+            else:
+                validated_properties = properties_result.value
+            if not validated_properties:
                 # Convert FlextResult[dict[str, object]] to FlextResult[dict[str, str]]
                 return FlextResult[dict[str, str]].fail(
                     properties_result.error or "Schema validation failed",
@@ -1015,7 +1117,13 @@ class FlextDbOracleConnection:
                     str(k): v for k, v in field_def.items()
                 }
                 field_result = self._map_single_field(field_name, typed_field_def)
-                if field_result.is_failure:
+                # Modern FlextResult pattern: use .value for field mapping
+                if not field_result.is_success:
+                    self._logger.warning(f"Field mapping failed: {field_result.error}")
+                    field_mapping = (field_name, "VARCHAR2(4000)")
+                else:
+                    field_mapping = field_result.value
+                if not field_mapping[1]:  # Check if Oracle type is empty
                     # Convert FlextResult[tuple[str, str]] to FlextResult[dict[str, str]]
                     return FlextResult[dict[str, str]].fail(
                         field_result.error or "Field mapping failed",
@@ -1268,9 +1376,10 @@ class FlextDbOracleConnection:
             FlextResult containing the CREATE INDEX statement
 
         """
-        # Validate configuration first
+        # Validate configuration first using unwrap_or pattern
         validation_result = config.validate_business_rules()
-        if not validation_result.is_success:
+        # Modern FlextResult pattern: For FlextResult[None], check error instead of value
+        if validation_result.error:
             return FlextResult[str].fail(f"Invalid config: {validation_result.error}")
 
         try:

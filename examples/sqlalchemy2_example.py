@@ -9,6 +9,7 @@ import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 
+from pydantic import SecretStr
 from sqlalchemy import Engine, text
 
 from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
@@ -20,7 +21,7 @@ def create_oracle_config() -> FlextDbOracleConfig:
         host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
         port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
         username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123"),
+        password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123")),
         service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
         encoding="UTF-8",
     )
@@ -34,8 +35,9 @@ def oracle_connection() -> Iterator[Engine]:
 
     connect_result = connection.connect()
 
-    # Use unwrap_or pattern for clean error handling
-    if not connect_result.unwrap_or(False):
+    # Use modern FlextResult unwrap_or pattern for clean error handling
+    connection_obj = connect_result.unwrap_or(None)
+    if connection_obj is None:
         error_msg = connect_result.error or "Connection failed"
         msg = f"Failed to connect to Oracle: {error_msg}"
         raise RuntimeError(msg)
@@ -155,7 +157,9 @@ def demonstrate_transaction_management() -> None:
             result = conn.execute(
                 text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
             )
-            result.fetchone()[0]
+            row = result.fetchone()
+            if row:
+                row[0]
 
             # This would normally insert, but we'll rollback
             trans.rollback()
@@ -164,13 +168,15 @@ def demonstrate_transaction_management() -> None:
             result = conn.execute(
                 text("SELECT COUNT(*) FROM FLEXTTEST.EMPLOYEES"),
             )
-            result.fetchone()[0]
+            row = result.fetchone()
+            if row:
+                row[0]
 
         except Exception:
             trans.rollback()
 
 
-def main() -> None:
+def main() -> int:
     """Demonstrate SQLAlchemy 2 integration."""
     # Check environment
     create_oracle_config()

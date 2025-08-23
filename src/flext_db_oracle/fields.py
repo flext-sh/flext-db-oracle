@@ -19,7 +19,7 @@ from typing import Annotated
 
 from pydantic import Field
 
-from flext_db_oracle.constants import FlextOracleDbConstants
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 __all__ = [
     "ConnectionFields",
@@ -46,15 +46,15 @@ class ConnectionFields:
     )
 
     port = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_PORT,
+        default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
         description="Oracle database port number",
         ge=1,
-        le=FlextOracleDbConstants.Connection.MAX_PORT,
+        le=FlextDbOracleConstants.Connection.MAX_PORT,
         examples=[1521, 1522],
     )
 
     service_name = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_SERVICE_NAME,
+        default=FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         description="Oracle service name or SID",
         min_length=1,
         max_length=128,
@@ -81,7 +81,7 @@ class ConnectionFields:
 
     # Connection pool settings
     pool_min = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_POOL_MIN,
+        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
         description="Minimum pool size",
         ge=0,
         le=100,
@@ -89,7 +89,7 @@ class ConnectionFields:
     )
 
     pool_max = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_POOL_MAX,
+        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MAX,
         description="Maximum pool size",
         ge=1,
         le=1000,
@@ -97,7 +97,7 @@ class ConnectionFields:
     )
 
     pool_increment = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_POOL_INCREMENT,
+        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_INCREMENT,
         description="Pool increment size",
         ge=1,
         le=10,
@@ -106,7 +106,7 @@ class ConnectionFields:
 
     # Timeouts
     connect_timeout = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_TIMEOUT,
+        default=FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT,
         description="Connection timeout in seconds",
         ge=1,
         le=300,
@@ -114,7 +114,7 @@ class ConnectionFields:
     )
 
     pool_timeout = Field(
-        default=FlextOracleDbConstants.Connection.DEFAULT_POOL_TIMEOUT,
+        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_TIMEOUT,
         description="Pool timeout in seconds",
         ge=1,
         le=300,
@@ -135,8 +135,8 @@ class DatabaseMetadataFields:
         ...,
         description="Database schema name",
         min_length=1,
-        max_length=FlextOracleDbConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH,
-        pattern=FlextOracleDbConstants.OracleValidation.SCHEMA_PATTERN,
+        max_length=FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH,
+        pattern=FlextDbOracleConstants.OracleValidation.SCHEMA_PATTERN,
         examples=["HR", "SALES", "APP_SCHEMA"],
     )
 
@@ -144,8 +144,8 @@ class DatabaseMetadataFields:
         ...,
         description="Database table name",
         min_length=1,
-        max_length=FlextOracleDbConstants.OracleValidation.MAX_TABLE_NAME_LENGTH,
-        pattern=FlextOracleDbConstants.OracleValidation.IDENTIFIER_PATTERN,
+        max_length=FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH,
+        pattern=FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
         examples=["EMPLOYEES", "CUSTOMERS", "ORDER_ITEMS"],
     )
 
@@ -153,8 +153,8 @@ class DatabaseMetadataFields:
         ...,
         description="Database column name",
         min_length=1,
-        max_length=FlextOracleDbConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH,
-        pattern=FlextOracleDbConstants.OracleValidation.IDENTIFIER_PATTERN,
+        max_length=FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH,
+        pattern=FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
         examples=["ID", "FIRST_NAME", "CREATED_DATE"],
     )
 
@@ -217,15 +217,15 @@ class QueryFields:
 
     # Fetch and pagination
     fetch_size = Field(
-        default=FlextOracleDbConstants.Query.DEFAULT_FETCH_SIZE,
+        default=FlextDbOracleConstants.Query.DEFAULT_FETCH_SIZE,
         description="Number of rows to fetch at once",
         ge=1,
-        le=FlextOracleDbConstants.Query.MAX_FETCH_SIZE,
+        le=FlextDbOracleConstants.Query.MAX_FETCH_SIZE,
         examples=[100, 1000, 5000],
     )
 
     array_size = Field(
-        default=FlextOracleDbConstants.Query.DEFAULT_ARRAY_SIZE,
+        default=FlextDbOracleConstants.Query.DEFAULT_ARRAY_SIZE,
         description="Array size for bulk operations",
         ge=1,
         le=10000,

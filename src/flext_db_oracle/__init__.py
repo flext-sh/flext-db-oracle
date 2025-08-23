@@ -2,20 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import click
 
 from flext_db_oracle.api import FlextDbOracleApi
-
-if TYPE_CHECKING:
-    import click
-
-# from flext_db_oracle.cli import oracle as _oracle  # Temporarily disabled - CLI deps missing
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.config_types import MergeStatementConfig
 from flext_db_oracle.connection import CreateIndexConfig, FlextDbOracleConnection
-from flext_db_oracle.constants import FlextOracleDbConstants
+from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.exceptions import (
     FlextDbOracleAuthenticationError,
     FlextDbOracleConfigurationError,
@@ -47,18 +40,9 @@ from flext_db_oracle.plugins import (
 )
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-# Type annotations using runtime annotation approach to avoid MyPy redefinition errors
-# PyRight will still benefit from the static type hints in the original imports
-
-# LEGACY IMPORTS REMOVED - Use models directly
-
-# Backward compatibility class alias expected by older imports
-FlextDbOracleAPI = FlextDbOracleApi
-
 __all__: list[str] = [
     "ORACLE_PLUGINS",
     "CreateIndexConfig",
-    "FlextDbOracleAPI",
     "FlextDbOracleApi",
     "FlextDbOracleAuthenticationError",
     "FlextDbOracleColumn",
@@ -79,7 +63,7 @@ __all__: list[str] = [
     "FlextDbOracleTimeoutError",
     "FlextDbOracleUtilities",
     "FlextDbOracleValidationError",
-    "FlextOracleDbConstants",
+    "FlextDbOracleConstants",
     "MergeStatementConfig",
     # LEGACY EXPORTS REMOVED - Use FlextDbOracle* models directly
     "__version__",
@@ -110,9 +94,9 @@ def __getattr__(name: str) -> click.Command:  # pragma: no cover - import-time l
     """
     if name in {"oracle", "oracle_cli"}:
         try:
-            from flext_db_oracle.cli import oracle  # noqa: PLC0415
+            from flext_db_oracle.cli import oracle_cli  # noqa: PLC0415
 
-            return oracle
+            return oracle_cli
         except ImportError:
             msg = "CLI dependencies not available. Install with: pip install 'flext-db-oracle[cli]'"
             raise ImportError(msg) from None

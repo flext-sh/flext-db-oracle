@@ -13,9 +13,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from enum import Enum
 
-from flext_core import FlextError
-from flext_core.exceptions import FlextErrorMixin
-
 
 class FlextDbOracleErrorCodes(Enum):
     """Error codes for Oracle database domain operations."""
@@ -32,8 +29,19 @@ class FlextDbOracleErrorCodes(Enum):
 
 
 # Base Oracle database exception hierarchy using FlextErrorMixin pattern
-class FlextDbOracleError(FlextError, FlextErrorMixin):
-    """Base Oracle database error."""
+class FlextDbOracleError(Exception):
+    """Base Oracle database error following FlextError patterns.
+
+    Note: Direct inheritance from Exception to avoid MyPy issues with flext-core type resolution.
+    Implements FlextError interface patterns manually.
+    """
+
+    def __init__(self, message: str, *, code: str | None = None, context: dict[str, object] | None = None) -> None:
+        """Initialize Oracle error with message, optional code and context."""
+        super().__init__(message)
+        self.message = message
+        self.code = code
+        self.context = context or {}
 
 
 class FlextDbOracleValidationError(FlextDbOracleError):
@@ -96,11 +104,7 @@ class FlextDbOracleQueryError(FlextDbOracleError):
         if rows_affected is not None:
             context_dict["rows_affected"] = rows_affected
 
-        super().__init__(
-            message,
-            code=code,
-            context=context_dict,
-        )
+        super().__init__(message, code=code.value if code else None, context=context_dict)
 
 
 class FlextDbOracleMetadataError(FlextDbOracleError):
@@ -129,11 +133,7 @@ class FlextDbOracleMetadataError(FlextDbOracleError):
         if operation is not None:
             context_dict["operation"] = operation
 
-        super().__init__(
-            message,
-            code=code,
-            context=context_dict,
-        )
+        super().__init__(message, code=code.value if code else None, context=context_dict)
 
 
 class FlextDbOracleConnectionOperationError(FlextDbOracleConnectionError):
@@ -165,11 +165,7 @@ class FlextDbOracleConnectionOperationError(FlextDbOracleConnectionError):
         if connection_timeout is not None:
             context_dict["connection_timeout"] = connection_timeout
 
-        super().__init__(
-            message,
-            code=code,
-            context=context_dict,
-        )
+        super().__init__(message, code=code.value if code else None, context=context_dict)
 
 
 __all__: list[str] = [

@@ -115,7 +115,7 @@ class FlextOracleDbSemanticConstants(FlextConstants):
         PARALLEL_HINT = "/*+ PARALLEL */"
 
 
-class FlextOracleDbConstants(FlextOracleDbSemanticConstants):
+class FlextDbOracleConstants(FlextOracleDbSemanticConstants):
     """Oracle Database constants with backward compatibility.
 
     Legacy compatibility layer providing both modern semantic access
@@ -126,115 +126,18 @@ class FlextOracleDbConstants(FlextOracleDbSemanticConstants):
     Connection = FlextOracleDbSemanticConstants.Connection
     Query = FlextOracleDbSemanticConstants.Query
     DataTypes = FlextOracleDbSemanticConstants.DataTypes
-    Validation = FlextOracleDbSemanticConstants.Validation
+    OracleValidation = FlextOracleDbSemanticConstants.OracleValidation
     ErrorMessages = FlextOracleDbSemanticConstants.ErrorMessages
-    Performance = FlextOracleDbSemanticConstants.Performance
+    OraclePerformance = FlextOracleDbSemanticConstants.OraclePerformance
 
-    # Legacy compatibility - flat access patterns (DEPRECATED - use semantic access)
-    ORACLE_DEFAULT_PORT = FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT
-    MAX_PORT = FlextOracleDbSemanticConstants.Connection.MAX_PORT
-    DEFAULT_CHARSET = FlextOracleDbSemanticConstants.Connection.DEFAULT_CHARSET
-    DEFAULT_SERVICE_NAME = (
-        FlextOracleDbSemanticConstants.Connection.DEFAULT_SERVICE_NAME
-    )
-    DEFAULT_TIMEOUT = FlextOracleDbSemanticConstants.Connection.DEFAULT_TIMEOUT
-
-    ORACLE_TEST_QUERY = FlextOracleDbSemanticConstants.Query.TEST_QUERY
-    DUAL_TABLE = FlextOracleDbSemanticConstants.Query.DUAL_TABLE
-    DEFAULT_FETCH_SIZE = FlextOracleDbSemanticConstants.Query.DEFAULT_FETCH_SIZE
-
-    ORACLE_DATE_TYPE = FlextOracleDbSemanticConstants.DataTypes.DATE_TYPE
-    ORACLE_TIMESTAMP_TYPE = FlextOracleDbSemanticConstants.DataTypes.TIMESTAMP_TYPE
-    ORACLE_DEFAULT_VARCHAR_TYPE = (
-        FlextOracleDbSemanticConstants.DataTypes.DEFAULT_VARCHAR_TYPE
-    )
-    SINGER_TO_ORACLE_TYPE_MAP = FlextOracleDbSemanticConstants.DataTypes.SINGER_TYPE_MAP
-
-    MAX_IDENTIFIER_LENGTH = (
-        FlextOracleDbSemanticConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
-    )
-    MAX_COLUMN_NAME_LENGTH = (
-        FlextOracleDbSemanticConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH
-    )
-    IDENTIFIER_PATTERN = (
-        FlextOracleDbSemanticConstants.OracleValidation.IDENTIFIER_PATTERN
-    )
-
-
-# =============================================================================
-# LEGACY CONSTANTS - Backward compatibility module-level aliases
-# =============================================================================
-
-# Connection constants (DEPRECATED - use FlextOracleDbConstants.Connection.*)
-ORACLE_DEFAULT_PORT = FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT
-MAX_PORT = FlextOracleDbSemanticConstants.Connection.MAX_PORT
-DEFAULT_CHARSET = FlextOracleDbSemanticConstants.Connection.DEFAULT_CHARSET
-DEFAULT_SERVICE_NAME = FlextOracleDbSemanticConstants.Connection.DEFAULT_SERVICE_NAME
-DEFAULT_TIMEOUT = FlextOracleDbSemanticConstants.Connection.DEFAULT_TIMEOUT
-
-# Query constants (DEPRECATED - use FlextOracleDbConstants.Query.*)
-ORACLE_TEST_QUERY = FlextOracleDbSemanticConstants.Query.TEST_QUERY
-DUAL_TABLE = FlextOracleDbSemanticConstants.Query.DUAL_TABLE
-DEFAULT_FETCH_SIZE = FlextOracleDbSemanticConstants.Query.DEFAULT_FETCH_SIZE
-
-# Data type constants (DEPRECATED - use FlextOracleDbConstants.DataTypes.*)
-ORACLE_DATE_TYPE = FlextOracleDbSemanticConstants.DataTypes.DATE_TYPE
-ORACLE_TIMESTAMP_TYPE = FlextOracleDbSemanticConstants.DataTypes.TIMESTAMP_TYPE
-ORACLE_DEFAULT_VARCHAR_TYPE = (
-    FlextOracleDbSemanticConstants.DataTypes.DEFAULT_VARCHAR_TYPE
-)
-SINGER_TO_ORACLE_TYPE_MAP = FlextOracleDbSemanticConstants.DataTypes.SINGER_TYPE_MAP
-
-# Error message constants (DEPRECATED - use FlextOracleDbConstants.ErrorMessages.*)
-ERROR_MSG_HOST_EMPTY = FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY
-ERROR_MSG_USERNAME_EMPTY = FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY
-ERROR_MSG_COLUMN_NAME_EMPTY = (
-    FlextOracleDbSemanticConstants.ErrorMessages.COLUMN_NAME_EMPTY
-)
-ERROR_MSG_DATA_TYPE_EMPTY = FlextOracleDbSemanticConstants.ErrorMessages.DATA_TYPE_EMPTY
-ERROR_MSG_TABLE_NAME_EMPTY = (
-    FlextOracleDbSemanticConstants.ErrorMessages.TABLE_NAME_EMPTY
-)
-ERROR_MSG_SCHEMA_NAME_EMPTY = (
-    FlextOracleDbSemanticConstants.ErrorMessages.SCHEMA_NAME_EMPTY
-)
-ERROR_MSG_POSITION_INVALID = (
-    FlextOracleDbSemanticConstants.ErrorMessages.POSITION_INVALID
-)
-ERROR_MSG_COLUMN_ID_INVALID = (
-    FlextOracleDbSemanticConstants.ErrorMessages.COLUMN_ID_INVALID
-)
-ERROR_MSG_PORT_INVALID = FlextOracleDbSemanticConstants.ErrorMessages.PORT_INVALID
 
 # =============================================================================
 # EXPORTS - Oracle Database constants API
 # =============================================================================
 
 __all__: list[str] = [
-    # Module-level legacy constants (sorted alphabetically)
-    "DEFAULT_CHARSET",
-    "DEFAULT_FETCH_SIZE",
-    "DEFAULT_SERVICE_NAME",
-    "DEFAULT_TIMEOUT",
-    "DUAL_TABLE",
-    "ERROR_MSG_COLUMN_ID_INVALID",
-    "ERROR_MSG_COLUMN_NAME_EMPTY",
-    "ERROR_MSG_DATA_TYPE_EMPTY",
-    "ERROR_MSG_HOST_EMPTY",
-    "ERROR_MSG_PORT_INVALID",
-    "ERROR_MSG_POSITION_INVALID",
-    "ERROR_MSG_SCHEMA_NAME_EMPTY",
-    "ERROR_MSG_TABLE_NAME_EMPTY",
-    "ERROR_MSG_USERNAME_EMPTY",
-    "MAX_PORT",
-    "ORACLE_DATE_TYPE",
-    "ORACLE_DEFAULT_PORT",
-    "ORACLE_DEFAULT_VARCHAR_TYPE",
-    "ORACLE_TEST_QUERY",
-    "ORACLE_TIMESTAMP_TYPE",
-    "SINGER_TO_ORACLE_TYPE_MAP",
-    # Legacy Compatibility (Backward Compatibility)
-    "FlextOracleDbConstants",
+    # Backward Compatibility (use semantic API above)
+    "FlextDbOracleConstants",
     # Modern Semantic Constants (Primary API)
     "FlextOracleDbSemanticConstants",
 ]

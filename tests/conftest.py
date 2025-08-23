@@ -20,6 +20,16 @@ from pydantic import SecretStr
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 
+class TestOperationError(Exception):
+    """Custom exception for test operations to avoid TRY003 lint warnings."""
+
+    def __init__(self, operation: str, error: str) -> None:
+        """Initialize with operation name and error details."""
+        super().__init__(f"{operation} failed: {error}")
+        self.operation = operation
+        self.error = error
+
+
 class DockerCommandExecutor:
     """Execute Docker commands safely with proper error handling."""
 
@@ -31,7 +41,7 @@ class DockerCommandExecutor:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
             client = docker.from_env()
-            client.ping()
+            client.ping()  # type: ignore[no-untyped-call]
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 

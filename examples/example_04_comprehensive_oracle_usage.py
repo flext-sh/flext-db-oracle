@@ -90,7 +90,8 @@ class OracleExampleDemonstrator:
 
         """
         try:
-            operation_func(self.api)
+            if callable(operation_func):
+                operation_func(self.api)
         except (ValueError, ConnectionError, TypeError, AttributeError) as e:
             logger.warning("⚠️ %s operation failed: %s", self.context_name, e)
 
@@ -198,41 +199,46 @@ def demonstrate_query_patterns() -> None:
 
     def _perform_query_operations(api: FlextDbOracleApi) -> None:
         """Specific query pattern operations."""
-        # Pattern 1: Simple query using unwrap_or pattern for cleaner code
+        # Pattern 1: Simple query using modern .value access with exception handling
         query_result = api.query("SELECT 1 as test_value FROM DUAL")
-        # Use unwrap_or for cleaner pattern - avoid verbose if/else
-        rows_count = len(
-            query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows
-        )
-        # Use FlextResult.map for cleaner status handling
-        status = query_result.map(lambda _: "Success").unwrap_or(
-            f"Failed - {query_result.error}"
-        )
+
+        # Modern .value pattern: direct access with exception handling
+        try:
+            result_data = query_result.value
+            rows_count = len(result_data.rows) if result_data.rows else 0
+            status = "Success"
+        except TypeError:  # FlextResult failure
+            rows_count = 0
+            status = f"Failed - {query_result.error}"
         logger.info(
             "📝 Simple query pattern demonstrated: %s with %d rows", status, rows_count
         )
 
-        # Pattern 2: Parameterized query using unwrap_or pattern
+        # Pattern 2: Parameterized query using modern .value access
         param_query_result = api.query(
             "SELECT * FROM employees WHERE department_id = :dept_id",
             {"dept_id": 10},
         )
-        # Use unwrap_or for cleaner parameterized query handling
-        param_rows = len(
-            param_query_result.unwrap_or(type("MockResult", (), {"rows": []})()).rows
-        )
-        param_status = param_query_result.map(lambda _: "Success").unwrap_or(
-            f"Failed - {param_query_result.error}"
-        )
+
+        # Modern .value pattern: direct access with exception handling
+        try:
+            param_data = param_query_result.value
+            param_rows = len(param_data.rows) if param_data.rows else 0
+            param_status = "Success"
+        except TypeError:  # FlextResult failure
+            param_rows = 0
+            param_status = f"Failed - {param_query_result.error}"
         logger.info(
             "📝 Parameterized query pattern demonstrated: %s with %d rows",
             param_status,
             param_rows,
         )
 
-        # Pattern 3: Single row query using unwrap_or pattern
+        # Pattern 3: Single row query using modern FlextResult.unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
-        if single_result.is_success and single_result.value is not None:
+        # Modern FlextResult pattern: use unwrap_or for cleaner code
+        single_row = single_result.unwrap_or(None)
+        if single_row is not None:
             logger.info(
                 "📝 Single row query pattern demonstrated: Success - got result"
             )
@@ -310,7 +316,7 @@ def demonstrate_metadata_exploration() -> None:
 
         # Pattern 4: Test connection health using unwrap_or pattern
         health_result = api.test_connection()
-        health_status = health_result.unwrap_or(False)
+        health_status = health_result.unwrap_or(default=False)
         logger.info(
             "📝 Connection health check pattern demonstrated: %s",
             "Healthy" if health_status else "Simulated failure",
@@ -337,8 +343,14 @@ def demonstrate_transaction_patterns() -> None:
 
         # This would be real code with actual connection:
         # with api.transaction() as txn:
-        #     if result1.is_success and result2.is_success:
+        #     result1 = api.query("UPDATE table1 SET col = 'value'")
+        #     result2 = api.query("UPDATE table2 SET col = 'value'")
+        #     # Modern pattern: use unwrap_or() for cleaner code
+        #     success1 = result1.unwrap_or(None) is not None
+        #     success2 = result2.unwrap_or(None) is not None
+        #     if success1 and success2:
         #         txn.commit()
+        #     else:
         #         txn.rollback()
 
     demonstrator.demonstrate_with_api_operations(_perform_transaction_operations)
@@ -365,11 +377,11 @@ def demonstrate_error_handling_patterns() -> None:
 
         # Pattern 2: Query error handling with FlextResult using unwrap_or
         result = api.query("INVALID SQL SYNTAX")
-        error_msg = result.unwrap_or("No error")
-        if error_msg == "No error":
-            logger.info("✅ Query succeeded (unexpected)")
+        query_data = result.unwrap_or(None)
+        if query_data is None:
+            logger.info("✅ Query error handled via FlextResult: %s", result.error)
         else:
-            logger.info("✅ Query error handled via FlextResult: Pattern demonstrated")
+            logger.info("✅ Query succeeded (unexpected)")
 
         # Pattern 3: Graceful degradation
         demonstrate_fallback_operations(api)
@@ -378,12 +390,70 @@ def demonstrate_error_handling_patterns() -> None:
     demonstrator.demonstrate_with_api_operations(_perform_error_handling_operations)
 
 
+def demonstrate_modern_decorator_patterns() -> None:
+    """Demonstrate modern flext-core decorator patterns.
+
+    Shows how to use the new FlextErrorHandlingDecorators and FlextPerformanceDecorators
+    for robust, enterprise-grade Oracle database operations.
+    """
+    demonstrator = OracleExampleDemonstrator(
+        "demo_decorators",
+        "🎯",
+        "Demonstrating Modern FlextCore Decorator Patterns",
+    )
+
+    def _perform_decorator_operations(_api: FlextDbOracleApi) -> None:
+        """Demonstrate modern decorator usage patterns."""
+        logger.info("🎯 Modern Decorator Patterns:")
+
+        # Pattern 1: Safe query executor with error handling
+        logger.info("  1. Creating safe query executor with error handling decorator")
+        _safe_query_executor = FlextDbOracleUtilities.create_safe_query_executor()
+
+        # Pattern 2: Performance-monitored connection test
+        logger.info("  2. Creating performance-monitored connection test")
+        _monitored_test = FlextDbOracleUtilities.create_performance_monitored_connection_test()
+
+        # Pattern 3: Validated schema fetcher with combined decorators
+        logger.info("  3. Creating validated schema fetcher with multiple decorators")
+        _validated_schemas = FlextDbOracleUtilities.create_validated_schema_fetcher()
+
+        # Demonstrate usage (simulated since we don't have real connection)
+        logger.info("📝 Decorator patterns ready for real Oracle connection:")
+        logger.info("  - safe_query_executor: Handles all query errors gracefully")
+        logger.info("  - monitored_test: Tracks performance metrics and timing")
+        logger.info("  - validated_schemas: Combines validation + error handling")
+
+        # Pattern 4: Direct error handling (simplified pattern)
+        def safe_get_tables_count(api_instance: FlextDbOracleApi) -> int:
+            """Get table count with safe error handling using unwrap_or."""
+            tables_result = api_instance.get_tables()
+            # Modern unwrap_or pattern: cleaner and more readable
+            return len(tables_result.unwrap_or([]))
+
+        logger.info("  4. Direct error handling demonstrated with manual checking")
+        logger.info("     Function safe_get_tables_count created with manual error handling")
+
+        # Pattern 5: Performance monitoring (simplified pattern)
+        def timed_schema_operations(api_instance: FlextDbOracleApi) -> dict[str, int]:
+            """Perform timed schema operations using unwrap_or."""
+            schemas_result = api_instance.get_schemas()
+            # Modern unwrap_or pattern: single line, clear intent
+            return {"schema_count": len(schemas_result.unwrap_or([]))}
+
+        logger.info("  5. Performance monitoring for timing and metrics collection")
+        logger.info("     Function timed_schema_operations with manual performance tracking")
+
+    demonstrator.demonstrate_with_api_operations(_perform_decorator_operations)
+
+
 def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
     """Demonstrate fallback operations when primary operations fail using unwrap_or pattern."""
-    # Use unwrap_or for clean fallback logic - eliminates verbose success checking
-    primary_result = api.test_connection().unwrap_or("Primary operation failed")
+    # Use modern FlextResult pattern for clean fallback logic
+    primary_result = api.test_connection()
 
-    if primary_result != "Primary operation failed":
+    # Modern unwrap_or pattern for cleaner success checking
+    if primary_result.unwrap_or(False):
         return "Primary operation succeeded"
 
     # Primary failed, try fallback
@@ -493,10 +563,10 @@ def _demonstrate_patterns_from_config(pattern_key: str) -> None:
     """
     config = PATTERN_CONFIGURATIONS[pattern_key]
     _demonstrate_info_only_patterns(
-        config["context"],
-        config["emoji"],
-        config["message"],
-        config["patterns"],
+        str(config["context"]),
+        str(config["emoji"]),
+        str(config["message"]),
+        config["patterns"],  # type: ignore[arg-type]
     )
 
 
@@ -591,7 +661,7 @@ def demonstrate_utilities_patterns() -> None:
 
     # Pattern 4: Batch operations with boolean success indicator
     logger.info("📝 Batch operations with unwrap_or boolean pattern:")
-    operations = [("SELECT 1 FROM DUAL", None), ("SELECT 2 FROM DUAL", None)]
+    operations: list[tuple[str, dict[str, object] | None]] = [("SELECT 1 FROM DUAL", None), ("SELECT 2 FROM DUAL", None)]
     batch_success = FlextDbOracleUtilities.safe_execute_batch(api, operations)
     logger.info(f"  • Batch executed: {'✅ Success' if batch_success else '❌ Failed'}")
 
@@ -600,7 +670,7 @@ def demonstrate_utilities_patterns() -> None:
     validation_result = FlextDbOracleUtilities.validate_connection_with_retry(
         api, max_retries=2
     )
-    is_valid = validation_result.unwrap_or(False)
+    is_valid = validation_result.unwrap_or(default=False)
     logger.info(f"  • Validation result: {'✅ Valid' if is_valid else '❌ Invalid'}")
 
     logger.info("✅ All utility patterns demonstrated with unwrap_or for cleaner code!")
@@ -646,6 +716,10 @@ def main() -> None:
         # New: Demonstrate utility functions with unwrap_or patterns
         logger.info("\n🛠️ 11. Utility Functions with unwrap_or Patterns")
         demonstrate_utilities_patterns()
+
+        # New: Demonstrate modern flext-core decorator patterns
+        logger.info("\n🎆 12. Modern FLEXT-Core Decorator Patterns")
+        demonstrate_modern_decorator_patterns()
 
         logger.info("\n🎉 All Oracle usage patterns demonstrated successfully!")
 

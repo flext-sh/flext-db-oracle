@@ -17,10 +17,10 @@ from __future__ import annotations
 from datetime import datetime
 from typing import ClassVar
 
-from flext_core import FlextModel, FlextResult, FlextValidators
+from flext_core import FlextModel, FlextResult, FlextValidation
 from pydantic import Field, field_validator
 
-from flext_db_oracle.constants import FlextOracleDbConstants
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 __all__ = [
     "FlextDbOracleColumn",
@@ -52,11 +52,11 @@ class FlextDbOracleColumn(FlextModel):
     @classmethod
     def validate_column_name(cls, v: str) -> str:
         """Validate column name."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.COLUMN_NAME_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.COLUMN_NAME_EMPTY
             raise ValueError(msg)
-        if len(v) > FlextOracleDbConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH:
-            msg = f"Column name exceeds maximum length of {FlextOracleDbConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH}"
+        if len(v) > FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH:
+            msg = f"Column name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH}"
             raise ValueError(msg)
         return v.upper()
 
@@ -64,8 +64,8 @@ class FlextDbOracleColumn(FlextModel):
     @classmethod
     def validate_data_type(cls, v: str) -> str:
         """Validate data type."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.DATA_TYPE_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.DATA_TYPE_EMPTY
             raise ValueError(msg)
         return v.upper()
 
@@ -74,7 +74,7 @@ class FlextDbOracleColumn(FlextModel):
     def validate_column_id(cls, v: int) -> int:
         """Validate column ID."""
         if v <= 0:
-            msg = FlextOracleDbConstants.ErrorMessages.COLUMN_ID_INVALID
+            msg = FlextDbOracleConstants.ErrorMessages.COLUMN_ID_INVALID
             raise ValueError(msg)
         return v
 
@@ -157,11 +157,11 @@ class FlextDbOracleTable(FlextModel):
     @classmethod
     def validate_table_name(cls, v: str) -> str:
         """Validate table name."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.TABLE_NAME_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.TABLE_NAME_EMPTY
             raise ValueError(msg)
-        if len(v) > FlextOracleDbConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
-            msg = f"Table name exceeds maximum length of {FlextOracleDbConstants.OracleValidation.MAX_TABLE_NAME_LENGTH}"
+        if len(v) > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
+            msg = f"Table name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH}"
             raise ValueError(msg)
         return v.upper()
 
@@ -169,11 +169,11 @@ class FlextDbOracleTable(FlextModel):
     @classmethod
     def validate_schema_name(cls, v: str) -> str:
         """Validate schema name."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.SCHEMA_NAME_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.SCHEMA_NAME_EMPTY
             raise ValueError(msg)
-        if len(v) > FlextOracleDbConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
-            msg = f"Schema name exceeds maximum length of {FlextOracleDbConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
+        if len(v) > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
+            msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
             raise ValueError(msg)
         return v.upper()
 
@@ -182,9 +182,10 @@ class FlextDbOracleTable(FlextModel):
         # Validate all columns
         for column in self.columns:
             result = column.validate_business_rules()
-            if result.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+            if result.error:
                 return FlextResult[None].fail(
-                    f"Column {column.column_name}: {result.error}"
+                    f"Column {column.column_name}: {result.error or 'Column validation failed'}"
                 )
 
         # Check for duplicate column names
@@ -227,11 +228,11 @@ class FlextDbOracleSchema(FlextModel):
     @classmethod
     def validate_schema_name(cls, v: str) -> str:
         """Validate schema name."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.SCHEMA_NAME_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.SCHEMA_NAME_EMPTY
             raise ValueError(msg)
-        if len(v) > FlextOracleDbConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
-            msg = f"Schema name exceeds maximum length of {FlextOracleDbConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
+        if len(v) > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
+            msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
             raise ValueError(msg)
         return v.upper()
 
@@ -240,9 +241,10 @@ class FlextDbOracleSchema(FlextModel):
         # Validate all tables
         for table in self.tables:
             result = table.validate_business_rules()
-            if result.is_failure:
+            # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
+            if result.error:
                 return FlextResult[None].fail(
-                    f"Table {table.table_name}: {result.error}"
+                    f"Table {table.table_name}: {result.error or 'Table validation failed'}"
                 )
 
         # Check for duplicate table names
@@ -373,8 +375,8 @@ class FlextDbOracleConnectionStatus(FlextModel):
     @classmethod
     def validate_host(cls, v: str) -> str:
         """Validate host."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.HOST_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.HOST_EMPTY
             raise ValueError(msg)
         return v
 
@@ -382,8 +384,8 @@ class FlextDbOracleConnectionStatus(FlextModel):
     @classmethod
     def validate_port(cls, v: int) -> int:
         """Validate port."""
-        if v <= 0 or v > FlextOracleDbConstants.Connection.MAX_PORT:
-            msg = f"Port must be between 1 and {FlextOracleDbConstants.Connection.MAX_PORT}"
+        if v <= 0 or v > FlextDbOracleConstants.Connection.MAX_PORT:
+            msg = f"Port must be between 1 and {FlextDbOracleConstants.Connection.MAX_PORT}"
             raise ValueError(msg)
         return v
 
@@ -391,7 +393,7 @@ class FlextDbOracleConnectionStatus(FlextModel):
     @classmethod
     def validate_service_name(cls, v: str) -> str:
         """Validate service name."""
-        if not FlextValidators.is_non_empty_string(v):
+        if not FlextValidation.Validators.is_non_empty_string(v):
             msg = "Service name cannot be empty"
             raise ValueError(msg)
         return v
@@ -400,8 +402,8 @@ class FlextDbOracleConnectionStatus(FlextModel):
     @classmethod
     def validate_username(cls, v: str) -> str:
         """Validate username."""
-        if not FlextValidators.is_non_empty_string(v):
-            msg = FlextOracleDbConstants.ErrorMessages.USERNAME_EMPTY
+        if not FlextValidation.Validators.is_non_empty_string(v):
+            msg = FlextDbOracleConstants.ErrorMessages.USERNAME_EMPTY
             raise ValueError(msg)
         return v
 
