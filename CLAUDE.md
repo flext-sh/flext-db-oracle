@@ -1,332 +1,286 @@
 # CLAUDE.md
 
-This file provides guidance when working with code in this repository.
+This file provides development guidance specific to flext-db-oracle project.
 
-## Project Overview
+**References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and [README.md](README.md) for project overview.
 
-For complete project information, architecture overview, and usage examples, see [README.md](README.md).
+## Project-Specific Development Context
 
-**Key Summary**: FLEXT DB Oracle is an infrastructure library for Oracle database integration in the FLEXT ecosystem, implementing Clean Architecture patterns with FlextResult error handling.
+### **Current Project State** (Last Updated: 2025-01-23)
 
-**Current Status**: Active development - 33% test coverage with core functionality working.
-
-## Development Context
-
-### **Current Project State**
-
-Based on recent systematic analysis and improvements:
-
-#### **Test Coverage Status** (Last Updated: 2025-01-23)
+#### **Test Coverage Status**
 - **Overall Coverage**: 33% (improved from 21%)
 - **Connection Module**: 53% (major improvement from 11%)
-- **Metadata Module**: 42% (improved from 8%)
+- **Metadata Module**: 42% (improved from 8%)  
 - **API Module**: 26% (improved from 24%)
-- **CLI Module**: 0% (untested, needs attention)
+- **CLI Module**: 0% (critical gap, highest priority)
 - **Plugin System**: 16% (needs expansion)
 
-#### **Code Quality Discoveries**
-Recent systematic testing revealed:
-- **Real Bugs Found**: 4+ validation bugs discovered and fixed
-- **API Structure**: Comprehensive mapping of actual vs assumed methods
-- **Testing Approach**: Real code validation proven more effective than mocks
-
-#### **Working Functionality**
-✅ **Confirmed Working**:
+#### **Verified Working Functionality**
+✅ **Production-Ready**:
 - Oracle database connections with SQLAlchemy 2.x
 - Schema introspection (tables, columns, metadata)
 - Query execution with FlextResult patterns
 - Connection pooling and resource management
-- Basic CLI commands (`flext-db-oracle`)
 
 🚧 **In Development**:
-- Comprehensive test coverage (targeting 50%+)
-- Plugin system expansion
-- CLI test coverage (currently 0%)
+- CLI comprehensive testing (0% coverage)
+- Plugin system expansion (16% → 40%+ target)
+- API method coverage improvements
 
-## Architecture
+### **Critical Lessons from Recent Development**
 
-### **Real Code Structure** (Verified)
+#### **NEVER Assume Code Structure Without Verification**
+**Problem**: Initial tests assumed API structure without reading source code
+**Examples**:
+- Assumed `_plugins = []` → Actually `_plugins = {}`
+- Assumed methods exist (`validate_sql`, `analyze_query`) → They don't exist
+- Assumed `__repr__` method exists → Uses default Python repr
 
-Based on systematic analysis:
+**Solution**: ALWAYS use `grep`/`Read` to verify actual code structure BEFORE writing tests
 
-#### **Core Components**
-- **`api.py`**: Main FlextDbOracleApi class with 60+ methods
-- **`connection.py`**: Connection management with pooling (53% coverage)
-- **`metadata.py`**: Schema introspection (42% coverage)
-- **`config.py`**: Pydantic configuration with environment support
-- **`cli.py`**: Click-based CLI interface (needs testing)
-- **`plugins.py`**: Plugin framework (16% coverage)
+#### **Real Code Testing > Mocking Everything**  
+**Proven**: Found 4+ actual bugs through real code validation approach
+**Examples**:
+- `metadata.py` crash on None input → `.upper()` without validation
+- Connection validation bugs discovered through comprehensive testing
+- API plugin system structure discovered (dict-based, not list-based)
 
-#### **Key Pattern Discoveries**
-- **FlextResult Integration**: All public APIs return FlextResult[T]
-- **API Plugin System**: Uses `dict{}` for plugin storage, not `list[]`
-- **Class Methods**: Return API instances directly, not FlextResult
-- **Connection Behavior**: `connect()` method actually attempts database connection
-- **Method Availability**: Many assumed methods don't exist (validate_sql, analyze_query, etc.)
+**Critical**: This approach takes longer initially but finds real bugs that mocks hide
 
-### **Testing Strategy** (Proven Effective)
+#### **Database Testing Complexity Underestimated**
+**Reality**: Oracle connection methods (`connect()`) actually attempt database connection → timeout
+**Problem**: Many API tests timeout due to real connection attempts
+**Solution**: Selective mocking only where absolutely necessary (connection layer), real validation everywhere else
+
+## Oracle-Specific Development
+
+### **Oracle Development Environment**
+
+```bash
+# Start Oracle XE 21c (takes 2-3 minutes to initialize)
+docker-compose -f docker-compose.oracle.yml up -d
+
+# Monitor Oracle startup (critical - container takes time)
+docker-compose -f docker-compose.oracle.yml logs -f oracle-xe
+
+# Test connectivity once ready
+make oracle-connect
+```
+
+### **Environment Configuration** (Singer/Meltano Compatible)
+
+```bash
+# Required for integration tests
+export ORACLE_INTEGRATION_TESTS=1
+export FLEXT_TARGET_ORACLE_HOST="localhost"
+export FLEXT_TARGET_ORACLE_PORT="1521"
+export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
+export FLEXT_TARGET_ORACLE_USERNAME="system"
+export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
+```
+
+## Code Structure Reality (Verified Through Testing)
+
+### **API Module Structure** (`src/flext_db_oracle/api.py` - 720 statements)
+
+#### **Working Methods Without Database Connection**:
+- `optimize_query()` - Query optimization suggestions
+- `get_observability_metrics()` - Observability data
+- Class methods (`from_env()`, `from_config()`, `with_config()`, `from_url()`) - Return API instances directly
+- Property access (`is_connected`, `connection`, `config`)
+
+#### **Methods That Require Database Connection** (Timeout in Tests):
+- `connect()` - Actually attempts Oracle connection
+- `query()`, `query_one()`, `execute()` - All database operations
+- `get_schemas()`, `get_tables()`, `get_columns()` - Schema operations
+- `test_connection()` - Connection validation
+
+#### **Plugin System Reality**:
+- **Storage**: `_plugins = {}` (dict), not list
+- **Methods**: `register_plugin()`, `unregister_plugin()`, `list_plugins()`, `get_plugin()`
+- **Behavior**: `list_plugins()` fails with "plugin listing returned empty" when no plugins
+
+### **Connection Module** (`src/flext_db_oracle/connection.py` - 606 statements)
+- **Coverage**: 53% (significantly improved through comprehensive testing)
+- **Bugs Found**: Multiple validation issues discovered and fixed
+- **Testing Status**: Comprehensive test suite implemented
+
+### **Metadata Module** (`src/flext_db_oracle/metadata.py` - 158 statements)  
+- **Coverage**: 42% (major improvement)
+- **Critical Bug Fixed**: Crash on None input validation (`None.upper()`)
+- **Testing Status**: Systematic testing implemented
+
+### **CLI Module** (`src/flext_db_oracle/cli.py` - 483 statements)
+- **Coverage**: 0% (CRITICAL GAP - highest priority)
+- **Functionality**: Click-based commands working in practice
+- **Commands Available**: `connect`, `connect-env`, `query`, `schemas`, `tables`, `health`
+
+## Project-Specific Testing Strategy
+
+### **Proven Effective Patterns**
 
 #### **Real Code Validation Approach**
-- **Unit Tests**: Focus on real code paths, minimal mocking
-- **Integration Tests**: Require actual Oracle database
-- **Systematic Testing**: Module-by-module comprehensive coverage
-- **Bug Discovery**: Tests found actual validation bugs, not just coverage
-
-#### **Effective Test Patterns**
 ```python
-# Use real code validation instead of excessive mocking
-def test_real_method_behavior(self):
-    """Test actual method behavior, not mocked assumptions."""
-    result = api.actual_method()
-    assert result.success or result.error  # Test real FlextResult behavior
-```
+def test_real_api_behavior(self):
+    """Test actual method behavior without excessive mocking."""
+    config = FlextDbOracleConfig(host="test", port=1521, service_name="TEST",
+                                 username="test", password=SecretStr("test"))
+    api = FlextDbOracleApi(config)
 
-## Essential Commands
-
-### **Development Workflow**
-
-For complete command reference, see [README.md](README.md#development-commands).
-
-**Critical Commands**:
-```bash
-# Quality gates (always run before committing)
-make validate                 # Full validation pipeline
-make check                    # Quick lint + type check
-make test                     # Run tests with coverage
-
-# Oracle development
-docker-compose -f docker-compose.oracle.yml up -d  # Start Oracle
-make oracle-connect           # Test connection
-```
-
-### **Testing Commands**
-
-```bash
-# Strategic testing (proven effective)
-make test-unit                # Fast unit tests (no Oracle)
-make test-integration         # Integration tests (requires Oracle)
-pytest --cov=src/flext_db_oracle --cov-report=term  # Coverage report
-
-# Specific coverage improvement
-pytest tests/unit/test_connection_comprehensive.py --cov=src/flext_db_oracle/connection.py
-pytest tests/unit/test_metadata_comprehensive.py --cov=src/flext_db_oracle/metadata.py
-pytest tests/unit/test_api_safe_comprehensive.py --cov=src/flext_db_oracle/api.py
-```
-
-## Code Organization
-
-For complete source structure, see [README.md](README.md#testing).
-
-### **Key File Insights**
-
-#### **`src/flext_db_oracle/api.py`** (720 statements)
-- **Coverage**: 26% (room for improvement)
-- **Key Methods**: 60+ methods including optimize_query, get_observability_metrics
-- **Plugin System**: Uses dict-based plugin storage
-- **Connection Issue**: connect() method times out in tests (needs selective mocking)
-
-#### **`src/flext_db_oracle/connection.py`** (606 statements)
-- **Coverage**: 53% (significantly improved)
-- **Status**: Comprehensive testing implemented
-- **Real Bugs**: Multiple validation bugs found and fixed
-
-#### **`src/flext_db_oracle/metadata.py`** (158 statements)
-- **Coverage**: 42% (major improvement)
-- **Real Bug**: Fixed crash on None input validation
-- **Methods**: Complete schema introspection functionality
-
-#### **`src/flext_db_oracle/cli.py`** (483 statements)
-- **Coverage**: 0% (critical gap)
-- **Priority**: High priority for next development phase
-- **Functionality**: Click-based commands working, needs comprehensive testing
-
-## Development Patterns
-
-For usage patterns and examples, see [README.md](README.md#basic-usage).
-
-### **FlextResult Pattern** (Verified)
-
-```python
-from flext_core import FlextResult
-
-# All public methods return FlextResult[T]
-def database_operation() -> FlextResult[QueryResult]:
-    try:
-        result = self._execute_query()
-        return FlextResult[QueryResult].ok(result)
-    except Exception as e:
-        return FlextResult[QueryResult].fail(f"Operation failed: {e}")
-```
-
-### **Testing Patterns** (Proven Effective)
-
-```python
-# Real code validation (preferred approach)
-def test_actual_behavior(self):
-    """Test real method behavior without excessive mocking."""
-    api = FlextDbOracleApi(test_config)
-    
     # Test methods that work without database connection
     result = api.optimize_query("SELECT * FROM users")
     assert result.success
-    
+
     # Test methods that require connection (expect failure with descriptive error)
-    query_result = api.query("SELECT 1 FROM dual")
+    query_result = api.query("SELECT 1 FROM dual")  
     assert not query_result.success
     assert "connection" in query_result.error.lower()
 ```
 
-### **Configuration Pattern** (Working)
+#### **Systematic Module Coverage**
+```bash
+# Target specific modules with comprehensive tests
+pytest tests/unit/test_connection_comprehensive.py --cov=src/flext_db_oracle/connection.py --cov-report=term-missing
+pytest tests/unit/test_metadata_comprehensive.py --cov=src/flext_db_oracle/metadata.py --cov-report=term-missing
+pytest tests/unit/test_api_safe_comprehensive.py --cov=src/flext_db_oracle/api.py --cov-report=term-missing
+```
 
-For complete configuration reference, see [README.md](README.md#configuration-reference).
-
+#### **Safe API Testing Pattern**
 ```python
-from flext_db_oracle import FlextDbOracleConfig
+# Methods that work without database connection (safe for testing)
+safe_methods = [
+    'optimize_query', 'get_observability_metrics',
+    'from_env', 'from_config', 'with_config', 'from_url',
+    'list_plugins', 'get_plugin'  # (fail with descriptive errors when empty)
+]
 
-# Environment-based configuration (Singer/Meltano compatible)
-config = FlextDbOracleConfig.from_env()
-
-# Direct configuration
-config = FlextDbOracleConfig(
-    host="localhost",
-    port=1521,
-    service_name="XEPDB1",
-    username="user",
-    password=SecretStr("password")
-)
+# Methods that timeout (need selective mocking or integration tests)
+connection_methods = [
+    'connect', 'disconnect', 'test_connection',
+    'query', 'query_one', 'execute', 'execute_many',
+    'get_schemas', 'get_tables', 'get_columns'
+]
 ```
 
-## Current Development Priorities
+## Development Priorities (Based on Analysis)
 
-### **Immediate Actions** (Based on Analysis)
+### **Immediate Actions** (Highest ROI)
 
-1. **CLI Test Coverage**: 0% → 30%+ (highest priority)
-2. **API Connection Issue**: Fix timeout in connect() method testing
-3. **Plugin System**: 16% → 40% coverage improvement
-4. **API Coverage**: 26% → 40% with safe method testing
+1. **CLI Test Coverage**: 0% → 30%+
+   - **Why Critical**: 483 statements completely untested
+   - **Approach**: Click testing with `CliRunner`, avoid actual Oracle connections
+   - **Expected Bugs**: Likely to find CLI-specific validation issues
 
-### **Strategic Approach** (Proven)
+2. **API Connection Testing Strategy**:
+   - **Problem**: `connect()` method timeouts block many tests
+   - **Solution**: Selective mocking for connection layer only
+   - **Target**: 26% → 40% coverage focusing on safe methods
 
-1. **Real Code Testing**: Continue proven approach over mocking
-2. **Systematic Coverage**: Module-by-module comprehensive improvement
-3. **Bug Discovery**: Tests should find and fix actual code issues
-4. **Quality Focus**: Maintain quality gates while improving coverage
+3. **Plugin System Coverage**: 16% → 40%+
+   - **Current Gap**: Plugin validation, registration, lifecycle
+   - **Approach**: Real plugin objects, test validation logic
 
-## Integration Points
+### **Strategic Development Approach** (Lessons Applied)
 
-For complete integration information, see [README.md](README.md#integration-with-flext-ecosystem).
+1. **Code Structure Analysis FIRST**: Always `grep`/`Read` before implementing
+2. **Real Code Validation**: Continue proven approach, avoid excessive mocking
+3. **Systematic Module Targeting**: Focus on one module at a time for comprehensive coverage
+4. **Bug Discovery Focus**: Tests should find actual issues, not just increase coverage numbers
 
-### **FLEXT Core Dependencies** (Working)
+## Oracle-Specific Troubleshooting
 
-- **flext-core**: FlextResult, FlextContainer, logging patterns
-- **Development Mode**: Local path dependencies during development
-- **Production Mode**: Package dependencies in published version
-
-### **Singer Ecosystem Foundation** (In Development)
-
-- **flext-tap-oracle**: Uses this library for data extraction
-- **flext-target-oracle**: Uses this library for data loading
-- **flext-dbt-oracle**: Uses this library for transformations
-
-## Common Development Tasks
-
-### **Adding New Features**
-
-1. **Read Current State**: Review [README.md](README.md) for current functionality
-2. **Follow Patterns**: Use FlextResult, Clean Architecture, real testing
-3. **Quality Gates**: Always run `make validate` before committing
-4. **Test Coverage**: Focus on real code paths, not mocks
-5. **Documentation**: Update both README.md and relevant code examples
-
-### **Debugging Oracle Issues**
-
-For complete troubleshooting guide, see [README.md](README.md#troubleshooting).
-
+### **Connection Issues**
 ```bash
-# Quick debugging
-make oracle-connect          # Test basic connectivity
-export ORACLE_SQL_LOGGING=1  # Enable SQL query logging
-docker-compose -f docker-compose.oracle.yml logs oracle-xe  # Check Oracle logs
+# Test Oracle container readiness
+docker-compose -f docker-compose.oracle.yml ps
+docker-compose -f docker-compose.oracle.yml logs oracle-xe | tail -20
+
+# Test basic connectivity
+make oracle-connect
+
+# Enable SQL debugging
+export ORACLE_SQL_LOGGING=1
 ```
 
-### **Improving Test Coverage**
-
-Based on proven methodology:
-
+### **Testing Issues**
 ```bash
-# Target specific modules systematically
+# Coverage analysis for specific modules
 pytest tests/unit/test_MODULE_comprehensive.py --cov=src/flext_db_oracle/MODULE.py --cov-report=term-missing
 
-# Focus on real code paths
-# Avoid excessive mocking
-# Test actual method behavior
-# Discover and fix real bugs
+# Run only safe API tests (no connection timeouts)
+pytest tests/unit/test_api_safe_comprehensive.py -v
+
+# Integration tests (requires Oracle)
+ORACLE_INTEGRATION_TESTS=1 pytest tests/integration/ -v
 ```
 
-## Quality Standards
+### **Common Development Mistakes** (Based on Experience)
 
-For complete quality information, see [README.md](README.md#quality-standards).
+❌ **Don't Assume**: API structure, method existence, return types
+✅ **Always Verify**: Use `grep`, `Read`, actual code inspection
 
-### **Current Metrics** (Verified)
-- **Test Coverage**: 33% overall (actively improving)
-- **Type Safety**: Python 3.13+ with comprehensive type hints
-- **Real Bug Discovery**: 4+ validation bugs found and fixed
-- **Code Quality**: Ruff + MyPy + Bandit scanning
+❌ **Don't Mock Everything**: Loses real bug discovery
+✅ **Selective Mocking**: Only for infrastructure (database connections)  
 
-### **Quality Gates** (Enforced)
-```bash
-make validate     # Required before all commits
+❌ **Don't Rush Implementation**: Leads to assumptions and rework
+✅ **Analysis First**: Understand code structure before testing
+
+## Integration with FLEXT Ecosystem
+
+For FLEXT ecosystem standards, see [../CLAUDE.md](../CLAUDE.md).
+
+### **Project-Specific Integration Points**
+
+#### **flext-core Dependency**
+```python
+from flext_core import FlextResult, FlextContainer, get_logger
+
+# All public APIs return FlextResult[T]
+def oracle_operation() -> FlextResult[QueryResult]:
+    try:
+        result = perform_operation()
+        return FlextResult[QueryResult].ok(result)
+    except Exception as e:
+        return FlextResult[QueryResult].fail(f"Oracle operation failed: {e}")
 ```
 
-## Troubleshooting
+#### **Singer Ecosystem Foundation**
+- **flext-tap-oracle**: Uses this library for Oracle data extraction
+- **flext-target-oracle**: Uses this library for Oracle data loading  
+- **flext-dbt-oracle**: Uses this library for Oracle transformations
 
-For complete troubleshooting information, see [README.md](README.md#troubleshooting).
+## Contributing to This Project
 
-### **Common Issues**
+For general FLEXT contribution standards, see [../CLAUDE.md](../CLAUDE.md).
 
-**Connection Timeouts**: API connect() method times out in tests → Need selective mocking approach
-**Coverage Issues**: Use `--cov-report=term-missing` to identify uncovered lines
-**Oracle Container**: Takes 2-3 minutes to start → Monitor with docker logs
+### **Project-Specific Requirements**
 
-### **Development Environment**
+1. **Oracle Environment**: Must test with real Oracle XE 21c container
+2. **Real Code Testing**: Focus on discovering actual bugs, not just coverage
+3. **Systematic Approach**: Target modules individually for comprehensive coverage
+4. **CLI Priority**: 0% coverage is critical gap that needs immediate attention
+5. **Connection Testing**: Understand timeout behavior, use selective mocking appropriately
 
-**Oracle Setup**: Use docker-compose.oracle.yml for local Oracle XE 21c
-**Dependencies**: Run `make install-dev` to ensure all FLEXT dependencies
-**Quality Issues**: Run `make validate` to identify all quality gate failures
-
-## Contributing
-
-For complete contribution guidelines, see [README.md](README.md#contributing).
-
-### **Key Requirements**
-
-1. **Follow FLEXT Patterns**: FlextResult, FlextContainer, Clean Architecture
-2. **Real Code Testing**: Prefer real code validation over excessive mocking
-3. **Quality Gates**: All changes must pass `make validate`
-4. **Coverage Improvement**: Focus on systematic coverage improvement
-5. **Documentation**: Keep README.md updated with working examples
-
-### **Development Process**
+### **Before Contributing**
 
 ```bash
-# Setup and validate
-make setup && make validate
+# Verify Oracle environment
+docker-compose -f docker-compose.oracle.yml up -d
+make oracle-connect
 
-# Create feature branch
-git checkout -b feature/improvement
-
-# Develop with real code testing
-pytest tests/unit/test_TARGET_comprehensive.py
-
-# Ensure quality gates pass
+# Run quality gates
 make validate
 
-# Update documentation if needed
-# Focus on README.md for user-facing changes
+# Test coverage improvement
+pytest --cov=src/flext_db_oracle --cov-report=term
+
+# Check for Oracle integration tests
+ORACLE_INTEGRATION_TESTS=1 pytest tests/integration/ --collect-only
 ```
 
-## Notes
+---
 
-This CLAUDE.md file focuses on development-specific guidance. For complete project information, architecture details, usage examples, and user-facing documentation, always refer to [README.md](README.md).
-
-**Key Principle**: README.md contains the authoritative project information; CLAUDE.md provides development context and guidance for working with the codebase effectively.
+**Project Authority**: This CLAUDE.md covers flext-db-oracle specific development guidance.  
+**Ecosystem Standards**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT-wide standards.  
+**User Documentation**: See [README.md](README.md) for complete project information.
