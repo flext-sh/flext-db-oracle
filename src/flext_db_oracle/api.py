@@ -196,8 +196,8 @@ class OracleConnectionManager:
         try:
             if self._connection:
                 disconnect_result = self._connection.close()
-                # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
-                if disconnect_result.error:
+                # Modern FlextResult pattern: Check failure status directly
+                if disconnect_result.is_failure:
                     self._logger.warning(
                         "Disconnect warning: %s",
                         disconnect_result.error or "Unknown disconnect error",
@@ -220,14 +220,11 @@ class OracleConnectionManager:
             # Simple query to test connection
             if self._connection:
                 test_result = self._connection.execute_query("SELECT 1 FROM DUAL")
-                # Modern FlextResult pattern: use unwrap_or for test result handling
-                # Modern FlextResult pattern: use ternary operator for cleaner code
-                return (
-                    FlextResult[bool].ok(bool(test_result.value))
-                    if test_result.success
-                    else FlextResult[bool].fail(
-                        test_result.error or "Connection test failed"
-                    )
+                # Modern FlextResult pattern: Direct success/failure check
+                if test_result.is_success:
+                    return FlextResult[bool].ok(bool(test_result.value))
+                return FlextResult[bool].fail(
+                    test_result.error or "Connection test failed"
                 )
             return FlextResult[bool].fail("No active connection")
 
@@ -486,7 +483,7 @@ class ApiPluginManager:
 
         plugin_result = registry.get_plugin(plugin_name)
         # Modern FlextResult pattern: use ternary operator for cleaner code
-        plugin_instance = plugin_result.value if plugin_result.success else None
+        plugin_instance = plugin_result.unwrap_or(None)
         if plugin_instance is None:
             return FlextResult[object].fail(f"Plugin {plugin_name} not found")
         return FlextResult[object].ok(plugin_instance)
@@ -722,6 +719,7 @@ class OracleQueryExecutor:
             if params is None:
                 normalized_ops.append((sql, None))
             elif isinstance(params, dict):
+                # Type assertion: params is dict at runtime, safe to pass to conversion function
                 typed_params = safe_database_row_dict(params)
                 normalized_ops.append((sql, typed_params))
             else:
@@ -968,8 +966,8 @@ class FlextDbOracleApi:
             raise ValueError(no_config_error)
 
         result = self._connection_manager.connect()
-        # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
-        if result.error:
+        # Modern FlextResult pattern: Check failure status directly
+        if result.is_failure:
             raise ConnectionError(result.error or "Connection failed")
 
         return self
@@ -987,8 +985,8 @@ class FlextDbOracleApi:
             return FlextResult[bool].fail("No connection manager available")
         if not self._connection_manager.is_connected:
             connect_result = self._connection_manager.connect()
-            # Modern FlextResult pattern: For FlextResult[None], check error instead of unwrap_or
-            if connect_result.error:
+            # Modern FlextResult pattern: Check failure status directly
+            if connect_result.is_failure:
                 return FlextResult[bool].fail(
                     connect_result.error or "Connection failed"
                 )
@@ -1079,15 +1077,7 @@ class FlextDbOracleApi:
         if self._test_is_connected is not None:
             return bool(self._test_is_connected) and self.connection is not None
 
-        # Check connection manager flag for backward compatibility - only if connection exists
-        if (
-            self._connection_manager
-            and hasattr(self._connection_manager, "_is_connected")
-            and self._connection_manager._is_connected
-            and self._connection_manager.connection is not None
-        ):
-            return True
-
+        # Check connection manager state using public API
         return bool(
             self._connection_manager and self._connection_manager.is_connected,
         )
@@ -1134,7 +1124,9 @@ class FlextDbOracleApi:
             return FlextResult[tuple[object, ...] | None].ok(None)
 
         if isinstance(result.value, (tuple, list)):
-            return FlextResult[tuple[object, ...] | None].ok(tuple(result.value))
+            # Type assertion: query result is sequence of objects
+            row_sequence: tuple[object, ...] | list[object] = result.value
+            return FlextResult[tuple[object, ...] | None].ok(tuple(row_sequence))
         return FlextResult[tuple[object, ...] | None].ok((result.value,))
 
     def execute_batch(
@@ -1452,13 +1444,12 @@ class FlextDbOracleApi:
             )
         )
 
-        # Use .value with try/except instead of .unwrap_or()
-        try:
+        # Modern FlextResult pattern: Check success and use .value safely
+        if final_mapped.is_success:
             return final_mapped.value
-        except TypeError:  # FlextResult failure
-            return FlextResult[FlextDbOracleQueryResult].fail(
-                result.error or "Query execution failed"
-            )
+        return FlextResult[FlextDbOracleQueryResult].fail(
+            result.error or "Query execution failed"
+        )
 
     def _create_timing_result(
         self,
@@ -1556,7 +1547,7 @@ class FlextDbOracleApi:
         """Analyze and provide optimization suggestions for SQL query."""
         # Basic SQL analysis - in real implementation would use Oracle's EXPLAIN PLAN
         suggestions: list[str] = []
-        analysis = {
+        analysis: dict[str, object] = {
             "sql_length": len(sql),
             "has_joins": "JOIN" in sql.upper(),
             "has_subqueries": "(" in sql and "SELECT" in sql.upper(),

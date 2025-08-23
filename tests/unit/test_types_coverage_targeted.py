@@ -534,7 +534,7 @@ class TestTypesUtilityFunctions:
                 if hasattr(column, "validate_business_rules"):
                     validation_result = column.validate_business_rules()
                     # Any result is acceptable - we want code coverage
-                    assert validation_result.is_success or validation_result.is_failure
+                    assert validation_result.success or validation_result.is_failure
 
             except (ValueError, TypeError, RuntimeError):
                 # Exceptions are also valid outcomes and contribute to coverage

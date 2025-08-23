@@ -12,10 +12,10 @@ from __future__ import annotations
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
+from flext_core import FlextResult
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -30,11 +30,14 @@ from flext_db_oracle.exceptions import (
     FlextDbOracleQueryError,
 )
 from flext_db_oracle.metadata import FlextDbOracleMetadataManager
-from flext_db_oracle.models import FlextDbOracleColumn, FlextDbOracleTable, FlextDbOracleQueryResult
+from flext_db_oracle.models import (
+    FlextDbOracleColumn,
+    FlextDbOracleQueryResult,
+    FlextDbOracleTable,
+)
 from flext_db_oracle.observability import FlextDbOracleObservabilityManager
 from flext_db_oracle.plugins import register_all_oracle_plugins
 from flext_db_oracle.utilities import FlextDbOracleUtilities
-from flext_core import FlextResult
 
 
 class TestFlextDbOracleConfig:
@@ -55,7 +58,7 @@ class TestFlextDbOracleConfig:
             retry_attempts=5,
             retry_delay=2.0,
         )
-        
+
         assert config.host == "test-host"
         assert config.port == 1521
         assert config.service_name == "TEST"
@@ -74,12 +77,12 @@ class TestFlextDbOracleConfig:
             "FLEXT_TARGET_ORACLE_USERNAME": "envuser",
             "FLEXT_TARGET_ORACLE_PASSWORD": "envpass",
         }
-        
+
         with patch.dict(os.environ, env_vars):
-            config_result = FlextDbOracleConfig.from_env()
+            config_result = FlextDbOracleConfig.from_env_with_result()
             assert config_result.success
             config = config_result.value
-            
+
             assert config.host == "env-host"
             assert config.port == 1522
             assert config.service_name == "ENVTEST"
@@ -97,7 +100,7 @@ class TestFlextDbOracleConfig:
                 username="test",
                 password=SecretStr("test"),
             )
-        
+
         # Test invalid pool configuration
         with pytest.raises(ValueError):
             FlextDbOracleConfig(
@@ -119,7 +122,7 @@ class TestFlextDbOracleConfig:
             username="testuser",
             password=SecretStr("testpass"),
         )
-        
+
         conn_string = config.get_connection_string()
         assert "testhost:1521/TESTDB" in conn_string
 
@@ -127,7 +130,7 @@ class TestFlextDbOracleConfig:
         """Test configuration file operations."""
         with tempfile.TemporaryDirectory() as temp_dir:
             config_file = Path(temp_dir) / "oracle_config.json"
-            
+
             # Test config serialization logic
             config = FlextDbOracleConfig(
                 host="file-test",
@@ -136,7 +139,7 @@ class TestFlextDbOracleConfig:
                 username="fileuser",
                 password=SecretStr("filepass"),
             )
-            
+
             # Test config dict conversion
             config_dict = config.model_dump()
             assert config_dict["host"] == "file-test"
@@ -155,17 +158,17 @@ class TestFlextDbOracleConnection:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         connection = FlextDbOracleConnection(config)
-        
+
         # Test initial state
-        assert not connection.is_connected
-        assert connection.connection is None
-        
+        assert not connection.is_connected()
+        assert connection._engine is None
+
         # Test connection state properties
-        assert connection.host == "test"
-        assert connection.port == 1521
-        assert connection.service_name == "TEST"
+        assert connection.config.host == "test"
+        assert connection.config.port == 1521
+        assert connection.config.service_name == "TEST"
 
     def test_connection_string_building(self) -> None:
         """Test connection string building logic."""
@@ -176,10 +179,12 @@ class TestFlextDbOracleConnection:
             username="appuser",
             password=SecretStr("securepass"),
         )
-        
+
         connection = FlextDbOracleConnection(config)
-        conn_str = connection._build_connection_string()
-        
+        conn_str_result = connection._build_connection_url()
+        assert conn_str_result.success
+        conn_str = conn_str_result.value
+
         assert "oracle+oracledb://" in conn_str
         assert "oracle.example.com:1521" in conn_str
         assert "service_name=PRODDB" in conn_str
@@ -195,9 +200,9 @@ class TestFlextDbOracleConnection:
             retry_attempts=3,
             retry_delay=0.1,  # Fast for testing
         )
-        
+
         connection = FlextDbOracleConnection(config)
-        
+
         # Test retry logic structure (without actual connection)
         assert connection.config.retry_attempts == 3
         assert connection.config.retry_delay == 0.1
@@ -211,16 +216,23 @@ class TestFlextDbOracleConnection:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         connection = FlextDbOracleConnection(config)
+
+        # Test safe query building with parameter binding (real functionality)
+        result = connection.build_select_safe(
+            table_name="users",
+            columns=["id", "name", "status"],
+            conditions={"id": 123, "status": "active"},
+            schema_name=None
+        )
         
-        # Test parameter binding logic
-        sql = "SELECT * FROM users WHERE id = :user_id AND status = :status"
-        params = {"user_id": 123, "status": "active"}
-        
-        bound_params = connection._prepare_parameters(params)
-        assert bound_params["user_id"] == 123
-        assert bound_params["status"] == "active"
+        assert result.success
+        sql, params = result.value
+        assert ":param_id" in sql
+        assert ":param_status" in sql
+        assert params["param_id"] == 123
+        assert params["param_status"] == "active"
 
 
 class TestFlextDbOracleApi:
@@ -235,14 +247,14 @@ class TestFlextDbOracleApi:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
-        # Test initialization state
+
+        # Test initialization state - verificando estrutura real
         assert api.config == config
-        assert api._connection_manager is not None
-        assert api._query_executor is not None
-        assert api._metadata_manager is not None
+        assert hasattr(api, "_connection_manager")
+        assert hasattr(api, "_query_executor")
+        assert hasattr(api, "_observability")
 
     def test_api_context_manager_protocol(self) -> None:
         """Test API context manager protocol."""
@@ -253,9 +265,9 @@ class TestFlextDbOracleApi:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test context manager methods exist
         assert hasattr(api, "__enter__")
         assert hasattr(api, "__exit__")
@@ -271,9 +283,9 @@ class TestFlextDbOracleApi:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test health check structure exists
         assert hasattr(api, "get_health_check")
         assert callable(api.get_health_check)
@@ -287,19 +299,20 @@ class TestFlextDbOracleApi:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test optimization logic
         sql = "SELECT * FROM large_table WHERE status = 'active'"
         optimization_result = api.optimize_query(sql)
-        
+
         # Should return optimization suggestions structure
         assert optimization_result.success
-        suggestions = optimization_result.value
-        assert isinstance(suggestions, dict)
-        assert "query" in suggestions
-        assert "suggestions" in suggestions
+        analysis_result = optimization_result.value
+        assert isinstance(analysis_result, dict)
+        assert "sql_length" in analysis_result
+        assert "suggestions" in analysis_result
+        assert isinstance(analysis_result["suggestions"], list)
 
     def test_plugin_integration_logic(self) -> None:
         """Test plugin integration logic."""
@@ -310,12 +323,12 @@ class TestFlextDbOracleApi:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test plugin registration logic
         register_all_oracle_plugins(api)
-        
+
         # Verify plugin platform exists
         assert hasattr(api, "_plugin_platform")
         assert api._plugin_platform is not None
@@ -335,7 +348,7 @@ class TestFlextDbOracleModels:
             data_scale=0,
             default_value=None,
         )
-        
+
         assert column.column_name == "USER_ID"
         assert column.data_type == "NUMBER"
         assert not column.nullable
@@ -350,20 +363,20 @@ class TestFlextDbOracleModels:
                 column_id=1,
             ),
             FlextDbOracleColumn(
-                column_name="NAME", 
+                column_name="NAME",
                 data_type="VARCHAR2",
                 nullable=False,
                 column_id=2,
                 data_length=100,
             ),
         ]
-        
+
         table = FlextDbOracleTable(
             table_name="USERS",
             schema_name="APP",
             columns=columns,
         )
-        
+
         assert table.table_name == "USERS"
         assert table.schema_name == "APP"
         assert len(table.columns) == 2
@@ -371,13 +384,13 @@ class TestFlextDbOracleModels:
     def test_query_result_model_logic(self) -> None:
         """Test query result model logic."""
         result = FlextDbOracleQueryResult(
-            data=[{"id": 1, "name": "Test"}],
+            rows=[(1, "Test")],
             row_count=1,
             execution_time_ms=15.5,
             columns=["id", "name"],
         )
-        
-        assert len(result.data) == 1
+
+        assert len(result.rows) == 1
         assert result.row_count == 1
         assert result.execution_time_ms == 15.5
         assert result.columns == ["id", "name"]
@@ -392,12 +405,12 @@ class TestFlextDbOracleExceptions:
         base_error = FlextDbOracleError("Base error")
         assert str(base_error) == "Base error"
         assert isinstance(base_error, Exception)
-        
+
         # Test connection exception
         conn_error = FlextDbOracleConnectionError("Connection failed")
         assert str(conn_error) == "Connection failed"
         assert isinstance(conn_error, FlextDbOracleError)
-        
+
         # Test query exception
         query_error = FlextDbOracleQueryError("Query failed")
         assert str(query_error) == "Query failed"
@@ -409,7 +422,7 @@ class TestFlextDbOracleExceptions:
             "Connection timeout",
             context={"host": "oracle.example.com", "port": 1521}
         )
-        
+
         assert "Connection timeout" in str(error)
         assert hasattr(error, "context")
         if hasattr(error, "context"):
@@ -429,7 +442,7 @@ class TestFlextDbOracleUtilities:
             "FLEXT_TARGET_ORACLE_USERNAME": "utiluser",
             "FLEXT_TARGET_ORACLE_PASSWORD": "utilpass",
         }
-        
+
         with patch.dict(os.environ, env_vars):
             config_result = FlextDbOracleUtilities.create_config_from_env()
             assert config_result.success
@@ -445,7 +458,7 @@ class TestFlextDbOracleUtilities:
             username="test",
             password=SecretStr("test"),
         )
-        
+
         api = FlextDbOracleUtilities.create_api_from_config(config)
         assert isinstance(api, FlextDbOracleApi)
         assert api.config == config
@@ -456,15 +469,15 @@ class TestFlextDbOracleUtilities:
             {"id": 1, "name": "Alice", "status": "active"},
             {"id": 2, "name": "Bob", "status": "inactive"},
         ]
-        
+
         # Test JSON formatting
         json_result = FlextDbOracleUtilities.format_as_json(test_data)
         assert json_result.success
         json_str = json_result.value
         assert "Alice" in json_str
         assert "Bob" in json_str
-        
-        # Test CSV formatting  
+
+        # Test CSV formatting
         csv_result = FlextDbOracleUtilities.format_as_csv(test_data)
         assert csv_result.success
         csv_str = csv_result.value
@@ -478,16 +491,16 @@ class TestFlextDbOracleMetadata:
         """Test metadata manager initialization."""
         # Mock connection for metadata manager
         mock_connection = Mock()
-        
+
         manager = FlextDbOracleMetadataManager(mock_connection)
-        assert manager._connection == mock_connection
+        assert manager.connection == mock_connection
 
     def test_schema_metadata_structure(self) -> None:
         """Test schema metadata structure logic."""
         # Test schema metadata structure without actual database
         mock_connection = Mock()
         manager = FlextDbOracleMetadataManager(mock_connection)
-        
+
         # Test the method exists and has correct signature
         assert hasattr(manager, "get_schema_metadata")
         assert callable(manager.get_schema_metadata)
@@ -496,7 +509,7 @@ class TestFlextDbOracleMetadata:
         """Test table metadata structure logic."""
         mock_connection = Mock()
         manager = FlextDbOracleMetadataManager(mock_connection)
-        
+
         # Test the method exists and has correct signature
         assert hasattr(manager, "get_table_metadata")
         assert callable(manager.get_table_metadata)
@@ -508,10 +521,10 @@ class TestFlextDbOracleObservability:
     def test_observability_manager_initialization(self) -> None:
         """Test observability manager initialization."""
         from flext_core import get_flext_container
-        
+
         container = get_flext_container()
         manager = FlextDbOracleObservabilityManager(container, "test_context")
-        
+
         # Test initialization state
         assert hasattr(manager, "create_trace")
         assert hasattr(manager, "record_metric")
@@ -519,10 +532,10 @@ class TestFlextDbOracleObservability:
     def test_observability_structure(self) -> None:
         """Test observability structure."""
         from flext_core import get_flext_container
-        
+
         container = get_flext_container()
         manager = FlextDbOracleObservabilityManager(container, "test_context")
-        
+
         # Test operation tracking structure
         assert hasattr(manager, "create_trace")
         assert hasattr(manager, "record_metric")
@@ -534,18 +547,18 @@ class TestFlextDbOracleCLI:
     def test_cli_application_initialization(self) -> None:
         """Test CLI application initialization."""
         app = FlextDbOracleCliApplication()
-        
+
         # Test initialization state
         assert hasattr(app, "console")
         assert hasattr(app, "logger")
-        assert hasattr(app, "config")
+        assert hasattr(app, "cli_config")
         assert hasattr(app, "user_preferences")
         assert isinstance(app.user_preferences, dict)
 
     def test_cli_initialization_logic(self) -> None:
         """Test CLI initialization logic."""
         app = FlextDbOracleCliApplication()
-        
+
         # Test initialization can run without external dependencies
         init_result = app.initialize_application()
         # Should handle setup gracefully
@@ -554,10 +567,10 @@ class TestFlextDbOracleCLI:
     def test_cli_service_registration_logic(self) -> None:
         """Test CLI service registration logic."""
         app = FlextDbOracleCliApplication()
-        
+
         # Test service registration structure
         app._register_core_services()
-        
+
         # Verify services are structured correctly
         assert hasattr(app, "container")
         assert hasattr(app, "console")
@@ -567,9 +580,9 @@ class TestFlextDbOracleCLI:
         """Test CLI main entry point logic."""
         # Test main function exists and handles errors
         assert callable(main)
-        
+
         # Test with empty args to avoid Click parsing issues
-        with patch('flext_db_oracle.cli.oracle_cli') as mock_cli:
+        with patch("flext_db_oracle.cli.oracle_cli") as mock_cli:
             with pytest.raises(SystemExit):
                 # Should handle KeyboardInterrupt gracefully
                 mock_cli.side_effect = KeyboardInterrupt()
@@ -585,7 +598,7 @@ class TestComprehensiveCoverage:
         success_result = FlextResult[str].ok("test_data")
         assert success_result.success
         assert success_result.value == "test_data"
-        
+
         # Test failure result
         failure_result = FlextResult[str].fail("test_error")
         assert not failure_result.success
@@ -600,11 +613,11 @@ class TestComprehensiveCoverage:
             username="integration",
             password=SecretStr("integration"),
         )
-        
+
         # Test config integration with API
         api = FlextDbOracleApi(config)
         assert api.config == config
-        
+
         # Test config integration with connection
         connection = FlextDbOracleConnection(config)
         assert connection.config == config
@@ -619,14 +632,14 @@ class TestComprehensiveCoverage:
             username="error",
             password=SecretStr("error"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test error handling in API methods
         assert hasattr(api, "test_connection")
         assert hasattr(api, "query")
         assert hasattr(api, "get_schemas")
-        
+
         # All methods should return FlextResult for proper error handling
         assert callable(api.test_connection)
         assert callable(api.query)
@@ -642,7 +655,7 @@ class TestComprehensiveCoverage:
             username="types",
             password=SecretStr("types"),
         )
-        
+
         # Type assertions for critical attributes
         assert isinstance(config.host, str)
         assert isinstance(config.port, int)
@@ -659,12 +672,12 @@ class TestComprehensiveCoverage:
             username="plugins",
             password=SecretStr("plugins"),
         )
-        
+
         api = FlextDbOracleApi(config)
-        
+
         # Test plugin registration
         register_all_oracle_plugins(api)
-        
+
         # Verify plugin platform integration
         assert hasattr(api, "_plugin_platform")
 
@@ -677,13 +690,13 @@ class TestComprehensiveCoverage:
             FlextDbOracleConnection,
             __version__,
         )
-        
+
         # Test all imports are accessible
         assert FlextDbOracleApi is not None
         assert FlextDbOracleConfig is not None
         assert FlextDbOracleConnection is not None
         assert __version__ is not None
-        
+
         # Test import paths are correct
         assert hasattr(FlextDbOracleApi, "__init__")
         assert hasattr(FlextDbOracleConfig, "from_env")

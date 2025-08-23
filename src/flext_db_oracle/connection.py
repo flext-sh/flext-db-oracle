@@ -209,7 +209,7 @@ class FlextDbOracleConnection:
                 conn.execute(text(FlextOracleDbSemanticConstants.Query.TEST_QUERY))
 
             self._logger.info("Connected using SQLAlchemy 2")
-            return FlextResult[bool].ok(True)  # noqa: FBT003
+            return FlextResult[bool].ok(data=True)  # noqa: FBT003
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return self._handle_database_error_with_logging("Failed to connect", e)
@@ -222,7 +222,7 @@ class FlextDbOracleConnection:
                 self._engine = None
                 self._session_factory = None
                 self._logger.info("Disconnected from Oracle database")
-            return FlextResult[bool].ok(True)  # noqa: FBT003
+            return FlextResult[bool].ok(data=True)  # noqa: FBT003
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return FlextResult[bool].fail(f"Disconnect failed: {e}")
 

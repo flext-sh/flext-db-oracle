@@ -132,6 +132,10 @@ class FlextDbOracleMetadataManager:
             FlextResult containing list of table names, or error if operation fails
 
         """
+        # Validate input parameters
+        if schema_name is not None and (not schema_name or not isinstance(schema_name, str)):
+            return FlextResult[list[str]].fail("Schema name must be a non-empty string or None")
+            
         if schema_name:
             query = """
             SELECT table_name
@@ -180,6 +184,12 @@ class FlextDbOracleMetadataManager:
             FlextResult containing list of column names, or error if operation fails
 
         """
+        # Validate input parameters
+        if not table_name or not isinstance(table_name, str):
+            return FlextResult[list[str]].fail("Table name must be a non-empty string")
+        
+        if schema_name is not None and (not schema_name or not isinstance(schema_name, str)):
+            return FlextResult[list[str]].fail("Schema name must be a non-empty string or None")
         if schema_name:
             query = """
             SELECT column_name

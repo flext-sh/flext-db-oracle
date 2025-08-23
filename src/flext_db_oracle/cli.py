@@ -25,8 +25,11 @@ from flext_cli import (
     cli_handle_keyboard_interrupt,
     cli_measure_time,
     create_cli_container,
-    get_cli_config,
     setup_cli,
+)
+from flext_cli.simple_api import (
+    create_development_cli_config,
+    create_production_cli_config,
 )
 from flext_core import (
     FlextDecorators,
@@ -47,22 +50,33 @@ from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
 class FlextDbOracleCliApplication:
-    """Enterprise Oracle CLI application with comprehensive flext-cli integration."""
+    """Enterprise Oracle CLI application with comprehensive flext-cli integration.
 
-    def __init__(self) -> None:
-        """Initialize Oracle CLI application."""
+    Follows flext-cli hierarchical configuration patterns and modern architecture.
+    """
+
+    def __init__(self, *, debug: bool = False) -> None:
+        """Initialize Oracle CLI application with hierarchical configuration."""
+        # Modern flext-cli pattern: Use hierarchical configuration
+        self.cli_config = (
+            create_development_cli_config(debug=True, log_level="DEBUG")
+            if debug
+            else create_production_cli_config(debug=False, log_level="INFO")
+        )
+
+        # Core CLI components using modern patterns
         self.console = Console()
         self.logger = get_logger(__name__)
-        self.config = get_cli_config()
-        # Container with register method - cast for type safety
         self.container: object = create_cli_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
-        # Application state
+        # Application state with modern patterns
         self.current_connection: object | None = None
         self.active_operations: list[str] = []
-        self.user_preferences = {
+
+        # Modern flext-cli pattern: Type-safe user preferences
+        self.user_preferences: dict[str, object] = {
             "default_output_format": "table",
             "auto_confirm_operations": False,
             "show_execution_time": True,
@@ -86,7 +100,7 @@ class FlextDbOracleCliApplication:
 
             # Setup CLI foundation
             setup_result = setup_cli()
-            if setup_result.is_failure:
+            if not setup_result.success:
                 return FlextResult[None].fail(f"CLI setup failed: {setup_result.error}")
 
             # Register services in container
@@ -103,7 +117,7 @@ class FlextDbOracleCliApplication:
         services = [
             ("console", self.console),
             ("logger", self.logger),
-            ("config", self.config),
+            ("config", self.cli_config),
             ("api_client", self.api_client),
             ("entity_factory", self.entity_factory),
         ]
@@ -114,12 +128,24 @@ class FlextDbOracleCliApplication:
                 self.container.register(service_name, service_instance)
 
 
-# Global application instance
-app = FlextDbOracleCliApplication()
+# Global application instance - initialized with debug detection
+app: FlextDbOracleCliApplication | None = None
 
 
-# Main CLI group with comprehensive configuration
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+def get_app(*, debug: bool = False) -> FlextDbOracleCliApplication:
+    """Get or create the global application instance with proper configuration."""
+    global app  # noqa: PLW0603
+    if app is None:
+        app = FlextDbOracleCliApplication(debug=debug)
+    return app
+
+
+# Main CLI group with modern flext-cli patterns
+@click.group(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    invoke_without_command=True,
+)
+@click.version_option(version="0.9.0", prog_name="flext-db-oracle")
 @click.option(
     "--profile",
     default="default",
@@ -141,6 +167,11 @@ app = FlextDbOracleCliApplication()
 )
 @click.option("--verbose/--quiet", default=False, help="Verbose output")
 @click.pass_context
+@cli_enhanced(
+    validate_inputs=True,
+    handle_keyboard_interrupt=True,
+    measure_time=True,
+)
 def oracle_cli(
     ctx: click.Context,
     profile: str,
@@ -154,31 +185,41 @@ def oracle_cli(
     Professional Oracle database management with comprehensive CLI capabilities
     including connection management, query execution, schema operations, and more.
     """
-    # Initialize application
-    init_result = app.initialize_application()
-    if init_result.is_failure:
-        app.console.print(f"[red]Initialization failed: {init_result.error}[/red]")
+    # Modern flext-cli pattern: Get application with debug configuration
+    application = get_app(debug=debug)
+
+    # Initialize application using modern setup_cli patterns
+    init_result = application.initialize_application()
+    if not init_result.success:
+        application.console.print(
+            f"[red]Initialization failed: {init_result.error}[/red]"
+        )
         ctx.exit(1)
 
-    # Setup Click context
+    # Modern flext-cli pattern: Setup Click context with CLI components
     ctx.ensure_object(dict)
-    ctx.obj["app"] = app
+    ctx.obj["app"] = application
     ctx.obj["profile"] = profile
     ctx.obj["output_format"] = output
     ctx.obj["debug"] = debug
     ctx.obj["verbose"] = verbose
 
-    # Configure CLI context
+    # Modern flext-cli pattern: Hierarchical configuration context
     cli_context = FlextCliContext(
-        console=app.console,
+        console=application.console,
         debug=debug,
         quiet=not verbose,
         verbose=verbose,
     )
     ctx.obj["cli_context"] = cli_context
+    ctx.obj["config"] = application.cli_config
+
+    # Show help if no command (modern flext-cli pattern)
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
 
     if debug:
-        app.console.print(
+        application.console.print(
             f"[dim]Profile: {profile} | Format: {output} | Debug: {debug} | Verbose: {verbose}[/dim]"
         )
 
@@ -279,6 +320,13 @@ def test(
 
 @oracle_cli.command()
 @click.pass_context
+@cli_enhanced(
+    validate_inputs=True,
+    handle_keyboard_interrupt=True,
+    measure_time=True,
+)
+@FlextLoggingDecorators.log_execution
+@FlextPerformanceDecorators.time_execution
 def connect_env(ctx: click.Context) -> None:
     """Connect to Oracle database using environment variables."""
     debug = ctx.obj["debug"]
@@ -345,12 +393,17 @@ def connect_env(ctx: click.Context) -> None:
 
 @oracle_cli.command()
 @click.option("--sql", required=True, help="SQL query to execute")
-@cli_enhanced
-@FlextPerformanceDecorators.time_execution
-@FlextLoggingDecorators.log_calls
-@FlextDecorators.safe_call((KeyboardInterrupt,))
+@click.option("--limit", type=int, default=100, help="Limit number of rows returned")
 @click.pass_context
-def query(ctx: click.Context, sql: str) -> None:
+@cli_enhanced(
+    validate_inputs=True,
+    handle_keyboard_interrupt=True,
+    measure_time=True,
+)
+@FlextLoggingDecorators.log_execution
+@FlextPerformanceDecorators.time_execution
+@FlextDecorators.safe_result
+def query(ctx: click.Context, sql: str, limit: int) -> None:
     """Execute SQL query against Oracle database."""
     debug = ctx.obj["debug"]
     output_format = ctx.obj["output_format"]
@@ -369,16 +422,23 @@ def query(ctx: click.Context, sql: str) -> None:
         try:
             with api as connected_api:
                 if debug:
-                    app.console.print(f"[blue]Executing query: {sql[:100]}...[/blue]")
+                    app.console.print(
+                        f"[blue]Executing query (limit={limit}): {sql[:100]}...[/blue]"
+                    )
 
-                # Execute query
+                # Execute query with limit
                 query_result = connected_api.query(sql)
                 if not query_result.success:
                     app.console.print(f"[red]Query failed: {query_result.error}[/red]")
                     ctx.exit(1)
 
-                # Display result
+                # Apply limit to result data
                 result_data = query_result.value
+                if isinstance(result_data, list) and len(result_data) > limit:
+                    result_data = result_data[:limit]
+                    app.console.print(
+                        f"[yellow]Result limited to {limit} rows[/yellow]"
+                    )
                 FlextDbOracleUtilities.format_query_result(
                     result_data, output_format, app.console
                 )
@@ -394,6 +454,13 @@ def query(ctx: click.Context, sql: str) -> None:
 
 @oracle_cli.command()
 @click.pass_context
+@cli_enhanced(
+    validate_inputs=True,
+    handle_keyboard_interrupt=True,
+    measure_time=True,
+)
+@FlextLoggingDecorators.log_execution
+@FlextPerformanceDecorators.time_execution
 def schemas(ctx: click.Context) -> None:
     """List all database schemas."""
     debug = ctx.obj["debug"]
@@ -861,11 +928,11 @@ def database(ctx: click.Context, directory: Path) -> None:
         ):
             # Get comprehensive database information
             schemas_result = connected_api.get_schemas()
-            total_schemas = len(schemas_result.value) if schemas_result.success else 0
+            total_schemas = len(schemas_result.unwrap_or([]))
 
             # Get tables from current schema
             tables_result = connected_api.get_tables()
-            total_tables = len(tables_result.value) if tables_result.success else 0
+            total_tables = len(tables_result.unwrap_or([]))
 
             # Generate analysis report
             analysis_table = Table(title="Oracle Database Analysis")
@@ -911,10 +978,12 @@ def main() -> None:
         # oracle_cli is decorated with @click.group() so it will parse sys.argv automatically
         oracle_cli()  # Click handles sys.argv automatically
     except KeyboardInterrupt:
-        app.console.print("\n[yellow]Oracle CLI operation cancelled by user[/yellow]")
+        # Use simple print for keyboard interrupt without depending on app instance
+        print("\n[yellow]Oracle CLI operation cancelled by user[/yellow]")
         raise SystemExit(130) from None
     except Exception as e:
-        app.console.print(f"[bold red]Oracle CLI error: {e}[/bold red]")
+        # Use simple print for general errors without depending on app instance
+        print(f"[bold red]Oracle CLI error: {e}[/bold red]")
         raise SystemExit(1) from e
 
 

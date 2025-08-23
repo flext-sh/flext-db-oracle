@@ -20,7 +20,8 @@
             "pythonPlatform": "Linux",
             "extraPaths": [
                 "src",
-                "typings"
+                "typings",
+                "../flext-core/src"
             ]
         }
     ],

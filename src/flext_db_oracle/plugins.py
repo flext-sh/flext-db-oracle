@@ -27,7 +27,7 @@ Example:
     >>>
     >>> # Register all built-in plugins
     >>> register_result = register_all_oracle_plugins(api)
-    >>> registration_success = register_result.value if register_result.is_success else False
+    >>> registration_success = register_result.unwrap_or(False)
     >>> if registration_success:
     ...     print("All plugins registered successfully")
     >>>
@@ -53,12 +53,12 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
+from typing import cast
 
 from flext_core import FlextPlugin, FlextPluginContext, FlextResult, get_logger
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.typings import (
-    has_unwrap_or_method,
     is_result_like,
 )
 
@@ -190,15 +190,17 @@ def _validate_table_structure(
         if tables_result.is_success:
             tables_list = tables_result.value
             if tables_list:
-                tables = tables_result.value
-        else:
-            tables_list = []
-            table_names = [
-                getattr(t, "name", str(t)) if hasattr(t, "name") else str(t)
-                for t in tables
-            ]
-            if table_name.upper() not in [t.upper() for t in table_names]:
-                errors.append(f"Table '{table_name}' does not exist")
+                # PyRight fix: Proper type checking for table objects
+                table_names: list[str] = []
+                for table_obj in tables_list:
+                    if hasattr(table_obj, "name"):
+                        table_names.append(str(table_obj.name))
+                    else:
+                        table_names.append(str(table_obj))
+
+                if table_name.upper() not in [t.upper() for t in table_names]:
+                    errors.append(f"Table '{table_name}' does not exist")
+        # If tables_result failed, skip table validation (no error)
     except Exception as e:
         # Log but don't fail validation if table check fails - refatoração DRY real
         logger = get_logger(f"{__name__}._validate_table_structure")
@@ -304,7 +306,7 @@ class OraclePluginFactory:
         description: str,
         plugin_type: str,
         specific_config: dict[str, object],
-    ) -> FlextResult[object]:
+    ) -> FlextResult[FlextPlugin]:
         """Template method for creating Oracle plugins with consistent patterns."""
         base_config: dict[str, object] = {
             "description": description,
@@ -323,14 +325,14 @@ class OraclePluginFactory:
                 config=full_config,
                 handler=specific_config.get("callable_obj"),
             )
-            return FlextResult[object].ok(plugin)
+            return FlextResult[FlextPlugin].ok(plugin)
         except Exception as e:
-            return FlextResult[object].fail(
+            return FlextResult[FlextPlugin].fail(
                 f"Failed to create Oracle plugin '{name}': {e}"
             )
 
     @classmethod
-    def create_performance_monitor(cls) -> FlextResult[object]:
+    def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
         """Create performance monitoring plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_performance_monitor",
@@ -345,7 +347,7 @@ class OraclePluginFactory:
         )
 
     @classmethod
-    def create_security_audit(cls) -> FlextResult[object]:
+    def create_security_audit(cls) -> FlextResult[FlextPlugin]:
         """Create security audit plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_security_audit",
@@ -360,7 +362,7 @@ class OraclePluginFactory:
         )
 
     @classmethod
-    def create_data_validation(cls) -> FlextResult[object]:
+    def create_data_validation(cls) -> FlextResult[FlextPlugin]:
         """Create data validation plugin using DRY template."""
         return cls._create_plugin_template(
             name="oracle_data_validator",
@@ -410,27 +412,22 @@ class OraclePluginHandler:
 def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
     """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
     if callable(factory_method):
-        result = factory_method()
-        if is_result_like(result) and has_unwrap_or_method(result):
-            unwrap_or_method = getattr(result, "unwrap_or", None)
-            plugin_obj = (
-                unwrap_or_method(None)
-                if unwrap_or_method and callable(unwrap_or_method)
-                else None
-            )
-            if plugin_obj:
+        try:
+            result = factory_method()
+            # Modern FlextResult pattern: use .success and .value
+            if hasattr(result, "success") and result.success:
+                plugin_obj = result.value
                 # Basic validation that the result has plugin-like attributes
                 if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
-                    return FlextResult[FlextPlugin].ok(plugin_obj)
+                    return FlextResult[FlextPlugin].ok(cast("FlextPlugin", plugin_obj))
                 return FlextResult[FlextPlugin].fail(
                     "Factory method returned object without required attributes"
                 )
-            error_msg = (
-                getattr(result, "error", "Factory method failed")
-                or "Factory method failed"
-            )
+            # Handle failure case
+            error_msg = getattr(result, "error", "Factory method failed") or "Factory method failed"
             return FlextResult[FlextPlugin].fail(str(error_msg))
-        return FlextResult[FlextPlugin].fail("Factory method returned invalid result")
+        except Exception as e:
+            return FlextResult[FlextPlugin].fail(f"Factory method execution failed: {e}")
     return FlextResult[FlextPlugin].fail("Factory method is not callable")
 
 
@@ -469,23 +466,27 @@ def performance_monitor_plugin_handler(
         if execution_time_ms and execution_time_ms > threshold_ms:
             result_data["is_slow_query"] = True
             recommendations_raw = result_data.get("recommendations", [])
-            recommendations: list[str] = (
-                recommendations_raw if isinstance(recommendations_raw, list) else []
-            )
-            if isinstance(recommendations, list):
-                recommendations.extend(
-                    [
-                        "Consider adding database indexes",
-                        "Review query execution plan",
-                        "Check for missing WHERE clauses",
-                        "Analyze table statistics",
-                    ],
-                )
-                result_data["recommendations"] = recommendations
+
+            # PyRight FIX: Ensure proper list[str] typing with type narrowing
+            recommendations: list[str] = []
+            if isinstance(recommendations_raw, list):
+                recommendations = [
+                    str(item) if item is not None else ""
+                    for item in recommendations_raw
+                ]
+
+            recommendations.extend([
+                "Consider adding database indexes",
+                "Review query execution plan",
+                "Check for missing WHERE clauses",
+                "Analyze table statistics",
+            ])
+            result_data["recommendations"] = recommendations
 
             # Log slow query if configured
             if kwargs.get("log_slow_queries", True):
-                api._logger.warning(
+                logger = get_logger("oracle_performance_monitor")
+                logger.warning(
                     "Slow query detected: %.2fms > %.2fms threshold",
                     execution_time_ms,
                     threshold_ms,
@@ -594,7 +595,7 @@ def _check_sql_injection_patterns(
 
 def _audit_ddl_operations(
     sql_upper: str,
-    api: FlextDbOracleApi,
+    api: FlextDbOracleApi,  # noqa: ARG001 - api kept for consistent interface
     kwargs: dict[str, object],
 ) -> list[str]:
     """SOLID REFACTORING: Extract Method for DDL operation auditing.
@@ -611,7 +612,8 @@ def _audit_ddl_operations(
                 warnings.append(
                     f"DDL operation detected: {operation}",
                 )
-                api._logger.info(
+                logger = get_logger("oracle_security_audit")
+                logger.info(
                     "DDL operation audited: %s",
                     operation,
                 )
@@ -656,15 +658,23 @@ def data_validation_plugin_handler(
             },
         )
 
-        # MYPY FIX: Safe access to validation lists
+        # PyRight FIX: Safe access to validation lists with proper typing
         validation_errors_obj = result_data.get("validation_errors", [])
         validation_warnings_obj = result_data.get("validation_warnings", [])
-        validation_errors: list[str] = (
-            validation_errors_obj if isinstance(validation_errors_obj, list) else []
-        )
-        validation_warnings: list[str] = (
-            validation_warnings_obj if isinstance(validation_warnings_obj, list) else []
-        )
+
+        # Ensure proper list[str] typing with type narrowing
+        validation_errors: list[str] = []
+        if isinstance(validation_errors_obj, list):
+            validation_errors = [
+                str(item) if item is not None else "" for item in validation_errors_obj
+            ]
+
+        validation_warnings: list[str] = []
+        if isinstance(validation_warnings_obj, list):
+            validation_warnings = [
+                str(item) if item is not None else ""
+                for item in validation_warnings_obj
+            ]
 
         # Apply DRY validation patterns - refatoração real
         if data and kwargs.get("validate_data_types", True):
@@ -723,7 +733,11 @@ def _register_single_plugin(  # noqa: PLR0911
             return f"❌ {plugin_name}: Plugin creator returned invalid result"
 
         # Modern FlextResult pattern: use unwrap_or for plugin creation
-        plugin = getattr(plugin_result, "unwrap_or", lambda _: None)(None)
+        # PyRight FIX: Properly typed lambda with object parameter
+        def default_fallback(_unused: object) -> None:
+            return None
+
+        plugin = getattr(plugin_result, "unwrap_or", default_fallback)(None)
         if plugin is None:
             error_msg = getattr(plugin_result, "error", "Unknown error")
             return f"creation_failed: {error_msg}"
@@ -743,7 +757,7 @@ def _register_single_plugin(  # noqa: PLR0911
 
 def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, str]]:
     """Register all Oracle plugins with the API using DRY helper."""
-    results = {}
+    results: dict[str, str] = {}
 
     for plugin_name, plugin_creator in ORACLE_PLUGINS.items():
         results[plugin_name] = _register_single_plugin(api, plugin_name, plugin_creator)

@@ -22,8 +22,11 @@ from typing import cast
 from flext_core import get_logger
 from pydantic import SecretStr
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConfig,
+    FlextDbOracleUtilities,
+)
 
 logger = get_logger(__name__)
 

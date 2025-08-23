@@ -412,7 +412,9 @@ def demonstrate_modern_decorator_patterns() -> None:
 
         # Pattern 2: Performance-monitored connection test
         logger.info("  2. Creating performance-monitored connection test")
-        _monitored_test = FlextDbOracleUtilities.create_performance_monitored_connection_test()
+        _monitored_test = (
+            FlextDbOracleUtilities.create_performance_monitored_connection_test()
+        )
 
         # Pattern 3: Validated schema fetcher with combined decorators
         logger.info("  3. Creating validated schema fetcher with multiple decorators")
@@ -432,7 +434,9 @@ def demonstrate_modern_decorator_patterns() -> None:
             return len(tables_result.unwrap_or([]))
 
         logger.info("  4. Direct error handling demonstrated with manual checking")
-        logger.info("     Function safe_get_tables_count created with manual error handling")
+        logger.info(
+            "     Function safe_get_tables_count created with manual error handling"
+        )
 
         # Pattern 5: Performance monitoring (simplified pattern)
         def timed_schema_operations(api_instance: FlextDbOracleApi) -> dict[str, int]:
@@ -442,7 +446,9 @@ def demonstrate_modern_decorator_patterns() -> None:
             return {"schema_count": len(schemas_result.unwrap_or([]))}
 
         logger.info("  5. Performance monitoring for timing and metrics collection")
-        logger.info("     Function timed_schema_operations with manual performance tracking")
+        logger.info(
+            "     Function timed_schema_operations with manual performance tracking"
+        )
 
     demonstrator.demonstrate_with_api_operations(_perform_decorator_operations)
 
@@ -661,7 +667,10 @@ def demonstrate_utilities_patterns() -> None:
 
     # Pattern 4: Batch operations with boolean success indicator
     logger.info("📝 Batch operations with unwrap_or boolean pattern:")
-    operations: list[tuple[str, dict[str, object] | None]] = [("SELECT 1 FROM DUAL", None), ("SELECT 2 FROM DUAL", None)]
+    operations: list[tuple[str, dict[str, object] | None]] = [
+        ("SELECT 1 FROM DUAL", None),
+        ("SELECT 2 FROM DUAL", None),
+    ]
     batch_success = FlextDbOracleUtilities.safe_execute_batch(api, operations)
     logger.info(f"  • Batch executed: {'✅ Success' if batch_success else '❌ Failed'}")
 

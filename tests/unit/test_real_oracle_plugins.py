@@ -186,7 +186,7 @@ class TestRealOraclePluginIntegration:
         """Test plugins with Oracle connection operations."""
         # Register all plugins
         register_result = register_all_oracle_plugins(oracle_api)
-        assert register_result.is_success
+        assert register_result.success
 
         # Test connection still works - using modern pattern
         connection_result = oracle_api.test_connection()
@@ -231,7 +231,7 @@ class TestRealOraclePluginIntegration:
         """Test comprehensive plugin coverage with various Oracle operations."""
         # Register all plugins
         register_result = register_all_oracle_plugins(oracle_api)
-        assert register_result.is_success
+        assert register_result.success
 
         # Test various API operations to ensure plugins don't interfere
         operations: list[object] = [

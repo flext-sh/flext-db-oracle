@@ -180,7 +180,7 @@ class TestOracleE2E:
             finally:
                 # Cleanup: Drop test table
                 drop_ddl_result = api.drop_table_ddl(test_table_name)
-                if drop_ddl_result.is_success:
+                if drop_ddl_result.success:
                     cleanup_sql = drop_ddl_result.value
                     api.execute_ddl(cleanup_sql)
 
@@ -297,12 +297,12 @@ class TestOracleE2E:
 
         # Operations without connection should fail gracefully
         query_result = api.query("SELECT 1 FROM DUAL")
-        if query_result.is_success:
+        if query_result.success:
             raise AssertionError("Query should fail without connection")
         assert "database not connected" in (query_result.error or "").lower()
 
         metadata_result = api.get_tables()
-        if metadata_result.is_success:
+        if metadata_result.success:
             raise AssertionError("Get tables should fail without connection")
         assert "no database connection" in (metadata_result.error or "").lower()
 
@@ -357,7 +357,7 @@ class TestOracleE2E:
                 # Test query with timing
                 timed_result = api.query_with_timing("SELECT 1 FROM DUAL")
 
-                if timed_result.is_success:
+                if timed_result.success:
                     query_result = timed_result.value
                     assert hasattr(query_result, "execution_time_ms")
                     assert query_result.execution_time_ms >= 0

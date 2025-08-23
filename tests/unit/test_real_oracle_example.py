@@ -336,7 +336,7 @@ class TestRealOracleApi:
             # Cleanup - drop table
             with contextlib.suppress(Exception):
                 drop_ddl = connected_oracle_api.drop_table_ddl(table_name)
-                if drop_ddl.is_success:
+                if drop_ddl.success:
                     # Use modern .value access for successful DDL
                     drop_sql = drop_ddl.value
                     connected_oracle_api.execute_ddl(drop_sql)

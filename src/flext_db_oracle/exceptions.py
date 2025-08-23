@@ -36,7 +36,13 @@ class FlextDbOracleError(Exception):
     Implements FlextError interface patterns manually.
     """
 
-    def __init__(self, message: str, *, code: str | None = None, context: dict[str, object] | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        code: str | None = None,
+        context: dict[str, object] | None = None,
+    ) -> None:
         """Initialize Oracle error with message, optional code and context."""
         super().__init__(message)
         self.message = message
@@ -104,7 +110,9 @@ class FlextDbOracleQueryError(FlextDbOracleError):
         if rows_affected is not None:
             context_dict["rows_affected"] = rows_affected
 
-        super().__init__(message, code=code.value if code else None, context=context_dict)
+        super().__init__(
+            message, code=code.value if code else None, context=context_dict
+        )
 
 
 class FlextDbOracleMetadataError(FlextDbOracleError):
@@ -133,7 +141,9 @@ class FlextDbOracleMetadataError(FlextDbOracleError):
         if operation is not None:
             context_dict["operation"] = operation
 
-        super().__init__(message, code=code.value if code else None, context=context_dict)
+        super().__init__(
+            message, code=code.value if code else None, context=context_dict
+        )
 
 
 class FlextDbOracleConnectionOperationError(FlextDbOracleConnectionError):
@@ -165,7 +175,9 @@ class FlextDbOracleConnectionOperationError(FlextDbOracleConnectionError):
         if connection_timeout is not None:
             context_dict["connection_timeout"] = connection_timeout
 
-        super().__init__(message, code=code.value if code else None, context=context_dict)
+        super().__init__(
+            message, code=code.value if code else None, context=context_dict
+        )
 
 
 __all__: list[str] = [

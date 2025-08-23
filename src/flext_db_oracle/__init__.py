@@ -50,6 +50,7 @@ __all__: list[str] = [
     "FlextDbOracleConfigurationError",
     "FlextDbOracleConnection",
     "FlextDbOracleConnectionError",
+    "FlextDbOracleConstants",
     "FlextDbOracleError",
     "FlextDbOracleErrorHandler",
     "FlextDbOracleMetadataError",
@@ -63,17 +64,12 @@ __all__: list[str] = [
     "FlextDbOracleTimeoutError",
     "FlextDbOracleUtilities",
     "FlextDbOracleValidationError",
-    "FlextDbOracleConstants",
     "MergeStatementConfig",
-    # LEGACY EXPORTS REMOVED - Use FlextDbOracle* models directly
     "__version__",
     "__version_info__",
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",
     "create_security_audit_plugin",
-    # CLI entrypoint is lazily provided via __getattr__ to avoid heavy deps at import time.
-    # "oracle",
-    # "oracle_cli",
     "register_all_oracle_plugins",
 ]
 

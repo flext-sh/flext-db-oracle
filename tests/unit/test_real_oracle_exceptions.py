@@ -46,7 +46,7 @@ class TestRealOracleExceptionsCore:
         result = connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
-        if result.is_success:
+        if result.success:
             raise AssertionError("Connection with invalid credentials should fail")
         # Failure case - use error directly
         error_msg = (result.error or "").lower()
@@ -80,7 +80,7 @@ class TestRealOracleExceptionsCore:
         result = connection.connect()
 
         # Should fail with connection error - using modern pattern
-        if result.is_success:
+        if result.success:
             raise AssertionError("Connection to unreachable host should fail")
         # Failure case - use error directly
         error_msg = (result.error or "").lower()
@@ -116,7 +116,7 @@ class TestRealOracleExceptionsCore:
             result = connection.connect()
 
             # Should fail configuration validation - using modern pattern
-            if result.is_success:
+            if result.success:
                 raise AssertionError("Connection with invalid config should fail")
             # Failure case - use error directly
             error_msg = result.error or ""
@@ -136,7 +136,7 @@ class TestRealOracleExceptionsCore:
         connection = FlextDbOracleConnection(real_oracle_config)
 
         connect_result = connection.connect()
-        assert connect_result.is_success
+        assert connect_result.success
 
         try:
             # Execute real invalid SQL against Oracle
@@ -185,7 +185,7 @@ class TestRealOracleExceptionsCore:
 
         connection = FlextDbOracleConnection(timeout_config)
         connect_result = connection.connect()
-        assert connect_result.is_success
+        assert connect_result.success
 
         try:
             # Execute query that might timeout (sleep simulation)
@@ -231,7 +231,7 @@ class TestRealOracleExceptionsAdvanced:
                 # May succeed with empty results or fail - both are valid
                 # Focus on ensuring no crashes and proper error handling
                 assert (
-                    result.is_success or result.is_failure
+                    result.success or result.is_failure
                 )  # Should return valid FlextResult
 
         # Try to get columns for non-existent table
@@ -265,10 +265,10 @@ class TestRealOracleExceptionsAdvanced:
             ]
 
             ddl_result = connected_oracle_api.create_table_ddl(table_name, columns)
-            assert ddl_result.is_success
+            assert ddl_result.success
 
             execute_result = connected_oracle_api.execute_ddl(ddl_result.value)
-            assert execute_result.is_success
+            assert execute_result.success
 
             # Try to insert NULL into NOT NULL column - should fail
             insert_sql = (
@@ -292,7 +292,7 @@ class TestRealOracleExceptionsAdvanced:
             # Cleanup
             with contextlib.suppress(Exception):
                 drop_ddl = connected_oracle_api.drop_table_ddl(table_name)
-                if drop_ddl.is_success:
+                if drop_ddl.success:
                     connected_oracle_api.execute_ddl(drop_ddl.value)
 
     def test_real_validation_error_scenario(self) -> None:

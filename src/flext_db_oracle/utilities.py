@@ -85,7 +85,9 @@ class FlextDbOracleUtilities:
             return []
 
     @staticmethod
-    def safe_get_tables_modern(api: FlextDbOracleApi, schema: str | None = None) -> list[str]:
+    def safe_get_tables_modern(
+        api: FlextDbOracleApi, schema: str | None = None
+    ) -> list[str]:
         """Modern pattern: Get tables using .value with exception handling."""
         try:
             return api.get_tables(schema).value
@@ -101,7 +103,9 @@ class FlextDbOracleUtilities:
             return False
 
     @staticmethod
-    def safe_access_query_result(query_result: FlextDbOracleQueryResult, row_index: int = 0, col_index: int = 0) -> object | None:
+    def safe_access_query_result(
+        query_result: FlextDbOracleQueryResult, row_index: int = 0, col_index: int = 0
+    ) -> object | None:
         """Safely access query result data with proper type checking."""
         if not query_result or not query_result.rows:
             return None
@@ -125,6 +129,7 @@ class FlextDbOracleUtilities:
         """Safely access dictionary value as string."""
         value = data.get(key, "")
         return str(value) if value is not None else ""
+
     #   try: return result.value   except: return None    # for nullable values
     #   try: return result.value   except: return {}      # for dictionaries
 
@@ -171,9 +176,7 @@ class FlextDbOracleUtilities:
 
     @staticmethod
     def safe_get_columns(
-        api: FlextDbOracleApi,
-        table: str,
-        schema: str | None = None
+        api: FlextDbOracleApi, table: str, schema: str | None = None
     ) -> list[dict[str, object]]:
         """Safely get table columns using modern FlextResult.value pattern.
 
@@ -193,9 +196,7 @@ class FlextDbOracleUtilities:
 
     @staticmethod
     def safe_execute_query(
-        api: FlextDbOracleApi,
-        sql: str,
-        params: dict[str, object] | None = None
+        api: FlextDbOracleApi, sql: str, params: dict[str, object] | None = None
     ) -> list[tuple[object, ...]]:
         """Safely execute query using modern FlextResult.value pattern.
 
@@ -274,11 +275,14 @@ class FlextDbOracleUtilities:
 
         """
         from flext_db_oracle.config import FlextDbOracleConfig  # noqa: PLC0415
+
         try:
             config = FlextDbOracleConfig.from_env()
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(f"Configuration creation failed: {e}")
+            return FlextResult[FlextDbOracleConfig].fail(
+                f"Configuration creation failed: {e}"
+            )
 
     @staticmethod
     def safe_create_config_from_env() -> FlextDbOracleConfig | None:
@@ -289,6 +293,7 @@ class FlextDbOracleUtilities:
 
         """
         from flext_db_oracle.config import FlextDbOracleConfig  # noqa: PLC0415
+
         try:
             # from_env() returns FlextDbOracleConfig directly (not FlextResult)
             return FlextDbOracleConfig.from_env()
@@ -307,10 +312,13 @@ class FlextDbOracleUtilities:
 
         """
         from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+
         return FlextDbOracleApi(config)
 
     @staticmethod
-    def safe_connect_with_config(config: FlextDbOracleConfig) -> FlextDbOracleApi | None:
+    def safe_connect_with_config(
+        config: FlextDbOracleConfig,
+    ) -> FlextDbOracleApi | None:
         """Safely create and connect API instance.
 
         Args:
@@ -322,6 +330,7 @@ class FlextDbOracleUtilities:
         """
         try:
             from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+
             api = FlextDbOracleApi(config)
             return api.connect()
         except Exception:
@@ -360,7 +369,10 @@ class FlextDbOracleUtilities:
     # =============================================================================
 
     @staticmethod
-    def create_safe_query_executor() -> Callable[[FlextDbOracleApi, str, dict[str, object] | None], FlextDbOracleQueryResult | None]:
+    def create_safe_query_executor() -> Callable[
+        [FlextDbOracleApi, str, dict[str, object] | None],
+        FlextDbOracleQueryResult | None,
+    ]:
         """Create a safe query executor using modern flext-core decorators.
 
         Uses FlextErrorHandlingDecorators for robust error handling.
@@ -369,11 +381,10 @@ class FlextDbOracleUtilities:
             Safe query execution function
 
         """
+
         # Use simple error handling without complex decorators due to type restrictions
         def safe_execute_query_decorated(
-            api: FlextDbOracleApi,
-            sql: str,
-            params: dict[str, object] | None = None
+            api: FlextDbOracleApi, sql: str, params: dict[str, object] | None = None
         ) -> FlextDbOracleQueryResult | None:
             """Execute query with modern decorator error handling."""
             try:
@@ -390,7 +401,9 @@ class FlextDbOracleUtilities:
         return safe_execute_query_decorated
 
     @staticmethod
-    def create_performance_monitored_connection_test() -> Callable[[FlextDbOracleApi], bool]:
+    def create_performance_monitored_connection_test() -> Callable[
+        [FlextDbOracleApi], bool
+    ]:
         """Create a performance-monitored connection test using modern decorators.
 
         Uses FlextPerformanceDecorators for timing and metrics.
@@ -399,12 +412,13 @@ class FlextDbOracleUtilities:
             Performance-monitored connection test function
 
         """
+
         # Use simple timing implementation without complex decorators due to type restrictions
         def monitored_connection_test(api: FlextDbOracleApi) -> bool:
             """Test connection with performance monitoring."""
             start_time = time.perf_counter()
             test_result = api.test_connection()
-            result = test_result.value if test_result.is_success else False
+            result = test_result.unwrap_or(False)
             duration = time.perf_counter() - start_time
 
             # Log performance metric (simplified)
@@ -425,24 +439,25 @@ class FlextDbOracleUtilities:
             Validated schema fetching function
 
         """
+
         # Use simple validation without complex decorators due to type restrictions
         def validated_get_schemas(api: FlextDbOracleApi) -> list[str]:
             """Get schemas with validation and error handling."""
             try:
                 FlextDbOracleUtilities.require_connection(api)
                 schema_result = api.get_schemas()
-                schemas = schema_result.value if schema_result.is_success else []
+                schemas = schema_result.unwrap_or([])
 
                 # Validate schemas are non-empty strings
                 return [
-                    str(schema) for schema in schemas
+                    str(schema)
+                    for schema in schemas
                     if schema and isinstance(schema, (str, int)) and str(schema).strip()
                 ]
             except Exception:
                 return []
 
         return validated_get_schemas
-
 
     @staticmethod
     def safe_query(
@@ -465,7 +480,7 @@ class FlextDbOracleUtilities:
             columns=[], rows=[], row_count=0, query_hash=None
         )
         query_result = api.query(sql, params)
-        result = query_result.value if query_result.is_success else empty_result
+        result = query_result.unwrap_or(empty_result)
         return result.rows
 
     @staticmethod
@@ -486,8 +501,7 @@ class FlextDbOracleUtilities:
 
         """
         query_result = api.query_one(sql, params)
-        return query_result.value if query_result.is_success else None
-
+        return query_result.unwrap_or(None)
 
     @staticmethod
     def validate_connection_with_retry(
@@ -624,15 +638,8 @@ class FlextDbOracleUtilities:
         if output_format == "table":
             FlextDbOracleUtilities._display_query_table(result, console)
         else:
-            # Handle column names correctly - columns can be strings or objects with name attribute
-            column_names: list[str] = []
-            if result.columns:
-                for col in result.columns:
-                    if hasattr(col, "name"):
-                        column_names.append(str(col.name))
-                    else:
-                        # Fallback: treat as string or convert to string
-                        column_names.append(str(col))
+            # Handle column names - columns are list[str] in FlextDbOracleQueryResult
+            column_names: list[str] = [str(col) for col in result.columns] if result.columns else []
 
             data = {
                 "columns": column_names,
@@ -657,13 +664,9 @@ class FlextDbOracleUtilities:
             title=f"Query Results ({result.row_count} rows)"
         )
 
-        # Add columns - handle both string columns and objects with name attribute
+        # Add columns - columns are list[str] in FlextDbOracleQueryResult
         for column in result.columns:
-            if hasattr(column, "name"):
-                table.add_column(str(column.name), style="cyan")
-            else:
-                # Fallback: treat as string or convert to string
-                table.add_column(str(column), style="cyan")
+            table.add_column(str(column), style="cyan")
 
         # Add rows (limit to first MAX_DISPLAY_ROWS for display)
         display_rows = result.rows[:MAX_DISPLAY_ROWS] if result.rows else []
@@ -678,10 +681,14 @@ class FlextDbOracleUtilities:
         console.print(table)  # type: ignore[attr-defined]
 
         if result.row_count > MAX_DISPLAY_ROWS:
-            console.print(f"[dim]... showing first {MAX_DISPLAY_ROWS} of {result.row_count} rows[/dim]")  # type: ignore[attr-defined]
+            console.print(
+                f"[dim]... showing first {MAX_DISPLAY_ROWS} of {result.row_count} rows[/dim]"
+            )  # type: ignore[attr-defined]
 
     @staticmethod
-    def _display_health_data(health_data: object, output_format: str, console: object) -> None:
+    def _display_health_data(
+        health_data: object, output_format: str, console: object
+    ) -> None:
         """Display health check data with rich formatting.
 
         Args:
@@ -693,7 +700,10 @@ class FlextDbOracleUtilities:
         try:
             health_dict = health_data.model_dump()  # type: ignore[attr-defined]
         except AttributeError:
-            health_dict = {"status": "unknown", "message": "Health check data format not recognized"}
+            health_dict = {
+                "status": "unknown",
+                "message": "Health check data format not recognized",
+            }
 
         if output_format == "table":
             health_panel = __import__("rich.panel", fromlist=["Panel"]).Panel(
@@ -703,10 +713,47 @@ class FlextDbOracleUtilities:
                 f"Uptime: {health_dict.get('uptime', 'Unknown')}\n"
                 f"Connection Pool: {health_dict.get('connection_pool', 'Unknown')}",
                 title="Oracle Health Check",
-                border_style="green" if health_dict.get("status") == "healthy" else "red",
+                border_style="green"
+                if health_dict.get("status") == "healthy"
+                else "red",
             )
             console.print(health_panel)  # type: ignore[attr-defined]
         elif output_format == "json":
             console.print(health_data.model_dump_json(indent=2))  # type: ignore[attr-defined]
         else:
             console.print(str(health_data.model_dump()))  # type: ignore[attr-defined]
+
+    # ==========================================================================
+    # DATA FORMATTING UTILITIES - Real implementation without mocks
+    # ==========================================================================
+
+    @staticmethod
+    def format_as_json(data: list[dict[str, object]]) -> FlextResult[str]:
+        """Format data as JSON string - real implementation."""
+        try:
+            import json
+            json_str = json.dumps(data, indent=2, default=str)
+            return FlextResult[str].ok(json_str)
+        except Exception as e:
+            return FlextResult[str].fail(f"JSON formatting failed: {e}")
+
+    @staticmethod
+    def format_as_csv(data: list[dict[str, object]]) -> FlextResult[str]:
+        """Format data as CSV string - real implementation."""
+        try:
+            import csv
+            import io
+            if not data:
+                return FlextResult[str].ok("")
+                
+            output = io.StringIO()
+            if data:
+                fieldnames = list(data[0].keys())
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(data)
+                
+            csv_str = output.getvalue()
+            return FlextResult[str].ok(csv_str)
+        except Exception as e:
+            return FlextResult[str].fail(f"CSV formatting failed: {e}")

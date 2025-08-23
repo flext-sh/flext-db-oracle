@@ -72,7 +72,7 @@ class TestOracleIntegration:
 
         # Test invalid SQL
         invalid_query_result = connected_api.query("INVALID SQL STATEMENT")
-        if invalid_query_result.is_success:
+        if invalid_query_result.success:
             raise AssertionError("Invalid SQL should fail")
         error_msg = invalid_query_result.error or ""
         assert (
@@ -84,7 +84,7 @@ class TestOracleIntegration:
         nonexistent_table_result = connected_api.query(
             "SELECT * FROM NONEXISTENT_TABLE_12345"
         )
-        if nonexistent_table_result.is_success:
+        if nonexistent_table_result.success:
             raise AssertionError("Query on non-existent table should fail")
 
         connected_api.disconnect()

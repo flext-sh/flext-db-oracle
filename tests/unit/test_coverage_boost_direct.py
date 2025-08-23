@@ -44,7 +44,7 @@ class TestDirectCoverageBoostAPI:
         for operation in operations:
             result = operation()
             # Should handle errors gracefully
-            assert result.is_failure or result.is_success
+            assert result.is_failure or result.success
 
     def test_api_schema_operations_1038_1058(
         self,
@@ -70,9 +70,9 @@ class TestDirectCoverageBoostAPI:
                 )
 
                 # Should handle various scenarios
-                assert tables_result.is_success or tables_result.is_failure
+                assert tables_result.success or tables_result.is_failure
                 if columns_result:
-                    assert columns_result.is_success or columns_result.is_failure
+                    assert columns_result.success or columns_result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -98,7 +98,7 @@ class TestDirectCoverageBoostAPI:
             for query in complex_queries:
                 result = connected_api.query(query)
                 # Should handle different query types
-                assert result.is_success or result.is_failure
+                assert result.success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -231,7 +231,7 @@ class TestDirectCoverageBoostConnection:
         # Test multiple connect/disconnect cycles
         for _i in range(3):
             result = connection.connect()
-            if result.is_success:
+            if result.success:
                 # Test connection status
                 assert connection._engine is not None
 
@@ -266,7 +266,7 @@ class TestDirectCoverageBoostConnection:
             try:
                 result = operation()
                 # Should handle errors gracefully
-                assert result.is_failure or result.is_success
+                assert result.is_failure or result.success
             except (AttributeError, TypeError):
                 # Some operations might not exist or have different signatures
                 pass

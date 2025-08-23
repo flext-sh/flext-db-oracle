@@ -32,7 +32,7 @@ class TestAPIMissedLines:
             result = connected_api.get_tables("INVALID_SCHEMA_NAME")
 
             # Should handle the error gracefully - might succeed (empty list) or fail
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -56,7 +56,7 @@ class TestAPIMissedLines:
         for operation in operations_to_test:
             result = operation()
             # These should either succeed (if connection works) or fail gracefully
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
     def test_api_query_operations_571_610(
         self,
@@ -109,7 +109,7 @@ class TestAPIMissedLines:
             for operation in schema_operations:
                 result = operation()
                 # Should handle both success and failure cases
-                assert result.is_success or result.is_failure
+                assert result.success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -163,10 +163,10 @@ class TestConnectionMissedLines:
         # Test connection lifecycle to trigger specific paths
         # Connect
         result1 = connection.connect()
-        if result1.is_success:
+        if result1.success:
             # Test connection status
             result2 = connection.test_connection()
-            assert result2.is_success or result2.is_failure
+            assert result2.success or result2.is_failure
 
             # Disconnect
             connection.disconnect()
@@ -347,9 +347,9 @@ class TestPluginsMissedLines:
         for plugin_creator in plugins_to_test:
             result = plugin_creator()
             # Should create plugin successfully or fail gracefully
-            assert result.is_success or result.is_failure
+            assert result.success or result.is_failure
 
-            if result.is_success:
+            if result.success:
                 plugin = result.value
                 # Plugin should be some kind of object
                 assert plugin is not None
