@@ -662,12 +662,14 @@ class OracleQueryExecutor:
                 tuple(row) if isinstance(row, (list, tuple)) else (row,)
                 for row in raw_data
             ]
-            query_result = FlextDbOracleQueryResult.model_validate({
-                "rows": rows_list,
-                "columns": [],  # Column names would need to be extracted from cursor/metadata
-                "row_count": len(rows_list),
-                "execution_time_ms": duration_ms,
-            })
+            query_result = FlextDbOracleQueryResult.model_validate(
+                {
+                    "rows": rows_list,
+                    "columns": [],  # Column names would need to be extracted from cursor/metadata
+                    "row_count": len(rows_list),
+                    "execution_time_ms": duration_ms,
+                }
+            )
 
             if self._observability:
                 self._observability.record_metric("query.success", 1, "count")
@@ -1438,11 +1440,7 @@ class FlextDbOracleApi:
         mapped_result = result.map(
             lambda data: self._create_timing_result(data, duration_ms)
         )
-        final_mapped = mapped_result.map(
-            lambda timing_result: FlextResult[FlextDbOracleQueryResult].ok(
-                timing_result
-            )
-        )
+        final_mapped = mapped_result.map(FlextResult[FlextDbOracleQueryResult].ok)
 
         # Modern FlextResult pattern: Check success and use .value safely
         if final_mapped.is_success:
@@ -1459,24 +1457,28 @@ class FlextDbOracleApi:
         """SOLID REFACTORING: Extract Method for FlextDbOracleQueryResult creation."""
         # Handle None data case
         if data is None:
-            return FlextDbOracleQueryResult.model_validate({
-                "rows": [],
-                "columns": [],
-                "row_count": 0,
-                "execution_time_ms": duration_ms,
-            })
+            return FlextDbOracleQueryResult.model_validate(
+                {
+                    "rows": [],
+                    "columns": [],
+                    "row_count": 0,
+                    "execution_time_ms": duration_ms,
+                }
+            )
 
         # Extract attributes safely with fallbacks
         rows = getattr(data, "rows", [])
         columns = getattr(data, "columns", [])
         row_count = getattr(data, "row_count", len(rows) if rows else 0)
 
-        return FlextDbOracleQueryResult.model_validate({
-            "rows": rows,
-            "columns": columns,
-            "row_count": row_count,
-            "execution_time_ms": duration_ms,
-        })
+        return FlextDbOracleQueryResult.model_validate(
+            {
+                "rows": rows,
+                "columns": columns,
+                "row_count": row_count,
+                "execution_time_ms": duration_ms,
+            }
+        )
 
     def query_with_modern_performance_monitoring(
         self,

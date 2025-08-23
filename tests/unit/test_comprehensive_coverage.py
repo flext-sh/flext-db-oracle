@@ -129,7 +129,7 @@ class TestFlextDbOracleConfig:
     def test_config_file_operations(self) -> None:
         """Test configuration file operations."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            config_file = Path(temp_dir) / "oracle_config.json"
+            Path(temp_dir) / "oracle_config.json"
 
             # Test config serialization logic
             config = FlextDbOracleConfig(
@@ -224,9 +224,9 @@ class TestFlextDbOracleConnection:
             table_name="users",
             columns=["id", "name", "status"],
             conditions={"id": 123, "status": "active"},
-            schema_name=None
+            schema_name=None,
         )
-        
+
         assert result.success
         sql, params = result.value
         assert ":param_id" in sql
@@ -419,8 +419,7 @@ class TestFlextDbOracleExceptions:
     def test_exception_context_information(self) -> None:
         """Test exception context information."""
         error = FlextDbOracleConnectionError(
-            "Connection timeout",
-            context={"host": "oracle.example.com", "port": 1521}
+            "Connection timeout", context={"host": "oracle.example.com", "port": 1521}
         )
 
         assert "Connection timeout" in str(error)

@@ -192,7 +192,11 @@ class TestRealOracleApi:
                 row = query_data.rows[0]
                 if hasattr(row, "__getitem__") and len(row) > 0:
                     cell = row[0]
-                    if hasattr(cell, "__getitem__") and hasattr(cell, "__len__") and len(cell) > 0:
+                    if (
+                        hasattr(cell, "__getitem__")
+                        and hasattr(cell, "__len__")
+                        and len(cell) > 0
+                    ):
                         assert cell[0] == "Hello Oracle"
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
@@ -228,7 +232,10 @@ class TestRealOracleApi:
         assert len(columns) > 0
 
         # Check for expected columns
-        column_names = [str(col["column_name"]).upper() if "column_name" in col else "" for col in columns]
+        column_names = [
+            str(col["column_name"]).upper() if "column_name" in col else ""
+            for col in columns
+        ]
         expected_columns = ["EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"]
         for col in expected_columns:
             assert col in column_names, f"Column {col} not found"
@@ -275,7 +282,9 @@ class TestRealOracleApi:
                 )
 
             if result.is_failure:
-                raise AssertionError(f"Type conversion failed for {singer_type}: {result.error}")
+                raise AssertionError(
+                    f"Type conversion failed for {singer_type}: {result.error}"
+                )
             # Success case - use modern .value access
             oracle_type = result.value
             assert expected in oracle_type, f"Expected {expected} in {oracle_type}"
@@ -384,7 +393,8 @@ class TestRealOracleErrorHandling:
             result = connection.execute("SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST")
             assert result.is_failure
             assert (
-                "table" in (result.error or "").lower() or "not exist" in (result.error or "").lower()
+                "table" in (result.error or "").lower()
+                or "not exist" in (result.error or "").lower()
             )
 
         finally:

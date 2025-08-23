@@ -424,10 +424,15 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugi
                     "Factory method returned object without required attributes"
                 )
             # Handle failure case
-            error_msg = getattr(result, "error", "Factory method failed") or "Factory method failed"
+            error_msg = (
+                getattr(result, "error", "Factory method failed")
+                or "Factory method failed"
+            )
             return FlextResult[FlextPlugin].fail(str(error_msg))
         except Exception as e:
-            return FlextResult[FlextPlugin].fail(f"Factory method execution failed: {e}")
+            return FlextResult[FlextPlugin].fail(
+                f"Factory method execution failed: {e}"
+            )
     return FlextResult[FlextPlugin].fail("Factory method is not callable")
 
 
@@ -475,12 +480,14 @@ def performance_monitor_plugin_handler(
                     for item in recommendations_raw
                 ]
 
-            recommendations.extend([
-                "Consider adding database indexes",
-                "Review query execution plan",
-                "Check for missing WHERE clauses",
-                "Analyze table statistics",
-            ])
+            recommendations.extend(
+                [
+                    "Consider adding database indexes",
+                    "Review query execution plan",
+                    "Check for missing WHERE clauses",
+                    "Analyze table statistics",
+                ]
+            )
             result_data["recommendations"] = recommendations
 
             # Log slow query if configured

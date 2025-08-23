@@ -121,10 +121,14 @@ class FlextDbOracleConfig(FlextSettings):
 
     # Autocommit field missing from base class
     autocommit: bool = Field(default=False, description="Enable autocommit mode")
-    
+
     # Connection retry settings
-    retry_attempts: int = Field(default=1, description="Number of connection retry attempts")
-    retry_delay: float = Field(default=1.0, description="Delay between retry attempts in seconds")
+    retry_attempts: int = Field(
+        default=1, description="Number of connection retry attempts"
+    )
+    retry_delay: float = Field(
+        default=1.0, description="Delay between retry attempts in seconds"
+    )
 
     @field_validator("host")
     @classmethod

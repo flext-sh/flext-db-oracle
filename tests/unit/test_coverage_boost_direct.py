@@ -364,6 +364,7 @@ class TestDirectCoverageBoostObservability:
         # Test various initialization scenarios
         try:
             from flext_core import FlextContainer
+
             container = FlextContainer()
             obs = FlextDbOracleObservabilityManager(container, "test_context")
             # Test basic functionality if available

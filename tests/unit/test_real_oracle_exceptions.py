@@ -120,9 +120,7 @@ class TestRealOracleExceptionsCore:
                 raise AssertionError("Connection with invalid config should fail")
             # Failure case - use error directly
             error_msg = result.error or ""
-            assert (
-                "service_name" in error_msg.lower() or "sid" in error_msg.lower()
-            )
+            assert "service_name" in error_msg.lower() or "sid" in error_msg.lower()
 
         except (ValueError, TypeError, RuntimeError):
             # Config validation might fail at creation time
@@ -335,7 +333,9 @@ class TestRealOracleExceptionsAdvanced:
                 port_value = config_data.get("port", 1521)
                 typed_config: dict[str, object] = {
                     "host": str(config_data.get("host", "")),
-                    "port": int(port_value) if isinstance(port_value, (int, str)) else 1521,
+                    "port": int(port_value)
+                    if isinstance(port_value, (int, str))
+                    else 1521,
                     "username": str(config_data.get("username", "")),
                     "password": SecretStr(str(config_data.get("password", ""))),
                 }

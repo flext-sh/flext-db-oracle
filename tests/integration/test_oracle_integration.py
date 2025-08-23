@@ -75,10 +75,7 @@ class TestOracleIntegration:
         if invalid_query_result.success:
             raise AssertionError("Invalid SQL should fail")
         error_msg = invalid_query_result.error or ""
-        assert (
-            "ORA-" in error_msg
-            or "syntax" in error_msg.lower()
-        )
+        assert "ORA-" in error_msg or "syntax" in error_msg.lower()
 
         # Test non-existent table
         nonexistent_table_result = connected_api.query(

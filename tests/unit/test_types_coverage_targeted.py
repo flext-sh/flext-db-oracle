@@ -438,8 +438,19 @@ class TestTypesUtilityFunctions:
         }
 
         type_test_cases: list[ColumnParamsTyped] = [
-            {**base_params, "column_name": "COL_VARCHAR2", "data_type": "VARCHAR2", "data_length": 50},
-            {**base_params, "column_name": "COL_NUMBER", "data_type": "NUMBER", "data_precision": 10, "data_scale": 2},
+            {
+                **base_params,
+                "column_name": "COL_VARCHAR2",
+                "data_type": "VARCHAR2",
+                "data_length": 50,
+            },
+            {
+                **base_params,
+                "column_name": "COL_NUMBER",
+                "data_type": "NUMBER",
+                "data_precision": 10,
+                "data_scale": 2,
+            },
             {**base_params, "column_name": "COL_DATE", "data_type": "DATE"},
             {**base_params, "column_name": "COL_TIMESTAMP", "data_type": "TIMESTAMP"},
             {**base_params, "column_name": "COL_CLOB", "data_type": "CLOB"},

@@ -639,7 +639,9 @@ class FlextDbOracleUtilities:
             FlextDbOracleUtilities._display_query_table(result, console)
         else:
             # Handle column names - columns are list[str] in FlextDbOracleQueryResult
-            column_names: list[str] = [str(col) for col in result.columns] if result.columns else []
+            column_names: list[str] = (
+                [str(col) for col in result.columns] if result.columns else []
+            )
 
             data = {
                 "columns": column_names,
@@ -732,6 +734,7 @@ class FlextDbOracleUtilities:
         """Format data as JSON string - real implementation."""
         try:
             import json
+
             json_str = json.dumps(data, indent=2, default=str)
             return FlextResult[str].ok(json_str)
         except Exception as e:
@@ -743,16 +746,17 @@ class FlextDbOracleUtilities:
         try:
             import csv
             import io
+
             if not data:
                 return FlextResult[str].ok("")
-                
+
             output = io.StringIO()
             if data:
                 fieldnames = list(data[0].keys())
                 writer = csv.DictWriter(output, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(data)
-                
+
             csv_str = output.getvalue()
             return FlextResult[str].ok(csv_str)
         except Exception as e:

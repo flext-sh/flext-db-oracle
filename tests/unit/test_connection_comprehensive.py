@@ -37,7 +37,7 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test is_connected method behavior."""
         # Initially not connected
         assert not self.connection.is_connected()
-        
+
         # After setting _engine to None explicitly
         self.connection._engine = None
         assert not self.connection.is_connected()
@@ -67,7 +67,8 @@ class TestFlextDbOracleConnectionComprehensive:
         assert result.success
         url = result.value
         assert "oracle+oracledb://" in url
-        assert "test:" in url and "@test:1521" in url  # Password is URL-encoded and masked
+        assert "test:" in url
+        assert "@test:1521" in url
         assert "service_name=TEST" in url
 
         # Test with SID instead of service_name
@@ -86,7 +87,9 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_connection_url_building_errors(self) -> None:
         """Test connection URL building with invalid configurations."""
         # Test with neither service_name nor sid - should fail at config validation
-        with pytest.raises(ValueError, match="Either SID or service_name must be provided"):
+        with pytest.raises(
+            ValueError, match="Either SID or service_name must be provided"
+        ):
             FlextDbOracleConfig(
                 host="test",
                 port=1521,
@@ -110,8 +113,7 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_execute_many_when_not_connected(self) -> None:
         """Test execute_many method when not connected."""
         result = self.connection.execute_many(
-            "INSERT INTO test (id) VALUES (:id)", 
-            [{"id": 1}, {"id": 2}]
+            "INSERT INTO test (id) VALUES (:id)", [{"id": 1}, {"id": 2}]
         )
         assert not result.success
         assert "not connected" in result.error.lower()
@@ -133,7 +135,7 @@ class TestFlextDbOracleConnectionComprehensive:
         # Test with valid schema name
         result = self.connection.get_table_names("VALID_SCHEMA")
         assert not result.success  # Should fail due to no connection
-        
+
         # Test with current user schema (no schema_name)
         result = self.connection.get_table_names()
         assert not result.success  # Should fail due to no connection
@@ -142,7 +144,9 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test get_schemas method when not connected."""
         result = self.connection.get_schemas()
         assert not result.success
-        assert "not connected" in result.error.lower() or "failed" in result.error.lower()
+        assert (
+            "not connected" in result.error.lower() or "failed" in result.error.lower()
+        )
 
     def test_get_current_schema_when_not_connected(self) -> None:
         """Test get_current_schema method when not connected."""
@@ -156,7 +160,7 @@ class TestFlextDbOracleConnectionComprehensive:
         assert "all_tables" in sql
         assert "owner = UPPER(:schema_name)" in sql
         assert params["schema_name"] == "TEST_SCHEMA"
-        
+
         # Test without schema name
         sql, params = self.connection._build_table_names_query(None)
         assert "user_tables" in sql
@@ -171,12 +175,14 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_build_column_info_query(self) -> None:
         """Test _build_column_info_query helper method."""
         # Test with schema name
-        sql, params = self.connection._build_column_info_query("TEST_TABLE", "TEST_SCHEMA")
+        sql, params = self.connection._build_column_info_query(
+            "TEST_TABLE", "TEST_SCHEMA"
+        )
         assert "all_tab_columns" in sql
         assert "owner = UPPER(:schema_name)" in sql
         assert params["table_name"] == "TEST_TABLE"
         assert params["schema_name"] == "TEST_SCHEMA"
-        
+
         # Test without schema name
         sql, params = self.connection._build_column_info_query("TEST_TABLE", None)
         assert "user_tab_columns" in sql
@@ -188,7 +194,7 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test _convert_column_row_to_dict helper method."""
         # Mock row data
         row_data = ["COLUMN_NAME", "VARCHAR2", "Y", 100, None, None, 1]
-        
+
         result = self.connection._convert_column_row_to_dict(row_data)
         assert result["column_name"] == "COLUMN_NAME"
         assert result["data_type"] == "VARCHAR2"
@@ -204,13 +210,15 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_build_primary_key_query(self) -> None:
         """Test _build_primary_key_query helper method."""
         # Test with schema name
-        sql, params = self.connection._build_primary_key_query("TEST_TABLE", "TEST_SCHEMA")
+        sql, params = self.connection._build_primary_key_query(
+            "TEST_TABLE", "TEST_SCHEMA"
+        )
         assert "all_cons_columns" in sql
         assert "all_constraints" in sql
         assert "owner = UPPER(:schema_name)" in sql
         assert params["table_name"] == "TEST_TABLE"
         assert params["schema_name"] == "TEST_SCHEMA"
-        
+
         # Test without schema name
         sql, params = self.connection._build_primary_key_query("TEST_TABLE", None)
         assert "user_cons_columns" in sql
@@ -229,7 +237,7 @@ class TestFlextDbOracleConnectionComprehensive:
             "TEST_TABLE",
             columns=["ID", "NAME"],
             conditions={"STATUS": "ACTIVE"},
-            schema_name="TEST_SCHEMA"
+            schema_name="TEST_SCHEMA",
         )
         assert result.success
         sql = result.value
@@ -242,7 +250,7 @@ class TestFlextDbOracleConnectionComprehensive:
             "TEST_TABLE",
             columns=["ID", "NAME"],
             conditions={"STATUS": "ACTIVE", "TYPE": "USER"},
-            schema_name="TEST_SCHEMA"
+            schema_name="TEST_SCHEMA",
         )
         assert result.success
         sql, params = result.value
@@ -255,18 +263,14 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_build_select_base(self) -> None:
         """Test _build_select_base helper method."""
         column_list, full_table_name = self.connection._build_select_base(
-            "TEST_TABLE",
-            columns=["ID", "NAME", "STATUS"],
-            schema_name="TEST_SCHEMA"
+            "TEST_TABLE", columns=["ID", "NAME", "STATUS"], schema_name="TEST_SCHEMA"
         )
         assert column_list == "ID, NAME, STATUS"
         assert full_table_name == "TEST_SCHEMA.TEST_TABLE"
-        
+
         # Test with no columns (should default to *)
         column_list, full_table_name = self.connection._build_select_base(
-            "TEST_TABLE",
-            columns=None,
-            schema_name=None
+            "TEST_TABLE", columns=None, schema_name=None
         )
         assert column_list == "*"
         assert full_table_name == "TEST_TABLE"
@@ -276,7 +280,7 @@ class TestFlextDbOracleConnectionComprehensive:
         # With schema
         result = self.connection._build_table_name("TEST_TABLE", "TEST_SCHEMA")
         assert result == "TEST_SCHEMA.TEST_TABLE"
-        
+
         # Without schema
         result = self.connection._build_table_name("TEST_TABLE", None)
         assert result == "TEST_TABLE"
@@ -288,7 +292,7 @@ class TestFlextDbOracleConnectionComprehensive:
             "name": "ID",
             "data_type": "NUMBER",
             "nullable": False,
-            "primary_key": True
+            "primary_key": True,
         }
         result = self.connection._build_column_definition(column_def)
         assert result.success
@@ -302,19 +306,13 @@ class TestFlextDbOracleConnectionComprehensive:
                 "name": "ID",
                 "data_type": "NUMBER",
                 "nullable": False,
-                "primary_key": True
+                "primary_key": True,
             },
-            {
-                "name": "NAME",
-                "data_type": "VARCHAR2(100)",
-                "nullable": True
-            }
+            {"name": "NAME", "data_type": "VARCHAR2(100)", "nullable": True},
         ]
-        
+
         result = self.connection.create_table_ddl(
-            "TEST_TABLE",
-            columns,
-            schema_name="TEST_SCHEMA"
+            "TEST_TABLE", columns, schema_name="TEST_SCHEMA"
         )
         assert result.success
         ddl = result.value
@@ -335,17 +333,17 @@ class TestFlextDbOracleConnectionComprehensive:
         result = self.connection.convert_singer_type("string")
         assert result.success
         assert "VARCHAR2" in result.value
-        
+
         # Test number type
         result = self.connection.convert_singer_type("number")
         assert result.success
         assert "NUMBER" in result.value
-        
+
         # Test array type with null
         result = self.connection.convert_singer_type(["string", "null"])
         assert result.success
         assert "VARCHAR2" in result.value
-        
+
         # Test with format hint
         result = self.connection.convert_singer_type("string", "date-time")
         assert result.success
@@ -357,10 +355,10 @@ class TestFlextDbOracleConnectionComprehensive:
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
-                "created_at": {"type": "string", "format": "date-time"}
+                "created_at": {"type": "string", "format": "date-time"},
             }
         }
-        
+
         result = self.connection.map_singer_schema(singer_schema)
         assert result.success
         mapping = result.value
@@ -378,7 +376,7 @@ class TestFlextDbOracleConnectionComprehensive:
             "TEST_TABLE",
             ["ID", "NAME", "STATUS"],
             schema_name="TEST_SCHEMA",
-            returning_columns=["ID"]
+            returning_columns=["ID"],
         )
         assert result.success
         sql = result.value
@@ -392,7 +390,7 @@ class TestFlextDbOracleConnectionComprehensive:
             "TEST_TABLE",
             set_columns=["NAME", "STATUS"],
             where_columns=["ID"],
-            schema_name="TEST_SCHEMA"
+            schema_name="TEST_SCHEMA",
         )
         assert result.success
         sql = result.value
@@ -402,9 +400,7 @@ class TestFlextDbOracleConnectionComprehensive:
 
         # Test DELETE statement
         result = self.connection.build_delete_statement(
-            "TEST_TABLE",
-            where_columns=["ID", "STATUS"],
-            schema_name="TEST_SCHEMA"
+            "TEST_TABLE", where_columns=["ID", "STATUS"], schema_name="TEST_SCHEMA"
         )
         assert result.success
         sql = result.value
@@ -417,9 +413,9 @@ class TestFlextDbOracleConnectionComprehensive:
             target_table="TARGET_TABLE",
             source_columns=["ID", "NAME", "STATUS"],
             merge_keys=["ID"],
-            schema_name="TEST_SCHEMA"
+            schema_name="TEST_SCHEMA",
         )
-        
+
         result = self.connection.build_merge_statement(config)
         assert result.success
         sql = result.value
@@ -434,9 +430,7 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test CreateIndexConfig validation."""
         # Valid config
         config = CreateIndexConfig(
-            index_name="IDX_TEST",
-            table_name="TEST_TABLE",
-            columns=["ID", "NAME"]
+            index_name="IDX_TEST", table_name="TEST_TABLE", columns=["ID", "NAME"]
         )
         assert config.index_name == "IDX_TEST"
         assert config.table_name == "TEST_TABLE"
@@ -455,9 +449,9 @@ class TestFlextDbOracleConnectionComprehensive:
             schema_name="TEST_SCHEMA",
             unique=True,
             tablespace="INDEXES",
-            parallel=4
+            parallel=4,
         )
-        
+
         result = self.connection.build_create_index_statement(config)
         assert result.success
         sql = result.value
@@ -481,8 +475,7 @@ class TestFlextDbOracleConnectionComprehensive:
         # Test database error handling
         test_exception = Exception("Test database error")
         result = self.connection._handle_database_error_with_logging(
-            "Test operation", 
-            test_exception
+            "Test operation", test_exception
         )
         assert not result.success
         assert "Test operation: Test database error" in result.error
@@ -491,10 +484,10 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test session and transaction context managers behavior when not connected."""
         # Test session context manager - should raise when not connected
         with pytest.raises(ValueError, match="Not connected"):
-            with self.connection.session() as session:
+            with self.connection.session():
                 pass
-        
-        # Test transaction context manager - should raise when not connected  
+
+        # Test transaction context manager - should raise when not connected
         with pytest.raises(ValueError, match="Not connected to database"):
-            with self.connection.transaction() as trans:
+            with self.connection.transaction():
                 pass

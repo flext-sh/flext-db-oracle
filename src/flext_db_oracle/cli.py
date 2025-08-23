@@ -979,11 +979,9 @@ def main() -> None:
         oracle_cli()  # Click handles sys.argv automatically
     except KeyboardInterrupt:
         # Use simple print for keyboard interrupt without depending on app instance
-        print("\n[yellow]Oracle CLI operation cancelled by user[/yellow]")
         raise SystemExit(130) from None
     except Exception as e:
         # Use simple print for general errors without depending on app instance
-        print(f"[bold red]Oracle CLI error: {e}[/bold red]")
         raise SystemExit(1) from e
 
 

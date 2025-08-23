@@ -31,7 +31,9 @@ class TestRealOraclePlugins:
 
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
-            raise AssertionError(f"Performance plugin creation failed: {plugin_result.error}")
+            raise AssertionError(
+                f"Performance plugin creation failed: {plugin_result.error}"
+            )
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -45,7 +47,9 @@ class TestRealOraclePlugins:
 
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
-            raise AssertionError(f"Security plugin creation failed: {plugin_result.error}")
+            raise AssertionError(
+                f"Security plugin creation failed: {plugin_result.error}"
+            )
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -59,7 +63,9 @@ class TestRealOraclePlugins:
 
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
-            raise AssertionError(f"Validation plugin creation failed: {plugin_result.error}")
+            raise AssertionError(
+                f"Validation plugin creation failed: {plugin_result.error}"
+            )
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -93,17 +99,23 @@ class TestRealOraclePluginErrorHandling:
         # Performance plugin - using modern pattern
         plugin_result = create_performance_monitor_plugin()
         if plugin_result.is_failure:
-            raise AssertionError(f"Performance plugin creation failed: {plugin_result.error}")
+            raise AssertionError(
+                f"Performance plugin creation failed: {plugin_result.error}"
+            )
 
         # Security plugin - using modern pattern
         security_result = create_security_audit_plugin()
         if security_result.is_failure:
-            raise AssertionError(f"Security plugin creation failed: {security_result.error}")
+            raise AssertionError(
+                f"Security plugin creation failed: {security_result.error}"
+            )
 
         # Validation plugin - using modern pattern
         validation_result = create_data_validation_plugin()
         if validation_result.is_failure:
-            raise AssertionError(f"Validation plugin creation failed: {validation_result.error}")
+            raise AssertionError(
+                f"Validation plugin creation failed: {validation_result.error}"
+            )
 
     def test_real_plugins_register_with_empty_dict(
         self,
@@ -163,15 +175,21 @@ class TestRealOraclePluginIntegration:
         # Create plugins - using modern pattern
         perf_result = create_performance_monitor_plugin()
         if perf_result.is_failure:
-            raise AssertionError(f"Performance plugin creation failed: {perf_result.error}")
+            raise AssertionError(
+                f"Performance plugin creation failed: {perf_result.error}"
+            )
 
         security_result = create_security_audit_plugin()
         if security_result.is_failure:
-            raise AssertionError(f"Security plugin creation failed: {security_result.error}")
+            raise AssertionError(
+                f"Security plugin creation failed: {security_result.error}"
+            )
 
         validation_result = create_data_validation_plugin()
         if validation_result.is_failure:
-            raise AssertionError(f"Validation plugin creation failed: {validation_result.error}")
+            raise AssertionError(
+                f"Validation plugin creation failed: {validation_result.error}"
+            )
 
         # Test that API operations still work with plugins created - using modern pattern
         tables_result = oracle_api.get_tables()
@@ -203,17 +221,23 @@ class TestRealOraclePluginIntegration:
         # Create individual plugins - using modern pattern
         perf_plugin = create_performance_monitor_plugin()
         if perf_plugin.is_failure:
-            raise AssertionError(f"Performance plugin creation failed: {perf_plugin.error}")
+            raise AssertionError(
+                f"Performance plugin creation failed: {perf_plugin.error}"
+            )
         # Success case - performance plugin created
 
         security_plugin = create_security_audit_plugin()
         if security_plugin.is_failure:
-            raise AssertionError(f"Security plugin creation failed: {security_plugin.error}")
+            raise AssertionError(
+                f"Security plugin creation failed: {security_plugin.error}"
+            )
         # Success case - security plugin created
 
         validation_plugin = create_data_validation_plugin()
         if validation_plugin.is_failure:
-            raise AssertionError(f"Validation plugin creation failed: {validation_plugin.error}")
+            raise AssertionError(
+                f"Validation plugin creation failed: {validation_plugin.error}"
+            )
         # Success case - validation plugin created
 
         # Test query operations still work - using modern pattern

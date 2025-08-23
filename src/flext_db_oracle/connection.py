@@ -292,9 +292,9 @@ class FlextDbOracleConnection:
                         list(rows)
                     )
                 conn.commit()
-                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok([
-                    result.rowcount
-                ])
+                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok(
+                    [result.rowcount]
+                )
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             error_msg = f"SQL execution failed: {e}"

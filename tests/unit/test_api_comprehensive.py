@@ -4,7 +4,6 @@ This module tests the API functionality with real code paths,
 following the user's requirement for real code testing without mocks.
 """
 
-import pytest
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -28,10 +27,10 @@ class TestFlextDbOracleApiComprehensive:
     def test_api_initialization(self) -> None:
         """Test API initialization with real configuration."""
         assert self.api is not None
-        assert hasattr(self.api, '_connection_manager')
-        assert hasattr(self.api, '_query_executor') 
-        assert hasattr(self.api, '_observability')
-        assert self.api._plugins == []
+        assert hasattr(self.api, "_connection_manager")
+        assert hasattr(self.api, "_query_executor")
+        assert hasattr(self.api, "_observability")
+        assert self.api._plugins == {}
         assert not self.api._is_connected
 
     def test_api_initialization_with_context(self) -> None:
@@ -58,15 +57,18 @@ class TestFlextDbOracleApiComprehensive:
         """Test is_connected property behavior."""
         # Initially not connected
         assert not self.api.is_connected
-        
+
         # Test the property (not method)
-        assert hasattr(self.api, 'is_connected')
+        assert hasattr(self.api, "is_connected")
 
     def test_test_connection_when_not_connected(self) -> None:
         """Test test_connection method when not connected."""
         result = self.api.test_connection()
         assert not result.success
-        assert "connection" in result.error.lower() or "not connected" in result.error.lower()
+        assert (
+            "connection" in result.error.lower()
+            or "not connected" in result.error.lower()
+        )
 
     def test_get_schemas_when_not_connected(self) -> None:
         """Test get_schemas method when not connected."""
@@ -79,7 +81,7 @@ class TestFlextDbOracleApiComprehensive:
         # Test without schema
         result = self.api.get_tables()
         assert not result.success
-        
+
         # Test with schema
         result_with_schema = self.api.get_tables("TEST_SCHEMA")
         assert not result_with_schema.success
@@ -89,7 +91,7 @@ class TestFlextDbOracleApiComprehensive:
         # Test without schema
         result = self.api.get_columns("TEST_TABLE")
         assert not result.success
-        
+
         # Test with schema
         result_with_schema = self.api.get_columns("TEST_TABLE", "TEST_SCHEMA")
         assert not result_with_schema.success
@@ -103,8 +105,7 @@ class TestFlextDbOracleApiComprehensive:
     def test_query_with_parameters_when_not_connected(self) -> None:
         """Test query method with parameters when not connected."""
         result = self.api.query(
-            "SELECT * FROM users WHERE id = :user_id", 
-            {"user_id": 123}
+            "SELECT * FROM users WHERE id = :user_id", {"user_id": 123}
         )
         assert not result.success
 
@@ -122,7 +123,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test execute method with parameters when not connected."""
         result = self.api.execute(
             "INSERT INTO test_table (id, name) VALUES (:id, :name)",
-            {"id": 1, "name": "test"}
+            {"id": 1, "name": "test"},
         )
         assert not result.success
 
@@ -130,7 +131,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test execute_many method when not connected."""
         result = self.api.execute_many(
             "INSERT INTO test_table (id) VALUES (:id)",
-            [{"id": 1}, {"id": 2}, {"id": 3}]
+            [{"id": 1}, {"id": 2}, {"id": 3}],
         )
         assert not result.success
 
@@ -155,7 +156,7 @@ class TestFlextDbOracleApiComprehensive:
         # When no plugins, may return failure with "Plugin listing returned empty"
         assert not result.success
         assert "plugin listing returned empty" in result.error.lower()
-        
+
         # Test get_plugin when not found
         result = self.api.get_plugin("nonexistent_plugin")
         assert not result.success
@@ -163,24 +164,28 @@ class TestFlextDbOracleApiComprehensive:
 
     def test_register_plugin_method(self) -> None:
         """Test register_plugin method."""
+
         # Create a plugin-like object with required attributes
         class TestPlugin:
-            def __init__(self):
+            def __init__(self) -> None:
                 self.name = "test_plugin"
                 self.version = "1.0.0"
                 self.description = "Test plugin"
-                
+
         plugin = TestPlugin()
         result = self.api.register_plugin(plugin)
         # May fail due to plugin validation, but method should exist
-        assert hasattr(result, 'success')
+        assert hasattr(result, "success")
 
     def test_unregister_plugin_method(self) -> None:
         """Test unregister_plugin method exists and behaves correctly."""
         # Test unregistering non-existent plugin
         result = self.api.unregister_plugin("nonexistent_plugin")
         assert not result.success
-        assert "plugin not found" in result.error.lower() or "not registered" in result.error.lower()
+        assert (
+            "plugin not found" in result.error.lower()
+            or "not registered" in result.error.lower()
+        )
 
     def test_list_plugins_method(self) -> None:
         """Test list_plugins method."""
@@ -193,7 +198,10 @@ class TestFlextDbOracleApiComprehensive:
         """Test health_check method when not connected."""
         result = self.api.health_check()
         assert not result.success
-        assert "health check failed" in result.error.lower() or "connection" in result.error.lower()
+        assert (
+            "health check failed" in result.error.lower()
+            or "connection" in result.error.lower()
+        )
 
     def test_analyze_query_method(self) -> None:
         """Test analyze_query method (works without connection)."""
@@ -213,7 +221,10 @@ class TestFlextDbOracleApiComprehensive:
         assert isinstance(suggestions, dict)
         assert "suggestions" in suggestions
         # Should suggest avoiding SELECT *
-        assert any("SELECT *" in str(suggestion) for suggestion in suggestions.get("suggestions", []))
+        assert any(
+            "SELECT *" in str(suggestion)
+            for suggestion in suggestions.get("suggestions", [])
+        )
 
     def test_format_query_result_method(self) -> None:
         """Test format_query_result method."""
@@ -222,9 +233,9 @@ class TestFlextDbOracleApiComprehensive:
             columns=["ID", "NAME", "STATUS"],
             rows=[(1, "John", "ACTIVE"), (2, "Jane", "INACTIVE")],
             row_count=2,
-            query_hash="test_hash"
+            query_hash="test_hash",
         )
-        
+
         # Test table format
         result = self.api.format_query_result(query_result, "table")
         assert result.success
@@ -232,11 +243,11 @@ class TestFlextDbOracleApiComprehensive:
         assert "ID" in formatted
         assert "NAME" in formatted
         assert "John" in formatted
-        
+
         # Test JSON format
         result = self.api.format_query_result(query_result, "json")
         assert result.success
-        
+
         # Test CSV format
         result = self.api.format_query_result(query_result, "csv")
         assert result.success
@@ -246,7 +257,7 @@ class TestFlextDbOracleApiComprehensive:
         # Test valid SQL
         result = self.api.validate_sql("SELECT * FROM users WHERE id = 1")
         assert result.success
-        
+
         # Test invalid SQL
         result = self.api.validate_sql("INVALID SQL STATEMENT")
         assert not result.success
@@ -256,7 +267,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test create_connection method."""
         connection = self.api.create_connection()
         assert connection is not None
-        assert hasattr(connection, 'config')
+        assert hasattr(connection, "config")
         assert connection.config == self.api._connection_manager.config
 
     def test_context_manager_support(self) -> None:
@@ -264,7 +275,7 @@ class TestFlextDbOracleApiComprehensive:
         # Test __enter__ method
         entered_api = self.api.__enter__()
         assert entered_api is self.api
-        
+
         # Test __exit__ method
         self.api.__exit__(None, None, None)
         # Should not raise any exceptions
@@ -279,12 +290,12 @@ class TestFlextDbOracleApiComprehensive:
     def test_api_delegation_patterns(self) -> None:
         """Test API delegation to underlying managers."""
         # These methods should delegate to connection manager
-        assert hasattr(self.api, 'get_schemas')
-        assert hasattr(self.api, 'get_tables')
-        assert hasattr(self.api, 'get_columns')
-        assert hasattr(self.api, 'query')
-        assert hasattr(self.api, 'execute')
-        
+        assert hasattr(self.api, "get_schemas")
+        assert hasattr(self.api, "get_tables")
+        assert hasattr(self.api, "get_columns")
+        assert hasattr(self.api, "query")
+        assert hasattr(self.api, "execute")
+
         # Test that methods are callable
         assert callable(self.api.get_schemas)
         assert callable(self.api.get_tables)
@@ -294,7 +305,7 @@ class TestFlextDbOracleApiComprehensive:
 
     def test_api_configuration_access(self) -> None:
         """Test access to API configuration."""
-        assert hasattr(self.api, '_connection_manager')
+        assert hasattr(self.api, "_connection_manager")
         assert self.api._connection_manager.config == self.config
 
     def test_connection_property(self) -> None:
@@ -302,21 +313,21 @@ class TestFlextDbOracleApiComprehensive:
         # Test connection property
         connection = self.api.connection
         assert connection is not None
-        
+
         # Connection should be from connection manager
         assert connection is self.api._connection_manager.connection
 
     def test_api_state_management(self) -> None:
         """Test API internal state management."""
         # Test initial state
-        assert self.api._plugins == []
+        assert self.api._plugins == {}
         assert not self.api._is_connected
         assert self.api._test_is_connected is None
-        
+
         # Test state modification through methods
         self.api._is_connected = True
         assert self.api._is_connected
-        
+
         # Reset state
         self.api._is_connected = False
         assert not self.api._is_connected
@@ -329,7 +340,7 @@ class TestFlextDbOracleApiComprehensive:
             ("SELECT * FROM users WHERE id = :id", {"id": 1}),
             ("SELECT name FROM users", {}),
         ]
-        
+
         result = self.api.execute_batch(operations)
         # Should fail due to no connection but should handle parameters correctly
         assert not result.success
@@ -337,10 +348,10 @@ class TestFlextDbOracleApiComprehensive:
     def test_query_result_processing_methods(self) -> None:
         """Test query result processing and formatting."""
         # Test methods that work with query results
-        assert hasattr(self.api, 'format_query_result')
-        assert hasattr(self.api, 'analyze_query')
-        assert hasattr(self.api, 'optimize_query')
-        
+        assert hasattr(self.api, "format_query_result")
+        assert hasattr(self.api, "analyze_query")
+        assert hasattr(self.api, "optimize_query")
+
         # These should be available even without connection
         assert callable(self.api.format_query_result)
         assert callable(self.api.analyze_query)
@@ -357,17 +368,17 @@ class TestFlextDbOracleApiComprehensive:
             ("execute", ["INSERT INTO test (id) VALUES (1)"]),
             ("health_check", []),
         ]
-        
+
         for method_name, args in methods_to_test:
             method = getattr(self.api, method_name)
             result = method(*args)
-            
+
             # All methods should return FlextResult
-            assert hasattr(result, 'success')
-            assert hasattr(result, 'error')
-            
+            assert hasattr(result, "success")
+            assert hasattr(result, "error")
+
             # When not connected, should fail with descriptive error
-            if method_name not in ["analyze_query", "optimize_query", "validate_sql"]:
+            if method_name not in {"analyze_query", "optimize_query", "validate_sql"}:
                 assert not result.success
                 assert result.error is not None
                 assert len(result.error) > 0
@@ -375,13 +386,13 @@ class TestFlextDbOracleApiComprehensive:
     def test_format_output_methods(self) -> None:
         """Test output formatting helper methods."""
         # Test that format methods exist and are callable
-        assert hasattr(self.api, 'format_query_result')
+        assert hasattr(self.api, "format_query_result")
         assert callable(self.api.format_query_result)
-        
+
         # Test format_as_json method if it exists
-        if hasattr(self.api, 'format_as_json'):
+        if hasattr(self.api, "format_as_json"):
             assert callable(self.api.format_as_json)
-            
-        # Test format_as_csv method if it exists  
-        if hasattr(self.api, 'format_as_csv'):
+
+        # Test format_as_csv method if it exists
+        if hasattr(self.api, "format_as_csv"):
             assert callable(self.api.format_as_csv)
