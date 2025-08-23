@@ -585,7 +585,7 @@ version: 1.2.0
 description: HR schema with employees, departments, and payroll
 
 dependencies:
-  - oracle_common_functions: ">=2.0.0"
+  - oracle_common_functions: ">=0.9.0"
   - security_policies: "^1.5.0"
 
 scripts:

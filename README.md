@@ -2,9 +2,9 @@
 
 **Type**: Infrastructure Library | **Status**: Active Development | **Dependencies**: flext-core
 
-Oracle database connectivity and operations.
+Oracle database connectivity and operations library for the FLEXT ecosystem.
 
-> ⚠️ Development Status: Core connection and query functionality working; Singer integration incomplete.
+> ⚠️ **Development Status**: Core functionality working; coverage improvements in progress (33% current)
 
 ## Quick Start
 
@@ -12,38 +12,47 @@ Oracle database connectivity and operations.
 # Install dependencies
 poetry install
 
-# Test Oracle connection
-python -c "from flext_db_oracle import FlextDbOracleApi; api = FlextDbOracleApi(); print('✅ Working')"
+# Test Oracle connection (requires configuration)
+flext-db-oracle connect-env
 
-# Run with Docker Oracle
+# Run with Docker Oracle for development
 docker-compose -f docker-compose.oracle.yml up -d
 ```
 
-## Current Reality
+## Current Status
 
-**What Actually Works:**
+### **What Actually Works** ✅
 
-- Oracle database connections with SQLAlchemy 2.x
-- Schema introspection and metadata extraction
-- Query execution with connection pooling
-- CLI tools for database operations
+- **Oracle Database Connections**: SQLAlchemy 2.x with `oracledb` driver
+- **Schema Introspection**: Complete metadata extraction (tables, columns, indexes)
+- **Query Execution**: Type-safe execution with FlextResult patterns
+- **Connection Management**: Pooling and resource management (53% test coverage)
+- **CLI Tools**: Basic database operations via `flext-db-oracle` command
+- **Configuration**: Environment variable support (Meltano/Singer compatible)
 
-**What Needs Work:**
+### **In Active Development** 🚧
 
-- Singer ecosystem integration (tap/target compatibility)
-- FLEXT observability integration
-- Performance optimization features
-- Advanced plugin system completion
+- **Test Coverage Expansion**: Currently 33%, targeting improved coverage
+- **API Method Coverage**: Core methods functional, comprehensive testing underway
+- **Plugin System**: Framework exists (16% coverage), needs expansion
+- **CLI Interface**: Basic commands working (0% test coverage), needs comprehensive testing
+
+### **Planned/Future** 📋
+
+- **Singer Ecosystem Integration**: Complete tap/target compatibility
+- **Advanced Plugin System**: Data validation, monitoring, security plugins
+- **Performance Optimization**: Oracle-specific query optimization features
+- **FLEXT Observability**: Full integration with monitoring stack
 
 ## 🏗️ Architecture Role
 
 ### **Infrastructure Layer Component**
 
-FLEXT DB Oracle operates as a critical infrastructure component:
+FLEXT DB Oracle operates as a critical infrastructure component in the FLEXT ecosystem:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    FLEXT ECOSYSTEM (32 Projects)                 │
+│                    FLEXT ECOSYSTEM (32+ Projects)               │
 ├─────────────────────────────────────────────────────────────────┤
 │ Services: FlexCore(Go) | FLEXT Service(Go/Python) | Clients     │
 ├─────────────────────────────────────────────────────────────────┤
@@ -59,49 +68,31 @@ FLEXT DB Oracle operates as a critical infrastructure component:
 
 ### **Core Responsibilities**
 
-1. **Oracle Connectivity**: Enterprise-grade connection pooling and resource management
-2. **Schema Operations**: Complete metadata extraction, DDL generation, and schema comparison
-3. **Query Execution**: Type-safe query execution with FlextResult pattern integration
-4. **Performance Optimization**: Oracle-specific query optimization and monitoring
-5. **Singer Integration**: Foundation for Oracle-based Singer taps and targets
-6. **Plugin System**: Extensible architecture for data validation, monitoring, and auditing
+1. **Oracle Connectivity**: Enterprise connection pooling and resource management
+2. **Schema Operations**: Metadata extraction, DDL generation, schema comparison
+3. **Query Execution**: Type-safe query execution with FlextResult pattern
+4. **Foundation Services**: Base for Singer taps, targets, and DBT projects
+5. **Plugin Architecture**: Extensible framework for validation and monitoring
 
 ## ✨ Key Features
 
-### **Enterprise Database Integration**
+### **Database Integration**
+- **Modern Oracle Driver**: Built on `oracledb` 3.x with connection pooling
+- **Transaction Management**: Reliable transaction handling with rollback support  
+- **Resource Management**: Automatic cleanup and connection leak prevention
+- **Schema Introspection**: Complete Oracle metadata extraction capabilities
 
-- **Modern Oracle Driver**: Built on `oracledb` 3.x with optimal performance
-- **Connection Pooling**: Dynamic pool sizing with health monitoring
-- **Transaction Management**: Reliable transaction handling with rollback support
-- **Resource Management**: Automatic cleanup and leak prevention
-
-### **Schema & Metadata Management**
-
-- **Complete Introspection**: Tables, views, indexes, sequences, procedures extraction
-- **DDL Generation**: Automated schema creation and migration scripts
-- **Schema Comparison**: Efficient diff algorithms for large-scale schemas
-- **Dependency Analysis**: Complex object relationship mapping
-
-### **Core Integration**
-
-- **FlextResult Pattern**: Type-safe error handling without exceptions
-- **Dependency Injection**: Consistent service location via FlextContainer
+### **FLEXT Core Integration**
+- **FlextResult Pattern**: Railway-oriented programming for error handling
+- **Dependency Injection**: Service location via FlextContainer
+- **Configuration Management**: Environment-aware settings with Pydantic validation
 - **Structured Logging**: Correlation ID support for distributed tracing
-- **Configuration Management**: Environment-aware settings with validation
 
-### **Performance & Monitoring**
-
-- **Query Optimization**: Oracle-specific hints and execution plan analysis
-- **Performance Metrics**: v$views integration for real-time monitoring
-- **Health Checks**: Comprehensive database and connection health monitoring
-- **Observability**: Integration with FLEXT observability stack
-
-### **Plugin Architecture**
-
-- **Data Validation**: Schema validation and integrity checks
-- **Performance Monitoring**: Query analysis and optimization suggestions
-- **Security Auditing**: Access compliance and security validation
-- **Extensible Framework**: Custom plugin development support
+### **Developer Experience**
+- **CLI Interface**: `flext-db-oracle` command for database operations
+- **Environment Configuration**: Meltano/Singer-compatible variable naming
+- **Quality Gates**: Comprehensive linting, type checking, security scanning
+- **Testing Support**: Unit and integration test infrastructure
 
 ## 🚀 Quick Start
 
@@ -115,7 +106,7 @@ cd flext/flext-db-oracle
 # Install with Poetry
 poetry install
 
-# Development installation with all dependencies
+# Development setup with all dependencies
 make setup
 ```
 
@@ -137,72 +128,78 @@ export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
 
 ```python
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from pydantic import SecretStr
 
-# Load configuration from environment
-config = FlextDbOracleConfig.from_env()
+# Create configuration
+config = FlextDbOracleConfig(
+    host="localhost",
+    port=1521,
+    service_name="XEPDB1",
+    username="system",
+    password=SecretStr("Oracle123")
+)
 
-# Create API instance with FLEXT patterns
+# Create API instance
 api = FlextDbOracleApi(config)
 
-# Connect using FlextResult pattern
-connection_result = api.connect()
-if connection_result.is_failure:
-    print(f"Connection failed: {connection_result.error}")
-    exit(1)
+# Test connection using FlextResult pattern
+connection_result = api.test_connection()
+if connection_result.success:
+    print("✅ Connected successfully")
+else:
+    print(f"❌ Connection failed: {connection_result.error}")
 
-# Execute query with type safety
-query_result = api.execute_query("SELECT * FROM employees WHERE department_id = :dept_id", {"dept_id": 10})
+# Query execution with parameters
+query_result = api.query(
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit", 
+    {"limit": 5}
+)
+
 if query_result.success:
+    print(f"Found {query_result.value.row_count} tables")
     for row in query_result.value.rows:
-        print(row)
+        print(f"  - {row[0]}")
 else:
     print(f"Query failed: {query_result.error}")
-
-# Clean disconnection
-api.disconnect()
 ```
 
 #### 3. Schema Introspection
 
 ```python
-from flext_db_oracle import FlextDbOracleMetadataManager
+# Get database schemas
+schemas_result = api.get_schemas()
+if schemas_result.success:
+    print(f"Available schemas: {schemas_result.value}")
 
-# Initialize metadata manager
-metadata_manager = FlextDbOracleMetadataManager(api.connection)
+# Get tables in a schema
+tables_result = api.get_tables("HR")
+if tables_result.success:
+    print(f"Tables in HR schema: {tables_result.value}")
 
-# Extract complete schema information
-schema_result = metadata_manager.get_schema_metadata("HR")
-if schema_result.success:
-    schema = schema_result.value
-    print(f"Schema has {len(schema.tables)} tables")
-    for table in schema.tables:
-        print(f"Table: {table.name} ({len(table.columns)} columns)")
-
-# Generate DDL for specific table
-ddl_result = metadata_manager.generate_table_ddl("EMPLOYEES", "HR")
-if ddl_result.success:
-    print(ddl_result.value)
+# Get table columns
+columns_result = api.get_columns("EMPLOYEES", "HR")
+if columns_result.success:
+    for column in columns_result.value:
+        print(f"  - {column}")
 ```
 
-#### 4. Plugin System Usage
+#### 4. CLI Usage
 
-```python
-from flext_db_oracle.plugins import register_all_oracle_plugins
+```bash
+# Test connection
+flext-db-oracle connect-env
 
-# Register all available plugins
-register_all_oracle_plugins(api.plugin_manager)
+# List schemas
+flext-db-oracle schemas
 
-# Use data validation plugin
-validation_result = api.execute_with_plugins("data_validation", {
-    "table": "employees",
-    "schema": "hr",
-    "validation_rules": ["not_null", "foreign_key"]
-})
+# List tables in a schema
+flext-db-oracle tables --schema HR
 
-if validation_result.success:
-    print("Data validation passed")
-else:
-    print(f"Validation errors: {validation_result.error}")
+# Execute query
+flext-db-oracle query --sql "SELECT COUNT(*) FROM hr.employees"
+
+# Health check
+flext-db-oracle health
 ```
 
 ## 🧪 Development Environment
@@ -212,41 +209,41 @@ else:
 Use Docker for local Oracle development:
 
 ```bash
-# Start Oracle XE 21c
+# Start Oracle XE 21c (takes 2-3 minutes to initialize)
 docker-compose -f docker-compose.oracle.yml up -d
 
-# Wait for Oracle to be ready
+# Monitor startup progress
 docker-compose -f docker-compose.oracle.yml logs -f oracle-xe
 
-# Verify connection
+# Test connectivity once ready
 make oracle-connect
 ```
 
 ### Development Commands
 
 ```bash
-# Complete setup with dependencies and hooks
-make setup
+# Complete development setup
+make setup                    # Install dependencies + pre-commit hooks
 
 # Quality gates (run before committing)
-make validate              # Full validation pipeline
-make check                 # Quick lint + type check
-make test                  # Run all tests (90% coverage required)
+make validate                 # Full validation: lint + type + security + test
+make check                    # Quick validation: lint + type only
+make test                     # Run all tests
 
 # Testing strategies
-make test-unit             # Fast unit tests (no Oracle dependency)
-make test-integration      # Integration tests (requires Oracle)
-make test-fast             # Tests without coverage for speed
+make test-unit                # Fast unit tests (no Oracle dependency)
+make test-integration         # Integration tests (requires Oracle)
+make test-fast                # Tests without coverage for speed
+
+# Code quality
+make format                   # Auto-format code with ruff
+make lint                     # Comprehensive linting
+make type-check               # MyPy type checking
+make security                 # Security scanning with bandit
 
 # Oracle-specific operations
-make oracle-test           # Basic Oracle connectivity test
-make oracle-connect        # Test connection to Oracle server
-
-# Development tools
-make format                # Auto-format code
-make lint                  # Run comprehensive linting
-make type-check            # Strict MyPy type checking
-make security              # Security scanning with bandit
+make oracle-test              # Basic Oracle connectivity test
+make oracle-connect           # Interactive connection test
 ```
 
 ### Testing
@@ -255,41 +252,35 @@ The project follows a comprehensive testing strategy:
 
 ```bash
 # Run specific test categories
-pytest -m unit             # Unit tests only
-pytest -m integration      # Integration tests (needs Oracle)
-pytest -m e2e              # End-to-end tests
-pytest -m benchmark        # Performance benchmarks
-pytest -m "not slow"       # Fast tests for quick feedback
+pytest -m unit                # Unit tests only (fast)
+pytest -m integration         # Integration tests (needs Oracle)
+pytest -m "not slow"          # Exclude slow tests
+pytest --lf                   # Last failed tests only
 
 # Test with coverage
-pytest --cov=src/flext_db_oracle --cov-report=html --cov-fail-under=90
+pytest --cov=src/flext_db_oracle --cov-report=html
+pytest --cov=src/flext_db_oracle --cov-fail-under=90
 ```
+
+**Current Test Coverage**: 33% overall (improvement in progress)
+- Connection module: 53% (significantly improved)
+- Metadata module: 42% (comprehensive testing)
+- API module: 26% (core methods functional)
+- CLI module: 0% (testing in development)
 
 ## 📚 Documentation
 
-### Architecture Documentation
+### Project Information
 
-- **[Clean Architecture Guide](docs/architecture/README.md)** - Clean Architecture implementation details
-- **[FLEXT Core Integration](docs/flext-integration/README.md)** - Integration patterns with FLEXT ecosystem
-- **[Plugin Development](docs/plugins/README.md)** - Creating custom plugins
+For general project information, architecture details, and usage examples, see the main documentation in this README.
 
 ### Integration Guides
 
-- **[Singer/Meltano Integration](docs/integration/singer.md)** - Using with Singer taps and targets
-- **[FLEXT Services Integration](docs/integration/services.md)** - Integration with Go services
-- **[Performance Optimization](docs/performance/README.md)** - Oracle-specific optimization techniques
+- **FLEXT Ecosystem Integration**: Built on flext-core patterns
+- **Singer/Meltano Compatibility**: Environment variable conventions
+- **Plugin Development**: Extensible architecture framework
 
-### API Reference
-
-- **[API Documentation](docs/api/README.md)** - Complete API reference
-- **[Configuration Guide](docs/configuration/README.md)** - Configuration options and patterns
-- **[Error Handling](docs/error-handling/README.md)** - FlextResult patterns and error management
-
-## 🔧 Configuration
-
-### Environment Variables
-
-FLEXT DB Oracle follows Meltano/Singer conventions for configuration:
+### Configuration Reference
 
 ```bash
 # Required connection parameters
@@ -300,132 +291,94 @@ FLEXT_TARGET_ORACLE_PASSWORD          # Oracle password
 FLEXT_TARGET_ORACLE_SERVICE_NAME      # Oracle service name
 
 # Optional configuration
-FLEXT_TARGET_ORACLE_POOL_MIN          # Minimum pool size (default: 5)
-FLEXT_TARGET_ORACLE_POOL_MAX          # Maximum pool size (default: 20)
+FLEXT_TARGET_ORACLE_POOL_MIN          # Min pool size (default: 5)
+FLEXT_TARGET_ORACLE_POOL_MAX          # Max pool size (default: 20)
 FLEXT_TARGET_ORACLE_TIMEOUT           # Connection timeout (default: 30)
-FLEXT_TARGET_ORACLE_CHARSET           # Character set (default: UTF8)
 
-# Development and testing
+# Development settings
 ORACLE_INTEGRATION_TESTS              # Enable integration tests
-```
-
-### Configuration Validation
-
-```python
-from flext_db_oracle import FlextDbOracleConfig
-from flext_core import FlextResult
-
-# Validate configuration
-config_result = FlextDbOracleConfig.from_env_validated()
-if config_result.is_failure:
-    print(f"Configuration error: {config_result.error}")
-    exit(1)
-
-config = config_result.value
+ORACLE_SQL_LOGGING                    # Enable SQL query logging
 ```
 
 ## 🏆 Quality Standards
 
-### **Quality Targets**
+### **Current Quality Metrics**
 
-- **Coverage**: 90% target (enforceable with `--cov-fail-under=90`)
-- **Type Safety**: MyPy strict mode plan (incremental adoption)
-- **Linting**: Ruff with comprehensive rules (continuous improvement)
+- **Test Coverage**: 33% (actively improving from 21%)
+- **Type Safety**: Python 3.13+ with comprehensive type hints
+- **Linting**: Ruff with extensive rules enabled
 - **Security**: Bandit + pip-audit scanning
-- **Performance**: Benchmarks for critical paths
+- **Architecture**: Clean Architecture with SOLID principles
 
-### **Architectural Standards**
+### **Development Standards**
 
-- **FLEXT Core Integration**: Consistent use of FlextResult, FlextContainer patterns
-- **Clean Architecture**: Clear separation of domain, application, and infrastructure layers
-- **SOLID Principles**: Single responsibility, dependency inversion throughout
-- **Plugin Architecture**: Extensible design following Open/Closed principle
+- **FLEXT Core Integration**: Consistent FlextResult and FlextContainer patterns
+- **Error Handling**: Railway-oriented programming throughout
+- **Testing**: Real code validation approach (no excessive mocking)
+- **Documentation**: Code examples that actually work
+- **Configuration**: Environment-first with validation
 
-### **Testing Requirements**
+### **Quality Gates**
 
-- Unit tests must not require external Oracle database
-- Integration tests marked with `@pytest.mark.integration`
-- All public APIs covered with both success and failure scenarios
-- Performance benchmarks for critical database operations
-- Mock objects used consistently for external dependencies
+All changes must pass:
+```bash
+make validate     # Combines: lint + type-check + security + test
+```
+
+Individual checks:
+- `make lint` - Code style and quality
+- `make type-check` - Static type checking
+- `make security` - Security vulnerability scanning
+- `make test` - Test suite execution
 
 ## 🤝 Integration with FLEXT Ecosystem
 
 ### **FLEXT Core Patterns**
 
 ```python
-# FlextResult for all operations
-def execute_query(self, sql: str) -> FlextResult[QueryResult]:
+# FlextResult for error handling
+from flext_core import FlextResult
+
+def database_operation() -> FlextResult[QueryResult]:
     try:
-        result = self._connection.execute(sql)
-        return FlextResult[None].ok(QueryResult(rows=result.fetchall()))
+        result = perform_query()
+        return FlextResult[QueryResult].ok(result)
     except Exception as e:
-        return FlextResult[None].fail(f"Query execution failed: {e}")
+        return FlextResult[QueryResult].fail(f"Operation failed: {e}")
 
-# Dependency injection via FlextContainer
-from flext_core import get_flext_container
+# FlextContainer for dependency injection
+from flext_core import FlextContainer
 
-container = get_flext_container()
+container = FlextContainer()
 oracle_service = container.resolve(FlextDbOracleApi)
 ```
 
-### **Singer Ecosystem Integration**
+### **Singer Ecosystem Foundation**
 
-FLEXT DB Oracle serves as the foundation for Singer taps and targets:
-
-- **flext-tap-oracle**: Uses this library for data extraction
-- **flext-target-oracle**: Uses this library for data loading
-- **flext-dbt-oracle**: Uses this library for data transformation
+This library serves as the foundation for:
+- **flext-tap-oracle**: Oracle data extraction
+- **flext-target-oracle**: Oracle data loading  
+- **flext-dbt-oracle**: Oracle data transformation
 
 ### **Service Integration**
 
-Integration with FLEXT services:
-
+Integrates with FLEXT services:
 - **FlexCore (Go)**: Plugin system integration
-- **FLEXT Service**: Python bridge for Oracle operations
-- **FLEXT API**: REST endpoints for Oracle operations
-
-## 📈 Performance
-
-### **Benchmarks**
-
-- **Connection pooling**: 10x improvement over naive connections
-- **Bulk operations**: Support for 100K+ row operations
-- **Memory efficiency**: Streaming result sets for large datasets
-- **Query optimization**: Oracle-specific hints and execution plans
-
-### **Monitoring**
-
-```python
-# Performance monitoring integration
-from flext_db_oracle.observability import FlextDbOracleObservabilityManager
-
-# Monitor connection pool health
-pool_metrics = observability.get_pool_metrics()
-print(f"Active connections: {pool_metrics['active']}")
-print(f"Pool utilization: {pool_metrics['utilization']}%")
-
-# Query performance analysis
-query_stats = observability.get_query_statistics()
-for query, stats in query_stats.items():
-    print(f"Query: {query[:50]}... - Avg time: {stats['avg_time']}ms")
-```
+- **FLEXT Service (Go/Python)**: Python bridge for Oracle operations
+- **FLEXT API**: REST endpoints for database operations
 
 ## 🔒 Security
 
 ### **Security Features**
+- **Parameterized Queries**: SQL injection prevention
+- **Environment Variables**: Secure credential management
+- **Connection Security**: SSL/TLS support for encrypted connections
+- **Access Control**: Role-based database access patterns
 
-- **Connection security**: SSL/TLS support for encrypted connections
-- **Credential management**: Environment variable-based secrets
-- **SQL injection prevention**: Parameterized queries only
-- **Access control**: Role-based database access patterns
-- **Audit logging**: Comprehensive operation logging
-
-### **Security Scanning**
-
+### **Security Validation**
 ```bash
-# Security validation
-make security              # Run bandit security scanning
+make security              # Run comprehensive security scanning
+poetry run bandit src/     # Security issue detection
 poetry run pip-audit       # Dependency vulnerability scanning
 ```
 
@@ -434,46 +387,30 @@ poetry run pip-audit       # Dependency vulnerability scanning
 ### **Common Issues**
 
 #### Connection Problems
-
 ```bash
 # Test Oracle connectivity
 make oracle-connect
 
-# Check Oracle service status
+# Check Oracle container status
 docker-compose -f docker-compose.oracle.yml ps
 
-# View Oracle logs
+# View Oracle startup logs
 docker-compose -f docker-compose.oracle.yml logs oracle-xe
 ```
 
-#### Performance Issues
-
-```bash
-# Enable SQL logging for query analysis
-export ORACLE_SQL_LOGGING=1
-
-# Run performance benchmarks
-pytest -m benchmark -v
-
-# Check connection pool metrics
-make oracle-test
-```
-
 #### Development Issues
-
 ```bash
-# Ensure all FLEXT dependencies are available
+# Ensure all dependencies installed
 make install-dev
-
-# Run comprehensive health check
-make doctor
 
 # Reset development environment
 make clean-all && make setup
+
+# Run comprehensive health check
+make doctor
 ```
 
 ### **Debug Mode**
-
 ```python
 import logging
 
@@ -481,22 +418,23 @@ import logging
 logging.getLogger('flext_db_oracle').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-# Enable query logging
-config.debug_sql = True
+# Enable SQL query logging
+import os
+os.environ['ORACLE_SQL_LOGGING'] = '1'
 ```
 
 ## 📝 Contributing
 
-### **Development Setup**
+### **Development Process**
 
 ```bash
-# Clone and setup
+# Setup development environment
 git clone https://github.com/flext-sh/flext.git
 cd flext/flext-db-oracle
 make setup
 
 # Create feature branch
-git checkout -b feature/your-feature-name
+git checkout -b feature/your-feature
 
 # Make changes and validate
 make validate
@@ -505,32 +443,23 @@ make validate
 make test-all
 ```
 
-### **Contribution Guidelines**
+### **Contribution Requirements**
 
-1. **Follow FLEXT patterns**: Use FlextResult, dependency injection, Clean Architecture
+1. **Follow FLEXT patterns**: FlextResult, dependency injection, Clean Architecture
 2. **Maintain quality gates**: All quality checks must pass
-3. **Add comprehensive tests**: Both unit and integration tests required
-4. **Update documentation**: All public APIs must be documented
-5. **Performance consideration**: Benchmark critical path changes
-
-### **Code Review Process**
-
-- All changes require pull request review
-- Quality gates must pass (lint, type check, security, tests)
-- Performance benchmarks for database operations
-- Documentation updates for API changes
+3. **Add comprehensive tests**: Focus on real code validation over mocks
+4. **Update documentation**: All public APIs documented with working examples
+5. **Performance consideration**: Benchmark critical database operations
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🔗 Links
 
 - **[FLEXT Ecosystem](https://github.com/flext-sh/flext)** - Complete FLEXT platform
-- **[FLEXT Core](https://github.com/flext-sh/flext-core)** - Architectural foundation
-- **[Documentation](docs/README.md)** - Complete documentation hub
-- **[Architecture Guide](docs/architecture/README.md)** - Clean Architecture implementation
-- **[API Reference](docs/api/README.md)** - Complete API documentation
+- **[FLEXT Core](../flext-core/README.md)** - Foundation library
+- **[Oracle Documentation](https://docs.oracle.com)** - Oracle database reference
 
 ---
 

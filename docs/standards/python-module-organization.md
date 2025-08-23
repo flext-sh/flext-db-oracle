@@ -1428,5 +1428,5 @@ def setup_oracle_ecosystem(container: FlextContainer) -> FlextResult[None]:
 **Last Updated**: August 2, 2025  
 **Target Audience**: FLEXT Oracle ecosystem developers and contributors  
 **Scope**: Python module organization for Oracle database integration within FLEXT ecosystem  
-**Version**: 0.9.0 → 1.0.0 Oracle specialization guidelines  
+**Version**: 0.9.0 → 0.9.0 Oracle specialization guidelines  
 **Oracle Compatibility**: Oracle Database 11g+ with optimal support for 19c+
