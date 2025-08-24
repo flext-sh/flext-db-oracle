@@ -121,7 +121,7 @@ def demonstrate_connection_patterns() -> None:
             host="example.oracle.com",
             port=1521,
             username="demo_user",
-            password="demo_pass",  # noqa: S106 - Demo password argument for example
+            password="demo_pass",  # noqa: S106
             service_name="DEMO_DB",
         )
         logger.info("✅ Created API with configuration parameters")
@@ -152,7 +152,7 @@ def demonstrate_configuration_patterns() -> None:
         FlextDbOracleConfig(
             host="localhost",
             username="user",
-            password=SecretStr("pass"),  # noqa: S106 - Demo password argument for config example
+            password=SecretStr("pass"),
             service_name="DB",
             ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
         )
@@ -163,7 +163,7 @@ def demonstrate_configuration_patterns() -> None:
             host="prod.oracle.company.com",
             port=1521,
             username="prod_user",
-            password=SecretStr("secure_password"),  # noqa: S106 - Demo password argument for example
+            password=SecretStr("secure_password"),
             service_name="PROD_DB",
             encoding="UTF-8",
             oracle_schema="PROD_SCHEMA",  # Use correct field name
@@ -459,7 +459,7 @@ def demonstrate_fallback_operations(api: FlextDbOracleApi) -> str:
     primary_result = api.test_connection()
 
     # Modern unwrap_or pattern for cleaner success checking
-    if primary_result.unwrap_or(False):
+    if primary_result.unwrap_or(default=False):
         return "Primary operation succeeded"
 
     # Primary failed, try fallback
@@ -572,7 +572,7 @@ def _demonstrate_patterns_from_config(pattern_key: str) -> None:
         str(config["context"]),
         str(config["emoji"]),
         str(config["message"]),
-        config["patterns"],  # type: ignore[arg-type]
+        config["patterns"],
     )
 
 

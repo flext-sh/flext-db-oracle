@@ -56,10 +56,10 @@ from __future__ import annotations
 
 from collections.abc import Generator, Sequence
 from contextlib import contextmanager
-from typing import TypeVar, override
 from urllib.parse import quote_plus
 
 from flext_core import (
+    FlextDomainService,
     FlextResult,
     FlextValidation,
     FlextValue,
@@ -82,7 +82,8 @@ from flext_db_oracle.typings import (
 # Oracle column information constants
 ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info query
 
-T = TypeVar("T")
+# Python 3.13+ generic type parameter (replacing TypeVar)
+type T = object
 
 
 # Moved from typings.py to resolve circular import
@@ -136,7 +137,6 @@ class CreateIndexConfig(FlextValue):
             raise ValueError(msg)
         return v
 
-    @override
     def validate_business_rules(self) -> FlextResult[None]:
         """Validate create index configuration.
 
@@ -185,7 +185,7 @@ class FlextDbOracleConnection:
             if not url_result.is_success:
                 error_msg = url_result.error or "Failed to build connection URL"
                 self._logger.error(error_msg)
-                return FlextResult[None].fail(error_msg)
+                return FlextResult[bool].fail(error_msg)
 
             connection_url = url_result.value
             if not connection_url:
@@ -209,9 +209,12 @@ class FlextDbOracleConnection:
                 conn.execute(text(FlextOracleDbSemanticConstants.Query.TEST_QUERY))
 
             self._logger.info("Connected using SQLAlchemy 2")
-            return FlextResult[bool].ok(data=True)  # noqa: FBT003
+            return FlextResult[bool].ok(data=True)
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
+            # Clean up engine on connection failure
+            self._engine = None
+            self._session_factory = None
             return self._handle_database_error_with_logging("Failed to connect", e)
 
     def disconnect(self) -> FlextResult[bool]:
@@ -222,7 +225,7 @@ class FlextDbOracleConnection:
                 self._engine = None
                 self._session_factory = None
                 self._logger.info("Disconnected from Oracle database")
-            return FlextResult[bool].ok(data=True)  # noqa: FBT003
+            return FlextResult[bool].ok(data=True)
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             return FlextResult[bool].fail(f"Disconnect failed: {e}")
 
@@ -292,9 +295,9 @@ class FlextDbOracleConnection:
                         list(rows)
                     )
                 conn.commit()
-                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok(
-                    [result.rowcount]
-                )
+                return FlextResult[list[Row[tuple[object, ...]]] | list[int]].ok([
+                    result.rowcount
+                ])
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
             error_msg = f"SQL execution failed: {e}"
@@ -396,6 +399,63 @@ class FlextDbOracleConnection:
             except (DatabaseError, OperationalError, TypeError, ValueError):
                 trans.rollback()
                 raise
+
+    @property
+    def connection_info(self) -> dict[str, object]:
+        """Get connection information."""
+        return {
+            "host": self.config.host,
+            "port": self.config.port,
+            "service_name": self.config.service_name,
+            "username": self.config.username,
+            "is_connected": self.is_connected(),
+            "pool_size": self.config.pool_min,
+            "pool_min": self.config.pool_min,
+            "pool_max": self.config.pool_max,
+        }
+
+    @property
+    def database_version(self) -> str | None:
+        """Get Oracle database version."""
+        if not self.is_connected():
+            return None
+
+        try:
+            if self._engine is None:
+                return None
+            with self._engine.connect() as conn:
+                result = conn.execute(text("SELECT banner FROM v$version WHERE ROWNUM = 1"))
+                row = result.fetchone()
+                return str(row[0]) if row else None
+        except Exception:
+            return None
+
+    @property
+    def connection_pool_info(self) -> dict[str, object]:
+        """Get connection pool information."""
+        if not self.is_connected() or not self._engine:
+            return {
+                "pool_size": 0,
+                "checked_in": 0,
+                "checked_out": 0,
+                "status": "disconnected"
+            }
+
+        try:
+            pool = self._engine.pool
+            return {
+                "pool_size": getattr(pool, "size", 0),
+                "checked_in": getattr(pool, "checkedin", 0),
+                "checked_out": getattr(pool, "checkedout", 0),
+                "status": "connected"
+            }
+        except Exception:
+            return {
+                "pool_size": 0,
+                "checked_in": 0,
+                "checked_out": 0,
+                "status": "error"
+            }
 
     def close(self) -> FlextResult[None]:
         """Close database connection."""
@@ -977,7 +1037,7 @@ class FlextDbOracleConnection:
             result = self.execute(ddl)
             # Modern FlextResult pattern: use .value for DDL execution
             if result.is_success:
-                return FlextResult[bool].ok(success=True)
+                return FlextResult[bool].ok(data=True)
             return FlextResult[bool].fail(result.error or "DDL execution failed")
 
         except (SQLAlchemyError, OSError, ValueError, AttributeError) as e:
@@ -1315,7 +1375,7 @@ class FlextDbOracleConnection:
 
             # Build complete MERGE statement
             # NOTE: SQL construction is safe - all components built from validated schema metadata and parameterized values
-            sql = f"""  # noqa: S608
+            sql = f"""
               MERGE {hint_clause}INTO {full_table_name} tgt
               USING (SELECT {source_select} FROM DUAL) src
               ON ({on_conditions})
@@ -1417,4 +1477,60 @@ class FlextDbOracleConnection:
             return FlextResult[str].fail(f"CREATE INDEX statement build failed: {e}")
 
 
-__all__: list[str] = ["FlextDbOracleConnection"]
+# =============================================================================
+# FLEXT DB ORACLE CONNECTIONS - Single Class Pattern (SOLID + PEP8)
+# =============================================================================
+
+
+class FlextDbOracleConnections(FlextDomainService[bool]):
+    """Oracle database connections following Flext[Area][Module] pattern.
+
+    Inherits from FlextDomainService to leverage FLEXT Core domain service patterns.
+    Consolidates all Oracle connection functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+    """
+
+    @staticmethod
+    def create_connection(config: FlextDbOracleConfig) -> FlextDbOracleConnection:
+        """Create Oracle database connection instance."""
+        return FlextDbOracleConnection(config)
+
+    @staticmethod
+    def create_index_config(
+        table_name: str,
+        columns: list[str],
+        *,
+        index_name: str | None = None,
+        unique: bool = False,
+        parallel: int | None = None,
+    ) -> CreateIndexConfig:
+        """Create index configuration for Oracle database operations."""
+        # Generate default index name if not provided
+        if index_name is None:
+            column_suffix = "_".join(columns[:3])  # Use first 3 columns for name
+            index_name = f"idx_{table_name}_{column_suffix}".lower()
+
+        return CreateIndexConfig(
+            table_name=table_name,
+            columns=columns,
+            index_name=index_name,
+            unique=unique,
+            parallel=parallel,
+        )
+
+    def execute(self) -> FlextResult[bool]:
+        """Execute domain service operation - connection health validation.
+
+        Implements FlextDomainService abstract method for Oracle connection validation.
+
+        Returns:
+            FlextResult indicating connection health status.
+
+        """
+        # This is a factory service, so we return a successful result
+        # indicating the service is operational and ready to create connections
+        service_operational = True
+        return FlextResult[bool].ok(service_operational)
+
+
+__all__: list[str] = ["FlextDbOracleConnection", "FlextDbOracleConnections"]

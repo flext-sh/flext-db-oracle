@@ -19,6 +19,9 @@ from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
+# Test constants - NOT PRODUCTION PASSWORDS
+TEST_ORACLE_PASSWORD = "FlextTest123"  # noqa: S105
+
 
 class TestOperationError(Exception):
     """Custom exception for test operations to avoid TRY003 lint warnings."""
@@ -41,7 +44,7 @@ class DockerCommandExecutor:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
             client = docker.from_env()
-            client.ping()  # type: ignore[no-untyped-call]
+            client.ping()
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 
@@ -151,7 +154,7 @@ class OracleContainerManager:
         )
 
 
-def pytest_configure(config: pytest.Config) -> None:
+def pytest_configure(config: pytest.Config) -> None:  # noqa: ARG001 - config required by pytest interface
     """Configure pytest with Oracle container for ALL tests - NO MOCKS ALLOWED."""
     # FORCE Oracle container usage for ALL tests - no mocks, only real testing
     os.environ["SKIP_E2E_TESTS"] = "false"
@@ -162,13 +165,13 @@ def pytest_configure(config: pytest.Config) -> None:
     os.environ["TEST_ORACLE_PORT"] = "1521"
     os.environ["TEST_ORACLE_SERVICE"] = "XEPDB1"
     os.environ["TEST_ORACLE_USER"] = "flexttest"
-    os.environ["TEST_ORACLE_PASSWORD"] = "FlextTest123"
+    os.environ["TEST_ORACLE_PASSWORD"] = TEST_ORACLE_PASSWORD
     # Set FLEXT target environment variables for consistency across ALL tests
     os.environ["FLEXT_TARGET_ORACLE_HOST"] = "localhost"
     os.environ["FLEXT_TARGET_ORACLE_PORT"] = "1521"
     os.environ["FLEXT_TARGET_ORACLE_SERVICE_NAME"] = "XEPDB1"
     os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "flexttest"
-    os.environ["FLEXT_TARGET_ORACLE_PASSWORD"] = "FlextTest123"
+    os.environ["FLEXT_TARGET_ORACLE_PASSWORD"] = TEST_ORACLE_PASSWORD
     # PYTEST CONFIGURADO PARA USAR ORACLE REAL - SEM MOCKS!
 
 
@@ -197,7 +200,7 @@ def oracle_container() -> Generator[None]:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:
+def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:  # noqa: ARG001 - oracle_container ensures container startup dependency
     """Return real Oracle configuration for ALL tests."""
     return FlextDbOracleConfig(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),

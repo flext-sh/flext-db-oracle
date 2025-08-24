@@ -37,24 +37,28 @@ class TestOracleIntegration:
         # Test connection status
         test_result = connected_api.test_connection()
         if test_result.is_failure:
-            raise AssertionError(f"Connection test failed: {test_result.error}")
+            msg = f"Connection test failed: {test_result.error}"
+            raise AssertionError(msg)
 
         # Test schema operations
         schemas_result = connected_api.get_schemas()
         if schemas_result.is_failure:
-            raise AssertionError(f"Get schemas failed: {schemas_result.error}")
+            msg = f"Get schemas failed: {schemas_result.error}"
+            raise AssertionError(msg)
         schemas = schemas_result.value
         assert len(schemas) > 0, "Should have at least one schema"
 
         # Test table operations
         tables_result = connected_api.get_tables()
         if tables_result.is_failure:
-            raise AssertionError(f"Get tables failed: {tables_result.error}")
+            msg = f"Get tables failed: {tables_result.error}"
+            raise AssertionError(msg)
 
         # Test query execution
         query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
         if query_result.is_failure:
-            raise AssertionError(f"Query failed: {query_result.error}")
+            msg = f"Query failed: {query_result.error}"
+            raise AssertionError(msg)
         query_data = query_result.value
         assert query_data.row_count == 1, "Query should return exactly one row"
 
@@ -73,7 +77,8 @@ class TestOracleIntegration:
         # Test invalid SQL
         invalid_query_result = connected_api.query("INVALID SQL STATEMENT")
         if invalid_query_result.success:
-            raise AssertionError("Invalid SQL should fail")
+            msg = "Invalid SQL should fail"
+            raise AssertionError(msg)
         error_msg = invalid_query_result.error or ""
         assert "ORA-" in error_msg or "syntax" in error_msg.lower()
 
@@ -82,7 +87,8 @@ class TestOracleIntegration:
             "SELECT * FROM NONEXISTENT_TABLE_12345"
         )
         if nonexistent_table_result.success:
-            raise AssertionError("Query on non-existent table should fail")
+            msg = "Query on non-existent table should fail"
+            raise AssertionError(msg)
 
         connected_api.disconnect()
 
@@ -99,11 +105,13 @@ class TestOracleIntegration:
             # Test operations within context
             test_result = api.test_connection()
             if test_result.is_failure:
-                raise AssertionError(f"Connection test failed: {test_result.error}")
+                msg = f"Connection test failed: {test_result.error}"
+                raise AssertionError(msg)
 
             query_result = api.query("SELECT 1 FROM DUAL")
             if query_result.is_failure:
-                raise AssertionError(f"Query failed: {query_result.error}")
+                msg = f"Query failed: {query_result.error}"
+                raise AssertionError(msg)
 
         # Connection should be automatically closed after context
 
@@ -119,7 +127,8 @@ class TestOracleIntegration:
         # Test schema listing
         schemas_result = connected_api.get_schemas()
         if schemas_result.is_failure:
-            raise AssertionError(f"Get schemas failed: {schemas_result.error}")
+            msg = f"Get schemas failed: {schemas_result.error}"
+            raise AssertionError(msg)
         schemas = schemas_result.value
         assert isinstance(schemas, list)
 
@@ -128,7 +137,8 @@ class TestOracleIntegration:
             first_schema = schemas[0]
             tables_result = connected_api.get_tables(first_schema)
             if tables_result.is_failure:
-                raise AssertionError(f"Get tables failed: {tables_result.error}")
+                msg = f"Get tables failed: {tables_result.error}"
+                raise AssertionError(msg)
 
             # If tables exist, test column information
             tables = tables_result.value
@@ -136,7 +146,8 @@ class TestOracleIntegration:
                 first_table = tables[0]
                 columns_result = connected_api.get_columns(first_table, first_schema)
                 if columns_result.is_failure:
-                    raise AssertionError(f"Get columns failed: {columns_result.error}")
+                    msg = f"Get columns failed: {columns_result.error}"
+                    raise AssertionError(msg)
                 columns = columns_result.value
                 assert isinstance(columns, list)
 
@@ -154,7 +165,8 @@ class TestOracleIntegration:
         # Test health check
         health_result = connected_api.get_health_check()
         if health_result.is_failure:
-            raise AssertionError(f"Health check failed: {health_result.error}")
+            msg = f"Health check failed: {health_result.error}"
+            raise AssertionError(msg)
 
         health_data = health_result.value
         assert hasattr(health_data, "status")
@@ -163,7 +175,8 @@ class TestOracleIntegration:
         # Test observability metrics
         metrics_result = connected_api.get_observability_metrics()
         if metrics_result.is_failure:
-            raise AssertionError(f"Metrics failed: {metrics_result.error}")
+            msg = f"Metrics failed: {metrics_result.error}"
+            raise AssertionError(msg)
 
         metrics = metrics_result.value
         assert isinstance(metrics, dict)

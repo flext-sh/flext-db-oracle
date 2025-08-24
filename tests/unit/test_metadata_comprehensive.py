@@ -245,5 +245,5 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         assert not result_empty_schema.success
 
         # Test None parameters where not allowed
-        result_none_table = self.manager.get_columns(None)  # type: ignore
+        result_none_table = self.manager.get_columns(None)
         assert not result_none_table.success

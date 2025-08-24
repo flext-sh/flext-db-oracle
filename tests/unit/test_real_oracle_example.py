@@ -32,14 +32,16 @@ class TestRealOracleConnection:
         # Test connect - using modern .value access after failure check
         result = connection.connect()
         if result.is_failure:
-            raise AssertionError(f"Connection failed: {result.error}")
+            msg = f"Connection failed: {result.error}"
+            raise AssertionError(msg)
         # Success case - use modern .value access
         assert connection.is_connected()
 
         # Test disconnect - using modern .value access after failure check
         result = connection.disconnect()
         if result.is_failure:
-            raise AssertionError(f"Disconnect failed: {result.error}")
+            msg = f"Disconnect failed: {result.error}"
+            raise AssertionError(msg)
         # Success case - use modern .value access
         assert not connection.is_connected()
 
@@ -53,14 +55,16 @@ class TestRealOracleConnection:
         # Connect first - using modern pattern
         connect_result = connection.connect()
         if connect_result.is_failure:
-            raise AssertionError(f"Connection failed: {connect_result.error}")
+            msg = f"Connection failed: {connect_result.error}"
+            raise AssertionError(msg)
         # Success case - connection established
 
         try:
             # Execute simple query - using modern .value access after failure check
             result = connection.execute("SELECT 1 FROM DUAL")
             if result.is_failure:
-                raise AssertionError(f"Query failed: {result.error}")
+                msg = f"Query failed: {result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             query_data = result.value
             assert isinstance(query_data, list)
@@ -82,14 +86,16 @@ class TestRealOracleConnection:
         # Connect first - using modern pattern
         connect_result = connection.connect()
         if connect_result.is_failure:
-            raise AssertionError(f"Connection failed: {connect_result.error}")
+            msg = f"Connection failed: {connect_result.error}"
+            raise AssertionError(msg)
         # Success case - connection established
 
         try:
             # Fetch one row - using modern .value access after failure check
             result = connection.fetch_one("SELECT 42 FROM DUAL")
             if result.is_failure:
-                raise AssertionError(f"Fetch one failed: {result.error}")
+                msg = f"Fetch one failed: {result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             fetch_data = result.value
             if fetch_data and hasattr(fetch_data, "__getitem__"):
@@ -108,7 +114,8 @@ class TestRealOracleConnection:
         # Connect first - using modern pattern
         connect_result = connection.connect()
         if connect_result.is_failure:
-            raise AssertionError(f"Connection failed: {connect_result.error}")
+            msg = f"Connection failed: {connect_result.error}"
+            raise AssertionError(msg)
         # Success case - connection established
 
         try:
@@ -125,7 +132,8 @@ class TestRealOracleConnection:
               ) ON COMMIT PRESERVE ROWS
           """)
             if create_result.is_failure:
-                raise AssertionError(f"Table creation failed: {create_result.error}")
+                msg = f"Table creation failed: {create_result.error}"
+                raise AssertionError(msg)
             # Success case - table created successfully
 
             # Execute many inserts
@@ -140,7 +148,8 @@ class TestRealOracleConnection:
                 params_list,
             )
             if result.is_failure:
-                raise AssertionError(f"Execute many failed: {result.error}")
+                msg = f"Execute many failed: {result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             many_result = result.value
             assert many_result == 3  # Row count
@@ -148,7 +157,8 @@ class TestRealOracleConnection:
             # Verify data - using modern .value access after failure check
             select_result = connection.execute("SELECT COUNT(*) FROM temp_test_table")
             if select_result.is_failure:
-                raise AssertionError(f"Count query failed: {select_result.error}")
+                msg = f"Count query failed: {select_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             count_data = select_result.value
             assert isinstance(count_data, list)
@@ -176,14 +186,16 @@ class TestRealOracleApi:
             # Test connection - using modern .value access after failure check
             test_result = api.test_connection()
             if test_result.is_failure:
-                raise AssertionError(f"Connection test failed: {test_result.error}")
+                msg = f"Connection test failed: {test_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             # Success case - connection test passed
 
             # Test simple query - using modern .value access after failure check
             query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
             if query_result.is_failure:
-                raise AssertionError(f"Query failed: {query_result.error}")
+                msg = f"Query failed: {query_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             # SQLAlchemy Row objects are returned as tuples: rows[0][0] = ('Hello Oracle',)
             # To get the actual string value, we need to access the first element of the tuple
@@ -226,7 +238,8 @@ class TestRealOracleApi:
         """Test real Oracle column listing."""
         result = connected_oracle_api.get_columns("EMPLOYEES")
         if result.is_failure:
-            raise AssertionError(f"Get columns failed: {result.error}")
+            msg = f"Get columns failed: {result.error}"
+            raise AssertionError(msg)
         # Success case - use modern .value access
         columns = result.value
         assert len(columns) > 0
@@ -249,7 +262,8 @@ class TestRealOracleApi:
             "SELECT COUNT(*) FROM EMPLOYEES",
         )
         if result.is_failure:
-            raise AssertionError(f"Query with timing failed: {result.error}")
+            msg = f"Query with timing failed: {result.error}"
+            raise AssertionError(msg)
         # Success case - use modern .value access
         query_result = result.value
         assert hasattr(query_result, "execution_time_ms")
@@ -282,8 +296,9 @@ class TestRealOracleApi:
                 )
 
             if result.is_failure:
+                msg = f"Type conversion failed for {singer_type}: {result.error}"
                 raise AssertionError(
-                    f"Type conversion failed for {singer_type}: {result.error}"
+                    msg
                 )
             # Success case - use modern .value access
             oracle_type = result.value
@@ -311,20 +326,23 @@ class TestRealOracleApi:
 
             ddl_result = connected_oracle_api.create_table_ddl(table_name, columns)
             if ddl_result.is_failure:
-                raise AssertionError(f"DDL generation failed: {ddl_result.error}")
+                msg = f"DDL generation failed: {ddl_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             ddl_sql = ddl_result.value
 
             # Execute DDL - using modern .value access after failure check
             execute_result = connected_oracle_api.execute_ddl(ddl_sql)
             if execute_result.is_failure:
-                raise AssertionError(f"DDL execution failed: {execute_result.error}")
+                msg = f"DDL execution failed: {execute_result.error}"
+                raise AssertionError(msg)
             # Success case - DDL executed successfully
 
             # Verify table exists - using modern .value access after failure check
             tables_result = connected_oracle_api.get_tables()
             if tables_result.is_failure:
-                raise AssertionError(f"Get tables failed: {tables_result.error}")
+                msg = f"Get tables failed: {tables_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             tables_data = tables_result.value
             table_names = [str(t).upper() for t in tables_data]
@@ -333,7 +351,8 @@ class TestRealOracleApi:
             # Get table metadata - using modern .value access after failure check
             metadata_result = connected_oracle_api.get_table_metadata(table_name)
             if metadata_result.is_failure:
-                raise AssertionError(f"Get metadata failed: {metadata_result.error}")
+                msg = f"Get metadata failed: {metadata_result.error}"
+                raise AssertionError(msg)
             # Success case - use modern .value access
             metadata = metadata_result.value
             assert str(metadata["table_name"]).upper() == table_name.upper()
@@ -385,7 +404,8 @@ class TestRealOracleErrorHandling:
 
         connect_result = connection.connect()
         if connect_result.is_failure:
-            raise AssertionError(f"Connection failed: {connect_result.error}")
+            msg = f"Connection failed: {connect_result.error}"
+            raise AssertionError(msg)
         # Success case - connection established
 
         try:

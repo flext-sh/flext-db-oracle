@@ -12,11 +12,31 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from flext_core import FlextResult
+from flext_core import FlextCoreUtilities, FlextResult
 
 from flext_db_oracle.models import FlextDbOracleQueryResult
+
+if TYPE_CHECKING:
+    from rich.console import Console
+
+
+# Type alias for objects that support model_dump (like Pydantic models)
+# Using Protocol would be better but to avoid circular imports, using object
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Protocol
+
+    class SupportsModelDump(Protocol):
+        """Protocol for objects that support model_dump method."""
+
+        def model_dump(self, **kwargs: object) -> dict[str, object]: ...
+else:
+    # Runtime fallback to avoid circular imports
+    SupportsModelDump = object
+
 
 # Performance monitoring constants
 PERFORMANCE_WARNING_THRESHOLD_SECONDS = 2.0
@@ -33,13 +53,15 @@ else:
     FlextDbOracleApi = None
 
 
-class FlextDbOracleUtilities:
-    """Utility functions for Oracle database operations.
+class FlextDbOracleUtilities(FlextCoreUtilities):
+    """Oracle database utilities following Flext[Area][Module] pattern.
+
+    Inherits from FlextCoreUtilities to leverage FLEXT Core utility patterns.
+    Consolidates all Oracle database utility functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
     SOLID REFACTORING: Static utility methods using Single Responsibility Principle
     to encapsulate common Oracle operations and reduce code duplication across examples.
-
-    Includes unwrap_or() pattern methods for reducing code bloat as per FLEXT standards.
     """
 
     # =============================================================================
@@ -256,8 +278,11 @@ class FlextDbOracleUtilities:
 
         # Convert health data to dict
         if hasattr(health_data, "model_dump"):
-            dumped = health_data.model_dump()
-            return dict(dumped) if dumped else {}
+            model_dump_method = getattr(health_data, "model_dump", None)
+            if model_dump_method is not None:
+                dumped = model_dump_method()
+                return dict(dumped) if dumped else {}
+
         if hasattr(health_data, "__dict__"):
             return dict(health_data.__dict__)
         return health_data if isinstance(health_data, dict) else {}
@@ -311,9 +336,15 @@ class FlextDbOracleUtilities:
             FlextDbOracleApi instance
 
         """
-        from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+        # Import only available at runtime to avoid cycles
+        if TYPE_CHECKING:
+            # Type checker satisfaction - never executed at runtime
+            api_class = cast("type[FlextDbOracleApi]", None)
+        else:
+            from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+            api_class = FlextDbOracleApi
 
-        return FlextDbOracleApi(config)
+        return cast("FlextDbOracleApi", api_class(config) if not TYPE_CHECKING else None)
 
     @staticmethod
     def safe_connect_with_config(
@@ -328,13 +359,18 @@ class FlextDbOracleUtilities:
             Connected API instance or None if connection fails
 
         """
-        try:
-            from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+        # Import only available at runtime to avoid cycles
+        if not TYPE_CHECKING:
+            # Runtime implementation
+            try:
+                from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+                api = FlextDbOracleApi(config)
+                return api.connect()
+            except Exception:
+                return None
 
-            api = FlextDbOracleApi(config)
-            return api.connect()
-        except Exception:
-            return None
+        # Type checking path - never executed at runtime
+        return cast("FlextDbOracleApi | None", None)
 
     @staticmethod
     def is_api_connected(api: FlextDbOracleApi) -> bool:
@@ -418,7 +454,7 @@ class FlextDbOracleUtilities:
             """Test connection with performance monitoring."""
             start_time = time.perf_counter()
             test_result = api.test_connection()
-            result = test_result.unwrap_or(False)
+            result = test_result.unwrap_or(default=False)
             duration = time.perf_counter() - start_time
 
             # Log performance metric (simplified)
@@ -625,7 +661,7 @@ class FlextDbOracleUtilities:
     def format_query_result(
         result: FlextDbOracleQueryResult,
         output_format: str,
-        console: object,
+        console: Console,
     ) -> None:
         """Format and display query result using rich formatting.
 
@@ -650,15 +686,17 @@ class FlextDbOracleUtilities:
             }
 
             if output_format == "json":
-                console.print(json.dumps(data, default=str, indent=2))  # type: ignore[attr-defined]
+                console.print(json.dumps(data, default=str, indent=2))
             else:
-                console.print(str(data))  # type: ignore[attr-defined]
+                console.print(str(data))
 
     @staticmethod
-    def _display_query_table(result: FlextDbOracleQueryResult, console: object) -> None:
+    def _display_query_table(
+        result: FlextDbOracleQueryResult, console: Console
+    ) -> None:
         """Display query result as rich table."""
         if not result.columns:
-            console.print("[yellow]No columns to display[/yellow]")  # type: ignore[attr-defined]
+            console.print("[yellow]No columns to display[/yellow]")
             return
 
         # Use generic object access since we can't know Rich types at static analysis time
@@ -680,16 +718,16 @@ class FlextDbOracleUtilities:
                 # Fallback for objects that can't be unpacked
                 table.add_row(str(row))
 
-        console.print(table)  # type: ignore[attr-defined]
+        console.print(table)
 
         if result.row_count > MAX_DISPLAY_ROWS:
             console.print(
                 f"[dim]... showing first {MAX_DISPLAY_ROWS} of {result.row_count} rows[/dim]"
-            )  # type: ignore[attr-defined]
+            )
 
     @staticmethod
     def _display_health_data(
-        health_data: object, output_format: str, console: object
+        health_data: SupportsModelDump | object, output_format: str, console: Console
     ) -> None:
         """Display health check data with rich formatting.
 
@@ -699,13 +737,15 @@ class FlextDbOracleUtilities:
             console: Rich console instance
 
         """
-        try:
-            health_dict = health_data.model_dump()  # type: ignore[attr-defined]
-        except AttributeError:
-            health_dict = {
+        # Type narrowing for MyPy with explicit casting
+        if hasattr(health_data, "model_dump") and callable(health_data.model_dump):
+            model_dump_method = health_data.model_dump
+            health_dict = cast("dict[str, object]", model_dump_method())
+        else:
+            health_dict = cast("dict[str, object]", {
                 "status": "unknown",
                 "message": "Health check data format not recognized",
-            }
+            })
 
         if output_format == "table":
             health_panel = __import__("rich.panel", fromlist=["Panel"]).Panel(
@@ -719,45 +759,18 @@ class FlextDbOracleUtilities:
                 if health_dict.get("status") == "healthy"
                 else "red",
             )
-            console.print(health_panel)  # type: ignore[attr-defined]
+            console.print(health_panel)
         elif output_format == "json":
-            console.print(health_data.model_dump_json(indent=2))  # type: ignore[attr-defined]
+            # Type narrowing for MyPy with explicit casting
+            if hasattr(health_data, "model_dump_json") and callable(health_data.model_dump_json):
+                model_dump_json_method = health_data.model_dump_json
+                console.print(model_dump_json_method(indent=2))
+            else:
+                console.print(json.dumps(health_dict, indent=2))
         else:
-            console.print(str(health_data.model_dump()))  # type: ignore[attr-defined]
+            console.print(str(health_dict))
 
     # ==========================================================================
-    # DATA FORMATTING UTILITIES - Real implementation without mocks
+    # Note: Basic JSON/CSV formatting removed - use json.dumps() and csv.DictWriter() directly
+    # These simple wrappers added no significant value beyond FlextResult wrapping.
     # ==========================================================================
-
-    @staticmethod
-    def format_as_json(data: list[dict[str, object]]) -> FlextResult[str]:
-        """Format data as JSON string - real implementation."""
-        try:
-            import json
-
-            json_str = json.dumps(data, indent=2, default=str)
-            return FlextResult[str].ok(json_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"JSON formatting failed: {e}")
-
-    @staticmethod
-    def format_as_csv(data: list[dict[str, object]]) -> FlextResult[str]:
-        """Format data as CSV string - real implementation."""
-        try:
-            import csv
-            import io
-
-            if not data:
-                return FlextResult[str].ok("")
-
-            output = io.StringIO()
-            if data:
-                fieldnames = list(data[0].keys())
-                writer = csv.DictWriter(output, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(data)
-
-            csv_str = output.getvalue()
-            return FlextResult[str].ok(csv_str)
-        except Exception as e:
-            return FlextResult[str].fail(f"CSV formatting failed: {e}")

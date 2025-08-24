@@ -17,7 +17,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import ClassVar
 
-from flext_core import FlextModel, FlextResult, FlextValidation
+from flext_core import FlextFactory, FlextModel, FlextResult, FlextValidation
 from pydantic import Field, field_validator
 
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -25,13 +25,131 @@ from flext_db_oracle.constants import FlextDbOracleConstants
 __all__ = [
     "FlextDbOracleColumn",
     "FlextDbOracleConnectionStatus",
+    "FlextDbOracleModels",
     "FlextDbOracleQueryResult",
     "FlextDbOracleSchema",
     "FlextDbOracleTable",
 ]
 
 # =============================================================================
-# DOMAIN MODELS - Database Metadata
+# FLEXT MODELS - Single Class Pattern (SOLID + PEP8)
+# =============================================================================
+
+
+class FlextDbOracleModels(FlextFactory):
+    """Oracle database models following single-class FLEXT pattern.
+
+    Inherits from FlextFactory to leverage FLEXT Core model creation patterns.
+    Consolidates all Oracle model functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+    """
+
+    @staticmethod
+    def create_column(
+        column_name: str,
+        data_type: str,
+        *,
+        nullable: bool = True,
+        data_length: int | None = None,
+        data_precision: int | None = None,
+        data_scale: int | None = None,
+        column_id: int = 1,
+        default_value: str | None = None,
+        comments: str | None = None,
+    ) -> FlextDbOracleColumn:
+        """Create Oracle database column model."""
+        return FlextDbOracleColumn(
+            column_name=column_name,
+            data_type=data_type,
+            nullable=nullable,
+            data_length=data_length,
+            data_precision=data_precision,
+            data_scale=data_scale,
+            column_id=column_id,
+            default_value=default_value,
+            comments=comments,
+        )
+
+    @staticmethod
+    def create_table(
+        table_name: str,
+        schema_name: str,
+        columns: list[FlextDbOracleColumn] | None = None,
+        table_comment: str | None = None,
+        tablespace_name: str | None = None,
+    ) -> FlextDbOracleTable:
+        """Create Oracle database table model."""
+        return FlextDbOracleTable(
+            table_name=table_name,
+            schema_name=schema_name,
+            columns=columns or [],
+            table_comment=table_comment,
+            tablespace_name=tablespace_name,
+        )
+
+    @staticmethod
+    def create_schema(
+        schema_name: str,
+        tables: list[FlextDbOracleTable] | None = None,
+        default_tablespace: str | None = None,
+        temporary_tablespace: str | None = None,
+    ) -> FlextDbOracleSchema:
+        """Create Oracle database schema model."""
+        return FlextDbOracleSchema(
+            schema_name=schema_name,
+            tables=tables or [],
+            default_tablespace=default_tablespace,
+            temporary_tablespace=temporary_tablespace,
+        )
+
+    @staticmethod
+    def create_query_result(
+        columns: list[str] | None = None,
+        rows: list[tuple[object, ...]] | None = None,
+        row_count: int = 0,
+        execution_time_ms: float = 0.0,
+        query_hash: str | None = None,
+    ) -> FlextDbOracleQueryResult:
+        """Create Oracle query result model."""
+        return FlextDbOracleQueryResult(
+            columns=columns or [],
+            rows=rows or [],
+            row_count=row_count,
+            execution_time_ms=execution_time_ms,
+            query_hash=query_hash,
+        )
+
+    @staticmethod
+    def create_connection_status(
+        *,
+        is_connected: bool,
+        host: str,
+        port: int,
+        service_name: str = "",
+        username: str = "unknown",
+        connection_time_ms: float | None = None,
+        last_error: str | None = None,
+        last_check: datetime | None = None,
+        active_sessions: int = 0,
+        max_sessions: int = 100,
+    ) -> FlextDbOracleConnectionStatus:
+        """Create Oracle connection status model."""
+        return FlextDbOracleConnectionStatus(
+            is_connected=is_connected,
+            host=host,
+            port=port,
+            service_name=service_name,
+            username=username,
+            connection_time_ms=connection_time_ms,
+            last_error=last_error,
+            last_check=last_check,
+            active_sessions=active_sessions,
+            max_sessions=max_sessions,
+        )
+
+
+# =============================================================================
+# DOMAIN MODELS - Database Metadata (Backward Compatibility)
 # =============================================================================
 
 

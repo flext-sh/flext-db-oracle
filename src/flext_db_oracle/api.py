@@ -50,13 +50,15 @@ from __future__ import annotations
 
 import types
 from time import perf_counter
-from typing import Protocol, Self, TypeVar, cast
+from typing import Protocol, Self, cast
 
 from flext_core import (
     FlextContainer,
+    FlextDomainService,
     FlextLogger,
     FlextPlugin,
     FlextResult,
+    FlextServiceProcessor,
     get_logger,
 )
 
@@ -97,8 +99,8 @@ def _get_plugin_info(plugin: object) -> dict[str, str]:
     # Fallback: extract basic info from attributes if plugin-like
     if is_plugin_like(plugin):
         return {
-            "name": str(plugin.name),
-            "version": str(plugin.version),
+            "name": str(getattr(plugin, "name", "unknown")),
+            "version": str(getattr(plugin, "version", "unknown")),
             "plugin_type": str(getattr(plugin, "plugin_type", "unknown")),
             "description": str(getattr(plugin, "description", "")),
         }
@@ -112,7 +114,8 @@ def _get_plugin_info(plugin: object) -> dict[str, str]:
     }
 
 
-T = TypeVar("T")
+# Python 3.13+ generic type parameter (replacing TypeVar)
+type T = object
 # =============================================================================
 # REFACTORING: Extract Class - Connection Manager
 # =============================================================================
@@ -455,6 +458,10 @@ class SimplePluginPlatform:
 
     def load_plugin(self, plugin: object) -> FlextResult[object]:
         """Load plugin implementation."""
+        # Actually store the plugin in the dictionary
+        plugin_info = _get_plugin_info(plugin)
+        plugin_name = plugin_info.get("name", "unknown")
+        self._plugins[str(plugin_name)] = plugin
         return FlextResult[object].ok(plugin)
 
 
@@ -755,11 +762,15 @@ class OracleQueryExecutor:
 # =============================================================================
 
 
-class FlextDbOracleApi:
-    """Simplified Oracle API using SOLID composition patterns.
+class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
+    """Oracle Database API - Hierarchical service inheriting from FlextDomainService.
+
+    Implements Flext[Area][Module] pattern with Oracle Database specialization.
+    Inherits from flext-core FlextDomainService following architectural hierarchy.
+    All existing functionality maintained as internal method aliases.
 
     SOLID REFACTORING: Reduced complexity by extracting specialized managers.
-    Now focuses on API coordination and high-level operations.
+    Now focuses on API coordination and high-level operations with DDD patterns.
     """
 
     def __init__(
@@ -874,18 +885,14 @@ class FlextDbOracleApi:
     @classmethod
     def from_env(
         cls,
-        env_prefix: str = "FLEXT_TARGET_ORACLE",
         context_name: str = "oracle",
     ) -> Self:
         """Create Oracle API from environment variables."""
         logger = get_logger(f"FlextDbOracleApi.{context_name}")
         logger.info("Loading Oracle configuration from environment")
 
-        # Ensure single underscore separator regardless of provided prefix
-        normalized_prefix = env_prefix.rstrip("_")
-        config_result = FlextDbOracleConfig.from_env_with_result(
-            f"{normalized_prefix}_",
-        )
+        # BaseSettings handles environment loading automatically
+        config_result = FlextDbOracleConfig.from_env_with_result()
         return cls._create_api_from_config_result(
             config_result,
             context_name,
@@ -1619,8 +1626,13 @@ class FlextDbOracleApi:
                 "No database connection available"
             )
 
-        # Modern FlextResult pattern: direct passthrough
-        return self._connection_manager.connection.map_singer_schema(singer_schema)
+        # Modern FlextResult pattern: direct passthrough with type conversion
+        result = self._connection_manager.connection.map_singer_schema(singer_schema)
+        if result.is_success:
+            # Convert dict[str, str] to dict[str, object] safely
+            converted_data: dict[str, object] = dict(result.value)
+            return FlextResult[dict[str, object]].ok(converted_data)
+        return FlextResult[dict[str, object]].fail(result.error or "Schema mapping failed")
 
     def get_primary_keys(
         self,
@@ -1820,6 +1832,40 @@ class FlextDbOracleApi:
 
         return self._connection_manager.connection.build_create_index_statement(config)
 
+    def execute(self) -> FlextResult[FlextDbOracleQueryResult]:
+        """Execute domain service operation - Oracle database health check.
+
+        Implements FlextDomainService abstract method with Oracle-specific domain logic.
+        Performs comprehensive Oracle database health check and connectivity validation.
+        This serves as the primary domain operation for the Oracle database service.
+
+        Returns:
+            FlextResult containing health check query result or failure details.
+
+        """
+        if not self._connection_manager:
+            return FlextResult[FlextDbOracleQueryResult].fail(
+                "Cannot execute domain operation: No connection manager configured"
+            )
+
+        # Execute Oracle-specific health check query (SELECT 1 FROM DUAL)
+        health_check_result = self.test_connection()
+
+        if health_check_result.is_failure:
+            return FlextResult[FlextDbOracleQueryResult].fail(
+                f"Domain operation failed: {health_check_result.error}"
+            )
+
+        # Execute domain-specific Oracle query to validate full functionality
+        oracle_health_query = "SELECT 'Oracle Database Service Operational' as status FROM DUAL"
+        return self.query(oracle_health_query)
+
+    def __repr__(self) -> str:
+        """Return string representation of FlextDbOracleApi."""
+        if self.config is None:
+            return "FlextDbOracleApi(config=None)"
+        return f"FlextDbOracleApi(host={self.config.host}, port={self.config.port}, service_name={self.config.service_name})"
+
 
 # =============================================================================
 # Transaction Context Manager (Support Class)
@@ -1870,15 +1916,86 @@ def create_oracle_api(
 
 
 def create_oracle_api_from_env(
-    env_prefix: str = "FLEXT_TARGET_ORACLE_",
     context_name: str = "oracle",
 ) -> FlextDbOracleApi:
     """Create Oracle API from environment."""
-    return FlextDbOracleApi.from_env(env_prefix, context_name)
+    return FlextDbOracleApi.from_env(context_name)
+
+
+# =============================================================================
+# FLEXT[AREA][MODULE] PATTERN - Oracle APIs
+# =============================================================================
+
+
+class FlextDbOracleApis(
+    FlextServiceProcessor[FlextDbOracleConfig, FlextDbOracleApi, FlextDbOracleQueryResult]
+):
+    """Oracle database APIs following Flext[Area][Module] pattern.
+
+    Inherits from FlextServiceProcessor to leverage FLEXT Core service processor patterns.
+    Consolidates all Oracle API functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+
+    This class serves as the single entry point for Oracle database API operations,
+    implementing clean architecture with dependency injection and type safety.
+
+    Examples:
+        Basic API operations:
+        >>> apis = FlextDbOracleApis()
+        >>> config = FlextDbOracleConfig.from_env().value
+        >>> api = apis.create_api(config)
+        >>> connected_api = api.connect()
+
+    """
+
+    def process(self, request: FlextDbOracleConfig) -> FlextResult[FlextDbOracleApi]:
+        """Process Oracle configuration request to create API instance."""
+        try:
+            api = FlextDbOracleApi(request)
+            return FlextResult[FlextDbOracleApi].ok(api)
+        except Exception as e:
+            return FlextResult[FlextDbOracleApi].fail(f"Failed to create Oracle API: {e}")
+
+    def build(
+        self, domain: FlextDbOracleApi, *, correlation_id: str
+    ) -> FlextDbOracleQueryResult:
+        """Build query result from API domain object."""
+        # Return a query result indicating API is ready with domain context
+        api_context = domain._context_name if hasattr(domain, "_context_name") else "oracle"
+        return FlextDbOracleQueryResult(
+            columns=["status", "correlation_id", "context"],
+            rows=[("ready", correlation_id, api_context)],
+            row_count=1,
+            execution_time_ms=0.0,
+        )
+
+    @staticmethod
+    def create_api(
+        config: FlextDbOracleConfig | None = None, *, context_name: str = "oracle"
+    ) -> FlextDbOracleApi:
+        """Create Oracle API instance using factory pattern."""
+        return create_oracle_api(config, context_name)
+
+    @staticmethod
+    def create_api_from_env(*, context_name: str = "oracle") -> FlextDbOracleApi:
+        """Create Oracle API from environment using factory pattern."""
+        return create_oracle_api_from_env(context_name)
+
+    @staticmethod
+    def create_api_from_config(config: FlextDbOracleConfig) -> FlextDbOracleApi:
+        """Create Oracle API from configuration object."""
+        return FlextDbOracleApi(config)
+
+    def process_api_request(
+        self, config: FlextDbOracleConfig
+    ) -> FlextResult[FlextDbOracleQueryResult]:
+        """Process API request with automatic performance tracking."""
+        return self.run_with_metrics("oracle_api_creation", config)
 
 
 __all__: list[str] = [
     "FlextDbOracleApi",
+    "FlextDbOracleApis",
     "OracleConnectionManager",
     "OracleQueryExecutor",
     "create_oracle_api",

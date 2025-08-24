@@ -245,7 +245,7 @@ def demonstrate_cli_patterns():
     print("Testing connection...")
     # rc, out, err = await run_async([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
     # Simulated result object below for documentation purposes:
-    class Result:  # noqa: D401 (doc)
+    class Result:
         """Lightweight result for documentation."""
         def __init__(self, returncode: int, stdout: str = '', stderr: str = '') -> None:
             self.returncode = returncode

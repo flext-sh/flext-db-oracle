@@ -95,7 +95,7 @@ class TestFlextDbOracleConnectionComprehensive:
                 port=1521,
                 username="test",
                 password=SecretStr("test"),
-                # Neither service_name nor sid provided
+                service_name="",  # Empty string should trigger validation error
             )
 
     def test_ensure_connected_when_not_connected(self) -> None:
@@ -483,11 +483,9 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_session_and_transaction_context_managers(self) -> None:
         """Test session and transaction context managers behavior when not connected."""
         # Test session context manager - should raise when not connected
-        with pytest.raises(ValueError, match="Not connected"):
-            with self.connection.session():
-                pass
+        with pytest.raises(ValueError, match="Not connected"), self.connection.session():
+            pass
 
         # Test transaction context manager - should raise when not connected
-        with pytest.raises(ValueError, match="Not connected to database"):
-            with self.connection.transaction():
-                pass
+        with pytest.raises(ValueError, match="Not connected to database"), self.connection.transaction():
+            pass

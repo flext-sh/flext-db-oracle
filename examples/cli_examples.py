@@ -166,7 +166,7 @@ export FLEXT_TARGET_ORACLE_HOST="localhost"
 export FLEXT_TARGET_ORACLE_PORT="1521"
 export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
 export FLEXT_TARGET_ORACLE_USERNAME="flext_user"
-export FLEXT_TARGET_ORACLE_PASSWORD="secure_password"  # noqa: S105
+export FLEXT_TARGET_ORACLE_PASSWORD="secure_password"
 
 # Optional: Connection Pool Settings
 export FLEXT_TARGET_ORACLE_POOL_MIN="1"

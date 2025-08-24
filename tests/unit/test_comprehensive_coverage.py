@@ -92,7 +92,7 @@ class TestFlextDbOracleConfig:
     def test_config_validation_logic(self) -> None:
         """Test configuration validation logic."""
         # Test invalid port
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="port"):
             FlextDbOracleConfig(
                 host="test",
                 port=0,  # Invalid port
@@ -102,7 +102,7 @@ class TestFlextDbOracleConfig:
             )
 
         # Test invalid pool configuration
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="pool"):
             FlextDbOracleConfig(
                 host="test",
                 port=1521,
@@ -464,23 +464,9 @@ class TestFlextDbOracleUtilities:
 
     def test_data_formatting_utilities(self) -> None:
         """Test data formatting utilities."""
-        test_data = [
-            {"id": 1, "name": "Alice", "status": "active"},
-            {"id": 2, "name": "Bob", "status": "inactive"},
-        ]
 
-        # Test JSON formatting
-        json_result = FlextDbOracleUtilities.format_as_json(test_data)
-        assert json_result.success
-        json_str = json_result.value
-        assert "Alice" in json_str
-        assert "Bob" in json_str
-
-        # Test CSV formatting
-        csv_result = FlextDbOracleUtilities.format_as_csv(test_data)
-        assert csv_result.success
-        csv_str = csv_result.value
-        assert "id,name,status" in csv_str or "id" in csv_str
+        # Note: Basic JSON/CSV formatting functions removed as they duplicated
+        # standard library functionality without adding significant value.
 
 
 class TestFlextDbOracleMetadata:
@@ -582,9 +568,8 @@ class TestFlextDbOracleCLI:
 
         # Test with empty args to avoid Click parsing issues
         with patch("flext_db_oracle.cli.oracle_cli") as mock_cli:
+            mock_cli.side_effect = KeyboardInterrupt()
             with pytest.raises(SystemExit):
-                # Should handle KeyboardInterrupt gracefully
-                mock_cli.side_effect = KeyboardInterrupt()
                 main()
 
 

@@ -15,7 +15,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, TypedDict, TypeGuard, runtime_checkable
+from typing import TypedDict, TypeGuard
+
+from flext_core import FlextProtocols
 
 __all__ = [
     # Type aliases and dicts
@@ -103,19 +105,11 @@ class OracleTableInfo(TypedDict, total=False):
 # =============================================================================
 
 
-@runtime_checkable
-class PluginLikeProtocol(Protocol):
-    """Protocol for plugin-like objects that have name and version attributes."""
-
-    name: str
-    version: str
-
-    def get_info(self) -> dict[str, object]:
-        """Get plugin information as a dictionary."""
-        ...
+# Type alias for plugin protocol from flext-core
+type PluginLikeProtocol = FlextProtocols.Extensions.Plugin
 
 
-def is_plugin_like(obj: object) -> TypeGuard[PluginLikeProtocol]:
+def is_plugin_like(obj: object) -> TypeGuard[FlextProtocols.Extensions.Plugin]:
     """Type guard to check if object has plugin-like attributes.
 
     Resolves PyRight warnings about unknown attribute access on object types.
@@ -186,20 +180,17 @@ def has_unwrap_or_method(obj: object) -> bool:
 # =============================================================================
 
 
-@runtime_checkable
-class DatabaseRowProtocol(Protocol):
-    """Protocol for database row-like objects."""
+# Python 3.13+ type aliases using modern syntax
+type DatabaseRowProtocol = dict[str, object]
+type DatabaseRowDict = dict[str, object]
+type DatabaseColumnDict = dict[str, str | int | None]
+type SafeStringList = list[str]
 
-    def keys(self) -> object: ...
-    def values(self) -> object: ...
-    def items(self) -> object: ...
-    def get(self, key: str, default: object = None) -> object: ...
-
-
-# Type aliases for common database patterns
-DatabaseRowDict = dict[str, object]
-DatabaseColumnDict = dict[str, str | int | None]
-SafeStringList = list[str]
+# Modern type aliases for Oracle-specific data
+type OracleConnectionDict = dict[str, str | int | None]
+type OracleTableDict = dict[str, str | int | None]
+type ValidationResult = bool
+type ConfigDict = dict[str, object]
 
 
 def is_string_list(obj: object) -> TypeGuard[SafeStringList]:

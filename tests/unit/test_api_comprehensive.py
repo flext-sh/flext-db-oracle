@@ -7,7 +7,6 @@ following the user's requirement for real code testing without mocks.
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-from flext_db_oracle.models import FlextDbOracleQueryResult
 
 
 class TestFlextDbOracleApiComprehensive:
@@ -40,11 +39,11 @@ class TestFlextDbOracleApiComprehensive:
     def test_connection_management_methods_exist(self) -> None:
         """Test that connection management methods exist and are callable."""
         # Test that connection methods exist (don't actually call them to avoid timeouts)
-        assert hasattr(self.api, 'connect')
+        assert hasattr(self.api, "connect")
         assert callable(self.api.connect)
-        assert hasattr(self.api, 'disconnect')
+        assert hasattr(self.api, "disconnect")
         assert callable(self.api.disconnect)
-        assert hasattr(self.api, 'is_connected')
+        assert hasattr(self.api, "is_connected")
         # is_connected is a property, not a method
         initial_state = self.api.is_connected
         assert isinstance(initial_state, bool)
@@ -208,7 +207,7 @@ class TestFlextDbOracleApiComprehensive:
         """Test advanced health check method (works without connection)."""
         result = self.api.get_health_check()
         # Health check should work but might fail due to no connection
-        assert hasattr(result, 'success')
+        assert hasattr(result, "success")
         if result.success:
             health_check = result.value
             assert health_check is not None
@@ -232,42 +231,42 @@ class TestFlextDbOracleApiComprehensive:
         result = self.api.get_table_metadata("TEST_TABLE")
         assert not result.success
         assert result.error is not None
-        
+
         # Test create table DDL generation (may work without connection)
         ddl_result = self.api.create_table_ddl("TEST_TABLE", [])
-        assert hasattr(ddl_result, 'success')
-        
+        assert hasattr(ddl_result, "success")
+
         # Test drop table DDL generation (may work without connection)
         drop_ddl_result = self.api.drop_table_ddl("TEST_TABLE")
-        assert hasattr(drop_ddl_result, 'success')
+        assert hasattr(drop_ddl_result, "success")
 
     def test_sql_building_operations(self) -> None:
         """Test SQL building operations."""
         # Test build_select method (may work without connection)
         select_result = self.api.build_select("TEST_TABLE", ["id", "name"])
-        assert hasattr(select_result, 'success')
-        
+        assert hasattr(select_result, "success")
+
         # Test build_insert_statement method
         insert_result = self.api.build_insert_statement("TEST_TABLE", {"id": 1, "name": "test"})
-        assert hasattr(insert_result, 'success')
-        
-        # Test build_update_statement method  
+        assert hasattr(insert_result, "success")
+
+        # Test build_update_statement method
         update_result = self.api.build_update_statement("TEST_TABLE", {"name": "updated"}, {"id": 1})
-        assert hasattr(update_result, 'success')
+        assert hasattr(update_result, "success")
 
     def test_singer_ecosystem_integration(self) -> None:
         """Test Singer ecosystem integration methods."""
         # Test convert_singer_type method (may work without connection)
         singer_result = self.api.convert_singer_type("string")
-        assert hasattr(singer_result, 'success')
-        
+        assert hasattr(singer_result, "success")
+
         # Test map_singer_schema method
         schema_result = self.api.map_singer_schema({})
-        assert hasattr(schema_result, 'success')
-        
+        assert hasattr(schema_result, "success")
+
         # Test get_primary_keys method (will fail due to no connection but method exists)
         pk_result = self.api.get_primary_keys("TEST_TABLE")
-        assert hasattr(pk_result, 'success')
+        assert hasattr(pk_result, "success")
 
     def test_context_manager_support(self) -> None:
         """Test API context manager support."""
@@ -372,7 +371,7 @@ class TestFlextDbOracleApiComprehensive:
             assert hasattr(result, "error")
 
             # When not connected, should fail with descriptive error
-            if method_name not in {"optimize_query"}:
+            if method_name != "optimize_query":
                 assert not result.success
                 assert result.error is not None
                 assert len(result.error) > 0
@@ -381,12 +380,12 @@ class TestFlextDbOracleApiComprehensive:
         """Test observability and monitoring methods."""
         # Test get_observability_metrics method
         metrics_result = self.api.get_observability_metrics()
-        assert hasattr(metrics_result, 'success')
-        
+        assert hasattr(metrics_result, "success")
+
         # Test query_with_timing method (will fail due to no connection but method exists)
         timing_result = self.api.query_with_timing("SELECT 1 FROM DUAL")
-        assert hasattr(timing_result, 'success')
-        
+        assert hasattr(timing_result, "success")
+
         # Test query_with_modern_performance_monitoring method
         monitor_result = self.api.query_with_modern_performance_monitoring("SELECT 1 FROM DUAL")
-        assert hasattr(monitor_result, 'success')
+        assert hasattr(monitor_result, "success")

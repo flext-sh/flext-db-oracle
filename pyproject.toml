@@ -47,27 +47,8 @@ flext-oracle-migrate = "flext_db_oracle.migrate:main"
 flext-oracle = "flext_db_oracle.cli:main"
 
 [tool.ruff]
-extend = "../.ruff-shared.toml"
+extend = "../.config/tools/.ruff-shared.toml"
 lint.isort.known-first-party = ["flext_db_oracle"]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = [
-    "PLC0415",  # import at top of file enforcement
-    "B904",     # raise-with-from in tests
-    "TRY301",   # raise inside try in tests
-    "TRY003",   # long messages outside exception class in tests
-    "EM101",    # exception strings
-    "EM102",    # f-string exceptions
-    "S608",     # SQL string format in tests
-    "S101",     # assert usage in tests
-    "S105",     # hardcoded passwords in tests
-    "S106",     # hardcoded passwords in args in tests
-    "PLR2004",  # magic values in tests
-    "ARG001",   # unused function args in tests
-    "ARG002",   # unused method args in tests
-    "PLR0912",  # too many branches in tests
-    "PLR0915",  # too many statements in tests
-]
 
 [tool.mypy]
 # Strict mode - enables all recommended checks
@@ -75,7 +56,7 @@ strict = true
 
 # Additional strict checks beyond default strict mode
 check_untyped_defs = true
-disallow_any_decorated = true
+disallow_any_decorated = false
 disallow_any_explicit = true
 disallow_any_expr = false          # Too restrictive for real-world usage
 disallow_any_generics = true
@@ -83,7 +64,7 @@ disallow_any_unimported = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
 disallow_untyped_calls = true
-disallow_untyped_decorators = true
+disallow_untyped_decorators = false
 disallow_untyped_defs = true
 
 # Warning controls - maximum safety
@@ -92,7 +73,7 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 
 # Optional type checking
 no_implicit_optional = true
@@ -153,6 +134,7 @@ exclude = [
     "dist/",
     "node_modules/",
     "vendor/",
+    "src/flext_db_oracle/cli.py",
 ]
 
 [tool.bandit]

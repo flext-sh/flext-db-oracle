@@ -44,17 +44,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
 import urllib.parse
-from typing import TypeVar
 
-from flext_core import FlextResult, FlextValidation, get_logger
-from flext_core.config import FlextSettings
+# TypeVar removed - using Python 3.13+ type aliases
+from flext_core import FlextResult, FlextSettings, FlextValidation, get_logger
 from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic_settings import SettingsConfigDict
 
 from flext_db_oracle.constants import FlextOracleDbSemanticConstants
 
-T = TypeVar("T")
+# Python 3.13+ type aliases (replacing TypeVar pattern)
+type T = object
 
 logger = get_logger(__name__)
 
@@ -129,6 +129,9 @@ class FlextDbOracleConfig(FlextSettings):
     retry_delay: float = Field(
         default=1.0, description="Delay between retry attempts in seconds"
     )
+
+    # BaseSettings configuration for automatic environment loading
+    model_config = SettingsConfigDict(env_prefix="FLEXT_TARGET_ORACLE_", env_file=".env")
 
     @field_validator("host")
     @classmethod
@@ -247,17 +250,10 @@ class FlextDbOracleConfig(FlextSettings):
     # Host and username validation using custom validators
 
     @classmethod
-    def from_env(
-        cls,
-        prefix: str = "FLEXT_TARGET_ORACLE",
-    ) -> FlextDbOracleConfig:
-        """Create configuration from environment variables (base class override)."""
-        result = cls.from_env_with_result(f"{prefix}_")
-        # Modern FlextResult pattern: check success and access .value
-        if not result.success:
-            msg = f"Failed to create configuration from environment: {result.error or 'Config creation failed'}"
-            raise ValueError(msg)
-        return result.value
+    def from_env(cls) -> FlextDbOracleConfig:
+        """Create configuration from environment variables using BaseSettings."""
+        # BaseSettings handles environment loading automatically
+        return cls()
 
     # Compatibility helpers allowing tests to treat config instance
     # similarly to a successful FlextResult (config.is_success/data).
@@ -278,46 +274,13 @@ class FlextDbOracleConfig(FlextSettings):
         return None
 
     @classmethod
-    def from_env_with_result(
-        cls,
-        prefix: str = "FLEXT_TARGET_ORACLE_",
-    ) -> FlextResult[FlextDbOracleConfig]:
-        """Create configuration from environment variables."""
+    def from_env_with_result(cls) -> FlextResult[FlextDbOracleConfig]:
+        """Create configuration from environment variables using BaseSettings."""
         try:
-            config = cls(
-                host=os.getenv(f"{prefix}HOST", "localhost"),
-                port=int(
-                    os.getenv(
-                        f"{prefix}PORT",
-                        str(FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT),
-                    )
-                ),
-                username=os.getenv(f"{prefix}USERNAME", "oracle"),
-                password=SecretStr(os.getenv(f"{prefix}PASSWORD", "oracle")),
-                service_name=os.getenv(f"{prefix}SERVICE_NAME")
-                or os.getenv(f"{prefix}SID")
-                or "ORCLPDB1",
-                sid=os.getenv(f"{prefix}SID"),
-                pool_min=int(os.getenv(f"{prefix}POOL_MIN", "1")),
-                pool_max=int(os.getenv(f"{prefix}POOL_MAX", "10")),
-                pool_increment=int(os.getenv(f"{prefix}POOL_INCREMENT", "1")),
-                timeout=int(os.getenv(f"{prefix}TIMEOUT", "30")),
-                encoding=os.getenv(f"{prefix}ENCODING", "UTF-8"),
-                autocommit=bool(
-                    os.getenv(f"{prefix}AUTOCOMMIT", "").lower()
-                    in {"true", "1", "yes"},
-                ),
-                ssl_cert_path=os.getenv(f"{prefix}SSL_CERT_PATH"),
-                ssl_server_dn_match=bool(
-                    os.getenv(f"{prefix}SSL_SERVER_DN_MATCH", "true").lower()
-                    in {"true", "1", "yes"},
-                ),
-                ssl_key_path=os.getenv(f"{prefix}SSL_KEY_PATH"),
-                protocol=os.getenv(f"{prefix}PROTOCOL", "tcp"),
-                ssl_server_cert_dn=os.getenv(f"{prefix}SSL_SERVER_CERT_DN"),
-            )
+            # Use BaseSettings automatic environment loading - much simpler!
+            config = cls()
             return FlextResult[FlextDbOracleConfig].ok(config)
-        except (ValueError, TypeError, KeyError) as e:
+        except Exception as e:
             return _handle_config_operation_error("create config from environment", e)
 
     @classmethod
@@ -327,26 +290,20 @@ class FlextDbOracleConfig(FlextSettings):
             # Parse Oracle URL format: oracle://user:pass@host:port/service_name
             parsed = urllib.parse.urlparse(url)
 
-            config = cls(
-                host=parsed.hostname or "localhost",
-                port=parsed.port
-                or FlextOracleDbSemanticConstants.Connection.DEFAULT_PORT,
-                username=parsed.username or "oracle",
-                password=SecretStr(parsed.password or "oracle"),
-                service_name=parsed.path.lstrip("/") if parsed.path else "ORCLPDB1",
-                sid=None,  # URL format typically uses service_name
-                pool_min=1,
-                pool_max=10,
-                pool_increment=1,
-                timeout=30,
-                encoding="UTF-8",
-                autocommit=False,  # Default for URL parsing
-                ssl_cert_path=None,
-                ssl_server_dn_match=True,  # Default for URL parsing
-                ssl_key_path=None,
-                protocol="tcp",
-                ssl_server_cert_dn=None,
-            )
+            # Let Pydantic handle defaults automatically - much cleaner!
+            config_data: dict[str, object] = {}
+            if parsed.hostname:
+                config_data["host"] = parsed.hostname
+            if parsed.port:
+                config_data["port"] = parsed.port
+            if parsed.username:
+                config_data["username"] = parsed.username
+            if parsed.password:
+                config_data["password"] = SecretStr(parsed.password)
+            if parsed.path:
+                config_data["service_name"] = parsed.path.lstrip("/")
+
+            config = cls.model_validate(config_data)
             return FlextResult[FlextDbOracleConfig].ok(config)
         except (ValueError, TypeError, AttributeError) as e:
             return _handle_config_operation_error("parse URL", e)

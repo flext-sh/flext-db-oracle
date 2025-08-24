@@ -55,17 +55,16 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import cast
 
-from flext_core import FlextPlugin, FlextPluginContext, FlextResult, get_logger
+from flext_core import FlextDomainService, FlextPlugin, FlextPluginContext, FlextResult, get_logger
 
 from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.typings import (
     is_result_like,
 )
 
 # Constants for data validation - refatoração DRY real
 MAX_VARCHAR_LENGTH = 4000
-MAX_TABLE_NAME_LENGTH = 150
-MAX_AGE_LIMIT = 150
 
 
 def _validate_data_types(data: dict[str, object]) -> tuple[list[str], list[str]]:
@@ -94,60 +93,23 @@ def _validate_business_rules(data: dict[str, object]) -> list[str]:
     """
     errors: list[str] = []
 
-    # SOLID Extract Method - Validate individual business rules
-    email_errors = _validate_email_business_rules(data)
-    age_errors = _validate_age_business_rules(data)
+    # Oracle-specific business rules validation only
     table_name_errors = _validate_table_name_business_rules(data)
-
-    # Combine all validation errors
-    errors.extend(email_errors)
-    errors.extend(age_errors)
     errors.extend(table_name_errors)
 
-    return errors
-
-
-def _validate_email_business_rules(data: dict[str, object]) -> list[str]:
-    """SOLID REFACTORING: Extract Method for email validation.
-
-    Single Responsibility - handles only email business rules.
-    """
-    errors: list[str] = []
-
-    if "email" in data:
-        email_value = data["email"]
-        if email_value is None:
-            errors.append("Email cannot be None")
-        else:
-            email = str(email_value)
-            if "@" not in email or "." not in email:
-                errors.append("Invalid email format")
-
-    return errors
-
-
-def _validate_age_business_rules(data: dict[str, object]) -> list[str]:
-    """SOLID REFACTORING: Extract Method for age validation.
-
-    Single Responsibility - handles only age business rules with type safety.
-    """
-    errors: list[str] = []
-
-    if "age" in data and data["age"] is not None:
+    # Validate salary (Oracle-relevant business rule)
+    if "salary" in data and data["salary"] is not None:
         try:
-            # MYPY FIX: Safe conversion from object to int
-            age_value = data["age"]
-            if isinstance(age_value, (int, str)):
-                age = int(age_value)
+            # Type narrowing for MyPy
+            salary_value = data["salary"]
+            if isinstance(salary_value, (int, float, str)):
+                salary = float(salary_value)
+                if salary < 0:
+                    errors.append("Salary cannot be negative")
             else:
-                errors.append("Age must be a number")
-                return errors
-            if age <= 0 or age > MAX_AGE_LIMIT:
-                errors.append(
-                    f"Age must be between 1 and {MAX_AGE_LIMIT}",
-                )
+                errors.append("Salary must be a valid number")
         except (ValueError, TypeError):
-            errors.append("Age must be a valid number")
+            errors.append("Salary must be a valid number")
 
     return errors
 
@@ -161,7 +123,10 @@ def _validate_table_name_business_rules(data: dict[str, object]) -> list[str]:
 
     if "table_name" in data and data["table_name"] is not None:
         table_name = str(data["table_name"])
-        if len(table_name) > MAX_TABLE_NAME_LENGTH:
+        if (
+            len(table_name)
+            > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH
+        ):
             errors.append("Table name too long")
 
     return errors
@@ -177,9 +142,9 @@ def _validate_table_structure(
     if not table_name:
         return errors
 
-    if len(table_name) > MAX_TABLE_NAME_LENGTH:
+    if len(table_name) > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
         errors.append(
-            f"Table name exceeds maximum length of {MAX_TABLE_NAME_LENGTH}",
+            f"Table name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH}",
         )
 
     # Check if table exists - usando API real - refatoração DRY
@@ -264,6 +229,15 @@ class FlextOraclePlugin:
             return FlextResult[None].ok(None)
         except Exception as e:
             return FlextResult[None].fail(f"Oracle plugin shutdown failed: {e}")
+
+    def configure(self, config: dict[str, object]) -> FlextResult[None]:
+        """Configure plugin with provided settings."""
+        try:
+            self._config.update(config)
+            self._logger.info("Oracle plugin configured", plugin_name=self.name)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Oracle plugin configuration failed: {e}")
 
     def get_config(self) -> dict[str, object]:
         """Get plugin configuration."""
@@ -414,9 +388,9 @@ def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugi
     if callable(factory_method):
         try:
             result = factory_method()
-            # Modern FlextResult pattern: use .success and .value
-            if hasattr(result, "success") and result.success:
-                plugin_obj = result.value
+            # Modern FlextResult pattern: use .success and .value with type casting
+            if hasattr(result, "success") and getattr(result, "success", False):
+                plugin_obj = cast("FlextResult[object]", result).value
                 # Basic validation that the result has plugin-like attributes
                 if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
                     return FlextResult[FlextPlugin].ok(cast("FlextPlugin", plugin_obj))
@@ -480,14 +454,12 @@ def performance_monitor_plugin_handler(
                     for item in recommendations_raw
                 ]
 
-            recommendations.extend(
-                [
-                    "Consider adding database indexes",
-                    "Review query execution plan",
-                    "Check for missing WHERE clauses",
-                    "Analyze table statistics",
-                ]
-            )
+            recommendations.extend([
+                "Consider adding database indexes",
+                "Review query execution plan",
+                "Check for missing WHERE clauses",
+                "Analyze table statistics",
+            ])
             result_data["recommendations"] = recommendations
 
             # Log slow query if configured
@@ -770,6 +742,86 @@ def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, 
         results[plugin_name] = _register_single_plugin(api, plugin_name, plugin_creator)
 
     return FlextResult[dict[str, str]].ok(results)
+
+
+# =============================================================================
+# FLEXT[AREA][MODULE] PATTERN - Oracle Plugins
+# =============================================================================
+
+
+class FlextDbOraclePlugins(FlextDomainService[dict[str, str]]):
+    """Oracle database plugins following Flext[Area][Module] pattern.
+
+    Inherits from FlextDomainService to leverage FLEXT Core domain service patterns.
+    Consolidates all Oracle plugin functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+
+    This class serves as the single entry point for Oracle plugin management,
+    implementing clean architecture with plugin registry and lifecycle management.
+
+    Examples:
+        Plugin management operations:
+        >>> plugins = FlextDbOraclePlugins()
+        >>> api = FlextDbOracleApi.from_env().value
+        >>> result = plugins.register_all_plugins(api)
+        >>> print(f"Registered plugins: {result.value}")
+
+    """
+
+    def execute(self) -> FlextResult[dict[str, str]]:
+        """Execute plugin management operation.
+
+        Returns plugin registry status indicating available plugins.
+        """
+        try:
+            return FlextResult[dict[str, str]].ok({
+                "status": "available",
+                "plugins": ", ".join(ORACLE_PLUGINS.keys()),
+                "count": str(len(ORACLE_PLUGINS)),
+            })
+        except Exception as e:
+            return FlextResult[dict[str, str]].fail(f"Plugin registry failed: {e}")
+
+    @staticmethod
+    def register_all_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, str]]:
+        """Register all Oracle plugins using factory pattern."""
+        return register_all_oracle_plugins(api)
+
+    @staticmethod
+    def create_performance_monitor() -> FlextPlugin:
+        """Create performance monitor plugin using factory pattern."""
+        return create_performance_monitor_plugin()
+
+    @staticmethod
+    def create_security_audit() -> FlextPlugin:
+        """Create security audit plugin using factory pattern."""
+        return create_security_audit_plugin()
+
+    @staticmethod
+    def create_data_validation() -> FlextPlugin:
+        """Create data validation plugin using factory pattern."""
+        return create_data_validation_plugin()
+
+    @staticmethod
+    def get_available_plugins() -> dict[str, Callable[[], FlextPlugin]]:
+        """Get available Oracle plugin factories."""
+        return ORACLE_PLUGINS.copy()
+
+    def validate_plugin_configuration(self, api: FlextDbOracleApi) -> FlextResult[bool]:
+        """Validate plugin configuration for Oracle API."""
+        try:
+            # Check if API has plugin capabilities
+            if not hasattr(api, "register_plugin"):
+                return FlextResult[bool].fail("API does not support plugin registration")
+            
+            # Verify all plugin factories are callable
+            for name, factory in ORACLE_PLUGINS.items():
+                if not callable(factory):
+                    return FlextResult[bool].fail(f"Plugin factory {name} is not callable")
+                    
+            return FlextResult[bool].ok(True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"Plugin configuration validation failed: {e}")
 
 
 __all__: list[str] = [

@@ -7,6 +7,7 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
+# ruff: noqa: S101, S608, TRY003, EM102, PLR2004
 
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ class TestOracleE2E:
     # Remove test_config fixture - use real_oracle_config from conftest.py
 
     @pytest.mark.e2e
-    def test_complete_oracle_workflow(
+    def test_complete_oracle_workflow(  # noqa: PLR0912, PLR0915
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
@@ -48,16 +49,18 @@ class TestOracleE2E:
             # Test connection
             connection_test = api.test_connection()
             if connection_test.is_failure:
+                msg = "Connection"
                 raise TestOperationError(
-                    "Connection", connection_test.error or "Unknown error"
+                    msg, connection_test.error or "Unknown error"
                 )
             # Success case - connection is validated
 
             # Test schema discovery
             schemas_result = api.get_schemas()
             if schemas_result.is_failure:
+                msg = "Schema discovery"
                 raise TestOperationError(
-                    "Schema discovery", schemas_result.error or "Unknown error"
+                    msg, schemas_result.error or "Unknown error"
                 )
             schemas = schemas_result.value
             assert len(schemas) > 0, "No schemas found"
@@ -65,8 +68,9 @@ class TestOracleE2E:
             # Test table listing
             tables_result = api.get_tables()
             if tables_result.is_failure:
+                msg = "Table listing"
                 raise TestOperationError(
-                    "Table listing", tables_result.error or "Unknown error"
+                    msg, tables_result.error or "Unknown error"
                 )
             # Success case - tables are available for testing
 
@@ -331,12 +335,14 @@ class TestOracleE2E:
         # Operations without connection should fail gracefully
         query_result = api.query("SELECT 1 FROM DUAL")
         if query_result.success:
-            raise AssertionError("Query should fail without connection")
+            msg = "Query should fail without connection"
+            raise AssertionError(msg)
         assert "database not connected" in (query_result.error or "").lower()
 
         metadata_result = api.get_tables()
         if metadata_result.success:
-            raise AssertionError("Get tables should fail without connection")
+            msg = "Get tables should fail without connection"
+            raise AssertionError(msg)
         assert "no database connection" in (metadata_result.error or "").lower()
 
     @pytest.mark.e2e

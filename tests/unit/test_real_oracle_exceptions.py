@@ -47,7 +47,8 @@ class TestRealOracleExceptionsCore:
 
         # Connection should fail with authentication error - using modern pattern
         if result.success:
-            raise AssertionError("Connection with invalid credentials should fail")
+            msg = "Connection with invalid credentials should fail"
+            raise AssertionError(msg)
         # Failure case - use error directly
         error_msg = (result.error or "").lower()
         # Oracle returns different error messages for invalid credentials or connection issues
@@ -81,7 +82,8 @@ class TestRealOracleExceptionsCore:
 
         # Should fail with connection error - using modern pattern
         if result.success:
-            raise AssertionError("Connection to unreachable host should fail")
+            msg = "Connection to unreachable host should fail"
+            raise AssertionError(msg)
         # Failure case - use error directly
         error_msg = (result.error or "").lower()
         # Network/DNS resolution errors
@@ -117,7 +119,8 @@ class TestRealOracleExceptionsCore:
 
             # Should fail configuration validation - using modern pattern
             if result.success:
-                raise AssertionError("Connection with invalid config should fail")
+                msg = "Connection with invalid config should fail"
+                raise AssertionError(msg)
             # Failure case - use error directly
             error_msg = result.error or ""
             assert "service_name" in error_msg.lower() or "sid" in error_msg.lower()
@@ -236,7 +239,8 @@ class TestRealOracleExceptionsAdvanced:
         columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
         # Should return empty list, not crash - using modern pattern
         if columns_result.is_failure:
-            raise AssertionError(f"Get columns failed: {columns_result.error}")
+            msg = f"Get columns failed: {columns_result.error}"
+            raise AssertionError(msg)
         # Success case - use modern .value access
         assert isinstance(columns_result.value, list)
         assert len(columns_result.value) == 0  # No columns for non-existent table
@@ -342,7 +346,7 @@ class TestRealOracleExceptionsAdvanced:
                 if "service_name" in config_data:
                     typed_config["service_name"] = str(config_data["service_name"])
 
-                config = FlextDbOracleConfig(**typed_config)  # type: ignore[arg-type]
+                config = FlextDbOracleConfig(**typed_config)
                 validation_result = config.validate_business_rules()
 
                 # Should either fail validation or catch during creation
