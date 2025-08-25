@@ -44,7 +44,7 @@ type DatabaseRowDict = dict[str, object]
 type SafeStringList = list[str]
 
 
-class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
+class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
     """Oracle database services following Flext[Area][Module] pattern.
 
     Single consolidated class containing ALL Oracle service functionality
@@ -53,6 +53,16 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
     This class consolidates ALL Oracle service functionality into a single
     entry point eliminating duplication and multiple small classes.
     """
+
+    # Declare attributes for MyPy compatibility with frozen class
+    config: FlextDbOracleConfig
+    logger: object = None  # Logger from get_logger()
+    connection: FlextDbOracleServices.ConnectionService
+    metadata: FlextDbOracleServices.MetadataService
+    observability: FlextDbOracleServices.ObservabilityService
+    operation_tracker: FlextDbOracleServices.OperationTracker
+    plugins: FlextDbOracleServices.PluginService
+    utilities: FlextDbOracleServices.UtilitiesService
 
     # =============================================================================
     # CONNECTION SERVICE - Consolidated from connection.py
@@ -195,7 +205,7 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
                 session.close()
 
         @contextmanager
-        def transaction(self) -> Generator[object, None, None]:
+        def transaction(self) -> Generator[object]:
             """Get transaction context for database operations."""
             if not self._engine:
                 msg = "No database connection established"
@@ -338,7 +348,10 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
                     if version_result.success and version_result.value:
                         status_data["version"] = version_result.value[0].get("banner")
 
-                status = FlextDbOracleModels.create_connection_status(**status_data)
+                status = FlextDbOracleModels.create_connection_status(
+                    is_connected=is_connected,
+                    **status_data
+                )
                 return FlextResult[FlextDbOracleConnectionStatus].ok(status)
 
             except Exception as e:
@@ -449,7 +462,11 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
 
                 operation = self._operations[operation_id]
                 end_time = datetime.now(UTC)
-                duration_ms = (end_time - operation["start_time"]).total_seconds() * 1000
+                start_time = operation["start_time"]
+                if isinstance(start_time, datetime):
+                    duration_ms = (end_time - start_time).total_seconds() * 1000
+                else:
+                    duration_ms = 0.0
 
                 operation.update({
                     "end_time": end_time,
@@ -491,7 +508,7 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
                 operations = list(self._operations.values())
                 completed_ops = [op for op in operations if op["status"] in {"completed", "failed"}]
 
-                stats = {
+                stats: dict[str, object] = {
                     "total_operations": len(operations),
                     "completed_operations": len(completed_ops),
                     "running_operations": len([op for op in operations if op["status"] == "running"]),
@@ -504,7 +521,11 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
                     successful_ops = [op for op in completed_ops if op["status"] == "completed"]
                     stats["success_rate"] = len(successful_ops) / len(completed_ops) * 100
 
-                    durations = [op["duration_ms"] for op in completed_ops if op["duration_ms"] is not None]
+                    durations = [
+                        float(op["duration_ms"])
+                        for op in completed_ops
+                        if op["duration_ms"] is not None and isinstance(op["duration_ms"], (int, float))
+                    ]
                     if durations:
                         stats["average_duration_ms"] = sum(durations) / len(durations)
 
@@ -623,7 +644,7 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
                 AND table_name = UPPER(:table_name)
                 """
 
-                params = {"schema": schema, "table_name": table_name}
+                params: dict[str, object] = {"schema": schema, "table_name": table_name}
                 result = self.connection.execute_query(sql, params)
 
                 if not result.success:
@@ -631,7 +652,11 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
 
                 if result.value:
                     table_count = result.value[0].get("table_count", 0)
-                    exists = int(table_count) > 0
+                    exists = (
+                        int(table_count) > 0
+                        if isinstance(table_count, (int, str))
+                        else False
+                    )
                     return FlextResult[bool].ok(exists)
 
                 table_not_found = False
@@ -685,7 +710,7 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
         if not connection_result.success:
             return FlextResult[FlextDbOracleServices].fail(connection_result.error or "Connection failed")
 
-        self.logger.info("All Oracle services connected successfully")
+        self.logger.info("All Oracle services connected successfully")  # type: ignore[attr-defined]
         return FlextResult[FlextDbOracleServices].ok(self)
 
     def disconnect(self) -> FlextResult[None]:
@@ -695,14 +720,17 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
     def health_check(self) -> FlextResult[dict[str, object]]:
         """Perform comprehensive health check across all services."""
         try:
-            health_data = {
+            health_data: dict[str, object] = {
                 "overall_status": "healthy",
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Connection health
             connection_health = self.observability.health_check()
-            health_data["connection"] = connection_health.value if connection_health.success else {"status": "unhealthy", "error": connection_health.error}
+            health_data["connection"] = (
+                connection_health.value if connection_health.success
+                else {"status": "unhealthy", "error": connection_health.error}
+            )
 
             # Service status
             health_data["services"] = {
@@ -735,13 +763,13 @@ class FlextDbOracleServices(FlextDomainService[FlextResult[dict[str, object]]]):
     # BACKWARD COMPATIBILITY ALIASES
     # =============================================================================
 
-    # Legacy class aliases for compatibility
-    FlextDbOracleConnection = ConnectionService
-    FlextDbOracleMetadataManager = MetadataService
-    FlextDbOracleObservabilityManager = ObservabilityService
-    FlextDbOracleOperationTracker = OperationTracker
-    FlextDbOraclePlugins = PluginService
-    FlextDbOracleUtilities = UtilitiesService
+    # Legacy class aliases for compatibility - type annotations for Pydantic
+    FlextDbOracleConnection: type[ConnectionService] = ConnectionService
+    FlextDbOracleMetadataManager: type[MetadataService] = MetadataService
+    FlextDbOracleObservabilityManager: type[ObservabilityService] = ObservabilityService
+    FlextDbOracleOperationTracker: type[OperationTracker] = OperationTracker
+    FlextDbOraclePlugins: type[PluginService] = PluginService
+    FlextDbOracleUtilities: type[UtilitiesService] = UtilitiesService
 
 
 # Module-level backward compatibility aliases
