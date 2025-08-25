@@ -1,13 +1,10 @@
-"""Oracle database field definitions following flext-core field patterns.
+"""FLEXT DB Oracle Fields following Flext[Area][Module] pattern.
 
-This module provides reusable Pydantic field definitions for Oracle database
-models, following the flext-core fields pattern for consistency and reusability.
+This module provides the FlextDbOracleFields class with consolidated
+field definitions following FLEXT architectural patterns with DRY principles.
 
-Field definitions are organized by type:
-- Connection fields (host, port, service_name, etc.)
-- Database metadata fields (table_name, column_name, etc.)
-- Query fields (fetch_size, timeout, etc.)
-- Validation fields (constraints, patterns, etc.)
+Single consolidated class containing ALL Oracle field definitions organized
+internally, following SOLID principles and eliminating duplication.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,28 +12,29 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import cast
 
+from flext_core import FlextFactory
 from pydantic import Field
+from pydantic.fields import FieldInfo
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 
-__all__ = [
-    "ConnectionFields",
-    "DatabaseMetadataFields",
-    "QueryFields",
-    "ValidationFields",
-]
 
-# =============================================================================
-# CONNECTION FIELD DEFINITIONS
-# =============================================================================
+class FlextDbOracleFields(FlextFactory):
+    """Oracle Database Fields following Flext[Area][Module] pattern.
 
+    Single consolidated class containing ALL Oracle field definitions
+    organized internally, following SOLID principles and DRY methodology.
 
-class ConnectionFields:
-    """Oracle connection field definitions."""
+    This class consolidates ALL Oracle field functionality into a single
+    entry point eliminating duplication and multiple small classes.
+    """
 
-    # Host and networking
+    # =============================================================================
+    # CONNECTION FIELDS - HOST, NETWORK, AUTHENTICATION, POOLS
+    # =============================================================================
+
     host = Field(
         ...,
         description="Oracle database host",
@@ -61,7 +59,6 @@ class ConnectionFields:
         examples=["XEPDB1", "ORCL", "PDB1"],
     )
 
-    # Authentication
     username = Field(
         ...,
         description="Database username",
@@ -121,16 +118,10 @@ class ConnectionFields:
         examples=[30, 60, 120],
     )
 
+    # =============================================================================
+    # DATABASE METADATA FIELDS - SCHEMAS, TABLES, COLUMNS, DATA TYPES
+    # =============================================================================
 
-# =============================================================================
-# DATABASE METADATA FIELD DEFINITIONS
-# =============================================================================
-
-
-class DatabaseMetadataFields:
-    """Oracle database metadata field definitions."""
-
-    # Schema and object names
     schema_name = Field(
         ...,
         description="Database schema name",
@@ -158,7 +149,6 @@ class DatabaseMetadataFields:
         examples=["ID", "FIRST_NAME", "CREATED_DATE"],
     )
 
-    # Data type information
     data_type = Field(
         ...,
         description="Oracle data type",
@@ -183,7 +173,6 @@ class DatabaseMetadataFields:
         None, description="Numeric scale", ge=0, le=127, examples=[0, 2, 4]
     )
 
-    # Column metadata
     column_id = Field(
         ..., description="Column position/ID", ge=1, le=1000, examples=[1, 2, 10]
     )
@@ -206,16 +195,10 @@ class DatabaseMetadataFields:
         examples=["Primary key", "Employee full name", "Created timestamp"],
     )
 
+    # =============================================================================
+    # QUERY FIELDS - EXECUTION, PAGINATION, PERFORMANCE
+    # =============================================================================
 
-# =============================================================================
-# QUERY FIELD DEFINITIONS
-# =============================================================================
-
-
-class QueryFields:
-    """Oracle query field definitions."""
-
-    # Fetch and pagination
     fetch_size = Field(
         default=FlextDbOracleConstants.Query.DEFAULT_FETCH_SIZE,
         description="Number of rows to fetch at once",
@@ -232,7 +215,6 @@ class QueryFields:
         examples=[100, 500, 1000],
     )
 
-    # Query execution
     execution_time_ms = Field(
         default=0.0,
         description="Query execution time in milliseconds",
@@ -247,7 +229,6 @@ class QueryFields:
         examples=[0, 10, 1000, 50000],
     )
 
-    # Query metadata
     query_hash: str | None = Field(
         None,
         description="Query hash for caching and identification",
@@ -265,88 +246,148 @@ class QueryFields:
         examples=["query_001", "user_lookup", "monthly_report"],
     )
 
+    # =============================================================================
+    # VALIDATION FIELDS - CONNECTION STATUS, HEALTH, CONSTRAINTS
+    # =============================================================================
 
-# =============================================================================
-# VALIDATION FIELD DEFINITIONS
-# =============================================================================
-
-
-class ValidationFields:
-    """Oracle validation field definitions."""
-
-    # Connection validation
     is_connected = Field(
-        ..., description="Connection status flag", examples=[True, False]
+        default=False,
+        description="Connection status flag",
+        examples=[True, False],
     )
 
-    last_error: str | None = Field(
-        None,
-        description="Last error message",
-        max_length=4000,
-        examples=[None, "ORA-00942: table or view does not exist"],
+    is_valid = Field(
+        default=False,
+        description="Validation status flag",
+        examples=[True, False],
     )
 
-    connection_time_ms: float | None = Field(
-        None,
-        description="Connection establishment time in milliseconds",
-        ge=0.0,
-        examples=[50.0, 150.3, 500.7],
+    health_status = Field(
+        default="unknown",
+        description="Health check status",
+        pattern=r"^(healthy|unhealthy|unknown|degraded)$",
+        examples=["healthy", "unhealthy", "unknown", "degraded"],
     )
 
-    # Session metrics
-    active_sessions = Field(
-        default=0,
-        description="Number of active database sessions",
-        ge=0,
-        le=10000,
-        examples=[5, 25, 100],
-    )
-
-    max_sessions = Field(
-        default=100,
-        description="Maximum allowed sessions",
-        ge=1,
-        le=10000,
-        examples=[50, 100, 500],
-    )
-
-    # Health check fields
-    last_check: str | None = Field(
+    last_check_time: str | None = Field(
         None,
         description="Last health check timestamp",
-        examples=["2025-01-15T10:30:00Z"],
+        examples=["2024-01-15T10:30:00Z"],
     )
 
-    is_healthy = Field(
-        default=True, description="Overall health status", examples=[True, False]
+    error_count = Field(
+        default=0,
+        description="Number of errors encountered",
+        ge=0,
+        examples=[0, 1, 5, 20],
     )
 
+    # =============================================================================
+    # FACTORY METHODS - CONSOLIDATED FIELD CREATION
+    # =============================================================================
 
-# =============================================================================
-# TYPED FIELD ALIASES - For convenience and type safety
-# =============================================================================
+    @classmethod
+    def get_connection_field(cls, field_name: str) -> FieldInfo:
+        """Get connection field by name."""
+        field_mapping = {
+            "host": cls.host,
+            "port": cls.port,
+            "service_name": cls.service_name,
+            "username": cls.username,
+            "password": cls.password,
+            "pool_min": cls.pool_min,
+            "pool_max": cls.pool_max,
+            "pool_increment": cls.pool_increment,
+            "connect_timeout": cls.connect_timeout,
+            "pool_timeout": cls.pool_timeout,
+        }
+        if field_name in field_mapping:
+            return cast("FieldInfo", field_mapping[field_name])
+        msg = f"Unknown connection field: {field_name}"
+        raise ValueError(msg)
 
-# Connection field types
-HostField = Annotated[str, ConnectionFields.host]
-PortField = Annotated[int, ConnectionFields.port]
-ServiceNameField = Annotated[str, ConnectionFields.service_name]
-UsernameField = Annotated[str, ConnectionFields.username]
-PasswordField = Annotated[str, ConnectionFields.password]
+    @classmethod
+    def get_metadata_field(cls, field_name: str) -> FieldInfo:
+        """Get metadata field by name."""
+        field_mapping = {
+            "schema_name": cls.schema_name,
+            "table_name": cls.table_name,
+            "column_name": cls.column_name,
+            "data_type": cls.data_type,
+            "data_length": cls.data_length,
+            "data_precision": cls.data_precision,
+            "data_scale": cls.data_scale,
+            "column_id": cls.column_id,
+            "nullable": cls.nullable,
+            "default_value": cls.default_value,
+            "comments": cls.comments,
+        }
+        if field_name in field_mapping:
+            return cast("FieldInfo", field_mapping[field_name])
+        msg = f"Unknown metadata field: {field_name}"
+        raise ValueError(msg)
 
-# Metadata field types
-SchemaNameField = Annotated[str, DatabaseMetadataFields.schema_name]
-TableNameField = Annotated[str, DatabaseMetadataFields.table_name]
-ColumnNameField = Annotated[str, DatabaseMetadataFields.column_name]
-DataTypeField = Annotated[str, DatabaseMetadataFields.data_type]
+    @classmethod
+    def get_query_field(cls, field_name: str) -> FieldInfo:
+        """Get query field by name."""
+        field_mapping = {
+            "fetch_size": cls.fetch_size,
+            "array_size": cls.array_size,
+            "execution_time_ms": cls.execution_time_ms,
+            "row_count": cls.row_count,
+            "query_hash": cls.query_hash,
+            "query_id": cls.query_id,
+        }
+        if field_name in field_mapping:
+            return cast("FieldInfo", field_mapping[field_name])
+        msg = f"Unknown query field: {field_name}"
+        raise ValueError(msg)
 
-# Query field types
-FetchSizeField = Annotated[int, QueryFields.fetch_size]
-ArraySizeField = Annotated[int, QueryFields.array_size]
-ExecutionTimeField = Annotated[float, QueryFields.execution_time_ms]
-RowCountField = Annotated[int, QueryFields.row_count]
+    # =============================================================================
+    # BACKWARD COMPATIBILITY ALIASES - CONSOLIDATED
+    # =============================================================================
 
-# Validation field types
-IsConnectedField = Annotated[bool, ValidationFields.is_connected]
-LastErrorField = Annotated[str | None, ValidationFields.last_error]
-ActiveSessionsField = Annotated[int, ValidationFields.active_sessions]
-MaxSessionsField = Annotated[int, ValidationFields.max_sessions]
+    # Create compatibility classes as internal references
+    class ConnectionFields:
+        """Backward compatibility - use FlextDbOracleFields directly."""
+
+        def __getattr__(self, name: str) -> object:
+            """Delegate attribute access to FlextDbOracleFields."""
+            return getattr(FlextDbOracleFields, name)
+
+    class DatabaseMetadataFields:
+        """Backward compatibility - use FlextDbOracleFields directly."""
+
+        def __getattr__(self, name: str) -> object:
+            """Delegate attribute access to FlextDbOracleFields."""
+            return getattr(FlextDbOracleFields, name)
+
+    class QueryFields:
+        """Backward compatibility - use FlextDbOracleFields directly."""
+
+        def __getattr__(self, name: str) -> object:
+            """Delegate attribute access to FlextDbOracleFields."""
+            return getattr(FlextDbOracleFields, name)
+
+    class ValidationFields:
+        """Backward compatibility - use FlextDbOracleFields directly."""
+
+        def __getattr__(self, name: str) -> object:
+            """Delegate attribute access to FlextDbOracleFields."""
+            return getattr(FlextDbOracleFields, name)
+
+
+# Module-level backward compatibility aliases
+ConnectionFields = FlextDbOracleFields.ConnectionFields
+DatabaseMetadataFields = FlextDbOracleFields.DatabaseMetadataFields
+QueryFields = FlextDbOracleFields.QueryFields
+ValidationFields = FlextDbOracleFields.ValidationFields
+
+__all__ = [
+    # Backward compatibility
+    "ConnectionFields",
+    "DatabaseMetadataFields",
+    "FlextDbOracleFields",
+    "QueryFields",
+    "ValidationFields",
+]

@@ -86,66 +86,7 @@ ORACLE_COLUMN_INFO_FIELDS = 7  # Expected number of fields in Oracle column info
 type T = object
 
 
-# Moved from typings.py to resolve circular import
-class CreateIndexConfig(FlextValue):
-    """Configuration for CREATE INDEX statement building."""
-
-    index_name: str = Field(..., description="Index name")
-    table_name: str = Field(..., description="Table name")
-    columns: list[str] = Field(..., description="Index columns")
-    schema_name: str | None = Field(None, description="Schema name")
-    unique: bool = Field(default=False, description="Unique index")
-    tablespace: str | None = Field(None, description="Tablespace")
-    parallel: int | None = Field(None, description="Parallel degree")
-
-    @field_validator("index_name")
-    @classmethod
-    def validate_index_name(cls, v: str) -> str:
-        """Validate index name is non-empty."""
-        if not FlextValidation.Validators.is_non_empty_string(v):
-            msg = "Index name cannot be empty"
-            raise ValueError(msg)
-        return v
-
-    @field_validator("table_name")
-    @classmethod
-    def validate_table_name(cls, v: str) -> str:
-        """Validate table name is non-empty."""
-        if not FlextValidation.Validators.is_non_empty_string(v):
-            msg = "Table name cannot be empty"
-            raise ValueError(msg)
-        return v
-
-    @field_validator("columns")
-    @classmethod
-    def validate_columns(cls, v: list[str]) -> list[str]:
-        """Validate columns list is non-empty and all columns are valid."""
-        if not v:
-            msg = "At least one column is required"
-            raise ValueError(msg)
-        if any(not FlextValidation.Validators.is_non_empty_string(col) for col in v):
-            msg = "Column names cannot be empty"
-            raise ValueError(msg)
-        return v
-
-    @field_validator("parallel")
-    @classmethod
-    def validate_parallel(cls, v: int | None) -> int | None:
-        """Validate parallel degree is positive if specified."""
-        if v is not None and v <= 0:
-            msg = "Parallel degree must be positive"
-            raise ValueError(msg)
-        return v
-
-    def validate_business_rules(self) -> FlextResult[None]:
-        """Validate create index configuration.
-
-        Note: Basic field validations are now handled by @field_validator decorators.
-        This method performs additional domain business rules validation.
-        """
-        # Basic field validations are now handled by @field_validator decorators
-        # This method is kept for additional business rule validations if needed
-        return FlextResult[None].ok(None)
+# DRY CONSOLIDATION: CreateIndexConfig moved to FlextDbOracleConnections._InternalCreateIndexConfig
 
 
 logger = get_logger(__name__)
@@ -1483,34 +1424,109 @@ class FlextDbOracleConnection:
 
 
 class FlextDbOracleConnections(FlextDomainService[bool]):
-    """Oracle database connections following Flext[Area][Module] pattern.
+    """Oracle database connections following Flext[Area][Module] pattern - DRY CONSOLIDATED.
+
+    MAJOR DRY REFACTORING: Consolidates CreateIndexConfig + FlextDbOracleConnection + FlextDbOracleConnections
+    into single large class following user feedback to "criar classes grandes e aplicar conceitos DRY".
 
     Inherits from FlextDomainService to leverage FLEXT Core domain service patterns.
-    Consolidates all Oracle connection functionality into a single class with internal methods
-    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+    This class serves as the SINGLE ENTRY POINT for ALL Oracle connection functionality:
+    - Index configuration creation and validation (from CreateIndexConfig)
+    - Core connection management and operations (from FlextDbOracleConnection)
+    - Domain service patterns and factory methods (from FlextDbOracleConnections)
+
     """
+
+    # =============================================================================
+    # CONSOLIDATED INDEX CONFIGURATION (from CreateIndexConfig)
+    # =============================================================================
+
+    class _InternalCreateIndexConfig(FlextValue):
+        """Internal CREATE INDEX configuration consolidated into FlextDbOracleConnections.
+
+        DRY CONSOLIDATION: Moved from separate CreateIndexConfig class to eliminate
+        multiple small classes and follow DRY principles with large consolidated class.
+        """
+
+        index_name: str = Field(..., description="Index name")
+        table_name: str = Field(..., description="Table name")
+        columns: list[str] = Field(..., description="Index columns")
+        schema_name: str | None = Field(None, description="Schema name")
+        unique: bool = Field(default=False, description="Unique index")
+        tablespace: str | None = Field(None, description="Tablespace")
+        parallel: int | None = Field(None, description="Parallel degree")
+
+        @field_validator("index_name")
+        @classmethod
+        def validate_index_name(cls, v: str) -> str:
+            """Validate index name is non-empty."""
+            if not FlextValidation.Validators.is_non_empty_string(v):
+                msg = "Index name cannot be empty"
+                raise ValueError(msg)
+            return v
+
+        @field_validator("table_name")
+        @classmethod
+        def validate_table_name(cls, v: str) -> str:
+            """Validate table name is non-empty."""
+            if not FlextValidation.Validators.is_non_empty_string(v):
+                msg = "Table name cannot be empty"
+                raise ValueError(msg)
+            return v
+
+        @field_validator("columns")
+        @classmethod
+        def validate_columns(cls, v: list[str]) -> list[str]:
+            """Validate columns list is non-empty and all columns are valid."""
+            if not v:
+                msg = "At least one column is required"
+                raise ValueError(msg)
+            if any(not FlextValidation.Validators.is_non_empty_string(col) for col in v):
+                msg = "Column names cannot be empty"
+                raise ValueError(msg)
+            return v
+
+        @field_validator("parallel")
+        @classmethod
+        def validate_parallel(cls, v: int | None) -> int | None:
+            """Validate parallel degree is positive if specified."""
+            if v is not None and v <= 0:
+                msg = "Parallel degree must be positive"
+                raise ValueError(msg)
+            return v
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate create index configuration.
+
+            Note: Basic field validations are now handled by @field_validator decorators.
+            This method performs additional domain business rules validation.
+            """
+            # Basic field validations are now handled by @field_validator decorators
+            # This method is kept for additional business rule validations if needed
+            return FlextResult[None].ok(None)
 
     @staticmethod
     def create_connection(config: FlextDbOracleConfig) -> FlextDbOracleConnection:
         """Create Oracle database connection instance."""
         return FlextDbOracleConnection(config)
 
-    @staticmethod
+    @classmethod
     def create_index_config(
+        cls,
         table_name: str,
         columns: list[str],
         *,
         index_name: str | None = None,
         unique: bool = False,
         parallel: int | None = None,
-    ) -> CreateIndexConfig:
-        """Create index configuration for Oracle database operations."""
+    ) -> _InternalCreateIndexConfig:
+        """Create index configuration for Oracle database operations using consolidated internal class."""
         # Generate default index name if not provided
         if index_name is None:
             column_suffix = "_".join(columns[:3])  # Use first 3 columns for name
             index_name = f"idx_{table_name}_{column_suffix}".lower()
 
-        return CreateIndexConfig(
+        return cls._InternalCreateIndexConfig(
             table_name=table_name,
             columns=columns,
             index_name=index_name,
@@ -1533,4 +1549,15 @@ class FlextDbOracleConnections(FlextDomainService[bool]):
         return FlextResult[bool].ok(service_operational)
 
 
-__all__: list[str] = ["FlextDbOracleConnection", "FlextDbOracleConnections"]
+# =============================================================================
+# BACKWARD COMPATIBILITY ALIASES - DRY CONSOLIDATION
+# =============================================================================
+
+# Backward compatibility alias for CreateIndexConfig
+CreateIndexConfig = FlextDbOracleConnections._InternalCreateIndexConfig
+
+__all__: list[str] = [
+    "CreateIndexConfig",
+    "FlextDbOracleConnection",
+    "FlextDbOracleConnections"
+]

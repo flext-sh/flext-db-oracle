@@ -7,31 +7,31 @@ import click
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.config_types import MergeStatementConfig
-from flext_db_oracle.connection import CreateIndexConfig, FlextDbOracleConnection
+from flext_db_oracle.connection import CreateIndexConfig, FlextDbOracleConnection, FlextDbOracleConnections
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.exceptions import (
     FlextDbOracleAuthenticationError,
     FlextDbOracleConfigurationError,
     FlextDbOracleConnectionError,
     FlextDbOracleError,
+    FlextDbOracleExceptions,
     FlextDbOracleMetadataError,
     FlextDbOracleProcessingError,
     FlextDbOracleQueryError,
     FlextDbOracleTimeoutError,
     FlextDbOracleValidationError,
 )
-from flext_db_oracle.metadata import FlextDbOracleMetadataManager
+from flext_db_oracle.metadata import FlextDbOracleMetadataManager, FlextDbOracleMetadatas
 from flext_db_oracle.models import (
     FlextDbOracleColumn,
     FlextDbOracleSchema,
     FlextDbOracleTable,
 )
-from flext_db_oracle.observability import (
-    FlextDbOracleErrorHandler,
-    FlextDbOracleObservabilityManager,
-    FlextDbOracleOperationTracker,
-)
+from flext_db_oracle.observability import FlextDbOracleObservabilityManager, FlextTrace, FlextHealthCheck
+from flext_db_oracle.operation_tracker import FlextDbOracleOperationTracker
+from flext_db_oracle.error_handler import FlextDbOracleErrorHandler
 from flext_db_oracle.plugins import (
+    FlextDbOraclePlugins,
     ORACLE_PLUGINS,
     create_data_validation_plugin,
     create_performance_monitor_plugin,
@@ -39,39 +39,67 @@ from flext_db_oracle.plugins import (
     register_all_oracle_plugins,
 )
 from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle.facade import FlextDbOracle
+
+# CLI imports (with lazy loading protection)
+try:
+    from flext_db_oracle.cli import FlextDbOracleClis
+    _CLI_AVAILABLE = True
+except ImportError:
+    _CLI_AVAILABLE = False
 
 __all__: list[str] = [
-    "ORACLE_PLUGINS",
-    "CreateIndexConfig",
-    "FlextDbOracleApi",
-    "FlextDbOracleAuthenticationError",
-    "FlextDbOracleColumn",
-    "FlextDbOracleConfig",
-    "FlextDbOracleConfigurationError",
-    "FlextDbOracleConnection",
-    "FlextDbOracleConnectionError",
-    "FlextDbOracleConstants",
-    "FlextDbOracleError",
+    # Unified facade (primary entry point)
+    "FlextDbOracle",
+    # Core wrapper classes (Flext[Area][Module] pattern)
+    "FlextDbOracleConnections",
+    "FlextDbOracleExceptions",
+    "FlextDbOracleMetadatas",
+    "FlextDbOracleObservabilityManager",
+    "FlextTrace",
+    "FlextHealthCheck",
+    "FlextDbOracleOperationTracker",
     "FlextDbOracleErrorHandler",
-    "FlextDbOracleMetadataError",
+    "FlextDbOraclePlugins",
+    "FlextDbOracleUtilities",
+    # Legacy classes (backward compatibility)
+    "FlextDbOracleApi",
+    "FlextDbOracleConnection",
     "FlextDbOracleMetadataManager",
     "FlextDbOracleObservabilityManager",
-    "FlextDbOracleOperationTracker",
-    "FlextDbOracleProcessingError",
-    "FlextDbOracleQueryError",
+    # Configuration
+    "FlextDbOracleConfig",
+    "FlextDbOracleConstants",
+    "CreateIndexConfig",
+    "MergeStatementConfig",
+    # Models
+    "FlextDbOracleColumn",
     "FlextDbOracleSchema",
     "FlextDbOracleTable",
+    # Exceptions
+    "FlextDbOracleAuthenticationError",
+    "FlextDbOracleConfigurationError",
+    "FlextDbOracleConnectionError",
+    "FlextDbOracleError",
+    "FlextDbOracleMetadataError",
+    "FlextDbOracleProcessingError",
+    "FlextDbOracleQueryError",
     "FlextDbOracleTimeoutError",
-    "FlextDbOracleUtilities",
     "FlextDbOracleValidationError",
-    "MergeStatementConfig",
-    "__version__",
-    "__version_info__",
+    # Plugins
+    "ORACLE_PLUGINS",
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",
     "create_security_audit_plugin",
     "register_all_oracle_plugins",
+    # Version info
+    "__version__",
+    "__version_info__",
 ]
+
+# Conditionally add CLI classes if available
+if _CLI_AVAILABLE:
+    __all__ += ["FlextDbOracleClis"]
 
 __version__ = "0.9.0"
 __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())

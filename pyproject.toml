@@ -47,7 +47,7 @@ flext-oracle-migrate = "flext_db_oracle.migrate:main"
 flext-oracle = "flext_db_oracle.cli:main"
 
 [tool.ruff]
-extend = "../.config/tools/.ruff-shared.toml"
+extend = "../ruff-shared.toml"
 lint.isort.known-first-party = ["flext_db_oracle"]
 
 [tool.mypy]

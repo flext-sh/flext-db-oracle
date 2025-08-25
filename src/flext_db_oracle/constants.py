@@ -18,12 +18,15 @@ from flext_core import FlextConstants
 # =============================================================================
 
 
-class FlextOracleDbSemanticConstants(FlextConstants):
-    """Oracle Database semantic constants extending FlextConstants.
+class FlextDbOracleConstants(FlextConstants):
+    """Oracle database constants following Flext[Area][Module] pattern.
 
-    Modern Python 3.13 constants following semantic grouping patterns.
-    Extends the FLEXT ecosystem constants with Oracle Database specific
-    values while maintaining full backward compatibility.
+    Single class inheriting from FlextConstants with all Oracle-specific
+    constants as internal nested classes, following SOLID principles,
+    PEP8, Python 3.13+, and FLEXT structural patterns.
+
+    This class consolidates all Oracle database constants functionality
+    into a single entry point with internal organization.
     """
 
     class Connection:
@@ -115,20 +118,8 @@ class FlextOracleDbSemanticConstants(FlextConstants):
         PARALLEL_HINT = "/*+ PARALLEL */"
 
 
-class FlextDbOracleConstants(FlextOracleDbSemanticConstants):
-    """Oracle Database constants with backward compatibility.
-
-    Legacy compatibility layer providing both modern semantic access
-    and traditional flat constant access patterns for smooth migration.
-    """
-
-    # Modern semantic access (Primary API) - direct references
-    Connection = FlextOracleDbSemanticConstants.Connection
-    Query = FlextOracleDbSemanticConstants.Query
-    DataTypes = FlextOracleDbSemanticConstants.DataTypes
-    OracleValidation = FlextOracleDbSemanticConstants.OracleValidation
-    ErrorMessages = FlextOracleDbSemanticConstants.ErrorMessages
-    OraclePerformance = FlextOracleDbSemanticConstants.OraclePerformance
+# Backward compatibility aliases - existing functionality as aliases
+FlextOracleDbSemanticConstants = FlextDbOracleConstants  # Legacy alias
 
 
 # =============================================================================
@@ -136,8 +127,7 @@ class FlextDbOracleConstants(FlextOracleDbSemanticConstants):
 # =============================================================================
 
 __all__: list[str] = [
-    # Backward Compatibility (use semantic API above)
     "FlextDbOracleConstants",
-    # Modern Semantic Constants (Primary API)
+    # Legacy aliases
     "FlextOracleDbSemanticConstants",
 ]

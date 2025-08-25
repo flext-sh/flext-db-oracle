@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from typing import cast
 
 from flext_core import get_logger
 from pydantic import SecretStr
@@ -20,6 +21,7 @@ from pydantic import SecretStr
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleQueryResult,
     FlextDbOracleUtilities,
 )
 
@@ -29,15 +31,7 @@ logger = get_logger(__name__)
 
 def create_sample_config() -> FlextDbOracleConfig:
     """Create sample Oracle configuration for examples."""
-    return FlextDbOracleConfig(
-        host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
-        port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-        username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "flexttest"),
-        password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "FlextTest123")),
-        service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
-        encoding="UTF-8",
-        ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
-    )
+    return FlextDbOracleConfig.from_env()
 
 
 # =============================================================================
@@ -116,14 +110,9 @@ def demonstrate_connection_patterns() -> None:
         except (ValueError, TypeError, KeyError, OSError) as e:
             logger.warning("⚠️ Environment API creation failed: %s", e)
 
-        # Pattern 3: With configuration parameters
-        FlextDbOracleApi.with_config(
-            host="example.oracle.com",
-            port=1521,
-            username="demo_user",
-            password="demo_pass",  # noqa: S106
-            service_name="DEMO_DB",
-        )
+        # Pattern 3: With configuration object
+        demo_config = FlextDbOracleConfig.from_env()
+        FlextDbOracleApi.with_config(demo_config)
         logger.info("✅ Created API with configuration parameters")
 
         # Pattern 4: Context manager usage (auto-connect/disconnect)
@@ -148,27 +137,12 @@ def demonstrate_configuration_patterns() -> None:
 
     def _perform_configuration_operations(_api: FlextDbOracleApi) -> None:
         """Specific configuration pattern operations."""
-        # Pattern 1: Minimal configuration
-        FlextDbOracleConfig(
-            host="localhost",
-            username="user",
-            password=SecretStr("pass"),
-            service_name="DB",
-            ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
-        )
+        # Pattern 1: Minimal configuration (from environment)
+        minimal_config = FlextDbOracleConfig.from_env()
         logger.info("✅ Created minimal configuration")
 
-        # Pattern 2: Production configuration with all options
-        production_config = FlextDbOracleConfig(
-            host="prod.oracle.company.com",
-            port=1521,
-            username="prod_user",
-            password=SecretStr("secure_password"),
-            service_name="PROD_DB",
-            encoding="UTF-8",
-            oracle_schema="PROD_SCHEMA",  # Use correct field name
-            ssl_server_cert_dn=None,  # Explicitly set optional SSL parameter
-        )
+        # Pattern 2: Production configuration (from environment)
+        production_config = FlextDbOracleConfig.from_env()
         logger.info("✅ Created production configuration")
 
         # Pattern 3: Configuration validation
@@ -237,7 +211,7 @@ def demonstrate_query_patterns() -> None:
         # Pattern 3: Single row query using modern FlextResult.unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
         # Modern FlextResult pattern: use unwrap_or for cleaner code
-        single_row = single_result.unwrap_or(None)
+        single_row = single_result.unwrap_or(FlextDbOracleQueryResult(columns=[], rows=[], row_count=0))
         if single_row is not None:
             logger.info(
                 "📝 Single row query pattern demonstrated: Success - got result"
@@ -248,23 +222,17 @@ def demonstrate_query_patterns() -> None:
                 single_result.error or "No data",
             )
 
-        # Pattern 4: Batch operations
-        operations: list[tuple[str, dict[str, object] | None]] = [
-            (
-                "UPDATE employees SET salary = salary * 1.1 WHERE department_id = :dept_id",
-                {"dept_id": 10},
-            ),
-            (
-                "INSERT INTO audit_log (operation, timestamp) VALUES (:op, SYSDATE)",
-                {"op": "salary_update"},
-            ),
-            ("COMMIT", None),
+        # Pattern 4: Batch operations - execute_many expects list of parameter dictionaries
+        batch_params: list[dict[str, object]] = [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+            {"id": 3, "name": "Charlie"},
         ]
 
-        batch_result = api.execute_batch(operations)
-        # Use unwrap_or for cleaner batch result handling
-        batch_count = len(batch_result.unwrap_or([]))
-        batch_status = batch_result.map(lambda _: "Success").unwrap_or(
+        batch_result = api.execute_many("INSERT INTO test_table (id, name) VALUES (:id, :name)", batch_params)
+        # Use unwrap_or for cleaner batch result handling - execute_many returns int
+        batch_count = batch_result.unwrap_or(0)
+        batch_status = batch_result.map(lambda count: f"Success - {count} rows affected").unwrap_or(
             f"Failed - {batch_result.error}"
         )
         logger.info(
@@ -377,8 +345,9 @@ def demonstrate_error_handling_patterns() -> None:
 
         # Pattern 2: Query error handling with FlextResult using unwrap_or
         result = api.query("INVALID SQL SYNTAX")
-        query_data = result.unwrap_or(None)
-        if query_data is None:
+        empty_result = FlextDbOracleQueryResult(columns=[], rows=[], row_count=0)
+        query_data = result.unwrap_or(empty_result)
+        if query_data.row_count == 0:
             logger.info("✅ Query error handled via FlextResult: %s", result.error)
         else:
             logger.info("✅ Query succeeded (unexpected)")
@@ -572,7 +541,7 @@ def _demonstrate_patterns_from_config(pattern_key: str) -> None:
         str(config["context"]),
         str(config["emoji"]),
         str(config["message"]),
-        config["patterns"],
+        cast(list[tuple[str, list[str]]], config["patterns"]),
     )
 
 
@@ -660,7 +629,7 @@ def demonstrate_utilities_patterns() -> None:
     # Pattern 3: Query result formatting with unwrap_or
     logger.info("📝 Query result formatting using unwrap_or pattern:")
     query_result = api.query("SELECT 1 FROM DUAL")
-    formatted_result = FlextDbOracleUtilities.format_query_result(
+    formatted_result = FlextDbOracleUtilities.format_query_result_text(
         query_result, "No data available"
     )
     logger.info(f"  • Query result: {formatted_result}")

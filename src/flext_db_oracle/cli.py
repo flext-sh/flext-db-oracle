@@ -23,13 +23,14 @@ from flext_cli import (
     PositiveInt,
     cli_handle_keyboard_interrupt,
     cli_measure_time,
-    create_cli_container,
     create_development_cli_config,
     create_production_cli_config,
     setup_cli,
 )
 from flext_core import (
+    FlextContainer,
     FlextDecorators,
+    FlextDomainService,
     FlextLoggingDecorators,
     FlextPerformanceDecorators,
     FlextResult,
@@ -65,7 +66,7 @@ class FlextDbOracleCliApplication:
         # Core CLI components using modern patterns
         self.console = Console()
         self.logger = get_logger(__name__)
-        self.container: object = create_cli_container()
+        self.container: object = FlextContainer.create_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
@@ -129,7 +130,7 @@ class FlextDbOracleCliApplication:
 
 
 # Global application instance - initialized with debug detection
-app: FlextDbOracleCliApplication | None = None
+app: FlextDbOracleCliApplication | None = None  # type: ignore[name-defined]
 
 
 def get_app(*, debug: bool = False) -> FlextDbOracleCliApplication:
@@ -988,6 +989,95 @@ def database(ctx: click.Context, directory: Path) -> None:
         ctx.exit(1)
 
 
+# =============================================================================
+# FLEXT[AREA][MODULE] PATTERN - Oracle CLIs
+# =============================================================================
+
+
+class FlextDbOracleClis(FlextDomainService[str]):
+    """Oracle database CLIs following Flext[Area][Module] pattern.
+
+    Inherits from FlextDomainService to leverage FLEXT Core domain service patterns.
+    Consolidates all Oracle CLI functionality into a single class with internal methods
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
+
+    This class serves as the single entry point for Oracle CLI operations,
+    implementing clean architecture with command management and user interaction.
+
+    Examples:
+        CLI operations:
+        >>> clis = FlextDbOracleClis()
+        >>> result = clis.execute()  # Returns CLI application status
+        >>> app = clis.create_cli_application()
+        >>> connection_result = app.test_connection()
+
+    """
+
+    def execute(self) -> FlextResult[str]:
+        """Execute CLI management operation.
+
+        Returns CLI application status indicating readiness.
+        """
+        try:
+            return FlextResult[str].ok("Oracle CLI application ready")
+        except Exception as e:
+            return FlextResult[str].fail(f"CLI application failed: {e}")
+
+    @staticmethod
+    def create_cli_application() -> FlextDbOracleCliApplication:
+        """Create Oracle CLI application using factory pattern."""
+        return FlextDbOracleCliApplication()
+
+    @staticmethod
+    def create_production_config() -> FlextResult[FlextDbOracleConfig]:
+        """Create production CLI configuration using factory pattern."""
+        try:
+            # Setup production CLI environment
+            create_production_cli_config()
+            # Return Oracle configuration
+            return FlextDbOracleConfig.from_env()
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(f"Production config creation failed: {e}")
+
+    @staticmethod
+    def create_development_config() -> FlextResult[FlextDbOracleConfig]:
+        """Create development CLI configuration using factory pattern."""
+        try:
+            # Setup development CLI environment
+            create_development_cli_config()
+            # Return Oracle configuration
+            return FlextDbOracleConfig.from_env()
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(f"Development config creation failed: {e}")
+
+    @staticmethod
+    def setup_cli_environment() -> FlextResult[bool]:
+        """Setup CLI environment using factory pattern."""
+        try:
+            # Setup basic CLI environment
+            setup_cli()
+            return FlextResult[bool].ok(data=True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"CLI environment setup failed: {e}")
+
+    def validate_cli_configuration(self) -> FlextResult[bool]:
+        """Validate CLI configuration and dependencies."""
+        try:
+            # Check if CLI application can be created
+            app = FlextDbOracleCliApplication()
+            if not hasattr(app, "console"):
+                return FlextResult[bool].fail("CLI application missing console")
+
+            # Check if Oracle utilities are available
+            utilities = FlextDbOracleUtilities()
+            if not hasattr(utilities, "format_query_result"):
+                return FlextResult[bool].fail("Oracle utilities not properly configured")
+
+            return FlextResult[bool].ok(data=True)
+        except Exception as e:
+            return FlextResult[bool].fail(f"CLI configuration validation failed: {e}")
+
+
 # Main CLI entry point with comprehensive error handling
 def main() -> None:
     """Main CLI entry point with comprehensive error handling."""
@@ -1001,6 +1091,14 @@ def main() -> None:
     except Exception as e:
         # Use simple print for general errors without depending on app instance
         raise SystemExit(1) from e
+
+
+__all__: list[str] = [
+    "FlextDbOracleCliApplication",
+    "FlextDbOracleClis",
+    "main",
+    "oracle_cli",
+]
 
 
 if __name__ == "__main__":

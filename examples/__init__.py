@@ -47,16 +47,9 @@ def demo_basic_usage() -> None:
             pass
         return
 
-    # Create configuration
+    # Create configuration using from_env method
     try:
-        config = FlextDbOracleConfig(
-            host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
-            port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-            username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "user"),
-            password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "password")),
-            service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "ORCLPDB1"),
-            ssl_server_cert_dn=os.getenv("FLEXT_TARGET_ORACLE_SSL_SERVER_CERT_DN", ""),
-        )
+        config = FlextDbOracleConfig.from_env()
     except Exception:
         return
 
@@ -68,7 +61,10 @@ def demo_basic_usage() -> None:
 
     # Test connection
     try:
-        connected_api = api.connect()
+        connected_api_result = api.connect()
+        if not connected_api_result.is_success:
+            return
+        connected_api = connected_api_result.value
 
         # Use utilities for cleaner railway-oriented code
         if FlextDbOracleUtilities.safe_test_connection(connected_api):

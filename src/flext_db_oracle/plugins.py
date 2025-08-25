@@ -53,9 +53,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import cast
 
-from flext_core import FlextDomainService, FlextPlugin, FlextPluginContext, FlextResult, get_logger
+from flext_core import (
+    FlextDomainService,
+    FlextPlugin,
+    FlextPluginContext,
+    FlextResult,
+    get_logger,
+)
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -175,244 +180,13 @@ def _validate_table_structure(
 
 
 # =============================================================================
-# ORACLE PLUGIN IMPLEMENTATION - FLEXT-CORE INTERFACE COMPLIANCE
+# FLEXT[AREA][MODULE] PATTERN - Oracle Plugins (DRY CONSOLIDATED)
 # =============================================================================
-
-
-class FlextOraclePlugin:
-    """Concrete Oracle plugin implementation using flext-core FlextPlugin patterns.
-
-    COMPLIANCE: Pure implementation following FlextPlugin patterns from flext-core.
-    NO MIXING: Uses composition with configuration data, implements plugin interface behavior.
-
-    Note: FlextPlugin is now a TypeAlias for object in flext-core, so we implement the interface directly.
-    """
-
-    def __init__(
-        self,
-        name: str,
-        version: str,
-        config: dict[str, object],
-        handler: object = None,
-    ) -> None:
-        """Initialize Oracle plugin with configuration and handler."""
-        self._name = name
-        self._version = version
-        self._config = config.copy()
-        self._handler = handler
-        self._logger = get_logger(f"FlextOraclePlugin.{name}")
-
-    @property
-    def name(self) -> str:
-        """Plugin name from abstract interface."""
-        return self._name
-
-    @property
-    def version(self) -> str:
-        """Plugin version from abstract interface."""
-        return self._version
-
-    def initialize(self, context: FlextPluginContext) -> FlextResult[None]:
-        """Initialize plugin with context from abstract interface."""
-        try:
-            # Use context for initialization if needed
-            _ = context  # Acknowledge parameter for interface compliance
-            self._logger.info("Oracle plugin initialized", plugin_name=self.name)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Oracle plugin initialization failed: {e}")
-
-    def shutdown(self) -> FlextResult[None]:
-        """Shutdown plugin and release resources from abstract interface."""
-        try:
-            self._logger.info("Oracle plugin shutdown", plugin_name=self.name)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Oracle plugin shutdown failed: {e}")
-
-    def configure(self, config: dict[str, object]) -> FlextResult[None]:
-        """Configure plugin with provided settings."""
-        try:
-            self._config.update(config)
-            self._logger.info("Oracle plugin configured", plugin_name=self.name)
-            return FlextResult[None].ok(None)
-        except Exception as e:
-            return FlextResult[None].fail(f"Oracle plugin configuration failed: {e}")
-
-    def get_config(self) -> dict[str, object]:
-        """Get plugin configuration."""
-        return self._config.copy()
-
-    def get_info(self) -> dict[str, object]:
-        """Get plugin information."""
-        return {
-            "name": self._name,
-            "version": self._version,
-            "plugin_type": self._config.get("plugin_type", "unknown"),
-            "description": self._config.get("description", ""),
-            "author": self._config.get("author", "FLEXT Team"),
-        }
-
-    def get_handler(self) -> object:
-        """Get plugin handler."""
-        return self._handler
-
-
-# =============================================================================
-# REFACTORING: Template Method + Factory Pattern for DRY plugin creation
-# =============================================================================
-
-
-class OraclePluginFactory:
-    """Factory for creating Oracle plugins with DRY patterns.
-
-    SOLID REFACTORING: Eliminates 18+ lines of duplicated plugin creation code
-    (mass=95) using Template Method and Factory patterns.
-    """
-
-    _PLUGIN_VERSION = "0.9.0"
-    _PLUGIN_AUTHOR = "FLEXT Team"
-
-    @classmethod
-    def _create_plugin_template(
-        cls,
-        name: str,
-        description: str,
-        plugin_type: str,
-        specific_config: dict[str, object],
-    ) -> FlextResult[FlextPlugin]:
-        """Template method for creating Oracle plugins with consistent patterns."""
-        base_config: dict[str, object] = {
-            "description": description,
-            "author": cls._PLUGIN_AUTHOR,
-            "plugin_type": plugin_type,
-        }
-
-        # Merge base config with specific config
-        full_config: dict[str, object] = {**base_config, **specific_config}
-
-        try:
-            # Create concrete FlextOraclePlugin implementation
-            plugin = FlextOraclePlugin(
-                name=name,
-                version=cls._PLUGIN_VERSION,
-                config=full_config,
-                handler=specific_config.get("callable_obj"),
-            )
-            return FlextResult[FlextPlugin].ok(plugin)
-        except Exception as e:
-            return FlextResult[FlextPlugin].fail(
-                f"Failed to create Oracle plugin '{name}': {e}"
-            )
-
-    @classmethod
-    def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
-        """Create performance monitoring plugin using DRY template."""
-        return cls._create_plugin_template(
-            name="oracle_performance_monitor",
-            description="Monitor Oracle database performance and identify slow queries",
-            plugin_type="monitor",
-            specific_config={
-                "threshold_ms": 1000,
-                "log_slow_queries": True,
-                "collect_execution_plans": False,
-                "callable_obj": performance_monitor_plugin_handler,
-            },
-        )
-
-    @classmethod
-    def create_security_audit(cls) -> FlextResult[FlextPlugin]:
-        """Create security audit plugin using DRY template."""
-        return cls._create_plugin_template(
-            name="oracle_security_audit",
-            description="Security audit and compliance monitoring for Oracle operations",
-            plugin_type="security",
-            specific_config={
-                "check_sql_injection": True,
-                "audit_ddl_operations": True,
-                "log_privilege_escalations": True,
-                "callable_obj": security_audit_plugin_handler,
-            },
-        )
-
-    @classmethod
-    def create_data_validation(cls) -> FlextResult[FlextPlugin]:
-        """Create data validation plugin using DRY template."""
-        return cls._create_plugin_template(
-            name="oracle_data_validator",
-            description="Validate data integrity and business rules for Oracle operations",
-            plugin_type="validator",
-            specific_config={
-                "validate_data_types": True,
-                "check_constraints": True,
-                "enforce_business_rules": True,
-                "callable_obj": data_validation_plugin_handler,
-            },
-        )
-
-
-class OraclePluginHandler:
-    """Base handler providing DRY patterns for Oracle plugin execution.
-
-    SOLID REFACTORING: Centralizes common plugin execution patterns.
-    """
-
-    @staticmethod
-    def create_base_result_data(
-        plugin_name: str,
-        _api: FlextDbOracleApi,
-        additional_fields: dict[str, object] | None = None,
-    ) -> dict[str, object]:
-        """Template method: Create base result data structure."""
-        base_data: dict[str, object] = {
-            "plugin_name": plugin_name,
-            "timestamp": datetime.now(UTC).isoformat(),
-        }
-
-        if additional_fields:
-            base_data.update(additional_fields)
-
-        return base_data
-
-    @staticmethod
-    def handle_plugin_exception(
-        e: Exception,
-        plugin_name: str,
-    ) -> FlextResult[dict[str, object]]:
-        """Template method: Consistent exception handling for plugins."""
-        return FlextResult[dict[str, object]].fail(f"{plugin_name} plugin failed: {e}")
-
-
-def _create_plugin_via_factory(factory_method: object) -> FlextResult[FlextPlugin]:
-    """DRY helper: Create plugin using factory method - eliminates 3x identical functions."""
-    if callable(factory_method):
-        try:
-            result = factory_method()
-            # Modern FlextResult pattern: use .success and .value with type casting
-            if hasattr(result, "success") and getattr(result, "success", False):
-                plugin_obj = cast("FlextResult[object]", result).value
-                # Basic validation that the result has plugin-like attributes
-                if hasattr(plugin_obj, "name") and hasattr(plugin_obj, "version"):
-                    return FlextResult[FlextPlugin].ok(cast("FlextPlugin", plugin_obj))
-                return FlextResult[FlextPlugin].fail(
-                    "Factory method returned object without required attributes"
-                )
-            # Handle failure case
-            error_msg = (
-                getattr(result, "error", "Factory method failed")
-                or "Factory method failed"
-            )
-            return FlextResult[FlextPlugin].fail(str(error_msg))
-        except Exception as e:
-            return FlextResult[FlextPlugin].fail(
-                f"Factory method execution failed: {e}"
-            )
-    return FlextResult[FlextPlugin].fail("Factory method is not callable")
 
 
 def create_performance_monitor_plugin() -> FlextResult[FlextPlugin]:
-    """Create a performance monitoring plugin using DRY factory."""
-    return _create_plugin_via_factory(OraclePluginFactory.create_performance_monitor)
+    """Create a performance monitoring plugin using consolidated DRY factory."""
+    return FlextDbOraclePlugins.create_performance_monitor()
 
 
 def performance_monitor_plugin_handler(
@@ -430,7 +204,7 @@ def performance_monitor_plugin_handler(
             else 1000.0
         )
 
-        result_data = OraclePluginHandler.create_base_result_data(
+        result_data = FlextDbOraclePlugins._create_base_result_data(
             "oracle_performance_monitor",
             api,
             {
@@ -474,12 +248,12 @@ def performance_monitor_plugin_handler(
         return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return OraclePluginHandler.handle_plugin_exception(e, "Performance monitor")
+        return FlextDbOraclePlugins._handle_plugin_exception(e, "Performance monitor")
 
 
 def create_security_audit_plugin() -> FlextResult[FlextPlugin]:
-    """Create a security audit plugin using DRY factory."""
-    return _create_plugin_via_factory(OraclePluginFactory.create_security_audit)
+    """Create a security audit plugin using consolidated DRY factory."""
+    return FlextDbOraclePlugins.create_security_audit()
 
 
 def security_audit_plugin_handler(
@@ -494,7 +268,7 @@ def security_audit_plugin_handler(
     """
     try:
         # SOLID Extract Method - Create base result structure
-        result_data = OraclePluginHandler.create_base_result_data(
+        result_data = FlextDbOraclePlugins._create_base_result_data(
             "oracle_security_audit",
             api,
             {
@@ -518,7 +292,7 @@ def security_audit_plugin_handler(
         return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return OraclePluginHandler.handle_plugin_exception(e, "Security audit")
+        return FlextDbOraclePlugins._handle_plugin_exception(e, "Security audit")
 
 
 def _process_sql_security_audit(
@@ -613,8 +387,8 @@ def _determine_compliance_status(security_warnings: list[str]) -> str:
 
 
 def create_data_validation_plugin() -> FlextResult[FlextPlugin]:
-    """Create a data validation plugin using DRY factory."""
-    return _create_plugin_via_factory(OraclePluginFactory.create_data_validation)
+    """Create a data validation plugin using consolidated DRY factory."""
+    return FlextDbOraclePlugins.create_data_validation()
 
 
 def data_validation_plugin_handler(
@@ -625,7 +399,7 @@ def data_validation_plugin_handler(
 ) -> FlextResult[dict[str, object]]:
     """Handle data validation plugin execution using DRY patterns."""
     try:
-        result_data = OraclePluginHandler.create_base_result_data(
+        result_data = FlextDbOraclePlugins._create_base_result_data(
             "oracle_data_validator",
             api,
             {
@@ -682,7 +456,7 @@ def data_validation_plugin_handler(
         return FlextResult[dict[str, object]].ok(result_data)
 
     except (ValueError, TypeError, AttributeError) as e:
-        return OraclePluginHandler.handle_plugin_exception(e, "Data validation")
+        return FlextDbOraclePlugins._handle_plugin_exception(e, "Data validation")
 
 
 # Plugin registry for easy access - using wrapper functions that return correct types
@@ -724,7 +498,7 @@ def _register_single_plugin(  # noqa: PLR0911
             return "failed: plugin is None"
 
         # Register plugin and return result
-        register_result = api.register_plugin(plugin)
+        register_result = api.register_plugin(plugin_name, plugin)
         # Modern FlextResult pattern: use .value for plugin registration
         if register_result.is_success:
             return "registered"
@@ -750,14 +524,17 @@ def register_all_oracle_plugins(api: FlextDbOracleApi) -> FlextResult[dict[str, 
 
 
 class FlextDbOraclePlugins(FlextDomainService[dict[str, str]]):
-    """Oracle database plugins following Flext[Area][Module] pattern.
+    """Oracle database plugins following Flext[Area][Module] pattern - DRY CONSOLIDATED.
+
+    MAJOR DRY REFACTORING: Consolidates FlextOraclePlugin + OraclePluginFactory + OraclePluginHandler
+    into single large class following user feedback to "criar classes grandes e aplicar conceitos DRY".
 
     Inherits from FlextDomainService to leverage FLEXT Core domain service patterns.
-    Consolidates all Oracle plugin functionality into a single class with internal methods
-    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
-
-    This class serves as the single entry point for Oracle plugin management,
-    implementing clean architecture with plugin registry and lifecycle management.
+    This class serves as the SINGLE ENTRY POINT for ALL Oracle plugin functionality:
+    - Plugin creation and factory patterns (from OraclePluginFactory)
+    - Plugin implementation and interface compliance (from FlextOraclePlugin)
+    - Plugin execution handlers and DRY patterns (from OraclePluginHandler)
+    - Plugin registry and lifecycle management (from FlextDbOraclePlugins)
 
     Examples:
         Plugin management operations:
@@ -767,6 +544,167 @@ class FlextDbOraclePlugins(FlextDomainService[dict[str, str]]):
         >>> print(f"Registered plugins: {result.value}")
 
     """
+
+    # =============================================================================
+    # CONSOLIDATED PLUGIN CONSTANTS AND FACTORY PATTERNS
+    # =============================================================================
+
+    _PLUGIN_VERSION = "0.9.0"
+    _PLUGIN_AUTHOR = "FLEXT Team"
+
+    # =============================================================================
+    # CONSOLIDATED PLUGIN IMPLEMENTATION (from FlextOraclePlugin)
+    # =============================================================================
+
+    class _InternalOraclePlugin:
+        """Internal Oracle plugin implementation consolidated into FlextDbOraclePlugins.
+
+        DRY CONSOLIDATION: Moved from separate FlextOraclePlugin class to eliminate
+        multiple small classes and follow DRY principles with large consolidated class.
+        """
+
+        def __init__(
+            self,
+            name: str,
+            version: str,
+            config: dict[str, object],
+            handler: object = None,
+        ) -> None:
+            """Initialize Oracle plugin with configuration and handler."""
+            self._name = name
+            self._version = version
+            self._config = config.copy()
+            self._handler = handler
+            self._logger = get_logger(f"FlextOraclePlugin.{name}")
+
+        @property
+        def name(self) -> str:
+            """Plugin name from abstract interface."""
+            return self._name
+
+        @property
+        def version(self) -> str:
+            """Plugin version from abstract interface."""
+            return self._version
+
+        def initialize(self, context: FlextPluginContext) -> FlextResult[None]:
+            """Initialize plugin with context from abstract interface."""
+            try:
+                # Use context for initialization if needed
+                _ = context  # Acknowledge parameter for interface compliance
+                self._logger.info("Oracle plugin initialized", plugin_name=self.name)
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Oracle plugin initialization failed: {e}")
+
+        def shutdown(self) -> FlextResult[None]:
+            """Shutdown plugin and release resources from abstract interface."""
+            try:
+                self._logger.info("Oracle plugin shutdown", plugin_name=self.name)
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Oracle plugin shutdown failed: {e}")
+
+        def configure(self, config: dict[str, object]) -> FlextResult[None]:
+            """Configure plugin with provided settings."""
+            try:
+                self._config.update(config)
+                self._logger.info("Oracle plugin configured", plugin_name=self.name)
+                return FlextResult[None].ok(None)
+            except Exception as e:
+                return FlextResult[None].fail(f"Oracle plugin configuration failed: {e}")
+
+        def get_config(self) -> dict[str, object]:
+            """Get plugin configuration."""
+            return self._config.copy()
+
+        def get_info(self) -> dict[str, object]:
+            """Get plugin information."""
+            return {
+                "name": self._name,
+                "version": self._version,
+                "plugin_type": self._config.get("plugin_type", "unknown"),
+                "description": self._config.get("description", ""),
+                "author": self._config.get("author", "FLEXT Team"),
+            }
+
+        def get_handler(self) -> object:
+            """Get plugin handler."""
+            return self._handler
+
+    # =============================================================================
+    # CONSOLIDATED FACTORY PATTERNS (from OraclePluginFactory)
+    # =============================================================================
+
+    @classmethod
+    def _create_plugin_template(
+        cls,
+        name: str,
+        description: str,
+        plugin_type: str,
+        specific_config: dict[str, object],
+    ) -> FlextResult[FlextPlugin]:
+        """Template method for creating Oracle plugins with consistent patterns.
+
+        DRY CONSOLIDATION: Moved from OraclePluginFactory to eliminate separate factory class.
+        """
+        base_config: dict[str, object] = {
+            "description": description,
+            "author": cls._PLUGIN_AUTHOR,
+            "plugin_type": plugin_type,
+        }
+
+        # Merge base config with specific config
+        full_config: dict[str, object] = {**base_config, **specific_config}
+
+        try:
+            # Create concrete internal plugin implementation
+            plugin = cls._InternalOraclePlugin(
+                name=name,
+                version=cls._PLUGIN_VERSION,
+                config=full_config,
+                handler=specific_config.get("callable_obj"),
+            )
+            return FlextResult[FlextPlugin].ok(plugin)
+        except Exception as e:
+            return FlextResult[FlextPlugin].fail(
+                f"Failed to create Oracle plugin '{name}': {e}"
+            )
+
+    # =============================================================================
+    # CONSOLIDATED HANDLER PATTERNS (from OraclePluginHandler)
+    # =============================================================================
+
+    @staticmethod
+    def _create_base_result_data(
+        plugin_name: str,
+        _api: FlextDbOracleApi,
+        additional_fields: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Template method: Create base result data structure.
+
+        DRY CONSOLIDATION: Moved from OraclePluginHandler to eliminate separate handler class.
+        """
+        base_data: dict[str, object] = {
+            "plugin_name": plugin_name,
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
+
+        if additional_fields:
+            base_data.update(additional_fields)
+
+        return base_data
+
+    @staticmethod
+    def _handle_plugin_exception(
+        e: Exception,
+        plugin_name: str,
+    ) -> FlextResult[dict[str, object]]:
+        """Template method: Consistent exception handling for plugins.
+
+        DRY CONSOLIDATION: Moved from OraclePluginHandler to eliminate separate handler class.
+        """
+        return FlextResult[dict[str, object]].fail(f"{plugin_name} plugin failed: {e}")
 
     def execute(self) -> FlextResult[dict[str, str]]:
         """Execute plugin management operation.
@@ -787,23 +725,53 @@ class FlextDbOraclePlugins(FlextDomainService[dict[str, str]]):
         """Register all Oracle plugins using factory pattern."""
         return register_all_oracle_plugins(api)
 
-    @staticmethod
-    def create_performance_monitor() -> FlextPlugin:
-        """Create performance monitor plugin using factory pattern."""
-        return create_performance_monitor_plugin()
+    @classmethod
+    def create_performance_monitor(cls) -> FlextResult[FlextPlugin]:
+        """Create performance monitoring plugin using consolidated DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_performance_monitor",
+            description="Monitor Oracle database performance and identify slow queries",
+            plugin_type="monitor",
+            specific_config={
+                "threshold_ms": 1000,
+                "log_slow_queries": True,
+                "collect_execution_plans": False,
+                "callable_obj": performance_monitor_plugin_handler,
+            },
+        )
+
+    @classmethod
+    def create_security_audit(cls) -> FlextResult[FlextPlugin]:
+        """Create security audit plugin using consolidated DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_security_audit",
+            description="Security audit and compliance monitoring for Oracle operations",
+            plugin_type="security",
+            specific_config={
+                "check_sql_injection": True,
+                "audit_ddl_operations": True,
+                "log_privilege_escalations": True,
+                "callable_obj": security_audit_plugin_handler,
+            },
+        )
+
+    @classmethod
+    def create_data_validation(cls) -> FlextResult[FlextPlugin]:
+        """Create data validation plugin using consolidated DRY template."""
+        return cls._create_plugin_template(
+            name="oracle_data_validator",
+            description="Validate data integrity and business rules for Oracle operations",
+            plugin_type="validator",
+            specific_config={
+                "validate_data_types": True,
+                "check_constraints": True,
+                "enforce_business_rules": True,
+                "callable_obj": data_validation_plugin_handler,
+            },
+        )
 
     @staticmethod
-    def create_security_audit() -> FlextPlugin:
-        """Create security audit plugin using factory pattern."""
-        return create_security_audit_plugin()
-
-    @staticmethod
-    def create_data_validation() -> FlextPlugin:
-        """Create data validation plugin using factory pattern."""
-        return create_data_validation_plugin()
-
-    @staticmethod
-    def get_available_plugins() -> dict[str, Callable[[], FlextPlugin]]:
+    def get_available_plugins() -> dict[str, Callable[[], FlextResult[FlextPlugin]]]:
         """Get available Oracle plugin factories."""
         return ORACLE_PLUGINS.copy()
 
@@ -812,20 +780,24 @@ class FlextDbOraclePlugins(FlextDomainService[dict[str, str]]):
         try:
             # Check if API has plugin capabilities
             if not hasattr(api, "register_plugin"):
-                return FlextResult[bool].fail("API does not support plugin registration")
-            
-            # Verify all plugin factories are callable
-            for name, factory in ORACLE_PLUGINS.items():
-                if not callable(factory):
-                    return FlextResult[bool].fail(f"Plugin factory {name} is not callable")
-                    
-            return FlextResult[bool].ok(True)
+                return FlextResult[bool].fail(
+                    "API does not support plugin registration"
+                )
+
+            # Verify plugin registry is properly populated
+            if not ORACLE_PLUGINS:
+                return FlextResult[bool].fail("No plugins available in registry")
+
+            return FlextResult[bool].ok(data=True)
         except Exception as e:
-            return FlextResult[bool].fail(f"Plugin configuration validation failed: {e}")
+            return FlextResult[bool].fail(
+                f"Plugin configuration validation failed: {e}"
+            )
 
 
 __all__: list[str] = [
     "ORACLE_PLUGINS",
+    "FlextDbOraclePlugins",
     "create_data_validation_plugin",
     "create_performance_monitor_plugin",
     "create_security_audit_plugin",

@@ -12,9 +12,10 @@ from __future__ import annotations
 import json
 import time
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from flext_core import FlextCoreUtilities, FlextResult
+from flext_core import FlextResult, FlextUtilities
 
 from flext_db_oracle.models import FlextDbOracleQueryResult
 
@@ -53,10 +54,10 @@ else:
     FlextDbOracleApi = None
 
 
-class FlextDbOracleUtilities(FlextCoreUtilities):
+class FlextDbOracleUtilities(FlextUtilities):
     """Oracle database utilities following Flext[Area][Module] pattern.
 
-    Inherits from FlextCoreUtilities to leverage FLEXT Core utility patterns.
+    Inherits from FlextUtilities to leverage FLEXT Core utility patterns.
     Consolidates all Oracle database utility functionality into a single class with internal methods
     following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
@@ -139,7 +140,7 @@ class FlextDbOracleUtilities(FlextCoreUtilities):
         if not hasattr(row, "__getitem__") or col_index >= len(row):
             return None
 
-        return row[col_index]
+        return row[col_index] if col_index < len(row) else None
 
     @staticmethod
     def safe_error_message(error: str | None) -> str:
@@ -268,7 +269,8 @@ class FlextDbOracleUtilities(FlextCoreUtilities):
             Health check data as dict or empty dict if operation fails
 
         """
-        result = api.get_health_check()
+        # Use test_connection instead of non-existent get_health_check
+        result = api.test_connection()
 
         # For error cases, return empty dict
         if not result.success:
@@ -276,16 +278,12 @@ class FlextDbOracleUtilities(FlextCoreUtilities):
 
         health_data = result.value
 
-        # Convert health data to dict
-        if hasattr(health_data, "model_dump"):
-            model_dump_method = getattr(health_data, "model_dump", None)
-            if model_dump_method is not None:
-                dumped = model_dump_method()
-                return dict(dumped) if dumped else {}
-
-        if hasattr(health_data, "__dict__"):
-            return dict(health_data.__dict__)
-        return health_data if isinstance(health_data, dict) else {}
+        # test_connection returns bool, so convert to meaningful dict
+        return {
+            "status": "healthy" if health_data else "unhealthy",
+            "connected": health_data,
+            "timestamp": str(datetime.now(UTC))
+        }
 
     # =============================================================================
     # CONFIGURATION AND CONNECTION UTILITIES
@@ -522,7 +520,7 @@ class FlextDbOracleUtilities(FlextCoreUtilities):
     @staticmethod
     def safe_query_one(
         api: FlextDbOracleApi, sql: str, params: dict[str, object] | None = None
-    ) -> tuple[object, ...] | None:
+    ) -> dict[str, object] | None:
         """Safely execute single-row query with fallback.
 
         Uses unwrap_or pattern to provide clean error handling with None fallback.
@@ -653,9 +651,20 @@ class FlextDbOracleUtilities(FlextCoreUtilities):
             True if batch executed successfully, False otherwise
 
         """
-        result = api.execute_batch(operations)
-        # Modern FlextResult pattern: check success and return boolean
-        return result.success
+        # Use execute_many instead of non-existent execute_batch
+        # Convert operations to simple SQL list for execute_many
+        if not operations:
+            return False
+
+        try:
+            # Execute each operation individually
+            for sql, params in operations:
+                exec_result = api.execute_sql(sql, params)
+                if exec_result.is_failure:
+                    return False
+            return True
+        except Exception:
+            return False
 
     @staticmethod
     def format_query_result(
