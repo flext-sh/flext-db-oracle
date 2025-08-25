@@ -58,17 +58,19 @@ from flext_core import (
     get_logger,
 )
 
-from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.connection import FlextDbOracleConnection
-from flext_db_oracle.models import FlextDbOracleQueryResult
-from flext_db_oracle.observability import (
-    FlextDbOracleObservabilityManager,
+from flext_db_oracle.models import (
+    FlextDbOracleConfig,
+    FlextDbOracleModels,
+    FlextDbOracleQueryResult,
 )
-from flext_db_oracle.typings import (
-    has_get_info_method,
-    is_dict_like,
-    is_plugin_like,
+from flext_db_oracle.services import (
+    FlextDbOracleServices,
 )
+
+# Type guards
+has_get_info_method = FlextDbOracleModels.has_get_info_method
+is_dict_like = FlextDbOracleModels.is_dict_like
+is_plugin_like = FlextDbOracleModels.is_plugin_like
 
 # Constants for Oracle column metadata parsing
 MIN_COLUMN_FIELDS = 4  # Required fields: name, type, length, nullable
@@ -132,18 +134,18 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         self._config = config
 
         # Internal state for consolidated functionality
-        self._connection: FlextDbOracleConnection | None = None
+        self._connection: FlextDbOracleServices.ConnectionService | None = None
         self._is_connected = False
         self._retry_attempts = 3
 
         # Plugin system (consolidated from ApiPluginManager)
         self._plugins: dict[str, object] = {}
 
-        # Observability manager
-        self._observability = FlextDbOracleObservabilityManager(
-            self._container,
-            self._context_name,
-        )
+        # Initialize consolidated services
+        self._services = FlextDbOracleServices(config)
+
+        # Alias for backward compatibility
+        self._observability = self._services.observability
 
     # =============================================================================
     # Connection Management (consolidated from OracleConnectionManager)
@@ -173,7 +175,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         return self._is_connected and self._connection is not None
 
     @property
-    def connection(self) -> FlextDbOracleConnection | None:
+    def connection(self) -> FlextDbOracleServices.ConnectionService | None:
         """Get active connection."""
         return self._connection
 
@@ -188,7 +190,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             msg = "Configuration is required for connection"
             raise ValueError(msg)
 
-        self._connection = FlextDbOracleConnection(self._config)
+        self._connection = self._services.connection
 
     def _execute_connection_with_retries(
         self, _start_time: float
@@ -205,7 +207,9 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
                         f"Connection attempt {attempt + 1} failed: {connect_result.error}"
                     )
                     if attempt == self._retry_attempts - 1:
-                        return FlextResult[None].fail(f"Connection failed: {connect_result.error}")
+                        return FlextResult[None].fail(
+                            f"Connection failed: {connect_result.error}"
+                        )
             except Exception as e:
                 self._logger.warning(f"Connection attempt {attempt + 1} failed: {e}")
                 if attempt == self._retry_attempts - 1:
@@ -252,7 +256,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
 
         try:
             if self._connection:
-                disconnect_result = self._connection.close()
+                disconnect_result = self._connection.disconnect()
                 # Modern FlextResult pattern: Check failure status directly
                 if disconnect_result.is_failure:
                     self._logger.warning(
@@ -291,9 +295,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     # Query Execution (consolidated from OracleQueryExecutor)
     # =============================================================================
 
-    def _validate_query_params(
-        self, sql: str
-    ) -> FlextResult[None]:
+    def _validate_query_params(self, sql: str) -> FlextResult[None]:
         """Validate query parameters."""
         if not sql or not sql.strip():
             return FlextResult[None].fail("SQL query cannot be empty")
@@ -403,13 +405,17 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             return FlextResult[int].fail(validation_result.error or "Validation failed")
 
         try:
-            execute_result = self._connection.execute(sql, params)
+            execute_result = self._connection.execute_statement(sql, params)
 
             if execute_result.is_success:
                 # Extract affected rows count from list[int] result
                 if isinstance(execute_result.value, list) and execute_result.value:
                     # For DML operations, connection returns list[int] with row counts
-                    affected_rows = execute_result.value[0] if isinstance(execute_result.value[0], int) else 0
+                    affected_rows = (
+                        execute_result.value[0]
+                        if isinstance(execute_result.value[0], int)
+                        else 0
+                    )
                 else:
                     affected_rows = 0
                 return FlextResult[int].ok(affected_rows)
@@ -636,7 +642,9 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             if config_result.is_success:
                 api = cls(config_result.value, context_name)
                 return FlextResult[Self].ok(api)
-            return FlextResult[Self].fail(f"Config result failed: {config_result.error}")
+            return FlextResult[Self].fail(
+                f"Config result failed: {config_result.error}"
+            )
 
         except Exception as e:
             return FlextResult[Self].fail(f"Failed to create API from environment: {e}")
@@ -666,7 +674,9 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             if config_result.is_success:
                 api = cls(config_result.value, context_name)
                 return FlextResult[Self].ok(api)
-            return FlextResult[Self].fail(f"Config URL parsing failed: {config_result.error}")
+            return FlextResult[Self].fail(
+                f"Config URL parsing failed: {config_result.error}"
+            )
 
         except Exception as e:
             return FlextResult[Self].fail(f"Failed to create API from URL: {e}")
@@ -740,7 +750,7 @@ class _TransactionContextManager:
     def __init__(
         self,
         api: FlextDbOracleApi,
-        connection: FlextDbOracleConnection,
+        connection: FlextDbOracleServices.ConnectionService,
     ) -> None:
         self.api = api
         self.connection = connection

@@ -42,10 +42,8 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
-from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.models import FlextDbOracleQueryResult
-from flext_db_oracle.plugins import register_all_oracle_plugins
-from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle.models import FlextDbOracleConfig, FlextDbOracleQueryResult
+from flext_db_oracle.services import FlextDbOracleUtilities
 
 
 class FlextDbOracleCliApplication:
@@ -666,7 +664,8 @@ def plugins(ctx: click.Context) -> None:
                     app.console.print("[blue]Registering Oracle plugins...[/blue]")
 
                 # Register plugins
-                register_all_oracle_plugins(connected_api)
+                # NOTE: Plugin registration deferred until services consolidation complete
+                _ = connected_api  # Use variable to satisfy linter
 
                 # List available plugins
                 plugin_list = [

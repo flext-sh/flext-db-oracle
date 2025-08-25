@@ -14,12 +14,26 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import TypedDict, TypeGuard, cast
 
-from flext_core import FlextFactory, FlextModel, FlextValidation
-from pydantic import Field, field_validator
+from flext_core import (
+    FlextModel,
+    get_logger,
+)
+from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic_settings import SettingsConfigDict
 
-from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.constants import (
+    FlextDbOracleConstants,
+    FlextOracleDbSemanticConstants,
+)
+
+# Python 3.13+ type aliases (replacing TypeVar pattern)
+type T = object
+
+logger = get_logger(__name__)
 
 # Constants
 MAX_PORT_NUMBER = 65535  # Maximum valid TCP port number
@@ -29,11 +43,11 @@ MAX_PORT_NUMBER = 65535  # Maximum valid TCP port number
 # =============================================================================
 
 
-class FlextDbOracleModels(FlextFactory):
+class FlextDbOracleModels:
     """Oracle database models following Flext[Area][Module] pattern.
 
-    Single class inheriting from FlextFactory with all Oracle model
-    functionality as internal classes, following SOLID principles,
+    Single consolidated class with all Oracle model functionality
+    as internal classes, following SOLID principles,
     PEP8, Python 3.13+, and FLEXT structural patterns.
 
     This class consolidates all Oracle model functionality
@@ -57,7 +71,7 @@ class FlextDbOracleModels(FlextFactory):
         @classmethod
         def validate_column_name(cls, v: str) -> str:
             """Validate column name."""
-            if not FlextValidation.Validators.is_non_empty_string(v):
+            if not v or not isinstance(v, str) or not v.strip():
                 msg = FlextDbOracleConstants.ErrorMessages.COLUMN_NAME_EMPTY
                 raise ValueError(msg)
             if len(v) > FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH:
@@ -69,7 +83,7 @@ class FlextDbOracleModels(FlextFactory):
         @classmethod
         def validate_data_type(cls, v: str) -> str:
             """Validate data type."""
-            if not FlextValidation.Validators.is_non_empty_string(v):
+            if not v or not isinstance(v, str) or not v.strip():
                 msg = FlextDbOracleConstants.ErrorMessages.DATA_TYPE_EMPTY
                 raise ValueError(msg)
             return v.upper()
@@ -159,7 +173,7 @@ class FlextDbOracleModels(FlextFactory):
         @classmethod
         def validate_table_name(cls, v: str) -> str:
             """Validate table name."""
-            if not FlextValidation.Validators.is_non_empty_string(v):
+            if not v or not isinstance(v, str) or not v.strip():
                 msg = FlextDbOracleConstants.ErrorMessages.TABLE_NAME_EMPTY
                 raise ValueError(msg)
             if len(v) > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
@@ -221,7 +235,7 @@ class FlextDbOracleModels(FlextFactory):
         @classmethod
         def validate_schema_name(cls, v: str) -> str:
             """Validate schema name."""
-            if not FlextValidation.Validators.is_non_empty_string(v):
+            if not v or not isinstance(v, str) or not v.strip():
                 msg = FlextDbOracleConstants.ErrorMessages.SCHEMA_NAME_EMPTY
                 raise ValueError(msg)
             if len(v) > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
@@ -346,6 +360,236 @@ class FlextDbOracleModels(FlextFactory):
         def is_active(self) -> bool:
             """Check if connection is active and healthy."""
             return self.is_connected and self.error_message is None
+
+    # =============================================================================
+    # ORACLE CONFIGURATION MODELS - Consolidated from config.py
+    # =============================================================================
+
+    class OracleConfig(FlextModel):
+        """Oracle database configuration extending flext-core centralized config."""
+
+        # Core Oracle connection fields
+        host: str = Field(description="Oracle database hostname")
+        port: int = Field(default=1521, description="Oracle database port")
+        username: str = Field(description="Oracle database username")
+        password: SecretStr = Field(description="Oracle database password")
+        service_name: str | None = Field(default=None, description="Oracle service name")
+        sid: str | None = Field(default=None, description="Oracle SID")
+        oracle_schema: str = Field(default="PUBLIC", description="Oracle schema name")
+
+        # Connection pool settings
+        pool_min: int = Field(default=1, description="Minimum pool connections")
+        pool_max: int = Field(default=10, description="Maximum pool connections")
+        pool_increment: int = Field(default=1, description="Connection pool increment")
+
+        # Additional Oracle-specific options
+        ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
+        ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")
+        ssl_key_path: str | None = Field(default=None, description="SSL key path")
+        ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
+        ssl_server_cert_dn: str | None = Field(None, description="SSL server certificate DN")
+        timeout: int = Field(default=30, description="Connection timeout seconds")
+        encoding: str = Field(default="UTF-8", description="Character encoding")
+        protocol: str = Field(default="tcp", description="Connection protocol")
+        autocommit: bool = Field(default=False, description="Enable autocommit mode")
+        retry_attempts: int = Field(default=1, description="Number of connection retry attempts")
+        retry_delay: float = Field(default=1.0, description="Delay between retry attempts in seconds")
+
+        # BaseSettings configuration for automatic environment loading
+        model_config = SettingsConfigDict(env_prefix="FLEXT_TARGET_ORACLE_", env_file=".env")
+
+        @field_validator("host")
+        @classmethod
+        def validate_host_not_empty(cls, v: str) -> str:
+            """Validate host is not empty or whitespace only."""
+            if not v or not isinstance(v, str) or not v.strip():
+                raise ValueError(FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY)
+            return v
+
+        @field_validator("username")
+        @classmethod
+        def validate_username_not_empty(cls, v: str) -> str:
+            """Validate username is not empty or whitespace only."""
+            if not v or not isinstance(v, str) or not v.strip():
+                raise ValueError(FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY)
+            return v
+
+        @field_validator("port")
+        @classmethod
+        def validate_port_range(cls, v: int) -> int:
+            """Validate port is within valid range."""
+            max_port_number = 65535
+            if not (1 <= v <= max_port_number):
+                msg = f"Port must be between 1 and {max_port_number}"
+                raise ValueError(msg)
+            return v
+
+        @field_validator("password", mode="before")
+        @classmethod
+        def coerce_password(cls, v: object) -> SecretStr:
+            """Coerce incoming password to SecretStr for compatibility."""
+            if isinstance(v, SecretStr):
+                return v
+            return SecretStr(str(v))
+
+        @model_validator(mode="after")
+        def validate_pool_settings(self) -> FlextDbOracleModels.OracleConfig:
+            """Validate pool configuration consistency."""
+            if self.pool_max < self.pool_min:
+                msg = "pool_max must be >= pool_min"
+                raise ValueError(msg)
+            return self
+
+        @model_validator(mode="after")
+        def validate_connection_identifiers(self) -> FlextDbOracleModels.OracleConfig:
+            """Validate that either SID or service_name is provided."""
+            if not self.sid and not self.service_name:
+                msg = "Either SID or service_name must be provided"
+                raise ValueError(msg)
+            return self
+
+        @classmethod
+        def from_env(cls) -> FlextDbOracleModels.OracleConfig:
+            """Create configuration from environment variables using BaseSettings."""
+            return cls()
+
+        def get_connection_string(self) -> str:
+            """Get Oracle connection string for logging purposes."""
+            if self.service_name:
+                return f"{self.host}:{self.port}/{self.service_name}"
+            if self.sid:
+                return f"{self.host}:{self.port}:{self.sid}"
+            return f"{self.host}:{self.port}"
+
+    # =============================================================================
+    # CONFIGURATION TYPES - Consolidated from config_types.py
+    # =============================================================================
+
+    @dataclass
+    class MergeStatement:
+        """Configuration for Oracle MERGE statement generation."""
+
+        target_table: str
+        source_columns: list[str]
+        merge_keys: list[str]
+        update_columns: list[str] | None = None
+        insert_columns: list[str] | None = None
+        schema_name: str | None = None
+        hints: list[str] | None = None
+
+    @dataclass
+    class CreateIndex:
+        """Configuration for Oracle CREATE INDEX statement generation."""
+
+        index_name: str
+        table_name: str
+        columns: list[str]
+        unique: bool = False
+        schema_name: str | None = None
+        tablespace: str | None = None
+        parallel: int | None = None
+
+    # =============================================================================
+    # ORACLE TYPINGS - Consolidated from typings.py
+    # =============================================================================
+
+    class OracleColumnInfo(TypedDict, total=False):
+        """TypedDict for Oracle column information from database queries."""
+
+        column_name: str
+        data_type: str
+        nullable: bool
+        data_length: int | None
+        data_precision: int | None
+        data_scale: int | None
+        column_id: int
+        default_value: str | None
+        comments: str | None
+
+    class OracleConnectionInfo(TypedDict, total=False):
+        """TypedDict for Oracle connection information."""
+
+        host: str
+        port: int
+        service_name: str
+        username: str
+        password: str
+        charset: str | None
+        pool_min: int | None
+        pool_max: int | None
+        connect_timeout: int | None
+
+    class OracleTableInfo(TypedDict, total=False):
+        """TypedDict for Oracle table information from database queries."""
+
+        table_name: str
+        schema_name: str
+        tablespace_name: str | None
+        table_comment: str | None
+        column_count: int | None
+        row_count: int | None
+        created_date: str | None
+        last_analyzed: str | None
+
+    # Type aliases
+    type DatabaseRowProtocol = dict[str, object]
+    type DatabaseRowDict = dict[str, object]
+    type SafeStringList = list[str]
+    type PluginLikeProtocol = object  # Simplified without non-existent FlextProtocols
+
+    # =============================================================================
+    # FIELD DEFINITIONS - Consolidated from fields.py
+    # =============================================================================
+
+    # Connection fields
+    host_field = Field(..., description="Oracle database host", min_length=1, max_length=255)
+    port_field = Field(default=1521, description="Oracle database port number", ge=1, le=65535)
+    service_name_field = Field(default="XE", description="Oracle service name or SID", min_length=1, max_length=128)
+    username_field = Field(..., description="Database username", min_length=1, max_length=128)
+    password_field = Field(..., description="Database password", min_length=1, max_length=256, repr=False)
+
+    # Metadata fields
+    schema_name_field = Field(..., description="Database schema name", min_length=1, max_length=128)
+    table_name_field = Field(..., description="Database table name", min_length=1, max_length=128)
+    column_name_field = Field(..., description="Database column name", min_length=1, max_length=128)
+
+    # =============================================================================
+    # TYPE GUARDS AND UTILITIES
+    # =============================================================================
+
+    @staticmethod
+    def is_plugin_like(obj: object) -> TypeGuard[object]:
+        """Type guard to check if object has plugin-like attributes."""
+        return (
+            hasattr(obj, "name")
+            and hasattr(obj, "version")
+            and hasattr(obj, "get_info")
+            and callable(getattr(obj, "get_info", None))
+        )
+
+    @staticmethod
+    def is_dict_like(obj: object) -> TypeGuard[dict[str, object]]:
+        """Type guard for dict-like objects."""
+        return hasattr(obj, "get") and hasattr(obj, "items") and hasattr(obj, "keys")
+
+    @staticmethod
+    def is_string_list(obj: object) -> TypeGuard[SafeStringList]:
+        """Type guard for list of strings."""
+        return isinstance(obj, list) and all(isinstance(item, str) for item in obj)
+
+    @staticmethod
+    def has_get_info_method(obj: object) -> TypeGuard[object]:
+        """Type guard for objects with get_info method."""
+        return hasattr(obj, "get_info") and callable(getattr(obj, "get_info", None))
+
+    @staticmethod
+    def is_result_like(obj: object) -> TypeGuard[object]:
+        """Type guard for FlextResult-like objects."""
+        return (
+            hasattr(obj, "success")
+            and hasattr(obj, "error")
+            and hasattr(obj, "value")
+        )
 
     # =============================================================================
     # Factory Methods for Model Creation
@@ -529,6 +773,78 @@ class FlextDbOracleModels(FlextFactory):
             error_message=error_message_typed,
         )
 
+    @classmethod
+    def create_oracle_config(
+        cls,
+        *,
+        host: str,
+        username: str,
+        password: str,
+        **kwargs: object,
+    ) -> OracleConfig:
+        """Create Oracle configuration model using factory pattern."""
+        # Extract optional fields with type casting
+        port = kwargs.pop("port", 1521)
+        service_name = kwargs.pop("service_name", None)
+        sid = kwargs.pop("sid", None)
+
+        config_data = {
+            "host": host,
+            "port": int(port) if isinstance(port, (int, str)) else 1521,
+            "username": username,
+            "password": SecretStr(str(password)),
+        }
+
+        if service_name:
+            config_data["service_name"] = str(service_name)
+        if sid:
+            config_data["sid"] = str(sid)
+
+        # Add any additional kwargs
+        config_data.update(
+            {key: value for key, value in kwargs.items() if hasattr(cls.OracleConfig, key)}
+        )
+
+        return cls.OracleConfig.model_validate(config_data)
+
+    @classmethod
+    def create_merge_config(
+        cls,
+        target_table: str,
+        source_columns: list[str],
+        merge_keys: list[str],
+        **kwargs: object,
+    ) -> MergeStatement:
+        """Create MERGE statement configuration."""
+        return cls.MergeStatement(
+            target_table=target_table,
+            source_columns=source_columns,
+            merge_keys=merge_keys,
+            update_columns=cast("list[str] | None", kwargs.get("update_columns")) if isinstance(kwargs.get("update_columns"), list) else None,
+            insert_columns=cast("list[str] | None", kwargs.get("insert_columns")) if isinstance(kwargs.get("insert_columns"), list) else None,
+            schema_name=cast("str | None", kwargs.get("schema_name")) if isinstance(kwargs.get("schema_name"), str) else None,
+            hints=cast("list[str] | None", kwargs.get("hints")) if isinstance(kwargs.get("hints"), list) else None,
+        )
+
+    @classmethod
+    def create_index_config(
+        cls,
+        index_name: str,
+        table_name: str,
+        columns: list[str],
+        **kwargs: object,
+    ) -> CreateIndex:
+        """Create CREATE INDEX configuration."""
+        return cls.CreateIndex(
+            index_name=index_name,
+            table_name=table_name,
+            columns=columns,
+            unique=bool(kwargs.get("unique")),
+            schema_name=cast("str | None", kwargs.get("schema_name")) if isinstance(kwargs.get("schema_name"), str) else None,
+            tablespace=cast("str | None", kwargs.get("tablespace")) if isinstance(kwargs.get("tablespace"), str) else None,
+            parallel=cast("int | None", kwargs.get("parallel")) if isinstance(kwargs.get("parallel"), int) else None,
+        )
+
     # =============================================================================
     # Backward Compatibility Aliases
     # =============================================================================
@@ -539,17 +855,37 @@ class FlextDbOracleModels(FlextFactory):
     FlextDbOracleSchema = Schema
     FlextDbOracleQueryResult = QueryResult
     FlextDbOracleConnectionStatus = ConnectionStatus
+    FlextDbOracleConfig = OracleConfig
+    MergeStatementConfig = MergeStatement
+    CreateIndexConfig = CreateIndex
 
 
 # Export API - ONLY single class with backward compatibility
 __all__: list[str] = [
-    # Backward compatibility exports
+    # Backward compatibility exports - Fields (deprecated)
+    "ConnectionFields",
+    "CreateIndexConfig",
+    "DatabaseMetadataFields",
+    "DatabaseRowDict",
+    # Backward compatibility exports - Database models
     "FlextDbOracleColumn",
+    # Backward compatibility exports - Configuration
+    "FlextDbOracleConfig",
     "FlextDbOracleConnectionStatus",
+    # Main consolidated class
     "FlextDbOracleModels",
     "FlextDbOracleQueryResult",
     "FlextDbOracleSchema",
     "FlextDbOracleTable",
+    "MergeStatementConfig",
+    # Backward compatibility exports - Types
+    "OracleColumnInfo",
+    "OracleConnectionInfo",
+    "OracleTableInfo",
+    "PluginLikeProtocol",
+    "QueryFields",
+    "SafeStringList",
+    "ValidationFields",
 ]
 
 # Create backward compatibility module-level aliases
@@ -558,3 +894,47 @@ FlextDbOracleTable = FlextDbOracleModels.Table
 FlextDbOracleSchema = FlextDbOracleModels.Schema
 FlextDbOracleQueryResult = FlextDbOracleModels.QueryResult
 FlextDbOracleConnectionStatus = FlextDbOracleModels.ConnectionStatus
+FlextDbOracleConfig = FlextDbOracleModels.OracleConfig
+MergeStatementConfig = FlextDbOracleModels.MergeStatement
+CreateIndexConfig = FlextDbOracleModels.CreateIndex
+
+# Type aliases
+OracleColumnInfo = FlextDbOracleModels.OracleColumnInfo
+OracleConnectionInfo = FlextDbOracleModels.OracleConnectionInfo
+OracleTableInfo = FlextDbOracleModels.OracleTableInfo
+DatabaseRowDict = FlextDbOracleModels.DatabaseRowDict
+SafeStringList = FlextDbOracleModels.SafeStringList
+PluginLikeProtocol = FlextDbOracleModels.PluginLikeProtocol
+
+
+# Fields backward compatibility (deprecated - use models directly)
+class ConnectionFields:
+    """Deprecated: Use FlextDbOracleModels directly."""
+
+    def __getattr__(self, name: str) -> object:
+        """Deprecated attribute access."""
+        return getattr(FlextDbOracleModels, f"{name}_field", None)
+
+
+class DatabaseMetadataFields:
+    """Deprecated: Use FlextDbOracleModels directly."""
+
+    def __getattr__(self, name: str) -> object:
+        """Deprecated attribute access."""
+        return getattr(FlextDbOracleModels, f"{name}_field", None)
+
+
+class QueryFields:
+    """Deprecated: Use FlextDbOracleModels directly."""
+
+    def __getattr__(self, name: str) -> object:
+        """Deprecated attribute access."""
+        return getattr(FlextDbOracleModels, f"{name}_field", None)
+
+
+class ValidationFields:
+    """Deprecated: Use FlextDbOracleModels directly."""
+
+    def __getattr__(self, name: str) -> object:
+        """Deprecated attribute access."""
+        return getattr(FlextDbOracleModels, f"{name}_field", None)

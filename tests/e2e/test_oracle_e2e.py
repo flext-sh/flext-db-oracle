@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from typing import cast
 
 import pytest
 from pydantic import SecretStr
@@ -259,8 +260,6 @@ class TestOracleE2E:
             }
 
             # Type-safe schema casting for API compatibility
-            from typing import cast
-
             typed_schema = cast("dict[str, object]", singer_schema)
             schema_result = api.map_singer_schema(typed_schema)
             if schema_result.is_failure:

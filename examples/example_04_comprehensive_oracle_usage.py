@@ -12,11 +12,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import asyncio
-import os
 from typing import cast
 
 from flext_core import get_logger
-from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -139,7 +137,7 @@ def demonstrate_configuration_patterns() -> None:
         """Specific configuration pattern operations."""
         # Pattern 1: Minimal configuration (from environment)
         minimal_config = FlextDbOracleConfig.from_env()
-        logger.info("✅ Created minimal configuration")
+        logger.info(f"✅ Created minimal configuration: {minimal_config.success}")
 
         # Pattern 2: Production configuration (from environment)
         production_config = FlextDbOracleConfig.from_env()
@@ -541,7 +539,7 @@ def _demonstrate_patterns_from_config(pattern_key: str) -> None:
         str(config["context"]),
         str(config["emoji"]),
         str(config["message"]),
-        cast(list[tuple[str, list[str]]], config["patterns"]),
+        cast("list[tuple[str, list[str]]]", config["patterns"]),
     )
 
 

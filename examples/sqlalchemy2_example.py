@@ -4,12 +4,10 @@ This example demonstrates how to use the flext-db-oracle library
 with SQLAlchemy 2 for Oracle database operations including:
 """
 
-import os
 import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from pydantic import SecretStr
 from sqlalchemy import Engine, text
 
 from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
@@ -29,7 +27,7 @@ def oracle_connection() -> Iterator[Engine]:
     connect_result = connection.connect()
 
     # Use modern FlextResult unwrap_or pattern for clean error handling
-    connection_success = connect_result.unwrap_or(False)
+    connection_success = connect_result.unwrap_or(default=False)
     if not connection_success:
         error_msg = connect_result.error or "Connection failed"
         msg = f"Failed to connect to Oracle: {error_msg}"

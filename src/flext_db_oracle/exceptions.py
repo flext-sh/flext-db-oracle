@@ -26,7 +26,7 @@ from flext_core import (
     FlextOperationError,
     FlextProcessingError,
     FlextTimeoutError,
-    FlextValidationError,
+    # FlextValidationError,  # Not available in flext-core
 )
 
 # =============================================================================
@@ -62,8 +62,8 @@ class FlextDbOracleExceptions(FlextExceptions):
     # =============================================================================
     # Note: No local BaseError - use FlextError directly from flext-core
 
-    class ValidationError(FlextValidationError):
-        """Oracle validation error - delegates to FlextValidationError."""
+    class ValidationError(ValueError):
+        """Oracle validation error - uses standard ValueError."""
 
         def __init__(
             self,
@@ -73,8 +73,10 @@ class FlextDbOracleExceptions(FlextExceptions):
             context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle validation error via flext-core."""
-            resolved_code = code or "ORACLE_VALIDATION_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            # ValueError only accepts message - store additional info as instance attributes
+            super().__init__(message)
+            self.error_code = code or "ORACLE_VALIDATION_ERROR"
+            self.context = context or {}
 
     class ConfigurationError(FlextConfigurationError):
         """Oracle configuration error - delegates to FlextConfigurationError."""
@@ -241,8 +243,7 @@ class FlextDbOracleExceptions(FlextExceptions):
 
             # Store error code for potential future use
             _ = (
-                code if code else
-                FlextDbOracleExceptions.ErrorCodes.ORACLE_CONNECTION_ERROR.value
+                code or FlextDbOracleExceptions.ErrorCodes.ORACLE_CONNECTION_ERROR.value
             )
             super().__init__(message)
 
