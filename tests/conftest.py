@@ -223,10 +223,14 @@ def oracle_api(real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleApi:
 @pytest.fixture
 def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
-    connected_api = oracle_api.connect()
-    yield connected_api
-    with contextlib.suppress(Exception):
-        connected_api.disconnect()
+    connect_result = oracle_api.connect()
+    if connect_result.success:
+        connected_api = connect_result.value
+        yield connected_api
+        with contextlib.suppress(Exception):
+            connected_api.disconnect()
+    else:
+        pytest.skip(f"Could not connect to Oracle: {connect_result.error}")
 
 
 # REMOVE ALL MOCK FIXTURES - ONLY REAL ORACLE TESTING ALLOWED

@@ -66,11 +66,15 @@ def demo_basic_usage() -> None:
             return
         connected_api = connected_api_result.value
 
-        # Use utilities for cleaner railway-oriented code
-        if FlextDbOracleUtilities.safe_test_connection(connected_api):
-            # Quick functionality test using utilities
-            schemas = FlextDbOracleUtilities.safe_get_schemas(connected_api)
-            logger.info("Found %d schemas", len(schemas))
+        # Use real API methods for functionality test
+        connection_test = connected_api.test_connection()
+        if connection_test.success:
+            # Quick functionality test using real API
+            schemas_result = connected_api.get_schemas()
+            if schemas_result.success:
+                logger.info("Found %d schemas", len(schemas_result.value))
+            else:
+                logger.warning("Could not get schemas: %s", schemas_result.error)
             connected_api.disconnect()
 
     except Exception:

@@ -14,6 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TypedDict, TypeGuard, cast
@@ -450,8 +451,15 @@ class FlextDbOracleModels:
 
         @classmethod
         def from_env(cls) -> FlextDbOracleModels.OracleConfig:
-            """Create configuration from environment variables using BaseSettings."""
-            return cls()
+            """Create configuration from environment variables."""
+            return cls(
+                host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
+                port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
+                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "system"),
+                password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "oracle")),
+                service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
+                ssl_server_cert_dn=os.getenv("FLEXT_TARGET_ORACLE_SSL_CERT_DN"),
+            )
 
         def get_connection_string(self) -> str:
             """Get Oracle connection string for logging purposes."""

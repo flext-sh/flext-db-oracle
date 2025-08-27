@@ -141,11 +141,19 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         # Plugin system (consolidated from ApiPluginManager)
         self._plugins: dict[str, object] = {}
 
-        # Initialize consolidated services
-        self._services = FlextDbOracleServices(config)
+        # Initialize consolidated services (only if config provided)
+        self._services = (
+            FlextDbOracleServices(config)
+            if config is not None
+            else None
+        )
 
-        # Alias for backward compatibility
-        self._observability = self._services.observability
+        # Alias for backward compatibility (only if services initialized)
+        self._observability = (
+            self._services.observability
+            if self._services is not None
+            else None
+        )
 
     # =============================================================================
     # Connection Management (consolidated from OracleConnectionManager)
@@ -190,7 +198,11 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             msg = "Configuration is required for connection"
             raise ValueError(msg)
 
-        self._connection = self._services.connection
+        self._connection = (
+            self._services.connection
+            if self._services is not None
+            else None
+        )
 
     def _execute_connection_with_retries(
         self, _start_time: float
@@ -331,21 +343,19 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
 
             if query_result.is_success:
                 # Create FlextDbOracleQueryResult
-                result_data = query_result.value
-                if hasattr(result_data, "fetchall"):
-                    rows = result_data.fetchall()
-                    columns = (
-                        list(result_data.keys()) if hasattr(result_data, "keys") else []
-                    )
-                else:
-                    rows = result_data if isinstance(result_data, list) else []
-                    columns = []
+                result_data = query_result.value  # Already list[DatabaseRowDict]
+                # Extract column names from first row if available
+                columns = list(result_data[0].keys()) if result_data else []
+                # Convert dict rows to tuple rows as expected by model
+                rows = [tuple(row.values()) for row in result_data]
 
                 oracle_result = FlextDbOracleQueryResult(
                     columns=columns,
                     rows=rows,
-                    row_count=len(rows) if isinstance(rows, list) else 0,
+                    row_count=len(rows),
                     execution_time_ms=execution_time_ms,
+                    query_hash=None,  # Future: Generate hash for caching
+                    explain_plan=None,  # Future: Add explain plan generation
                 )
 
                 self._logger.debug(f"Query executed in {execution_time_ms:.2f}ms")
@@ -408,16 +418,8 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             execute_result = self._connection.execute_statement(sql, params)
 
             if execute_result.is_success:
-                # Extract affected rows count from list[int] result
-                if isinstance(execute_result.value, list) and execute_result.value:
-                    # For DML operations, connection returns list[int] with row counts
-                    affected_rows = (
-                        execute_result.value[0]
-                        if isinstance(execute_result.value[0], int)
-                        else 0
-                    )
-                else:
-                    affected_rows = 0
+                # execute_statement returns FlextResult[int], so value is already int
+                affected_rows = execute_result.value
                 return FlextResult[int].ok(affected_rows)
             return FlextResult[int].fail(execute_result.error or "Execution failed")
 
@@ -633,18 +635,9 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     def from_env(cls, context_name: str = "oracle") -> FlextResult[Self]:
         """Create API instance from environment variables."""
         try:
-            config_result = FlextDbOracleConfig.from_env_with_result()
-            if config_result.is_failure:
-                return FlextResult[Self].fail(
-                    f"Failed to load config from environment: {config_result.error}"
-                )
-
-            if config_result.is_success:
-                api = cls(config_result.value, context_name)
-                return FlextResult[Self].ok(api)
-            return FlextResult[Self].fail(
-                f"Config result failed: {config_result.error}"
-            )
+            config = FlextDbOracleConfig.from_env()
+            api = cls(config, context_name)
+            return FlextResult[Self].ok(api)
 
         except Exception as e:
             return FlextResult[Self].fail(f"Failed to create API from environment: {e}")
@@ -664,22 +657,12 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     @classmethod
     def from_url(cls, url: str, context_name: str = "oracle") -> FlextResult[Self]:
         """Create API instance from database URL."""
-        try:
-            config_result = FlextDbOracleConfig.from_url(url)
-            if config_result.is_failure:
-                return FlextResult[Self].fail(
-                    f"Failed to parse URL: {config_result.error}"
-                )
-
-            if config_result.is_success:
-                api = cls(config_result.value, context_name)
-                return FlextResult[Self].ok(api)
-            return FlextResult[Self].fail(
-                f"Config URL parsing failed: {config_result.error}"
-            )
-
-        except Exception as e:
-            return FlextResult[Self].fail(f"Failed to create API from URL: {e}")
+        # FlextDbOracleConfig doesn't have from_url method yet
+        # Note: url and context_name parameters reserved for future implementation
+        _ = url, context_name  # Explicitly acknowledge unused parameters
+        return FlextResult[Self].fail(
+            "URL parsing not implemented yet for FlextDbOracleConfig"
+        )
 
     # =============================================================================
     # Context Managers

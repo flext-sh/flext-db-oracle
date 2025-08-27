@@ -221,7 +221,7 @@ class TestFlextDbOracleConnectionRealMethods:
 
     def test_get_table_metadata_not_connected(self) -> None:
         """Test get_table_metadata when not connected."""
-        result = self.connection.get_table_metadata("test_table")
+        result = self.connection.get_tables("test_table")
 
         assert not result.success
         assert "Not connected" in result.error

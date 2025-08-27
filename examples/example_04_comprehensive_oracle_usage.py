@@ -137,7 +137,9 @@ def demonstrate_configuration_patterns() -> None:
         """Specific configuration pattern operations."""
         # Pattern 1: Minimal configuration (from environment)
         minimal_config = FlextDbOracleConfig.from_env()
-        logger.info(f"✅ Created minimal configuration: {minimal_config.success}")
+        logger.info(
+            f"✅ Created minimal configuration: {minimal_config.host}:{minimal_config.port}"
+        )
 
         # Pattern 2: Production configuration (from environment)
         production_config = FlextDbOracleConfig.from_env()
@@ -209,7 +211,9 @@ def demonstrate_query_patterns() -> None:
         # Pattern 3: Single row query using modern FlextResult.unwrap_or pattern
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
         # Modern FlextResult pattern: use unwrap_or for cleaner code
-        single_row = single_result.unwrap_or(FlextDbOracleQueryResult(columns=[], rows=[], row_count=0))
+        single_row = single_result.unwrap_or(
+            FlextDbOracleQueryResult(columns=[], rows=[], row_count=0)
+        )
         if single_row is not None:
             logger.info(
                 "📝 Single row query pattern demonstrated: Success - got result"
@@ -227,12 +231,14 @@ def demonstrate_query_patterns() -> None:
             {"id": 3, "name": "Charlie"},
         ]
 
-        batch_result = api.execute_many("INSERT INTO test_table (id, name) VALUES (:id, :name)", batch_params)
+        batch_result = api.execute_many(
+            "INSERT INTO test_table (id, name) VALUES (:id, :name)", batch_params
+        )
         # Use unwrap_or for cleaner batch result handling - execute_many returns int
         batch_count = batch_result.unwrap_or(0)
-        batch_status = batch_result.map(lambda count: f"Success - {count} rows affected").unwrap_or(
-            f"Failed - {batch_result.error}"
-        )
+        batch_status = batch_result.map(
+            lambda count: f"Success - {count} rows affected"
+        ).unwrap_or(f"Failed - {batch_result.error}")
         logger.info(
             "📝 Batch operations pattern demonstrated: %s with %d operations",
             batch_status,
@@ -360,7 +366,7 @@ def demonstrate_error_handling_patterns() -> None:
 def demonstrate_modern_decorator_patterns() -> None:
     """Demonstrate modern flext-core decorator patterns.
 
-    Shows how to use the new FlextErrorHandlingDecorators and FlextPerformanceDecorators
+    Shows how to use the new FlextExceptions.ErrorHandlingDecorators and FlextPerformanceDecorators
     for robust, enterprise-grade Oracle database operations.
     """
     demonstrator = OracleExampleDemonstrator(
@@ -606,14 +612,17 @@ def demonstrate_utilities_patterns() -> None:
     # Pattern 1: Safe operations with utility methods (eliminates verbose error checking)
     logger.info("📝 Safe utility operations using unwrap_or pattern:")
 
-    schemas_count = len(FlextDbOracleUtilities.safe_get_schemas(api))
-    logger.info(f"  • Schemas found: {schemas_count} (using unwrap_or([]))")
+    # Using real API methods instead of non-existent utility methods
+    schemas_result = api.get_schemas()
+    schemas_count = len(schemas_result.value) if schemas_result.success else 0
+    logger.info(f"  • Schemas found: {schemas_count}")
 
-    tables_count = len(FlextDbOracleUtilities.safe_get_tables(api))
-    logger.info(f"  • Tables found: {tables_count} (using unwrap_or([]))")
+    tables_result = api.get_tables()
+    tables_count = len(tables_result.value) if tables_result.success else 0
+    logger.info(f"  • Tables found: {tables_count}")
 
-    connection_ok = FlextDbOracleUtilities.safe_test_connection(api)
-    logger.info(f"  • Connection healthy: {connection_ok} (using unwrap_or(False))")
+    connection_ok = api.test_connection().success
+    logger.info(f"  • Connection healthy: {connection_ok}")
 
     # Pattern 2: Database summary using composition of utility methods
     logger.info("📝 Database summary using utility composition:")

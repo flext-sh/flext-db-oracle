@@ -31,8 +31,9 @@ class TestOracleIntegration:
         api = FlextDbOracleApi(real_oracle_config)
 
         # Test connection establishment
-        connected_api = api.connect()
-        assert connected_api is not None
+        connect_result = api.connect()
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        connected_api = connect_result.value
 
         # Test connection status
         test_result = connected_api.test_connection()
@@ -72,7 +73,9 @@ class TestOracleIntegration:
     ) -> None:
         """Test error handling with real Oracle connection."""
         api = FlextDbOracleApi(real_oracle_config)
-        connected_api = api.connect()
+        connect_result = api.connect()
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        connected_api = connect_result.value
 
         # Test invalid SQL
         invalid_query_result = connected_api.query("INVALID SQL STATEMENT")
@@ -122,7 +125,9 @@ class TestOracleIntegration:
     ) -> None:
         """Test metadata operations with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
-        connected_api = api.connect()
+        connect_result = api.connect()
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        connected_api = connect_result.value
 
         # Test schema listing
         schemas_result = connected_api.get_schemas()
@@ -160,7 +165,9 @@ class TestOracleIntegration:
     ) -> None:
         """Test performance-related operations with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
-        connected_api = api.connect()
+        connect_result = api.connect()
+        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        connected_api = connect_result.value
 
         # Test health check
         health_result = connected_api.get_health_check()

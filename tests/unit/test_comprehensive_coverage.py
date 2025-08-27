@@ -21,7 +21,7 @@ from pydantic import SecretStr
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
-    FlextDbOracleConnection,
+    FlextDbOracleServices,
 )
 from flext_db_oracle.cli import FlextDbOracleCliApplication, main
 from flext_db_oracle.exceptions import (
@@ -146,8 +146,8 @@ class TestFlextDbOracleConfig:
             assert config_dict["port"] == 1521
 
 
-class TestFlextDbOracleConnection:
-    """Test connection logic comprehensively."""
+class TestFlextDbOracleConnectionService:
+    """Test connection service logic comprehensively."""
 
     def test_connection_state_management(self) -> None:
         """Test connection state management logic."""
@@ -159,7 +159,7 @@ class TestFlextDbOracleConnection:
             password=SecretStr("test"),
         )
 
-        connection = FlextDbOracleConnection(config)
+        connection = FlextDbOracleServices.ConnectionService(config)
 
         # Test initial state
         assert not connection.is_connected()
@@ -180,7 +180,7 @@ class TestFlextDbOracleConnection:
             password=SecretStr("securepass"),
         )
 
-        connection = FlextDbOracleConnection(config)
+        connection = FlextDbOracleServices.ConnectionService(config)
         conn_str_result = connection._build_connection_url()
         assert conn_str_result.success
         conn_str = conn_str_result.value
@@ -201,7 +201,7 @@ class TestFlextDbOracleConnection:
             retry_delay=0.1,  # Fast for testing
         )
 
-        connection = FlextDbOracleConnection(config)
+        connection = FlextDbOracleServices.ConnectionService(config)
 
         # Test retry logic structure (without actual connection)
         assert connection.config.retry_attempts == 3
@@ -217,7 +217,7 @@ class TestFlextDbOracleConnection:
             password=SecretStr("test"),
         )
 
-        connection = FlextDbOracleConnection(config)
+        connection = FlextDbOracleServices.ConnectionService(config)
 
         # Test safe query building with parameter binding (real functionality)
         result = connection.build_select_safe(
@@ -603,7 +603,7 @@ class TestComprehensiveCoverage:
         assert api.config == config
 
         # Test config integration with connection
-        connection = FlextDbOracleConnection(config)
+        connection = FlextDbOracleServices.ConnectionService(config)
         assert connection.config == config
 
     def test_error_handling_patterns(self) -> None:
@@ -671,17 +671,17 @@ class TestComprehensiveCoverage:
         from flext_db_oracle import (
             FlextDbOracleApi,
             FlextDbOracleConfig,
-            FlextDbOracleConnection,
+            FlextDbOracleServices,
             __version__,
         )
 
         # Test all imports are accessible
         assert FlextDbOracleApi is not None
         assert FlextDbOracleConfig is not None
-        assert FlextDbOracleConnection is not None
+        assert FlextDbOracleServices is not None
         assert __version__ is not None
 
         # Test import paths are correct
         assert hasattr(FlextDbOracleApi, "__init__")
         assert hasattr(FlextDbOracleConfig, "from_env")
-        assert hasattr(FlextDbOracleConnection, "connect")
+        assert hasattr(FlextDbOracleServices.ConnectionService, "connect")

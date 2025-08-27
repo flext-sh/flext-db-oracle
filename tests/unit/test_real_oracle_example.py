@@ -349,7 +349,7 @@ class TestRealOracleApi:
             assert table_name.upper() in table_names
 
             # Get table metadata - using modern .value access after failure check
-            metadata_result = connected_oracle_api.get_table_metadata(table_name)
+            metadata_result = connected_oracle_api.get_tables(table_name)
             if metadata_result.is_failure:
                 msg = f"Get metadata failed: {metadata_result.error}"
                 raise AssertionError(msg)

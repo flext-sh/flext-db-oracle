@@ -471,7 +471,7 @@ class TestFlextDbOracleConnectionUtilityMethods:
     def test_connection_health_check(self) -> None:
         """Test connection health check."""
         if hasattr(self.connection, "health_check"):
-            result = self.connection.health_check()
+            result = self.connection.test_connection()
             # Should provide health information
             assert not result.success  # Not connected
             assert "not connected" in result.error.lower()

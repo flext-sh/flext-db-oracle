@@ -7,9 +7,11 @@ following the user's requirement for real code testing without mocks.
 import pytest
 from pydantic import SecretStr
 
-from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleConnection
-from flext_db_oracle.config_types import MergeStatementConfig
-from flext_db_oracle.connection import CreateIndexConfig
+from flext_db_oracle import (
+    CreateIndexConfig,
+    FlextDbOracleConfig,
+    FlextDbOracleServices,
+)
 
 
 class TestFlextDbOracleConnectionComprehensive:
@@ -24,7 +26,7 @@ class TestFlextDbOracleConnectionComprehensive:
             username="test",
             password=SecretStr("test"),
         )
-        self.connection = FlextDbOracleConnection(self.config)
+        self.connection = FlextDbOracleServices.ConnectionService(self.config)
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
@@ -79,7 +81,7 @@ class TestFlextDbOracleConnectionComprehensive:
             username="test",
             password=SecretStr("test"),
         )
-        sid_connection = FlextDbOracleConnection(sid_config)
+        sid_connection = FlextDbOracleServices.ConnectionService(sid_config)
         sid_result = sid_connection._build_connection_url()
         assert sid_result.success
         assert "/TESTSID" in sid_result.value
@@ -227,7 +229,7 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def test_get_table_metadata_when_not_connected(self) -> None:
         """Test get_table_metadata method when not connected."""
-        result = self.connection.get_table_metadata("TEST_TABLE")
+        result = self.connection.get_tables("TEST_TABLE")
         assert not result.success
 
     def test_query_building_methods(self) -> None:

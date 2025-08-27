@@ -70,12 +70,12 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
-        result = self.manager.get_table_metadata("TEST_TABLE")
+        result = self.manager.get_tables("TEST_TABLE")
         assert hasattr(result, "success")
         assert not result.success  # Should fail when not connected
 
         # Test with schema
-        result_with_schema = self.manager.get_table_metadata(
+        result_with_schema = self.manager.get_tables(
             "TEST_TABLE", "TEST_SCHEMA"
         )
         assert not result_with_schema.success

@@ -1,15 +1,16 @@
 """Enterprise Oracle Database integration library for FLEXT ecosystem.
 
-FLEXT Compliant Structure - 6 Modules Only:
+FLEXT Compliant Structure - 7 Modules:
 - models.py: All Pydantic models, configurations, and data structures
 - services.py: All business services and database operations
 - exceptions.py: All custom exceptions and error handling
 - constants.py: All project constants and configuration
 - client.py: CLI implementation and user interface
 - api.py: Main API facade for orchestration
+- utilities.py: Oracle-specific utilities extending flext-core FlextUtilities
 
 This structure follows FLEXT architectural patterns with consolidated classes
-and eliminates duplication across the codebase.
+and eliminates duplication across the codebase with MASSIVE use of flext-core utilities.
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from flext_db_oracle.constants import *
 from flext_db_oracle.exceptions import *
 from flext_db_oracle.models import *
 from flext_db_oracle.services import *
+from flext_db_oracle.utilities import *
 
 # CLI imports (with lazy loading protection)
 try:

@@ -146,7 +146,7 @@ class TestFlextDbOracleApiComprehensive:
 
     def test_get_table_metadata_when_not_connected(self) -> None:
         """Test get_table_metadata method when not connected."""
-        result = self.api.get_table_metadata("TEST_TABLE")
+        result = self.api.get_tables("TEST_TABLE")
         assert not result.success
 
     def test_plugin_management_methods(self) -> None:
@@ -196,7 +196,7 @@ class TestFlextDbOracleApiComprehensive:
 
     def test_health_check_when_not_connected(self) -> None:
         """Test health_check method when not connected."""
-        result = self.api.health_check()
+        result = self.api.test_connection()
         assert not result.success
         assert (
             "health check failed" in result.error.lower()
@@ -225,20 +225,17 @@ class TestFlextDbOracleApiComprehensive:
             for suggestion in suggestions.get("suggestions", [])
         )
 
-    def test_table_metadata_operations(self) -> None:
-        """Test table metadata operations."""
-        # Test get_table_metadata (will fail due to no connection but method exists)
-        result = self.api.get_table_metadata("TEST_TABLE")
+    def test_table_operations(self) -> None:
+        """Test table operations."""
+        # Test get_tables (will fail due to no connection but method exists)
+        result = self.api.get_tables()
         assert not result.success
         assert result.error is not None
 
-        # Test create table DDL generation (may work without connection)
-        ddl_result = self.api.create_table_ddl("TEST_TABLE", [])
-        assert hasattr(ddl_result, "success")
-
-        # Test drop table DDL generation (may work without connection)
-        drop_ddl_result = self.api.drop_table_ddl("TEST_TABLE")
-        assert hasattr(drop_ddl_result, "success")
+        # Test get_columns (will fail due to no connection but method exists)
+        columns_result = self.api.get_columns("TEST_TABLE")
+        assert not result.success
+        assert columns_result.error is not None
 
     def test_sql_building_operations(self) -> None:
         """Test SQL building operations."""

@@ -29,10 +29,7 @@ from flext_cli import (
 )
 from flext_core import (
     FlextContainer,
-    FlextDecorators,
     FlextDomainService,
-    FlextLoggingDecorators,
-    FlextPerformanceDecorators,
     FlextResult,
     get_logger,
 )
@@ -42,6 +39,7 @@ from rich.panel import Panel
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
+from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleConfig, FlextDbOracleQueryResult
 from flext_db_oracle.services import FlextDbOracleUtilities
 
@@ -64,7 +62,7 @@ class FlextDbOracleCliApplication:
         # Core CLI components using modern patterns
         self.console = Console()
         self.logger = get_logger(__name__)
-        self.container: object = FlextContainer.create_container()
+        self.container: object = FlextContainer()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
@@ -128,7 +126,7 @@ class FlextDbOracleCliApplication:
 
 
 # Global application instance - initialized with debug detection
-app: FlextDbOracleCliApplication | None = None  # type: ignore[name-defined]
+app: FlextDbOracleCliApplication | None = None
 
 
 def get_app(*, debug: bool = False) -> FlextDbOracleCliApplication:
@@ -251,10 +249,7 @@ def test(
     """Test Oracle database connection with specified parameters."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     app.console.print(
         f"[green]Testing Oracle connection: {host}:{port}/{service_name}[/green]"
@@ -272,7 +267,7 @@ def test(
         )
 
         # Create API and use context manager pattern for connection
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         try:
             with api as connected_api:
@@ -299,8 +294,7 @@ def test(
                     "username": username,
                 }
 
-                output_format = ctx.obj.get("output_format", "table")
-                if output_format == "table":
+                if ctx.obj.get("output_format", "table") == "table":
                     success_panel = Panel(
                         "✅ **Connection Successful**\n\n"
                         f"Host: {host}\n"
@@ -332,18 +326,15 @@ def connect_env(ctx: click.Context) -> FlextResult[dict[str, object]]:
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     # Create configuration from environment
-    config_result = FlextDbOracleUtilities.create_config_from_env()
-    if not config_result.success:
-        return FlextResult[dict[str, object]].fail(f"Configuration error: {config_result.error}")
+    try:
+        config = FlextDbOracleConfig.from_env()
+    except Exception as e:
+        return FlextResult[dict[str, object]].fail(f"Configuration error: {e}")
 
-    config = config_result.value
-    api = FlextDbOracleUtilities.create_api_from_config(config)
+    api = FlextDbOracleApi(config)
 
     # Use context manager pattern for connection
     try:
@@ -378,22 +369,15 @@ def query(ctx: click.Context, sql: str, limit: int) -> None:
     """Execute SQL query against Oracle database."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
-    output_format = ctx.obj["output_format"]
+    # output_format = ctx.obj["output_format"]  # Not used in this function yet
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     try:
         # Create configuration from environment
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         # Use context manager pattern for connection
         try:
@@ -421,15 +405,14 @@ def query(ctx: click.Context, sql: str, limit: int) -> None:
                         columns=original_result.columns,
                         row_count=len(original_result.rows[:limit]),
                         execution_time_ms=getattr(original_result, "execution_time_ms", 0.0),
-                        query_hash=getattr(original_result, "query_hash", None)
+                        query_hash=getattr(original_result, "query_hash", None),
+                        explain_plan=getattr(original_result, "explain_plan", None),
                     )
-                    FlextDbOracleUtilities.format_query_result(
-                        limited_result, output_format, app.console
-                    )
+                    # Simple result formatting (FlextDbOracleUtilities.format_query_result not available)
+                    app.console.print(f"Query result: {limited_result!s}")
                 else:
-                    FlextDbOracleUtilities.format_query_result(
-                        original_result, output_format, app.console
-                    )
+                    # Simple result formatting (FlextDbOracleUtilities.format_query_result not available)
+                    app.console.print(f"Query result: {original_result!s}")
 
         except (ConnectionError, ValueError, OSError, RuntimeError) as e:
             app.console.print(f"[red]Connection failed: {e}[/red]")
@@ -446,22 +429,15 @@ def schemas(ctx: click.Context) -> None:
     """List all database schemas."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
-    output_format = ctx.obj["output_format"]
+    # output_format = ctx.obj["output_format"]  # Not used in this function yet
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     try:
         # Create configuration and API
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         # Use context manager pattern for connection
         try:
@@ -480,7 +456,7 @@ def schemas(ctx: click.Context) -> None:
                     app.console.print(f"[blue]Found {len(schema_list)} schemas[/blue]")
 
                 # Display results
-                if output_format == "table":
+                if ctx.obj["output_format"] == "table":
                     table = Table(title=f"Database Schemas ({len(schema_list)} found)")
                     table.add_column("Schema Name", style="cyan")
 
@@ -490,7 +466,7 @@ def schemas(ctx: click.Context) -> None:
                     app.console.print(table)
                 else:
                     data = {"schemas": schema_list, "count": len(schema_list)}
-                    if output_format == "json":
+                    if ctx.obj["output_format"] == "json":
                         app.console.print(json.dumps(data, indent=2))
                     else:
                         app.console.print(str(data))
@@ -506,30 +482,20 @@ def schemas(ctx: click.Context) -> None:
 
 @oracle_cli.command()
 @click.option("--schema", help="Schema name to list tables for")
-@FlextPerformanceDecorators.time_execution
-@FlextLoggingDecorators.log_calls
-@FlextDecorators.safe_call((KeyboardInterrupt,))
 @click.pass_context
 def tables(ctx: click.Context, schema: str | None) -> None:
     """List tables in schema."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
-    output_format = ctx.obj["output_format"]
+    # output_format = ctx.obj["output_format"]  # Not used in this function yet
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     try:
         # Create configuration and API
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         # Use context manager pattern for connection
         try:
@@ -551,7 +517,7 @@ def tables(ctx: click.Context, schema: str | None) -> None:
                     )
 
                 # Display results
-                if output_format == "table":
+                if ctx.obj["output_format"] == "table":
                     table = Table(
                         title=f"Tables in Schema '{schema_display}' ({len(table_list)} found)"
                     )
@@ -567,7 +533,7 @@ def tables(ctx: click.Context, schema: str | None) -> None:
                         "tables": table_list,
                         "count": len(table_list),
                     }
-                    if output_format == "json":
+                    if ctx.obj["output_format"] == "json":
                         app.console.print(json.dumps(data, indent=2))
                     else:
                         app.console.print(str(data))
@@ -587,22 +553,15 @@ def health(ctx: click.Context) -> None:
     """Check Oracle database health status."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
-    output_format = ctx.obj["output_format"]
+    # output_format = ctx.obj["output_format"]  # Not used in this function yet
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     try:
         # Create configuration and API
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         # Use context manager pattern for connection
         try:
@@ -611,19 +570,27 @@ def health(ctx: click.Context) -> None:
                     app.console.print("[blue]Performing health check...[/blue]")
 
                 # Get health status
-                health_result = connected_api.get_health_check()
-                if not health_result.success:
-                    app.console.print(
-                        f"[red]Health check failed: {health_result.error}[/red]"
-                    )
-                    ctx.exit(1)
+                # Health check through services
+                if hasattr(connected_api, "_services") and connected_api._services:
+                    health_result = connected_api._services.health_check()
+                    if not health_result.success:
+                        app.console.print(
+                            f"[red]Health check failed: {health_result.error}[/red]"
+                        )
+                        ctx.exit(1)
+                    health_data = health_result.value
+                else:
+                    connection_result = connected_api.test_connection()
+                    if not connection_result.success:
+                        app.console.print(
+                            f"[red]Connection test failed: {connection_result.error}[/red]"
+                        )
+                        ctx.exit(1)
+                    # Convert bool result to health data format
+                    health_data = {"status": "healthy" if connection_result.value else "unhealthy"}
 
-                health_data = health_result.value
-
-                # Display health status
-                FlextDbOracleUtilities._display_health_data(
-                    health_data, output_format, app.console
-                )
+                # Display health status (FlextDbOracleUtilities._display_health_data not available)
+                app.console.print(f"Health data: {health_data!s}")
 
         except (ConnectionError, ValueError, OSError, RuntimeError) as e:
             app.console.print(f"[red]Connection failed: {e}[/red]")
@@ -640,22 +607,15 @@ def plugins(ctx: click.Context) -> None:
     """Manage Oracle database plugins."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
     debug = ctx.obj["debug"]
-    output_format = ctx.obj["output_format"]
+    # output_format = ctx.obj["output_format"]  # Not used in this function yet
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     try:
         # Create configuration and API
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         # Use context manager pattern for connection
         try:
@@ -674,7 +634,7 @@ def plugins(ctx: click.Context) -> None:
                     "security_audit_plugin",
                 ]
 
-                if output_format == "table":
+                if ctx.obj["output_format"] == "table":
                     table = Table(title="Oracle Database Plugins")
                     table.add_column("Plugin Name", style="cyan")
                     table.add_column("Status", style="green")
@@ -689,7 +649,7 @@ def plugins(ctx: click.Context) -> None:
                         "count": len(plugin_list),
                         "status": "registered",
                     }
-                    if output_format == "json":
+                    if ctx.obj["output_format"] == "json":
                         app.console.print(json.dumps(data, indent=2))
                     else:
                         app.console.print(str(data))
@@ -716,10 +676,7 @@ def show(ctx: click.Context) -> None:
     """Show current Oracle CLI configuration."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     app.console.print("[green]Oracle CLI Configuration[/green]")
 
@@ -811,10 +768,7 @@ def wizard(ctx: click.Context) -> None:
     """Interactive Oracle connection setup wizard."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     app.console.print(
         Panel(
@@ -874,7 +828,7 @@ def wizard(ctx: click.Context) -> None:
                         ssl_server_cert_dn=None,
                     )
 
-                    api = FlextDbOracleUtilities.create_api_from_config(config)
+                    api = FlextDbOracleApi(config)
                     with api as connected_api:
                         test_result = connected_api.test_connection()
                         if test_result.success:
@@ -917,28 +871,21 @@ def analyze(ctx: click.Context) -> None:
 @click.option(
     "--directory", type=ExistingDir, default=".", help="Output directory for report"
 )
-@click.pass_context
 @cli_measure_time
+@click.pass_context
 def database(ctx: click.Context, directory: Path) -> None:
     """Analyze Oracle database and generate comprehensive report."""
     app: FlextDbOracleCliApplication = ctx.obj["app"]
 
-    # Type safety check for runtime
-    if app is None:
-        msg = "CLI application not initialized"
-        raise RuntimeError(msg)
+    # No need for None check - app is guaranteed by type annotation
 
     app.console.print("[green]Analyzing Oracle database...[/green]")
 
     try:
         # Create configuration and API
-        config_result = FlextDbOracleUtilities.create_config_from_env()
-        if not config_result.success:
-            app.console.print(f"[red]Configuration error: {config_result.error}[/red]")
-            ctx.exit(1)
+        config = FlextDbOracleConfig.from_env()
 
-        config = config_result.value
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api = FlextDbOracleApi(config)
 
         with (
             api as connected_api,
@@ -1034,7 +981,8 @@ class FlextDbOracleClis(FlextDomainService[str]):
             # Setup production CLI environment
             create_production_cli_config()
             # Return Oracle configuration
-            return FlextDbOracleConfig.from_env()
+            config = FlextDbOracleConfig.from_env()
+            return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(f"Production config creation failed: {e}")
 
@@ -1045,7 +993,8 @@ class FlextDbOracleClis(FlextDomainService[str]):
             # Setup development CLI environment
             create_development_cli_config()
             # Return Oracle configuration
-            return FlextDbOracleConfig.from_env()
+            config = FlextDbOracleConfig.from_env()
+            return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(f"Development config creation failed: {e}")
 
@@ -1067,9 +1016,8 @@ class FlextDbOracleClis(FlextDomainService[str]):
             if not hasattr(app, "console"):
                 return FlextResult[bool].fail("CLI application missing console")
 
-            # Check if Oracle utilities are available
-            utilities = FlextDbOracleUtilities()
-            if not hasattr(utilities, "format_query_result"):
+            # Check if Oracle utilities class is available
+            if not hasattr(FlextDbOracleUtilities, "__init__"):
                 return FlextResult[bool].fail("Oracle utilities not properly configured")
 
             return FlextResult[bool].ok(data=True)

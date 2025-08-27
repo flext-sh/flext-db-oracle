@@ -26,9 +26,8 @@ def oracle_connection() -> Iterator[Engine]:
 
     connect_result = connection.connect()
 
-    # Use modern FlextResult unwrap_or pattern for clean error handling
-    connection_success = connect_result.unwrap_or(default=False)
-    if not connection_success:
+    # Use modern FlextResult pattern for clean error handling
+    if not connect_result.success:
         error_msg = connect_result.error or "Connection failed"
         msg = f"Failed to connect to Oracle: {error_msg}"
         raise RuntimeError(msg)
