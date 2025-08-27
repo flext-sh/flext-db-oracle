@@ -109,7 +109,7 @@ def execute_query(self, sql: str) -> FlextResult[QueryResult]:
         return FlextResult[None].fail(f"Query execution failed: {e}")
 
 # Dependency injection via container
-container = get_flext_container()
+container = FlextContainer.get_global()
 oracle_service = container.resolve(IOracleService)
 
 # Structured logging with correlation

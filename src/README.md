@@ -71,7 +71,7 @@ All modules integrate with FLEXT Core patterns:
 
 - **FlextResult[T]**: Railway-oriented programming for error handling
 - **FlextContainer**: Dependency injection for service management
-- **FlextSettings**: Configuration management with validation
+- **FlextConfig**: Configuration management with validation
 - **FlextEntity**: Domain-driven design entity patterns
 
 ## 🎯 Module Naming Conventions

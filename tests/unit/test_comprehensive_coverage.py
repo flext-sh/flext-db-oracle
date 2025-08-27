@@ -505,9 +505,7 @@ class TestFlextDbOracleObservability:
 
     def test_observability_manager_initialization(self) -> None:
         """Test observability manager initialization."""
-        from flext_core import get_flext_container
-
-        container = get_flext_container()
+        container = FlextContainer.get_global()
         manager = FlextDbOracleObservabilityManager(container, "test_context")
 
         # Test initialization state
@@ -516,9 +514,7 @@ class TestFlextDbOracleObservability:
 
     def test_observability_structure(self) -> None:
         """Test observability structure."""
-        from flext_core import get_flext_container
-
-        container = get_flext_container()
+        container = FlextContainer.get_global()
         manager = FlextDbOracleObservabilityManager(container, "test_context")
 
         # Test operation tracking structure

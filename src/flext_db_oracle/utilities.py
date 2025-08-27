@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any
 
 from flext_core import FlextResult
 from flext_core.utilities import FlextUtilities
@@ -99,7 +98,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 return FlextResult[str].fail(f"Failed to escape Oracle identifier: {e}")
 
     @classmethod
-    def create_api_from_config(cls, config: Any) -> FlextResult[Any]:
+    def create_api_from_config(cls, config: object) -> FlextResult[object]:
         """Create API from configuration using factory pattern.
 
         Uses FlextUtilities.GenericFactory for creation pattern.
@@ -110,12 +109,12 @@ class FlextDbOracleUtilities(FlextUtilities):
 
             # Oracle-specific API creation logic would go here
             # For now, return success indicating factory pattern availability
-            return FlextResult[Any].ok(f"API factory available for config: {type(config).__name__}")
+            return FlextResult[object].ok(f"API factory available for config: {type(config).__name__}")
         except Exception as e:
-            return FlextResult[Any].fail(f"API creation failed: {e}")
+            return FlextResult[object].fail(f"API creation failed: {e}")
 
     @classmethod
-    def format_query_result(cls, query_result: Any, format_type: str = "table") -> FlextResult[str]:
+    def format_query_result(cls, query_result: object, format_type: str = "table") -> FlextResult[str]:
         """Format query result for display.
 
         Uses FlextUtilities.Formatters for consistent formatting.

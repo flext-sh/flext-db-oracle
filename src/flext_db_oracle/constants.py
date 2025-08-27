@@ -33,11 +33,11 @@ class FlextDbOracleConstants(FlextConstants):
         """Oracle connection configuration constants."""
 
         # CONSUME from single source - NO DUPLICATION
-        DEFAULT_PORT = FlextConstants.Infrastructure.DEFAULT_ORACLE_PORT
+        DEFAULT_PORT = FlextConstants.Database.ORACLE_DEFAULT_PORT
         MAX_PORT = FlextConstants.Platform.MAX_PORT_NUMBER
         DEFAULT_CHARSET = "UTF8"
         DEFAULT_SERVICE_NAME = "XEPDB1"
-        DEFAULT_TIMEOUT = FlextConstants.Defaults.TIMEOUT
+        DEFAULT_TIMEOUT = FlextConstants.Database.DEFAULT_DB_TIMEOUT
 
         # Connection pool settings
         DEFAULT_POOL_MIN = FlextConstants.Infrastructure.MIN_POOL_SIZE
@@ -52,8 +52,8 @@ class FlextDbOracleConstants(FlextConstants):
         DUAL_TABLE = "DUAL"
 
         # Query limits and pagination
-        DEFAULT_FETCH_SIZE = 1000
-        MAX_FETCH_SIZE = 10000
+        DEFAULT_FETCH_SIZE = FlextConstants.Database.DEFAULT_QUERY_LIMIT
+        MAX_FETCH_SIZE = FlextConstants.Database.MAX_QUERY_LIMIT
         DEFAULT_ARRAY_SIZE = 100
 
     class DataTypes:

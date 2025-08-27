@@ -366,7 +366,7 @@ def demonstrate_error_handling_patterns() -> None:
 def demonstrate_modern_decorator_patterns() -> None:
     """Demonstrate modern flext-core decorator patterns.
 
-    Shows how to use the new FlextExceptions.ErrorHandlingDecorators and FlextPerformanceDecorators
+    Shows how to use the new FlextExceptionsHandlingDecorators and FlextPerformanceDecorators
     for robust, enterprise-grade Oracle database operations.
     """
     demonstrator = OracleExampleDemonstrator(

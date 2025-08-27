@@ -18,15 +18,9 @@ from collections.abc import Mapping
 from enum import Enum
 
 from flext_core import (
-    FlextExceptions.AuthenticationError,
-    FlextExceptions.ConfigurationError,
-    FlextExceptions.ConnectionError,
-    FlextExceptions.Error,
     FlextExceptions,
-    FlextExceptions.OperationError,
+    # FlextExceptions,  # Not available in flext-core
     FlextProcessingError,
-    FlextExceptions.TimeoutError,
-    # FlextExceptions.ValidationError,  # Not available in flext-core
 )
 
 # =============================================================================
@@ -60,7 +54,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     # =============================================================================
     # Oracle Exception Classes - All delegate to flext-core base classes
     # =============================================================================
-    # Note: No local BaseError - use FlextExceptions.Error directly from flext-core
+    # Note: No local BaseError - use FlextExceptions directly from flext-core
 
     class ValidationError(ValueError):
         """Oracle validation error - uses standard ValueError."""
@@ -78,8 +72,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.error_code = code or "ORACLE_VALIDATION_ERROR"
             self.context = context or {}
 
-    class ConfigurationError(FlextExceptions.ConfigurationError):
-        """Oracle configuration error - delegates to FlextExceptions.ConfigurationError."""
+    class ConfigurationError(FlextExceptions):
+        """Oracle configuration error - delegates to FlextExceptions."""
 
         def __init__(
             self,
@@ -92,8 +86,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             resolved_code = code or "ORACLE_CONFIGURATION_ERROR"
             super().__init__(message, error_code=resolved_code, context=context)
 
-    class DatabaseConnectionError(FlextExceptions.ConnectionError):
-        """Oracle database connection error - delegates to FlextExceptions.ConnectionError."""
+    class DatabaseConnectionError(FlextExceptions):
+        """Oracle database connection error - delegates to FlextExceptions."""
 
         def __init__(
             self,
@@ -120,8 +114,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             resolved_code = code or "ORACLE_PROCESSING_ERROR"
             super().__init__(message, error_code=resolved_code, context=context)
 
-    class AuthenticationError(FlextExceptions.AuthenticationError):
-        """Oracle authentication error - delegates to FlextExceptions.AuthenticationError."""
+    class AuthenticationError(FlextExceptions):
+        """Oracle authentication error - delegates to FlextExceptions."""
 
         def __init__(
             self,
@@ -134,8 +128,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             resolved_code = code or "ORACLE_AUTHENTICATION_ERROR"
             super().__init__(message, error_code=resolved_code, context=context)
 
-    class DatabaseTimeoutError(FlextExceptions.TimeoutError):
-        """Oracle database timeout error - delegates to FlextExceptions.TimeoutError."""
+    class DatabaseTimeoutError(FlextExceptions):
+        """Oracle database timeout error - delegates to FlextExceptions."""
 
         def __init__(
             self,
@@ -148,8 +142,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             resolved_code = code or "ORACLE_TIMEOUT_ERROR"
             super().__init__(message, error_code=resolved_code, context=context)
 
-    class QueryError(FlextExceptions.OperationError):
-        """Oracle query error - delegates to FlextExceptions.OperationError with SQL context."""
+    class QueryError(FlextExceptions):
+        """Oracle query error - delegates to FlextExceptions with SQL context."""
 
         def __init__(
             self,
@@ -183,8 +177,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             error_code = "ORACLE_QUERY_ERROR" if code is None else str(code)
             super().__init__(message, error_code=error_code, context=context_dict)
 
-    class MetadataError(FlextExceptions.OperationError):
-        """Oracle metadata error - delegates to FlextExceptions.OperationError with schema context."""
+    class MetadataError(FlextExceptions):
+        """Oracle metadata error - delegates to FlextExceptions with schema context."""
 
         def __init__(
             self,
@@ -259,11 +253,11 @@ class FlextDbOracleExceptions(FlextExceptions):
         *,
         code: str | None = None,
         context: dict[str, object] | None = None,
-    ) -> FlextExceptions.Error:
+    ) -> FlextExceptions:
         """Create Oracle database error using factory pattern."""
         from flext_core import FlextExceptions  # noqa: PLC0415
 
-        return FlextExceptions.Error(message, error_code=code or "ORACLE_ERROR", context=context)
+        return FlextExceptions(message, error_code=code or "ORACLE_ERROR", context=context)
 
     @classmethod
     def create_connection_error(
@@ -385,17 +379,17 @@ class FlextDbOracleExceptions(FlextExceptions):
     @classmethod
     def is_oracle_error(cls, error: Exception) -> bool:
         """Check if exception is an Oracle database error."""
-        return isinstance(error, FlextExceptions.Error)
+        return isinstance(error, FlextExceptions)
 
     # =============================================================================
     # Backward Compatibility Aliases
     # =============================================================================
 
     # Maintain existing functionality as aliases
-    # BaseError was removed - use FlextExceptions.Error from flext-core directly
+    # BaseError was removed - use FlextExceptions from flext-core directly
     from flext_core import FlextExceptions  # noqa: PLC0415
 
-    FlextDbOracleError = FlextExceptions.Error
+    FlextDbOracleError = FlextExceptions
     FlextDbOracleValidationError = ValidationError
     FlextDbOracleConfigurationError = ConfigurationError
     FlextDbOracleConnectionError = DatabaseConnectionError
@@ -425,8 +419,8 @@ __all__: list[str] = [
 ]
 
 # Create backward compatibility module-level aliases
-# BaseError was removed - use FlextExceptions.Error from flext-core directly
-FlextDbOracleError = FlextExceptions.Error
+# BaseError was removed - use FlextExceptions from flext-core directly
+FlextDbOracleError = FlextExceptions
 FlextDbOracleValidationError = FlextDbOracleExceptions.ValidationError
 FlextDbOracleConfigurationError = FlextDbOracleExceptions.ConfigurationError
 FlextDbOracleConnectionError = FlextDbOracleExceptions.DatabaseConnectionError
