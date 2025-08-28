@@ -102,12 +102,17 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                     conn.execute(text("SELECT 1 FROM DUAL"))
 
                 self._connected = True
-                self.logger.info("Connected to Oracle database: %s", self.config.get_connection_string())
+                self.logger.info(
+                    "Connected to Oracle database: %s",
+                    self.config.get_connection_string(),
+                )
                 return FlextResult[FlextDbOracleServices.ConnectionService].ok(self)
 
             except Exception as e:
                 self.logger.exception("Oracle connection failed")
-                return FlextResult[FlextDbOracleServices.ConnectionService].fail(f"Connection failed: {e}")
+                return FlextResult[FlextDbOracleServices.ConnectionService].fail(
+                    f"Connection failed: {e}"
+                )
 
         def disconnect(self) -> FlextResult[None]:
             """Close Oracle database connection."""
@@ -126,14 +131,20 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             """Check if connection is active."""
             return self._connected and self._engine is not None
 
-        def execute_query(self, sql: str, params: dict[str, object] | None = None) -> FlextResult[list[DatabaseRowDict]]:
+        def execute_query(
+            self, sql: str, params: dict[str, object] | None = None
+        ) -> FlextResult[list[DatabaseRowDict]]:
             """Execute SELECT query and return results."""
             if not self.is_connected():
-                return FlextResult[list[DatabaseRowDict]].fail("Not connected to database")
+                return FlextResult[list[DatabaseRowDict]].fail(
+                    "Not connected to database"
+                )
 
             try:
                 if self._engine is None:
-                    return FlextResult[list[DatabaseRowDict]].fail("Database engine not initialized")
+                    return FlextResult[list[DatabaseRowDict]].fail(
+                        "Database engine not initialized"
+                    )
                 with self._engine.connect() as conn:
                     result = conn.execute(text(sql), params or {})
                     rows = [dict(row._mapping) for row in result.fetchall()]
@@ -142,7 +153,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 self.logger.exception("Query execution failed")
                 return FlextResult[list[DatabaseRowDict]].fail(f"Query failed: {e}")
 
-        def execute_statement(self, sql: str, params: dict[str, object] | None = None) -> FlextResult[int]:
+        def execute_statement(
+            self, sql: str, params: dict[str, object] | None = None
+        ) -> FlextResult[int]:
             """Execute DML statement (INSERT, UPDATE, DELETE) and return affected rows."""
             if not self.is_connected():
                 return FlextResult[int].fail("Not connected to database")
@@ -185,7 +198,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 elif self.config.sid:
                     url = f"oracle+oracledb://{encoded_username}:{encoded_password}@{self.config.host}:{self.config.port}/?sid={self.config.sid}"
                 else:
-                    return FlextResult[str].fail("Either service_name or SID must be provided")
+                    return FlextResult[str].fail(
+                        "Either service_name or SID must be provided"
+                    )
 
                 return FlextResult[str].ok(url)
             except Exception as e:
@@ -221,7 +236,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
     class MetadataService:
         """Oracle database metadata operations."""
 
-        def __init__(self, connection_service: FlextDbOracleServices.ConnectionService) -> None:
+        def __init__(
+            self, connection_service: FlextDbOracleServices.ConnectionService
+        ) -> None:
             # super().__init__()
             self.connection = connection_service
             self.logger: FlextLogger = get_logger(__name__)
@@ -237,9 +254,13 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
             result = self.connection.execute_query(sql)
             if not result.success:
-                return FlextResult[list[str]].fail(result.error or "Failed to execute query")
+                return FlextResult[list[str]].fail(
+                    result.error or "Failed to execute query"
+                )
 
-            schemas = [str(row["schema_name"]) for row in result.value if row["schema_name"]]
+            schemas = [
+                str(row["schema_name"]) for row in result.value if row["schema_name"]
+            ]
             return FlextResult[list[str]].ok(schemas)
 
         def get_tables(self, schema: str | None = None) -> FlextResult[list[str]]:
@@ -255,12 +276,18 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
             result = self.connection.execute_query(sql, {"schema": schema})
             if not result.success:
-                return FlextResult[list[str]].fail(result.error or "Failed to execute query")
+                return FlextResult[list[str]].fail(
+                    result.error or "Failed to execute query"
+                )
 
-            tables = [str(row["table_name"]) for row in result.value if row["table_name"]]
+            tables = [
+                str(row["table_name"]) for row in result.value if row["table_name"]
+            ]
             return FlextResult[list[str]].ok(tables)
 
-        def get_columns(self, table_name: str, schema: str | None = None) -> FlextResult[list[DatabaseRowDict]]:
+        def get_columns(
+            self, table_name: str, schema: str | None = None
+        ) -> FlextResult[list[DatabaseRowDict]]:
             """Get column information for table."""
             schema = schema or self.connection.config.oracle_schema
 
@@ -284,21 +311,27 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             result = self.connection.execute_query(sql, params)
 
             if not result.success:
-                return FlextResult[list[DatabaseRowDict]].fail(result.error or "Failed to execute query")
+                return FlextResult[list[DatabaseRowDict]].fail(
+                    result.error or "Failed to execute query"
+                )
 
             return FlextResult[list[DatabaseRowDict]].ok(result.value)
 
-        def get_table_row_count(self, table_name: str, schema: str | None = None) -> FlextResult[int]:
+        def get_table_row_count(
+            self, table_name: str, schema: str | None = None
+        ) -> FlextResult[int]:
             """Get approximate row count for table."""
             schema = schema or self.connection.config.oracle_schema
             full_table_name = f"{schema}.{table_name}"
 
             # NOTE: Schema and table names validated above - safe for formatting
-            sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
+            sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"
             result = self.connection.execute_query(sql)
 
             if not result.success:
-                return FlextResult[int].fail(result.error or "Failed to execute operation")
+                return FlextResult[int].fail(
+                    result.error or "Failed to execute operation"
+                )
 
             if result.value:
                 row_count = result.value[0].get("row_count", 0)
@@ -320,7 +353,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
     class ObservabilityService:
         """Oracle database observability and monitoring."""
 
-        def __init__(self, connection_service: FlextDbOracleServices.ConnectionService) -> None:
+        def __init__(
+            self, connection_service: FlextDbOracleServices.ConnectionService
+        ) -> None:
             # super().__init__()
             self.connection = connection_service
             self.logger: FlextLogger = get_logger(__name__)
@@ -344,13 +379,14 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
                 if is_connected:
                     # Try to get Oracle version
-                    version_result = self.connection.execute_query("SELECT banner FROM v$version WHERE rownum = 1")
+                    version_result = self.connection.execute_query(
+                        "SELECT banner FROM v$version WHERE rownum = 1"
+                    )
                     if version_result.success and version_result.value:
                         status_data["version"] = version_result.value[0].get("banner")
 
                 status = FlextDbOracleModels.create_connection_status(
-                    is_connected=is_connected,
-                    **status_data
+                    is_connected=is_connected, **status_data
                 )
                 return FlextResult[FlextDbOracleConnectionStatus].ok(status)
 
@@ -396,7 +432,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 health_data = {
                     "status": "healthy",
                     "timestamp": datetime.now(UTC).isoformat(),
-                    "uptime_seconds": (datetime.now(UTC) - self._start_time).total_seconds(),
+                    "uptime_seconds": (
+                        datetime.now(UTC) - self._start_time
+                    ).total_seconds(),
                     "metrics_count": len(self._metrics),
                 }
 
@@ -428,7 +466,12 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             self._operations: dict[str, dict[str, object]] = {}
             self._operation_count = 0
 
-        def start_operation(self, operation_id: str, operation_type: str, metadata: dict[str, object] | None = None) -> FlextResult[None]:
+        def start_operation(
+            self,
+            operation_id: str,
+            operation_type: str,
+            metadata: dict[str, object] | None = None,
+        ) -> FlextResult[None]:
             """Start tracking a database operation."""
             try:
                 self._operation_count += 1
@@ -443,10 +486,14 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                     "sequence": self._operation_count,
                 }
 
-                self.logger.debug("Operation started: %s [%s]", operation_id, operation_type)
+                self.logger.debug(
+                    "Operation started: %s [%s]", operation_id, operation_type
+                )
                 return FlextResult[None].ok(None)
             except Exception as e:
-                return FlextResult[None].fail(f"Failed to start operation tracking: {e}")
+                return FlextResult[None].fail(
+                    f"Failed to start operation tracking: {e}"
+                )
 
         def end_operation(
             self,
@@ -458,7 +505,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             """End tracking a database operation."""
             try:
                 if operation_id not in self._operations:
-                    return FlextResult[dict[str, object]].fail(f"Operation not found: {operation_id}")
+                    return FlextResult[dict[str, object]].fail(
+                        f"Operation not found: {operation_id}"
+                    )
 
                 operation = self._operations[operation_id]
                 end_time = datetime.now(UTC)
@@ -485,53 +534,74 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
                 return FlextResult[dict[str, object]].ok(operation.copy())
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(f"Failed to end operation tracking: {e}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Failed to end operation tracking: {e}"
+                )
 
-        def get_operations(self, operation_type: str | None = None) -> FlextResult[list[dict[str, object]]]:
+        def get_operations(
+            self, operation_type: str | None = None
+        ) -> FlextResult[list[dict[str, object]]]:
             """Get tracked operations, optionally filtered by type."""
             try:
                 operations = list(self._operations.values())
 
                 if operation_type:
-                    operations = [op for op in operations if op["type"] == operation_type]
+                    operations = [
+                        op for op in operations if op["type"] == operation_type
+                    ]
 
                 # Sort by sequence number
                 operations.sort(key=operator.itemgetter("sequence"))
 
                 return FlextResult[list[dict[str, object]]].ok(operations)
             except Exception as e:
-                return FlextResult[list[dict[str, object]]].fail(f"Failed to get operations: {e}")
+                return FlextResult[list[dict[str, object]]].fail(
+                    f"Failed to get operations: {e}"
+                )
 
         def get_operation_stats(self) -> FlextResult[dict[str, object]]:
             """Get operation statistics."""
             try:
                 operations = list(self._operations.values())
-                completed_ops = [op for op in operations if op["status"] in {"completed", "failed"}]
+                completed_ops = [
+                    op for op in operations if op["status"] in {"completed", "failed"}
+                ]
 
                 stats: dict[str, object] = {
                     "total_operations": len(operations),
                     "completed_operations": len(completed_ops),
-                    "running_operations": len([op for op in operations if op["status"] == "running"]),
-                    "failed_operations": len([op for op in operations if op["status"] == "failed"]),
+                    "running_operations": len([
+                        op for op in operations if op["status"] == "running"
+                    ]),
+                    "failed_operations": len([
+                        op for op in operations if op["status"] == "failed"
+                    ]),
                     "success_rate": 0.0,
                     "average_duration_ms": 0.0,
                 }
 
                 if completed_ops:
-                    successful_ops = [op for op in completed_ops if op["status"] == "completed"]
-                    stats["success_rate"] = len(successful_ops) / len(completed_ops) * 100
+                    successful_ops = [
+                        op for op in completed_ops if op["status"] == "completed"
+                    ]
+                    stats["success_rate"] = (
+                        len(successful_ops) / len(completed_ops) * 100
+                    )
 
                     durations = [
                         float(op["duration_ms"])
                         for op in completed_ops
-                        if op["duration_ms"] is not None and isinstance(op["duration_ms"], (int, float))
+                        if op["duration_ms"] is not None
+                        and isinstance(op["duration_ms"], (int, float))
                     ]
                     if durations:
                         stats["average_duration_ms"] = sum(durations) / len(durations)
 
                 return FlextResult[dict[str, object]].ok(stats)
             except Exception as e:
-                return FlextResult[dict[str, object]].fail(f"Failed to get operation stats: {e}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Failed to get operation stats: {e}"
+                )
 
     # =============================================================================
     # PLUGIN SERVICE - Consolidated from plugins.py
@@ -545,7 +615,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             self.logger: FlextLogger = get_logger(__name__)
             self._plugins: dict[str, dict[str, object]] = {}
 
-        def register_plugin(self, name: str, plugin: dict[str, object]) -> FlextResult[None]:
+        def register_plugin(
+            self, name: str, plugin: dict[str, object]
+        ) -> FlextResult[None]:
             """Register a plugin."""
             try:
                 self._plugins[name] = {
@@ -595,19 +667,25 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
     class UtilitiesService:
         """Oracle database utilities and helper functions."""
 
-        def __init__(self, connection_service: FlextDbOracleServices.ConnectionService) -> None:
+        def __init__(
+            self, connection_service: FlextDbOracleServices.ConnectionService
+        ) -> None:
             # super().__init__()
             self.connection = connection_service
             self.logger: FlextLogger = get_logger(__name__)
 
-        def generate_query_hash(self, sql: str, params: dict[str, object] | None = None) -> FlextResult[str]:
+        def generate_query_hash(
+            self, sql: str, params: dict[str, object] | None = None
+        ) -> FlextResult[str]:
             """Generate hash for SQL query caching."""
             try:
                 # Normalize SQL (remove extra whitespace)
                 normalized_sql = " ".join(sql.split())
 
                 # Create content for hashing
-                hash_content = f"{normalized_sql}|{json.dumps(params or {}, sort_keys=True)}"
+                hash_content = (
+                    f"{normalized_sql}|{json.dumps(params or {}, sort_keys=True)}"
+                )
 
                 # Generate SHA-256 hash
                 query_hash = hashlib.sha256(hash_content.encode()).hexdigest()[:16]
@@ -623,16 +701,30 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 formatted = sql.strip()
 
                 # Replace common keywords for better readability
-                keywords = ["SELECT", "FROM", "WHERE", "JOIN", "ORDER BY", "GROUP BY", "HAVING"]
+                keywords = [
+                    "SELECT",
+                    "FROM",
+                    "WHERE",
+                    "JOIN",
+                    "ORDER BY",
+                    "GROUP BY",
+                    "HAVING",
+                ]
                 for keyword in keywords:
-                    formatted = formatted.replace(f" {keyword.lower()} ", f"\\n{keyword} ")
-                    formatted = formatted.replace(f" {keyword.upper()} ", f"\\n{keyword} ")
+                    formatted = formatted.replace(
+                        f" {keyword.lower()} ", f"\\n{keyword} "
+                    )
+                    formatted = formatted.replace(
+                        f" {keyword.upper()} ", f"\\n{keyword} "
+                    )
 
                 return FlextResult[str].ok(formatted)
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to format SQL: {e}")
 
-        def validate_table_name(self, table_name: str, schema: str | None = None) -> FlextResult[bool]:
+        def validate_table_name(
+            self, table_name: str, schema: str | None = None
+        ) -> FlextResult[bool]:
             """Validate that table exists in Oracle database."""
             try:
                 schema = schema or self.connection.config.oracle_schema
@@ -648,7 +740,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 result = self.connection.execute_query(sql, params)
 
                 if not result.success:
-                    return FlextResult[bool].fail(result.error or "Failed to execute operation")
+                    return FlextResult[bool].fail(
+                        result.error or "Failed to execute operation"
+                    )
 
                 if result.value:
                     table_count = result.value[0].get("table_count", 0)
@@ -671,7 +765,12 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 clean_identifier = identifier.strip('"').strip("'")
 
                 # Validate identifier contains only allowed characters
-                if not clean_identifier.replace("_", "").replace("$", "").replace("#", "").isalnum():
+                if (
+                    not clean_identifier.replace("_", "")
+                    .replace("$", "")
+                    .replace("#", "")
+                    .isalnum()
+                ):
                     return FlextResult[str].fail(f"Invalid identifier: {identifier}")
 
                 # Oracle identifiers should be uppercase
@@ -695,7 +794,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         # Initialize component services using object.__setattr__ for frozen class
         object.__setattr__(self, "connection", self.ConnectionService(config))
         object.__setattr__(self, "metadata", self.MetadataService(self.connection))
-        object.__setattr__(self, "observability", self.ObservabilityService(self.connection))
+        object.__setattr__(
+            self, "observability", self.ObservabilityService(self.connection)
+        )
         object.__setattr__(self, "operation_tracker", self.OperationTracker())
         object.__setattr__(self, "plugins", self.PluginService())
         object.__setattr__(self, "utilities", self.UtilitiesService(self.connection))
@@ -708,7 +809,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         """Connect all services to Oracle database."""
         connection_result = self.connection.connect()
         if not connection_result.success:
-            return FlextResult[FlextDbOracleServices].fail(connection_result.error or "Connection failed")
+            return FlextResult[FlextDbOracleServices].fail(
+                connection_result.error or "Connection failed"
+            )
 
         # Log success
         self.logger.info("All Oracle services connected successfully")
@@ -729,13 +832,16 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             # Connection health
             connection_health = self.observability.health_check()
             health_data["connection"] = (
-                connection_health.value if connection_health.success
+                connection_health.value
+                if connection_health.success
                 else {"status": "unhealthy", "error": connection_health.error}
             )
 
             # Service status
             health_data["services"] = {
-                "connection": "healthy" if self.connection.is_connected() else "unhealthy",
+                "connection": "healthy"
+                if self.connection.is_connected()
+                else "unhealthy",
                 "metadata": "healthy",
                 "observability": "healthy",
                 "operation_tracker": "healthy",
@@ -745,7 +851,9 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
             # Plugin count
             plugins_result = self.plugins.list_plugins()
-            health_data["plugin_count"] = len(plugins_result.value) if plugins_result.success else 0
+            health_data["plugin_count"] = (
+                len(plugins_result.value) if plugins_result.success else 0
+            )
 
             # Operation stats
             stats_result = self.operation_tracker.get_operation_stats()

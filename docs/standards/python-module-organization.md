@@ -560,14 +560,14 @@ class RobustOracleConnection:
         self.retry_attempts = 3
         self.retry_delay = 1.0
 
-    def execute_with_retry(self, sql: str, params: dict = None) -> FlextResult[Any]:
+    def execute_with_retry(self, sql: str, params: dict = None) -> FlextResult[object]:
         """Execute Oracle query with automatic retry on connection failure"""
         return self._retry_operation(
             lambda: self.connection.execute_query(sql, params),
             self.retry_attempts
         )
 
-    def _retry_operation(self, operation: Callable, attempts: int) -> FlextResult[Any]:
+    def _retry_operation(self, operation: Callable, attempts: int) -> FlextResult[object]:
         """Generic retry pattern for Oracle operations"""
         if attempts <= 0:
             return FlextResult[None].fail("Max retry attempts exceeded")
@@ -1146,7 +1146,7 @@ class FlextDbOracleQueryResult(BaseModel):
     columns: List[str]
     row_count: int = Field(..., ge=0)
     execution_time_ms: float = Field(..., ge=0)
-    oracle_metadata: Dict[str, Any] = Field(default_factory=dict)
+    oracle_metadata: Dict[str, object] = Field(default_factory=dict)
 
     class Config:
         arbitrary_types_allowed = True  # Allow tuple types
@@ -1333,10 +1333,10 @@ class FlextEcosystemOracleSettings(FlextConfig):
     oracle_base: FlextDbOracleConfig = Field(default_factory=FlextDbOracleConfig)
 
     # Project-specific Oracle configurations
-    oracle_tap: Optional[Dict[str, Any]] = None      # tap-oracle settings
-    oracle_target: Optional[Dict[str, Any]] = None   # target-oracle settings
-    oracle_wms: Optional[Dict[str, Any]] = None      # Oracle WMS settings
-    oracle_api: Optional[Dict[str, Any]] = None      # API service settings
+    oracle_tap: Optional[Dict[str, object]] = None      # tap-oracle settings
+    oracle_target: Optional[Dict[str, object]] = None   # target-oracle settings
+    oracle_wms: Optional[Dict[str, object]] = None      # Oracle WMS settings
+    oracle_api: Optional[Dict[str, object]] = None      # API service settings
 
     class Config:
         env_prefix = "FLEXT_ORACLE_"

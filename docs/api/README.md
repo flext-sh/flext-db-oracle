@@ -129,7 +129,7 @@ class FlextDbOracleApi:
     def execute_query(
         self,
         sql: str,
-        params: Optional[Dict[str, Any]] = None
+        params: Optional[Dict[str, object]] = None
     ) -> FlextResult[TDbOracleQueryResult]:
         """Execute SQL query with parameterized values.
 
@@ -171,7 +171,7 @@ class FlextDbOracleApi:
         schema: str,
         table: str,
         columns: List[str],
-        values: List[List[Any]],
+        values: List[List[object]],
         batch_size: int = 10000
     ) -> FlextResult[int]:
         """Perform bulk insert operation with Oracle optimizations.
@@ -371,7 +371,7 @@ class FlextDbOracleConfig(BaseSettings):
         else:
             return f"{self.host}:{self.port}:{self.sid}"
 
-    def to_connection_params(self) -> Dict[str, Any]:
+    def to_connection_params(self) -> Dict[str, object]:
         """Convert to Oracle connection parameters dictionary."""
         params = {
             "user": self.username,
@@ -419,14 +419,14 @@ class FlextDbOracleConnection:
             FlextResult[None]: Success indicator or error details
         """
 
-    def get_connection(self) -> FlextResult[Any]:
+    def get_connection(self) -> FlextResult[object]:
         """Get connection from pool.
 
         Returns:
             FlextResult[Connection]: Oracle connection or error
         """
 
-    def return_connection(self, connection: Any) -> FlextResult[None]:
+    def return_connection(self, connection: object) -> FlextResult[None]:
         """Return connection to pool.
 
         Args:
@@ -439,8 +439,8 @@ class FlextDbOracleConnection:
     def execute_query(
         self,
         sql: str,
-        params: Optional[Dict[str, Any]] = None
-    ) -> FlextResult[Any]:
+        params: Optional[Dict[str, object]] = None
+    ) -> FlextResult[object]:
         """Execute SQL query using pooled connection.
 
         Args:
@@ -458,7 +458,7 @@ class FlextDbOracleConnection:
             FlextResult[None]: Success indicator or error
         """
 
-    def get_pool_status(self) -> FlextResult[Dict[str, Any]]:
+    def get_pool_status(self) -> FlextResult[Dict[str, object]]:
         """Get connection pool status information.
 
         Returns:
@@ -552,7 +552,7 @@ class FlextDbOracleMetadataManager:
         schema: str,
         table: str,
         column: str
-    ) -> FlextResult[Dict[str, Any]]:
+    ) -> FlextResult[Dict[str, object]]:
         """Get column statistics for query optimization.
 
         Args:
@@ -571,7 +571,7 @@ class FlextDbOracleMetadataManager:
 
 ```python
 def register_all_oracle_plugins(
-    plugin_manager: Any
+    plugin_manager: object
 ) -> FlextResult[None]:
     """Register all built-in Oracle plugins.
 
@@ -583,8 +583,8 @@ def register_all_oracle_plugins(
     """
 
 def create_data_validation_plugin(
-    validation_rules: Dict[str, Any]
-) -> FlextResult[Any]:
+    validation_rules: Dict[str, object]
+) -> FlextResult[object]:
     """Create data validation plugin with custom rules.
 
     Args:
@@ -595,8 +595,8 @@ def create_data_validation_plugin(
     """
 
 def create_performance_monitor_plugin(
-    monitoring_config: Dict[str, Any]
-) -> FlextResult[Any]:
+    monitoring_config: Dict[str, object]
+) -> FlextResult[object]:
     """Create performance monitoring plugin.
 
     Args:
@@ -607,8 +607,8 @@ def create_performance_monitor_plugin(
     """
 
 def create_security_audit_plugin(
-    audit_config: Dict[str, Any]
-) -> FlextResult[Any]:
+    audit_config: Dict[str, object]
+) -> FlextResult[object]:
     """Create security audit plugin.
 
     Args:
@@ -640,15 +640,15 @@ class IOraclePlugin(Protocol):
 
     def execute(
         self,
-        context: Dict[str, Any]
-    ) -> FlextResult[Any]:
+        context: Dict[str, object]
+    ) -> FlextResult[object]:
         """Execute plugin logic.
 
         Args:
             context: Operation context
 
         Returns:
-            FlextResult[Any]: Plugin result or error
+            FlextResult[object]: Plugin result or error
         """
 
     def get_name(self) -> str:

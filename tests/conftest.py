@@ -20,7 +20,7 @@ from pydantic import SecretStr
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 # Test constants - NOT PRODUCTION PASSWORDS
-TEST_ORACLE_PASSWORD = "FlextTest123"  # noqa: S105
+TEST_ORACLE_PASSWORD = "FlextTest123"
 
 
 class TestOperationError(Exception):
@@ -154,7 +154,7 @@ class OracleContainerManager:
         )
 
 
-def pytest_configure(config: pytest.Config) -> None:  # noqa: ARG001 - config required by pytest interface
+def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests - NO MOCKS ALLOWED."""
     # FORCE Oracle container usage for ALL tests - no mocks, only real testing
     os.environ["SKIP_E2E_TESTS"] = "false"
@@ -200,7 +200,7 @@ def oracle_container() -> Generator[None]:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:  # noqa: ARG001 - oracle_container ensures container startup dependency
+def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:
     """Return real Oracle configuration for ALL tests."""
     return FlextDbOracleConfig(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),

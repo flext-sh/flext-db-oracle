@@ -8,7 +8,8 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from typing import Any
+
+object
 from unittest.mock import Mock, patch
 
 import pytest
@@ -65,15 +66,20 @@ class TestFlextDbOracleCliApplication:
 
         # Check user preferences structure
         expected_prefs = [
-            "default_output_format", "auto_confirm_operations", "show_execution_time",
-            "color_output", "verbose_errors", "connection_timeout",
-            "query_limit", "enable_plugins"
+            "default_output_format",
+            "auto_confirm_operations",
+            "show_execution_time",
+            "color_output",
+            "verbose_errors",
+            "connection_timeout",
+            "query_limit",
+            "enable_plugins",
         ]
         for pref in expected_prefs:
             assert pref in app.user_preferences
 
     @patch("flext_db_oracle.cli.setup_cli")
-    def test_initialize_application_success(self, mock_setup_cli: Any) -> None:
+    def test_initialize_application_success(self, mock_setup_cli: object) -> None:
         """Test successful application initialization."""
         from flext_core import FlextResult
 
@@ -87,7 +93,7 @@ class TestFlextDbOracleCliApplication:
         mock_setup_cli.assert_called_once()
 
     @patch("flext_db_oracle.cli.setup_cli")
-    def test_initialize_application_failure(self, mock_setup_cli: Any) -> None:
+    def test_initialize_application_failure(self, mock_setup_cli: object) -> None:
         """Test application initialization failure."""
         from flext_core import FlextResult
 
@@ -112,7 +118,13 @@ class TestFlextDbOracleCliApplication:
         app._register_core_services()
 
         # Verify register was called for all services
-        expected_services = ["console", "logger", "config", "api_client", "entity_factory"]
+        expected_services = [
+            "console",
+            "logger",
+            "config",
+            "api_client",
+            "entity_factory",
+        ]
         assert mock_container.register.call_count == len(expected_services)
 
         # Check individual service registrations
@@ -133,7 +145,10 @@ class TestFlextDbOracleCliApplication:
         app._register_core_services()
 
         # Verify no register calls were made
-        assert not hasattr(mock_container, "register") or not mock_container.register.called
+        assert (
+            not hasattr(mock_container, "register")
+            or not mock_container.register.called
+        )
 
 
 class TestGetAppFunction:
@@ -143,11 +158,13 @@ class TestGetAppFunction:
         """Reset global app instance before each test."""
         # Reset global app instance
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     def test_get_app_first_call_debug(self) -> None:
@@ -180,10 +197,11 @@ class TestOracleCliMainGroup:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_help(self, mock_init: Any) -> None:
+    def test_oracle_cli_help(self, mock_init: object) -> None:
         """Test oracle_cli help command."""
         from flext_core import FlextResult
 
@@ -200,7 +218,7 @@ class TestOracleCliMainGroup:
         assert "--debug" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_version(self, mock_init: Any) -> None:
+    def test_oracle_cli_version(self, mock_init: object) -> None:
         """Test oracle_cli version option."""
         from flext_core import FlextResult
 
@@ -212,7 +230,7 @@ class TestOracleCliMainGroup:
         assert "0.9.0" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_no_command_shows_help(self, mock_init: Any) -> None:
+    def test_oracle_cli_no_command_shows_help(self, mock_init: object) -> None:
         """Test oracle_cli without command shows help."""
         from flext_core import FlextResult
 
@@ -224,23 +242,20 @@ class TestOracleCliMainGroup:
         assert "Usage:" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_with_options(self, mock_init: Any) -> None:
+    def test_oracle_cli_with_options(self, mock_init: object) -> None:
         """Test oracle_cli with various options."""
         from flext_core import FlextResult
 
         mock_init.return_value = FlextResult[None].ok(None)
 
-        result = self.runner.invoke(oracle_cli, [
-            "--profile", "dev",
-            "--output", "json",
-            "--debug",
-            "--verbose"
-        ])
+        result = self.runner.invoke(
+            oracle_cli, ["--profile", "dev", "--output", "json", "--debug", "--verbose"]
+        )
 
         assert result.exit_code == 0
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_initialization_failure(self, mock_init: Any) -> None:
+    def test_oracle_cli_initialization_failure(self, mock_init: object) -> None:
         """Test oracle_cli when initialization fails."""
         from flext_core import FlextResult
 
@@ -254,18 +269,16 @@ class TestOracleCliMainGroup:
         assert "Initialization failed" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_oracle_cli_debug_output(self, mock_init: Any) -> None:
+    def test_oracle_cli_debug_output(self, mock_init: object) -> None:
         """Test oracle_cli debug output."""
         from flext_core import FlextResult
 
         mock_init.return_value = FlextResult[None].ok(None)
 
-        result = self.runner.invoke(oracle_cli, [
-            "--profile", "test",
-            "--output", "table",
-            "--debug",
-            "--verbose"
-        ])
+        result = self.runner.invoke(
+            oracle_cli,
+            ["--profile", "test", "--output", "table", "--debug", "--verbose"],
+        )
 
         assert result.exit_code == 0
 
@@ -280,12 +293,16 @@ class TestConnectionCommands:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     def test_connection_group_help(self) -> None:
         """Test connection group help."""
-        with patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application") as mock_init:
+        with patch(
+            "flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application"
+        ) as mock_init:
             from flext_core import FlextResult
+
             mock_init.return_value = FlextResult[None].ok(None)
 
             result = self.runner.invoke(oracle_cli, ["connection", "--help"])
@@ -295,7 +312,9 @@ class TestConnectionCommands:
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connection_test_success(self, mock_init: Any, mock_create_api: Any) -> None:
+    def test_connection_test_success(
+        self, mock_init: object, mock_create_api: object
+    ) -> None:
         """Test successful connection test command."""
         from flext_core import FlextResult
 
@@ -307,23 +326,36 @@ class TestConnectionCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({"status": "ok"})
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
+            "status": "ok"
+        })
         mock_create_api.return_value = mock_api
 
-        result = self.runner.invoke(oracle_cli, [
-            "connection", "test",
-            "--host", "localhost",
-            "--port", "1521",
-            "--service-name", "XE",
-            "--username", "test"
-        ], input="password\n")  # Provide password input
+        result = self.runner.invoke(
+            oracle_cli,
+            [
+                "connection",
+                "test",
+                "--host",
+                "localhost",
+                "--port",
+                "1521",
+                "--service-name",
+                "XE",
+                "--username",
+                "test",
+            ],
+            input="password\n",
+        )  # Provide password input
 
         assert result.exit_code == 0
         mock_connected_api.test_connection.assert_called_once()
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connection_test_failure(self, mock_init: Any, mock_create_api: Any) -> None:
+    def test_connection_test_failure(
+        self, mock_init: object, mock_create_api: object
+    ) -> None:
         """Test failed connection test command."""
         from flext_core import FlextResult
 
@@ -334,15 +366,25 @@ class TestConnectionCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].fail("Connection failed")
+        mock_connected_api.test_connection.return_value = FlextResult[dict].fail(
+            "Connection failed"
+        )
         mock_create_api.return_value = mock_api
 
-        result = self.runner.invoke(oracle_cli, [
-            "connection", "test",
-            "--host", "localhost",
-            "--service-name", "XE",
-            "--username", "test"
-        ], input="password\n")
+        result = self.runner.invoke(
+            oracle_cli,
+            [
+                "connection",
+                "test",
+                "--host",
+                "localhost",
+                "--service-name",
+                "XE",
+                "--username",
+                "test",
+            ],
+            input="password\n",
+        )
 
         # FlextDecorators catch the exit and convert to exit_code=0
         assert result.exit_code == 0  # Decorator catches the exit
@@ -350,7 +392,9 @@ class TestConnectionCommands:
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connect_env_success(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_connect_env_success(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test successful connect-env command."""
         from flext_core import FlextResult
 
@@ -362,16 +406,20 @@ class TestConnectionCommands:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock API and connection
         mock_api = Mock()
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({"status": "ok"})
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
+            "status": "ok"
+        })
         mock_create_api.return_value = mock_api
 
         result = self.runner.invoke(oracle_cli, ["connect-env"])
@@ -382,12 +430,16 @@ class TestConnectionCommands:
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connect_env_config_failure(self, mock_init: Any, mock_create_config: Any) -> None:
+    def test_connect_env_config_failure(
+        self, mock_init: object, mock_create_config: object
+    ) -> None:
         """Test connect-env with configuration failure."""
         from flext_core import FlextResult
 
         mock_init.return_value = FlextResult[None].ok(None)
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].fail("Config failed")
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].fail(
+            "Config failed"
+        )
 
         result = self.runner.invoke(oracle_cli, ["connect-env"])
 
@@ -405,13 +457,20 @@ class TestQueryCommand:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.format_query_result")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_query_success(self, mock_init: Any, mock_format: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_query_success(
+        self,
+        mock_init: object,
+        mock_format: object,
+        mock_create_api: object,
+        mock_create_config: object,
+    ) -> None:
         """Test successful query execution."""
         from flext_core import FlextResult
 
@@ -423,9 +482,11 @@ class TestQueryCommand:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock API and query result
         mock_api = Mock()
@@ -437,11 +498,9 @@ class TestQueryCommand:
         mock_connected_api.query.return_value = FlextResult[list].ok(query_data)
         mock_create_api.return_value = mock_api
 
-        result = self.runner.invoke(oracle_cli, [
-            "query",
-            "--sql", "SELECT * FROM test_table",
-            "--limit", "10"
-        ])
+        result = self.runner.invoke(
+            oracle_cli, ["query", "--sql", "SELECT * FROM test_table", "--limit", "10"]
+        )
 
         assert result.exit_code == 0
         mock_connected_api.query.assert_called_once_with("SELECT * FROM test_table")
@@ -450,7 +509,9 @@ class TestQueryCommand:
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_query_failure(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_query_failure(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test query execution failure."""
         from flext_core import FlextResult
 
@@ -461,9 +522,11 @@ class TestQueryCommand:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock query failure
         mock_api = Mock()
@@ -473,10 +536,9 @@ class TestQueryCommand:
         mock_connected_api.query.return_value = FlextResult[list].fail("Query failed")
         mock_create_api.return_value = mock_api
 
-        result = self.runner.invoke(oracle_cli, [
-            "query",
-            "--sql", "SELECT * FROM invalid_table"
-        ])
+        result = self.runner.invoke(
+            oracle_cli, ["query", "--sql", "SELECT * FROM invalid_table"]
+        )
 
         # FlextDecorators catch the exit and convert to exit_code=0
         assert result.exit_code == 0  # Decorator catches the exit
@@ -492,12 +554,15 @@ class TestSchemaCommands:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_schemas_command_success(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_schemas_command_success(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test successful schemas command."""
         from flext_core import FlextResult
 
@@ -508,9 +573,11 @@ class TestSchemaCommands:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock schemas result
         mock_api = Mock()
@@ -530,7 +597,9 @@ class TestSchemaCommands:
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_tables_command_success(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_tables_command_success(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test successful tables command."""
         from flext_core import FlextResult
 
@@ -541,9 +610,11 @@ class TestSchemaCommands:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock tables result
         mock_api = Mock()
@@ -571,13 +642,20 @@ class TestHealthCommand:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities._display_health_data")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_health_command_success(self, mock_init: Any, mock_display: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_health_command_success(
+        self,
+        mock_init: object,
+        mock_display: object,
+        mock_create_api: object,
+        mock_create_config: object,
+    ) -> None:
         """Test successful health command."""
         from flext_core import FlextResult
 
@@ -588,9 +666,11 @@ class TestHealthCommand:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock health check result
         mock_api = Mock()
@@ -599,7 +679,9 @@ class TestHealthCommand:
         mock_api.__exit__ = Mock(return_value=None)
 
         health_data = {"status": "healthy", "uptime": "24h"}
-        mock_connected_api.get_health_check.return_value = FlextResult[dict].ok(health_data)
+        mock_connected_api.get_health_check.return_value = FlextResult[dict].ok(
+            health_data
+        )
         mock_create_api.return_value = mock_api
 
         result = self.runner.invoke(oracle_cli, ["health"])
@@ -608,6 +690,7 @@ class TestHealthCommand:
         mock_connected_api.get_health_check.assert_called_once()
         # Mock is imported at the top of the file, so we can use it directly
         from unittest.mock import ANY
+
         mock_display.assert_called_once_with(health_data, "table", ANY)
 
 
@@ -621,13 +704,20 @@ class TestPluginsCommand:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.register_all_oracle_plugins")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_plugins_command_success(self, mock_init: Any, mock_register: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_plugins_command_success(
+        self,
+        mock_init: object,
+        mock_register: object,
+        mock_create_api: object,
+        mock_create_config: object,
+    ) -> None:
         """Test successful plugins command."""
         from flext_core import FlextResult
 
@@ -638,9 +728,11 @@ class TestPluginsCommand:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock API
         mock_api = Mock()
@@ -665,10 +757,11 @@ class TestConfigCommands:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_config_show_command(self, mock_init: Any) -> None:
+    def test_config_show_command(self, mock_init: object) -> None:
         """Test config show command."""
         from flext_core import FlextResult
 
@@ -680,25 +773,33 @@ class TestConfigCommands:
         assert "Oracle CLI Configuration" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_config_set_command(self, mock_init: Any) -> None:
+    def test_config_set_command(self, mock_init: object) -> None:
         """Test config set command."""
         from flext_core import FlextResult
 
         mock_init.return_value = FlextResult[None].ok(None)
 
-        result = self.runner.invoke(oracle_cli, [
-            "config", "set-config",
-            "--profile", "dev",
-            "--output", "json",
-            "--timeout", "60",
-            "--query-limit", "500"
-        ])
+        result = self.runner.invoke(
+            oracle_cli,
+            [
+                "config",
+                "set-config",
+                "--profile",
+                "dev",
+                "--output",
+                "json",
+                "--timeout",
+                "60",
+                "--query-limit",
+                "500",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "configuration updated" in result.output.lower()
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_config_set_no_changes(self, mock_init: Any) -> None:
+    def test_config_set_no_changes(self, mock_init: object) -> None:
         """Test config set with no changes specified."""
         from flext_core import FlextResult
 
@@ -720,11 +821,14 @@ class TestInteractiveCommands:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_interactive_wizard_basic(self, mock_init: Any, mock_create_api: Any) -> None:
+    def test_interactive_wizard_basic(
+        self, mock_init: object, mock_create_api: object
+    ) -> None:
         """Test basic interactive wizard flow."""
         from flext_core import FlextResult
 
@@ -735,19 +839,23 @@ class TestInteractiveCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({"status": "ok"})
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
+            "status": "ok"
+        })
         mock_create_api.return_value = mock_api
 
         # Simulate user input for wizard
         user_input = "localhost\n1521\nXE\ntestuser\ntestpass\nn\ny"
 
-        result = self.runner.invoke(oracle_cli, ["interactive", "wizard"], input=user_input)
+        result = self.runner.invoke(
+            oracle_cli, ["interactive", "wizard"], input=user_input
+        )
 
         assert result.exit_code == 0
         assert "Oracle Database Connection Wizard" in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_interactive_wizard_keyboard_interrupt(self, mock_init: Any) -> None:
+    def test_interactive_wizard_keyboard_interrupt(self, mock_init: object) -> None:
         """Test wizard handling keyboard interrupt."""
         from flext_core import FlextResult
 
@@ -755,7 +863,9 @@ class TestInteractiveCommands:
 
         # The keyboard interrupt in Click testing doesn't work the same way
         # Let's just test that the wizard starts correctly
-        result = self.runner.invoke(oracle_cli, ["interactive", "wizard"], input="\n\n\ntest\ntest\nn\nn\n")
+        result = self.runner.invoke(
+            oracle_cli, ["interactive", "wizard"], input="\n\n\ntest\ntest\nn\nn\n"
+        )
 
         assert result.exit_code == 0
         assert "Oracle Database Connection Wizard" in result.output
@@ -771,12 +881,15 @@ class TestAnalyzeCommands:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_analyze_database_command(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_analyze_database_command(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test analyze database command."""
         from flext_core import FlextResult
 
@@ -787,9 +900,11 @@ class TestAnalyzeCommands:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock API and analysis results
         mock_api = Mock()
@@ -797,15 +912,21 @@ class TestAnalyzeCommands:
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
 
-        mock_connected_api.get_schemas.return_value = FlextResult[list].ok(["SCHEMA1", "SCHEMA2"])
-        mock_connected_api.get_tables.return_value = FlextResult[list].ok(["TABLE1", "TABLE2", "TABLE3"])
+        mock_connected_api.get_schemas.return_value = FlextResult[list].ok([
+            "SCHEMA1",
+            "SCHEMA2",
+        ])
+        mock_connected_api.get_tables.return_value = FlextResult[list].ok([
+            "TABLE1",
+            "TABLE2",
+            "TABLE3",
+        ])
         mock_create_api.return_value = mock_api
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = self.runner.invoke(oracle_cli, [
-                "analyze", "database",
-                "--directory", temp_dir
-            ])
+            result = self.runner.invoke(
+                oracle_cli, ["analyze", "database", "--directory", temp_dir]
+            )
 
             assert result.exit_code == 0
             assert "Analyzing Oracle database" in result.output
@@ -832,10 +953,11 @@ class TestMainEntryPoint:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.oracle_cli")
-    def test_main_function_success(self, mock_oracle_cli: Any) -> None:
+    def test_main_function_success(self, mock_oracle_cli: object) -> None:
         """Test main function with successful execution."""
         mock_oracle_cli.return_value = None
 
@@ -846,7 +968,7 @@ class TestMainEntryPoint:
             pytest.fail("main() should not raise SystemExit on success")
 
     @patch("flext_db_oracle.cli.oracle_cli")
-    def test_main_function_keyboard_interrupt(self, mock_oracle_cli: Any) -> None:
+    def test_main_function_keyboard_interrupt(self, mock_oracle_cli: object) -> None:
         """Test main function with keyboard interrupt."""
         mock_oracle_cli.side_effect = KeyboardInterrupt()
 
@@ -856,7 +978,7 @@ class TestMainEntryPoint:
         assert exc_info.value.code == 130
 
     @patch("flext_db_oracle.cli.oracle_cli")
-    def test_main_function_general_exception(self, mock_oracle_cli: Any) -> None:
+    def test_main_function_general_exception(self, mock_oracle_cli: object) -> None:
         """Test main function with general exception."""
         mock_oracle_cli.side_effect = Exception("Test error")
 
@@ -876,6 +998,7 @@ class TestCliEnvironmentVariables:
     def teardown_method(self) -> None:
         """Clean up global app instance and environment after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
         # Clean up environment variables
@@ -888,17 +1011,14 @@ class TestCliEnvironmentVariables:
                 del os.environ[var]
 
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_cli_with_environment_variables(self, mock_init: Any) -> None:
+    def test_cli_with_environment_variables(self, mock_init: object) -> None:
         """Test CLI with environment variables."""
         from flext_core import FlextResult
 
         mock_init.return_value = FlextResult[None].ok(None)
 
         # Set environment variables
-        env_vars = {
-            "FLEXT_DB_ORACLE_PROFILE": "staging",
-            "FLEXT_DB_ORACLE_DEBUG": "1"
-        }
+        env_vars = {"FLEXT_DB_ORACLE_PROFILE": "staging", "FLEXT_DB_ORACLE_DEBUG": "1"}
 
         result = self.runner.invoke(oracle_cli, [], env=env_vars)
 
@@ -915,12 +1035,15 @@ class TestCliOutputFormats:
     def teardown_method(self) -> None:
         """Clean up global app instance after each test."""
         import flext_db_oracle.cli
+
         flext_db_oracle.cli.app = None
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_schemas_json_output(self, mock_init: Any, mock_create_api: Any, mock_create_config: Any) -> None:
+    def test_schemas_json_output(
+        self, mock_init: object, mock_create_api: object, mock_create_config: object
+    ) -> None:
         """Test schemas command with JSON output."""
         from flext_core import FlextResult
 
@@ -931,9 +1054,11 @@ class TestCliOutputFormats:
             port=1521,
             service_name="XE",
             username="test",
-            password=SecretStr("password")
+            password=SecretStr("password"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Mock schemas result
         mock_api = Mock()
@@ -955,7 +1080,9 @@ class TestCliOutputFormats:
             if "{" in result.output:
                 # Extract JSON part from output
                 lines = result.output.split("\n")
-                json_start = next(i for i, line in enumerate(lines) if line.strip().startswith("{"))
+                json_start = next(
+                    i for i, line in enumerate(lines) if line.strip().startswith("{")
+                )
                 json_end = len(lines)
                 for i in range(json_start + 1, len(lines)):
                     if lines[i].strip() == "}":

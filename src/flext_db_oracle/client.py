@@ -28,9 +28,9 @@ from flext_cli import (
     setup_cli,
 )
 from flext_core import (
-    FlextContainer,
     FlextDomainService,
     FlextResult,
+    get_flext_container,
     get_logger,
 )
 from pydantic import SecretStr
@@ -62,7 +62,7 @@ class FlextDbOracleCliApplication:
         # Core CLI components using modern patterns
         self.console = Console()
         self.logger = get_logger(__name__)
-        self.container: object = FlextContainer()
+        self.container: object = get_flext_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()
 
@@ -131,7 +131,7 @@ app: FlextDbOracleCliApplication | None = None
 
 def get_app(*, debug: bool = False) -> FlextDbOracleCliApplication:
     """Get or create the global application instance with proper configuration."""
-    global app  # noqa: PLW0603
+    global app
     if app is None:
         app = FlextDbOracleCliApplication(debug=debug)
     return app
@@ -223,6 +223,7 @@ if TYPE_CHECKING:
 
 
 # At runtime, oracle_cli remains the decorated function
+
 
 # Connection Management Commands Group
 @oracle_cli.group()
@@ -342,7 +343,9 @@ def connect_env(ctx: click.Context) -> FlextResult[dict[str, object]]:
             # Test connection
             test_result = connected_api.test_connection()
             if not test_result.success:
-                return FlextResult[dict[str, object]].fail(f"Connection test failed: {test_result.error}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Connection test failed: {test_result.error}"
+                )
 
             if debug:
                 app.console.print(
@@ -395,7 +398,10 @@ def query(ctx: click.Context, sql: str, limit: int) -> None:
 
                 # Apply limit to result data if needed
                 original_result = query_result.value
-                if hasattr(original_result, "rows") and len(original_result.rows) > limit:
+                if (
+                    hasattr(original_result, "rows")
+                    and len(original_result.rows) > limit
+                ):
                     app.console.print(
                         f"[yellow]Result limited to {limit} rows[/yellow]"
                     )
@@ -404,7 +410,9 @@ def query(ctx: click.Context, sql: str, limit: int) -> None:
                         rows=original_result.rows[:limit],
                         columns=original_result.columns,
                         row_count=len(original_result.rows[:limit]),
-                        execution_time_ms=getattr(original_result, "execution_time_ms", 0.0),
+                        execution_time_ms=getattr(
+                            original_result, "execution_time_ms", 0.0
+                        ),
                         query_hash=getattr(original_result, "query_hash", None),
                         explain_plan=getattr(original_result, "explain_plan", None),
                     )
@@ -587,7 +595,9 @@ def health(ctx: click.Context) -> None:
                         )
                         ctx.exit(1)
                     # Convert bool result to health data format
-                    health_data = {"status": "healthy" if connection_result.value else "unhealthy"}
+                    health_data = {
+                        "status": "healthy" if connection_result.value else "unhealthy"
+                    }
 
                 # Display health status (FlextDbOracleUtilities._display_health_data not available)
                 app.console.print(f"Health data: {health_data!s}")
@@ -984,7 +994,9 @@ class FlextDbOracleClis(FlextDomainService[str]):
             config = FlextDbOracleConfig.from_env()
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(f"Production config creation failed: {e}")
+            return FlextResult[FlextDbOracleConfig].fail(
+                f"Production config creation failed: {e}"
+            )
 
     @staticmethod
     def create_development_config() -> FlextResult[FlextDbOracleConfig]:
@@ -996,7 +1008,9 @@ class FlextDbOracleClis(FlextDomainService[str]):
             config = FlextDbOracleConfig.from_env()
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(f"Development config creation failed: {e}")
+            return FlextResult[FlextDbOracleConfig].fail(
+                f"Development config creation failed: {e}"
+            )
 
     @staticmethod
     def setup_cli_environment() -> FlextResult[bool]:
@@ -1018,7 +1032,9 @@ class FlextDbOracleClis(FlextDomainService[str]):
 
             # Check if Oracle utilities class is available
             if not hasattr(FlextDbOracleUtilities, "__init__"):
-                return FlextResult[bool].fail("Oracle utilities not properly configured")
+                return FlextResult[bool].fail(
+                    "Oracle utilities not properly configured"
+                )
 
             return FlextResult[bool].ok(data=True)
         except Exception as e:

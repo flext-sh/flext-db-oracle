@@ -52,9 +52,9 @@ from time import perf_counter
 from typing import Self
 
 from flext_core import (
-    FlextContainer,
     FlextDomainService,
     FlextResult,
+    get_flext_container,
     get_logger,
 )
 
@@ -127,7 +127,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     ) -> None:
         """Initialize Oracle API with consolidated functionality."""
         self._context_name = context_name
-        self._container = FlextContainer()
+        self._container = get_flext_container()
         self._logger = get_logger(f"FlextDbOracleApi.{context_name}")
 
         # Configuration

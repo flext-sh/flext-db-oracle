@@ -255,9 +255,11 @@ class FlextDbOracleExceptions(FlextExceptions):
         context: dict[str, object] | None = None,
     ) -> FlextExceptions:
         """Create Oracle database error using factory pattern."""
-        from flext_core import FlextExceptions  # noqa: PLC0415
+        from flext_core import FlextExceptions
 
-        return FlextExceptions(message, error_code=code or "ORACLE_ERROR", context=context)
+        return FlextExceptions(
+            message, error_code=code or "ORACLE_ERROR", context=context
+        )
 
     @classmethod
     def create_connection_error(
@@ -387,7 +389,7 @@ class FlextDbOracleExceptions(FlextExceptions):
 
     # Maintain existing functionality as aliases
     # BaseError was removed - use FlextExceptions from flext-core directly
-    from flext_core import FlextExceptions  # noqa: PLC0415
+    from flext_core import FlextExceptions
 
     FlextDbOracleError = FlextExceptions
     FlextDbOracleValidationError = ValidationError

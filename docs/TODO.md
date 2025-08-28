@@ -227,7 +227,7 @@ class OracleQueryCache:
     def __init__(self, cache_strategy: CacheStrategy):
         self._cache = cache_strategy
 
-    def cache_metadata_queries(self, query: str, ttl: timedelta) -> FlextResult[Any]:
+    def cache_metadata_queries(self, query: str, ttl: timedelta) -> FlextResult[object]:
         # Cache Oracle metadata queries with configurable TTL
 ```
 

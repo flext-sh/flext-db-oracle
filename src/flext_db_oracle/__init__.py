@@ -30,6 +30,7 @@ from flext_db_oracle.utilities import *
 # CLI imports (with lazy loading protection)
 try:
     from flext_db_oracle.client import oracle_cli, FlextDbOracleClis
+
     _CLI_AVAILABLE = True
 except ImportError:
     _CLI_AVAILABLE = False
@@ -59,7 +60,7 @@ def __getattr__(name: str) -> click.Command:  # pragma: no cover - import-time l
     """
     if name in {"oracle", "oracle_cli"}:
         try:
-            from flext_db_oracle.client import oracle_cli  # noqa: PLC0415
+            from flext_db_oracle.client import oracle_cli
 
             return oracle_cli
         except ImportError:

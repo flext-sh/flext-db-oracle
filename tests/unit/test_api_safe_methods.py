@@ -24,7 +24,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="TEST",
             username="test",
-            password=SecretStr("test")
+            password=SecretStr("test"),
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -39,7 +39,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="TESTDB",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         api = FlextDbOracleApi.with_config(config, operation_name="test_op")
@@ -54,7 +54,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="HEALTH_TEST",
             username="health_user",
-            password=SecretStr("health_pass")
+            password=SecretStr("health_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -70,7 +70,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="OPT_TEST",
             username="opt_user",
-            password=SecretStr("opt_pass")
+            password=SecretStr("opt_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -81,7 +81,9 @@ class TestFlextDbOracleApiSafeMethods:
         assert isinstance(result.value, dict)
 
         # Test with complex query
-        complex_query = "SELECT e.*, d.name FROM employees e JOIN departments d ON e.dept_id = d.id"
+        complex_query = (
+            "SELECT e.*, d.name FROM employees e JOIN departments d ON e.dept_id = d.id"
+        )
         result2 = api.optimize_query(complex_query)
         assert result2.success
         assert isinstance(result2.value, dict)
@@ -93,7 +95,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="PLUGIN_TEST",
             username="plugin_user",
-            password=SecretStr("plugin_pass")
+            password=SecretStr("plugin_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -105,7 +107,10 @@ class TestFlextDbOracleApiSafeMethods:
             assert isinstance(plugins_result.value, list)
         else:
             # API may return error for empty plugin list - that's valid behavior
-            assert "empty" in plugins_result.error.lower() or "not found" in plugins_result.error.lower()
+            assert (
+                "empty" in plugins_result.error.lower()
+                or "not found" in plugins_result.error.lower()
+            )
 
         # Create a test plugin
         plugin_result = create_performance_monitor_plugin()
@@ -139,7 +144,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="ERROR_TEST",
             username="error_user",
-            password=SecretStr("error_pass")
+            password=SecretStr("error_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -150,7 +155,7 @@ class TestFlextDbOracleApiSafeMethods:
         assert "not found" in result.error.lower()
 
         # Test register_plugin with None (architecture is defensive - allows None)
-        register_result = api.register_plugin(None)  # type: ignore[arg-type]
+        register_result = api.register_plugin(None)
         assert register_result.success  # Architecture allows None plugins
 
     def test_api_connection_properties_without_connection(self) -> None:
@@ -160,7 +165,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="PROP_TEST",
             username="prop_user",
-            password=SecretStr("prop_pass")
+            password=SecretStr("prop_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -182,7 +187,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="METRICS_TEST",
             username="metrics_user",
-            password=SecretStr("metrics_pass")
+            password=SecretStr("metrics_pass"),
         )
 
         api = FlextDbOracleApi(config)
@@ -204,7 +209,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="INIT1",
             username="user1",
-            password=SecretStr("pass1")
+            password=SecretStr("pass1"),
         )
         api1 = FlextDbOracleApi(config1)
         assert api1.config.host == "init1"
@@ -215,7 +220,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             service_name="INIT2",
             username="user2",
-            password=SecretStr("pass2")
+            password=SecretStr("pass2"),
         )
         api2 = FlextDbOracleApi(config2, context_name="test_context")
         assert api2.config.host == "init2"

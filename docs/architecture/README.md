@@ -274,7 +274,7 @@ class IOraclePlugin(Protocol):
     def supports(self, operation: str) -> bool:
         """Check if plugin supports the operation."""
 
-    def execute(self, context: OracleOperationContext) -> FlextResult[Any]:
+    def execute(self, context: OracleOperationContext) -> FlextResult[object]:
         """Execute plugin logic."""
 
 # Plugin Manager (Application Layer)
@@ -290,7 +290,7 @@ class OraclePluginManager:
         plugin = self._container.resolve(plugin_type)
         self._plugins.append(plugin)
 
-    def execute_plugins(self, operation: str, context: OracleOperationContext) -> FlextResult[List[Any]]:
+    def execute_plugins(self, operation: str, context: OracleOperationContext) -> FlextResult[List[object]]:
         """Execute all plugins that support the operation."""
         results = []
         for plugin in self._plugins:
@@ -308,7 +308,7 @@ class DataValidationPlugin(IOraclePlugin):
     def supports(self, operation: str) -> bool:
         return operation in ["insert", "update", "bulk_load"]
 
-    def execute(self, context: OracleOperationContext) -> FlextResult[Any]:
+    def execute(self, context: OracleOperationContext) -> FlextResult[object]:
         # Validation logic
         return FlextResult[None].ok({"validation": "passed"})
 ```
@@ -325,7 +325,7 @@ class IOracleRepository(Protocol):
     def get_table_metadata(self, schema: str, table: str) -> FlextResult[OracleTable]:
         ...
 
-    def execute_query(self, sql: str, params: Dict[str, Any]) -> FlextResult[QueryResult]:
+    def execute_query(self, sql: str, params: Dict[str, object]) -> FlextResult[QueryResult]:
         ...
 
 # Infrastructure Implementation
@@ -337,7 +337,7 @@ class OracleRepository(IOracleRepository):
         # SQLAlchemy-based implementation
         pass
 
-    def execute_query(self, sql: str, params: Dict[str, Any]) -> FlextResult[QueryResult]:
+    def execute_query(self, sql: str, params: Dict[str, object]) -> FlextResult[QueryResult]:
         # Safe parameterized query execution
         pass
 ```
@@ -373,7 +373,7 @@ Event-driven architecture for monitoring:
 ```python
 class OracleOperationEvent:
     """Domain event for Oracle operations."""
-    def __init__(self, operation: str, context: Dict[str, Any]):
+    def __init__(self, operation: str, context: Dict[str, object]):
         self.operation = operation
         self.context = context
         self.timestamp = datetime.utcnow()

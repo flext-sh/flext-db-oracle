@@ -30,7 +30,7 @@ class TestOracleE2E:
     # Remove test_config fixture - use real_oracle_config from conftest.py
 
     @pytest.mark.e2e
-    def test_complete_oracle_workflow(  # noqa: PLR0912, PLR0915
+    def test_complete_oracle_workflow(
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
@@ -51,18 +51,14 @@ class TestOracleE2E:
             connection_test = api.test_connection()
             if connection_test.is_failure:
                 msg = "Connection"
-                raise TestOperationError(
-                    msg, connection_test.error or "Unknown error"
-                )
+                raise TestOperationError(msg, connection_test.error or "Unknown error")
             # Success case - connection is validated
 
             # Test schema discovery
             schemas_result = api.get_schemas()
             if schemas_result.is_failure:
                 msg = "Schema discovery"
-                raise TestOperationError(
-                    msg, schemas_result.error or "Unknown error"
-                )
+                raise TestOperationError(msg, schemas_result.error or "Unknown error")
             schemas = schemas_result.value
             assert len(schemas) > 0, "No schemas found"
 
@@ -70,9 +66,7 @@ class TestOracleE2E:
             tables_result = api.get_tables()
             if tables_result.is_failure:
                 msg = "Table listing"
-                raise TestOperationError(
-                    msg, tables_result.error or "Unknown error"
-                )
+                raise TestOperationError(msg, tables_result.error or "Unknown error")
             # Success case - tables are available for testing
 
             # Test DDL generation and execution

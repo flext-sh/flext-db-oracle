@@ -44,7 +44,7 @@ Create a Singer tap that extracts data from Oracle using FLEXT DB Oracle:
 ```python
 # flext-tap-oracle/tap_oracle/tap.py
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, List, object
 from singer_sdk import Tap, Stream
 from singer_sdk.typing import PropertiesList, Property, StringType, IntegerType
 
@@ -121,7 +121,7 @@ class TapOracle(Tap):
 
         return streams
 
-    def _table_to_singer_schema(self, table) -> Dict[str, Any]:
+    def _table_to_singer_schema(self, table) -> Dict[str, object]:
         """Convert Oracle table metadata to Singer schema."""
         properties = {}
 
@@ -148,7 +148,7 @@ class OracleTableStream(Stream):
         super().__init__(tap, *args, **kwargs)
         self.oracle_table = oracle_table
 
-    def get_records(self, context: Dict[str, Any] = None) -> Any:
+    def get_records(self, context: Dict[str, object] = None) -> object:
         """Extract records from Oracle table."""
         # Build SQL query
         columns = [col.name for col in self.oracle_table.columns]
@@ -184,7 +184,7 @@ class IncrementalOracleStream(OracleTableStream):
     replication_method = "INCREMENTAL"
     replication_key = "updated_at"
 
-    def get_records(self, context: Dict[str, Any] = None) -> Any:
+    def get_records(self, context: Dict[str, object] = None) -> object:
         """Extract records incrementally based on replication key."""
         last_value = context.get("replication_key_value") if context else None
 
@@ -245,7 +245,8 @@ Create a Singer target that loads data into Oracle using FLEXT DB Oracle:
 
 ```python
 # flext-target-oracle/target_oracle/target.py
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Optional
+
 from singer_sdk import Target
 from singer_sdk.sinks import SQLSink
 
