@@ -31,7 +31,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             port=1521,
             service_name="TEST_SERVICE",
             username="test_user",
-            password=SecretStr("test_password")
+            password=SecretStr("test_password"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -39,8 +39,14 @@ class TestFlextDbOracleConnectionMassiveCoverage:
 
     @patch("flext_db_oracle.connection.create_engine")
     @patch("flext_db_oracle.connection.sessionmaker")
-    @patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].ok(None))
-    def test_connect_success_complete_flow(self, mock_validate, mock_sessionmaker, mock_create_engine) -> None:
+    @patch.object(
+        FlextDbOracleConfig,
+        "validate_business_rules",
+        return_value=FlextResult[None].ok(None),
+    )
+    def test_connect_success_complete_flow(
+        self, mock_validate, mock_sessionmaker, mock_create_engine
+    ) -> None:
         """Test complete successful connection flow."""
         # Setup comprehensive mocks
         mock_engine = Mock(spec=Engine)
@@ -55,9 +61,13 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         mock_sessionmaker.return_value = mock_session_class
 
         # Mock URL building
-        with patch.object(self.connection, "_build_connection_url",
-                         return_value=FlextResult[str].ok("oracle+oracledb://test:***@test_host:1521/TEST_SERVICE")):
-
+        with patch.object(
+            self.connection,
+            "_build_connection_url",
+            return_value=FlextResult[str].ok(
+                "oracle+oracledb://test:***@test_host:1521/TEST_SERVICE"
+            ),
+        ):
             result = self.connection.connect()
 
         assert result.success
@@ -67,7 +77,11 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         mock_create_engine.assert_called_once()
         mock_sessionmaker.assert_called_once()
 
-    @patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].fail("Config invalid"))
+    @patch.object(
+        FlextDbOracleConfig,
+        "validate_business_rules",
+        return_value=FlextResult[None].fail("Config invalid"),
+    )
     def test_connect_config_validation_failure(self, mock_validate) -> None:
         """Test connection failure due to config validation."""
         result = self.connection.connect()
@@ -77,25 +91,46 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         assert not self.connection.is_connected
 
     @patch("flext_db_oracle.connection.create_engine")
-    @patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].ok(None))
-    def test_connect_url_building_failure(self, mock_validate, mock_create_engine) -> None:
+    @patch.object(
+        FlextDbOracleConfig,
+        "validate_business_rules",
+        return_value=FlextResult[None].ok(None),
+    )
+    def test_connect_url_building_failure(
+        self, mock_validate, mock_create_engine
+    ) -> None:
         """Test connection failure due to URL building error."""
-        with patch.object(self.connection, "_build_connection_url",
-                         return_value=FlextResult[str].fail("URL build failed")):
-
+        with patch.object(
+            self.connection,
+            "_build_connection_url",
+            return_value=FlextResult[str].fail("URL build failed"),
+        ):
             result = self.connection.connect()
 
         assert not result.success
         assert "URL build failed" in result.error
         mock_create_engine.assert_not_called()
 
-    @patch("flext_db_oracle.connection.create_engine", side_effect=Exception("Engine creation failed"))
-    @patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].ok(None))
-    def test_connect_engine_creation_failure(self, mock_validate, mock_create_engine) -> None:
+    @patch(
+        "flext_db_oracle.connection.create_engine",
+        side_effect=Exception("Engine creation failed"),
+    )
+    @patch.object(
+        FlextDbOracleConfig,
+        "validate_business_rules",
+        return_value=FlextResult[None].ok(None),
+    )
+    def test_connect_engine_creation_failure(
+        self, mock_validate, mock_create_engine
+    ) -> None:
         """Test connection failure during engine creation."""
-        with patch.object(self.connection, "_build_connection_url",
-                         return_value=FlextResult[str].ok("oracle+oracledb://test:***@test:1521/TEST")):
-
+        with patch.object(
+            self.connection,
+            "_build_connection_url",
+            return_value=FlextResult[str].ok(
+                "oracle+oracledb://test:***@test:1521/TEST"
+            ),
+        ):
             result = self.connection.connect()
 
         assert not result.success
@@ -175,7 +210,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             service_name="TEST_SERVICE",
             username="test_user",
             password=SecretStr("test_password"),
-            schema="TEST_SCHEMA"
+            schema="TEST_SCHEMA",
         )
         connection = FlextDbOracleConnection(config)
 
@@ -192,7 +227,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             port=1521,
             service_name="TEST_SERVICE",
             username="test_user",
-            password=SecretStr("test_password")
+            password=SecretStr("test_password"),
         )
         connection = FlextDbOracleConnection(config)
 
@@ -262,7 +297,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             "id": "NUMBER PRIMARY KEY",
             "name": "VARCHAR2(100) NOT NULL",
             "email": "VARCHAR2(200)",
-            "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            "created_at": "TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
         }
 
         result = self.connection.create_table_ddl("test_table", columns)
@@ -289,7 +324,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             ("NUMBER", "NUMBER"),
             ("TIMESTAMP", "TIMESTAMP"),
             ("CLOB", "CLOB"),
-            ("BLOB", "BLOB")
+            ("BLOB", "BLOB"),
         ]
 
         for input_type, expected in test_cases:
@@ -305,7 +340,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             ("string", None, "VARCHAR2"),
             ("string", "date-time", "TIMESTAMP"),
             ("string", "date", "DATE"),
-            ("string", "time", "TIMESTAMP")
+            ("string", "time", "TIMESTAMP"),
         ]
 
         for singer_type, format_hint, expected in test_cases:
@@ -319,7 +354,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
             ("integer", None, "NUMBER"),
             ("number", None, "NUMBER"),
             (["integer"], None, "NUMBER"),
-            (["number"], None, "NUMBER")
+            (["number"], None, "NUMBER"),
         ]
 
         for singer_type, format_hint, expected in test_cases:
@@ -360,9 +395,9 @@ class TestFlextDbOracleConnectionMassiveCoverage:
 
     def test_ensure_connected_when_not_connected(self) -> None:
         """Test ensure_connected when not connected."""
-        with patch.object(self.connection, "connect",
-                         return_value=FlextResult[None].ok(None)) as mock_connect:
-
+        with patch.object(
+            self.connection, "connect", return_value=FlextResult[None].ok(None)
+        ) as mock_connect:
             result = self.connection.ensure_connected()
 
         mock_connect.assert_called_once()
@@ -370,15 +405,21 @@ class TestFlextDbOracleConnectionMassiveCoverage:
 
     def test_ensure_connected_connect_fails(self) -> None:
         """Test ensure_connected when connect fails."""
-        with patch.object(self.connection, "connect",
-                         return_value=FlextResult[None].fail("Connection failed")):
-
+        with patch.object(
+            self.connection,
+            "connect",
+            return_value=FlextResult[None].fail("Connection failed"),
+        ):
             result = self.connection.ensure_connected()
 
         assert not result.success
         assert "Connection failed" in result.error
 
-    @patch.object(FlextDbOracleConnection, "is_connected", new_callable=lambda: property(lambda self: True))
+    @patch.object(
+        FlextDbOracleConnection,
+        "is_connected",
+        new_callable=lambda: property(lambda self: True),
+    )
     def test_get_session_success(self, mock_connected) -> None:
         """Test successful session creation."""
         mock_session_factory = Mock()
@@ -397,7 +438,10 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         result = self.connection.get_session()
 
         assert not result.success
-        assert "not connected" in result.error.lower() or "connection" in result.error.lower()
+        assert (
+            "not connected" in result.error.lower()
+            or "connection" in result.error.lower()
+        )
 
     def test_get_session_no_factory(self) -> None:
         """Test get_session when session factory is None."""
@@ -435,7 +479,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
     def test_connection_logging_and_metrics(self) -> None:
         """Test that connection operations generate appropriate logs/metrics."""
         # This tests integration points without requiring real logging
-        with patch("flext_db_oracle.connection.get_logger") as mock_logger:
+        with patch("flext_db_oracle.connection.FlextLogger") as mock_logger:
             mock_logger.return_value = Mock()
 
             # Test various operations that should log

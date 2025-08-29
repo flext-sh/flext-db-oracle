@@ -19,7 +19,7 @@ from __future__ import annotations
 import os
 from typing import cast
 
-from flext_core import get_logger
+from flext_core import FlextLogger
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -28,7 +28,7 @@ from flext_db_oracle import (
     FlextDbOracleUtilities,
 )
 
-logger = get_logger(__name__)
+logger = FlextLogger(__name__)
 
 
 def demo_basic_usage() -> None:

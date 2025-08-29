@@ -53,9 +53,9 @@ from typing import Self
 
 from flext_core import (
     FlextDomainService,
+    FlextLogger,
     FlextResult,
     get_flext_container,
-    get_logger,
 )
 
 from flext_db_oracle.models import (
@@ -128,7 +128,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         """Initialize Oracle API with consolidated functionality."""
         self._context_name = context_name
         self._container = get_flext_container()
-        self._logger = get_logger(f"FlextDbOracleApi.{context_name}")
+        self._logger = FlextLogger(f"FlextDbOracleApi.{context_name}")
 
         # Configuration
         self._config = config
@@ -142,17 +142,11 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         self._plugins: dict[str, object] = {}
 
         # Initialize consolidated services (only if config provided)
-        self._services = (
-            FlextDbOracleServices(config)
-            if config is not None
-            else None
-        )
+        self._services = FlextDbOracleServices(config) if config is not None else None
 
         # Alias for backward compatibility (only if services initialized)
         self._observability = (
-            self._services.observability
-            if self._services is not None
-            else None
+            self._services.observability if self._services is not None else None
         )
 
     # =============================================================================
@@ -199,9 +193,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             raise ValueError(msg)
 
         self._connection = (
-            self._services.connection
-            if self._services is not None
-            else None
+            self._services.connection if self._services is not None else None
         )
 
     def _execute_connection_with_retries(

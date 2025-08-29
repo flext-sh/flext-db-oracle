@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 from typing import cast
 
-from flext_core import get_logger
+from flext_core import FlextLogger
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -24,7 +24,7 @@ from flext_db_oracle import (
 )
 
 # Setup logging
-logger = get_logger(__name__)
+logger = FlextLogger(__name__)
 
 
 def create_sample_config() -> FlextDbOracleConfig:

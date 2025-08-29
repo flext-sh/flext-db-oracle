@@ -29,9 +29,9 @@ from flext_cli import (
 )
 from flext_core import (
     FlextDomainService,
+    FlextLogger,
     FlextResult,
     get_flext_container,
-    get_logger,
 )
 from pydantic import SecretStr
 from rich.console import Console
@@ -61,7 +61,7 @@ class FlextDbOracleCliApplication:
 
         # Core CLI components using modern patterns
         self.console = Console()
-        self.logger = get_logger(__name__)
+        self.logger = FlextLogger(__name__)
         self.container: object = get_flext_container()
         self.api_client = FlextApiClient()
         self.entity_factory = FlextCliEntityFactory()

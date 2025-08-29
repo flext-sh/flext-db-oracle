@@ -98,7 +98,7 @@ class MetadataService:  # Domain
 All layers integrate consistently with FLEXT Core patterns:
 
 ```python
-from flext_core import FlextResult, get_flext_container, get_logger
+from flext_core import FlextResult, get_flext_container, FlextLogger
 
 # FlextResult for all operations
 def execute_query(self, sql: str) -> FlextResult[QueryResult]:
@@ -113,7 +113,7 @@ container = FlextContainer.get_global()
 oracle_service = container.resolve(IOracleService)
 
 # Structured logging with correlation
-logger = get_logger("flext.db.oracle.api")
+logger = FlextLogger("flext.db.oracle.api")
 logger.info("Executing Oracle operation", extra={"correlation_id": context.correlation_id})
 ```
 

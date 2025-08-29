@@ -20,8 +20,8 @@ from datetime import UTC, datetime
 from typing import TypedDict, TypeGuard, cast
 
 from flext_core import (
+    FlextLogger,
     FlextModel,
-    get_logger,
 )
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import SettingsConfigDict
@@ -34,7 +34,7 @@ from flext_db_oracle.constants import (
 # Python 3.13+ type aliases (replacing TypeVar pattern)
 type T = object
 
-logger = get_logger(__name__)
+logger = FlextLogger(__name__)
 
 # Constants
 MAX_PORT_NUMBER = 65535  # Maximum valid TCP port number
@@ -61,7 +61,9 @@ class FlextDbOracleModels:
         column_name: str = Field(..., description="Column name")
         data_type: str = Field(..., description="Oracle data type")
         nullable: bool = Field(default=True, description="Column nullable flag")
-        data_length: int | None = Field(None, description="Data length for character types")
+        data_length: int | None = Field(
+            None, description="Data length for character types"
+        )
         data_precision: int | None = Field(None, description="Numeric precision")
         data_scale: int | None = Field(None, description="Numeric scale")
         column_id: int = Field(..., description="Column position/ID")
@@ -148,26 +150,50 @@ class FlextDbOracleModels:
 
         def is_numeric(self) -> bool:
             """Check if column is numeric type."""
-            return self.data_type in {"NUMBER", "INTEGER", "FLOAT", "BINARY_DOUBLE", "BINARY_FLOAT"}
+            return self.data_type in {
+                "NUMBER",
+                "INTEGER",
+                "FLOAT",
+                "BINARY_DOUBLE",
+                "BINARY_FLOAT",
+            }
 
         def is_character(self) -> bool:
             """Check if column is character type."""
-            return self.data_type in {"VARCHAR2", "CHAR", "NVARCHAR2", "NCHAR", "CLOB", "NCLOB"}
+            return self.data_type in {
+                "VARCHAR2",
+                "CHAR",
+                "NVARCHAR2",
+                "NCHAR",
+                "CLOB",
+                "NCLOB",
+            }
 
         def is_datetime(self) -> bool:
             """Check if column is date/time type."""
-            return self.data_type in {"DATE", "TIMESTAMP", "TIMESTAMP WITH TIME ZONE", "TIMESTAMP WITH LOCAL TIME ZONE"}
+            return self.data_type in {
+                "DATE",
+                "TIMESTAMP",
+                "TIMESTAMP WITH TIME ZONE",
+                "TIMESTAMP WITH LOCAL TIME ZONE",
+            }
 
     class Table(FlextModel):
         """Oracle database table model with metadata and relationships."""
 
         table_name: str = Field(..., description="Table name")
         schema_name: str = Field(default="", description="Schema name")
-        columns: list[FlextDbOracleModels.Column] = Field(default_factory=list, description="Table columns")
+        columns: list[FlextDbOracleModels.Column] = Field(
+            default_factory=list, description="Table columns"
+        )
         row_count: int | None = Field(None, description="Approximate row count")
         created_date: datetime | None = Field(None, description="Table creation date")
-        last_analyzed: datetime | None = Field(None, description="Last statistics analysis date")
-        table_type: str = Field(default="TABLE", description="Table type (TABLE, VIEW, etc.)")
+        last_analyzed: datetime | None = Field(
+            None, description="Last statistics analysis date"
+        )
+        table_type: str = Field(
+            default="TABLE", description="Table type (TABLE, VIEW, etc.)"
+        )
         comments: str | None = Field(None, description="Table comments")
 
         @field_validator("table_name")
@@ -186,7 +212,11 @@ class FlextDbOracleModels:
         @classmethod
         def validate_schema_name(cls, v: str) -> str:
             """Validate schema name."""
-            if v and len(v) > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
+            if (
+                v
+                and len(v)
+                > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
+            ):
                 msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
                 raise ValueError(msg)
             return v.upper() if v else ""
@@ -202,7 +232,9 @@ class FlextDbOracleModels:
             # This would require additional constraint metadata in a real implementation
             return []
 
-        def get_column_by_name(self, column_name: str) -> FlextDbOracleModels.Column | None:
+        def get_column_by_name(
+            self, column_name: str
+        ) -> FlextDbOracleModels.Column | None:
             """Get column by name."""
             for column in self.columns:
                 if column.column_name.upper() == column_name.upper():
@@ -225,10 +257,14 @@ class FlextDbOracleModels:
         """Oracle database schema model with tables and metadata."""
 
         schema_name: str = Field(..., description="Schema name")
-        tables: list[FlextDbOracleModels.Table] = Field(default_factory=list, description="Tables in schema")
+        tables: list[FlextDbOracleModels.Table] = Field(
+            default_factory=list, description="Tables in schema"
+        )
         created_date: datetime | None = Field(None, description="Schema creation date")
         default_tablespace: str | None = Field(None, description="Default tablespace")
-        temporary_tablespace: str | None = Field(None, description="Temporary tablespace")
+        temporary_tablespace: str | None = Field(
+            None, description="Temporary tablespace"
+        )
         profile: str | None = Field(None, description="User profile")
         account_status: str = Field(default="OPEN", description="Account status")
 
@@ -244,7 +280,9 @@ class FlextDbOracleModels:
                 raise ValueError(msg)
             return v.upper()
 
-        def get_table_by_name(self, table_name: str) -> FlextDbOracleModels.Table | None:
+        def get_table_by_name(
+            self, table_name: str
+        ) -> FlextDbOracleModels.Table | None:
             """Get table by name."""
             for table in self.tables:
                 if table.table_name.upper() == table_name.upper():
@@ -263,9 +301,13 @@ class FlextDbOracleModels:
         """Oracle query result model with execution metadata."""
 
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[tuple[object, ...]] = Field(default_factory=list, description="Result rows")
+        rows: list[tuple[object, ...]] = Field(
+            default_factory=list, description="Result rows"
+        )
         row_count: int = Field(default=0, description="Number of rows returned")
-        execution_time_ms: float = Field(default=0.0, description="Query execution time in milliseconds")
+        execution_time_ms: float = Field(
+            default=0.0, description="Query execution time in milliseconds"
+        )
         query_hash: str | None = Field(None, description="Query hash for caching")
         explain_plan: str | None = Field(None, description="Query execution plan")
 
@@ -313,7 +355,10 @@ class FlextDbOracleModels:
             if column_index is None:
                 return []
 
-            return [row[column_index] if column_index < len(row) else None for row in self.rows]
+            return [
+                row[column_index] if column_index < len(row) else None
+                for row in self.rows
+            ]
 
         def is_empty(self) -> bool:
             """Check if result is empty."""
@@ -323,8 +368,12 @@ class FlextDbOracleModels:
         """Oracle database connection status model."""
 
         is_connected: bool = Field(default=False, description="Connection status")
-        connection_time: datetime | None = Field(None, description="Connection timestamp")
-        last_activity: datetime | None = Field(None, description="Last activity timestamp")
+        connection_time: datetime | None = Field(
+            None, description="Connection timestamp"
+        )
+        last_activity: datetime | None = Field(
+            None, description="Last activity timestamp"
+        )
         session_id: str | None = Field(None, description="Oracle session ID")
         host: str | None = Field(None, description="Database host")
         port: int | None = Field(None, description="Database port")
@@ -374,7 +423,9 @@ class FlextDbOracleModels:
         port: int = Field(default=1521, description="Oracle database port")
         username: str = Field(description="Oracle database username")
         password: SecretStr = Field(description="Oracle database password")
-        service_name: str | None = Field(default=None, description="Oracle service name")
+        service_name: str | None = Field(
+            default=None, description="Oracle service name"
+        )
         sid: str | None = Field(default=None, description="Oracle SID")
         oracle_schema: str = Field(default="PUBLIC", description="Oracle schema name")
 
@@ -385,26 +436,40 @@ class FlextDbOracleModels:
 
         # Additional Oracle-specific options
         ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
-        ssl_cert_path: str | None = Field(default=None, description="SSL certificate path")
+        ssl_cert_path: str | None = Field(
+            default=None, description="SSL certificate path"
+        )
         ssl_key_path: str | None = Field(default=None, description="SSL key path")
-        ssl_server_dn_match: bool = Field(default=True, description="SSL server DN match")
-        ssl_server_cert_dn: str | None = Field(None, description="SSL server certificate DN")
+        ssl_server_dn_match: bool = Field(
+            default=True, description="SSL server DN match"
+        )
+        ssl_server_cert_dn: str | None = Field(
+            None, description="SSL server certificate DN"
+        )
         timeout: int = Field(default=30, description="Connection timeout seconds")
         encoding: str = Field(default="UTF-8", description="Character encoding")
         protocol: str = Field(default="tcp", description="Connection protocol")
         autocommit: bool = Field(default=False, description="Enable autocommit mode")
-        retry_attempts: int = Field(default=1, description="Number of connection retry attempts")
-        retry_delay: float = Field(default=1.0, description="Delay between retry attempts in seconds")
+        retry_attempts: int = Field(
+            default=1, description="Number of connection retry attempts"
+        )
+        retry_delay: float = Field(
+            default=1.0, description="Delay between retry attempts in seconds"
+        )
 
         # BaseSettings configuration for automatic environment loading
-        model_config = SettingsConfigDict(env_prefix="FLEXT_TARGET_ORACLE_", env_file=".env")
+        model_config = SettingsConfigDict(
+            env_prefix="FLEXT_TARGET_ORACLE_", env_file=".env"
+        )
 
         @field_validator("host")
         @classmethod
         def validate_host_not_empty(cls, v: str) -> str:
             """Validate host is not empty or whitespace only."""
             if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY)
+                raise ValueError(
+                    FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY
+                )
             return v
 
         @field_validator("username")
@@ -412,7 +477,9 @@ class FlextDbOracleModels:
         def validate_username_not_empty(cls, v: str) -> str:
             """Validate username is not empty or whitespace only."""
             if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY)
+                raise ValueError(
+                    FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY
+                )
             return v
 
         @field_validator("port")
@@ -550,16 +617,35 @@ class FlextDbOracleModels:
     # =============================================================================
 
     # Connection fields
-    host_field = Field(..., description="Oracle database host", min_length=1, max_length=255)
-    port_field = Field(default=1521, description="Oracle database port number", ge=1, le=65535)
-    service_name_field = Field(default="XE", description="Oracle service name or SID", min_length=1, max_length=128)
-    username_field = Field(..., description="Database username", min_length=1, max_length=128)
-    password_field = Field(..., description="Database password", min_length=1, max_length=256, repr=False)
+    host_field = Field(
+        ..., description="Oracle database host", min_length=1, max_length=255
+    )
+    port_field = Field(
+        default=1521, description="Oracle database port number", ge=1, le=65535
+    )
+    service_name_field = Field(
+        default="XE",
+        description="Oracle service name or SID",
+        min_length=1,
+        max_length=128,
+    )
+    username_field = Field(
+        ..., description="Database username", min_length=1, max_length=128
+    )
+    password_field = Field(
+        ..., description="Database password", min_length=1, max_length=256, repr=False
+    )
 
     # Metadata fields
-    schema_name_field = Field(..., description="Database schema name", min_length=1, max_length=128)
-    table_name_field = Field(..., description="Database table name", min_length=1, max_length=128)
-    column_name_field = Field(..., description="Database column name", min_length=1, max_length=128)
+    schema_name_field = Field(
+        ..., description="Database schema name", min_length=1, max_length=128
+    )
+    table_name_field = Field(
+        ..., description="Database table name", min_length=1, max_length=128
+    )
+    column_name_field = Field(
+        ..., description="Database column name", min_length=1, max_length=128
+    )
 
     # =============================================================================
     # TYPE GUARDS AND UTILITIES
@@ -594,9 +680,7 @@ class FlextDbOracleModels:
     def is_result_like(obj: object) -> TypeGuard[object]:
         """Type guard for FlextResult-like objects."""
         return (
-            hasattr(obj, "success")
-            and hasattr(obj, "error")
-            and hasattr(obj, "value")
+            hasattr(obj, "success") and hasattr(obj, "error") and hasattr(obj, "value")
         )
 
     # =============================================================================
@@ -622,9 +706,15 @@ class FlextDbOracleModels:
         comments = kwargs.pop("comments", None)
 
         # Type casting for MyPy with proper type checks
-        data_length_typed = int(data_length) if isinstance(data_length, (int, str)) else None
-        data_precision_typed = int(data_precision) if isinstance(data_precision, (int, str)) else None
-        data_scale_typed = int(data_scale) if isinstance(data_scale, (int, str)) else None
+        data_length_typed = (
+            int(data_length) if isinstance(data_length, (int, str)) else None
+        )
+        data_precision_typed = (
+            int(data_precision) if isinstance(data_precision, (int, str)) else None
+        )
+        data_scale_typed = (
+            int(data_scale) if isinstance(data_scale, (int, str)) else None
+        )
         default_value_typed = str(default_value) if default_value is not None else None
         comments_typed = str(comments) if comments is not None else None
 
@@ -659,8 +749,12 @@ class FlextDbOracleModels:
 
         # Type casting for MyPy with proper type checks
         row_count_typed = int(row_count) if isinstance(row_count, (int, str)) else None
-        created_date_typed = created_date if isinstance(created_date, datetime) else None
-        last_analyzed_typed = last_analyzed if isinstance(last_analyzed, datetime) else None
+        created_date_typed = (
+            created_date if isinstance(created_date, datetime) else None
+        )
+        last_analyzed_typed = (
+            last_analyzed if isinstance(last_analyzed, datetime) else None
+        )
         table_type_typed = str(table_type) if table_type is not None else "TABLE"
         comments_typed = str(comments) if comments is not None else None
 
@@ -692,11 +786,19 @@ class FlextDbOracleModels:
         account_status = kwargs.pop("account_status", "OPEN")
 
         # Type casting for MyPy
-        created_date_typed = created_date if isinstance(created_date, datetime) else None
-        default_tablespace_typed = str(default_tablespace) if default_tablespace is not None else None
-        temporary_tablespace_typed = str(temporary_tablespace) if temporary_tablespace is not None else None
+        created_date_typed = (
+            created_date if isinstance(created_date, datetime) else None
+        )
+        default_tablespace_typed = (
+            str(default_tablespace) if default_tablespace is not None else None
+        )
+        temporary_tablespace_typed = (
+            str(temporary_tablespace) if temporary_tablespace is not None else None
+        )
         profile_typed = str(profile) if profile is not None else None
-        account_status_typed = str(account_status) if account_status is not None else "OPEN"
+        account_status_typed = (
+            str(account_status) if account_status is not None else "OPEN"
+        )
 
         return cls.Schema(
             schema_name=schema_name,
@@ -758,8 +860,12 @@ class FlextDbOracleModels:
         error_message = kwargs.pop("error_message", None)
 
         # Type casting for MyPy with proper type checks
-        connection_time_typed = connection_time if isinstance(connection_time, datetime) else None
-        last_activity_typed = last_activity if isinstance(last_activity, datetime) else None
+        connection_time_typed = (
+            connection_time if isinstance(connection_time, datetime) else None
+        )
+        last_activity_typed = (
+            last_activity if isinstance(last_activity, datetime) else None
+        )
         session_id_typed = str(session_id) if session_id is not None else None
         host_typed = str(host) if host is not None else None
         port_typed = int(port) if isinstance(port, (int, str)) else None
@@ -809,9 +915,11 @@ class FlextDbOracleModels:
             config_data["sid"] = str(sid)
 
         # Add any additional kwargs
-        config_data.update(
-            {key: value for key, value in kwargs.items() if hasattr(cls.OracleConfig, key)}
-        )
+        config_data.update({
+            key: value
+            for key, value in kwargs.items()
+            if hasattr(cls.OracleConfig, key)
+        })
 
         return cls.OracleConfig.model_validate(config_data)
 
@@ -828,10 +936,18 @@ class FlextDbOracleModels:
             target_table=target_table,
             source_columns=source_columns,
             merge_keys=merge_keys,
-            update_columns=cast("list[str] | None", kwargs.get("update_columns")) if isinstance(kwargs.get("update_columns"), list) else None,
-            insert_columns=cast("list[str] | None", kwargs.get("insert_columns")) if isinstance(kwargs.get("insert_columns"), list) else None,
-            schema_name=cast("str | None", kwargs.get("schema_name")) if isinstance(kwargs.get("schema_name"), str) else None,
-            hints=cast("list[str] | None", kwargs.get("hints")) if isinstance(kwargs.get("hints"), list) else None,
+            update_columns=cast("list[str] | None", kwargs.get("update_columns"))
+            if isinstance(kwargs.get("update_columns"), list)
+            else None,
+            insert_columns=cast("list[str] | None", kwargs.get("insert_columns"))
+            if isinstance(kwargs.get("insert_columns"), list)
+            else None,
+            schema_name=cast("str | None", kwargs.get("schema_name"))
+            if isinstance(kwargs.get("schema_name"), str)
+            else None,
+            hints=cast("list[str] | None", kwargs.get("hints"))
+            if isinstance(kwargs.get("hints"), list)
+            else None,
         )
 
     @classmethod
@@ -848,9 +964,15 @@ class FlextDbOracleModels:
             table_name=table_name,
             columns=columns,
             unique=bool(kwargs.get("unique")),
-            schema_name=cast("str | None", kwargs.get("schema_name")) if isinstance(kwargs.get("schema_name"), str) else None,
-            tablespace=cast("str | None", kwargs.get("tablespace")) if isinstance(kwargs.get("tablespace"), str) else None,
-            parallel=cast("int | None", kwargs.get("parallel")) if isinstance(kwargs.get("parallel"), int) else None,
+            schema_name=cast("str | None", kwargs.get("schema_name"))
+            if isinstance(kwargs.get("schema_name"), str)
+            else None,
+            tablespace=cast("str | None", kwargs.get("tablespace"))
+            if isinstance(kwargs.get("tablespace"), str)
+            else None,
+            parallel=cast("int | None", kwargs.get("parallel"))
+            if isinstance(kwargs.get("parallel"), int)
+            else None,
         )
 
     # =============================================================================

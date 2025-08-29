@@ -127,9 +127,9 @@ if connect_result.success:
 ```python
 from flext_db_oracle.metadata import FlextDbOracleMetadataManager
 from flext_db_oracle.types import TDbOracleSchema, TDbOracleTable
-from flext_core import FlextEntity
+from flext_core import FlextModels.Entity
 
-class FlextDbOracleSchema(FlextEntity):
+class FlextDbOracleSchema(FlextModels.Entity):
     """Rich Oracle schema entity with business logic"""
     name: str
     tables: List[TDbOracleTable]
