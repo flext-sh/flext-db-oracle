@@ -24,9 +24,10 @@ import operator
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
+from logging import Logger
 from urllib.parse import quote_plus
 
-from flext_core import FlextDomainService, FlextLogger, FlextResult, get_logger
+from flext_core import FlextDomainService, FlextResult, get_logger
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -56,7 +57,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
     # Declare attributes for MyPy compatibility with frozen class
     config: FlextDbOracleConfig
-    logger: FlextLogger  # Logger from get_logger()
+    logger: Logger  # Logger from get_logger()
     connection: FlextDbOracleServices.ConnectionService
     metadata: FlextDbOracleServices.MetadataService
     observability: FlextDbOracleServices.ObservabilityService
@@ -77,7 +78,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             self._engine: Engine | None = None
             self._session_factory: sessionmaker[Session] | None = None
             self._connected = False
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
 
         def connect(self) -> FlextResult[FlextDbOracleServices.ConnectionService]:
             """Establish Oracle database connection."""
@@ -241,7 +242,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         ) -> None:
             # super().__init__()
             self.connection = connection_service
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
 
         def get_schemas(self) -> FlextResult[list[str]]:
             """Get list of available schemas."""
@@ -358,7 +359,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         ) -> None:
             # super().__init__()
             self.connection = connection_service
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
             self._metrics: dict[str, object] = {}
             self._start_time = datetime.now(UTC)
 
@@ -462,7 +463,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
         def __init__(self) -> None:
             # super().__init__()
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
             self._operations: dict[str, dict[str, object]] = {}
             self._operation_count = 0
 
@@ -612,7 +613,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
         def __init__(self) -> None:
             # super().__init__()
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
             self._plugins: dict[str, dict[str, object]] = {}
 
         def register_plugin(
@@ -672,7 +673,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         ) -> None:
             # super().__init__()
             self.connection = connection_service
-            self.logger: FlextLogger = get_logger(__name__)
+            self.logger: Logger = get_logger(__name__)
 
         def generate_query_hash(
             self, sql: str, params: dict[str, object] | None = None
