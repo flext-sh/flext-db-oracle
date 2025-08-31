@@ -485,9 +485,15 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_session_and_transaction_context_managers(self) -> None:
         """Test session and transaction context managers behavior when not connected."""
         # Test session context manager - should raise when not connected
-        with pytest.raises(ValueError, match="Not connected"), self.connection.session():
+        with (
+            pytest.raises(ValueError, match="Not connected"),
+            self.connection.session(),
+        ):
             pass
 
         # Test transaction context manager - should raise when not connected
-        with pytest.raises(ValueError, match="Not connected to database"), self.connection.transaction():
+        with (
+            pytest.raises(ValueError, match="Not connected to database"),
+            self.connection.transaction(),
+        ):
             pass

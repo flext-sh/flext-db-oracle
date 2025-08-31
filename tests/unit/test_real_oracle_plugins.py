@@ -32,9 +32,7 @@ class TestRealOraclePlugins:
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
             msg = f"Performance plugin creation failed: {plugin_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -49,9 +47,7 @@ class TestRealOraclePlugins:
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
             msg = f"Security plugin creation failed: {plugin_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -66,9 +62,7 @@ class TestRealOraclePlugins:
         # Using modern pattern - handle failure first
         if plugin_result.is_failure:
             msg = f"Validation plugin creation failed: {plugin_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - use modern .value access
         plugin = plugin_result.value
         assert plugin is not None
@@ -104,25 +98,19 @@ class TestRealOraclePluginErrorHandling:
         plugin_result = create_performance_monitor_plugin()
         if plugin_result.is_failure:
             msg = f"Performance plugin creation failed: {plugin_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
         # Security plugin - using modern pattern
         security_result = create_security_audit_plugin()
         if security_result.is_failure:
             msg = f"Security plugin creation failed: {security_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
         # Validation plugin - using modern pattern
         validation_result = create_data_validation_plugin()
         if validation_result.is_failure:
             msg = f"Validation plugin creation failed: {validation_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
     def test_real_plugins_register_with_empty_dict(
         self,
@@ -186,23 +174,17 @@ class TestRealOraclePluginIntegration:
         perf_result = create_performance_monitor_plugin()
         if perf_result.is_failure:
             msg = f"Performance plugin creation failed: {perf_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
         security_result = create_security_audit_plugin()
         if security_result.is_failure:
             msg = f"Security plugin creation failed: {security_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
         validation_result = create_data_validation_plugin()
         if validation_result.is_failure:
             msg = f"Validation plugin creation failed: {validation_result.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
 
         # Test that API operations still work with plugins created - using modern pattern
         tables_result = oracle_api.get_tables()
@@ -237,25 +219,19 @@ class TestRealOraclePluginIntegration:
         perf_plugin = create_performance_monitor_plugin()
         if perf_plugin.is_failure:
             msg = f"Performance plugin creation failed: {perf_plugin.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - performance plugin created
 
         security_plugin = create_security_audit_plugin()
         if security_plugin.is_failure:
             msg = f"Security plugin creation failed: {security_plugin.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - security plugin created
 
         validation_plugin = create_data_validation_plugin()
         if validation_plugin.is_failure:
             msg = f"Validation plugin creation failed: {validation_plugin.error}"
-            raise AssertionError(
-                msg
-            )
+            raise AssertionError(msg)
         # Success case - validation plugin created
 
         # Test query operations still work - using modern pattern

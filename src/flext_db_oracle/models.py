@@ -1,7 +1,7 @@
 """Oracle database Pydantic models following Flext[Area][Module] pattern.
 
 This module contains Oracle-specific models using modern patterns from flext-core.
-Single class inheriting from FlextModel with all Oracle model functionality
+Single class inheriting from FlextModels with all Oracle model functionality
 as internal classes, following SOLID principles, PEP8, Python 3.13+, and FLEXT
 structural patterns.
 
@@ -21,7 +21,7 @@ from typing import TypedDict, TypeGuard, cast
 
 from flext_core import (
     FlextLogger,
-    FlextModel,
+    FlextModels,
 )
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import SettingsConfigDict
@@ -55,7 +55,7 @@ class FlextDbOracleModels:
     into a single entry point with internal organization.
     """
 
-    class Column(FlextModel):
+    class Column(FlextModels):
         """Oracle database column model with complete metadata."""
 
         column_name: str = Field(..., description="Column name")
@@ -178,7 +178,7 @@ class FlextDbOracleModels:
                 "TIMESTAMP WITH LOCAL TIME ZONE",
             }
 
-    class Table(FlextModel):
+    class Table(FlextModels):
         """Oracle database table model with metadata and relationships."""
 
         table_name: str = Field(..., description="Table name")
@@ -253,7 +253,7 @@ class FlextDbOracleModels:
             """Get all datetime columns."""
             return [col for col in self.columns if col.is_datetime()]
 
-    class Schema(FlextModel):
+    class Schema(FlextModels):
         """Oracle database schema model with tables and metadata."""
 
         schema_name: str = Field(..., description="Schema name")
@@ -297,7 +297,7 @@ class FlextDbOracleModels:
             """Get total number of columns across all tables."""
             return sum(len(table.columns) for table in self.tables)
 
-    class QueryResult(FlextModel):
+    class QueryResult(FlextModels):
         """Oracle query result model with execution metadata."""
 
         columns: list[str] = Field(default_factory=list, description="Column names")
@@ -364,7 +364,7 @@ class FlextDbOracleModels:
             """Check if result is empty."""
             return self.row_count == 0
 
-    class ConnectionStatus(FlextModel):
+    class ConnectionStatus(FlextModels):
         """Oracle database connection status model."""
 
         is_connected: bool = Field(default=False, description="Connection status")
@@ -415,7 +415,7 @@ class FlextDbOracleModels:
     # ORACLE CONFIGURATION MODELS - Consolidated from config.py
     # =============================================================================
 
-    class OracleConfig(FlextModel):
+    class OracleConfig(FlextModels):
         """Oracle database configuration extending flext-core centralized config."""
 
         # Core Oracle connection fields
@@ -915,11 +915,13 @@ class FlextDbOracleModels:
             config_data["sid"] = str(sid)
 
         # Add any additional kwargs
-        config_data.update({
-            key: value
-            for key, value in kwargs.items()
-            if hasattr(cls.OracleConfig, key)
-        })
+        config_data.update(
+            {
+                key: value
+                for key, value in kwargs.items()
+                if hasattr(cls.OracleConfig, key)
+            }
+        )
 
         return cls.OracleConfig.model_validate(config_data)
 

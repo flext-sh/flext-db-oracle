@@ -23,7 +23,7 @@ class TestFlextDbOracleConnectionRealMethods:
             port=1521,
             service_name="TEST_SERVICE",
             username="test_user",
-            password=SecretStr("test_password")
+            password=SecretStr("test_password"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -41,7 +41,9 @@ class TestFlextDbOracleConnectionRealMethods:
 
     @patch("sqlalchemy.create_engine")
     @patch("sqlalchemy.orm.sessionmaker")
-    def test_connect_success(self, mock_sessionmaker: Mock, mock_create_engine: Mock) -> None:
+    def test_connect_success(
+        self, mock_sessionmaker: Mock, mock_create_engine: Mock
+    ) -> None:
         """Test successful connection."""
         # Setup mocks
         mock_engine = Mock()
@@ -54,17 +56,24 @@ class TestFlextDbOracleConnectionRealMethods:
 
         # Mock config validation using FlextDbOracleConfig from flext_db_oracle
         from flext_db_oracle.config import FlextDbOracleConfig
-        with patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].ok(None)):
 
-            with patch.object(self.connection, "_build_connection_url") as mock_build_url:
-                mock_build_url.return_value = FlextResult[str].ok("oracle+oracledb://test:test@test:1521/TEST")
+        with patch.object(
+            FlextDbOracleConfig,
+            "validate_business_rules",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(
+            self.connection, "_build_connection_url"
+        ) as mock_build_url:
+            mock_build_url.return_value = FlextResult[str].ok(
+                "oracle+oracledb://test:test@test:1521/TEST"
+            )
 
-                result = self.connection.connect()
+            result = self.connection.connect()
 
-                assert result.success
-                assert self.connection.is_connected()
-                assert self.connection._engine is mock_engine
-                assert self.connection._session_factory is not None
+            assert result.success
+            assert self.connection.is_connected()
+            assert self.connection._engine is mock_engine
+            assert self.connection._session_factory is not None
 
     def test_disconnect_success(self) -> None:
         """Test successful disconnection."""
@@ -127,7 +136,9 @@ class TestFlextDbOracleConnectionRealMethods:
 
     def test_execute_many_not_connected(self) -> None:
         """Test execute_many when not connected."""
-        result = self.connection.execute_many("INSERT INTO test VALUES (:val)", [{"val": 1}])
+        result = self.connection.execute_many(
+            "INSERT INTO test VALUES (:val)", [{"val": 1}]
+        )
 
         assert not result.success
         assert "Not connected" in result.error
@@ -236,7 +247,7 @@ class TestFlextDbOracleConnectionRealMethods:
             table_name="users",
             columns=["id", "name", "email"],
             where_clause="id > 100",
-            limit=50
+            limit=50,
         )
 
         assert result.success
@@ -256,9 +267,7 @@ class TestFlextDbOracleConnectionRealMethods:
     def test_build_select_safe_basic(self) -> None:
         """Test build_select_safe method."""
         result = self.connection.build_select_safe(
-            table_name="safe_table",
-            columns=["col1", "col2"],
-            limit=10
+            table_name="safe_table", columns=["col1", "col2"], limit=10
         )
 
         assert result.success
@@ -282,7 +291,7 @@ class TestFlextDbOracleConnectionRealMethods:
             "name": "user_id",
             "data_type": "NUMBER(10)",
             "nullable": False,
-            "default_value": "1"
+            "default_value": "1",
         }
 
         result = self.connection._build_column_definition(col_info)
@@ -294,10 +303,7 @@ class TestFlextDbOracleConnectionRealMethods:
 
     def test_build_column_definition_minimal(self) -> None:
         """Test _build_column_definition with minimal info."""
-        col_info = {
-            "name": "simple_col",
-            "data_type": "VARCHAR2(50)"
-        }
+        col_info = {"name": "simple_col", "data_type": "VARCHAR2(50)"}
 
         result = self.connection._build_column_definition(col_info)
 
@@ -312,7 +318,7 @@ class TestFlextDbOracleConnectionRealMethods:
         """Test create_table_ddl method."""
         columns = [
             {"name": "id", "data_type": "NUMBER(10)", "nullable": False},
-            {"name": "name", "data_type": "VARCHAR2(100)", "nullable": True}
+            {"name": "name", "data_type": "VARCHAR2(100)", "nullable": True},
         ]
 
         result = self.connection.create_table_ddl("test_table", columns)
@@ -326,7 +332,7 @@ class TestFlextDbOracleConnectionRealMethods:
         """Test create_table_ddl with primary key."""
         columns = [
             {"name": "id", "data_type": "NUMBER(10)", "nullable": False},
-            {"name": "name", "data_type": "VARCHAR2(100)"}
+            {"name": "name", "data_type": "VARCHAR2(100)"},
         ]
         primary_keys = ["id"]
 
@@ -402,7 +408,7 @@ class TestFlextDbOracleConnectionRealMethods:
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string", "maxLength": 50},
-                "active": {"type": "boolean"}
+                "active": {"type": "boolean"},
             }
         }
 
@@ -444,7 +450,7 @@ class TestFlextDbOracleConnectionRealMethods:
             port=1522,
             sid="TESTSID",
             username="sid_user",
-            password=SecretStr("sid_pass")
+            password=SecretStr("sid_pass"),
         )
         connection = FlextDbOracleConnection(config)
 
@@ -476,7 +482,9 @@ class TestFlextDbOracleConnectionRealMethods:
         set_columns = ["name", "email"]
         where_columns = ["id"]
 
-        result = self.connection.build_update_statement("users", set_columns, where_columns)
+        result = self.connection.build_update_statement(
+            "users", set_columns, where_columns
+        )
 
         assert result.success
         assert "UPDATE users SET" in result.value
@@ -489,7 +497,9 @@ class TestFlextDbOracleConnectionRealMethods:
         key_columns = ["id"]
         data_columns = ["name", "email"]
 
-        result = self.connection.build_merge_statement("users", key_columns, data_columns)
+        result = self.connection.build_merge_statement(
+            "users", key_columns, data_columns
+        )
 
         assert result.success
         assert "MERGE INTO users" in result.value
@@ -515,7 +525,7 @@ class TestFlextDbOracleConnectionRealMethods:
             index_name="idx_users_email",
             table_name="users",
             columns=["email"],
-            unique=True
+            unique=True,
         )
 
         result = self.connection.build_create_index_statement(config)
@@ -533,7 +543,9 @@ class TestFlextDbOracleConnectionRealMethods:
         from sqlalchemy.exc import SQLAlchemyError
 
         error = SQLAlchemyError("Test database error")
-        result = self.connection._handle_database_error_with_logging(error, "test_operation")
+        result = self.connection._handle_database_error_with_logging(
+            error, "test_operation"
+        )
 
         assert not result.success
         assert "test_operation" in result.error

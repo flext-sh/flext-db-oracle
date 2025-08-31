@@ -20,7 +20,7 @@ from enum import Enum
 from flext_core import (
     FlextExceptions,
     # FlextExceptions,  # Not available in flext-core
-    FlextProcessingError,
+    FlextExceptions.ProcessingError,
 )
 
 # =============================================================================
@@ -100,8 +100,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             resolved_code = code or "ORACLE_CONNECTION_ERROR"
             super().__init__(message, error_code=resolved_code, context=context)
 
-    class ProcessingError(FlextProcessingError):
-        """Oracle processing error - delegates to FlextProcessingError."""
+    class ProcessingError(FlextExceptions.ProcessingError):
+        """Oracle processing error - delegates to FlextExceptions.ProcessingError."""
 
         def __init__(
             self,

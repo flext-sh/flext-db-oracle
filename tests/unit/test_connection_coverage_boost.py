@@ -24,7 +24,7 @@ class TestFlextDbOracleConnectionInitialization:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -41,7 +41,7 @@ class TestFlextDbOracleConnectionInitialization:
             username="testuser",
             password=SecretStr("testpass"),
             connect_timeout=30,
-            pool_size=10
+            pool_size=10,
         )
 
         connection = FlextDbOracleConnection(config)
@@ -54,7 +54,7 @@ class TestFlextDbOracleConnectionInitialization:
             port=1521,
             service_name="TESTDB",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -70,7 +70,7 @@ class TestFlextDbOracleConnectionInitialization:
             port=1521,
             service_name="TESTDB",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -88,7 +88,7 @@ class TestFlextDbOracleConnectionProperties:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -128,7 +128,7 @@ class TestFlextDbOracleConnectionUrlBuilding:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -150,7 +150,7 @@ class TestFlextDbOracleConnectionUrlBuilding:
             username="testuser",
             password=SecretStr("testpass"),
             connect_timeout=30,
-            pool_size=10
+            pool_size=10,
         )
 
         connection = FlextDbOracleConnection(config)
@@ -167,7 +167,7 @@ class TestFlextDbOracleConnectionUrlBuilding:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -188,7 +188,7 @@ class TestFlextDbOracleConnectionErrorHandling:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -196,7 +196,10 @@ class TestFlextDbOracleConnectionErrorHandling:
 
         # Should fail due to invalid host
         assert not result.success
-        assert any(word in result.error.lower() for word in ["connection", "host", "name or service not known"])
+        assert any(
+            word in result.error.lower()
+            for word in ["connection", "host", "name or service not known"]
+        )
 
     def test_connect_invalid_port(self) -> None:
         """Test connection with invalid port."""
@@ -205,7 +208,7 @@ class TestFlextDbOracleConnectionErrorHandling:
             port=9999,  # Invalid/unreachable port
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -213,7 +216,15 @@ class TestFlextDbOracleConnectionErrorHandling:
 
         # Should fail due to invalid port
         assert not result.success
-        assert any(word in result.error.lower() for word in ["connection refused", "cannot connect", "port", "not connected"])
+        assert any(
+            word in result.error.lower()
+            for word in [
+                "connection refused",
+                "cannot connect",
+                "port",
+                "not connected",
+            ]
+        )
 
     def test_connect_invalid_credentials(self) -> None:
         """Test connection with invalid credentials."""
@@ -222,7 +233,7 @@ class TestFlextDbOracleConnectionErrorHandling:
             port=1521,
             service_name="XE",
             username="invalid_user",
-            password=SecretStr("invalid_password")
+            password=SecretStr("invalid_password"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -239,7 +250,7 @@ class TestFlextDbOracleConnectionErrorHandling:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -255,7 +266,7 @@ class TestFlextDbOracleConnectionErrorHandling:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -275,7 +286,7 @@ class TestFlextDbOracleConnectionQueryMethods:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -285,7 +296,10 @@ class TestFlextDbOracleConnectionQueryMethods:
 
         # Should fail due to no connection
         assert not result.success
-        assert "not connected" in result.error.lower() or "not connected" in result.error.lower()
+        assert (
+            "not connected" in result.error.lower()
+            or "not connected" in result.error.lower()
+        )
 
     def test_fetch_one_not_connected(self) -> None:
         """Test fetch_one when not connected."""
@@ -334,7 +348,7 @@ class TestFlextDbOracleConnectionTransactionMethods:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -383,7 +397,7 @@ class TestFlextDbOracleConnectionMetadataMethods:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -436,7 +450,7 @@ class TestFlextDbOracleConnectionUtilityMethods:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -487,7 +501,7 @@ class TestFlextDbOracleConnectionContextManager:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -504,7 +518,7 @@ class TestFlextDbOracleConnectionContextManager:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
 
         connection = FlextDbOracleConnection(config)
@@ -528,7 +542,7 @@ class TestFlextDbOracleConnectionParameterBinding:
             port=1521,
             service_name="XE",
             username="testuser",
-            password=SecretStr("testpass")
+            password=SecretStr("testpass"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 

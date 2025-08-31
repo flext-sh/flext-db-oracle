@@ -32,7 +32,7 @@ class TestFlextDbOracleConnectionRealCoverage:
             port=1521,
             service_name="TEST_SERVICE",
             username="test_user",
-            password=SecretStr("test_password")
+            password=SecretStr("test_password"),
         )
         self.connection = FlextDbOracleConnection(self.config)
 
@@ -56,8 +56,14 @@ class TestFlextDbOracleConnectionRealCoverage:
 
     @patch("flext_db_oracle.connection.create_engine")
     @patch("flext_db_oracle.connection.sessionmaker")
-    @patch.object(FlextDbOracleConfig, "validate_business_rules", return_value=FlextResult[None].ok(None))
-    def test_connect_success_with_proper_mocks(self, mock_validate, mock_sessionmaker, mock_create_engine) -> None:
+    @patch.object(
+        FlextDbOracleConfig,
+        "validate_business_rules",
+        return_value=FlextResult[None].ok(None),
+    )
+    def test_connect_success_with_proper_mocks(
+        self, mock_validate, mock_sessionmaker, mock_create_engine
+    ) -> None:
         """Test successful connection with proper mocking."""
         # Setup engine mock with all required attributes
         mock_engine = Mock(spec=Engine)
@@ -74,9 +80,13 @@ class TestFlextDbOracleConnectionRealCoverage:
         mock_sessionmaker.return_value = Mock()
 
         # Mock URL building
-        with patch.object(self.connection, "_build_connection_url",
-                         return_value=FlextResult[str].ok("oracle+oracledb://test:***@host:1521/?service_name=TEST")):
-
+        with patch.object(
+            self.connection,
+            "_build_connection_url",
+            return_value=FlextResult[str].ok(
+                "oracle+oracledb://test:***@host:1521/?service_name=TEST"
+            ),
+        ):
             result = self.connection.connect()
 
         assert result.success
@@ -86,8 +96,11 @@ class TestFlextDbOracleConnectionRealCoverage:
 
     def test_connect_config_validation_failure(self) -> None:
         """Test connect fails when config validation fails."""
-        with patch.object(FlextDbOracleConfig, "validate_business_rules",
-                         return_value=FlextResult[None].fail("Invalid config")):
+        with patch.object(
+            FlextDbOracleConfig,
+            "validate_business_rules",
+            return_value=FlextResult[None].fail("Invalid config"),
+        ):
             result = self.connection.connect()
 
         assert not result.success
@@ -144,9 +157,9 @@ class TestFlextDbOracleConnectionRealCoverage:
 
     def test_ensure_connected_when_not_connected(self) -> None:
         """Test _ensure_connected when not connected."""
-        with patch.object(self.connection, "connect",
-                         return_value=FlextResult[bool].ok(True)) as mock_connect:
-
+        with patch.object(
+            self.connection, "connect", return_value=FlextResult[bool].ok(True)
+        ) as mock_connect:
             result = self.connection._ensure_connected()
 
         mock_connect.assert_called_once()
@@ -154,9 +167,11 @@ class TestFlextDbOracleConnectionRealCoverage:
 
     def test_ensure_connected_connect_fails(self) -> None:
         """Test _ensure_connected when connect fails."""
-        with patch.object(self.connection, "connect",
-                         return_value=FlextResult[bool].fail("Connect failed")):
-
+        with patch.object(
+            self.connection,
+            "connect",
+            return_value=FlextResult[bool].fail("Connect failed"),
+        ):
             result = self.connection._ensure_connected()
 
         assert not result.success
@@ -238,14 +253,16 @@ class TestFlextDbOracleConnectionRealCoverage:
     def test_test_connection_success(self) -> None:
         """Test connection test success."""
         # Mock successful connection test
-        with patch.object(self.connection, "_ensure_connected",
-                         return_value=FlextResult[None].ok(None)):
-            with patch.object(self.connection, "session") as mock_session:
-                # Mock session context manager
-                mock_session_obj = Mock()
-                mock_session.return_value = iter([mock_session_obj])
+        with patch.object(
+            self.connection,
+            "_ensure_connected",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(self.connection, "session") as mock_session:
+            # Mock session context manager
+            mock_session_obj = Mock()
+            mock_session.return_value = iter([mock_session_obj])
 
-                result = self.connection.test_connection()
+            result = self.connection.test_connection()
 
         # Should succeed if connection works
         assert result.success or not result.success  # Either is valid for this test
@@ -254,16 +271,18 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test get_schemas success."""
         mock_schemas = ["SCHEMA1", "SCHEMA2", "SCHEMA3"]
 
-        with patch.object(self.connection, "_ensure_connected",
-                         return_value=FlextResult[None].ok(None)):
-            with patch.object(self.connection, "session") as mock_session:
-                mock_session_obj = Mock()
-                mock_session_obj.execute.return_value.fetchall.return_value = [
-                    (schema,) for schema in mock_schemas
-                ]
-                mock_session.return_value = iter([mock_session_obj])
+        with patch.object(
+            self.connection,
+            "_ensure_connected",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(self.connection, "session") as mock_session:
+            mock_session_obj = Mock()
+            mock_session_obj.execute.return_value.fetchall.return_value = [
+                (schema,) for schema in mock_schemas
+            ]
+            mock_session.return_value = iter([mock_session_obj])
 
-                result = self.connection.get_schemas()
+            result = self.connection.get_schemas()
 
         if result.success:
             assert isinstance(result.value, list)
@@ -272,30 +291,36 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test get_table_names success."""
         mock_tables = ["TABLE1", "TABLE2", "TABLE3"]
 
-        with patch.object(self.connection, "_ensure_connected",
-                         return_value=FlextResult[None].ok(None)):
-            with patch.object(self.connection, "session") as mock_session:
-                mock_session_obj = Mock()
-                mock_session_obj.execute.return_value.fetchall.return_value = [
-                    (table,) for table in mock_tables
-                ]
-                mock_session.return_value = iter([mock_session_obj])
+        with patch.object(
+            self.connection,
+            "_ensure_connected",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(self.connection, "session") as mock_session:
+            mock_session_obj = Mock()
+            mock_session_obj.execute.return_value.fetchall.return_value = [
+                (table,) for table in mock_tables
+            ]
+            mock_session.return_value = iter([mock_session_obj])
 
-                result = self.connection.get_table_names("TEST_SCHEMA")
+            result = self.connection.get_table_names("TEST_SCHEMA")
 
         if result.success:
             assert isinstance(result.value, list)
 
     def test_get_current_schema_success(self) -> None:
         """Test get_current_schema success."""
-        with patch.object(self.connection, "_ensure_connected",
-                         return_value=FlextResult[None].ok(None)):
-            with patch.object(self.connection, "session") as mock_session:
-                mock_session_obj = Mock()
-                mock_session_obj.execute.return_value.fetchone.return_value = ("CURRENT_SCHEMA",)
-                mock_session.return_value = iter([mock_session_obj])
+        with patch.object(
+            self.connection,
+            "_ensure_connected",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(self.connection, "session") as mock_session:
+            mock_session_obj = Mock()
+            mock_session_obj.execute.return_value.fetchone.return_value = (
+                "CURRENT_SCHEMA",
+            )
+            mock_session.return_value = iter([mock_session_obj])
 
-                result = self.connection.get_current_schema()
+            result = self.connection.get_current_schema()
 
         if result.success:
             assert isinstance(result.value, str)
@@ -304,13 +329,15 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test DDL execution success."""
         ddl_statement = "CREATE TABLE test_table (id NUMBER PRIMARY KEY)"
 
-        with patch.object(self.connection, "_ensure_connected",
-                         return_value=FlextResult[None].ok(None)):
-            with patch.object(self.connection, "session") as mock_session:
-                mock_session_obj = Mock()
-                mock_session.return_value = iter([mock_session_obj])
+        with patch.object(
+            self.connection,
+            "_ensure_connected",
+            return_value=FlextResult[None].ok(None),
+        ), patch.object(self.connection, "session") as mock_session:
+            mock_session_obj = Mock()
+            mock_session.return_value = iter([mock_session_obj])
 
-                result = self.connection.execute_ddl(ddl_statement)
+            result = self.connection.execute_ddl(ddl_statement)
 
         # Should attempt to execute DDL
         if result.success:
@@ -357,7 +384,7 @@ class TestFlextDbOracleConnectionRealCoverage:
             "column_name": "TEST_COLUMN",
             "data_type": "VARCHAR2",
             "nullable": "N",
-            "data_length": 100
+            "data_length": 100,
         }
 
         result = self.connection._build_column_definition(col_dict)
@@ -376,7 +403,7 @@ class TestFlextDbOracleConnectionRealCoverage:
             self.connection.get_schemas,
             self.connection.get_table_names,
             self.connection.get_current_schema,
-            self.connection.test_connection
+            self.connection.test_connection,
         ]
 
         for operation in operations:

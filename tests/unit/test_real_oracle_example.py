@@ -297,9 +297,7 @@ class TestRealOracleApi:
 
             if result.is_failure:
                 msg = f"Type conversion failed for {singer_type}: {result.error}"
-                raise AssertionError(
-                    msg
-                )
+                raise AssertionError(msg)
             # Success case - use modern .value access
             oracle_type = result.value
             assert expected in oracle_type, f"Expected {expected} in {oracle_type}"

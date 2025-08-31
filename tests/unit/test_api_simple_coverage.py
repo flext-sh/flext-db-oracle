@@ -24,7 +24,7 @@ class TestApiBasicCoverage:
             port=1521,
             service_name="TEST",
             username="test",
-            password=SecretStr("test")
+            password=SecretStr("test"),
         )
 
     def test_api_initialization_patterns(self) -> None:
@@ -53,13 +53,16 @@ class TestApiBasicCoverage:
         assert isinstance(api2, FlextDbOracleApi)
         assert api2.config == self.config
 
-    @patch.dict("os.environ", {
-        "FLEXT_TARGET_ORACLE_HOST": "env-host",
-        "FLEXT_TARGET_ORACLE_PORT": "1521",
-        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ENV_DB",
-        "FLEXT_TARGET_ORACLE_USERNAME": "env_user",
-        "FLEXT_TARGET_ORACLE_PASSWORD": "env_pass"
-    })
+    @patch.dict(
+        "os.environ",
+        {
+            "FLEXT_TARGET_ORACLE_HOST": "env-host",
+            "FLEXT_TARGET_ORACLE_PORT": "1521",
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "ENV_DB",
+            "FLEXT_TARGET_ORACLE_USERNAME": "env_user",
+            "FLEXT_TARGET_ORACLE_PASSWORD": "env_pass",
+        },
+    )
     def test_api_from_env(self) -> None:
         """Test API creation from environment variables."""
         api = FlextDbOracleApi.from_env()
@@ -107,7 +110,10 @@ class TestApiBasicCoverage:
         # These should fail gracefully without connection
         test_result = api.test_connection()
         assert not test_result.success
-        assert "connection" in test_result.error.lower() or "timeout" in test_result.error.lower()
+        assert (
+            "connection" in test_result.error.lower()
+            or "timeout" in test_result.error.lower()
+        )
 
         # Query operations should fail without connection
         query_result = api.query("SELECT 1 FROM dual")
@@ -154,7 +160,7 @@ class TestApiBasicCoverage:
             port=1521,
             service_name="MIN",
             username="min",
-            password=SecretStr("min")
+            password=SecretStr("min"),
         )
         api = FlextDbOracleApi(minimal_config)
         assert isinstance(api, FlextDbOracleApi)
@@ -168,7 +174,9 @@ class TestApiBasicCoverage:
         assert not query_one_result.success
 
         # Test execute_many operation
-        execute_many_result = api.execute_many("INSERT INTO test VALUES (:id)", [{"id": 1}])
+        execute_many_result = api.execute_many(
+            "INSERT INTO test VALUES (:id)", [{"id": 1}]
+        )
         assert not execute_many_result.success
 
 
@@ -181,7 +189,7 @@ class TestApiInternalComponents:
             port=1521,
             service_name="TEST",
             username="test",
-            password=SecretStr("test")
+            password=SecretStr("test"),
         )
 
     def test_api_internal_methods(self) -> None:

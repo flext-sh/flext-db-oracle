@@ -326,9 +326,9 @@ class TestConnectionCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
-            "status": "ok"
-        })
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok(
+            {"status": "ok"}
+        )
         mock_create_api.return_value = mock_api
 
         result = self.runner.invoke(
@@ -417,9 +417,9 @@ class TestConnectionCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
-            "status": "ok"
-        })
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok(
+            {"status": "ok"}
+        )
         mock_create_api.return_value = mock_api
 
         result = self.runner.invoke(oracle_cli, ["connect-env"])
@@ -839,9 +839,9 @@ class TestInteractiveCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.test_connection.return_value = FlextResult[dict].ok({
-            "status": "ok"
-        })
+        mock_connected_api.test_connection.return_value = FlextResult[dict].ok(
+            {"status": "ok"}
+        )
         mock_create_api.return_value = mock_api
 
         # Simulate user input for wizard
@@ -912,15 +912,19 @@ class TestAnalyzeCommands:
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
 
-        mock_connected_api.get_schemas.return_value = FlextResult[list].ok([
-            "SCHEMA1",
-            "SCHEMA2",
-        ])
-        mock_connected_api.get_tables.return_value = FlextResult[list].ok([
-            "TABLE1",
-            "TABLE2",
-            "TABLE3",
-        ])
+        mock_connected_api.get_schemas.return_value = FlextResult[list].ok(
+            [
+                "SCHEMA1",
+                "SCHEMA2",
+            ]
+        )
+        mock_connected_api.get_tables.return_value = FlextResult[list].ok(
+            [
+                "TABLE1",
+                "TABLE2",
+                "TABLE3",
+            ]
+        )
         mock_create_api.return_value = mock_api
 
         with tempfile.TemporaryDirectory() as temp_dir:

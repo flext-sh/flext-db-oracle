@@ -244,11 +244,15 @@ class TestFlextDbOracleApiComprehensive:
         assert hasattr(select_result, "success")
 
         # Test build_insert_statement method
-        insert_result = self.api.build_insert_statement("TEST_TABLE", {"id": 1, "name": "test"})
+        insert_result = self.api.build_insert_statement(
+            "TEST_TABLE", {"id": 1, "name": "test"}
+        )
         assert hasattr(insert_result, "success")
 
         # Test build_update_statement method
-        update_result = self.api.build_update_statement("TEST_TABLE", {"name": "updated"}, {"id": 1})
+        update_result = self.api.build_update_statement(
+            "TEST_TABLE", {"name": "updated"}, {"id": 1}
+        )
         assert hasattr(update_result, "success")
 
     def test_singer_ecosystem_integration(self) -> None:
@@ -384,5 +388,7 @@ class TestFlextDbOracleApiComprehensive:
         assert hasattr(timing_result, "success")
 
         # Test query_with_modern_performance_monitoring method
-        monitor_result = self.api.query_with_modern_performance_monitoring("SELECT 1 FROM DUAL")
+        monitor_result = self.api.query_with_modern_performance_monitoring(
+            "SELECT 1 FROM DUAL"
+        )
         assert hasattr(monitor_result, "success")

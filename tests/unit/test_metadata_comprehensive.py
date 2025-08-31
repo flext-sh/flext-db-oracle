@@ -75,9 +75,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         assert not result.success  # Should fail when not connected
 
         # Test with schema
-        result_with_schema = self.manager.get_tables(
-            "TEST_TABLE", "TEST_SCHEMA"
-        )
+        result_with_schema = self.manager.get_tables("TEST_TABLE", "TEST_SCHEMA")
         assert not result_with_schema.success
 
     def test_get_column_metadata_structure(self) -> None:

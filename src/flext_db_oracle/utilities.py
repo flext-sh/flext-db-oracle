@@ -40,7 +40,9 @@ class FlextDbOracleUtilities:
         """Oracle-specific utility methods that don't exist in generic utilities."""
 
         @staticmethod
-        def generate_query_hash(sql: str, params: dict[str, object] | None = None) -> FlextResult[str]:
+        def generate_query_hash(
+            sql: str, params: dict[str, object] | None = None
+        ) -> FlextResult[str]:
             """Generate hash for SQL query caching - Oracle specific."""
             try:
                 # Use FlextUtilities.TextProcessor for normalization
@@ -48,7 +50,9 @@ class FlextDbOracleUtilities:
                 normalized_sql = " ".join(normalized_sql.split())
 
                 # Create content for hashing using FlextUtilities.ProcessingUtils
-                params_json = FlextUtilities.ProcessingUtils.safe_json_stringify(params or {})
+                params_json = FlextUtilities.ProcessingUtils.safe_json_stringify(
+                    params or {}
+                )
                 hash_content = f"{normalized_sql}|{params_json}"
 
                 # Generate SHA-256 hash
@@ -66,10 +70,22 @@ class FlextDbOracleUtilities:
                 formatted = FlextUtilities.TextProcessor.safe_string(sql).strip()
 
                 # Oracle-specific keyword formatting
-                oracle_keywords = ["SELECT", "FROM", "WHERE", "JOIN", "ORDER BY", "GROUP BY", "HAVING"]
+                oracle_keywords = [
+                    "SELECT",
+                    "FROM",
+                    "WHERE",
+                    "JOIN",
+                    "ORDER BY",
+                    "GROUP BY",
+                    "HAVING",
+                ]
                 for keyword in oracle_keywords:
-                    formatted = formatted.replace(f" {keyword.lower()} ", f"\\n{keyword} ")
-                    formatted = formatted.replace(f" {keyword.upper()} ", f"\\n{keyword} ")
+                    formatted = formatted.replace(
+                        f" {keyword.lower()} ", f"\\n{keyword} "
+                    )
+                    formatted = formatted.replace(
+                        f" {keyword.upper()} ", f"\\n{keyword} "
+                    )
 
                 return FlextResult[str].ok(formatted)
             except Exception as e:
@@ -85,12 +101,18 @@ class FlextDbOracleUtilities:
 
                 # Validate identifier length manually
                 if len(clean_identifier) < 1:
-                    return FlextResult[str].fail(f"Empty Oracle identifier: {identifier}")
+                    return FlextResult[str].fail(
+                        f"Empty Oracle identifier: {identifier}"
+                    )
 
                 # Oracle identifier validation - alphanumeric + underscore + dollar + hash
-                allowed_chars = clean_identifier.replace("_", "").replace("$", "").replace("#", "")
+                allowed_chars = (
+                    clean_identifier.replace("_", "").replace("$", "").replace("#", "")
+                )
                 if not allowed_chars.isalnum():
-                    return FlextResult[str].fail(f"Invalid Oracle identifier: {identifier}")
+                    return FlextResult[str].fail(
+                        f"Invalid Oracle identifier: {identifier}"
+                    )
 
                 # Oracle identifiers should be uppercase
                 escaped = f'"{clean_identifier.upper()}"'
@@ -118,7 +140,7 @@ class FlextDbOracleUtilities:
             api_info = {
                 "config_type": type(config).__name__,
                 "api_id": api_id,
-                "status": "factory_available"
+                "status": "factory_available",
             }
 
             return FlextResult[object].ok(api_info)
@@ -126,7 +148,9 @@ class FlextDbOracleUtilities:
             return FlextResult[object].fail(f"API creation failed: {e}")
 
     @classmethod
-    def format_query_result(cls, query_result: object, format_type: str = "table") -> FlextResult[str]:
+    def format_query_result(
+        cls, query_result: object, format_type: str = "table"
+    ) -> FlextResult[str]:
         """Format query result for display.
 
         Uses FlextUtilities for consistent formatting and validation.
@@ -137,12 +161,16 @@ class FlextDbOracleUtilities:
                 return FlextResult[str].fail("Query result is None")
 
             # Use FlextUtilities.TextProcessor for safe format type handling
-            safe_format_type = FlextUtilities.TextProcessor.safe_string(format_type).lower()
+            safe_format_type = FlextUtilities.TextProcessor.safe_string(
+                format_type
+            ).lower()
 
             # Use FlextUtilities.ProcessingUtils for consistent serialization if needed
             if safe_format_type == "json":
                 try:
-                    formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(query_result)
+                    formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(
+                        query_result
+                    )
                     return FlextResult[str].ok(formatted)
                 except Exception:
                     # Fallback for non-serializable objects
@@ -168,5 +196,7 @@ __all__ = [
 ]
 
 # Export constants for backwards compatibility
-PERFORMANCE_WARNING_THRESHOLD_SECONDS = FlextDbOracleUtilities.PERFORMANCE_WARNING_THRESHOLD_SECONDS
+PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
+    FlextDbOracleUtilities.PERFORMANCE_WARNING_THRESHOLD_SECONDS
+)
 MAX_DISPLAY_ROWS = FlextDbOracleUtilities.MAX_DISPLAY_ROWS

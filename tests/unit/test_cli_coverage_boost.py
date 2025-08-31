@@ -347,10 +347,12 @@ class TestSchemasTablesCommands:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.get_tables.return_value = FlextResult[list].ok([
-            "TABLE1",
-            "TABLE2",
-        ])
+        mock_connected_api.get_tables.return_value = FlextResult[list].ok(
+            [
+                "TABLE1",
+                "TABLE2",
+            ]
+        )
         mock_create_api.return_value = mock_api
 
         runner = CliRunner()
@@ -476,10 +478,12 @@ class TestPluginsCommand:
         mock_connected_api = Mock()
         mock_api.__enter__ = Mock(return_value=mock_connected_api)
         mock_api.__exit__ = Mock(return_value=None)
-        mock_connected_api.list_plugins.return_value = FlextResult[list].ok([
-            {"name": "plugin1", "version": "1.0"},
-            {"name": "plugin2", "version": "2.0"},
-        ])
+        mock_connected_api.list_plugins.return_value = FlextResult[list].ok(
+            [
+                {"name": "plugin1", "version": "1.0"},
+                {"name": "plugin2", "version": "2.0"},
+            ]
+        )
         mock_create_api.return_value = mock_api
 
         runner = CliRunner()

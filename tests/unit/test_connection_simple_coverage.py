@@ -21,7 +21,7 @@ class TestConnectionBasicCoverage:
             port=1521,
             service_name="TEST",
             username="test",
-            password=SecretStr("test")
+            password=SecretStr("test"),
         )
 
     def test_connection_initialization(self) -> None:
@@ -40,7 +40,7 @@ class TestConnectionBasicCoverage:
             username="pool",
             password=SecretStr("pool"),
             pool_min=2,
-            pool_max=10
+            pool_max=10,
         )
         pool_conn = FlextDbOracleConnection(pool_config)
         assert pool_conn.config.pool_min == 2
@@ -70,7 +70,10 @@ class TestConnectionBasicCoverage:
         # Test operations should fail when not connected
         test_result = conn.test_connection()
         assert not test_result.success
-        assert "connection" in test_result.error.lower() or "not connected" in test_result.error.lower()
+        assert (
+            "connection" in test_result.error.lower()
+            or "not connected" in test_result.error.lower()
+        )
 
         # Query operations should fail
         query_result = conn.query("SELECT 1 FROM dual")
@@ -104,12 +107,18 @@ class TestConnectionBasicCoverage:
 
         # Session context manager should fail when not connected
         if hasattr(conn, "session"):
-            with pytest.raises(Exception, match=r"(?i).*not connected.*"), conn.session():
+            with (
+                pytest.raises(Exception, match=r"(?i).*not connected.*"),
+                conn.session(),
+            ):
                 pass
 
         # Transaction context manager should fail when not connected
         if hasattr(conn, "transaction"):
-            with pytest.raises(Exception, match=r"(?i).*(not connected|database).*"), conn.transaction():
+            with (
+                pytest.raises(Exception, match=r"(?i).*(not connected|database).*"),
+                conn.transaction(),
+            ):
                 pass
 
     def test_connection_configuration_validation(self) -> None:
@@ -120,7 +129,7 @@ class TestConnectionBasicCoverage:
             port=1521,
             service_name="MIN",
             username="min",
-            password=SecretStr("min")
+            password=SecretStr("min"),
         )
         minimal_conn = FlextDbOracleConnection(minimal_config)
         assert isinstance(minimal_conn, FlextDbOracleConnection)
@@ -132,7 +141,7 @@ class TestConnectionBasicCoverage:
             service_name="TIMEOUT",
             username="timeout",
             password=SecretStr("timeout"),
-            timeout=30.0
+            timeout=30.0,
         )
         timeout_conn = FlextDbOracleConnection(timeout_config)
         assert timeout_conn.config.timeout == 30.0
@@ -145,15 +154,17 @@ class TestConnectionBasicCoverage:
             port=1521,
             service_name="INVALID",
             username="invalid",
-            password=SecretStr("invalid")
+            password=SecretStr("invalid"),
         )
         invalid_conn = FlextDbOracleConnection(invalid_config)
 
         # Connection attempt should fail gracefully
         connect_result = invalid_conn.connect()
         assert not connect_result.success
-        assert any(word in connect_result.error.lower() for word in
-                  ["connection", "host", "name or service not known", "timeout"])
+        assert any(
+            word in connect_result.error.lower()
+            for word in ["connection", "host", "name or service not known", "timeout"]
+        )
 
     def test_connection_internal_state(self) -> None:
         """Test connection internal state management."""
@@ -181,7 +192,7 @@ class TestConnectionEdgeCases:
             port=1521,
             service_name="EDGE",
             username="edge",
-            password=SecretStr("edge")
+            password=SecretStr("edge"),
         )
 
     def test_connection_with_special_characters(self) -> None:
@@ -191,7 +202,7 @@ class TestConnectionEdgeCases:
             port=1521,
             service_name="TEST_DB",
             username="test_user",
-            password=SecretStr("pass@word!123")
+            password=SecretStr("pass@word!123"),
         )
         conn = FlextDbOracleConnection(special_config)
         assert isinstance(conn, FlextDbOracleConnection)
@@ -205,7 +216,7 @@ class TestConnectionEdgeCases:
             service_name="SHORT",
             username="short",
             password=SecretStr("short"),
-            timeout=0.1
+            timeout=0.1,
         )
         short_conn = FlextDbOracleConnection(short_config)
         assert short_conn.config.timeout == 0.1
@@ -217,7 +228,7 @@ class TestConnectionEdgeCases:
             service_name="LONG",
             username="long",
             password=SecretStr("long"),
-            timeout=300.0
+            timeout=300.0,
         )
         long_conn = FlextDbOracleConnection(long_config)
         assert long_conn.config.timeout == 300.0
@@ -228,8 +239,13 @@ class TestConnectionEdgeCases:
 
         # Core methods should exist
         expected_methods = [
-            "connect", "disconnect", "is_connected", "test_connection",
-            "query", "execute", "execute_many"
+            "connect",
+            "disconnect",
+            "is_connected",
+            "test_connection",
+            "query",
+            "execute",
+            "execute_many",
         ]
 
         for method in expected_methods:

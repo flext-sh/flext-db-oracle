@@ -44,6 +44,7 @@ class TestFlextDbOracleCliApplication:
         """Test get_app singleton pattern."""
         # Clear any existing app
         import flext_db_oracle.cli as cli_module
+
         cli_module.app = None
 
         app1 = get_app()
@@ -54,6 +55,7 @@ class TestFlextDbOracleCliApplication:
     def test_get_app_debug_parameter(self) -> None:
         """Test get_app with debug parameter."""
         import flext_db_oracle.cli as cli_module
+
         cli_module.app = None
 
         app = get_app(debug=True)
@@ -80,13 +82,22 @@ class TestFlextDbOracleCliCommands:
         assert result.exit_code == 0
 
         # Check for main commands
-        expected_commands = ["connect", "connect-env", "query", "schemas", "tables", "health"]
+        expected_commands = [
+            "connect",
+            "connect-env",
+            "query",
+            "schemas",
+            "tables",
+            "health",
+        ]
         for cmd in expected_commands:
             assert cmd in result.output
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connect_env_command_help(self, mock_init: Mock, mock_create_config: Mock) -> None:
+    def test_connect_env_command_help(
+        self, mock_init: Mock, mock_create_config: Mock
+    ) -> None:
         """Test connect-env command help."""
         result = self.runner.invoke(oracle_cli, ["connect-env", "--help"])
         assert result.exit_code == 0
@@ -94,7 +105,9 @@ class TestFlextDbOracleCliCommands:
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_query_command_help(self, mock_init: Mock, mock_create_config: Mock) -> None:
+    def test_query_command_help(
+        self, mock_init: Mock, mock_create_config: Mock
+    ) -> None:
         """Test query command help."""
         result = self.runner.invoke(oracle_cli, ["query", "--help"])
         assert result.exit_code == 0
@@ -118,13 +131,16 @@ class TestFlextDbOracleCliUtilities:
         assert hasattr(FlextDbOracleUtilities, "create_config_from_env")
         assert hasattr(FlextDbOracleUtilities, "create_api_from_config")
 
-    @patch.dict(os.environ, {
-        "FLEXT_TARGET_ORACLE_HOST": "test_host",
-        "FLEXT_TARGET_ORACLE_PORT": "1521",
-        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "TEST_SERVICE",
-        "FLEXT_TARGET_ORACLE_USERNAME": "test_user",
-        "FLEXT_TARGET_ORACLE_PASSWORD": "test_pass"
-    })
+    @patch.dict(
+        os.environ,
+        {
+            "FLEXT_TARGET_ORACLE_HOST": "test_host",
+            "FLEXT_TARGET_ORACLE_PORT": "1521",
+            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "TEST_SERVICE",
+            "FLEXT_TARGET_ORACLE_USERNAME": "test_user",
+            "FLEXT_TARGET_ORACLE_PASSWORD": "test_pass",
+        },
+    )
     def test_utilities_create_config_from_env(self) -> None:
         """Test utilities create_config_from_env method."""
         from flext_db_oracle.cli import FlextDbOracleUtilities
@@ -147,7 +163,7 @@ class TestFlextDbOracleCliUtilities:
             port=1521,
             service_name="UTIL_TEST",
             username="util_user",
-            password=SecretStr("util_pass")
+            password=SecretStr("util_pass"),
         )
 
         api = FlextDbOracleUtilities.create_api_from_config(config)
@@ -160,17 +176,16 @@ class TestFlextDbOracleCliUtilities:
         from flext_db_oracle.models import FlextDbOracleQueryResult
 
         empty_result = FlextDbOracleQueryResult(
-            columns=[],
-            rows=[],
-            row_count=0,
-            execution_time_ms=0.1
+            columns=[], rows=[], row_count=0, execution_time_ms=0.1
         )
 
         # This should not raise an exception
         console_mock = Mock()
         console_mock.print = Mock()
         try:
-            FlextDbOracleUtilities.format_query_result(empty_result, "table", console_mock)
+            FlextDbOracleUtilities.format_query_result(
+                empty_result, "table", console_mock
+            )
         except Exception as e:
             pytest.fail(f"format_query_result failed with empty result: {e}")
 
@@ -190,14 +205,21 @@ class TestFlextDbOracleCliErrorHandling:
 
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_connect_env_missing_config(self, mock_init: Mock, mock_create_config: Mock) -> None:
+    def test_connect_env_missing_config(
+        self, mock_init: Mock, mock_create_config: Mock
+    ) -> None:
         """Test connect-env with missing environment configuration."""
         mock_init.return_value = FlextResult[None].ok(None)
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].fail("Missing environment variables")
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].fail(
+            "Missing environment variables"
+        )
 
         result = self.runner.invoke(oracle_cli, ["connect-env"])
         # The decorators intercept the exit code, but error message should appear
-        assert "Missing environment variables" in result.output or "error" in result.output.lower()
+        assert (
+            "Missing environment variables" in result.output
+            or "error" in result.output.lower()
+        )
 
     def test_query_command_missing_sql(self) -> None:
         """Test query command without SQL parameter."""
@@ -226,24 +248,37 @@ class TestFlextDbOracleCliConfiguration:
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
     @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
     @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
-    def test_query_command_parameters(self, mock_init: Mock, mock_create_api: Mock, mock_create_config: Mock) -> None:
+    def test_query_command_parameters(
+        self, mock_init: Mock, mock_create_api: Mock, mock_create_config: Mock
+    ) -> None:
         """Test query command parameter handling."""
         # Setup mocks
         mock_init.return_value = FlextResult[None].ok(None)
 
         mock_config = FlextDbOracleConfig(
-            host="test", port=1521, service_name="TEST",
-            username="test", password=SecretStr("test")
+            host="test",
+            port=1521,
+            service_name="TEST",
+            username="test",
+            password=SecretStr("test"),
         )
-        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(mock_config)
+        mock_create_config.return_value = FlextResult[FlextDbOracleConfig].ok(
+            mock_config
+        )
 
         # Test with all parameters
-        self.runner.invoke(oracle_cli, [
-            "query",
-            "--sql", "SELECT 1 FROM dual",
-            "--limit", "10",
-            "--output", "json"
-        ])
+        self.runner.invoke(
+            oracle_cli,
+            [
+                "query",
+                "--sql",
+                "SELECT 1 FROM dual",
+                "--limit",
+                "10",
+                "--output",
+                "json",
+            ],
+        )
         # Command parsing should succeed (connection will fail but that's expected)
         mock_init.assert_called_once()
 

@@ -33,15 +33,21 @@ class TestFlextDbOracleApiSafeComprehensive:
         assert "suggestions" in suggestions
 
         # Test with UPDATE query
-        result = self.api.optimize_query("UPDATE users SET status = 'INACTIVE' WHERE id = 1")
+        result = self.api.optimize_query(
+            "UPDATE users SET status = 'INACTIVE' WHERE id = 1"
+        )
         assert result.success
 
         # Test with INSERT query
-        result = self.api.optimize_query("INSERT INTO users (name, email) VALUES ('John', 'john@example.com')")
+        result = self.api.optimize_query(
+            "INSERT INTO users (name, email) VALUES ('John', 'john@example.com')"
+        )
         assert result.success
 
         # Test with complex JOIN query
-        result = self.api.optimize_query("SELECT u.name, d.name FROM users u JOIN departments d ON u.dept_id = d.id")
+        result = self.api.optimize_query(
+            "SELECT u.name, d.name FROM users u JOIN departments d ON u.dept_id = d.id"
+        )
         assert result.success
 
     def test_get_observability_metrics_comprehensive(self) -> None:
@@ -119,7 +125,7 @@ class TestFlextDbOracleApiSafeComprehensive:
             port=1521,
             service_name="XE",
             username="test",
-            password="test"
+            password="test",
         )
         # Should return API instance directly (not FlextResult)
         assert isinstance(api_instance, FlextDbOracleApi)
@@ -166,65 +172,105 @@ class TestFlextDbOracleApiSafeComprehensive:
         """Test that API has expected methods and they are callable."""
         # Test core database methods exist
         core_methods = [
-            "connect", "disconnect", "test_connection",
-            "query", "query_one", "execute_batch",
-            "get_schemas", "get_tables", "get_columns"
+            "connect",
+            "disconnect",
+            "test_connection",
+            "query",
+            "query_one",
+            "execute_batch",
+            "get_schemas",
+            "get_tables",
+            "get_columns",
         ]
 
         for method_name in core_methods:
             assert hasattr(self.api, method_name), f"Method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"Method {method_name} should be callable"
+            assert callable(getattr(self.api, method_name)), (
+                f"Method {method_name} should be callable"
+            )
 
         # Test SQL building methods exist
         sql_methods = [
-            "build_select", "build_insert_statement", "build_update_statement",
-            "build_delete_statement", "build_merge_statement"
+            "build_select",
+            "build_insert_statement",
+            "build_update_statement",
+            "build_delete_statement",
+            "build_merge_statement",
         ]
 
         for method_name in sql_methods:
-            assert hasattr(self.api, method_name), f"SQL method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"SQL method {method_name} should be callable"
+            assert hasattr(self.api, method_name), (
+                f"SQL method {method_name} should exist"
+            )
+            assert callable(getattr(self.api, method_name)), (
+                f"SQL method {method_name} should be callable"
+            )
 
         # Test observability methods exist
         observability_methods = [
-            "get_health_check", "get_health_status", "get_observability_metrics",
-            "query_with_timing", "query_with_modern_performance_monitoring"
+            "get_health_check",
+            "get_health_status",
+            "get_observability_metrics",
+            "query_with_timing",
+            "query_with_modern_performance_monitoring",
         ]
 
         for method_name in observability_methods:
-            assert hasattr(self.api, method_name), f"Observability method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"Observability method {method_name} should be callable"
+            assert hasattr(self.api, method_name), (
+                f"Observability method {method_name} should exist"
+            )
+            assert callable(getattr(self.api, method_name)), (
+                f"Observability method {method_name} should be callable"
+            )
 
     def test_singer_ecosystem_methods_existence(self) -> None:
         """Test Singer ecosystem integration methods exist."""
         singer_methods = [
-            "convert_singer_type", "map_singer_schema", "get_primary_keys"
+            "convert_singer_type",
+            "map_singer_schema",
+            "get_primary_keys",
         ]
 
         for method_name in singer_methods:
-            assert hasattr(self.api, method_name), f"Singer method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"Singer method {method_name} should be callable"
+            assert hasattr(self.api, method_name), (
+                f"Singer method {method_name} should exist"
+            )
+            assert callable(getattr(self.api, method_name)), (
+                f"Singer method {method_name} should be callable"
+            )
 
     def test_ddl_methods_existence(self) -> None:
         """Test DDL generation methods exist."""
         ddl_methods = [
-            "create_table_ddl", "drop_table_ddl", "execute_ddl",
-            "build_create_index_statement"
+            "create_table_ddl",
+            "drop_table_ddl",
+            "execute_ddl",
+            "build_create_index_statement",
         ]
 
         for method_name in ddl_methods:
-            assert hasattr(self.api, method_name), f"DDL method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"DDL method {method_name} should be callable"
+            assert hasattr(self.api, method_name), (
+                f"DDL method {method_name} should exist"
+            )
+            assert callable(getattr(self.api, method_name)), (
+                f"DDL method {method_name} should be callable"
+            )
 
     def test_advanced_features_existence(self) -> None:
         """Test advanced feature methods exist."""
         advanced_methods = [
-            "transaction", "execute_connection_monitor", "get_table_metadata"
+            "transaction",
+            "execute_connection_monitor",
+            "get_table_metadata",
         ]
 
         for method_name in advanced_methods:
-            assert hasattr(self.api, method_name), f"Advanced method {method_name} should exist"
-            assert callable(getattr(self.api, method_name)), f"Advanced method {method_name} should be callable"
+            assert hasattr(self.api, method_name), (
+                f"Advanced method {method_name} should exist"
+            )
+            assert callable(getattr(self.api, method_name)), (
+                f"Advanced method {method_name} should be callable"
+            )
 
     def test_plugin_execution_methods(self) -> None:
         """Test plugin execution methods."""

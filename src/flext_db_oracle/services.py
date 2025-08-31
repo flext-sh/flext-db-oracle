@@ -518,12 +518,14 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 else:
                     duration_ms = 0.0
 
-                operation.update({
-                    "end_time": end_time,
-                    "duration_ms": duration_ms,
-                    "status": "completed" if success else "failed",
-                    "error": error,
-                })
+                operation.update(
+                    {
+                        "end_time": end_time,
+                        "duration_ms": duration_ms,
+                        "status": "completed" if success else "failed",
+                        "error": error,
+                    }
+                )
 
                 self.logger.debug(
                     "Operation completed: %s [%s] - %s in %.2f ms",
@@ -571,12 +573,12 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 stats: dict[str, object] = {
                     "total_operations": len(operations),
                     "completed_operations": len(completed_ops),
-                    "running_operations": len([
-                        op for op in operations if op["status"] == "running"
-                    ]),
-                    "failed_operations": len([
-                        op for op in operations if op["status"] == "failed"
-                    ]),
+                    "running_operations": len(
+                        [op for op in operations if op["status"] == "running"]
+                    ),
+                    "failed_operations": len(
+                        [op for op in operations if op["status"] == "failed"]
+                    ),
                     "success_rate": 0.0,
                     "average_duration_ms": 0.0,
                 }
