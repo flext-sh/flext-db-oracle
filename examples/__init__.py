@@ -5,8 +5,8 @@ for Oracle database operations using SQLAlchemy 2 and oracledb driver.
 
 Available Examples:
     - 04_comprehensive_oracle_usage.py: Complete Oracle operations demo
-    - cli_examples.py: CLI command demonstrations
-    - sqlalchemy2_example.py: SQLAlchemy 2 integration patterns
+    - 06_cli.py: CLI command demonstrations
+    - 07_sqlalchemy2.py: SQLAlchemy 2 integration patterns
     - __init__.py: This file with example imports and basic usage
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -85,7 +85,7 @@ def show_available_examples() -> None:
     """Show information about available examples."""
     examples: list[dict[str, object]] = [
         {
-            "name": "example_04_comprehensive_oracle_usage.py",
+            "name": "04_comprehensive_oracle_usage.py",
             "description": "Complete Oracle operations demonstration",
             "features": [
                 "Connection management",
@@ -95,7 +95,7 @@ def show_available_examples() -> None:
             ],
         },
         {
-            "name": "cli_examples.py",
+            "name": "06_cli.py",
             "description": "CLI command demonstrations",
             "features": [
                 "Command-line interface",
@@ -104,7 +104,7 @@ def show_available_examples() -> None:
             ],
         },
         {
-            "name": "sqlalchemy2_example.py",
+            "name": "07_sqlalchemy2.py",
             "description": "SQLAlchemy 2 integration patterns",
             "features": [
                 "Direct SQL execution",

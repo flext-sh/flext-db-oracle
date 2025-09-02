@@ -26,7 +26,7 @@ Demonstrates comprehensive Oracle database operations including:
 - Plugin system demonstration with real Oracle operations
 - Configuration validation and multi-environment support
 
-#### **`sqlalchemy2_example.py`**
+#### **`07_sqlalchemy2.py`**
 
 **SQLAlchemy 2 Integration Patterns**
 
@@ -46,7 +46,7 @@ Shows modern SQLAlchemy 2 usage patterns with FLEXT DB Oracle:
 
 ### **CLI and Tooling Examples**
 
-#### **`cli_examples.py`**
+#### **`06_cli.py`**
 
 **Command Line Interface Demonstrations**
 
@@ -106,10 +106,10 @@ cd examples/
 python 04_comprehensive_oracle_usage.py
 
 # Run SQLAlchemy 2 integration example
-python sqlalchemy2_example.py
+python 07_sqlalchemy2.py
 
 # Run CLI examples
-python cli_examples.py
+python 06_cli.py
 
 # Run all examples with validation
 make run-examples
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
 ```python
 """
-sqlalchemy2_example.py - Modern SQLAlchemy Integration
+07_sqlalchemy2.py - Modern SQLAlchemy Integration
 
 Demonstrates:
 1. SQLAlchemy 2.x patterns with Oracle
@@ -215,7 +215,7 @@ if __name__ == "__main__":
 
 ```python
 """
-cli_examples.py - Command Line Interface Demonstrations
+06_cli.py - Command Line Interface Demonstrations
 
 Shows practical CLI usage patterns:
 1. Connection testing and validation

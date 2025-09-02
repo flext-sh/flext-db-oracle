@@ -133,7 +133,7 @@ class TestFieldIntegration:
         """Test field usage patterns in models."""
 
         # Test that fields can be used in Pydantic models
-        class TestModel(FlextModels.BaseModel):
+        class TestModel(FlextModels.BaseConfig):
             host: str = ConnectionFields.host
             table_name: str = DatabaseMetadataFields.table_name
 
@@ -253,7 +253,7 @@ class TestFieldIntegrationWithModels:
         """Test using fields in model definitions."""
 
         # Create a model using field definitions
-        class ConnectionModel(FlextModels.BaseModel):
+        class ConnectionModel(FlextModels.BaseConfig):
             host: str = ConnectionFields.host
             port: int = ConnectionFields.port
 
@@ -265,7 +265,7 @@ class TestFieldIntegrationWithModels:
     def test_field_validation_in_models(self) -> None:
         """Test field validation through Pydantic models."""
 
-        class QueryModel(FlextModels.BaseModel):
+        class QueryModel(FlextModels.BaseConfig):
             fetch_size: int = QueryFields.fetch_size
             array_size: int = QueryFields.array_size
 
