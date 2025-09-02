@@ -62,7 +62,7 @@ class TestFlextDbOracleConnectionRealCoverage:
         return_value=FlextResult[None].ok(None),
     )
     def test_connect_success_with_proper_mocks(
-        self, mock_validate, mock_sessionmaker, mock_create_engine
+        self, mock_validate: Mock, mock_sessionmaker: Mock, mock_create_engine: Mock
     ) -> None:
         """Test successful connection with proper mocking."""
         # Setup engine mock with all required attributes
@@ -253,11 +253,14 @@ class TestFlextDbOracleConnectionRealCoverage:
     def test_test_connection_success(self) -> None:
         """Test connection test success."""
         # Mock successful connection test
-        with patch.object(
-            self.connection,
-            "_ensure_connected",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(self.connection, "session") as mock_session:
+        with (
+            patch.object(
+                self.connection,
+                "_ensure_connected",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "session") as mock_session,
+        ):
             # Mock session context manager
             mock_session_obj = Mock()
             mock_session.return_value = iter([mock_session_obj])
@@ -271,11 +274,14 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test get_schemas success."""
         mock_schemas = ["SCHEMA1", "SCHEMA2", "SCHEMA3"]
 
-        with patch.object(
-            self.connection,
-            "_ensure_connected",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(self.connection, "session") as mock_session:
+        with (
+            patch.object(
+                self.connection,
+                "_ensure_connected",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "session") as mock_session,
+        ):
             mock_session_obj = Mock()
             mock_session_obj.execute.return_value.fetchall.return_value = [
                 (schema,) for schema in mock_schemas
@@ -291,11 +297,14 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test get_table_names success."""
         mock_tables = ["TABLE1", "TABLE2", "TABLE3"]
 
-        with patch.object(
-            self.connection,
-            "_ensure_connected",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(self.connection, "session") as mock_session:
+        with (
+            patch.object(
+                self.connection,
+                "_ensure_connected",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "session") as mock_session,
+        ):
             mock_session_obj = Mock()
             mock_session_obj.execute.return_value.fetchall.return_value = [
                 (table,) for table in mock_tables
@@ -309,11 +318,14 @@ class TestFlextDbOracleConnectionRealCoverage:
 
     def test_get_current_schema_success(self) -> None:
         """Test get_current_schema success."""
-        with patch.object(
-            self.connection,
-            "_ensure_connected",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(self.connection, "session") as mock_session:
+        with (
+            patch.object(
+                self.connection,
+                "_ensure_connected",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "session") as mock_session,
+        ):
             mock_session_obj = Mock()
             mock_session_obj.execute.return_value.fetchone.return_value = (
                 "CURRENT_SCHEMA",
@@ -329,11 +341,14 @@ class TestFlextDbOracleConnectionRealCoverage:
         """Test DDL execution success."""
         ddl_statement = "CREATE TABLE test_table (id NUMBER PRIMARY KEY)"
 
-        with patch.object(
-            self.connection,
-            "_ensure_connected",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(self.connection, "session") as mock_session:
+        with (
+            patch.object(
+                self.connection,
+                "_ensure_connected",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "session") as mock_session,
+        ):
             mock_session_obj = Mock()
             mock_session.return_value = iter([mock_session_obj])
 

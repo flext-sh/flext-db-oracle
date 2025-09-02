@@ -6,8 +6,6 @@ code coverage by testing paths not covered by existing tests.
 
 import tempfile
 from pathlib import Path
-
-object
 from unittest.mock import Mock, patch
 
 from click.testing import CliRunner

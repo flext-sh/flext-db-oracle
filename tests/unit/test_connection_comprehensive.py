@@ -11,6 +11,7 @@ from flext_db_oracle import (
     CreateIndexConfig,
     FlextDbOracleConfig,
     FlextDbOracleServices,
+    MergeStatementConfig,
 )
 
 

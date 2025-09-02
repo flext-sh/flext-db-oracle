@@ -57,13 +57,14 @@ class TestFlextDbOracleConnectionRealMethods:
         # Mock config validation using FlextDbOracleConfig from flext_db_oracle
         from flext_db_oracle.config import FlextDbOracleConfig
 
-        with patch.object(
-            FlextDbOracleConfig,
-            "validate_business_rules",
-            return_value=FlextResult[None].ok(None),
-        ), patch.object(
-            self.connection, "_build_connection_url"
-        ) as mock_build_url:
+        with (
+            patch.object(
+                FlextDbOracleConfig,
+                "validate_business_rules",
+                return_value=FlextResult[None].ok(None),
+            ),
+            patch.object(self.connection, "_build_connection_url") as mock_build_url,
+        ):
             mock_build_url.return_value = FlextResult[str].ok(
                 "oracle+oracledb://test:test@test:1521/TEST"
             )
@@ -152,15 +153,19 @@ class TestFlextDbOracleConnectionRealMethods:
 
     def test_session_no_engine(self) -> None:
         """Test session when no engine available."""
-        with pytest.raises(RuntimeError, match="No engine available"):
-            with self.connection.session():
-                pass
+        with (
+            pytest.raises(RuntimeError, match="No engine available"),
+            self.connection.session(),
+        ):
+            pass
 
     def test_transaction_no_engine(self) -> None:
         """Test transaction when no engine available."""
-        with pytest.raises(RuntimeError, match="No engine available"):
-            with self.connection.transaction():
-                pass
+        with (
+            pytest.raises(RuntimeError, match="No engine available"),
+            self.connection.transaction(),
+        ):
+            pass
 
     def test_close(self) -> None:
         """Test close method."""

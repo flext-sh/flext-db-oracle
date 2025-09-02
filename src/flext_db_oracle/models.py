@@ -22,6 +22,7 @@ from typing import TypedDict, TypeGuard, cast
 from flext_core import (
     FlextLogger,
     FlextModels,
+    FlextResult,
 )
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import SettingsConfigDict
@@ -55,7 +56,7 @@ class FlextDbOracleModels:
     into a single entry point with internal organization.
     """
 
-    class Column(FlextModels):
+    class Column(FlextModels.Entity):
         """Oracle database column model with complete metadata."""
 
         column_name: str = Field(..., description="Column name")
@@ -178,7 +179,7 @@ class FlextDbOracleModels:
                 "TIMESTAMP WITH LOCAL TIME ZONE",
             }
 
-    class Table(FlextModels):
+    class Table(FlextModels.Entity):
         """Oracle database table model with metadata and relationships."""
 
         table_name: str = Field(..., description="Table name")
@@ -253,7 +254,7 @@ class FlextDbOracleModels:
             """Get all datetime columns."""
             return [col for col in self.columns if col.is_datetime()]
 
-    class Schema(FlextModels):
+    class Schema(FlextModels.Entity):
         """Oracle database schema model with tables and metadata."""
 
         schema_name: str = Field(..., description="Schema name")
@@ -297,7 +298,7 @@ class FlextDbOracleModels:
             """Get total number of columns across all tables."""
             return sum(len(table.columns) for table in self.tables)
 
-    class QueryResult(FlextModels):
+    class QueryResult(FlextModels.Value):
         """Oracle query result model with execution metadata."""
 
         columns: list[str] = Field(default_factory=list, description="Column names")
@@ -364,7 +365,23 @@ class FlextDbOracleModels:
             """Check if result is empty."""
             return self.row_count == 0
 
-    class ConnectionStatus(FlextModels):
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate Oracle query result business rules."""
+            # Basic validation for Oracle query results
+            if self.row_count < 0:
+                return FlextResult.fail("Row count cannot be negative")
+
+            if len(self.rows) > self.row_count:
+                return FlextResult.fail("Actual rows exceed declared count")
+
+            if len(self.columns) > 0:
+                for i, row in enumerate(self.rows):
+                    if len(row) > len(self.columns):
+                        return FlextResult.fail(f"Row {i} has more values than columns")
+
+            return FlextResult.ok(None)
+
+    class ConnectionStatus(FlextModels.Value):
         """Oracle database connection status model."""
 
         is_connected: bool = Field(default=False, description="Connection status")
@@ -411,11 +428,30 @@ class FlextDbOracleModels:
             """Check if connection is active and healthy."""
             return self.is_connected and self.error_message is None
 
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate Oracle connection status business rules."""
+            # Basic validation for Oracle connection status
+            # Connected status consistency
+            if self.is_connected and self.error_message is not None:
+                return FlextResult.fail("Connected status cannot have error message")
+
+            # Error message should exist when not connected and no other details
+            if (
+                not self.is_connected
+                and self.error_message is None
+                and (self.connection_time is None and self.last_activity is None)
+            ):
+                return FlextResult.fail(
+                    "Disconnected status should provide error or timing information"
+                )
+
+            return FlextResult.ok(None)
+
     # =============================================================================
     # ORACLE CONFIGURATION MODELS - Consolidated from config.py
     # =============================================================================
 
-    class OracleConfig(FlextModels):
+    class OracleConfig(FlextModels.Entity):
         """Oracle database configuration extending flext-core centralized config."""
 
         # Core Oracle connection fields
@@ -519,13 +555,19 @@ class FlextDbOracleModels:
         @classmethod
         def from_env(cls) -> FlextDbOracleModels.OracleConfig:
             """Create configuration from environment variables."""
-            return cls(
-                host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
-                port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "system"),
-                password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "oracle")),
-                service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"),
-                ssl_server_cert_dn=os.getenv("FLEXT_TARGET_ORACLE_SSL_CERT_DN"),
+            return cls.model_validate(
+                {
+                    "host": os.getenv("FLEXT_TARGET_ORACLE_HOST", "localhost"),
+                    "port": int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
+                    "username": os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "system"),
+                    "password": SecretStr(
+                        os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "oracle")
+                    ),
+                    "service_name": os.getenv(
+                        "FLEXT_TARGET_ORACLE_SERVICE_NAME", "XEPDB1"
+                    ),
+                    "ssl_server_cert_dn": os.getenv("FLEXT_TARGET_ORACLE_SSL_CERT_DN"),
+                }
             )
 
         def get_connection_string(self) -> str:
@@ -718,16 +760,18 @@ class FlextDbOracleModels:
         default_value_typed = str(default_value) if default_value is not None else None
         comments_typed = str(comments) if comments is not None else None
 
-        return cls.Column(
-            column_name=column_name,
-            data_type=data_type,
-            nullable=nullable,
-            column_id=column_id,
-            data_length=data_length_typed,
-            data_precision=data_precision_typed,
-            data_scale=data_scale_typed,
-            default_value=default_value_typed,
-            comments=comments_typed,
+        return cls.Column.model_validate(
+            {
+                "column_name": column_name,
+                "data_type": data_type,
+                "nullable": nullable,
+                "column_id": column_id,
+                "data_length": data_length_typed,
+                "data_precision": data_precision_typed,
+                "data_scale": data_scale_typed,
+                "default_value": default_value_typed,
+                "comments": comments_typed,
+            }
         )
 
     @classmethod
@@ -758,15 +802,17 @@ class FlextDbOracleModels:
         table_type_typed = str(table_type) if table_type is not None else "TABLE"
         comments_typed = str(comments) if comments is not None else None
 
-        return cls.Table(
-            table_name=table_name,
-            schema_name=schema_name,
-            columns=columns or [],
-            row_count=row_count_typed,
-            created_date=created_date_typed,
-            last_analyzed=last_analyzed_typed,
-            table_type=table_type_typed,
-            comments=comments_typed,
+        return cls.Table.model_validate(
+            {
+                "table_name": table_name,
+                "schema_name": schema_name,
+                "columns": columns or [],
+                "row_count": row_count_typed,
+                "created_date": created_date_typed,
+                "last_analyzed": last_analyzed_typed,
+                "table_type": table_type_typed,
+                "comments": comments_typed,
+            }
         )
 
     @classmethod
@@ -800,14 +846,16 @@ class FlextDbOracleModels:
             str(account_status) if account_status is not None else "OPEN"
         )
 
-        return cls.Schema(
-            schema_name=schema_name,
-            tables=tables or [],
-            created_date=created_date_typed,
-            default_tablespace=default_tablespace_typed,
-            temporary_tablespace=temporary_tablespace_typed,
-            profile=profile_typed,
-            account_status=account_status_typed,
+        return cls.Schema.model_validate(
+            {
+                "schema_name": schema_name,
+                "tables": tables or [],
+                "created_date": created_date_typed,
+                "default_tablespace": default_tablespace_typed,
+                "temporary_tablespace": temporary_tablespace_typed,
+                "profile": profile_typed,
+                "account_status": account_status_typed,
+            }
         )
 
     @classmethod
@@ -831,13 +879,15 @@ class FlextDbOracleModels:
         query_hash_typed = str(query_hash) if query_hash is not None else None
         explain_plan_typed = str(explain_plan) if explain_plan is not None else None
 
-        return cls.QueryResult(
-            columns=columns,
-            rows=rows,
-            row_count=len(rows),
-            execution_time_ms=execution_time_ms,
-            query_hash=query_hash_typed,
-            explain_plan=explain_plan_typed,
+        return cls.QueryResult.model_validate(
+            {
+                "columns": columns,
+                "rows": rows,
+                "row_count": len(rows),
+                "execution_time_ms": execution_time_ms,
+                "query_hash": query_hash_typed,
+                "explain_plan": explain_plan_typed,
+            }
         )
 
     @classmethod
@@ -874,17 +924,19 @@ class FlextDbOracleModels:
         version_typed = str(version) if version is not None else None
         error_message_typed = str(error_message) if error_message is not None else None
 
-        return cls.ConnectionStatus(
-            is_connected=is_connected,
-            connection_time=connection_time_typed,
-            last_activity=last_activity_typed,
-            session_id=session_id_typed,
-            host=host_typed,
-            port=port_typed,
-            service_name=service_name_typed,
-            username=username_typed,
-            version=version_typed,
-            error_message=error_message_typed,
+        return cls.ConnectionStatus.model_validate(
+            {
+                "is_connected": is_connected,
+                "connection_time": connection_time_typed,
+                "last_activity": last_activity_typed,
+                "session_id": session_id_typed,
+                "host": host_typed,
+                "port": port_typed,
+                "service_name": service_name_typed,
+                "username": username_typed,
+                "version": version_typed,
+                "error_message": error_message_typed,
+            }
         )
 
     @classmethod

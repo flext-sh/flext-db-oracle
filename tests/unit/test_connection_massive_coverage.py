@@ -45,7 +45,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         return_value=FlextResult[None].ok(None),
     )
     def test_connect_success_complete_flow(
-        self, mock_validate, mock_sessionmaker, mock_create_engine
+        self, mock_validate: Mock, mock_sessionmaker: Mock, mock_create_engine: Mock
     ) -> None:
         """Test complete successful connection flow."""
         # Setup comprehensive mocks
@@ -82,7 +82,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         "validate_business_rules",
         return_value=FlextResult[None].fail("Config invalid"),
     )
-    def test_connect_config_validation_failure(self, mock_validate) -> None:
+    def test_connect_config_validation_failure(self, mock_validate: Mock) -> None:
         """Test connection failure due to config validation."""
         result = self.connection.connect()
 
@@ -97,7 +97,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         return_value=FlextResult[None].ok(None),
     )
     def test_connect_url_building_failure(
-        self, mock_validate, mock_create_engine
+        self, mock_validate: Mock, mock_create_engine: Mock
     ) -> None:
         """Test connection failure due to URL building error."""
         with patch.object(
@@ -121,7 +121,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         return_value=FlextResult[None].ok(None),
     )
     def test_connect_engine_creation_failure(
-        self, mock_validate, mock_create_engine
+        self, mock_validate: Mock, mock_create_engine: Mock
     ) -> None:
         """Test connection failure during engine creation."""
         with patch.object(
@@ -420,7 +420,7 @@ class TestFlextDbOracleConnectionMassiveCoverage:
         "is_connected",
         new_callable=lambda: property(lambda self: True),
     )
-    def test_get_session_success(self, mock_connected) -> None:
+    def test_get_session_success(self, mock_connected: Mock) -> None:
         """Test successful session creation."""
         mock_session_factory = Mock()
         mock_session = Mock(spec=Session)

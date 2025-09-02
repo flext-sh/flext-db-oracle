@@ -17,11 +17,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from enum import Enum
 
-from flext_core import (
-    FlextExceptions,
-    # FlextExceptions,  # Not available in flext-core
-    FlextExceptions.ProcessingError,
-)
+from flext_core import FlextExceptions
 
 # =============================================================================
 # FLEXT[AREA][MODULE] PATTERN - Oracle Database Exceptions
@@ -72,8 +68,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.error_code = code or "ORACLE_VALIDATION_ERROR"
             self.context = context or {}
 
-    class ConfigurationError(FlextExceptions):
-        """Oracle configuration error - delegates to FlextExceptions."""
+    class ConfigurationError(FlextExceptions.BaseError):
+        """Oracle configuration error - delegates to FlextExceptions.BaseError."""
 
         def __init__(
             self,
@@ -84,10 +80,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         ) -> None:
             """Initialize Oracle configuration error via flext-core."""
             resolved_code = code or "ORACLE_CONFIGURATION_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            super().__init__(message, code=resolved_code, context=context)
 
-    class DatabaseConnectionError(FlextExceptions):
-        """Oracle database connection error - delegates to FlextExceptions."""
+    class DatabaseConnectionError(FlextExceptions.BaseError):
+        """Oracle database connection error - delegates to FlextExceptions.BaseError."""
 
         def __init__(
             self,
@@ -98,10 +94,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         ) -> None:
             """Initialize Oracle connection error via flext-core."""
             resolved_code = code or "ORACLE_CONNECTION_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            super().__init__(message, code=resolved_code, context=context)
 
-    class ProcessingError(FlextExceptions.ProcessingError):
-        """Oracle processing error - delegates to FlextExceptions.ProcessingError."""
+    class ProcessingError(FlextExceptions.BaseError):
+        """Oracle processing error - delegates to FlextExceptions.BaseError."""
 
         def __init__(
             self,
@@ -112,10 +108,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         ) -> None:
             """Initialize Oracle processing error via flext-core."""
             resolved_code = code or "ORACLE_PROCESSING_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            super().__init__(message, code=resolved_code, context=context)
 
-    class AuthenticationError(FlextExceptions):
-        """Oracle authentication error - delegates to FlextExceptions."""
+    class AuthenticationError(FlextExceptions.BaseError):
+        """Oracle authentication error - delegates to FlextExceptions.BaseError."""
 
         def __init__(
             self,
@@ -126,10 +122,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         ) -> None:
             """Initialize Oracle authentication error via flext-core."""
             resolved_code = code or "ORACLE_AUTHENTICATION_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            super().__init__(message, code=resolved_code, context=context)
 
-    class DatabaseTimeoutError(FlextExceptions):
-        """Oracle database timeout error - delegates to FlextExceptions."""
+    class DatabaseTimeoutError(FlextExceptions.BaseError):
+        """Oracle database timeout error - delegates to FlextExceptions.BaseError."""
 
         def __init__(
             self,
@@ -140,10 +136,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         ) -> None:
             """Initialize Oracle timeout error via flext-core."""
             resolved_code = code or "ORACLE_TIMEOUT_ERROR"
-            super().__init__(message, error_code=resolved_code, context=context)
+            super().__init__(message, code=resolved_code, context=context)
 
-    class QueryError(FlextExceptions):
-        """Oracle query error - delegates to FlextExceptions with SQL context."""
+    class QueryError(FlextExceptions.BaseError):
+        """Oracle query error - delegates to FlextExceptions.BaseError with SQL context."""
 
         def __init__(
             self,
@@ -175,10 +171,10 @@ class FlextDbOracleExceptions(FlextExceptions):
                 context_dict["rows_affected"] = rows_affected
 
             error_code = "ORACLE_QUERY_ERROR" if code is None else str(code)
-            super().__init__(message, error_code=error_code, context=context_dict)
+            super().__init__(message, code=error_code, context=context_dict)
 
-    class MetadataError(FlextExceptions):
-        """Oracle metadata error - delegates to FlextExceptions with schema context."""
+    class MetadataError(FlextExceptions.BaseError):
+        """Oracle metadata error - delegates to FlextExceptions.BaseError with schema context."""
 
         def __init__(
             self,
@@ -204,7 +200,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 context_dict["operation"] = operation
 
             error_code = "ORACLE_METADATA_ERROR" if code is None else str(code)
-            super().__init__(message, error_code=error_code, context=context_dict)
+            super().__init__(message, code=error_code, context=context_dict)
 
     class ConnectionOperationError(ConnectionError):
         """Oracle connection operation error - inherits from Oracle ConnectionError."""
@@ -253,12 +249,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         *,
         code: str | None = None,
         context: dict[str, object] | None = None,
-    ) -> FlextExceptions:
+    ) -> FlextExceptions.BaseError:
         """Create Oracle database error using factory pattern."""
-        from flext_core import FlextExceptions
-
-        return FlextExceptions(
-            message, error_code=code or "ORACLE_ERROR", context=context
+        return FlextExceptions.BaseError(
+            message, code=code or "ORACLE_ERROR", context=context
         )
 
     @classmethod

@@ -258,13 +258,15 @@ def test(
 
     try:
         # Create configuration
-        config = FlextDbOracleConfig(
-            host=host,
-            port=port,
-            service_name=service_name,
-            username=username,
-            password=SecretStr(password),
-            ssl_server_cert_dn=None,
+        config = FlextDbOracleConfig.model_validate(
+            {
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": SecretStr(password),
+                "ssl_server_cert_dn": None,
+            }
         )
 
         # Create API and use context manager pattern for connection
@@ -406,15 +408,19 @@ def query(ctx: click.Context, sql: str, limit: int) -> None:
                         f"[yellow]Result limited to {limit} rows[/yellow]"
                     )
                     # Create a limited copy of the result
-                    limited_result = FlextDbOracleQueryResult(
-                        rows=original_result.rows[:limit],
-                        columns=original_result.columns,
-                        row_count=len(original_result.rows[:limit]),
-                        execution_time_ms=getattr(
-                            original_result, "execution_time_ms", 0.0
-                        ),
-                        query_hash=getattr(original_result, "query_hash", None),
-                        explain_plan=getattr(original_result, "explain_plan", None),
+                    limited_result = FlextDbOracleQueryResult.model_validate(
+                        {
+                            "rows": original_result.rows[:limit],
+                            "columns": original_result.columns,
+                            "row_count": len(original_result.rows[:limit]),
+                            "execution_time_ms": getattr(
+                                original_result, "execution_time_ms", 0.0
+                            ),
+                            "query_hash": getattr(original_result, "query_hash", None),
+                            "explain_plan": getattr(
+                                original_result, "explain_plan", None
+                            ),
+                        }
                     )
                     # Simple result formatting (FlextDbOracleUtilities.format_query_result not available)
                     app.console.print(f"Query result: {limited_result!s}")
@@ -826,16 +832,18 @@ def wizard(ctx: click.Context) -> None:
         if Confirm.ask("Test connection with these settings?", default=True):
             with app.console.status("[bold green]Testing Oracle connection..."):
                 try:
-                    config = FlextDbOracleConfig(
-                        host=host,
-                        port=port,
-                        service_name=service_name,
-                        username=username,
-                        password=SecretStr(password),
-                        pool_min=1,
-                        pool_max=pool_size,
-                        timeout=connection_timeout,
-                        ssl_server_cert_dn=None,
+                    config = FlextDbOracleConfig.model_validate(
+                        {
+                            "host": host,
+                            "port": port,
+                            "service_name": service_name,
+                            "username": username,
+                            "password": SecretStr(password),
+                            "pool_min": 1,
+                            "pool_max": pool_size,
+                            "timeout": connection_timeout,
+                            "ssl_server_cert_dn": None,
+                        }
                     )
 
                     api = FlextDbOracleApi(config)

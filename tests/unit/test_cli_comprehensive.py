@@ -8,21 +8,19 @@ import json
 import os
 import tempfile
 from pathlib import Path
-
-object
 from unittest.mock import Mock, patch
 
 import pytest
 from click.testing import CliRunner
 from pydantic import SecretStr
 
-from flext_db_oracle.cli import (
+from flext_db_oracle import (
     FlextDbOracleCliApplication,
+    FlextDbOracleConfig,
     get_app,
     main,
     oracle_cli,
 )
-from flext_db_oracle.config import FlextDbOracleConfig
 
 
 class TestFlextDbOracleCliApplication:

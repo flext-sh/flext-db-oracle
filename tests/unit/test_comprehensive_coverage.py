@@ -15,29 +15,26 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextContainer, FlextResult
 from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOracleCliApplication,
+    FlextDbOracleColumn,
     FlextDbOracleConfig,
-    FlextDbOracleServices,
-)
-from flext_db_oracle.cli import FlextDbOracleCliApplication, main
-from flext_db_oracle.exceptions import (
     FlextDbOracleConnectionError,
     FlextDbOracleError,
+    FlextDbOracleMetadataManager,
+    FlextDbOracleObservabilityManager,
     FlextDbOracleQueryError,
-)
-from flext_db_oracle.metadata import FlextDbOracleMetadataManager
-from flext_db_oracle.models import (
-    FlextDbOracleColumn,
     FlextDbOracleQueryResult,
+    FlextDbOracleServices,
     FlextDbOracleTable,
+    FlextDbOracleUtilities,
+    main,
+    register_all_oracle_plugins,
 )
-from flext_db_oracle.observability import FlextDbOracleObservabilityManager
-from flext_db_oracle.plugins import register_all_oracle_plugins
-from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
 class TestFlextDbOracleConfig:

@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextModels
+
 from flext_db_oracle.fields import (
     ConnectionFields,
     DatabaseMetadataFields,
@@ -129,10 +131,9 @@ class TestFieldIntegration:
 
     def test_field_usage_patterns(self) -> None:
         """Test field usage patterns in models."""
-        # Test that fields can be used in Pydantic models
-        from pydantic import BaseModel
 
-        class TestModel(BaseModel):
+        # Test that fields can be used in Pydantic models
+        class TestModel(FlextModels.BaseModel):
             host: str = ConnectionFields.host
             table_name: str = DatabaseMetadataFields.table_name
 
@@ -250,10 +251,9 @@ class TestFieldIntegrationWithModels:
 
     def test_field_in_model_definition(self) -> None:
         """Test using fields in model definitions."""
-        from pydantic import BaseModel
 
         # Create a model using field definitions
-        class ConnectionModel(BaseModel):
+        class ConnectionModel(FlextModels.BaseModel):
             host: str = ConnectionFields.host
             port: int = ConnectionFields.port
 
@@ -264,9 +264,8 @@ class TestFieldIntegrationWithModels:
 
     def test_field_validation_in_models(self) -> None:
         """Test field validation through Pydantic models."""
-        from pydantic import BaseModel
 
-        class QueryModel(BaseModel):
+        class QueryModel(FlextModels.BaseModel):
             fetch_size: int = QueryFields.fetch_size
             array_size: int = QueryFields.array_size
 
