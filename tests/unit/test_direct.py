@@ -259,7 +259,7 @@ class TestDirectCoverageBoostConnection:
             connection.connection.test_connection,
             connection.metadata.get_schemas,
             lambda: connection.metadata.get_tables("test"),
-            lambda: connection.connection.is_connected(),
+            connection.connection.is_connected,
         ]
 
         for operation in operations:

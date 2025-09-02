@@ -1,17 +1,18 @@
 """Working API tests using only real methods that exist and work."""
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from pydantic import SecretStr
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 
 class TestFlextDbOracleApiWorking:
     """Test FlextDbOracleApi using only methods that work without hanging."""
-    
+
     def setup_method(self) -> None:
         """Setup test configuration."""
         self.config = FlextDbOracleConfig(
             host="test_host",
-            port=1521, 
+            port=1521,
             service_name="TEST",
             username="test_user",
             password=SecretStr("test_password")
@@ -46,6 +47,6 @@ class TestFlextDbOracleApiWorking:
         # These should work without database
         as_dict = self.api.to_dict()
         assert isinstance(as_dict, dict)
-        
+
         basic_dict = self.api.to_dict_basic()
         assert isinstance(basic_dict, dict)

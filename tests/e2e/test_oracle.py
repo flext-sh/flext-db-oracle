@@ -305,7 +305,7 @@ class TestOracleE2E:
 
         # Connection should return FlextResult (may succeed or fail gracefully)
         connect_result = api.connect()
-        assert hasattr(connect_result, 'success')
+        assert hasattr(connect_result, "success")
         # Note: API might succeed if it has resilience patterns, this is acceptable behavior
 
         # Operations without connection should fail gracefully
