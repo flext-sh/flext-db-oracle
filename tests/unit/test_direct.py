@@ -223,25 +223,25 @@ class TestDirectCoverageBoostConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
-        from flext_db_oracle import FlextDbOracleConnection
+        from flext_db_oracle.services import FlextDbOracleServices
 
         # Test connection lifecycle edge cases
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Test multiple connect/disconnect cycles
         for _i in range(3):
-            result = connection.connect()
+            result = connection.connection.connect()
             if result.success:
                 # Test connection status
                 assert connection._engine is not None
 
                 # Test multiple disconnect calls
-                connection.disconnect()
-                connection.disconnect()  # Should handle gracefully
+                connection.connection.disconnect()
+                connection.connection.disconnect()  # Should handle gracefully
 
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
-        from flext_db_oracle import FlextDbOracleConnection
+        from flext_db_oracle.services import FlextDbOracleServices
 
         # Create connection with invalid config
         bad_config = FlextDbOracleConfig(
@@ -252,14 +252,14 @@ class TestDirectCoverageBoostConnection:
             service_name="invalid",
         )
 
-        connection = FlextDbOracleConnection(bad_config)
+        connection = FlextDbOracleServices(bad_config)
 
         # Test operations on invalid connection
         operations = [
-            connection.test_connection,
-            connection.get_schemas,
-            lambda: connection.get_table_names("test"),
-            lambda: connection.execute_query("SELECT 1 FROM DUAL"),
+            connection.connection.test_connection,
+            connection.metadata.get_schemas,
+            lambda: connection.metadata.get_tables("test"),
+            lambda: connection.connection.is_connected(),
         ]
 
         for operation in operations:

@@ -25,7 +25,7 @@ from flext_core import (
     FlextResult,
 )
 from pydantic import Field, SecretStr, field_validator, model_validator
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_db_oracle.constants import (
     FlextDbOracleConstants,
@@ -56,7 +56,7 @@ class FlextDbOracleModels:
     into a single entry point with internal organization.
     """
 
-    class Column(FlextModels.Entity):
+    class Column(FlextModels.Value):
         """Oracle database column model with complete metadata."""
 
         column_name: str = Field(..., description="Column name")
@@ -179,7 +179,32 @@ class FlextDbOracleModels:
                 "TIMESTAMP WITH LOCAL TIME ZONE",
             }
 
-    class Table(FlextModels.Entity):
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate Oracle column business rules."""
+            # Column name validation
+            if not self.column_name or not self.column_name.strip():
+                return FlextResult[None].fail("Column name cannot be empty")
+
+            # Data type validation
+            if not self.data_type:
+                return FlextResult[None].fail("Data type cannot be empty")
+
+            # Precision and scale validation for numeric types
+            if self.is_numeric():
+                if self.data_precision and self.data_precision < 0:
+                    return FlextResult[None].fail("Data precision cannot be negative")
+                if self.data_scale and self.data_scale < 0:
+                    return FlextResult[None].fail("Data scale cannot be negative")
+                if (
+                    self.data_precision
+                    and self.data_scale
+                    and self.data_scale > self.data_precision
+                ):
+                    return FlextResult[None].fail("Data scale cannot exceed precision")
+
+            return FlextResult[None].ok(None)
+
+    class Table(FlextModels.Value):
         """Oracle database table model with metadata and relationships."""
 
         table_name: str = Field(..., description="Table name")
@@ -254,6 +279,36 @@ class FlextDbOracleModels:
             """Get all datetime columns."""
             return [col for col in self.columns if col.is_datetime()]
 
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate Oracle table business rules."""
+            # Table name validation
+            if not self.table_name or not self.table_name.strip():
+                return FlextResult[None].fail("Table name cannot be empty")
+
+            # Schema name validation (optional)
+            if (
+                self.schema_name
+                and len(self.schema_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
+            ):
+                return FlextResult[None].fail(
+                    f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
+                )
+
+            # Column validation
+            if not self.columns:
+                return FlextResult[None].fail("Table must have at least one column")
+
+            # Validate each column's business rules
+            for column in self.columns:
+                column_validation = column.validate_business_rules()
+                if not column_validation.success:
+                    return FlextResult[None].fail(
+                        f"Column '{column.column_name}' validation failed: {column_validation.error}"
+                    )
+
+            return FlextResult[None].ok(None)
+
     class Schema(FlextModels.Entity):
         """Oracle database schema model with tables and metadata."""
 
@@ -297,6 +352,32 @@ class FlextDbOracleModels:
         def get_total_columns(self) -> int:
             """Get total number of columns across all tables."""
             return sum(len(table.columns) for table in self.tables)
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate Oracle schema business rules."""
+            # Schema name validation
+            if not self.schema_name or not self.schema_name.strip():
+                return FlextResult[None].fail("Schema name cannot be empty")
+
+            # Schema name length validation
+            if (
+                len(self.schema_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
+            ):
+                return FlextResult[None].fail(
+                    f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
+                )
+
+            # Tables validation
+            if self.tables:
+                for table in self.tables:
+                    table_validation = table.validate_business_rules()
+                    if not table_validation.success:
+                        return FlextResult[None].fail(
+                            f"Table '{table.table_name}' validation failed: {table_validation.error}"
+                        )
+
+            return FlextResult[None].ok(None)
 
     class QueryResult(FlextModels.Value):
         """Oracle query result model with execution metadata."""
@@ -451,7 +532,7 @@ class FlextDbOracleModels:
     # ORACLE CONFIGURATION MODELS - Consolidated from config.py
     # =============================================================================
 
-    class OracleConfig(FlextModels.Entity):
+    class OracleConfig(BaseSettings):
         """Oracle database configuration extending flext-core centralized config."""
 
         # Core Oracle connection fields

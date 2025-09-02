@@ -38,6 +38,7 @@ class BaseError(Exception):
         self.correlation_id = correlation_id
         self.context = context or {}
 
+
 # =============================================================================
 # FLEXT[AREA][MODULE] PATTERN - Oracle Database Exceptions
 # =============================================================================
@@ -270,9 +271,7 @@ class FlextDbOracleExceptions(FlextExceptions):
         context: dict[str, object] | None = None,
     ) -> BaseError:
         """Create Oracle database error using factory pattern."""
-        return BaseError(
-            message, code=code or "ORACLE_ERROR", context=context
-        )
+        return BaseError(message, code=code or "ORACLE_ERROR", context=context)
 
     @classmethod
     def create_connection_error(
@@ -404,7 +403,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     # BaseError was removed - use FlextExceptions from flext-core directly
     from flext_core.exceptions import FlextExceptions
 
-    FlextDbOracleError = FlextExceptions
+    FlextDbOracleError = BaseError
     FlextDbOracleValidationError = ValidationError
     FlextDbOracleConfigurationError = ConfigurationError
     FlextDbOracleConnectionError = DatabaseConnectionError
@@ -414,6 +413,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     FlextDbOracleQueryError = QueryError
     FlextDbOracleMetadataError = MetadataError
     FlextDbOracleConnectionOperationError = ConnectionOperationError
+    FlextDbOracleErrorCodes = OracleErrorCodes
     FlextDbOracleOracleErrorCodes = OracleErrorCodes
 
 
@@ -424,6 +424,7 @@ __all__: list[str] = [
     "FlextDbOracleConnectionError",
     "FlextDbOracleConnectionOperationError",
     "FlextDbOracleError",
+    "FlextDbOracleErrorCodes",
     "FlextDbOracleExceptions",
     "FlextDbOracleMetadataError",
     "FlextDbOracleOracleErrorCodes",
@@ -435,7 +436,7 @@ __all__: list[str] = [
 
 # Create backward compatibility module-level aliases
 # BaseError was removed - use FlextExceptions from flext-core directly
-FlextDbOracleError = FlextExceptions
+FlextDbOracleError = BaseError
 FlextDbOracleValidationError = FlextDbOracleExceptions.ValidationError
 FlextDbOracleConfigurationError = FlextDbOracleExceptions.ConfigurationError
 FlextDbOracleConnectionError = FlextDbOracleExceptions.DatabaseConnectionError
@@ -445,4 +446,5 @@ FlextDbOracleTimeoutError = FlextDbOracleExceptions.DatabaseTimeoutError
 FlextDbOracleQueryError = FlextDbOracleExceptions.QueryError
 FlextDbOracleMetadataError = FlextDbOracleExceptions.MetadataError
 FlextDbOracleConnectionOperationError = FlextDbOracleExceptions.ConnectionOperationError
+FlextDbOracleErrorCodes = FlextDbOracleExceptions.OracleErrorCodes
 FlextDbOracleOracleErrorCodes = FlextDbOracleExceptions.OracleErrorCodes

@@ -55,7 +55,7 @@ class FlextDbOracleCliApplication:
         # Core CLI components using modern patterns
         self.console = Console()
         self.logger = FlextLogger(__name__)
-        self.container: object = FlextContainer.get_global()
+        self.container = FlextContainer.get_global()
         self.api_client = FlextApiClient()
         # Entity factory functionality handled by config
 
@@ -111,23 +111,30 @@ class FlextDbOracleCliApplication:
         ]
 
         for service_name, service_instance in services:
-            # Register services if container has register method
-            if hasattr(self.container, "register"):
-                register_method = getattr(self.container, "register", None)
-                if register_method is not None:
-                    register_method(service_name, service_instance)
+            # Register services using FlextResult-based container API
+            result = self.container.register(service_name, service_instance)
+            if not result.success:
+                self.logger.warning(
+                    f"Failed to register service {service_name}: {result.error}"
+                )
 
 
-# Global application instance - initialized with debug detection
-app: FlextDbOracleCliApplication | None = None
+# Application instance cache using class-based singleton pattern
+class _AppInstanceHolder:
+    """Singleton holder for application instance to avoid global statements."""
+
+    instance: FlextDbOracleCliApplication | None = None
+
+
+_app_holder = _AppInstanceHolder()
 
 
 def get_app(*, debug: bool = False) -> FlextDbOracleCliApplication:
     """Get or create the global application instance with proper configuration."""
-    global app
-    if app is None:
-        app = FlextDbOracleCliApplication(debug=debug)
-    return app
+    # Use class-based singleton pattern (ruff and mypy compliant)
+    if _app_holder.instance is None:
+        _app_holder.instance = FlextDbOracleCliApplication(debug=debug)
+    return _app_holder.instance
 
 
 # Main CLI group with modern flext-cli patterns
@@ -721,7 +728,9 @@ def show(ctx: click.Context) -> None:
     help="Set default output format",
 )
 @click.option("--timeout", type=click.IntRange(min=1), help="Set connection timeout")
-@click.option("--query-limit", type=click.IntRange(min=1), help="Set query result limit")
+@click.option(
+    "--query-limit", type=click.IntRange(min=1), help="Set query result limit"
+)
 @click.pass_context
 def set_config(
     ctx: click.Context,
@@ -880,7 +889,10 @@ def analyze(ctx: click.Context) -> None:
 
 @analyze.command()
 @click.option(
-    "--directory", type=click.Path(exists=True), default=".", help="Output directory for report"
+    "--directory",
+    type=click.Path(exists=True),
+    default=".",
+    help="Output directory for report",
 )
 # Time measurement
 @click.pass_context
@@ -904,11 +916,11 @@ def database(ctx: click.Context, directory: Path) -> None:
         ):
             # Get comprehensive database information
             schemas_result = connected_api.get_schemas()
-            total_schemas = len(schemas_result.unwrap_or([]))
+            total_schemas = len(schemas_result.value if schemas_result.success else [])
 
             # Get tables from current schema
             tables_result = connected_api.get_tables()
-            total_tables = len(tables_result.unwrap_or([]))
+            total_tables = len(tables_result.value if tables_result.success else [])
 
             # Generate analysis report
             analysis_table = Table(title="Oracle Database Analysis")
@@ -990,7 +1002,7 @@ class FlextDbOracleClis(FlextDomainService[str]):
         """Create production CLI configuration using factory pattern."""
         try:
             # Setup production CLI environment
-            {"debug": False, "log_level": "INFO"}
+            _ = {"debug": False, "log_level": "INFO"}
             # Return Oracle configuration
             config = FlextDbOracleConfig.from_env()
             return FlextResult[FlextDbOracleConfig].ok(config)
@@ -1004,7 +1016,7 @@ class FlextDbOracleClis(FlextDomainService[str]):
         """Create development CLI configuration using factory pattern."""
         try:
             # Setup development CLI environment
-            {"debug": True, "log_level": "DEBUG"}
+            _ = {"debug": True, "log_level": "DEBUG"}
             # Return Oracle configuration
             config = FlextDbOracleConfig.from_env()
             return FlextResult[FlextDbOracleConfig].ok(config)

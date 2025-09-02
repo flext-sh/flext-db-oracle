@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 
-from flext_core import FlextResult
+from flext_core import FlextDecorators, FlextResult
 from flext_core.utilities import FlextUtilities
 
 
@@ -40,56 +40,50 @@ class FlextDbOracleUtilities:
         """Oracle-specific utility methods that don't exist in generic utilities."""
 
         @staticmethod
+        @FlextDecorators.Reliability.safe_result
         def generate_query_hash(
             sql: str, params: dict[str, object] | None = None
-        ) -> FlextResult[str]:
+        ) -> str:
             """Generate hash for SQL query caching - Oracle specific."""
-            try:
-                # Use FlextUtilities.TextProcessor for normalization
-                normalized_sql = FlextUtilities.TextProcessor.safe_string(sql).strip()
-                normalized_sql = " ".join(normalized_sql.split())
+            # Use FlextUtilities.TextProcessor for normalization
+            normalized_sql = FlextUtilities.TextProcessor.safe_string(sql).strip()
+            normalized_sql = " ".join(normalized_sql.split())
 
-                # Create content for hashing using FlextUtilities.ProcessingUtils
-                params_json = FlextUtilities.ProcessingUtils.safe_json_stringify(
-                    params or {}
-                )
-                hash_content = f"{normalized_sql}|{params_json}"
+            # Create content for hashing using FlextUtilities.ProcessingUtils
+            params_json = FlextUtilities.ProcessingUtils.safe_json_stringify(
+                params or {}
+            )
+            hash_content = f"{normalized_sql}|{params_json}"
 
-                # Generate SHA-256 hash
-                query_hash = hashlib.sha256(hash_content.encode()).hexdigest()[:16]
-
-                return FlextResult[str].ok(query_hash)
-            except Exception as e:
-                return FlextResult[str].fail(f"Failed to generate query hash: {e}")
+            # Generate SHA-256 hash
+            return hashlib.sha256(hash_content.encode()).hexdigest()[:16]
 
         @staticmethod
-        def format_sql_for_oracle(sql: str) -> FlextResult[str]:
+        @FlextDecorators.Reliability.safe_result
+        def format_sql_for_oracle(sql: str) -> str:
             """Format SQL query for Oracle logging - Oracle specific."""
-            try:
-                # Use FlextUtilities.TextProcessor for basic formatting
-                formatted = FlextUtilities.TextProcessor.safe_string(sql).strip()
+            # Use FlextUtilities.TextProcessor for basic formatting
+            formatted = FlextUtilities.TextProcessor.safe_string(sql).strip()
 
-                # Oracle-specific keyword formatting
-                oracle_keywords = [
-                    "SELECT",
-                    "FROM",
-                    "WHERE",
-                    "JOIN",
-                    "ORDER BY",
-                    "GROUP BY",
-                    "HAVING",
-                ]
-                for keyword in oracle_keywords:
-                    formatted = formatted.replace(
-                        f" {keyword.lower()} ", f"\\n{keyword} "
-                    )
-                    formatted = formatted.replace(
-                        f" {keyword.upper()} ", f"\\n{keyword} "
-                    )
+            # Oracle-specific keyword formatting
+            oracle_keywords = [
+                "SELECT",
+                "FROM",
+                "WHERE",
+                "JOIN",
+                "ORDER BY",
+                "GROUP BY",
+                "HAVING",
+            ]
+            for keyword in oracle_keywords:
+                formatted = formatted.replace(
+                    f" {keyword.lower()} ", f"\\n{keyword} "
+                )
+                formatted = formatted.replace(
+                    f" {keyword.upper()} ", f"\\n{keyword} "
+                )
 
-                return FlextResult[str].ok(formatted)
-            except Exception as e:
-                return FlextResult[str].fail(f"Failed to format SQL: {e}")
+            return formatted
 
         @staticmethod
         def escape_oracle_identifier(identifier: str) -> FlextResult[str]:
@@ -120,6 +114,23 @@ class FlextDbOracleUtilities:
                 return FlextResult[str].ok(escaped)
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to escape Oracle identifier: {e}")
+
+    @classmethod
+    def create_config_from_env(cls) -> FlextResult[object]:
+        """Create Oracle configuration from environment variables.
+
+        Uses FlextUtilities for consistent environment variable processing.
+        """
+        try:
+            # Import here to avoid circular imports
+            from flext_db_oracle.models import FlextDbOracleConfig
+
+            # Use the existing from_env method from the config class
+            config = FlextDbOracleConfig.from_env()
+
+            return FlextResult[object].ok(config)
+        except Exception as e:
+            return FlextResult[object].fail(f"Config creation from env failed: {e}")
 
     @classmethod
     def create_api_from_config(cls, config: object) -> FlextResult[object]:

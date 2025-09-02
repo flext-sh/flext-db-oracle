@@ -123,7 +123,7 @@ class TestConnectionMissedLines:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
-        from flext_db_oracle import FlextDbOracleConnection
+        from flext_db_oracle.services import FlextDbOracleServices
 
         # Create connection with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
@@ -134,7 +134,7 @@ class TestConnectionMissedLines:
             service_name="INVALID",
         )
 
-        connection = FlextDbOracleConnection(bad_config)
+        connection = FlextDbOracleServices(bad_config)
 
         # Try operations that should trigger error handling paths
         error_operations = [
@@ -156,20 +156,20 @@ class TestConnectionMissedLines:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
-        from flext_db_oracle import FlextDbOracleConnection
+        from flext_db_oracle.services import FlextDbOracleServices
 
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Test connection lifecycle to trigger specific paths
         # Connect
-        result1 = connection.connect()
+        result1 = connection.connection.connect()
         if result1.success:
             # Test connection status
             result2 = connection.test_connection()
             assert result2.success or result2.is_failure
 
             # Disconnect
-            connection.disconnect()
+            connection.connection.disconnect()
 
             # Try to use after disconnect (should trigger error paths)
             result3 = connection.test_connection()

@@ -624,15 +624,10 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     # =============================================================================
 
     @classmethod
-    def from_env(cls, context_name: str = "oracle") -> FlextResult[Self]:
+    def from_env(cls, context_name: str = "oracle") -> Self:
         """Create API instance from environment variables."""
-        try:
-            config = FlextDbOracleConfig.from_env()
-            api = cls(config, context_name)
-            return FlextResult[Self].ok(api)
-
-        except Exception as e:
-            return FlextResult[Self].fail(f"Failed to create API from environment: {e}")
+        config = FlextDbOracleConfig.from_env()
+        return cls(config, context_name)
 
     @classmethod
     def from_config(

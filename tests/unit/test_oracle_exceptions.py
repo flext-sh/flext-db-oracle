@@ -16,7 +16,6 @@ from flext_db_oracle import (
     FlextDbOracleAuthenticationError,
     FlextDbOracleConfig,
     FlextDbOracleConfigurationError,
-    FlextDbOracleConnection,
     FlextDbOracleConnectionError,
     FlextDbOracleError,
     FlextDbOracleMetadataError,
@@ -26,6 +25,7 @@ from flext_db_oracle import (
     FlextDbOracleValidationError,
 )
 from flext_db_oracle.exceptions import FlextDbOracleErrorCodes
+from flext_db_oracle.services import FlextDbOracleServices
 
 
 class TestRealOracleExceptionsCore:
@@ -42,8 +42,8 @@ class TestRealOracleExceptionsCore:
             password=SecretStr("invalid_password_12345"),
         )
 
-        connection = FlextDbOracleConnection(invalid_config)
-        result = connection.connect()
+        connection = FlextDbOracleServices(invalid_config)
+        result = connection.connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
         if result.success:
@@ -77,8 +77,8 @@ class TestRealOracleExceptionsCore:
             password=SecretStr("testpass"),
         )
 
-        connection = FlextDbOracleConnection(unreachable_config)
-        result = connection.connect()
+        connection = FlextDbOracleServices(unreachable_config)
+        result = connection.connection.connect()
 
         # Should fail with connection error - using modern pattern
         if result.success:
@@ -114,8 +114,8 @@ class TestRealOracleExceptionsCore:
                 username="testuser",
                 password=SecretStr("testpass"),
             )
-            connection = FlextDbOracleConnection(invalid_config)
-            result = connection.connect()
+            connection = FlextDbOracleServices(invalid_config)
+            result = connection.connection.connect()
 
             # Should fail configuration validation - using modern pattern
             if result.success:
@@ -134,9 +134,9 @@ class TestRealOracleExceptionsCore:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test FlextDbOracleQueryError with real invalid SQL."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
-        connect_result = connection.connect()
+        connect_result = connection.connection.connect()
         assert connect_result.success
 
         try:
@@ -167,7 +167,7 @@ class TestRealOracleExceptionsCore:
                 )
 
         finally:
-            connection.disconnect()
+            connection.connection.disconnect()
 
     def test_real_timeout_error_scenario(
         self,
@@ -184,8 +184,8 @@ class TestRealOracleExceptionsCore:
             timeout=1,  # 1 second timeout
         )
 
-        connection = FlextDbOracleConnection(timeout_config)
-        connect_result = connection.connect()
+        connection = FlextDbOracleServices(timeout_config)
+        connect_result = connection.connection.connect()
         assert connect_result.success
 
         try:
@@ -212,7 +212,7 @@ class TestRealOracleExceptionsCore:
                 )
 
         finally:
-            connection.disconnect()
+            connection.connection.disconnect()
 
 
 class TestRealOracleExceptionsAdvanced:
@@ -273,8 +273,9 @@ class TestRealOracleExceptionsAdvanced:
             assert execute_result.success
 
             # Try to insert NULL into NOT NULL column - should fail
+            # table_name is controlled within test scope - safe for SQL construction
             insert_sql = (
-                f"INSERT INTO {table_name} (id, required_field) VALUES (1, NULL)"
+                f"INSERT INTO {table_name} (id, required_field) VALUES (1, NULL)"  # noqa: S608
             )
             result = connected_oracle_api.query(insert_sql)
             assert result.is_failure  # Should fail constraint violation
@@ -404,8 +405,9 @@ class TestRealOracleExceptionHierarchy:
     def test_real_exception_context_handling(self) -> None:
         """Test that Oracle exceptions handle context parameters properly."""
         # Test query truncation for long queries
+        # Controlled test data generation - safe for SQL construction in test context
         long_query = (
-            "SELECT " + ", ".join(f"col{i}" for i in range(100)) + " FROM table"
+            "SELECT " + ", ".join(f"col{i}" for i in range(100)) + " FROM table"  # noqa: S608
         )
 
         query_error = FlextDbOracleQueryError(

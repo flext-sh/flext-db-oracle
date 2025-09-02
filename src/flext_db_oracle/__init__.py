@@ -24,6 +24,7 @@ from flext_db_oracle.client import *
 from flext_db_oracle.constants import *
 from flext_db_oracle.exceptions import *
 from flext_db_oracle.models import *
+from flext_db_oracle.plugins import *
 from flext_db_oracle.services import *
 from flext_db_oracle.utilities import *
 

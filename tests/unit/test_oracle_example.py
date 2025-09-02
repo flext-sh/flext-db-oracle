@@ -14,8 +14,8 @@ from pydantic import SecretStr
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
-    FlextDbOracleConnection,
 )
+from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
@@ -27,33 +27,33 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle connection and disconnection."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Test connect - using modern .value access after failure check
-        result = connection.connect()
+        result = connection.connection.connect()
         if result.is_failure:
             msg = f"Connection failed: {result.error}"
             raise AssertionError(msg)
         # Success case - use modern .value access
-        assert connection.is_connected()
+        assert connection.connection.is_connected()
 
         # Test disconnect - using modern .value access after failure check
-        result = connection.disconnect()
+        result = connection.connection.disconnect()
         if result.is_failure:
             msg = f"Disconnect failed: {result.error}"
             raise AssertionError(msg)
         # Success case - use modern .value access
-        assert not connection.is_connected()
+        assert not connection.connection.is_connected()
 
     def test_real_connection_execute_query(
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle query execution."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Connect first - using modern pattern
-        connect_result = connection.connect()
+        connect_result = connection.connection.connect()
         if connect_result.is_failure:
             msg = f"Connection failed: {connect_result.error}"
             raise AssertionError(msg)
@@ -74,17 +74,17 @@ class TestRealOracleConnection:
                 assert row[0] == 1
 
         finally:
-            connection.disconnect()
+            connection.connection.disconnect()
 
     def test_real_connection_fetch_one(
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle fetch_one."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Connect first - using modern pattern
-        connect_result = connection.connect()
+        connect_result = connection.connection.connect()
         if connect_result.is_failure:
             msg = f"Connection failed: {connect_result.error}"
             raise AssertionError(msg)
@@ -102,17 +102,17 @@ class TestRealOracleConnection:
                 assert fetch_data[0] == 42
 
         finally:
-            connection.disconnect()
+            connection.connection.disconnect()
 
     def test_real_connection_execute_many(
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
         # Connect first - using modern pattern
-        connect_result = connection.connect()
+        connect_result = connection.connection.connect()
         if connect_result.is_failure:
             msg = f"Connection failed: {connect_result.error}"
             raise AssertionError(msg)
@@ -171,7 +171,7 @@ class TestRealOracleConnection:
             # Cleanup - drop temp table manually since PRESERVE ROWS keeps data
             with contextlib.suppress(Exception):
                 connection.execute("DROP TABLE temp_test_table")
-            connection.disconnect()
+            connection.connection.disconnect()
 
 
 class TestRealOracleApi:
@@ -381,8 +381,8 @@ class TestRealOracleErrorHandling:
             password=SecretStr("invalid_password"),
         )
 
-        connection = FlextDbOracleConnection(invalid_config)
-        result = connection.connect()
+        connection = FlextDbOracleServices(invalid_config)
+        result = connection.connection.connect()
         assert result.is_failure
         error_msg = (result.error or "").lower()
         assert (
@@ -398,9 +398,9 @@ class TestRealOracleErrorHandling:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test execution with invalid SQL."""
-        connection = FlextDbOracleConnection(real_oracle_config)
+        connection = FlextDbOracleServices(real_oracle_config)
 
-        connect_result = connection.connect()
+        connect_result = connection.connection.connect()
         if connect_result.is_failure:
             msg = f"Connection failed: {connect_result.error}"
             raise AssertionError(msg)
@@ -416,7 +416,7 @@ class TestRealOracleErrorHandling:
             )
 
         finally:
-            connection.disconnect()
+            connection.connection.disconnect()
 
     def test_real_api_not_connected_operations(
         self,

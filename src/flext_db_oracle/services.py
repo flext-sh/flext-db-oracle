@@ -24,10 +24,10 @@ import operator
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from logging import Logger
+from typing import TYPE_CHECKING
 from urllib.parse import quote_plus
 
-from flext_core import FlextDomainService, FlextLogger, FlextResult
+from flext_core import FlextDecorators, FlextDomainService, FlextLogger, FlextResult
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -55,15 +55,17 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
     entry point eliminating duplication and multiple small classes.
     """
 
-    # Declare attributes for MyPy compatibility with frozen class
-    config: FlextDbOracleConfig
-    logger: Logger  # Logger from FlextLogger()
-    connection: FlextDbOracleServices.ConnectionService
-    metadata: FlextDbOracleServices.MetadataService
-    observability: FlextDbOracleServices.ObservabilityService
-    operation_tracker: FlextDbOracleServices.OperationTracker
-    plugins: FlextDbOracleServices.PluginService
-    utilities: FlextDbOracleServices.UtilitiesService
+    # Declare attributes for MyPy compatibility - these are set in __init__ via object.__setattr__
+    # Note: These are not Pydantic fields, only for type checking
+    if TYPE_CHECKING:
+        config: FlextDbOracleConfig
+        logger: FlextLogger
+        connection: FlextDbOracleServices.ConnectionService
+        metadata: FlextDbOracleServices.MetadataService
+        observability: FlextDbOracleServices.ObservabilityService
+        operation_tracker: FlextDbOracleServices.OperationTracker
+        plugins: FlextDbOracleServices.PluginService
+        utilities: FlextDbOracleServices.UtilitiesService
 
     # =============================================================================
     # CONNECTION SERVICE - Consolidated from connection.py
@@ -323,10 +325,25 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
         ) -> FlextResult[int]:
             """Get approximate row count for table."""
             schema = schema or self.connection.config.oracle_schema
+
+            # Validate schema and table names to prevent SQL injection
+            if (
+                not schema
+                or not isinstance(schema, str)
+                or not schema.replace("_", "").replace("$", "").isalnum()
+            ):
+                return FlextResult[int].fail("Invalid schema name")
+            if (
+                not table_name
+                or not isinstance(table_name, str)
+                or not table_name.replace("_", "").replace("$", "").isalnum()
+            ):
+                return FlextResult[int].fail("Invalid table name")
+
             full_table_name = f"{schema}.{table_name}"
 
-            # NOTE: Schema and table names validated above - safe for formatting
-            sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"
+            # Schema and table names validated above - safe for formatting
+            sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
             result = self.connection.execute_query(sql)
 
             if not result.success:
@@ -400,28 +417,25 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
                 )
                 return FlextResult[FlextDbOracleConnectionStatus].ok(error_status)
 
+        @FlextDecorators.Reliability.safe_result
         def record_metric(
             self,
             name: str,
             value: object,  # Metrics accept any serializable value
             tags: dict[str, str] | None = None,
-        ) -> FlextResult[None]:
+        ) -> None:
             """Record performance metric."""
-            try:
-                timestamp = datetime.now(UTC)
-                metric_key = f"{name}_{timestamp.isoformat()}"
+            timestamp = datetime.now(UTC)
+            metric_key = f"{name}_{timestamp.isoformat()}"
 
-                self._metrics[metric_key] = {
-                    "name": name,
-                    "value": value,
-                    "tags": tags or {},
-                    "timestamp": timestamp,
-                }
+            self._metrics[metric_key] = {
+                "name": name,
+                "value": value,
+                "tags": tags or {},
+                "timestamp": timestamp,
+            }
 
-                self.logger.debug("Metric recorded: %s = %s", name, value)
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Failed to record metric: {e}")
+            self.logger.debug("Metric recorded: %s = %s", name, value)
 
         def get_metrics(self) -> FlextResult[dict[str, object]]:
             """Get all recorded metrics."""
@@ -618,22 +632,17 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             self.logger = FlextLogger(__name__)
             self._plugins: dict[str, dict[str, object]] = {}
 
-        def register_plugin(
-            self, name: str, plugin: dict[str, object]
-        ) -> FlextResult[None]:
+        @FlextDecorators.Reliability.safe_result
+        def register_plugin(self, name: str, plugin: dict[str, object]) -> None:
             """Register a plugin."""
-            try:
-                self._plugins[name] = {
-                    "name": name,
-                    "plugin": plugin,
-                    "registered_at": datetime.now(UTC),
-                    "status": "registered",
-                }
+            self._plugins[name] = {
+                "name": name,
+                "plugin": plugin,
+                "registered_at": datetime.now(UTC),
+                "status": "registered",
+            }
 
-                self.logger.info("Plugin registered: %s", name)
-                return FlextResult[None].ok(None)
-            except Exception as e:
-                return FlextResult[None].fail(f"Failed to register plugin: {e}")
+            self.logger.info("Plugin registered: %s", name)
 
         def unregister_plugin(self, name: str) -> FlextResult[None]:
             """Unregister a plugin."""
@@ -646,13 +655,10 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             except Exception as e:
                 return FlextResult[None].fail(f"Failed to unregister plugin: {e}")
 
-        def list_plugins(self) -> FlextResult[list[str]]:
+        @FlextDecorators.Reliability.safe_result
+        def list_plugins(self) -> list[str]:
             """List all registered plugins."""
-            try:
-                plugin_names = list(self._plugins.keys())
-                return FlextResult[list[str]].ok(plugin_names)
-            except Exception as e:
-                return FlextResult[list[str]].fail(f"Failed to list plugins: {e}")
+            return list(self._plugins.keys())
 
         def get_plugin(self, name: str) -> FlextResult[dict[str, object]]:
             """Get plugin by name."""
@@ -789,20 +795,27 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
 
     def __init__(self, config: FlextDbOracleConfig) -> None:
         """Initialize all Oracle services with configuration."""
-        # Use object.__setattr__ because FlextDomainService is frozen
-        object.__setattr__(self, "config", config)
-        super().__init__()
-        object.__setattr__(self, "logger", FlextLogger(__name__))
+        # Initialize all services first
+        logger = FlextLogger(__name__)
+        connection_service = self.ConnectionService(config)
+        metadata_service = self.MetadataService(connection_service)
+        observability_service = self.ObservabilityService(connection_service)
+        operation_tracker_service = self.OperationTracker()
+        plugins_service = self.PluginService()
+        utilities_service = self.UtilitiesService(connection_service)
 
-        # Initialize component services using object.__setattr__ for frozen class
-        object.__setattr__(self, "connection", self.ConnectionService(config))
-        object.__setattr__(self, "metadata", self.MetadataService(self.connection))
-        object.__setattr__(
-            self, "observability", self.ObservabilityService(self.connection)
-        )
-        object.__setattr__(self, "operation_tracker", self.OperationTracker())
-        object.__setattr__(self, "plugins", self.PluginService())
-        object.__setattr__(self, "utilities", self.UtilitiesService(self.connection))
+        # Initialize domain service without parameters and set attributes manually
+        super().__init__()
+
+        # Use object.__setattr__ because FlextDomainService may be frozen
+        object.__setattr__(self, "config", config)
+        object.__setattr__(self, "logger", logger)
+        object.__setattr__(self, "connection", connection_service)
+        object.__setattr__(self, "metadata", metadata_service)
+        object.__setattr__(self, "observability", observability_service)
+        object.__setattr__(self, "operation_tracker", operation_tracker_service)
+        object.__setattr__(self, "plugins", plugins_service)
+        object.__setattr__(self, "utilities", utilities_service)
 
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute Oracle services - required by FlextDomainService ABC."""
