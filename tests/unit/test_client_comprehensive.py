@@ -1,6 +1,6 @@
 """Comprehensive Oracle Client Tests - Real Implementation.
 
-Tests the FlextDbOracleCliApplication class completely without mocks,
+Tests the FlextDbOracleClient class completely without mocks,
 achieving maximum coverage through real client operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -12,8 +12,8 @@ from __future__ import annotations
 from click.testing import CliRunner
 
 from flext_db_oracle.client import (
-    FlextDbOracleCliApplication,
-    get_app,
+    FlextDbOracleClient,
+    get_client,
     oracle_cli,
 )
 
@@ -23,7 +23,7 @@ class TestFlextDbOracleClientComprehensive:
 
     def test_client_application_initialization(self) -> None:
         """Test CLI application initialization."""
-        app = FlextDbOracleCliApplication()
+        app = FlextDbOracleClient()
 
         # Test basic initialization
         assert app is not None
@@ -31,37 +31,37 @@ class TestFlextDbOracleClientComprehensive:
         assert isinstance(app.cli_config, dict)
 
         # Test with debug mode
-        debug_app = FlextDbOracleCliApplication(debug=True)
+        debug_app = FlextDbOracleClient(debug=True)
         assert debug_app is not None
         assert debug_app.cli_config["debug"] is True
 
     def test_client_application_initialize_application(self) -> None:
         """Test application initialization method."""
-        app = FlextDbOracleCliApplication()
+        app = FlextDbOracleClient()
 
         result = app.initialize_application()
 
         # Should succeed in initialization
         assert result.success
 
-    def test_client_get_app_singleton(self) -> None:
-        """Test get_app singleton pattern."""
-        app1 = get_app()
-        app2 = get_app()
+    def test_client_get_client_singleton(self) -> None:
+        """Test get_client singleton pattern."""
+        app1 = get_client()
+        app2 = get_client()
 
         # Should return same instance (singleton)
         assert app1 is app2
 
         # Test with debug parameter
-        debug_app = get_app(debug=True)
+        debug_app = get_client(debug=True)
         assert debug_app is not None
 
-    def test_client_get_app_debug_variations(self) -> None:
-        """Test get_app with different debug settings."""
-        # Note: get_app is singleton, so first call determines the debug setting
+    def test_client_get_client_debug_variations(self) -> None:
+        """Test get_client with different debug settings."""
+        # Note: get_client is singleton, so first call determines the debug setting
         # Create new instances directly to test debug variations
-        normal_app = FlextDbOracleCliApplication(debug=False)
-        debug_app = FlextDbOracleCliApplication(debug=True)
+        normal_app = FlextDbOracleClient(debug=False)
+        debug_app = FlextDbOracleClient(debug=True)
 
         assert normal_app is not None
         assert debug_app is not None
@@ -362,7 +362,7 @@ class TestFlextDbOracleClientComprehensive:
 
     def test_client_application_core_services_registration(self) -> None:
         """Test application core services registration."""
-        app = FlextDbOracleCliApplication()
+        app = FlextDbOracleClient()
 
         # Test that core services registration doesn't crash
         try:
@@ -376,8 +376,8 @@ class TestFlextDbOracleClientComprehensive:
 
     def test_client_application_context_handling(self) -> None:
         """Test CLI application context handling."""
-        app1 = FlextDbOracleCliApplication()
-        app2 = FlextDbOracleCliApplication(debug=True)
+        app1 = FlextDbOracleClient()
+        app2 = FlextDbOracleClient(debug=True)
 
         # Test that applications can be created independently
         assert app1 is not None

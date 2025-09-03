@@ -63,8 +63,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle validation error via flext-core."""
             # ValueError only accepts message - store additional info as instance attributes
@@ -79,8 +79,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle configuration error via flext-core."""
             resolved_code = code or "ORACLE_CONFIGURATION_ERROR"
@@ -93,8 +93,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle connection error via flext-core FlextConnectionError."""
             super().__init__(message)
@@ -106,8 +106,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle processing error via flext-core."""
             resolved_code = code or "ORACLE_PROCESSING_ERROR"
@@ -120,8 +120,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle authentication error via flext-core."""
             resolved_code = code or "ORACLE_AUTHENTICATION_ERROR"
@@ -134,8 +134,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self,
             message: str,
             *,
-            code: str | None = None,  # noqa: ARG002
-            context: dict[str, object] | None = None,  # noqa: ARG002
+            code: str | None = None,
+            context: dict[str, object] | None = None,
         ) -> None:
             """Initialize Oracle timeout error via flext-core."""
             resolved_code = code or "ORACLE_TIMEOUT_ERROR"

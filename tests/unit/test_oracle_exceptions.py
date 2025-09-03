@@ -13,18 +13,9 @@ from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleAuthenticationError,
     FlextDbOracleConfig,
-    FlextDbOracleConfigurationError,
-    FlextDbOracleConnectionError,
-    FlextDbOracleError,
-    FlextDbOracleMetadataError,
-    FlextDbOracleProcessingError,
-    FlextDbOracleQueryError,
-    FlextDbOracleTimeoutError,
-    FlextDbOracleValidationError,
 )
-from flext_db_oracle.exceptions import FlextDbOracleErrorCodes
+from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -32,7 +23,7 @@ class TestRealOracleExceptionsCore:
     """Teste real das exceções básicas Oracle - SEM MOCKS."""
 
     def test_real_authentication_error_scenario(self) -> None:
-        """Test FlextDbOracleAuthenticationError with real invalid credentials."""
+        """Test FlextDbOracleExceptions.AuthenticationError with real invalid credentials."""
         # Use real invalid credentials against Oracle container
         invalid_config = FlextDbOracleConfig(
             host="localhost",
@@ -67,7 +58,7 @@ class TestRealOracleExceptionsCore:
         )
 
     def test_real_connection_error_scenario(self) -> None:
-        """Test FlextDbOracleConnectionError with real unreachable host."""
+        """Test FlextDbOracleExceptions.ConnectionError with real unreachable host."""
         # Use real unreachable host
         unreachable_config = FlextDbOracleConfig(
             host="unreachable-host-12345.invalid",
@@ -103,7 +94,7 @@ class TestRealOracleExceptionsCore:
         )
 
     def test_real_configuration_error_scenario(self) -> None:
-        """Test FlextDbOracleConfigurationError with real invalid config."""
+        """Test FlextDbOracleExceptions.ConfigurationError with real invalid config."""
         # Test config without service_name or sid - should fail validation
         try:
             invalid_config = FlextDbOracleConfig(
@@ -133,7 +124,7 @@ class TestRealOracleExceptionsCore:
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
-        """Test FlextDbOracleQueryError with real invalid SQL."""
+        """Test FlextDbOracleExceptions.QueryError with real invalid SQL."""
         connection = FlextDbOracleServices(real_oracle_config)
 
         connect_result = connection.connect()
@@ -173,7 +164,7 @@ class TestRealOracleExceptionsCore:
         self,
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
-        """Test FlextDbOracleTimeoutError with real long-running query."""
+        """Test FlextDbOracleExceptions.TimeoutError with real long-running query."""
         # Create config with very short timeout
         timeout_config = FlextDbOracleConfig(
             host=real_oracle_config.host,
@@ -222,7 +213,7 @@ class TestRealOracleExceptionsAdvanced:
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test FlextDbOracleMetadataError with real metadata operations."""
+        """Test FlextDbOracleExceptions.MetadataError with real metadata operations."""
         # Try to get metadata for non-existent schema
         invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
 
@@ -249,7 +240,7 @@ class TestRealOracleExceptionsAdvanced:
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test FlextDbOracleProcessingError with real data processing errors."""
+        """Test FlextDbOracleExceptions.ProcessingError with real data processing errors."""
         # Create table with constraints then violate them
         table_name = "TEST_CONSTRAINT_TABLE"
 
@@ -275,7 +266,7 @@ class TestRealOracleExceptionsAdvanced:
             # Try to insert NULL into NOT NULL column - should fail
             # table_name is controlled within test scope - safe for SQL construction
             insert_sql = (
-                "INSERT INTO " + table_name + " (id, required_field) VALUES (1, NULL)"  # noqa: S608
+                "INSERT INTO " + table_name + " (id, required_field) VALUES (1, NULL)"
             )
             result = connected_oracle_api.query(insert_sql)
             assert result.is_failure  # Should fail constraint violation
@@ -299,7 +290,7 @@ class TestRealOracleExceptionsAdvanced:
                     connected_oracle_api.execute_ddl(drop_ddl.value)
 
     def test_real_validation_error_scenario(self) -> None:
-        """Test FlextDbOracleValidationError with real config validation."""
+        """Test FlextDbOracleExceptions.ValidationError with real config validation."""
         # Test various invalid configurations
         invalid_configs = [
             {
@@ -366,40 +357,44 @@ class TestRealOracleExceptionHierarchy:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
         # Test exception class hierarchy - all should inherit from Exception
         # Note: Direct inheritance from Exception to avoid MyPy issues with flext-core
-        assert issubclass(FlextDbOracleError, Exception)
-        assert issubclass(FlextDbOracleAuthenticationError, Exception)
-        assert issubclass(FlextDbOracleConfigurationError, Exception)
-        assert issubclass(FlextDbOracleConnectionError, Exception)
-        assert issubclass(FlextDbOracleMetadataError, Exception)
-        assert issubclass(FlextDbOracleProcessingError, Exception)
-        assert issubclass(FlextDbOracleQueryError, Exception)
-        assert issubclass(FlextDbOracleTimeoutError, Exception)
-        assert issubclass(FlextDbOracleValidationError, Exception)
+        assert issubclass(FlextDbOracleExceptions.Error, Exception)
+        assert issubclass(FlextDbOracleExceptions.AuthenticationError, Exception)
+        assert issubclass(FlextDbOracleExceptions.ConfigurationError, Exception)
+        assert issubclass(FlextDbOracleExceptions.ConnectionError, Exception)
+        assert issubclass(FlextDbOracleExceptions.MetadataError, Exception)
+        assert issubclass(FlextDbOracleExceptions.ProcessingError, Exception)
+        assert issubclass(FlextDbOracleExceptions.QueryError, Exception)
+        assert issubclass(FlextDbOracleExceptions.TimeoutError, Exception)
+        assert issubclass(FlextDbOracleExceptions.ValidationError, Exception)
 
-        # Test that domain-specific exceptions inherit from FlextDbOracleError (factory-created)
-        assert issubclass(FlextDbOracleQueryError, FlextDbOracleError)
-        assert issubclass(FlextDbOracleMetadataError, FlextDbOracleError)
+        # Test that domain-specific exceptions inherit from FlextExceptions.BaseError (factory-created)
+        from flext_core.exceptions import FlextExceptions
+
+        assert issubclass(FlextDbOracleExceptions.QueryError, FlextExceptions.BaseError)
+        assert issubclass(
+            FlextDbOracleExceptions.MetadataError, FlextExceptions.BaseError
+        )
 
     def test_real_exception_instantiation(self) -> None:
         """Test that Oracle exceptions can be instantiated with context."""
-        # Test FlextDbOracleQueryError with context
-        query_error = FlextDbOracleQueryError(
+        # Test FlextDbOracleExceptions.QueryError with context
+        query_error = FlextDbOracleExceptions.QueryError(
             "Invalid SQL syntax",
             query="SELECT FROM WHERE",
-            code=FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR,
+            code=FlextDbOracleExceptions.ErrorCodes.ORACLE_QUERY_ERROR,
         )
         assert "Invalid SQL syntax" in str(query_error)
 
-        # Test FlextDbOracleMetadataError with context
-        metadata_error = FlextDbOracleMetadataError(
+        # Test FlextDbOracleExceptions.MetadataError with context
+        metadata_error = FlextDbOracleExceptions.MetadataError(
             "Schema not found",
             schema_name="INVALID_SCHEMA",
             object_name="SOME_TABLE",
         )
         assert "Schema not found" in str(metadata_error)
 
-        # Test base FlextDbOracleError
-        base_error = FlextDbOracleError("General Oracle error")
+        # Test base FlextDbOracleExceptions.Error
+        base_error = FlextDbOracleExceptions.Error("General Oracle error")
         assert "General Oracle error" in str(base_error)
 
     def test_real_exception_context_handling(self) -> None:
@@ -407,12 +402,12 @@ class TestRealOracleExceptionHierarchy:
         # Test query truncation for long queries
         # Controlled test data generation - safe for SQL construction in test context
         columns = [f"col{i}" for i in range(100)]
-        long_query = "SELECT " + ", ".join(columns) + " FROM table"  # noqa: S608
+        long_query = "SELECT " + ", ".join(columns) + " FROM table"
 
-        query_error = FlextDbOracleQueryError(
+        query_error = FlextDbOracleExceptions.QueryError(
             "Query too complex",
             query=long_query,
-            code=FlextDbOracleErrorCodes.ORACLE_QUERY_ERROR,
+            code=FlextDbOracleExceptions.ErrorCodes.ORACLE_QUERY_ERROR,
         )
 
         # Query should be truncated to 200 characters in context

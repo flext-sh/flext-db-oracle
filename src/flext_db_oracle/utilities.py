@@ -39,14 +39,20 @@ class FlextDbOracleUtilities:
 
     # Consolidated protocols as class attributes
     class HasModelDump(Protocol):
+        """Protocol for objects with model_dump method."""
+
         def model_dump(self) -> dict[str, object]: ...
 
     class QueryResult(Protocol):
+        """Protocol for query result objects."""
+
         columns: object
         rows: object
         row_count: int
 
     class ConsoleProtocol(Protocol):
+        """Protocol for console printing objects."""
+
         def print(self, *args: object) -> None: ...
 
     # =============================================================================
@@ -161,61 +167,6 @@ class FlextDbOracleUtilities:
         except Exception as e:
             return FlextResult[str].fail(f"Query result formatting failed: {e}")
 
-    @staticmethod
-    def _display_health_data(
-        health_data: object,
-        format_type: str,
-        console: FlextDbOracleUtilities.ConsoleProtocol,
-    ) -> None:
-        """Display health data in specified format."""
-        safe_format_type = format_type.lower() if format_type else "table"
-
-        try:
-            if safe_format_type == "json":
-                # Try to get data as dict if it has model_dump method
-                try:
-                    model_dump_method = getattr(health_data, "model_dump", None)
-                    if model_dump_method and callable(model_dump_method):
-                        data_dict = model_dump_method()
-                        formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(
-                            data_dict
-                        )
-                    else:
-                        formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(
-                            health_data
-                        )
-                except Exception:
-                    formatted = str(health_data)
-                console.print(formatted)
-            else:
-                # Table format - use simple representation
-                console.print(f"Health data: {health_data}")
-        except Exception:
-            # Fallback - just print basic info
-            console.print(f"Health data ({type(health_data).__name__}): {health_data}")
-
-    @staticmethod
-    def _display_query_table(
-        query_result: object, console: FlextDbOracleUtilities.ConsoleProtocol
-    ) -> None:
-        """Display query result in table format."""
-        try:
-            # Check if it's a query result with columns and rows
-            if hasattr(query_result, "columns") and hasattr(query_result, "rows"):
-                console.print(
-                    f"Query Result - Columns: {getattr(query_result, 'columns', None)}"
-                )
-                if hasattr(query_result, "row_count"):
-                    console.print(
-                        f"Row count: {getattr(query_result, 'row_count', None)}"
-                    )
-                console.print(f"Data: {getattr(query_result, 'rows', None)}")
-            else:
-                # Generic display
-                console.print(f"Query result: {query_result}")
-        except Exception:
-            # Fallback
-            console.print(f"Query result ({type(query_result).__name__})")
 
 
 __all__ = ["FlextDbOracleUtilities"]

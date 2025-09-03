@@ -229,7 +229,9 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_helper_functions(self) -> None:
         """Test module-level helper functions."""
-        from flext_db_oracle.api import _get_plugin_info, _is_valid_plugin
+        from flext_db_oracle.api import FlextDbOracleApi
+        get_plugin_info = FlextDbOracleApi._get_plugin_info
+        is_valid_plugin = FlextDbOracleApi._is_valid_plugin
 
         # Create a plugin for testing directly
         plugin: dict[str, object] = {
@@ -240,11 +242,11 @@ class TestFlextDbOracleApiSafeMethods:
         }
 
         # Test _is_valid_plugin
-        assert _is_valid_plugin(plugin)
-        assert not _is_valid_plugin(None)
-        assert not _is_valid_plugin("not a plugin")
+        assert is_valid_plugin(plugin)
+        assert not is_valid_plugin(None)
+        assert not is_valid_plugin("not a plugin")
 
         # Test _get_plugin_info
-        info = _get_plugin_info(plugin)
+        info = get_plugin_info(plugin)
         assert isinstance(info, dict)
         assert "name" in info

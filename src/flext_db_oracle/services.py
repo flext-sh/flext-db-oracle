@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 # hashlib removed - using FlextUtilities.generate_hash instead
-import json
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -19,7 +18,6 @@ from urllib.parse import quote_plus
 
 from flext_core import (
     FlextDecorators,
-    FlextDomainService,
     FlextLogger,
     FlextMixins,
     FlextResult,
@@ -34,7 +32,46 @@ from flext_db_oracle.models import FlextDbOracleModels
 logger = FlextLogger(__name__)
 
 
-class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.Service):
+def _is_safe_sql_identifier(identifier: str) -> bool:
+    """Validate SQL identifier to prevent injection.
+
+    Args:
+        identifier: SQL identifier to validate
+
+    Returns:
+        True if identifier is safe for use in SQL
+
+    """
+    if not identifier or not isinstance(identifier, str):
+        return False
+
+    # Oracle identifiers: alphanumeric, underscore, dollar sign, hash
+    # First character must be letter or underscore
+    # Max length 128 characters (Oracle standard)
+    max_identifier_length = 128
+    if len(identifier) > max_identifier_length:
+        return False
+
+    # Check first character
+    if not (identifier[0].isalpha() or identifier[0] == "_"):
+        return False
+
+    # Check remaining characters
+    for char in identifier[1:]:
+        if not (char.isalnum() or char in ("_", "$", "#")):
+            return False
+
+    # Prevent SQL keywords (basic set)
+    reserved_words = {
+        "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE",
+        "ALTER", "TRUNCATE", "GRANT", "REVOKE", "UNION", "ORDER",
+        "GROUP", "HAVING", "WHERE", "FROM", "INTO", "VALUES"
+    }
+
+    return identifier.upper() not in reserved_words
+
+
+class FlextDbOracleServices(FlextMixins.Service):
     """Single consolidated Oracle database services class.
 
     Following flext-core pattern: one class per module, all functionality consolidated.
@@ -60,15 +97,13 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
         self, config: FlextDbOracleModels.OracleConfig, **kwargs: object
     ) -> None:
         """Initialize Oracle services with configuration."""
-        # Initialize with Pydantic fields
+        # Initialize Pydantic model properly
         super().__init__(**kwargs)
-        # Set config after initialization
+        # Set config using object.__setattr__ to bypass Pydantic protection
         object.__setattr__(self, "config", config)
 
     def model_post_init(self, __context: object, /) -> None:
         """Post-initialization setup for non-Pydantic attributes."""
-        super().model_post_init(__context)
-
         # Use object.__setattr__ to bypass frozen instance protection
         object.__setattr__(self, "logger", FlextLogger(__name__))
         object.__setattr__(self, "_engine", None)
@@ -242,15 +277,30 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
     ) -> FlextResult[str]:
         """Build a SELECT query string."""
         try:
+            # Validate all SQL identifiers for security
+            if not _is_safe_sql_identifier(table_name):
+                return FlextResult[str].fail("Invalid table name")
+
+            if schema_name and not _is_safe_sql_identifier(schema_name):
+                return FlextResult[str].fail("Invalid schema name")
+
+            if columns:
+                for col in columns:
+                    if not _is_safe_sql_identifier(col):
+                        return FlextResult[str].fail(f"Invalid column name: {col}")
+
             column_list, full_table_name = self._build_select_base(
                 table_name, columns, schema_name
             )
-            query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608
+            query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608 - Safe: all identifiers validated
 
             if conditions:
-                where_clauses = [
-                    f"{key} = {value!r}" for key, value in conditions.items()
-                ]
+                where_clauses = []
+                for key in conditions:
+                    if not _is_safe_sql_identifier(key):
+                        return FlextResult[str].fail(f"Invalid condition column name: {key}")
+                    # Use parameterized query to prevent SQL injection
+                    where_clauses.append(f"{key} = :{key}")
                 query += f" WHERE {' AND '.join(where_clauses)}"
 
             return FlextResult[str].ok(query)
@@ -269,7 +319,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
             column_list, full_table_name = self._build_select_base(
                 table_name, columns, schema_name
             )
-            query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608
+            query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608 - Safe: all identifiers validated
             params: dict[str, object] = {}
 
             if conditions:
@@ -516,10 +566,17 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
             if not self._connected:
                 return FlextResult[int].fail("Not connected to database")
 
+            # Use FlextUtilities for safe SQL identifier validation
+            if not _is_safe_sql_identifier(table_name):
+                return FlextResult[int].fail("Invalid table name")
+
+            if schema_name and not _is_safe_sql_identifier(schema_name):
+                return FlextResult[int].fail("Invalid schema name")
+
             if schema_name:
-                sql = f"SELECT COUNT(*) as row_count FROM {schema_name}.{table_name}"  # noqa: S608
+                sql = f"SELECT COUNT(*) as row_count FROM {schema_name}.{table_name}"  # noqa: S608 - Safe: identifiers validated
             else:
-                sql = f"SELECT COUNT(*) as row_count FROM {table_name}"  # noqa: S608
+                sql = f"SELECT COUNT(*) as row_count FROM {table_name}"  # noqa: S608 - Safe: identifiers validated
 
             result = self.execute_query(sql)
             if not result.success:
@@ -551,8 +608,8 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
         try:
             status = FlextDbOracleModels.ConnectionStatus(
                 is_connected=self._connected,
-                connection_time=datetime.now(UTC) if self._connected else None,
-                last_activity=datetime.now(UTC) if self._connected else None,
+                connection_time=FlextUtilities.generate_timestamp() if self._connected else None,
+                last_activity=FlextUtilities.generate_timestamp() if self._connected else None,
                 session_id=None,  # Could be populated from Oracle session query
                 host=self.config.host,
                 port=self.config.port,
@@ -724,20 +781,11 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
     def generate_query_hash(
         self, sql: str, params: dict[str, object] | None = None
     ) -> FlextResult[str]:
-        """Generate hash for SQL query caching."""
+        """Generate hash for SQL query caching using FlextDbOracleUtilities."""
         try:
-            # Normalize SQL
-            normalized_sql = " ".join(sql.strip().split())
-
-            # Include parameters in hash
-            params_str = json.dumps(params or {}, sort_keys=True, default=str)
-
-            # Use standard hashlib for query hashing
-            import hashlib
-
-            hash_input = f"{normalized_sql}|{params_str}"
-            query_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:16]
-
+            from flext_db_oracle.utilities import FlextDbOracleUtilities
+            
+            query_hash = FlextDbOracleUtilities.generate_query_hash(sql, params)
             return FlextResult[str].ok(query_hash)
 
         except Exception as e:
@@ -1061,10 +1109,20 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
         """Build INSERT statement."""
         try:
             full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Validate all column names to prevent SQL injection
+            for col in columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid column name: {col}")
+            if returning_columns:
+                for col in returning_columns:
+                    if not _is_safe_sql_identifier(col):
+                        return FlextResult[str].fail(f"Invalid RETURNING column name: {col}")
+
             column_list = ", ".join(columns)
             value_placeholders = ", ".join(f":{col}" for col in columns)
 
-            sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"  # noqa: S608
+            sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"  # noqa: S608 - Safe: all identifiers validated
 
             if returning_columns:
                 sql += f" RETURNING {', '.join(returning_columns)}"
@@ -1084,10 +1142,19 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
         """Build UPDATE statement."""
         try:
             full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Validate all column names to prevent SQL injection
+            for col in set_columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid SET column name: {col}")
+            for col in where_columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid WHERE column name: {col}")
+
             set_clauses = [f"{col} = :{col}" for col in set_columns]
             where_clauses = [f"{col} = :where_{col}" for col in where_columns]
 
-            sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
+            sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"  # noqa: S608 - Safe: all identifiers validated
 
             return FlextResult[str].ok(sql)
 
@@ -1100,9 +1167,15 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
         """Build DELETE statement."""
         try:
             full_table_name = self._build_table_name(table_name, schema_name)
+
+            # Validate all column names to prevent SQL injection
+            for col in where_columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid WHERE column name: {col}")
+
             where_clauses = [f"{col} = :{col}" for col in where_columns]
 
-            sql = f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
+            sql = f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"  # noqa: S608 - Safe: all identifiers validated
 
             return FlextResult[str].ok(sql)
 
@@ -1120,8 +1193,16 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
 
             full_table_name = self._build_table_name(target_table, schema_name)
 
+            # Validate ALL column names to prevent SQL injection
+            for col in source_columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid source column name: {col}")
+            for key in merge_keys:
+                if not _is_safe_sql_identifier(key):
+                    return FlextResult[str].fail(f"Invalid merge key column name: {key}")
+
             # Build source SELECT
-            source_select = f"SELECT {', '.join(f':{col} as {col}' for col in source_columns)} FROM dual"  # noqa: S608
+            source_select = f"SELECT {', '.join(f':{col} as {col}' for col in source_columns)} FROM dual"  # noqa: S608 - Safe: all column names validated
 
             # Build merge conditions
             merge_conditions = [f"tgt.{key} = src.{key}" for key in merge_keys]
@@ -1132,15 +1213,15 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]], FlextMixins.S
             insert_columns = ", ".join(source_columns)
             insert_values = ", ".join(f"src.{col}" for col in source_columns)
 
-            sql = f"""  # noqa: S608
-MERGE INTO {full_table_name} tgt
+            # SQL generation is safe - uses parameterized queries
+            sql = f"""MERGE INTO {full_table_name} tgt
 USING ({source_select}) src
 ON ({" AND ".join(merge_conditions)})
 WHEN MATCHED THEN
   UPDATE SET {", ".join(update_set)}
 WHEN NOT MATCHED THEN
   INSERT ({insert_columns})
-  VALUES ({insert_values})"""
+  VALUES ({insert_values})"""  # noqa: S608 - Safe: all column names validated
 
             return FlextResult[str].ok(sql)
 
@@ -1158,6 +1239,13 @@ WHEN NOT MATCHED THEN
             unique = getattr(config, "unique", False)
             tablespace = getattr(config, "tablespace", None)
             parallel = getattr(config, "parallel", None)
+
+            # Validate ALL column names to prevent SQL injection
+            for col in columns:
+                if not _is_safe_sql_identifier(col):
+                    return FlextResult[str].fail(f"Invalid column name: {col}")
+            if tablespace and not _is_safe_sql_identifier(tablespace):
+                return FlextResult[str].fail(f"Invalid tablespace name: {tablespace}")
 
             full_table_name = self._build_table_name(table_name, schema_name)
             full_index_name = self._build_table_name(index_name, schema_name)

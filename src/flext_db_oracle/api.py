@@ -52,11 +52,11 @@ from time import perf_counter
 from typing import ClassVar, Self
 
 from flext_core import (
-    FlextContainer,
     FlextDomainService,
     FlextLogger,
     FlextResult,
 )
+from flext_core.container import FlextContainer
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
@@ -132,7 +132,6 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
 
         # Internal state for consolidated functionality
         self._connection: FlextDbOracleServices | None = None
-        self._is_connected = False
         self._retry_attempts = 3
 
         # Plugin system (consolidated from ApiPluginManager)
@@ -155,18 +154,19 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
         self._logger.error(error_msg)
         return FlextResult[None].fail(error_msg)
 
-    def _handle_error_simple(
-        self,
-        operation: str,
-        exception: Exception,
-    ) -> FlextResult[None]:
-        """Handle errors without logging - DRY pattern for simple error handling."""
-        return FlextResult[None].fail(f"{operation}: {exception}")
 
     @property
     def is_connected(self) -> bool:
         """Check if connected to database."""
-        return self._is_connected and self._connection is not None
+        return self._connection is not None and self._connection.is_connected()
+
+    @property
+    def config(self) -> FlextDbOracleModels.OracleConfig:
+        """Get the configuration object."""
+        if self._config is None:
+            msg = "Configuration is not set"
+            raise ValueError(msg)
+        return self._config
 
     def _init_connection_attempt(self) -> None:
         """Initialize connection attempt."""
@@ -185,7 +185,6 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
                 if self._connection:
                     connect_result = self._connection.connect()
                     if connect_result.is_success:
-                        self._is_connected = True
                         return None  # Success
                     self._logger.warning(
                         f"Connection attempt {attempt + 1} failed: {connect_result.error}"
@@ -208,7 +207,6 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
     ) -> FlextResult[None]:
         """Handle connection failure."""
         self._connection = None
-        self._is_connected = False
         elapsed_ms = (perf_counter() - start_time) * 1000
         error_msg = f"Connection failed after {elapsed_ms:.2f}ms: {error_result.error}"
         self._logger.error(error_msg)
@@ -249,7 +247,6 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
                     )
 
             self._connection = None
-            self._is_connected = False
             self._logger.info("Disconnected from Oracle database")
             return FlextResult[None].ok(None)
 
@@ -608,6 +605,23 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
         """Create API instance from environment variables."""
         config = FlextDbOracleModels.OracleConfig.from_env()
         return cls(config, context_name)
+
+    @classmethod
+    def from_config(cls, config: FlextDbOracleModels.OracleConfig, context_name: str = "oracle") -> Self:
+        """Create API instance from config object."""
+        return cls(config, context_name)
+
+    @classmethod
+    def with_config(cls, config: FlextDbOracleModels.OracleConfig, context_name: str = "oracle") -> Self:
+        """Create API instance with config (alias for from_config)."""
+        return cls.from_config(config, context_name)
+
+    @classmethod
+    def from_url(cls, url: str, context_name: str = "oracle") -> Self:
+        """Create API instance from connection URL."""
+        # For now, raise NotImplementedError until from_url is implemented in OracleConfig
+        msg = "from_url method not yet implemented in OracleConfig"
+        raise NotImplementedError(msg)
 
     # =============================================================================
     # Context Managers

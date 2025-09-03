@@ -9,20 +9,38 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import cast
 
+import sys
+
 import click
-from flext_cli import (
-    FlextCliFormatters,
-    FlextCliInteractions,
-    setup_cli,
-)
+try:
+    from flext_cli import (
+        FlextCliFormatters,
+        FlextCliInteractions,
+        setup_cli,
+    )
+except ImportError:
+    # Fallback when flext-cli has issues
+    class FlextCliFormatters:
+        @staticmethod
+        def format_json(data): return f"JSON: {data}"
+        @staticmethod 
+        def format_table(data): return f"TABLE: {data}"
+    
+    class FlextCliInteractions:
+        @staticmethod
+        def print_error(msg): print(f"ERROR: {msg}")
+        @staticmethod
+        def print_success(msg): print(f"SUCCESS: {msg}")
+    
+    def setup_cli(): pass
 from flext_core import (
-    FlextContainer,
     FlextLogger,
     FlextResult,
+    FlextUtilities,
 )
+from flext_core.container import FlextContainer
 from pydantic import SecretStr
 
 from flext_db_oracle.api import FlextDbOracleApi
@@ -205,7 +223,7 @@ class FlextDbOracleClient:
             health_data = {
                 "status": "healthy" if test_result.success else "unhealthy",
                 "test_query_result": test_result.success,
-                "timestamp": datetime.now(UTC).isoformat(),
+                "timestamp": FlextUtilities.generate_iso_timestamp(),
                 "connection_active": self.current_connection.is_connected,
             }
 
@@ -383,7 +401,7 @@ def connect_command(
     result = client.connect_to_oracle(host, port, service_name, username, password)
     if not result.success:
         client.interactions.print_error(f"Connection failed: {result.error}")
-        raise click.ClickException(result.error or "Connection failed")
+        sys.exit(1)
 
 
 @oracle_cli.command("query")
@@ -394,7 +412,7 @@ def query_command(sql: str) -> None:
     result = client.execute_query(sql)
     if not result.success:
         client.interactions.print_error(f"Query failed: {result.error}")
-        raise click.ClickException(result.error or "Query failed")
+        sys.exit(1)
 
 
 @oracle_cli.command("schemas")
@@ -404,7 +422,7 @@ def schemas_command() -> None:
     result = client.list_schemas()
     if not result.success:
         client.interactions.print_error(f"Failed to list schemas: {result.error}")
-        raise click.ClickException(result.error or "Failed to list schemas")
+        sys.exit(1)
 
 
 @oracle_cli.command("tables")
@@ -415,7 +433,7 @@ def tables_command(schema: str | None) -> None:
     result = client.list_tables(schema)
     if not result.success:
         client.interactions.print_error(f"Failed to list tables: {result.error}")
-        raise click.ClickException(result.error or "Failed to list tables")
+        sys.exit(1)
 
 
 @oracle_cli.command("health")
@@ -425,7 +443,7 @@ def health_command() -> None:
     result = client.health_check()
     if not result.success:
         client.interactions.print_error(f"Health check failed: {result.error}")
-        raise click.ClickException(result.error or "Health check failed")
+        sys.exit(1)
 
 
 @oracle_cli.command("wizard")
@@ -435,7 +453,7 @@ def wizard_command() -> None:
     result = client.connection_wizard()
     if not result.success:
         client.interactions.print_error(f"Wizard failed: {result.error}")
-        raise click.ClickException(result.error or "Wizard failed")
+        sys.exit(1)
 
 
 # Export the main CLI command

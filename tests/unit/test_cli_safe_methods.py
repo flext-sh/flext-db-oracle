@@ -175,10 +175,9 @@ class TestFlextDbOracleCliUtilities:
 
     def test_utilities_format_query_result_empty(self) -> None:
         """Test utilities format_query_result with empty result."""
-        from flext_db_oracle.models import FlextDbOracleQueryResult
         from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-        empty_result = FlextDbOracleQueryResult(
+        empty_result = FlextDbOracleModels.QueryResult(
             columns=[],
             rows=[],
             row_count=0,

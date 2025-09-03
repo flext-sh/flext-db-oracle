@@ -16,13 +16,14 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TypedDict, TypeGuard
 
 from flext_core import (
     FlextLogger,
     FlextModels,
     FlextResult,
+    FlextUtilities,
 )
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -67,6 +68,37 @@ class FlextDbOracleModels:
         default_value: str | None = Field(None, description="Default value")
         comments: str | None = Field(None, description="Column comments")
 
+        @classmethod
+        def _is_safe_sql_identifier(cls, identifier: str) -> bool:
+            """Validate SQL identifier to prevent injection."""
+            if not identifier or not isinstance(identifier, str):
+                return False
+
+            # Oracle identifiers: alphanumeric, underscore, dollar sign, hash
+            # First character must be letter or underscore
+            # Max length 128 characters (Oracle standard)
+            max_identifier_length = 128
+            if len(identifier) > max_identifier_length:
+                return False
+
+            # Check first character
+            if not (identifier[0].isalpha() or identifier[0] == "_"):
+                return False
+
+            # Check remaining characters
+            for char in identifier[1:]:
+                if not (char.isalnum() or char in ("_", "$", "#")):
+                    return False
+
+            # Prevent SQL keywords (basic set)
+            reserved_words = {
+                "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE",
+                "ALTER", "TRUNCATE", "GRANT", "REVOKE", "UNION", "ORDER",
+                "GROUP", "HAVING", "WHERE", "FROM", "INTO", "VALUES"
+            }
+
+            return identifier.upper() not in reserved_words
+
         @field_validator("column_name")
         @classmethod
         def validate_column_name(cls, v: str) -> str:
@@ -77,6 +109,12 @@ class FlextDbOracleModels:
             if len(v) > FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH:
                 msg = f"Column name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH}"
                 raise ValueError(msg)
+
+            # Oracle SQL identifier validation (comprehensive security check)
+            if not cls._is_safe_sql_identifier(v):
+                msg = f"Invalid column name '{v}': contains unsafe characters or is a reserved word"
+                raise ValueError(msg)
+
             return v.upper()
 
         @field_validator("data_type")
@@ -221,6 +259,37 @@ class FlextDbOracleModels:
         )
         comments: str | None = Field(None, description="Table comments")
 
+        @classmethod
+        def _is_safe_sql_identifier(cls, identifier: str) -> bool:
+            """Validate SQL identifier to prevent injection."""
+            if not identifier or not isinstance(identifier, str):
+                return False
+
+            # Oracle identifiers: alphanumeric, underscore, dollar sign, hash
+            # First character must be letter or underscore
+            # Max length 128 characters (Oracle standard)
+            max_identifier_length = 128
+            if len(identifier) > max_identifier_length:
+                return False
+
+            # Check first character
+            if not (identifier[0].isalpha() or identifier[0] == "_"):
+                return False
+
+            # Check remaining characters
+            for char in identifier[1:]:
+                if not (char.isalnum() or char in ("_", "$", "#")):
+                    return False
+
+            # Prevent SQL keywords (basic set)
+            reserved_words = {
+                "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE",
+                "ALTER", "TRUNCATE", "GRANT", "REVOKE", "UNION", "ORDER",
+                "GROUP", "HAVING", "WHERE", "FROM", "INTO", "VALUES"
+            }
+
+            return identifier.upper() not in reserved_words
+
         @field_validator("table_name")
         @classmethod
         def validate_table_name(cls, v: str) -> str:
@@ -231,6 +300,12 @@ class FlextDbOracleModels:
             if len(v) > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
                 msg = f"Table name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH}"
                 raise ValueError(msg)
+
+            # Oracle SQL identifier validation (comprehensive security check)
+            if not cls._is_safe_sql_identifier(v):
+                msg = f"Invalid table name '{v}': contains unsafe characters or is a reserved word"
+                raise ValueError(msg)
+
             return v.upper()
 
         @field_validator("schema_name")
@@ -244,6 +319,12 @@ class FlextDbOracleModels:
             ):
                 msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
                 raise ValueError(msg)
+
+            # Oracle SQL identifier validation (comprehensive security check) - only if not empty
+            if v and not cls._is_safe_sql_identifier(v):
+                msg = f"Invalid schema name '{v}': contains unsafe characters or is a reserved word"
+                raise ValueError(msg)
+
             return v.upper() if v else ""
 
         def get_full_name(self) -> str:
@@ -501,7 +582,7 @@ class FlextDbOracleModels:
             if not self.connection_time:
                 return None
 
-            current_time = self.last_activity or datetime.now(UTC)
+            current_time = self.last_activity or FlextUtilities.generate_timestamp()
             uptime = current_time - self.connection_time
             return uptime.total_seconds()
 

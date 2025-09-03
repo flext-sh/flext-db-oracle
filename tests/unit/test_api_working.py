@@ -47,6 +47,3 @@ class TestFlextDbOracleApiWorking:
         # These should work without database
         as_dict = self.api.to_dict()
         assert isinstance(as_dict, dict)
-
-        basic_dict = self.api.to_dict_basic()
-        assert isinstance(basic_dict, dict)

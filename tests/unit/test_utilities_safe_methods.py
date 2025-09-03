@@ -74,7 +74,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_format_query_result_table_format(self) -> None:
         """Test format_query_result with table output format."""
-        query_result = FlextDbOracleQueryResult(
+        query_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name", "email"],
             rows=[(1, "John", "john@test.com"), (2, "Jane", "jane@test.com")],
             row_count=2,
@@ -93,7 +93,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_format_query_result_json_format(self) -> None:
         """Test format_query_result with JSON output format."""
-        query_result = FlextDbOracleQueryResult(
+        query_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name"],
             rows=[(1, "Test")],
             row_count=1,
@@ -110,7 +110,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_format_query_result_empty_data(self) -> None:
         """Test format_query_result with empty data."""
-        empty_result = FlextDbOracleQueryResult(
+        empty_result = FlextDbOracleModels.QueryResult(
             columns=[], rows=[], row_count=0, execution_time_ms=0.01
         )
 
@@ -162,7 +162,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_display_query_table_method(self) -> None:
         """Test _display_query_table utility method."""
-        query_result = FlextDbOracleQueryResult(
+        query_result = FlextDbOracleModels.QueryResult(
             columns=["column1", "column2"],
             rows=[("value1", "value2"), ("value3", "value4")],
             row_count=2,
@@ -215,7 +215,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
     def test_utilities_query_result_validation(self) -> None:
         """Test query result validation and processing."""
         # Valid query result
-        valid_result = FlextDbOracleQueryResult(
+        valid_result = FlextDbOracleModels.QueryResult(
             columns=["test"], rows=[("data",)], row_count=1, execution_time_ms=0.01
         )
 
@@ -245,7 +245,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
         """Test data formatting with edge cases."""
         # Large dataset
         large_rows = [(i, f"Item{i}") for i in range(100)]
-        large_result = FlextDbOracleQueryResult(
+        large_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name"],
             rows=large_rows,
             row_count=100,
@@ -260,7 +260,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
             pytest.fail(f"format_query_result failed with large dataset: {e}")
 
         # Complex nested data
-        complex_result = FlextDbOracleQueryResult(
+        complex_result = FlextDbOracleModels.QueryResult(
             columns=["nested_data"],
             rows=[('{"deep": {"value": "test"}}',)],
             row_count=1,
@@ -286,7 +286,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         execution_time = end_time - start_time
 
         # Should be able to create query result with timing
-        result = FlextDbOracleQueryResult(
+        result = FlextDbOracleModels.QueryResult(
             columns=["test"],
             rows=[("performance",)],
             row_count=1,
@@ -301,7 +301,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         from flext_db_oracle.utilities import PERFORMANCE_WARNING_THRESHOLD_SECONDS
 
         # Simulate slow query
-        slow_result = FlextDbOracleQueryResult(
+        slow_result = FlextDbOracleModels.QueryResult(
             columns=["slow"],
             rows=[("query",)],
             row_count=1,
@@ -326,7 +326,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
     def test_utilities_invalid_format_handling(self) -> None:
         """Test handling of invalid output formats."""
-        query_result = FlextDbOracleQueryResult(
+        query_result = FlextDbOracleModels.QueryResult(
             columns=["test"], rows=[("data",)], row_count=1, execution_time_ms=0.01
         )
 
