@@ -17,7 +17,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import TypedDict, TypeGuard, cast
+from typing import TypedDict, TypeGuard
 
 from flext_core import (
     FlextLogger,
@@ -27,18 +27,14 @@ from flext_core import (
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_db_oracle.constants import (
-    FlextDbOracleConstants,
-    FlextOracleDbSemanticConstants,
-)
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 # Python 3.13+ type aliases (replacing TypeVar pattern)
 type T = object
 
 logger = FlextLogger(__name__)
 
-# Constants
-MAX_PORT_NUMBER = 65535  # Maximum valid TCP port number
+# No loose constants - use FlextDbOracleConstants directly
 
 # =============================================================================
 # FLEXT[AREA][MODULE] PATTERN - Oracle Database Models
@@ -205,7 +201,10 @@ class FlextDbOracleModels:
             return FlextResult[None].ok(None)
 
     class Table(FlextModels.Value):
-        """Oracle database table model with metadata and relationships."""
+        """Oracle database table model with metadata and relationships.
+
+        Simplified model without external timestamp dependencies.
+        """
 
         table_name: str = Field(..., description="Table name")
         schema_name: str = Field(default="", description="Schema name")
@@ -213,7 +212,7 @@ class FlextDbOracleModels:
             default_factory=list, description="Table columns"
         )
         row_count: int | None = Field(None, description="Approximate row count")
-        created_date: datetime | None = Field(None, description="Table creation date")
+        # created_date removed - using Timestampable.created_at instead
         last_analyzed: datetime | None = Field(
             None, description="Last statistics analysis date"
         )
@@ -484,7 +483,8 @@ class FlextDbOracleModels:
         @classmethod
         def validate_port(cls, v: int | None) -> int | None:
             """Validate port number."""
-            if v is not None and not (1 <= v <= MAX_PORT_NUMBER):
+            max_port = 65535
+            if v is not None and not (1 <= v <= max_port):
                 msg = FlextDbOracleConstants.ErrorMessages.PORT_INVALID
                 raise ValueError(msg)
             return v
@@ -584,9 +584,7 @@ class FlextDbOracleModels:
         def validate_host_not_empty(cls, v: str) -> str:
             """Validate host is not empty or whitespace only."""
             if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(
-                    FlextOracleDbSemanticConstants.ErrorMessages.HOST_EMPTY
-                )
+                raise ValueError(FlextDbOracleConstants.ErrorMessages.HOST_EMPTY)
             return v
 
         @field_validator("username")
@@ -594,9 +592,7 @@ class FlextDbOracleModels:
         def validate_username_not_empty(cls, v: str) -> str:
             """Validate username is not empty or whitespace only."""
             if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(
-                    FlextOracleDbSemanticConstants.ErrorMessages.USERNAME_EMPTY
-                )
+                raise ValueError(FlextDbOracleConstants.ErrorMessages.USERNAME_EMPTY)
             return v
 
         @field_validator("port")
@@ -686,6 +682,27 @@ class FlextDbOracleModels:
         schema_name: str | None = None
         tablespace: str | None = None
         parallel: int | None = None
+
+        def validate_business_rules(self) -> FlextResult[None]:
+            """Validate index configuration business rules."""
+            # Validate index name
+            if not self.index_name or not self.index_name.strip():
+                return FlextResult[None].fail("Index name cannot be empty")
+
+            # Validate table name
+            if not self.table_name or not self.table_name.strip():
+                return FlextResult[None].fail("Table name cannot be empty")
+
+            # Validate columns
+            if not self.columns or len(self.columns) == 0:
+                return FlextResult[None].fail("Index must have at least one column")
+
+            # Validate each column name
+            for column in self.columns:
+                if not column or not column.strip():
+                    return FlextResult[None].fail("Column names cannot be empty")
+
+            return FlextResult[None].ok(None)
 
     # =============================================================================
     # ORACLE TYPINGS - Consolidated from typings.py
@@ -810,396 +827,20 @@ class FlextDbOracleModels:
     # Factory Methods for Model Creation
     # =============================================================================
 
-    @classmethod
-    def create_column(
-        cls,
-        column_name: str,
-        data_type: str,
-        *,
-        nullable: bool = True,
-        column_id: int = 1,
-        **kwargs: object,
-    ) -> Column:
-        """Create Oracle column model using factory pattern."""
-        # Extract known fields from kwargs with proper type casting
-        data_length = kwargs.pop("data_length", None)
-        data_precision = kwargs.pop("data_precision", None)
-        data_scale = kwargs.pop("data_scale", None)
-        default_value = kwargs.pop("default_value", None)
-        comments = kwargs.pop("comments", None)
 
-        # Type casting for MyPy with proper type checks
-        data_length_typed = (
-            int(data_length) if isinstance(data_length, (int, str)) else None
-        )
-        data_precision_typed = (
-            int(data_precision) if isinstance(data_precision, (int, str)) else None
-        )
-        data_scale_typed = (
-            int(data_scale) if isinstance(data_scale, (int, str)) else None
-        )
-        default_value_typed = str(default_value) if default_value is not None else None
-        comments_typed = str(comments) if comments is not None else None
-
-        return cls.Column.model_validate(
-            {
-                "column_name": column_name,
-                "data_type": data_type,
-                "nullable": nullable,
-                "column_id": column_id,
-                "data_length": data_length_typed,
-                "data_precision": data_precision_typed,
-                "data_scale": data_scale_typed,
-                "default_value": default_value_typed,
-                "comments": comments_typed,
-            }
-        )
-
-    @classmethod
-    def create_table(
-        cls,
-        table_name: str,
-        *,
-        schema_name: str = "",
-        columns: list[Column] | None = None,
-        **kwargs: object,
-    ) -> Table:
-        """Create Oracle table model using factory pattern."""
-        # Extract known fields from kwargs with proper type casting
-        row_count = kwargs.pop("row_count", None)
-        created_date = kwargs.pop("created_date", None)
-        last_analyzed = kwargs.pop("last_analyzed", None)
-        table_type = kwargs.pop("table_type", "TABLE")
-        comments = kwargs.pop("comments", None)
-
-        # Type casting for MyPy with proper type checks
-        row_count_typed = int(row_count) if isinstance(row_count, (int, str)) else None
-        created_date_typed = (
-            created_date if isinstance(created_date, datetime) else None
-        )
-        last_analyzed_typed = (
-            last_analyzed if isinstance(last_analyzed, datetime) else None
-        )
-        table_type_typed = str(table_type) if table_type is not None else "TABLE"
-        comments_typed = str(comments) if comments is not None else None
-
-        return cls.Table.model_validate(
-            {
-                "table_name": table_name,
-                "schema_name": schema_name,
-                "columns": columns or [],
-                "row_count": row_count_typed,
-                "created_date": created_date_typed,
-                "last_analyzed": last_analyzed_typed,
-                "table_type": table_type_typed,
-                "comments": comments_typed,
-            }
-        )
-
-    @classmethod
-    def create_schema(
-        cls,
-        schema_name: str,
-        *,
-        tables: list[Table] | None = None,
-        **kwargs: object,
-    ) -> Schema:
-        """Create Oracle schema model using factory pattern."""
-        # Extract known fields from kwargs with proper type casting
-        created_date = kwargs.pop("created_date", None)
-        default_tablespace = kwargs.pop("default_tablespace", None)
-        temporary_tablespace = kwargs.pop("temporary_tablespace", None)
-        profile = kwargs.pop("profile", None)
-        account_status = kwargs.pop("account_status", "OPEN")
-
-        # Type casting for MyPy
-        created_date_typed = (
-            created_date if isinstance(created_date, datetime) else None
-        )
-        default_tablespace_typed = (
-            str(default_tablespace) if default_tablespace is not None else None
-        )
-        temporary_tablespace_typed = (
-            str(temporary_tablespace) if temporary_tablespace is not None else None
-        )
-        profile_typed = str(profile) if profile is not None else None
-        account_status_typed = (
-            str(account_status) if account_status is not None else "OPEN"
-        )
-
-        return cls.Schema.model_validate(
-            {
-                "schema_name": schema_name,
-                "tables": tables or [],
-                "created_date": created_date_typed,
-                "default_tablespace": default_tablespace_typed,
-                "temporary_tablespace": temporary_tablespace_typed,
-                "profile": profile_typed,
-                "account_status": account_status_typed,
-            }
-        )
-
-    @classmethod
-    def create_query_result(
-        cls,
-        *,
-        columns: list[str] | None = None,
-        rows: list[tuple[object, ...]] | None = None,
-        execution_time_ms: float = 0.0,
-        **kwargs: object,
-    ) -> QueryResult:
-        """Create Oracle query result model using factory pattern."""
-        columns = columns or []
-        rows = rows or []
-
-        # Extract known fields from kwargs with proper type casting
-        query_hash = kwargs.pop("query_hash", None)
-        explain_plan = kwargs.pop("explain_plan", None)
-
-        # Type casting for MyPy
-        query_hash_typed = str(query_hash) if query_hash is not None else None
-        explain_plan_typed = str(explain_plan) if explain_plan is not None else None
-
-        return cls.QueryResult.model_validate(
-            {
-                "columns": columns,
-                "rows": rows,
-                "row_count": len(rows),
-                "execution_time_ms": execution_time_ms,
-                "query_hash": query_hash_typed,
-                "explain_plan": explain_plan_typed,
-            }
-        )
-
-    @classmethod
-    def create_connection_status(
-        cls,
-        *,
-        is_connected: bool = False,
-        **kwargs: object,
-    ) -> ConnectionStatus:
-        """Create Oracle connection status model using factory pattern."""
-        # Extract known fields from kwargs with proper type casting
-        connection_time = kwargs.pop("connection_time", None)
-        last_activity = kwargs.pop("last_activity", None)
-        session_id = kwargs.pop("session_id", None)
-        host = kwargs.pop("host", None)
-        port = kwargs.pop("port", None)
-        service_name = kwargs.pop("service_name", None)
-        username = kwargs.pop("username", None)
-        version = kwargs.pop("version", None)
-        error_message = kwargs.pop("error_message", None)
-
-        # Type casting for MyPy with proper type checks
-        connection_time_typed = (
-            connection_time if isinstance(connection_time, datetime) else None
-        )
-        last_activity_typed = (
-            last_activity if isinstance(last_activity, datetime) else None
-        )
-        session_id_typed = str(session_id) if session_id is not None else None
-        host_typed = str(host) if host is not None else None
-        port_typed = int(port) if isinstance(port, (int, str)) else None
-        service_name_typed = str(service_name) if service_name is not None else None
-        username_typed = str(username) if username is not None else None
-        version_typed = str(version) if version is not None else None
-        error_message_typed = str(error_message) if error_message is not None else None
-
-        return cls.ConnectionStatus.model_validate(
-            {
-                "is_connected": is_connected,
-                "connection_time": connection_time_typed,
-                "last_activity": last_activity_typed,
-                "session_id": session_id_typed,
-                "host": host_typed,
-                "port": port_typed,
-                "service_name": service_name_typed,
-                "username": username_typed,
-                "version": version_typed,
-                "error_message": error_message_typed,
-            }
-        )
-
-    @classmethod
-    def create_oracle_config(
-        cls,
-        *,
-        host: str,
-        username: str,
-        password: str,
-        **kwargs: object,
-    ) -> OracleConfig:
-        """Create Oracle configuration model using factory pattern."""
-        # Extract optional fields with type casting
-        port = kwargs.pop("port", 1521)
-        service_name = kwargs.pop("service_name", None)
-        sid = kwargs.pop("sid", None)
-
-        config_data = {
-            "host": host,
-            "port": int(port) if isinstance(port, (int, str)) else 1521,
-            "username": username,
-            "password": SecretStr(str(password)),
-        }
-
-        if service_name:
-            config_data["service_name"] = str(service_name)
-        if sid:
-            config_data["sid"] = str(sid)
-
-        # Add any additional kwargs
-        config_data.update(
-            {
-                key: value
-                for key, value in kwargs.items()
-                if hasattr(cls.OracleConfig, key)
-            }
-        )
-
-        return cls.OracleConfig.model_validate(config_data)
-
-    @classmethod
-    def create_merge_config(
-        cls,
-        target_table: str,
-        source_columns: list[str],
-        merge_keys: list[str],
-        **kwargs: object,
-    ) -> MergeStatement:
-        """Create MERGE statement configuration."""
-        return cls.MergeStatement(
-            target_table=target_table,
-            source_columns=source_columns,
-            merge_keys=merge_keys,
-            update_columns=cast("list[str] | None", kwargs.get("update_columns"))
-            if isinstance(kwargs.get("update_columns"), list)
-            else None,
-            insert_columns=cast("list[str] | None", kwargs.get("insert_columns"))
-            if isinstance(kwargs.get("insert_columns"), list)
-            else None,
-            schema_name=cast("str | None", kwargs.get("schema_name"))
-            if isinstance(kwargs.get("schema_name"), str)
-            else None,
-            hints=cast("list[str] | None", kwargs.get("hints"))
-            if isinstance(kwargs.get("hints"), list)
-            else None,
-        )
-
-    @classmethod
-    def create_index_config(
-        cls,
-        index_name: str,
-        table_name: str,
-        columns: list[str],
-        **kwargs: object,
-    ) -> CreateIndex:
-        """Create CREATE INDEX configuration."""
-        return cls.CreateIndex(
-            index_name=index_name,
-            table_name=table_name,
-            columns=columns,
-            unique=bool(kwargs.get("unique")),
-            schema_name=cast("str | None", kwargs.get("schema_name"))
-            if isinstance(kwargs.get("schema_name"), str)
-            else None,
-            tablespace=cast("str | None", kwargs.get("tablespace"))
-            if isinstance(kwargs.get("tablespace"), str)
-            else None,
-            parallel=cast("int | None", kwargs.get("parallel"))
-            if isinstance(kwargs.get("parallel"), int)
-            else None,
-        )
-
-    # =============================================================================
-    # Backward Compatibility Aliases
-    # =============================================================================
-
-    # Maintain existing functionality as aliases
-    FlextDbOracleColumn = Column
-    FlextDbOracleTable = Table
-    FlextDbOracleSchema = Schema
-    FlextDbOracleQueryResult = QueryResult
-    FlextDbOracleConnectionStatus = ConnectionStatus
-    FlextDbOracleConfig = OracleConfig
-    MergeStatementConfig = MergeStatement
-    CreateIndexConfig = CreateIndex
-
-
-# Export API - ONLY single class with backward compatibility
+# Export API - ONLY single class (no compatibility aliases)
 __all__: list[str] = [
-    # Backward compatibility exports - Fields (deprecated)
-    "ConnectionFields",
     "CreateIndexConfig",
-    "DatabaseMetadataFields",
-    "DatabaseRowDict",
-    # Backward compatibility exports - Database models
-    "FlextDbOracleColumn",
-    # Backward compatibility exports - Configuration
-    "FlextDbOracleConfig",
-    "FlextDbOracleConnectionStatus",
-    # Main consolidated class
+    "FlextDbOracleConfig",  # Aliases for tests compatibility
     "FlextDbOracleModels",
-    "FlextDbOracleQueryResult",
-    "FlextDbOracleSchema",
-    "FlextDbOracleTable",
     "MergeStatementConfig",
-    # Backward compatibility exports - Types
-    "OracleColumnInfo",
-    "OracleConnectionInfo",
-    "OracleTableInfo",
-    "PluginLikeProtocol",
-    "QueryFields",
-    "SafeStringList",
-    "ValidationFields",
 ]
 
-# Create backward compatibility module-level aliases
-FlextDbOracleColumn = FlextDbOracleModels.Column
-FlextDbOracleTable = FlextDbOracleModels.Table
-FlextDbOracleSchema = FlextDbOracleModels.Schema
-FlextDbOracleQueryResult = FlextDbOracleModels.QueryResult
-FlextDbOracleConnectionStatus = FlextDbOracleModels.ConnectionStatus
+# Compatibility aliases for tests
 FlextDbOracleConfig = FlextDbOracleModels.OracleConfig
-MergeStatementConfig = FlextDbOracleModels.MergeStatement
 CreateIndexConfig = FlextDbOracleModels.CreateIndex
-
-# Type aliases
-OracleColumnInfo = FlextDbOracleModels.OracleColumnInfo
-OracleConnectionInfo = FlextDbOracleModels.OracleConnectionInfo
-OracleTableInfo = FlextDbOracleModels.OracleTableInfo
-DatabaseRowDict = FlextDbOracleModels.DatabaseRowDict
-SafeStringList = FlextDbOracleModels.SafeStringList
-PluginLikeProtocol = FlextDbOracleModels.PluginLikeProtocol
+MergeStatementConfig = FlextDbOracleModels.MergeStatement
 
 
-# Fields backward compatibility (deprecated - use models directly)
-class ConnectionFields:
-    """Deprecated: Use FlextDbOracleModels directly."""
-
-    def __getattr__(self, name: str) -> object:
-        """Deprecated attribute access."""
-        return getattr(FlextDbOracleModels, f"{name}_field", None)
-
-
-class DatabaseMetadataFields:
-    """Deprecated: Use FlextDbOracleModels directly."""
-
-    def __getattr__(self, name: str) -> object:
-        """Deprecated attribute access."""
-        return getattr(FlextDbOracleModels, f"{name}_field", None)
-
-
-class QueryFields:
-    """Deprecated: Use FlextDbOracleModels directly."""
-
-    def __getattr__(self, name: str) -> object:
-        """Deprecated attribute access."""
-        return getattr(FlextDbOracleModels, f"{name}_field", None)
-
-
-class ValidationFields:
-    """Deprecated: Use FlextDbOracleModels directly."""
-
-    def __getattr__(self, name: str) -> object:
-        """Deprecated attribute access."""
-        return getattr(FlextDbOracleModels, f"{name}_field", None)
+# Deprecated field classes ELIMINATED following flext-core single class pattern
+# Use FlextDbOracleModels directly for all field access

@@ -32,18 +32,10 @@ class FlextDbOracleConstants(FlextConstants):
     class Connection:
         """Oracle connection configuration constants."""
 
-        # CONSUME from single source - NO DUPLICATION
-        DEFAULT_PORT = FlextConstants.Database.ORACLE_DEFAULT_PORT
-        MAX_PORT = FlextConstants.Platform.MAX_PORT_NUMBER
         DEFAULT_CHARSET = "UTF8"
         DEFAULT_SERVICE_NAME = "XEPDB1"
-        DEFAULT_TIMEOUT = FlextConstants.Database.DEFAULT_DB_TIMEOUT
 
-        # Connection pool settings
-        DEFAULT_POOL_MIN = FlextConstants.Infrastructure.MIN_POOL_SIZE
-        DEFAULT_POOL_MAX = FlextConstants.Infrastructure.DEFAULT_POOL_SIZE
         DEFAULT_POOL_INCREMENT = 1
-        DEFAULT_POOL_TIMEOUT = FlextConstants.Defaults.TIMEOUT
 
     class Query:
         """Oracle query and operation constants."""
@@ -51,9 +43,6 @@ class FlextDbOracleConstants(FlextConstants):
         TEST_QUERY = "SELECT 1 FROM DUAL"
         DUAL_TABLE = "DUAL"
 
-        # Query limits and pagination
-        DEFAULT_FETCH_SIZE = FlextConstants.Database.DEFAULT_QUERY_LIMIT
-        MAX_FETCH_SIZE = FlextConstants.Database.MAX_QUERY_LIMIT
         DEFAULT_ARRAY_SIZE = 100
 
     class DataTypes:
@@ -84,6 +73,9 @@ class FlextDbOracleConstants(FlextConstants):
         MAX_TABLE_NAME_LENGTH = 128
         MAX_COLUMN_NAME_LENGTH = 128
         MAX_SCHEMA_NAME_LENGTH = 128
+        MAX_VARCHAR_LENGTH = 4000
+        MIN_COLUMN_FIELDS = 4  # Required fields: name, type, length, nullable
+        COLUMN_METADATA_FIELD_COUNT = 7  # Complete metadata fields count
 
         # Oracle naming patterns
         IDENTIFIER_PATTERN = r"^[A-Za-z][A-Za-z0-9_$#]*$"
@@ -108,9 +100,8 @@ class FlextDbOracleConstants(FlextConstants):
         """Oracle-specific performance tuning constants."""
 
         DEFAULT_COMMIT_SIZE = 1000
-        # CONSUME from single source - NO DUPLICATION
-        DEFAULT_BATCH_SIZE = FlextConstants.Performance.DEFAULT_BATCH_SIZE
-        MAX_BATCH_SIZE = FlextConstants.Performance.MAX_BATCH_SIZE
+        PERFORMANCE_WARNING_THRESHOLD_SECONDS = 5.0
+        MAX_DISPLAY_ROWS = 1000
 
         # Oracle hints
         INDEX_HINT = "/*+ INDEX */"
@@ -118,8 +109,7 @@ class FlextDbOracleConstants(FlextConstants):
         PARALLEL_HINT = "/*+ PARALLEL */"
 
 
-# Backward compatibility aliases - existing functionality as aliases
-FlextOracleDbSemanticConstants = FlextDbOracleConstants  # Legacy alias
+# No compatibility aliases - use direct imports only
 
 
 # =============================================================================
@@ -128,6 +118,4 @@ FlextOracleDbSemanticConstants = FlextDbOracleConstants  # Legacy alias
 
 __all__: list[str] = [
     "FlextDbOracleConstants",
-    # Legacy aliases
-    "FlextOracleDbSemanticConstants",
 ]

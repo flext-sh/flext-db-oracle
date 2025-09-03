@@ -17,49 +17,53 @@ from flext_core import FlextResult
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig
-from flext_db_oracle.cli import (
-    FlextDbOracleCliApplication,
-    get_app,
+from flext_db_oracle.client import (
+    FlextDbOracleClient,
+    get_client,
     oracle_cli,
 )
+from flext_db_oracle.models import FlextDbOracleModels
 
 
-class TestFlextDbOracleCliApplication:
-    """Test CLI application initialization and core methods."""
+class TestFlextDbOracleClient:
+    """Test CLI client initialization and core methods."""
 
-    def test_cli_application_initialization(self) -> None:
-        """Test CLI application basic initialization."""
-        app = FlextDbOracleCliApplication()
-        assert app is not None
-        assert hasattr(app, "console")
-        assert hasattr(app, "cli_config")
+    def test_cli_client_initialization(self) -> None:
+        """Test CLI client basic initialization."""
+        client = FlextDbOracleClient()
+        assert client is not None
+        assert hasattr(client, "formatter")
+        assert hasattr(client, "interactions")
 
-    def test_cli_application_debug_mode(self) -> None:
-        """Test CLI application with debug mode."""
-        app = FlextDbOracleCliApplication(debug=True)
-        assert app is not None
-        # Debug mode should be reflected in app state
+    def test_cli_client_debug_mode(self) -> None:
+        """Test CLI client with debug mode."""
+        client = FlextDbOracleClient(debug=True)
+        assert client is not None
+        assert client.debug is True
 
-    def test_get_app_singleton_pattern(self) -> None:
-        """Test get_app singleton pattern."""
-        # Clear any existing app
-        import flext_db_oracle.cli as cli_module
+    def test_get_client_singleton_pattern(self) -> None:
+        """Test get_client singleton pattern."""
+        # Clear any existing client
+        import flext_db_oracle.client as client_module
 
-        cli_module.app = None
+        client_module._client = None
 
-        app1 = get_app()
-        app2 = get_app()
-        assert app1 is app2  # Same instance
-        assert app1 is not None
+        client1 = get_client()
+        client2 = get_client()
+        assert client1 is client2  # Same instance
+        assert client1 is not None
 
-    def test_get_app_debug_parameter(self) -> None:
-        """Test get_app with debug parameter."""
-        import flext_db_oracle.cli as cli_module
+    def test_get_client_debug_functionality(self) -> None:
+        """Test get_client debug functionality."""
+        import flext_db_oracle.client as client_module
 
-        cli_module.app = None
+        client_module._client = None
 
-        app = get_app(debug=True)
-        assert app is not None
+        client = get_client()
+        assert client is not None
+        # Client can be set to debug mode
+        client.debug = True
+        assert client.debug is True
 
 
 class TestFlextDbOracleCliCommands:
@@ -93,8 +97,8 @@ class TestFlextDbOracleCliCommands:
         for cmd in expected_commands:
             assert cmd in result.output
 
-    @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
-    @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
+    @patch("flext_db_oracle.client.FlextDbOracleModels.OracleConfig.from_env")
+    @patch("flext_db_oracle.client.FlextDbOracleClient.initialize")
     def test_connect_env_command_help(
         self, mock_init: Mock, mock_create_config: Mock
     ) -> None:
@@ -103,8 +107,8 @@ class TestFlextDbOracleCliCommands:
         assert result.exit_code == 0
         assert "environment" in result.output.lower()
 
-    @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
-    @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
+    @patch("flext_db_oracle.client.FlextDbOracleModels.OracleConfig.from_env")
+    @patch("flext_db_oracle.client.FlextDbOracleClient.initialize")
     def test_query_command_help(
         self, mock_init: Mock, mock_create_config: Mock
     ) -> None:
@@ -125,7 +129,7 @@ class TestFlextDbOracleCliUtilities:
 
     def test_cli_utilities_import(self) -> None:
         """Test CLI utilities can be imported."""
-        from flext_db_oracle.cli import FlextDbOracleUtilities
+        from flext_db_oracle.utilities import FlextDbOracleUtilities
 
         assert FlextDbOracleUtilities is not None
         assert hasattr(FlextDbOracleUtilities, "create_config_from_env")
@@ -143,9 +147,7 @@ class TestFlextDbOracleCliUtilities:
     )
     def test_utilities_create_config_from_env(self) -> None:
         """Test utilities create_config_from_env method."""
-        from flext_db_oracle.cli import FlextDbOracleUtilities
-
-        result = FlextDbOracleUtilities.create_config_from_env()
+        result = FlextDbOracleModels.OracleConfig.from_env()
         assert isinstance(result, FlextResult)
         if result.success:
             config = result.value
@@ -156,7 +158,6 @@ class TestFlextDbOracleCliUtilities:
     def test_utilities_create_api_from_config(self) -> None:
         """Test utilities create_api_from_config method."""
         from flext_db_oracle import FlextDbOracleApi
-        from flext_db_oracle.cli import FlextDbOracleUtilities
 
         config = FlextDbOracleConfig(
             host="util_test",
@@ -166,18 +167,24 @@ class TestFlextDbOracleCliUtilities:
             password=SecretStr("util_pass"),
         )
 
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api_result = FlextDbOracleApi(config)
+        assert api_result.success
+        api = api_result.value
         assert isinstance(api, FlextDbOracleApi)
         assert api.config.host == "util_test"
 
     def test_utilities_format_query_result_empty(self) -> None:
         """Test utilities format_query_result with empty result."""
-        from flext_db_oracle.cli import FlextDbOracleUtilities
         from flext_db_oracle.models import FlextDbOracleQueryResult
+        from flext_db_oracle.utilities import FlextDbOracleUtilities
 
         empty_result = FlextDbOracleQueryResult(
-            columns=[], rows=[], row_count=0, execution_time_ms=0.1,
-            query_hash=None, explain_plan=None
+            columns=[],
+            rows=[],
+            row_count=0,
+            execution_time_ms=0.1,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # This should not raise an exception
@@ -204,8 +211,8 @@ class TestFlextDbOracleCliErrorHandling:
         assert result.exit_code != 0
         assert "No such command" in result.output
 
-    @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
-    @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
+    @patch("flext_db_oracle.client.FlextDbOracleModels.OracleConfig.from_env")
+    @patch("flext_db_oracle.client.FlextDbOracleClient.initialize")
     def test_connect_env_missing_config(
         self, mock_init: Mock, mock_create_config: Mock
     ) -> None:
@@ -238,17 +245,15 @@ class TestFlextDbOracleCliConfiguration:
 
     def test_cli_environment_variable_parsing(self) -> None:
         """Test CLI environment variable parsing logic."""
-        from flext_db_oracle.cli import FlextDbOracleUtilities
-
         # Test with empty environment
         with patch.dict(os.environ, {}, clear=True):
-            result = FlextDbOracleUtilities.create_config_from_env()
+            result = FlextDbOracleModels.OracleConfig.from_env()
             # Should handle missing env vars gracefully
             assert isinstance(result, FlextResult)
 
-    @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_config_from_env")
-    @patch("flext_db_oracle.cli.FlextDbOracleUtilities.create_api_from_config")
-    @patch("flext_db_oracle.cli.FlextDbOracleCliApplication.initialize_application")
+    @patch("flext_db_oracle.client.FlextDbOracleModels.OracleConfig.from_env")
+    @patch("flext_db_oracle.client.FlextDbOracleApi")
+    @patch("flext_db_oracle.client.FlextDbOracleClient.initialize")
     def test_query_command_parameters(
         self, mock_init: Mock, mock_create_api: Mock, mock_create_config: Mock
     ) -> None:
@@ -302,7 +307,7 @@ class TestFlextDbOracleCliOutput:
 
     def test_cli_utilities_output_methods_exist(self) -> None:
         """Test CLI utilities output methods exist."""
-        from flext_db_oracle.cli import FlextDbOracleUtilities
+        from flext_db_oracle.utilities import FlextDbOracleUtilities
 
         # Check that formatting methods exist
         assert hasattr(FlextDbOracleUtilities, "format_query_result")

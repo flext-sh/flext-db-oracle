@@ -19,8 +19,8 @@ Key Components:
 Example:
     Basic Oracle database operations:
 
-    >>> from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-    >>> config = FlextDbOracleConfig.from_env().value  # FlextResult
+    >>> from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels.OracleConfig
+    >>> config = FlextDbOracleModels.OracleConfig.from_env().value  # FlextResult
     >>> api = FlextDbOracleApi(config)
     >>>
     >>> # Connect and execute query
@@ -49,7 +49,7 @@ from __future__ import annotations
 
 import types
 from time import perf_counter
-from typing import Self
+from typing import ClassVar, Self
 
 from flext_core import (
     FlextContainer,
@@ -58,50 +58,13 @@ from flext_core import (
     FlextResult,
 )
 
-from flext_db_oracle.models import (
-    FlextDbOracleConfig,
-    FlextDbOracleModels,
-    FlextDbOracleQueryResult,
-)
+from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import (
     FlextDbOracleServices,
 )
 
-# Type guards
-has_get_info_method = FlextDbOracleModels.has_get_info_method
-is_dict_like = FlextDbOracleModels.is_dict_like
-is_plugin_like = FlextDbOracleModels.is_plugin_like
-
-# Constants for Oracle column metadata parsing
-MIN_COLUMN_FIELDS = 4  # Required fields: name, type, length, nullable
-
-
-def _is_valid_plugin(obj: object) -> bool:
-    """Type guard to check if object has plugin-like attributes."""
-    return is_plugin_like(obj)
-
-
-def _get_plugin_info(plugin: object) -> dict[str, object]:
-    """Type-safe way to get plugin info."""
-    if has_get_info_method(plugin):
-        try:
-            get_info_method = getattr(plugin, "get_info", None)
-            if get_info_method and callable(get_info_method):
-                info = get_info_method()
-                if is_dict_like(info):
-                    return {str(k): str(v) for k, v in info.items()}
-        except (TypeError, AttributeError):
-            pass
-
-    # Fallback: extract basic info from attributes if plugin-like
-    if is_plugin_like(plugin):
-        return {
-            "name": getattr(plugin, "name", "unknown"),
-            "version": getattr(plugin, "version", "unknown"),
-            "type": type(plugin).__name__,
-        }
-
-    return {"name": "unknown", "version": "unknown", "type": type(plugin).__name__}
+# No loose constants or functions - everything integrated in class
 
 
 # =============================================================================
@@ -109,7 +72,7 @@ def _get_plugin_info(plugin: object) -> dict[str, object]:
 # =============================================================================
 
 
-class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
+class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
     """Oracle Database API following Flext[Area][Module] pattern.
 
     Single class inheriting from FlextDomainService with all Oracle database
@@ -120,9 +83,43 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     into a single entry point with internal organization.
     """
 
+    # Constants (integrated from module level)
+    # Use centralized constants from FlextDbOracleConstants
+    MIN_COLUMN_FIELDS: ClassVar[int] = (
+        FlextDbOracleConstants.OracleValidation.MIN_COLUMN_FIELDS
+    )
+
+    @staticmethod
+    def _is_valid_plugin(obj: object) -> bool:
+        """Type guard to check if object has plugin-like attributes."""
+        return FlextDbOracleModels.is_plugin_like(obj)
+
+    @staticmethod
+    def _get_plugin_info(plugin: object) -> dict[str, object]:
+        """Type-safe way to get plugin info."""
+        if FlextDbOracleModels.has_get_info_method(plugin):
+            try:
+                get_info_method = getattr(plugin, "get_info", None)
+                if get_info_method and callable(get_info_method):
+                    info = get_info_method()
+                    if FlextDbOracleModels.is_dict_like(info):
+                        return {str(k): str(v) for k, v in info.items()}
+            except (TypeError, AttributeError):
+                pass
+
+        # Fallback: extract basic info from attributes if plugin-like
+        if FlextDbOracleModels.is_plugin_like(plugin):
+            return {
+                "name": getattr(plugin, "name", "unknown"),
+                "version": getattr(plugin, "version", "unknown"),
+                "type": type(plugin).__name__,
+            }
+
+        return {"name": "unknown", "version": "unknown", "type": type(plugin).__name__}
+
     def __init__(
         self,
-        config: FlextDbOracleConfig | None = None,
+        config: FlextDbOracleModels.OracleConfig | None = None,
         context_name: str = "oracle",
     ) -> None:
         """Initialize Oracle API with consolidated functionality."""
@@ -134,7 +131,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         self._config = config
 
         # Internal state for consolidated functionality
-        self._connection: FlextDbOracleServices.ConnectionService | None = None
+        self._connection: FlextDbOracleServices | None = None
         self._is_connected = False
         self._retry_attempts = 3
 
@@ -143,11 +140,6 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
 
         # Initialize consolidated services (only if config provided)
         self._services = FlextDbOracleServices(config) if config is not None else None
-
-        # Alias for backward compatibility (only if services initialized)
-        self._observability = (
-            self._services.observability if self._services is not None else None
-        )
 
     # =============================================================================
     # Connection Management (consolidated from OracleConnectionManager)
@@ -176,25 +168,13 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         """Check if connected to database."""
         return self._is_connected and self._connection is not None
 
-    @property
-    def connection(self) -> FlextDbOracleServices.ConnectionService | None:
-        """Get active connection."""
-        return self._connection
-
-    @property
-    def config(self) -> FlextDbOracleConfig | None:
-        """Get configuration."""
-        return self._config
-
     def _init_connection_attempt(self) -> None:
         """Initialize connection attempt."""
         if self._config is None:
             msg = "Configuration is required for connection"
             raise ValueError(msg)
 
-        self._connection = (
-            self._services.connection if self._services is not None else None
-        )
+        self._connection = self._services if self._services is not None else None
 
     def _execute_connection_with_retries(
         self, _start_time: float
@@ -311,17 +291,17 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         sql: str,
         params: dict[str, object] | None = None,
         _method_name: str = "query",
-    ) -> FlextResult[FlextDbOracleQueryResult]:
+    ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute query with performance metrics."""
         if not self.is_connected or not self._connection:
-            return FlextResult[FlextDbOracleQueryResult].fail(
+            return FlextResult[FlextDbOracleModels.QueryResult].fail(
                 "Not connected to database"
             )
 
         # Validate parameters
         validation_result = self._validate_query_params(sql)
         if validation_result.is_failure:
-            return FlextResult[FlextDbOracleQueryResult].fail(
+            return FlextResult[FlextDbOracleModels.QueryResult].fail(
                 validation_result.error or "Validation failed"
             )
 
@@ -334,14 +314,14 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             execution_time_ms = (perf_counter() - start_time) * 1000
 
             if query_result.is_success:
-                # Create FlextDbOracleQueryResult
+                # Create FlextDbOracleModels.QueryResult
                 result_data = query_result.value  # Already list[DatabaseRowDict]
                 # Extract column names from first row if available
                 columns = list(result_data[0].keys()) if result_data else []
                 # Convert dict rows to tuple rows as expected by model
                 rows = [tuple(row.values()) for row in result_data]
 
-                oracle_result = FlextDbOracleQueryResult(
+                oracle_result = FlextDbOracleModels.QueryResult(
                     columns=columns,
                     rows=rows,
                     row_count=len(rows),
@@ -351,13 +331,13 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
                 )
 
                 self._logger.debug(f"Query executed in {execution_time_ms:.2f}ms")
-                return FlextResult[FlextDbOracleQueryResult].ok(oracle_result)
-            return FlextResult[FlextDbOracleQueryResult].fail(
+                return FlextResult[FlextDbOracleModels.QueryResult].ok(oracle_result)
+            return FlextResult[FlextDbOracleModels.QueryResult].fail(
                 query_result.error or "Query execution failed"
             )
 
         except Exception as e:
-            return FlextResult[FlextDbOracleQueryResult].fail(
+            return FlextResult[FlextDbOracleModels.QueryResult].fail(
                 f"Query execution error: {e}"
             )
 
@@ -365,7 +345,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         self,
         sql: str,
         params: dict[str, object] | None = None,
-    ) -> FlextResult[FlextDbOracleQueryResult]:
+    ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results."""
         return self._execute_query_with_metrics(sql, params, "query")
 
@@ -529,7 +509,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         columns = []
 
         for row in oracle_result.rows:
-            if len(row) >= MIN_COLUMN_FIELDS:
+            if len(row) >= self.MIN_COLUMN_FIELDS:
                 column_info = {
                     "column_name": str(row[0]),
                     "data_type": str(row[1]),
@@ -549,7 +529,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
         if not name or not name.strip():
             return FlextResult[None].fail("Plugin name cannot be empty")
 
-        if not _is_valid_plugin(plugin):
+        if not self._is_valid_plugin(plugin):
             return FlextResult[None].fail("Invalid plugin object")
 
         self._plugins[name] = plugin
@@ -574,7 +554,7 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
 
         plugin_list = []
         for name, plugin in self._plugins.items():
-            plugin_info = _get_plugin_info(plugin)
+            plugin_info = self._get_plugin_info(plugin)
             plugin_info["registered_name"] = name
             plugin_list.append(plugin_info)
 
@@ -626,30 +606,8 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
     @classmethod
     def from_env(cls, context_name: str = "oracle") -> Self:
         """Create API instance from environment variables."""
-        config = FlextDbOracleConfig.from_env()
+        config = FlextDbOracleModels.OracleConfig.from_env()
         return cls(config, context_name)
-
-    @classmethod
-    def from_config(
-        cls, config: FlextDbOracleConfig, context_name: str = "oracle"
-    ) -> Self:
-        """Create API instance from configuration."""
-        return cls(config, context_name)
-
-    @classmethod
-    def with_config(cls, config: FlextDbOracleConfig) -> Self:
-        """Create API instance with specific configuration."""
-        return cls(config)
-
-    @classmethod
-    def from_url(cls, url: str, context_name: str = "oracle") -> FlextResult[Self]:
-        """Create API instance from database URL."""
-        # FlextDbOracleConfig doesn't have from_url method yet
-        # Note: url and context_name parameters reserved for future implementation
-        _ = url, context_name  # Explicitly acknowledge unused parameters
-        return FlextResult[Self].fail(
-            "URL parsing not implemented yet for FlextDbOracleConfig"
-        )
 
     # =============================================================================
     # Context Managers
@@ -680,19 +638,19 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
             msg = "Not connected to database"
             raise RuntimeError(msg)
 
-        return _TransactionContextManager(self, self._connection)
+        return self._TransactionContextManager(self, self._connection)
 
     # =============================================================================
     # Domain Service Implementation
     # =============================================================================
 
-    def execute(self) -> FlextResult[FlextDbOracleQueryResult]:
+    def execute(self) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute domain service operation (FlextDomainService requirement)."""
         # Execute Oracle-specific health check query (SELECT 1 FROM DUAL)
         health_check_result = self.test_connection()
 
         if health_check_result.is_failure:
-            return FlextResult[FlextDbOracleQueryResult].fail(
+            return FlextResult[FlextDbOracleModels.QueryResult].fail(
                 f"Domain operation failed: {health_check_result.error}"
             )
 
@@ -704,69 +662,54 @@ class FlextDbOracleApi(FlextDomainService[FlextDbOracleQueryResult]):
 
     def __repr__(self) -> str:
         """Return string representation of FlextDbOracleApi."""
-        if self.config is None:
+        if self._config is None:
             return "FlextDbOracleApi(config=None)"
-        return f"FlextDbOracleApi(host={self.config.host}, port={self.config.port}, service_name={self.config.service_name})"
+        return f"FlextDbOracleApi(host={self._config.host}, port={self._config.port}, service_name={self._config.service_name})"
+
+    # =============================================================================
+    # Internal Support Classes (Nested)
+    # =============================================================================
+
+    class _TransactionContextManager:
+        """Internal transaction context manager."""
+
+        def __init__(
+            self,
+            api: FlextDbOracleApi,
+            connection: FlextDbOracleServices,
+        ) -> None:
+            self.api = api
+            self.connection = connection
+            self._transaction_context: object | None = None
+
+        def __enter__(self) -> FlextDbOracleApi:
+            self._transaction_context = self.connection.transaction()
+            if hasattr(self._transaction_context, "__enter__"):
+                self._transaction_context.__enter__()
+            return self.api
+
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_val: BaseException | None,
+            exc_tb: types.TracebackType | None,
+        ) -> None:
+            if self._transaction_context and hasattr(
+                self._transaction_context, "__exit__"
+            ):
+                exit_method = getattr(self._transaction_context, "__exit__", None)
+                if exit_method and callable(exit_method):
+                    exit_method(exc_type, exc_val, exc_tb)
+
+    # =============================================================================
+    # Factory Class Methods (Integrated)
+    # =============================================================================
 
 
-# =============================================================================
-# Transaction Context Manager (Internal Support)
-# =============================================================================
+# No legacy functions - use class methods directly
 
 
-class _TransactionContextManager:
-    """Internal transaction context manager."""
-
-    def __init__(
-        self,
-        api: FlextDbOracleApi,
-        connection: FlextDbOracleServices.ConnectionService,
-    ) -> None:
-        self.api = api
-        self.connection = connection
-        self._transaction_context: object | None = None
-
-    def __enter__(self) -> FlextDbOracleApi:
-        self._transaction_context = self.connection.transaction()
-        if hasattr(self._transaction_context, "__enter__"):
-            self._transaction_context.__enter__()
-        return self.api
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: types.TracebackType | None,
-    ) -> None:
-        if self._transaction_context and hasattr(self._transaction_context, "__exit__"):
-            exit_method = getattr(self._transaction_context, "__exit__", None)
-            if exit_method and callable(exit_method):
-                exit_method(exc_type, exc_val, exc_tb)
-
-
-# =============================================================================
-# Factory Functions (Dependency Injection)
-# =============================================================================
-
-
-def create_oracle_api(
-    config: FlextDbOracleConfig | None = None,
-    context_name: str = "oracle",
-) -> FlextDbOracleApi:
-    """Create Oracle API instance."""
-    return FlextDbOracleApi(config, context_name)
-
-
-def create_oracle_api_from_env(
-    context_name: str = "oracle",
-) -> FlextDbOracleApi:
-    """Create Oracle API from environment."""
-    return FlextDbOracleApi.from_env(context_name)
-
-
-# Export API - ONLY single class and factory functions
+# Export API - ONLY single class
 __all__: list[str] = [
     "FlextDbOracleApi",
-    "create_oracle_api",
-    "create_oracle_api_from_env",
 ]

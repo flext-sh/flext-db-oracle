@@ -30,7 +30,7 @@ from flext_db_oracle.utilities import *
 
 # CLI imports (with lazy loading protection)
 try:
-    from flext_db_oracle.client import oracle_cli, FlextDbOracleClis
+    from flext_db_oracle.client import oracle_cli
 
     _CLI_AVAILABLE = True
 except ImportError:
@@ -42,7 +42,7 @@ __all__: list[str] = []
 
 # Conditionally add CLI classes if available
 if _CLI_AVAILABLE:
-    __all__ += ["oracle_cli", "FlextDbOracleClis"]
+    __all__ += ["oracle_cli"]
 
 __version__ = "0.9.0"
 __version_info__ = tuple(int(x) for x in __version__.split(".") if x.isdigit())

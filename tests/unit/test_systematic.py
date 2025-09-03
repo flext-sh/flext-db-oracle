@@ -330,21 +330,18 @@ class TestPluginsMissedLines:
             pass
 
     def test_plugins_creation_functions_223_241(self) -> None:
-        """Test plugin creation functions (EXACT lines 223-241)."""
-        from flext_db_oracle import (
-            create_data_validation_plugin,
-            create_performance_monitor_plugin,
-            create_security_audit_plugin,
-        )
+        """Test plugin creation functions (using FlextDbOraclePlugins class)."""
+        from flext_db_oracle import FlextDbOraclePlugins
 
-        # Test plugin creation to trigger creation paths
-        plugins_to_test = [
-            create_data_validation_plugin,
-            create_performance_monitor_plugin,
-            create_security_audit_plugin,
+        # Test plugin creation using the consolidated class
+        plugins_manager = FlextDbOraclePlugins()
+        plugin_methods = [
+            plugins_manager.create_data_validation_plugin,
+            plugins_manager.create_performance_monitor_plugin,
+            plugins_manager.create_security_audit_plugin,
         ]
 
-        for plugin_creator in plugins_to_test:
+        for plugin_creator in plugin_methods:
             result = plugin_creator()
             # Should create plugin successfully or fail gracefully
             assert result.success or result.is_failure

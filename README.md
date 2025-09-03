@@ -77,18 +77,21 @@ FLEXT DB Oracle operates as a critical infrastructure component in the FLEXT eco
 ## ✨ Key Features
 
 ### **Database Integration**
+
 - **Modern Oracle Driver**: Built on `oracledb` 3.x with connection pooling
-- **Transaction Management**: Reliable transaction handling with rollback support  
+- **Transaction Management**: Reliable transaction handling with rollback support
 - **Resource Management**: Automatic cleanup and connection leak prevention
 - **Schema Introspection**: Complete Oracle metadata extraction capabilities
 
 ### **FLEXT Core Integration**
+
 - **FlextResult Pattern**: Railway-oriented programming for error handling
 - **Dependency Injection**: Service location via FlextContainer
 - **Configuration Management**: Environment-aware settings with Pydantic validation
 - **Structured Logging**: Correlation ID support for distributed tracing
 
 ### **Developer Experience**
+
 - **CLI Interface**: `flext-db-oracle` command for database operations
 - **Environment Configuration**: Meltano/Singer-compatible variable naming
 - **Quality Gates**: Comprehensive linting, type checking, security scanning
@@ -151,7 +154,7 @@ else:
 
 # Query execution with parameters
 query_result = api.query(
-    "SELECT table_name FROM user_tables WHERE rownum <= :limit", 
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit",
     {"limit": 5}
 )
 
@@ -263,6 +266,7 @@ pytest --cov=src/flext_db_oracle --cov-fail-under=90
 ```
 
 **Current Test Coverage**: 33% overall (improvement in progress)
+
 - Connection module: 53% (significantly improved)
 - Metadata module: 42% (comprehensive testing)
 - API module: 26% (core methods functional)
@@ -321,11 +325,13 @@ ORACLE_SQL_LOGGING                    # Enable SQL query logging
 ### **Quality Gates**
 
 All changes must pass:
+
 ```bash
 make validate     # Combines: lint + type-check + security + test
 ```
 
 Individual checks:
+
 - `make lint` - Code style and quality
 - `make type-check` - Static type checking
 - `make security` - Security vulnerability scanning
@@ -356,13 +362,15 @@ oracle_service = container.resolve(FlextDbOracleApi)
 ### **Singer Ecosystem Foundation**
 
 This library serves as the foundation for:
+
 - **flext-tap-oracle**: Oracle data extraction
-- **flext-target-oracle**: Oracle data loading  
+- **flext-target-oracle**: Oracle data loading
 - **flext-dbt-oracle**: Oracle data transformation
 
 ### **Service Integration**
 
 Integrates with FLEXT services:
+
 - **FlexCore (Go)**: Plugin system integration
 - **FLEXT Service (Go/Python)**: Python bridge for Oracle operations
 - **FLEXT API**: REST endpoints for database operations
@@ -370,12 +378,14 @@ Integrates with FLEXT services:
 ## 🔒 Security
 
 ### **Security Features**
+
 - **Parameterized Queries**: SQL injection prevention
 - **Environment Variables**: Secure credential management
 - **Connection Security**: SSL/TLS support for encrypted connections
 - **Access Control**: Role-based database access patterns
 
 ### **Security Validation**
+
 ```bash
 make security              # Run comprehensive security scanning
 poetry run bandit src/     # Security issue detection
@@ -387,6 +397,7 @@ poetry run pip-audit       # Dependency vulnerability scanning
 ### **Common Issues**
 
 #### Connection Problems
+
 ```bash
 # Test Oracle connectivity
 make oracle-connect
@@ -399,6 +410,7 @@ docker-compose -f docker-compose.oracle.yml logs oracle-xe
 ```
 
 #### Development Issues
+
 ```bash
 # Ensure all dependencies installed
 make install-dev
@@ -411,6 +423,7 @@ make doctor
 ```
 
 ### **Debug Mode**
+
 ```python
 import logging
 

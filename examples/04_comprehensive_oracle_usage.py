@@ -110,7 +110,7 @@ def demonstrate_connection_patterns() -> None:
 
         # Pattern 3: With configuration object
         demo_config = FlextDbOracleConfig.from_env()
-        FlextDbOracleApi.with_config(demo_config)
+        FlextDbOracleApi(demo_config)
         logger.info("✅ Created API with configuration parameters")
 
         # Pattern 4: Context manager usage (auto-connect/disconnect)
@@ -213,12 +213,12 @@ def demonstrate_query_patterns() -> None:
         # Modern FlextResult pattern: use unwrap_or for cleaner code
         single_row = single_result.unwrap_or(
             FlextDbOracleQueryResult(
-                columns=[], 
-                rows=[], 
+                columns=[],
+                rows=[],
                 row_count=0,
                 execution_time_ms=0.0,
                 query_hash=None,
-                explain_plan=None
+                explain_plan=None,
             )
         )
         if single_row is not None:
@@ -357,12 +357,12 @@ def demonstrate_error_handling_patterns() -> None:
         # Pattern 2: Query error handling with FlextResult using unwrap_or
         result = api.query("INVALID SQL SYNTAX")
         empty_result = FlextDbOracleQueryResult(
-            columns=[], 
-            rows=[], 
+            columns=[],
+            rows=[],
             row_count=0,
             execution_time_ms=0.0,
             query_hash=None,
-            explain_plan=None
+            explain_plan=None,
         )
         query_data = result.unwrap_or(empty_result)
         if query_data.row_count == 0:
@@ -395,17 +395,18 @@ def demonstrate_modern_decorator_patterns() -> None:
 
         # Pattern 1: Safe query executor with error handling
         logger.info("  1. Creating safe query executor with error handling decorator")
-        _safe_query_executor = FlextDbOracleUtilities.create_safe_query_executor()
+        # Direct query execution without wrappers
+        logger.info("Query execution handled directly by API")
 
         # Pattern 2: Performance-monitored connection test
         logger.info("  2. Creating performance-monitored connection test")
-        _monitored_test = (
-            FlextDbOracleUtilities.create_performance_monitored_connection_test()
-        )
+        # Connection testing handled directly by API
+        logger.info("Connection testing handled directly by API")
 
         # Pattern 3: Validated schema fetcher with combined decorators
         logger.info("  3. Creating validated schema fetcher with multiple decorators")
-        _validated_schemas = FlextDbOracleUtilities.create_validated_schema_fetcher()
+        # Schema fetching handled directly by API
+        logger.info("Schema fetching handled directly by API")
 
         # Demonstrate usage (simulated since we don't have real connection)
         logger.info("📝 Decorator patterns ready for real Oracle connection:")
@@ -640,7 +641,11 @@ def demonstrate_utilities_patterns() -> None:
 
     # Pattern 2: Database summary using composition of utility methods
     logger.info("📝 Database summary using utility composition:")
-    summary = FlextDbOracleUtilities.get_database_summary(api)
+    # Get database info directly from API
+    schemas_result = api.get_schemas()
+    summary = {
+        "schemas_count": len(schemas_result.value) if schemas_result.success else 0
+    }
     logger.info(
         f"  • Connection: {'✅ Healthy' if summary['connection_healthy'] else '❌ Failed'}"
     )
@@ -650,8 +655,9 @@ def demonstrate_utilities_patterns() -> None:
     # Pattern 3: Query result formatting with unwrap_or
     logger.info("📝 Query result formatting using unwrap_or pattern:")
     query_result = api.query("SELECT 1 FROM DUAL")
-    formatted_result = FlextDbOracleUtilities.format_query_result_text(
-        query_result, "No data available"
+    # Use built-in formatting
+    formatted_result = (
+        str(query_result.value) if query_result.success else "No data available"
     )
     logger.info(f"  • Query result: {formatted_result}")
 
@@ -661,14 +667,19 @@ def demonstrate_utilities_patterns() -> None:
         ("SELECT 1 FROM DUAL", None),
         ("SELECT 2 FROM DUAL", None),
     ]
-    batch_success = FlextDbOracleUtilities.safe_execute_batch(api, operations)
+    # Execute operations directly
+    batch_results = []
+    for op in operations:
+        if "sql" in op:
+            result = api.execute_query(op["sql"], op.get("params"))
+            batch_results.append(result.success)
+    batch_success = all(batch_results)
     logger.info(f"  • Batch executed: {'✅ Success' if batch_success else '❌ Failed'}")
 
     # Pattern 5: Connection validation with retry logic
     logger.info("📝 Connection validation with retry using unwrap_or:")
-    validation_result = FlextDbOracleUtilities.validate_connection_with_retry(
-        api, max_retries=2
-    )
+    # Test connection directly
+    validation_result = api.test_connection()
     is_valid = validation_result.unwrap_or(default=False)
     logger.info(f"  • Validation result: {'✅ Valid' if is_valid else '❌ Invalid'}")
 

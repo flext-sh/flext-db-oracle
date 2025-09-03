@@ -43,7 +43,7 @@ class TestRealOracleExceptionsCore:
         )
 
         connection = FlextDbOracleServices(invalid_config)
-        result = connection.connection.connect()
+        result = connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
         if result.success:
@@ -78,7 +78,7 @@ class TestRealOracleExceptionsCore:
         )
 
         connection = FlextDbOracleServices(unreachable_config)
-        result = connection.connection.connect()
+        result = connection.connect()
 
         # Should fail with connection error - using modern pattern
         if result.success:
@@ -115,7 +115,7 @@ class TestRealOracleExceptionsCore:
                 password=SecretStr("testpass"),
             )
             connection = FlextDbOracleServices(invalid_config)
-            result = connection.connection.connect()
+            result = connection.connect()
 
             # Should fail configuration validation - using modern pattern
             if result.success:
@@ -136,7 +136,7 @@ class TestRealOracleExceptionsCore:
         """Test FlextDbOracleQueryError with real invalid SQL."""
         connection = FlextDbOracleServices(real_oracle_config)
 
-        connect_result = connection.connection.connect()
+        connect_result = connection.connect()
         assert connect_result.success
 
         try:
@@ -167,7 +167,7 @@ class TestRealOracleExceptionsCore:
                 )
 
         finally:
-            connection.connection.disconnect()
+            connection.disconnect()
 
     def test_real_timeout_error_scenario(
         self,
@@ -185,7 +185,7 @@ class TestRealOracleExceptionsCore:
         )
 
         connection = FlextDbOracleServices(timeout_config)
-        connect_result = connection.connection.connect()
+        connect_result = connection.connect()
         assert connect_result.success
 
         try:
@@ -212,7 +212,7 @@ class TestRealOracleExceptionsCore:
                 )
 
         finally:
-            connection.connection.disconnect()
+            connection.disconnect()
 
 
 class TestRealOracleExceptionsAdvanced:

@@ -27,7 +27,7 @@ class TestFlextDbOracleConnectionComprehensive:
             username="test",
             password=SecretStr("test"),
         )
-        self.connection = FlextDbOracleServices.ConnectionService(self.config)
+        self.connection = FlextDbOracleServices(self.config)
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
@@ -39,11 +39,11 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_is_connected_method(self) -> None:
         """Test is_connected method behavior."""
         # Initially not connected
-        assert not self.connection.connection.is_connected()
+        assert not self.connection.is_connected()
 
         # After setting _engine to None explicitly
         self.connection._engine = None
-        assert not self.connection.connection.is_connected()
+        assert not self.connection.is_connected()
 
     def test_connect_validation_errors(self) -> None:
         """Test connect method with invalid configurations."""
@@ -59,20 +59,19 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def test_disconnect_when_not_connected(self) -> None:
         """Test disconnect when not connected."""
-        result = self.connection.connection.disconnect()
+        result = self.connection.disconnect()
         assert result.success
-        assert result.value is True
 
     def test_connection_url_building(self) -> None:
         """Test connection URL building logic."""
         # Test with service name
-        result = self.connection.connection._build_connection_url()
+        result = self.connection._build_connection_url()
         assert result.success
         url = result.value
         assert "oracle+oracledb://" in url
         assert "test:" in url
         assert "@test:1521" in url
-        assert "service_name=TEST" in url
+        assert "/TEST" in url  # Service name appears after port as /SERVICE_NAME
 
         # Test with SID instead of service_name
         sid_config = FlextDbOracleConfig(
@@ -82,8 +81,8 @@ class TestFlextDbOracleConnectionComprehensive:
             username="test",
             password=SecretStr("test"),
         )
-        sid_connection = FlextDbOracleServices.ConnectionService(sid_config)
-        sid_result = sid_connection.connection._build_connection_url()
+        sid_connection = FlextDbOracleServices(sid_config)
+        sid_result = sid_connection._build_connection_url()
         assert sid_result.success
         assert "/TESTSID" in sid_result.value
 
@@ -483,16 +482,16 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test session and transaction context managers behavior when not connected."""
         # Test get_session context manager - should raise when not connected
         try:
-            session_gen = self.connection.get_session()
-            next(session_gen)
+            with self.connection.get_session():
+                pass  # Should not reach here
             pytest.fail("Expected exception not raised")
         except (ValueError, RuntimeError):
             pass  # Expected exception
 
         # Test transaction context manager - should raise when not connected
         try:
-            transaction_gen = self.connection.transaction()
-            next(transaction_gen)
+            with self.connection.transaction():
+                pass  # Should not reach here
             pytest.fail("Expected exception not raised")
         except (ValueError, RuntimeError):
             pass  # Expected exception

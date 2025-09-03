@@ -10,20 +10,20 @@ Focus on utility functionality that doesn't require database connection to boost
 
 import json
 import time
-from unittest.mock import Mock
+from io import StringIO
 
 import pytest
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig
-from flext_db_oracle.models import FlextDbOracleQueryResult
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import (
     FlextDbOracleUtilities,
 )
 
 
-class MockModelDump:
-    """Mock class that supports model_dump methods."""
+class TestModelDump:
+    """Test class that supports model_dump methods."""
 
     def model_dump(self) -> dict[str, object]:
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
@@ -31,6 +31,21 @@ class MockModelDump:
     def model_dump_json(self, *, indent: int | None = None) -> str:
         data = self.model_dump()
         return json.dumps(data, indent=indent)
+
+
+class TestConsole:
+    """Real console implementation for testing."""
+
+    def __init__(self) -> None:
+        self.output = StringIO()
+
+    def print(self, text: str) -> None:
+        """Print text to internal buffer."""
+        print(text, file=self.output)
+
+    def get_output(self) -> str:
+        """Get captured output."""
+        return self.output.getvalue()
 
 
 class TestFlextDbOracleUtilities:
@@ -51,7 +66,9 @@ class TestFlextDbOracleUtilities:
             password=SecretStr("util_api_pass"),
         )
 
-        api = FlextDbOracleUtilities.create_api_from_config(config)
+        api_result = FlextDbOracleUtilities.create_api_from_config(config)
+        assert api_result.success
+        api = api_result.value
         assert api is not None
         assert api.config.host == "util_api_test"
 
@@ -67,8 +84,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should not raise exception with table format
-        console_mock = Mock()
-        console_mock.print = Mock()
+        TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "table")
             assert result.success
@@ -85,8 +101,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should not raise exception with JSON format
-        console_mock = Mock()
-        console_mock.print = Mock()
+        TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "json")
             assert result.success
@@ -100,8 +115,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should handle empty data gracefully
-        console_mock = Mock()
-        console_mock.print = Mock()
+        TestConsole()
         try:
             result1 = FlextDbOracleUtilities.format_query_result(empty_result, "table")
             assert result1.success
@@ -112,51 +126,37 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_display_health_data_with_model_dump(self) -> None:
         """Test _display_health_data with objects supporting model_dump."""
-        health_data = MockModelDump()
-        console_mock = Mock()
-        console_mock.print = Mock()
+        health_data = TestModelDump()
+        console = TestConsole()
 
         # Test table format
         try:
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "table", console_mock
-            )
+            FlextDbOracleUtilities._display_health_data(health_data, "table", console)
         except Exception as e:
             pytest.fail(f"_display_health_data failed with table format: {e}")
 
         # Test json format
         try:
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "json", console_mock
-            )
+            FlextDbOracleUtilities._display_health_data(health_data, "json", console)
         except Exception as e:
             pytest.fail(f"_display_health_data failed with json format: {e}")
 
         # Test str format
         try:
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "str", console_mock
-            )
+            FlextDbOracleUtilities._display_health_data(health_data, "str", console)
         except Exception as e:
             pytest.fail(f"_display_health_data failed with str format: {e}")
 
     def test_utilities_display_health_data_without_model_dump(self) -> None:
         """Test _display_health_data with plain objects."""
         health_data = {"status": "ok", "message": "All good"}
-        console_mock = Mock()
-        console_mock.print = Mock()
+        console = TestConsole()
 
         # Should handle objects without model_dump gracefully
         try:
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "table", console_mock
-            )
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "json", console_mock
-            )
-            FlextDbOracleUtilities._display_health_data(
-                health_data, "str", console_mock
-            )
+            FlextDbOracleUtilities._display_health_data(health_data, "table", console)
+            FlextDbOracleUtilities._display_health_data(health_data, "json", console)
+            FlextDbOracleUtilities._display_health_data(health_data, "str", console)
         except Exception as e:
             pytest.fail(f"_display_health_data failed with plain object: {e}")
 
@@ -169,12 +169,11 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=0.03,
         )
 
-        console_mock = Mock()
-        console_mock.print = Mock()
+        console = TestConsole()
 
         # Should not raise exception
         try:
-            FlextDbOracleUtilities._display_query_table(query_result, console_mock)
+            FlextDbOracleUtilities._display_query_table(query_result, console)
         except Exception as e:
             pytest.fail(f"_display_query_table failed: {e}")
 
@@ -192,20 +191,20 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_supports_model_dump_protocol(self) -> None:
         """Test SupportsModelDump protocol works correctly."""
-        mock_object = MockModelDump()
+        test_object = TestModelDump()
 
         # Check protocol compliance
-        assert hasattr(mock_object, "model_dump")
-        assert hasattr(mock_object, "model_dump_json")
-        assert callable(mock_object.model_dump)
-        assert callable(mock_object.model_dump_json)
+        assert hasattr(test_object, "model_dump")
+        assert hasattr(test_object, "model_dump_json")
+        assert callable(test_object.model_dump)
+        assert callable(test_object.model_dump_json)
 
         # Test protocol methods
-        model_data = mock_object.model_dump()
+        model_data = test_object.model_dump()
         assert isinstance(model_data, dict)
         assert "status" in model_data
 
-        json_data = mock_object.model_dump_json(indent=2)
+        json_data = test_object.model_dump_json(indent=2)
         assert isinstance(json_data, str)
         assert "status" in json_data
 
@@ -254,8 +253,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
         )
 
         # Should handle large datasets
-        console_mock = Mock()
-        console_mock.print = Mock()
+        TestConsole()
         try:
             FlextDbOracleUtilities.format_query_result(large_result, "table")
         except Exception as e:
@@ -270,8 +268,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
         )
 
         # Should handle complex data structures
-        console_mock2 = Mock()
-        console_mock2.print = Mock()
+        TestConsole()
         try:
             FlextDbOracleUtilities.format_query_result(complex_result, "json")
         except Exception as e:
@@ -316,8 +313,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         )
 
         # Should handle slow query formatting
-        console_mock = Mock()
-        console_mock.print = Mock()
+        TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(slow_result, "table")
             assert result.success
@@ -335,11 +331,10 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         )
 
         # Should handle invalid formats gracefully
-        console_mock = Mock()
-        console_mock.print = Mock()
+        console = TestConsole()
         try:
             FlextDbOracleUtilities.format_query_result(
-                query_result, "invalid_format", console_mock
+                query_result, "invalid_format", console
             )
         except Exception:
             # May raise exception, but shouldn't crash the process
@@ -347,12 +342,11 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
     def test_utilities_none_handling(self) -> None:
         """Test handling of None values in utilities."""
-        console_mock = Mock()
-        console_mock.print = Mock()
+        console = TestConsole()
 
         # Should handle None health data gracefully
         try:
-            FlextDbOracleUtilities._display_health_data(None, "table", console_mock)
+            FlextDbOracleUtilities._display_health_data(None, "table", console)
         except Exception:
             # May raise exception, but shouldn't crash the process
             pass

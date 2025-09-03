@@ -1,7 +1,7 @@
-"""Oracle database plugins facade module.
+"""Oracle database plugins following flext-core pattern.
 
-This module provides facade access to plugin functionality from FlextDbOracleServices.
-Following the FLEXT architectural patterns with consolidated functionality.
+Single consolidated class for Oracle plugin management.
+Eliminates facade pattern and provides direct unified interface.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -11,113 +11,111 @@ from __future__ import annotations
 
 from flext_core import FlextResult
 
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.services import FlextDbOracleServices
 
+class FlextDbOraclePlugins:
+    """Single consolidated Oracle plugins class.
 
-def create_performance_monitor_plugin() -> FlextResult[dict[str, object]]:
-    """Create performance monitor plugin using PluginService.
-
-    Facade function providing access to plugin functionality.
+    Following flext-core pattern: one class per module, all functionality consolidated.
+    Provides unified plugin management interface.
     """
-    try:
-        plugin_service = FlextDbOracleServices.PluginService()
-        plugin_data = {
-            "name": "performance_monitor",
-            "version": "1.0.0",
-            "service": plugin_service,
-        }
-        return FlextResult[dict[str, object]].ok(plugin_data)
-    except Exception as e:
-        return FlextResult[dict[str, object]].fail(
-            f"Performance monitor plugin creation failed: {e}"
-        )
 
+    def __init__(self) -> None:
+        """Initialize Oracle plugins system."""
+        self._plugins: dict[str, object] = {}
 
-def create_data_validation_plugin() -> FlextResult[dict[str, object]]:
-    """Create data validation plugin using PluginService.
+    # Factory methods ELIMINATED - create plugin data directly as dicts:
+    # {"name": "performance_monitor", "version": "1.0.0", "type": "monitoring",
+    #  "capabilities": ["query_tracking", "performance_metrics", "alerting"]}
 
-    Facade function providing access to plugin functionality.
-    """
-    try:
-        plugin_service = FlextDbOracleServices.PluginService()
-        plugin_data = {
-            "name": "data_validation",
-            "version": "1.0.0",
-            "service": plugin_service,
-        }
-        return FlextResult[dict[str, object]].ok(plugin_data)
-    except Exception as e:
-        return FlextResult[dict[str, object]].fail(
-            f"Data validation plugin creation failed: {e}"
-        )
+    def register_plugin(
+        self, name: str, plugin_data: dict[str, object]
+    ) -> FlextResult[None]:
+        """Register a plugin."""
+        try:
+            self._plugins[name] = plugin_data
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Failed to register plugin '{name}': {e}")
 
+    def unregister_plugin(self, name: str) -> FlextResult[None]:
+        """Unregister a plugin."""
+        try:
+            if name in self._plugins:
+                del self._plugins[name]
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
-def create_security_audit_plugin() -> FlextResult[dict[str, object]]:
-    """Create security audit plugin using PluginService.
+    def list_plugins(self) -> FlextResult[dict[str, object]]:
+        """List all registered plugins."""
+        try:
+            if not self._plugins:
+                return FlextResult[dict[str, object]].fail(
+                    "plugin listing returned empty"
+                )
+            return FlextResult[dict[str, object]].ok(self._plugins.copy())
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(f"Failed to list plugins: {e}")
 
-    Facade function providing access to plugin functionality.
-    """
-    try:
-        plugin_service = FlextDbOracleServices.PluginService()
-        plugin_data = {
-            "name": "security_audit",
-            "version": "1.0.0",
-            "service": plugin_service,
-        }
-        return FlextResult[dict[str, object]].ok(plugin_data)
-    except Exception as e:
-        return FlextResult[dict[str, object]].fail(
-            f"Security audit plugin creation failed: {e}"
-        )
+    def get_plugin(self, name: str) -> FlextResult[object]:
+        """Get a specific plugin."""
+        try:
+            if name not in self._plugins:
+                return FlextResult[object].fail(f"Plugin '{name}' not found")
+            return FlextResult[object].ok(self._plugins[name])
+        except Exception as e:
+            return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
+    def register_all_oracle_plugins(self) -> FlextResult[dict[str, object]]:
+        """Register all available Oracle plugins.
 
-def register_all_oracle_plugins(
-    api: FlextDbOracleApi,
-) -> FlextResult[dict[str, object]]:
-    """Register all available Oracle plugins with the given API.
+        Returns:
+            FlextResult containing the registered plugins information.
 
-    Args:
-        api: The FlextDbOracleApi instance to register plugins with.
+        """
+        try:
+            plugins_info: dict[str, object] = {}
+            plugin_count = 0
 
-    Returns:
-        FlextResult containing the registered plugins information.
-
-    """
-    try:
-        plugins_info: dict[str, object] = {}
-        plugin_count = 0
-
-        # Create and register each plugin type
-        perf_result = create_performance_monitor_plugin()
-        if perf_result.success:
+            # Register plugins directly
+            perf_plugin: dict[str, object] = {
+                "name": "performance_monitor",
+                "version": "1.0.0",
+                "type": "monitoring",
+                "capabilities": ["query_tracking", "performance_metrics", "alerting"],
+            }
+            self.register_plugin("performance_monitor", perf_plugin)
             plugin_count += 1
 
-        validation_result = create_data_validation_plugin()
-        if validation_result.success:
+            validation_plugin: dict[str, object] = {
+                "name": "data_validation",
+                "version": "1.0.0",
+                "type": "validation",
+                "capabilities": ["schema_validation", "data_integrity", "constraints"],
+            }
+            self.register_plugin("data_validation", validation_plugin)
             plugin_count += 1
 
-        security_result = create_security_audit_plugin()
-        if security_result.success:
+            security_plugin: dict[str, object] = {
+                "name": "security_audit",
+                "version": "1.0.0",
+                "type": "security",
+                "capabilities": ["access_logging", "privilege_audit", "compliance"],
+            }
+            self.register_plugin("security_audit", security_plugin)
             plugin_count += 1
 
-        # Store registration summary
-        plugins_info["registered_count"] = plugin_count
-        plugins_info["api_connected"] = api.is_connected
-        plugins_info["registration_status"] = "completed"
+            # Store registration summary
+            plugins_info["registered_count"] = plugin_count
+            plugins_info["registration_status"] = "completed"
+            plugins_info["available_plugins"] = list(self._plugins.keys())
 
-        return FlextResult[dict[str, object]].ok(plugins_info)
-    except Exception as e:
-        return FlextResult[dict[str, object]].fail(f"Plugin registration failed: {e}")
+            return FlextResult[dict[str, object]].ok(plugins_info)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Plugin registration failed: {e}"
+            )
 
 
-# Export main plugin service for direct access
-PluginService = FlextDbOracleServices.PluginService
-
-__all__ = [
-    "PluginService",
-    "create_data_validation_plugin",
-    "create_performance_monitor_plugin",
-    "create_security_audit_plugin",
-    "register_all_oracle_plugins",
-]
+# Export the single class following flext-core pattern
+__all__ = ["FlextDbOraclePlugins"]

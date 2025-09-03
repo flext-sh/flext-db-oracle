@@ -11,7 +11,6 @@ Focus on methods that don't require database connection to boost coverage:
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-from flext_db_oracle.plugins import create_performance_monitor_plugin
 
 
 class TestFlextDbOracleApiSafeMethods:
@@ -112,10 +111,13 @@ class TestFlextDbOracleApiSafeMethods:
                 or "not found" in plugins_result.error.lower()
             )
 
-        # Create a test plugin
-        plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.success
-        plugin = plugin_result.value
+        # Create a test plugin directly
+        plugin: dict[str, object] = {
+            "name": "performance_monitor",
+            "version": "1.0.0",
+            "type": "monitoring",
+            "capabilities": ["query_tracking", "performance_metrics", "alerting"],
+        }
 
         # Test register_plugin
         register_result = api.register_plugin(plugin)
@@ -229,10 +231,13 @@ class TestFlextDbOracleApiSafeMethods:
         """Test module-level helper functions."""
         from flext_db_oracle.api import _get_plugin_info, _is_valid_plugin
 
-        # Create a plugin for testing
-        plugin_result = create_performance_monitor_plugin()
-        assert plugin_result.success
-        plugin = plugin_result.value
+        # Create a plugin for testing directly
+        plugin: dict[str, object] = {
+            "name": "performance_monitor",
+            "version": "1.0.0",
+            "type": "monitoring",
+            "capabilities": ["query_tracking", "performance_metrics", "alerting"],
+        }
 
         # Test _is_valid_plugin
         assert _is_valid_plugin(plugin)
