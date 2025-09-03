@@ -62,6 +62,8 @@ class TestFlextDbOracleUtilities:
             rows=[(1, "John", "john@test.com"), (2, "Jane", "jane@test.com")],
             row_count=2,
             execution_time_ms=0.05,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should not raise exception with table format

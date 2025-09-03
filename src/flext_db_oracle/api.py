@@ -761,11 +761,7 @@ def create_oracle_api_from_env(
     context_name: str = "oracle",
 ) -> FlextDbOracleApi:
     """Create Oracle API from environment."""
-    result = FlextDbOracleApi.from_env(context_name)
-    if result.is_failure:
-        msg = f"Failed to create API from environment: {result.error}"
-        raise ValueError(msg)
-    return result.value
+    return FlextDbOracleApi.from_env(context_name)
 
 
 # Export API - ONLY single class and factory functions

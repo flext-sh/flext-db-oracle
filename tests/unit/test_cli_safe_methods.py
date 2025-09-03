@@ -176,7 +176,8 @@ class TestFlextDbOracleCliUtilities:
         from flext_db_oracle.models import FlextDbOracleQueryResult
 
         empty_result = FlextDbOracleQueryResult(
-            columns=[], rows=[], row_count=0, execution_time_ms=0.1
+            columns=[], rows=[], row_count=0, execution_time_ms=0.1,
+            query_hash=None, explain_plan=None
         )
 
         # This should not raise an exception

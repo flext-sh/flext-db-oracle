@@ -212,7 +212,14 @@ def demonstrate_query_patterns() -> None:
         single_result = api.query_one("SELECT COUNT(*) as total FROM employees")
         # Modern FlextResult pattern: use unwrap_or for cleaner code
         single_row = single_result.unwrap_or(
-            FlextDbOracleQueryResult(columns=[], rows=[], row_count=0)
+            FlextDbOracleQueryResult(
+                columns=[], 
+                rows=[], 
+                row_count=0,
+                execution_time_ms=0.0,
+                query_hash=None,
+                explain_plan=None
+            )
         )
         if single_row is not None:
             logger.info(
@@ -349,7 +356,14 @@ def demonstrate_error_handling_patterns() -> None:
 
         # Pattern 2: Query error handling with FlextResult using unwrap_or
         result = api.query("INVALID SQL SYNTAX")
-        empty_result = FlextDbOracleQueryResult(columns=[], rows=[], row_count=0)
+        empty_result = FlextDbOracleQueryResult(
+            columns=[], 
+            rows=[], 
+            row_count=0,
+            execution_time_ms=0.0,
+            query_hash=None,
+            explain_plan=None
+        )
         query_data = result.unwrap_or(empty_result)
         if query_data.row_count == 0:
             logger.info("✅ Query error handled via FlextResult: %s", result.error)

@@ -207,6 +207,7 @@ def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         username=os.getenv("TEST_ORACLE_USER", "flexttest"),
+        ssl_server_cert_dn=None,
         password=SecretStr(os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123")),
         pool_min=1,
         pool_max=5,

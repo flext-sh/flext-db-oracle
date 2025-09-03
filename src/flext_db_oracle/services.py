@@ -343,7 +343,7 @@ class FlextDbOracleServices(FlextDomainService[dict[str, object]]):
             full_table_name = f"{schema}.{table_name}"
 
             # Schema and table names validated above - safe for formatting
-            sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
+            sql = "SELECT COUNT(*) as row_count FROM " + full_table_name  # noqa: S608
             result = self.connection.execute_query(sql)
 
             if not result.success:

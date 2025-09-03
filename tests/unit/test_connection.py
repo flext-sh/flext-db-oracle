@@ -156,7 +156,7 @@ class TestFlextDbOracleConnectionComprehensive:
         result = self.connection.disconnect()
         assert result.success  # Should succeed gracefully
 
-    def test_connection_url_building(self) -> None:
+    def test_connection_url_building_with_real_method(self) -> None:
         """Test connection URL building (real method)."""
         # Test _build_connection_url method (exists and is private)
         result = self.connection._build_connection_url()
@@ -482,11 +482,17 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_session_and_transaction_context_managers(self) -> None:
         """Test session and transaction context managers behavior when not connected."""
         # Test get_session context manager - should raise when not connected
-        with pytest.raises((ValueError, RuntimeError)):
+        try:
             session_gen = self.connection.get_session()
             next(session_gen)
+            pytest.fail("Expected exception not raised")
+        except (ValueError, RuntimeError):
+            pass  # Expected exception
 
         # Test transaction context manager - should raise when not connected
-        with pytest.raises((ValueError, RuntimeError)):
+        try:
             transaction_gen = self.connection.transaction()
             next(transaction_gen)
+            pytest.fail("Expected exception not raised")
+        except (ValueError, RuntimeError):
+            pass  # Expected exception
