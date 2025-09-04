@@ -10,7 +10,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+import os
+
+from flext_core import FlextContainer
+
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleColumn,
+    FlextDbOracleConfig,
+    FlextDbOracleObservabilityManager,
+    FlextDbOracleSchema,
+    FlextDbOracleTable,
+)
+from flext_db_oracle.services import FlextDbOracleServices
 
 
 class TestDirectCoverageBoostAPI:
@@ -175,8 +187,6 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        import os
-
         # Test environment variable handling paths
         original_vars = {}
         test_vars = {
@@ -223,8 +233,6 @@ class TestDirectCoverageBoostConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
-        from flext_db_oracle.services import FlextDbOracleServices
-
         # Test connection lifecycle edge cases
         connection = FlextDbOracleServices(real_oracle_config)
 
@@ -241,8 +249,6 @@ class TestDirectCoverageBoostConnection:
 
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
-        from flext_db_oracle.services import FlextDbOracleServices
-
         # Create connection with invalid config
         bad_config = FlextDbOracleConfig(
             host="invalid_host",
@@ -277,12 +283,6 @@ class TestDirectCoverageBoostTypes:
 
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
-        from flext_db_oracle import (
-            FlextDbOracleColumn,
-            FlextDbOracleSchema,
-            FlextDbOracleTable,
-        )
-
         # Test various type validation scenarios
         # Column validation edge cases
         try:
@@ -325,8 +325,6 @@ class TestDirectCoverageBoostTypes:
 
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
-        from flext_db_oracle import FlextDbOracleColumn
-
         # Test property methods that might not be covered
         column = FlextDbOracleColumn(
             column_name="ID",
@@ -359,12 +357,8 @@ class TestDirectCoverageBoostObservability:
 
     def test_observability_initialization_paths(self) -> None:
         """Test observability initialization paths."""
-        from flext_db_oracle import FlextDbOracleObservabilityManager
-
         # Test various initialization scenarios
         try:
-            from flext_core import FlextContainer
-
             container = FlextContainer()
             obs = FlextDbOracleObservabilityManager(container, "test_context")
             # Test basic functionality if available

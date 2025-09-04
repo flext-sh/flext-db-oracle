@@ -229,7 +229,6 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_helper_functions(self) -> None:
         """Test module-level helper functions."""
-        from flext_db_oracle.api import FlextDbOracleApi
         get_plugin_info = FlextDbOracleApi._get_plugin_info
         is_valid_plugin = FlextDbOracleApi._is_valid_plugin
 

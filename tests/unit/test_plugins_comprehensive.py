@@ -81,7 +81,11 @@ class TestFlextDbOraclePluginsComprehensive:
         """Test registering a plugin successfully."""
         plugins = FlextDbOraclePlugins()
 
-        plugin_data: dict[str, object] = {"name": "test_plugin", "version": "1.0.0", "type": "test"}
+        plugin_data: dict[str, object] = {
+            "name": "test_plugin",
+            "version": "1.0.0",
+            "type": "test",
+        }
 
         result = plugins.register_plugin("test_plugin", plugin_data)
 
@@ -162,7 +166,11 @@ class TestFlextDbOraclePluginsComprehensive:
         """Test getting an existing plugin."""
         plugins = FlextDbOraclePlugins()
 
-        plugin_data: dict[str, object] = {"name": "test", "version": "1.0.0", "type": "test"}
+        plugin_data: dict[str, object] = {
+            "name": "test",
+            "version": "1.0.0",
+            "type": "test",
+        }
         plugins.register_plugin("test", plugin_data)
 
         result = plugins.get_plugin("test")

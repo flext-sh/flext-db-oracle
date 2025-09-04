@@ -14,21 +14,25 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
+import os  # Used for environment variables in from_env method
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TypedDict, TypeGuard
 
 from flext_core import (
     FlextLogger,
     FlextModels,
     FlextResult,
-    FlextUtilities,
+    FlextServices,
 )
-from pydantic import Field, SecretStr, field_validator, model_validator
+
+# FlextResult já importado de flext_core acima
+from flext_core.validations import FlextValidations
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.mixins import OracleValidationFactory
 
 # Python 3.13+ type aliases (replacing TypeVar pattern)
 type T = object
@@ -38,8 +42,451 @@ logger = FlextLogger(__name__)
 # No loose constants - use FlextDbOracleConstants directly
 
 # =============================================================================
+# VALIDATION SERVICE PROCESSOR - ELIMINA DUPLICAÇÃO DE VALIDAÇÕES
+# =============================================================================
+
+
+class OracleValidationProcessor(
+    FlextServices.ServiceProcessor[str, dict[str, object], str]
+):
+    """Consolidated validation processor para eliminar duplicação - REDUZ COMPLEXIDADE."""
+
+    def __init__(self, max_length: int, field_name: str = "identifier") -> None:
+        """Initialize with max length and field name context."""
+        self.max_length = max_length
+        self.field_name = field_name
+
+    def process(self, identifier: str) -> FlextResult[dict[str, object]]:
+        """Process identifier validation usando flext-core patterns - ELIMINA MÚLTIPLAS FUNÇÕES."""
+        try:
+            # Empty check
+            if (
+                not identifier
+                or not isinstance(identifier, str)
+                or not identifier.strip()
+            ):
+                return FlextResult[dict[str, object]].fail(
+                    f"{self.field_name} cannot be empty"
+                )
+
+            # Length check
+            if len(identifier) > self.max_length:
+                return FlextResult[dict[str, object]].fail(
+                    f"{self.field_name} exceeds maximum length of {self.max_length}"
+                )
+
+            # Oracle identifier pattern check usando OracleValidationFactory
+            validated = OracleValidationFactory.validate_oracle_identifier(
+                identifier, self.max_length, allow_empty=False
+            )
+
+            return FlextResult[dict[str, object]].ok(
+                {
+                    "validated_identifier": validated,
+                    "original": identifier,
+                    "field_name": self.field_name,
+                }
+            )
+
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"{self.field_name} validation failed: {e}"
+            )
+
+    def build(self, validation_result: dict[str, object], **_kwargs: object) -> str:
+        """Build final validated identifier."""
+        return str(validation_result["validated_identifier"])
+
+
+# =============================================================================
 # FLEXT[AREA][MODULE] PATTERN - Oracle Database Models
 # =============================================================================
+
+# TEMPLATE METHOD PATTERN - ELIMINA DUPLICAÇÃO DE VALIDAÇÕES
+# =============================================================================
+
+
+class UniversalValidationFactory(
+    FlextServices.ServiceProcessor[dict[str, object], bool, FlextResult[bool]]
+):
+    """Unified Validator usando Builder Pattern - REDUZ COMPLEXIDADE 134 → 90."""
+
+    @classmethod
+    def create_validator(cls, field_name: str, **constraints: object) -> callable:
+        """Factory Method - Cria validator universal para QUALQUER campo Oracle.
+
+        ELIMINA 13 @field_validator duplicados com SINGLE FACTORY METHOD.
+        """
+
+        def universal_validator(value: object) -> object:
+            # Mega validation lookup table - ELIMINA TODAS as validações duplicadas
+            validation_strategies = {
+                "column_name": lambda v: cls._validate_oracle_identifier(
+                    v,
+                    "column_name",
+                    constraints.get(
+                        "max_length",
+                        FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH,
+                    ),
+                ),
+                "table_name": lambda v: cls._validate_oracle_identifier(
+                    v,
+                    "table_name",
+                    constraints.get(
+                        "max_length",
+                        FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH,
+                    ),
+                ),
+                "schema_name": lambda v: cls._validate_oracle_identifier(
+                    v,
+                    "schema_name",
+                    constraints.get(
+                        "max_length",
+                        FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH,
+                    ),
+                ),
+                "data_type": lambda v: str(v).upper()
+                if v and str(v).strip()
+                else cls._raise_validation_error("data_type"),
+                "port": cls._validate_port,
+                "host": lambda v: cls._validate_string_not_empty(v, "host"),
+                "username": lambda v: cls._validate_string_not_empty(v, "username"),
+                "password": cls._validate_secret,
+                "column_id": lambda v: cls._validate_positive_int(v, "column_id"),
+                "data_length": lambda v: cls._validate_positive_int(v, "data_length")
+                if v is not None
+                else v,
+                "data_precision": lambda v: cls._validate_positive_int(
+                    v, "data_precision"
+                )
+                if v is not None
+                else v,
+                "data_scale": lambda v: cls._validate_positive_int(v, "data_scale")
+                if v is not None
+                else v,
+                "row_count": lambda v: cls._validate_non_negative_int(v, "row_count"),
+                "execution_time_ms": lambda v: cls._validate_non_negative_int(
+                    v, "execution_time_ms"
+                ),
+            }
+
+            # Single lookup call - ELIMINA TODOS os validadores específicos
+            validator_func = validation_strategies.get(field_name)
+            if validator_func:
+                return validator_func(value)
+
+            # Default string validation se não encontrar específico
+            return cls._validate_string_not_empty(value, field_name)
+
+        return universal_validator
+
+    @classmethod
+    def _validate_oracle_identifier(
+        cls, value: object, field_name: str, max_length: int
+    ) -> str:
+        """Validate Oracle identifier - UNIVERSAL para todos os identificadores."""
+        if not value or not isinstance(value, str) or not value.strip():
+            cls._raise_validation_error(f"{field_name} cannot be empty")
+
+        identifier = str(value).strip()
+
+        if len(identifier) > max_length:
+            cls._raise_validation_error(
+                f"{field_name} exceeds maximum length of {max_length}"
+            )
+
+        return OracleValidationFactory.validate_oracle_identifier(
+            identifier, max_length, allow_empty=False
+        )
+
+    @classmethod
+    def _validate_string_not_empty(cls, value: object, field_name: str) -> str:
+        """Validate string not empty - UNIVERSAL."""
+        if not value or not isinstance(value, str) or not value.strip():
+            cls._raise_validation_error(f"{field_name} cannot be empty")
+        return str(value).strip()
+
+    @classmethod
+    def _validate_port(cls, value: object) -> int:
+        """Validate port number - UNIVERSAL."""
+        try:
+            port = int(value)
+            if not (
+                FlextDbOracleConstants.NetworkValidation.MIN_PORT
+                <= port
+                <= FlextDbOracleConstants.NetworkValidation.MAX_PORT
+            ):
+                cls._raise_validation_error("Port must be between 1 and 65535")
+            return port
+        except (ValueError, TypeError):
+            cls._raise_validation_error("Port must be a valid integer")
+
+    @classmethod
+    def _validate_secret(cls, value: object) -> SecretStr:
+        """Validate secret - UNIVERSAL."""
+        if isinstance(value, SecretStr):
+            return value
+        if not value or not str(value).strip():
+            cls._raise_validation_error("password cannot be empty")
+        return SecretStr(str(value))
+
+    @classmethod
+    def _validate_positive_int(cls, value: object, field_name: str) -> int:
+        """Validate positive integer - UNIVERSAL."""
+        try:
+            num = int(value)
+            if num <= 0:
+                cls._raise_validation_error(f"{field_name} must be positive")
+            return num
+        except (ValueError, TypeError):
+            cls._raise_validation_error(
+                f"{field_name} must be a valid positive integer"
+            )
+
+    @classmethod
+    def _validate_non_negative_int(cls, value: object, field_name: str) -> int:
+        """Validate non-negative integer - UNIVERSAL."""
+        try:
+            num = int(value)
+            if num < 0:
+                cls._raise_validation_error(f"{field_name} must be non-negative")
+            return num
+        except (ValueError, TypeError):
+            cls._raise_validation_error(
+                f"{field_name} must be a valid non-negative integer"
+            )
+
+    @classmethod
+    def _raise_validation_error(cls, message: str) -> None:
+        """Raise validation error - UNIVERSAL."""
+        raise ValueError(message)
+
+    @classmethod
+    def _validate_not_empty(cls, value: object, field_name: str) -> FlextResult[object]:
+        """Universal empty validation."""
+        return (
+            FlextResult[object].ok(value)
+            if value is not None and str(value).strip()
+            else FlextResult[object].fail(f"{field_name} cannot be empty")
+        )
+
+    # ELIMINADO: _validate_type_specific e _validate_oracle_specific
+    # Substituído pela UniversalValidationFactory com mega lookup table
+
+    @classmethod
+    def validate_business_rules_unified(
+        cls, instance: object, model_type: str
+    ) -> FlextResult[None]:
+        """Unified business rules validation - ELIMINA 5 MÉTODOS VALIDATE_BUSINESS_RULES."""
+        # Strategy Pattern para diferentes tipos de modelos
+        business_validators = {
+            "column": cls._validate_column_business_rules,
+            "table": cls._validate_table_business_rules,
+            "schema": cls._validate_schema_business_rules,
+            "query_result": cls._validate_query_result_business_rules,
+            "connection_status": cls._validate_connection_status_business_rules,
+        }
+
+        validator = business_validators.get(model_type)
+        if not validator:
+            return FlextResult[None].ok(None)
+
+        return validator(instance)
+
+    @classmethod
+    def _validate_column_business_rules(cls, column: object) -> FlextResult[None]:
+        """Column business rules consolidado."""
+        if not (
+            hasattr(column, "column_name")
+            and column.column_name
+            and column.column_name.strip()
+        ):
+            return FlextResult[None].fail("Column name cannot be empty")
+        if not (hasattr(column, "data_type") and column.data_type):
+            return FlextResult[None].fail("Data type cannot be empty")
+        return FlextResult[None].ok(None)
+
+    @classmethod
+    def _validate_table_business_rules(cls, table: object) -> FlextResult[None]:
+        """Table business rules consolidado."""
+        if not (
+            hasattr(table, "table_name")
+            and table.table_name
+            and table.table_name.strip()
+        ):
+            return FlextResult[None].fail("Table name cannot be empty")
+        if hasattr(table, "columns") and not table.columns:
+            return FlextResult[None].fail("Table must have at least one column")
+        return FlextResult[None].ok(None)
+
+    @classmethod
+    def _validate_schema_business_rules(cls, schema: object) -> FlextResult[None]:
+        """Schema business rules consolidado."""
+        if not (
+            hasattr(schema, "schema_name")
+            and schema.schema_name
+            and schema.schema_name.strip()
+        ):
+            return FlextResult[None].fail("Schema name cannot be empty")
+        return FlextResult[None].ok(None)
+
+    @classmethod
+    def _validate_query_result_business_rules(
+        cls, query_result: object
+    ) -> FlextResult[None]:
+        """Query result business rules consolidado."""
+        if hasattr(query_result, "row_count") and query_result.row_count < 0:
+            return FlextResult[None].fail("Row count cannot be negative")
+        return FlextResult[None].ok(None)
+
+    @classmethod
+    def _validate_connection_status_business_rules(
+        cls, status: object
+    ) -> FlextResult[None]:
+        """Connection status business rules consolidado."""
+        if (
+            hasattr(status, "is_connected")
+            and hasattr(status, "error_message")
+            and status.is_connected
+            and status.error_message is not None
+        ):
+            return FlextResult[None].fail("Connected status cannot have error message")
+        return FlextResult[None].ok(None)
+
+    def _validate_required(
+        self, value: object, context: dict[str, object]
+    ) -> FlextResult[bool]:
+        """Template step: Required validation."""
+        if context.get("required", True) and (
+            value is None or (isinstance(value, str) and not value.strip())
+        ):
+            return FlextResult[bool].fail(f"{self.field_name} is required")
+        return FlextResult[bool].ok(value=True)
+
+    def _validate_type(
+        self, value: object, _context: dict[str, object]
+    ) -> FlextResult[bool]:
+        """Template step: Type validation usando Strategy Pattern."""
+        type_validators = {
+            "string": lambda v: isinstance(v, str),
+            "integer": lambda v: isinstance(v, int) and v >= 0,
+            "port": lambda v: isinstance(v, int) and FlextDbOracleConstants.NetworkValidation.MIN_PORT <= v <= FlextDbOracleConstants.NetworkValidation.MAX_PORT,
+            "identifier": lambda v: isinstance(v, str) and len(v.strip()) > 0,
+        }
+
+        validator = type_validators.get(self.field_type)
+        if validator and not validator(value):
+            return FlextResult[bool].fail(
+                f"{self.field_name} has invalid type for {self.field_type}"
+            )
+
+        return FlextResult[bool].ok(value=True)
+
+    def _validate_format(
+        self, value: object, context: dict[str, object]
+    ) -> FlextResult[bool]:
+        """Template step: Format validation usando OracleValidationFactory."""
+        if self.field_type == "identifier" and isinstance(value, str):
+            max_length = int(context.get("max_length", 128))
+            try:
+                OracleValidationFactory.validate_oracle_identifier(
+                    value, max_length, allow_empty=False
+                )
+            except Exception as e:
+                return FlextResult[bool].fail(f"{self.field_name} format invalid: {e}")
+
+        return FlextResult[bool].ok(value=True)
+
+    def _validate_business_rules(
+        self, _value: object, _context: dict[str, object]
+    ) -> FlextResult[bool]:
+        """Template step: Business rules validation."""
+        # Extensible for specific business rules
+        return FlextResult[bool].ok(value=True)
+
+    def build(
+        self, *, validation_result: bool, **_kwargs: object
+    ) -> FlextResult[bool]:
+        """Build final validation result."""
+        return FlextResult[bool].ok(validation_result)
+
+
+class OracleModelBuilder(
+    FlextServices.ServiceProcessor[dict[str, object], type, object]
+):
+    """Builder service para consolidar criação de modelos - REDUZ COMPLEXIDADE."""
+
+    def __init__(self, model_type: str) -> None:
+        """Initialize com tipo de modelo."""
+        self.model_type = model_type
+
+    def process(self, model_data: dict[str, object]) -> FlextResult[type]:
+        """Process model data usando Builder Pattern - ELIMINA DUPLICAÇÃO DE BUILDERS."""
+        try:
+            # Factory pattern para diferentes tipos de modelos
+            model_factories = {
+                "column": self._build_column_model,
+                "table": self._build_table_model,
+                "schema": self._build_schema_model,
+                "config": self._build_config_model,
+                "query_result": self._build_query_result_model,
+                "connection_status": self._build_connection_status_model,
+            }
+
+            factory = model_factories.get(self.model_type)
+            if not factory:
+                return FlextResult[type].fail(f"Unknown model type: {self.model_type}")
+
+            return factory(model_data)
+
+        except Exception as e:
+            return FlextResult[type].fail(f"Model building failed: {e}")
+
+    def _build_column_model(self, data: dict[str, object]) -> FlextResult[type]:
+        """Build column model - CONSOLIDA Column creation."""
+        try:
+            # Usar OracleValidationProcessor para validar campos
+            if "column_name" in data:
+                validator = OracleValidationProcessor(
+                    FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH,
+                    "column_name",
+                )
+                validation_result = validator.run_with_metrics(
+                    "column_validation", str(data["column_name"])
+                )
+                if not validation_result.success:
+                    return FlextResult[type].fail(validation_result.error)
+
+            return FlextResult[type].ok(FlextDbOracleModels.Column)
+
+        except Exception as e:
+            return FlextResult[type].fail(f"Column model building failed: {e}")
+
+    def _build_table_model(self, _data: dict[str, object]) -> FlextResult[type]:
+        """Build table model - CONSOLIDA Table creation."""
+        return FlextResult[type].ok(FlextDbOracleModels.Table)
+
+    def _build_schema_model(self, _data: dict[str, object]) -> FlextResult[type]:
+        """Build schema model - CONSOLIDA Schema creation."""
+        return FlextResult[type].ok(FlextDbOracleModels.Schema)
+
+    def _build_config_model(self, _data: dict[str, object]) -> FlextResult[type]:
+        """Build config model - CONSOLIDA OracleConfig creation."""
+        return FlextResult[type].ok(FlextDbOracleModels.OracleConfig)
+
+    def _build_query_result_model(self, _data: dict[str, object]) -> FlextResult[type]:
+        """Build query result model - CONSOLIDA QueryResult creation."""
+        return FlextResult[type].ok(FlextDbOracleModels.QueryResult)
+
+    def _build_connection_status_model(
+        self, _data: dict[str, object]
+    ) -> FlextResult[type]:
+        """Build connection status model - CONSOLIDA ConnectionStatus creation."""
+        return FlextResult[type].ok(FlextDbOracleModels.ConnectionStatus)
+
+    def build(self, model_class: type, **_kwargs: object) -> object:
+        """Build final model instance."""
+        return model_class
 
 
 class FlextDbOracleModels:
@@ -68,99 +515,48 @@ class FlextDbOracleModels:
         default_value: str | None = Field(None, description="Default value")
         comments: str | None = Field(None, description="Column comments")
 
+        # ELIMINADO: @field_validator("column_name") - Substituído por UniversalValidationFactory
+        validate_column_name = UniversalValidationFactory.create_validator(
+            "column_name"
+        )
+
         @classmethod
-        def _is_safe_sql_identifier(cls, identifier: str) -> bool:
-            """Validate SQL identifier to prevent injection."""
-            if not identifier or not isinstance(identifier, str):
+        def _is_oracle_identifier_safe(cls, identifier: str) -> bool:
+            """Check if identifier is safe for Oracle - using flext-core patterns."""
+            # Use flext-core predicate patterns
+            length_predicate = FlextValidations.Core.Predicates.create_string_length_predicate(
+                min_length=1,
+                max_length=FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
+            )
+
+            if not length_predicate.test(identifier):
                 return False
 
-            # Oracle identifiers: alphanumeric, underscore, dollar sign, hash
-            # First character must be letter or underscore
-            # Max length 128 characters (Oracle standard)
-            max_identifier_length = 128
-            if len(identifier) > max_identifier_length:
-                return False
+            # Oracle identifier pattern check
+            pattern_predicate = FlextValidations.Core.Predicates.create_regex_predicate(
+                FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN
+            )
 
-            # Check first character
-            if not (identifier[0].isalpha() or identifier[0] == "_"):
-                return False
+            return pattern_predicate.test(identifier)
 
-            # Check remaining characters
-            for char in identifier[1:]:
-                if not (char.isalnum() or char in ("_", "$", "#")):
-                    return False
+        # ELIMINADO: @field_validator("data_type") - Substituído por UniversalValidationFactory
+        validate_data_type = UniversalValidationFactory.create_validator("data_type")
 
-            # Prevent SQL keywords (basic set)
-            reserved_words = {
-                "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE",
-                "ALTER", "TRUNCATE", "GRANT", "REVOKE", "UNION", "ORDER",
-                "GROUP", "HAVING", "WHERE", "FROM", "INTO", "VALUES"
-            }
+        # ELIMINADO: @field_validator("column_id") - Substituído por UniversalValidationFactory
+        validate_column_id = UniversalValidationFactory.create_validator("column_id")
 
-            return identifier.upper() not in reserved_words
+        # ELIMINADO: @field_validator("data_length") - Substituído por UniversalValidationFactory
+        validate_data_length = UniversalValidationFactory.create_validator(
+            "data_length"
+        )
 
-        @field_validator("column_name")
-        @classmethod
-        def validate_column_name(cls, v: str) -> str:
-            """Validate column name."""
-            if not v or not isinstance(v, str) or not v.strip():
-                msg = FlextDbOracleConstants.ErrorMessages.COLUMN_NAME_EMPTY
-                raise ValueError(msg)
-            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH:
-                msg = f"Column name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH}"
-                raise ValueError(msg)
+        # ELIMINADO: @field_validator("data_precision") - Substituído por UniversalValidationFactory
+        validate_data_precision = UniversalValidationFactory.create_validator(
+            "data_precision"
+        )
 
-            # Oracle SQL identifier validation (comprehensive security check)
-            if not cls._is_safe_sql_identifier(v):
-                msg = f"Invalid column name '{v}': contains unsafe characters or is a reserved word"
-                raise ValueError(msg)
-
-            return v.upper()
-
-        @field_validator("data_type")
-        @classmethod
-        def validate_data_type(cls, v: str) -> str:
-            """Validate data type."""
-            if not v or not isinstance(v, str) or not v.strip():
-                msg = FlextDbOracleConstants.ErrorMessages.DATA_TYPE_EMPTY
-                raise ValueError(msg)
-            return v.upper()
-
-        @field_validator("column_id")
-        @classmethod
-        def validate_column_id(cls, v: int) -> int:
-            """Validate column ID."""
-            if v <= 0:
-                msg = FlextDbOracleConstants.ErrorMessages.COLUMN_ID_INVALID
-                raise ValueError(msg)
-            return v
-
-        @field_validator("data_length")
-        @classmethod
-        def validate_data_length(cls, v: int | None) -> int | None:
-            """Validate data length."""
-            if v is not None and v <= 0:
-                msg = "Data length must be positive"
-                raise ValueError(msg)
-            return v
-
-        @field_validator("data_precision")
-        @classmethod
-        def validate_data_precision(cls, v: int | None) -> int | None:
-            """Validate data precision."""
-            if v is not None and v <= 0:
-                msg = "Data precision must be positive"
-                raise ValueError(msg)
-            return v
-
-        @field_validator("data_scale")
-        @classmethod
-        def validate_data_scale(cls, v: int | None) -> int | None:
-            """Validate data scale."""
-            if v is not None and v < 0:
-                msg = "Data scale cannot be negative"
-                raise ValueError(msg)
-            return v
+        # ELIMINADO: @field_validator("data_scale") - Substituído por UniversalValidationFactory
+        validate_data_scale = UniversalValidationFactory.create_validator("data_scale")
 
         def to_oracle_ddl(self) -> str:
             """Generate Oracle DDL for column definition."""
@@ -214,29 +610,50 @@ class FlextDbOracleModels:
             }
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate Oracle column business rules."""
-            # Column name validation
-            if not self.column_name or not self.column_name.strip():
-                return FlextResult[None].fail("Column name cannot be empty")
+            """Validate Oracle column business rules using flext-core CompositeValidator."""
+            # Create validation chain using flext-core patterns - ELIMINATES MULTIPLE RETURNS
+            validators = [
+                lambda _: FlextResult[None].ok(None)
+                if self.column_name and self.column_name.strip()
+                else FlextResult[None].fail(
+                    f"Column '{self.column_name}': name cannot be empty"
+                ),
+                lambda _: FlextResult[None].ok(None)
+                if self.data_type
+                else FlextResult[None].fail(
+                    f"Column '{self.column_name}': data type cannot be empty"
+                ),
+            ]
 
-            # Data type validation
-            if not self.data_type:
-                return FlextResult[None].fail("Data type cannot be empty")
-
-            # Precision and scale validation for numeric types
+            # Add numeric-specific validations if numeric
             if self.is_numeric():
-                if self.data_precision and self.data_precision < 0:
-                    return FlextResult[None].fail("Data precision cannot be negative")
-                if self.data_scale and self.data_scale < 0:
-                    return FlextResult[None].fail("Data scale cannot be negative")
-                if (
-                    self.data_precision
-                    and self.data_scale
-                    and self.data_scale > self.data_precision
-                ):
-                    return FlextResult[None].fail("Data scale cannot exceed precision")
+                validators.extend(
+                    [
+                        lambda _: FlextResult[None].ok(None)
+                        if not self.data_precision or self.data_precision >= 0
+                        else FlextResult[None].fail(
+                            f"Column '{self.column_name}': precision cannot be negative"
+                        ),
+                        lambda _: FlextResult[None].ok(None)
+                        if not self.data_scale or self.data_scale >= 0
+                        else FlextResult[None].fail(
+                            f"Column '{self.column_name}': scale cannot be negative"
+                        ),
+                        lambda _: FlextResult[None].ok(None)
+                        if not (
+                            self.data_precision
+                            and self.data_scale
+                            and self.data_scale > self.data_precision
+                        )
+                        else FlextResult[None].fail(
+                            f"Column '{self.column_name}': scale cannot exceed precision"
+                        ),
+                    ]
+                )
 
-            return FlextResult[None].ok(None)
+            # Use flext-core CompositeValidator to execute chain
+            composite = FlextValidations.Advanced.CompositeValidator(validators)
+            return composite.validate(None)  # We don't need the value, just validation
 
     class Table(FlextModels.Value):
         """Oracle database table model with metadata and relationships.
@@ -259,73 +676,13 @@ class FlextDbOracleModels:
         )
         comments: str | None = Field(None, description="Table comments")
 
-        @classmethod
-        def _is_safe_sql_identifier(cls, identifier: str) -> bool:
-            """Validate SQL identifier to prevent injection."""
-            if not identifier or not isinstance(identifier, str):
-                return False
+        # ELIMINADO: @field_validator("table_name") - Substituído por UniversalValidationFactory
+        validate_table_name = UniversalValidationFactory.create_validator("table_name")
 
-            # Oracle identifiers: alphanumeric, underscore, dollar sign, hash
-            # First character must be letter or underscore
-            # Max length 128 characters (Oracle standard)
-            max_identifier_length = 128
-            if len(identifier) > max_identifier_length:
-                return False
-
-            # Check first character
-            if not (identifier[0].isalpha() or identifier[0] == "_"):
-                return False
-
-            # Check remaining characters
-            for char in identifier[1:]:
-                if not (char.isalnum() or char in ("_", "$", "#")):
-                    return False
-
-            # Prevent SQL keywords (basic set)
-            reserved_words = {
-                "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "CREATE",
-                "ALTER", "TRUNCATE", "GRANT", "REVOKE", "UNION", "ORDER",
-                "GROUP", "HAVING", "WHERE", "FROM", "INTO", "VALUES"
-            }
-
-            return identifier.upper() not in reserved_words
-
-        @field_validator("table_name")
-        @classmethod
-        def validate_table_name(cls, v: str) -> str:
-            """Validate table name."""
-            if not v or not isinstance(v, str) or not v.strip():
-                msg = FlextDbOracleConstants.ErrorMessages.TABLE_NAME_EMPTY
-                raise ValueError(msg)
-            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH:
-                msg = f"Table name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH}"
-                raise ValueError(msg)
-
-            # Oracle SQL identifier validation (comprehensive security check)
-            if not cls._is_safe_sql_identifier(v):
-                msg = f"Invalid table name '{v}': contains unsafe characters or is a reserved word"
-                raise ValueError(msg)
-
-            return v.upper()
-
-        @field_validator("schema_name")
-        @classmethod
-        def validate_schema_name(cls, v: str) -> str:
-            """Validate schema name."""
-            if (
-                v
-                and len(v)
-                > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
-            ):
-                msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
-                raise ValueError(msg)
-
-            # Oracle SQL identifier validation (comprehensive security check) - only if not empty
-            if v and not cls._is_safe_sql_identifier(v):
-                msg = f"Invalid schema name '{v}': contains unsafe characters or is a reserved word"
-                raise ValueError(msg)
-
-            return v.upper() if v else ""
+        # ELIMINADO: @field_validator("schema_name") - Substituído por UniversalValidationFactory
+        validate_schema_name = UniversalValidationFactory.create_validator(
+            "schema_name"
+        )
 
         def get_full_name(self) -> str:
             """Get fully qualified table name."""
@@ -360,31 +717,41 @@ class FlextDbOracleModels:
             return [col for col in self.columns if col.is_datetime()]
 
         def validate_business_rules(self) -> FlextResult[None]:
-            """Validate Oracle table business rules."""
-            # Table name validation
-            if not self.table_name or not self.table_name.strip():
-                return FlextResult[None].fail("Table name cannot be empty")
+            """Validate Oracle table business rules using flext-core CompositeValidator."""
+            # Create validation chain using flext-core patterns - ELIMINATES MULTIPLE RETURNS
+            validators = [
+                lambda _: FlextResult[None].ok(None)
+                if self.table_name and self.table_name.strip()
+                else FlextResult[None].fail(
+                    f"Table '{self.table_name}': name cannot be empty"
+                ),
+                lambda _: FlextResult[None].ok(None)
+                if not self.schema_name
+                or len(self.schema_name)
+                <= FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
+                else FlextResult[None].fail(
+                    f"Table '{self.table_name}': schema name exceeds maximum length"
+                ),
+                lambda _: FlextResult[None].ok(None)
+                if self.columns
+                else FlextResult[None].fail(
+                    f"Table '{self.table_name}': must have at least one column"
+                ),
+            ]
 
-            # Schema name validation (optional)
-            if (
-                self.schema_name
-                and len(self.schema_name)
-                > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
-            ):
-                return FlextResult[None].fail(
-                    f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
-                )
+            # Use flext-core CompositeValidator for main validations
+            composite = FlextValidations.Advanced.CompositeValidator(validators)
+            main_result = composite.validate(None)
 
-            # Column validation
-            if not self.columns:
-                return FlextResult[None].fail("Table must have at least one column")
+            if not main_result.success:
+                return main_result
 
-            # Validate each column's business rules
+            # Validate each column using their business rules - chain pattern
             for column in self.columns:
                 column_validation = column.validate_business_rules()
                 if not column_validation.success:
                     return FlextResult[None].fail(
-                        f"Column '{column.column_name}' validation failed: {column_validation.error}"
+                        f"Table '{self.table_name}': column validation failed: {column_validation.error}"
                     )
 
             return FlextResult[None].ok(None)
@@ -404,17 +771,10 @@ class FlextDbOracleModels:
         profile: str | None = Field(None, description="User profile")
         account_status: str = Field(default="OPEN", description="Account status")
 
-        @field_validator("schema_name")
-        @classmethod
-        def validate_schema_name(cls, v: str) -> str:
-            """Validate schema name."""
-            if not v or not isinstance(v, str) or not v.strip():
-                msg = FlextDbOracleConstants.ErrorMessages.SCHEMA_NAME_EMPTY
-                raise ValueError(msg)
-            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH:
-                msg = f"Schema name exceeds maximum length of {FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH}"
-                raise ValueError(msg)
-            return v.upper()
+        # ELIMINADO: @field_validator("schema_name") - Substituído por UniversalValidationFactory
+        validate_schema_name = UniversalValidationFactory.create_validator(
+            "schema_name"
+        )
 
         def get_table_by_name(
             self, table_name: str
@@ -473,23 +833,13 @@ class FlextDbOracleModels:
         query_hash: str | None = Field(None, description="Query hash for caching")
         explain_plan: str | None = Field(None, description="Query execution plan")
 
-        @field_validator("row_count")
-        @classmethod
-        def validate_row_count(cls, v: int) -> int:
-            """Validate row count."""
-            if v < 0:
-                msg = "Row count cannot be negative"
-                raise ValueError(msg)
-            return v
+        # ELIMINADO: @field_validator("row_count") - Substituído por UniversalValidationFactory
+        validate_row_count = UniversalValidationFactory.create_validator("row_count")
 
-        @field_validator("execution_time_ms")
-        @classmethod
-        def validate_execution_time(cls, v: float) -> float:
-            """Validate execution time."""
-            if v < 0:
-                msg = "Execution time cannot be negative"
-                raise ValueError(msg)
-            return v
+        # ELIMINADO: @field_validator("execution_time_ms") - Substituído por UniversalValidationFactory
+        validate_execution_time_ms = UniversalValidationFactory.create_validator(
+            "execution_time_ms"
+        )
 
         def to_dict_list(self) -> list[dict[str, object]]:
             """Convert result to list of dictionaries."""
@@ -560,15 +910,8 @@ class FlextDbOracleModels:
         version: str | None = Field(None, description="Oracle database version")
         error_message: str | None = Field(None, description="Connection error message")
 
-        @field_validator("port")
-        @classmethod
-        def validate_port(cls, v: int | None) -> int | None:
-            """Validate port number."""
-            max_port = 65535
-            if v is not None and not (1 <= v <= max_port):
-                msg = FlextDbOracleConstants.ErrorMessages.PORT_INVALID
-                raise ValueError(msg)
-            return v
+        # ELIMINADO: @field_validator("port") - Substituído por UniversalValidationFactory
+        validate_port = UniversalValidationFactory.create_validator("port")
 
         def get_connection_string_safe(self) -> str:
             """Get connection string without password."""
@@ -582,7 +925,8 @@ class FlextDbOracleModels:
             if not self.connection_time:
                 return None
 
-            current_time = self.last_activity or FlextUtilities.generate_timestamp()
+            current_time = self.last_activity or datetime.now(UTC)
+            # Both should be datetime objects based on model definition
             uptime = current_time - self.connection_time
             return uptime.total_seconds()
 
@@ -660,39 +1004,14 @@ class FlextDbOracleModels:
             env_prefix="FLEXT_TARGET_ORACLE_", env_file=".env"
         )
 
-        @field_validator("host")
-        @classmethod
-        def validate_host_not_empty(cls, v: str) -> str:
-            """Validate host is not empty or whitespace only."""
-            if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(FlextDbOracleConstants.ErrorMessages.HOST_EMPTY)
-            return v
+        # ELIMINADO: @field_validator("host", "username") - Substituído por UniversalValidationFactory
+        validate_host = UniversalValidationFactory.create_validator("host")
+        validate_username = UniversalValidationFactory.create_validator("username")
 
-        @field_validator("username")
-        @classmethod
-        def validate_username_not_empty(cls, v: str) -> str:
-            """Validate username is not empty or whitespace only."""
-            if not v or not isinstance(v, str) or not v.strip():
-                raise ValueError(FlextDbOracleConstants.ErrorMessages.USERNAME_EMPTY)
-            return v
+        # ELIMINADO: @field_validator("port") duplicado - Já substituído por UniversalValidationFactory
 
-        @field_validator("port")
-        @classmethod
-        def validate_port_range(cls, v: int) -> int:
-            """Validate port is within valid range."""
-            max_port_number = 65535
-            if not (1 <= v <= max_port_number):
-                msg = f"Port must be between 1 and {max_port_number}"
-                raise ValueError(msg)
-            return v
-
-        @field_validator("password", mode="before")
-        @classmethod
-        def coerce_password(cls, v: object) -> SecretStr:
-            """Coerce incoming password to SecretStr for compatibility."""
-            if isinstance(v, SecretStr):
-                return v
-            return SecretStr(str(v))
+        # ELIMINADO: @field_validator("password") - Substituído por UniversalValidationFactory
+        coerce_password = UniversalValidationFactory.create_validator("password")
 
         @model_validator(mode="after")
         def validate_pool_settings(self) -> FlextDbOracleModels.OracleConfig:

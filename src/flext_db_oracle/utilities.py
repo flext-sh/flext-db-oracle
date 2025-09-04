@@ -168,5 +168,4 @@ class FlextDbOracleUtilities:
             return FlextResult[str].fail(f"Query result formatting failed: {e}")
 
 
-
 __all__ = ["FlextDbOracleUtilities"]

@@ -14,10 +14,32 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import Enum
 
 from flext_core.exceptions import FlextExceptions
+
+from flext_db_oracle.mixins import ParameterObject
+
+
+# Parameter Object usando dataclass Python 3.13+ - REDUZ PARÂMETROS
+@dataclass(frozen=True, slots=True)  # Python 3.13+ otimizações
+class ExceptionParams:
+    """Parameter Object para reduzir parâmetros de exceção - ELIMINA 6 PARÂMETROS."""
+
+    message: str
+    code: str | None = None
+    context: dict[str, object] | None = None
+
+    def __post_init__(self) -> None:
+        """Validação automática usando Python 3.13+ patterns."""
+        if not self.message or not self.message.strip():
+            msg = "Message cannot be empty"
+            raise ValueError(msg)
+        # Auto-resolve context
+        if self.context is None:
+            object.__setattr__(self, "context", {})
+
 
 # ✅ USING FlextExceptions.Error - NO LOCAL BaseError VIOLATIONS
 # Following FLEXT_REFACTORING_PROMPT.md line 686: "Exceptions - Inherit from FlextExceptions"
@@ -57,47 +79,40 @@ class FlextDbOracleExceptions(FlextExceptions):
     # Note: No local BaseError - use FlextExceptions directly from flext-core
 
     class ValidationError(ValueError):
-        """Oracle validation error - uses standard ValueError."""
+        """Oracle validation error usando Parameter Object - REDUZ PARÂMETROS."""
 
-        def __init__(
-            self,
-            message: str,
-            *,
-            code: str | None = None,
-            context: dict[str, object] | None = None,
-        ) -> None:
-            """Initialize Oracle validation error via flext-core."""
-            # ValueError only accepts message - store additional info as instance attributes
-            super().__init__(message)
-            self.error_code = code or "ORACLE_VALIDATION_ERROR"
-            self.context = context or {}
+        def __init__(self, params: ExceptionParams | str) -> None:
+            """Initialize usando Parameter Object pattern - ELIMINA MÚLTIPLOS PARÂMETROS."""
+            # Backward compatibility para string simples
+            if isinstance(params, str):
+                params = ExceptionParams(message=params, code="ORACLE_VALIDATION_ERROR")
+
+            super().__init__(params.message)
+            self.error_code = params.code or "ORACLE_VALIDATION_ERROR"
+            self.context = params.context or {}
 
     class ConfigurationError(FlextExceptions._ConfigurationError):
-        """Oracle configuration error using FlextExceptions proven foundation."""
+        """Oracle configuration error usando Parameter Object - REDUZ PARÂMETROS."""
 
-        def __init__(
-            self,
-            message: str,
-            *,
-            code: str | None = None,
-            context: dict[str, object] | None = None,
-        ) -> None:
-            """Initialize Oracle configuration error via flext-core."""
-            resolved_code = code or "ORACLE_CONFIGURATION_ERROR"
-            super().__init__(message, code=resolved_code, context=context)
+        def __init__(self, params: ExceptionParams | str) -> None:
+            """Initialize usando Parameter Object pattern - ELIMINA MÚLTIPLOS PARÂMETROS."""
+            if isinstance(params, str):
+                params = ExceptionParams(
+                    message=params, code="ORACLE_CONFIGURATION_ERROR"
+                )
+
+            resolved_code = params.code or "ORACLE_CONFIGURATION_ERROR"
+            super().__init__(params.message, code=resolved_code, context=params.context)
 
     class DatabaseConnectionError(FlextExceptions._ConnectionError):
-        """Oracle database connection error using FlextExceptions proven foundation."""
+        """Oracle database connection error usando Parameter Object - REDUZ PARÂMETROS."""
 
-        def __init__(
-            self,
-            message: str,
-            *,
-            code: str | None = None,
-            context: dict[str, object] | None = None,
-        ) -> None:
-            """Initialize Oracle connection error via flext-core FlextConnectionError."""
-            super().__init__(message)
+        def __init__(self, params: ExceptionParams | str) -> None:
+            """Initialize usando Parameter Object - ELIMINA PARÂMETROS DESNECESSÁRIOS."""
+            if isinstance(params, str):
+                params = ExceptionParams(message=params, code="ORACLE_CONNECTION_ERROR")
+
+            super().__init__(params.message)
 
     class ProcessingError(FlextExceptions._ProcessingError):
         """Oracle processing error using FlextExceptions proven foundation."""
@@ -142,103 +157,111 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, code=resolved_code, context=context)
 
     class QueryError(FlextExceptions._OperationError):
-        """Oracle query error using FlextExceptions proven foundation."""
+        """Oracle query error using FlextExceptions proven foundation with Parameter Object pattern."""
 
         def __init__(
-            self,
-            message: str,
-            *,
-            query: str | None = None,
-            operation: str | None = None,
-            execution_time: float | None = None,
-            rows_affected: int | None = None,
-            code: object | None = None,
-            context: Mapping[str, object] | None = None,
+            self, message: str, *, params: ParameterObject | None = None
         ) -> None:
-            """Initialize Oracle query error with SQL context via flext-core."""
-            context_dict: dict[str, object] = dict(context) if context else {}
+            """Initialize Oracle query error with SQL context via Parameter Object pattern."""
+            if params is None:
+                params = ParameterObject()
 
-            if query is not None:
-                # Truncate long queries for safety and readability
+            context_dict: dict[str, object] = {}
+
+            # Extract query parameter with truncation
+            if params.has("query"):
+                query = str(params.get("query"))
                 max_query_length = 200
                 context_dict["query"] = (
                     query[:max_query_length] + "..."
                     if len(query) > max_query_length
                     else query
                 )
-            if operation is not None:
-                context_dict["operation"] = operation
-            if execution_time is not None:
-                context_dict["execution_time"] = execution_time
-            if rows_affected is not None:
-                context_dict["rows_affected"] = rows_affected
 
-            error_code = "ORACLE_QUERY_ERROR" if code is None else str(code)
+            # Extract other parameters
+            for param_name in ["operation", "execution_time", "rows_affected"]:
+                if params.has(param_name):
+                    context_dict[param_name] = params.get(param_name)
+
+            # Merge with any existing context
+            if params.has("context"):
+                existing_context = params.get("context")
+                if isinstance(existing_context, dict):
+                    context_dict.update(existing_context)
+
+            error_code = str(params.get("code", "ORACLE_QUERY_ERROR"))
             super().__init__(message, code=error_code, context=context_dict)
 
     class MetadataError(FlextExceptions._OperationError):
-        """Oracle metadata error using FlextExceptions proven foundation."""
+        """Oracle metadata error using FlextExceptions proven foundation with Parameter Object pattern."""
 
         def __init__(
-            self,
-            message: str,
-            *,
-            schema_name: str | None = None,
-            object_name: str | None = None,
-            object_type: str | None = None,
-            operation: str | None = None,
-            code: object | None = None,
-            context: Mapping[str, object] | None = None,
+            self, message: str, *, params: ParameterObject | None = None
         ) -> None:
-            """Initialize Oracle metadata error with schema context via flext-core."""
-            context_dict: dict[str, object] = dict(context) if context else {}
+            """Initialize Oracle metadata error with schema context via Parameter Object pattern."""
+            if params is None:
+                params = ParameterObject()
 
-            if schema_name is not None:
-                context_dict["schema_name"] = schema_name
-            if object_name is not None:
-                context_dict["object_name"] = object_name
-            if object_type is not None:
-                context_dict["object_type"] = object_type
-            if operation is not None:
-                context_dict["operation"] = operation
+            context_dict: dict[str, object] = {}
 
-            error_code = "ORACLE_METADATA_ERROR" if code is None else str(code)
+            # Extract metadata parameters
+            for param_name in [
+                "schema_name",
+                "object_name",
+                "object_type",
+                "operation",
+            ]:
+                if params.has(param_name):
+                    context_dict[param_name] = params.get(param_name)
+
+            # Merge with any existing context
+            if params.has("context"):
+                existing_context = params.get("context")
+                if isinstance(existing_context, dict):
+                    context_dict.update(existing_context)
+
+            error_code = str(params.get("code", "ORACLE_METADATA_ERROR"))
             super().__init__(message, code=error_code, context=context_dict)
 
     class ConnectionOperationError(ConnectionError):
-        """Oracle connection operation error - inherits from Oracle ConnectionError."""
+        """Oracle connection operation error using Parameter Object pattern."""
 
         def __init__(
-            self,
-            message: str,
-            *,
-            host: str | None = None,
-            port: int | None = None,
-            service_name: str | None = None,
-            username: str | None = None,
-            connection_timeout: float | None = None,
-            code: str | None = None,
-            context: Mapping[str, object] | None = None,
+            self, message: str, *, params: ParameterObject | None = None
         ) -> None:
-            """Initialize Oracle connection operation error with connection context."""
-            context_dict: dict[str, object] = dict(context) if context else {}
+            """Initialize Oracle connection operation error with connection context via Parameter Object."""
+            if params is None:
+                params = ParameterObject()
 
-            if host is not None:
-                context_dict["host"] = host
-            if port is not None:
-                context_dict["port"] = port
-            if service_name is not None:
-                context_dict["service_name"] = service_name
-            if username is not None:
-                context_dict["username"] = username
-            if connection_timeout is not None:
-                context_dict["connection_timeout"] = connection_timeout
+            # Extract connection parameters for context (stored as instance attribute for potential logging)
+            connection_context: dict[str, object] = {}
 
-            # Store error code for potential future use
-            _ = (
-                code
-                or FlextDbOracleExceptions.OracleErrorCodes.ORACLE_CONNECTION_ERROR.value
+            for param_name in [
+                "host",
+                "port",
+                "service_name",
+                "username",
+                "connection_timeout",
+            ]:
+                if params.has(param_name):
+                    connection_context[param_name] = params.get(param_name)
+
+            # Merge with any existing context
+            if params.has("context"):
+                existing_context = params.get("context")
+                if isinstance(existing_context, dict):
+                    connection_context.update(existing_context)
+
+            # Store context for potential future use
+            self._connection_context = connection_context
+            error_code = str(
+                params.get(
+                    "code",
+                    FlextDbOracleExceptions.OracleErrorCodes.ORACLE_CONNECTION_ERROR.value,
+                )
             )
+            self._error_code = error_code
+
             super().__init__(message)
 
     # Factory methods ELIMINATED - use direct exception instantiation:

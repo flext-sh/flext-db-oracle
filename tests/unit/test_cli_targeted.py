@@ -16,14 +16,14 @@ import os
 
 from click.testing import CliRunner
 
+from flext_db_oracle import oracle_cli
+
 
 class TestCLIParameterProcessing:
     """Test CLI parameter processing to hit missed lines 267-274."""
 
     def test_connection_parameter_processing_lines_267_274(self) -> None:
         """Test connection parameter processing (EXACT lines 267-274)."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test CLI command with explicit parameters to trigger parameter processing
@@ -53,8 +53,6 @@ class TestCLIParameterProcessing:
 
     def test_connect_env_parameter_processing_alternative(self) -> None:
         """Test connect-env command parameter processing."""
-        from flext_db_oracle import oracle_cli
-
         # Set up environment variables for connect-env
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "localhost",
@@ -74,8 +72,6 @@ class TestCLIParameterProcessing:
 
     def test_cli_help_parameter_processing(self) -> None:
         """Test CLI help parameter processing."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test various help commands that trigger parameter processing
@@ -97,8 +93,6 @@ class TestCLIEnvironmentConfiguration:
 
     def test_environment_config_loading_lines_458_503(self) -> None:
         """Test environment configuration loading (EXACT lines 458-503)."""
-        from flext_db_oracle import oracle_cli
-
         # Set up environment variables that should trigger lines 458-503
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "localhost",
@@ -131,8 +125,6 @@ class TestCLIEnvironmentConfiguration:
 
     def test_api_creation_from_env_error_handling(self) -> None:
         """Test API creation from environment with error handling."""
-        from flext_db_oracle import oracle_cli
-
         # Test with missing environment variables to trigger error paths
         runner = CliRunner(env={})  # Empty environment
 
@@ -143,8 +135,6 @@ class TestCLIEnvironmentConfiguration:
 
     def test_connection_test_with_observability_path(self) -> None:
         """Test connection test with observability (line 471)."""
-        from flext_db_oracle import oracle_cli
-
         # Set up complete environment for observability test
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": os.getenv(
@@ -180,8 +170,6 @@ class TestCLIOutputFormatting:
 
     def test_output_formatting_functions_lines_721_769(self) -> None:
         """Test output formatting functions (EXACT lines 721-769)."""
-        from flext_db_oracle import oracle_cli
-
         # Set up Oracle environment for real data formatting
         env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": os.getenv(
@@ -224,8 +212,6 @@ class TestCLIOutputFormatting:
 
     def test_error_output_formatting(self) -> None:
         """Test error output formatting paths."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test commands that should trigger error formatting
@@ -243,8 +229,6 @@ class TestCLIOutputFormatting:
 
     def test_debug_output_formatting(self) -> None:
         """Test debug output formatting."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test commands with debug flag to trigger debug formatting
@@ -266,8 +250,6 @@ class TestCLIComprehensivePathCoverage:
 
     def test_cli_command_variations_comprehensive(self) -> None:
         """Test various CLI command variations to hit different code paths."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test many different command combinations to hit various paths
@@ -320,8 +302,6 @@ class TestCLIComprehensivePathCoverage:
 
     def test_error_handling_paths(self) -> None:
         """Test error handling paths in CLI."""
-        from flext_db_oracle import oracle_cli
-
         runner = CliRunner()
 
         # Test commands that should trigger various error handling paths

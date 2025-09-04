@@ -18,6 +18,8 @@ from pydantic import SecretStr
 from flext_db_oracle import FlextDbOracleConfig
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import (
+    MAX_DISPLAY_ROWS,
+    PERFORMANCE_WARNING_THRESHOLD_SECONDS,
     FlextDbOracleUtilities,
 )
 
@@ -179,11 +181,6 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_performance_monitoring_constants(self) -> None:
         """Test performance monitoring constants are accessible."""
-        from flext_db_oracle.utilities import (
-            MAX_DISPLAY_ROWS,
-            PERFORMANCE_WARNING_THRESHOLD_SECONDS,
-        )
-
         assert isinstance(PERFORMANCE_WARNING_THRESHOLD_SECONDS, (int, float))
         assert PERFORMANCE_WARNING_THRESHOLD_SECONDS > 0
         assert isinstance(MAX_DISPLAY_ROWS, int)
@@ -298,8 +295,6 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
 
     def test_utilities_slow_query_detection_simulation(self) -> None:
         """Test slow query detection simulation."""
-        from flext_db_oracle.utilities import PERFORMANCE_WARNING_THRESHOLD_SECONDS
-
         # Simulate slow query
         slow_result = FlextDbOracleModels.QueryResult(
             columns=["slow"],

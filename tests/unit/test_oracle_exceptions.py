@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
+from flext_core.exceptions import FlextExceptions
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -368,7 +369,6 @@ class TestRealOracleExceptionHierarchy:
         assert issubclass(FlextDbOracleExceptions.ValidationError, Exception)
 
         # Test that domain-specific exceptions inherit from FlextExceptions.BaseError (factory-created)
-        from flext_core.exceptions import FlextExceptions
 
         assert issubclass(FlextDbOracleExceptions.QueryError, FlextExceptions.BaseError)
         assert issubclass(

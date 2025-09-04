@@ -7,6 +7,7 @@ instead of mocks, following the user's requirement for real code testing.
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig
+from flext_db_oracle.models import FlextDbOracleColumn, FlextDbOracleTable
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -94,7 +95,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
         # Create a valid table model for DDL generation
-        from flext_db_oracle.models import FlextDbOracleColumn, FlextDbOracleTable
 
         # Create columns
         columns = [
@@ -175,8 +175,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
-        from flext_db_oracle.models import FlextDbOracleColumn, FlextDbOracleTable
-
         # Test with various column types
         columns = [
             FlextDbOracleColumn(
