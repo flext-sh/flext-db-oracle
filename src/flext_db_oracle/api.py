@@ -1,7 +1,7 @@
-"""FLEXT DB Oracle API - Facade para FlextDbOracleServices.
+"""Oracle Database API following FLEXT ecosystem patterns.
 
-PADRÃO FLEXT CORRETO: API como facade simples que delega TUDO para Services.
-Elimina duplicação de código seguindo Single Responsibility Principle.
+Clean, production-ready Oracle database API that follows SOLID principles,
+uses proper typing, and integrates with flext-core patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,241 +9,200 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from flext_core import (
-    FlextDomainService,
-    FlextLogger,
-    FlextResult,
-    FlextServices,
-    FlextUtilities,
-)
+from flext_core import FlextLogger, FlextResult
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
-class FlextDbOracleApi(FlextDomainService[FlextDbOracleModels.QueryResult]):
-    """Oracle Database API usando Pipeline Pattern - ELIMINA TODOS OS WRAPPERS.
+logger = FlextLogger(__name__)
 
-    PRINCÍPIO: API usa flext-core diretamente via Pipeline interno,
-    eliminando camadas intermediárias e reduzindo complexidade.
+
+class FlextDbOracleApi:
+    """Oracle Database API with clean delegation to services layer.
+
+    This API provides a clean interface to Oracle database operations
+    by delegating all work to the services layer while maintaining
+    type safety and proper error handling.
     """
 
     def __init__(self, config: FlextDbOracleModels.OracleConfig) -> None:
         """Initialize API with Oracle configuration."""
-        super().__init__(config)
+        self._config = config
         self._services = FlextDbOracleServices(config)
-        self._logger = FlextLogger(__name__)
-        # Pipeline interno usando flext-core ServiceProcessor
-        self._pipeline = self._create_internal_pipeline()
+        self._logger = logger.bind(component="oracle-api")
+        self._plugins: dict[str, object] = {}
 
-    def _create_internal_pipeline(
-        self,
-    ) -> FlextServices.ServiceProcessor[
-        dict[str, object], dict[str, object], FlextResult[object]
-    ]:
-        """Create internal pipeline usando Builder Pattern - ELIMINA FUNÇÃO COM MÚLTIPLOS RETURNS."""
-        # Builder Pattern com lookup table para eliminar múltiplos returns
-        pipeline_builder = self._get_pipeline_builder_strategy()
-        return pipeline_builder(self._services, self._logger)
+    @property
+    def config(self) -> FlextDbOracleModels.OracleConfig:
+        """Get the Oracle configuration."""
+        return self._config
 
-    def _get_pipeline_builder_strategy(self) -> callable:
-        """Get pipeline builder usando Pure Factory Pattern - ELIMINA TODOS OS RETURNS."""
-        # Pure Factory Method usando flext-core ServiceProcessor - SINGLE RETURN ONLY
-        return self._create_pipeline_instance
-
-    def _create_pipeline_instance(
-        self, services: FlextDbOracleServices, _logger: FlextLogger
-    ) -> callable:
-        """Functional Composition pura - ELIMINA TODOS OS 9 RETURNS usando SINGLE FUNCTION."""
-        # PURE FUNCTIONAL COMPOSITION - ZERO CLASSES, ZERO METHODS, ZERO RETURNS
-        return lambda operation_data: (
-            # Single functional composition chain - ELIMINA PureMonadicPipeline class
-            FlextResult[dict[str, object]]
-            .ok(operation_data)
-            # Step 1: Validate usando functional composition
-            .bind(
-                lambda data: FlextResult[dict[str, object]].ok(
-                    dict(data)
-                    | {"_validated_at": FlextUtilities.generate_iso_timestamp()}
-                )
-                if str(data.get("operation", ""))
-                in {"connect", "query", "disconnect", "health"}
-                else FlextResult[dict[str, object]].fail(
-                    f"Invalid operation: {data.get('operation', 'unknown')}"
-                )
+    def is_valid(self) -> bool:
+        """Check if API configuration is valid."""
+        try:
+            return (
+                self._config.host is not None
+                and self._config.port > 0
+                and self._config.service_name is not None
+                and self._config.username is not None
             )
-            # Step 2: Prepare usando functional composition
-            .bind(
-                lambda data: FlextResult[dict[str, object]].ok(
-                    dict(data)
-                    | {
-                        "_correlation_id": FlextUtilities.generate_correlation_id(),
-                        "_prepared_at": FlextUtilities.generate_iso_timestamp(),
-                    }
-                )
-            )
-            # Step 3: Execute usando functional composition
-            .bind(
-                lambda data: FlextResult[dict[str, object]].ok(
-                    dict(data)
-                    | {
-                        "_execution_result": True,
-                        "_execution_strategy": str(data.get("operation", "")),
-                        "_executed_at": FlextUtilities.generate_iso_timestamp(),
-                    }
-                )
-                if {
-                    "connect": services.connect,
-                    "disconnect": services.disconnect,
-                    "query": lambda: services.execute_query("SELECT 1 FROM DUAL"),
-                    "health": services.test_connection,
-                }.get(str(data.get("operation", "")))
-                else FlextResult[dict[str, object]].fail(
-                    f"Unknown operation: {data.get('operation', '')}"
-                )
-            )
-            # Step 4: Observe usando functional composition
-            .bind(
-                lambda data: FlextResult[dict[str, object]].ok(
-                    dict(data)
-                    | {
-                        "_observability_applied": True,
-                        "_completed_at": FlextUtilities.generate_iso_timestamp(),
-                        "_metrics": {
-                            "operation": data.get("operation"),
-                            "success": data.get("_execution_result", False),
-                            "correlation_id": data.get("_correlation_id", ""),
-                        },
-                    }
-                )
-            )
-            # Final composition step
-            .map_error(lambda e: f"Functional composition failed: {e}")
-        )
+        except Exception:
+            return False
 
-        # ELIMINADO: _execute_monad - agora é parte da functional composition acima
+    @classmethod
+    def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> FlextDbOracleApi:
+        """Create API instance from configuration."""
+        return cls(config)
 
-        # ELIMINADO: _observe_monad, _execute_monad, build method, InternalOraclePipeline class
-        # Substituído por Pure Functional Composition single expression acima
+    def to_dict(self) -> dict[str, object]:
+        """Convert API instance to dictionary representation."""
+        return {
+            "config": {
+                "host": self._config.host,
+                "port": self._config.port,
+                "service_name": self._config.service_name,
+                "username": self._config.username,
+                # Note: not exposing password for security
+            },
+            "connected": False,  # Would require connection check
+            "plugin_count": len(self._plugins),
+        }
 
-    # =============================================================================
-    # UNIFIED OPERATIONS - VIA PIPELINE INTERNO ELIMINANDO WRAPPERS
-    # =============================================================================
-
+    # Connection Management
     def connect(self) -> FlextResult[Self]:
-        """Connect usando pipeline interno - ELIMINA WRAPPER."""
-        result = self._pipeline.run_with_metrics(
-            "connect_operation", {"operation": "connect"}
-        )
+        """Connect to Oracle database."""
+        result = self._services.connect()
         if result.success:
             return FlextResult[Self].ok(self)
-        return FlextResult[Self].fail(result.error)
+        return FlextResult[Self].fail(f"Connection failed: {result.error}")
 
     def disconnect(self) -> FlextResult[None]:
-        """Disconnect usando pipeline interno - ELIMINA WRAPPER."""
-        result = self._pipeline.run_with_metrics(
-            "disconnect_operation", {"operation": "disconnect"}
-        )
-        if result.success:
-            return FlextResult[None].ok(None)
-        return FlextResult[None].fail(result.error)
+        """Disconnect from Oracle database."""
+        return self._services.disconnect()
 
     def test_connection(self) -> FlextResult[bool]:
-        """Test connection usando pipeline interno - ELIMINA WRAPPER."""
-        result = self._pipeline.run_with_metrics(
-            "health_operation", {"operation": "health"}
-        )
-        if result.success:
-            return FlextResult[bool].ok(result.success)
-        return FlextResult[bool].fail(result.error)
+        """Test Oracle database connection."""
+        return self._services.test_connection()
 
     @property
     def is_connected(self) -> bool:
-        """Check if connected to database via services."""
+        """Check if connected to the database."""
         return self._services.is_connected()
 
-    # =============================================================================
-    # UNIFIED FACADE - ELIMINA 15+ WRAPPERS DUPLICADOS
-    # =============================================================================
+    # Query Operations
+    def query(self, sql: str, parameters: dict[str, object] | None = None) -> FlextResult[list[dict[str, object]]]:
+        """Execute a SELECT query and return all results."""
+        return self._services.execute_query(sql, parameters or {})
 
-    def __getattr__(self, name: str) -> object:
-        """Unified Facade Pattern - ELIMINA TODOS OS WRAPPERS via services.
+    def query_one(self, sql: str, parameters: dict[str, object] | None = None) -> FlextResult[dict[str, object] | None]:
+        """Execute a SELECT query and return first result or None."""
+        return self._services.fetch_one(sql, parameters or {})
 
-        Elimina 15+ métodos wrapper duplicados usando Python 3.13+ __getattr__.
-        Todos os métodos são delegados diretamente para self._services.
-        """
-        # Query operations facade
-        query_methods = {
-            "query",
-            "query_one",
-            "execute",
-            "execute_many",
-            "execute_sql",
-            "get_schemas",
-            "get_tables",
-            "get_columns",
-            "transaction",
-            "register_plugin",
-            "unregister_plugin",
-            "get_plugin",
-            "list_plugins",
-            "optimize_query",
-            "get_observability_metrics",
-        }
+    def execute(self, sql: str, parameters: dict[str, object] | None = None) -> FlextResult[int]:
+        """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
+        return self._services.execute_statement(sql, parameters or {})
 
-        if name in query_methods and hasattr(self._services, name):
-            # Dynamic delegation usando getattr - ELIMINA 15 MÉTODOS WRAPPER
-            return getattr(self._services, name)
+    def execute_many(self, sql: str, parameters_list: Sequence[dict[str, object]]) -> FlextResult[int]:
+        """Execute a statement multiple times with different parameters."""
+        return self._services.execute_many(sql, list(parameters_list))
 
-        class_name = self.__class__.__name__
-        message = f"'{class_name}' object has no attribute '{name}'"
-        raise AttributeError(message)
+    # Schema Introspection
+    def get_schemas(self) -> FlextResult[list[str]]:
+        """Get list of available schemas."""
+        return self._services.get_schemas()
 
-    # NOTA: Todos os métodos de metadata, transaction, plugin e utility
-    # foram ELIMINADOS e são tratados pelo __getattr__ Facade acima.
-    # Isso elimina 15+ métodos wrapper duplicados.
+    def get_tables(self, schema: str | None = None) -> FlextResult[list[str]]:
+        """Get list of tables in specified schema."""
+        return self._services.get_tables(schema)
 
-    # =============================================================================
-    # FACTORY METHODS - Create API instances
-    # =============================================================================
+    def get_columns(self, table: str, schema: str | None = None) -> FlextResult[list[FlextDbOracleModels.ColumnInfo]]:
+        """Get column information for specified table."""
+        return self._services.get_columns(table, schema)
 
-    @classmethod
-    def from_env(cls) -> FlextResult[Self]:
-        """Create API from environment variables."""
-        config_result = FlextDbOracleModels.OracleConfig.from_env()
-        if not config_result.success:
-            return FlextResult[Self].fail(config_result.error)
-        return FlextResult[Self].ok(cls(config_result.value))
-
-    @classmethod
-    def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> Self:
-        """Create API from configuration object."""
-        return cls(config)
-
-    @classmethod
-    def with_config(cls, **config_kwargs: object) -> FlextResult[Self]:
-        """Create API with configuration parameters."""
+    # Transaction Management
+    def transaction(self) -> FlextResult[object]:
+        """Get a transaction context manager."""
         try:
-            config = FlextDbOracleModels.OracleConfig(**config_kwargs)
-            return FlextResult[Self].ok(cls(config))
+            transaction_context = self._services.transaction()
+            return FlextResult[object].ok(transaction_context)
         except Exception as e:
-            return FlextResult[Self].fail(f"Configuration creation failed: {e}")
+            return FlextResult[object].fail(f"Transaction creation failed: {e}")
+
+    # Utility Methods
+    def optimize_query(self, sql: str) -> FlextResult[str]:
+        """Optimize a SQL query for Oracle."""
+        # Simple optimization - remove extra whitespace and normalize
+        try:
+            optimized = " ".join(sql.split())
+            return FlextResult[str].ok(optimized)
+        except Exception as e:
+            return FlextResult[str].fail(f"Query optimization failed: {e}")
+
+    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
+        """Get observability metrics for the connection."""
+        return self._services.get_metrics()
+
+    # Configuration
 
     @classmethod
-    def from_url(cls, connection_url: str) -> FlextResult[Self]:
-        """Create API from Oracle connection URL."""
-        config_result = FlextDbOracleModels.OracleConfig.from_url(connection_url)
-        if not config_result.success:
-            return FlextResult[Self].fail(config_result.error)
-        return FlextResult[Self].ok(cls(config_result.value))
+    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextResult[Self]:
+        """Create API instance from environment variables."""
+        config_result = FlextDbOracleModels.OracleConfig.from_env(prefix)
+        if config_result.success:
+            instance = cls.from_config(config_result.value)
+            return FlextResult[Self].ok(instance)  # type: ignore[arg-type]
+        return FlextResult[Self].fail(f"Failed to load config from environment: {config_result.error}")
 
+    @classmethod
+    def from_url(cls, database_url: str) -> FlextResult[Self]:
+        """Create API instance from database URL."""
+        config_result = FlextDbOracleModels.OracleConfig.from_url(database_url)
+        if config_result.success:
+            instance = cls.from_config(config_result.value)
+            return FlextResult[Self].ok(instance)  # type: ignore[arg-type]
+        return FlextResult[Self].fail(f"Failed to parse database URL: {config_result.error}")
 
-# =============================================================================
-# EXPORTS - Oracle Database API
-# =============================================================================
+    # Plugin System
+    def register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
+        """Register a plugin with the services layer."""
+        try:
+            self._plugins[name] = plugin
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Failed to register plugin '{name}': {e}")
 
-__all__: list[str] = [
-    "FlextDbOracleApi",
-]
+    def unregister_plugin(self, name: str) -> FlextResult[None]:
+        """Unregister a plugin from the services layer."""
+        try:
+            if name in self._plugins:
+                del self._plugins[name]
+                return FlextResult[None].ok(None)
+            return FlextResult[None].fail(f"Plugin '{name}' not found")
+        except Exception as e:
+            return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
+
+    def get_plugin(self, name: str) -> FlextResult[object]:
+        """Get a registered plugin by name."""
+        try:
+            if name in self._plugins:
+                return FlextResult[object].ok(self._plugins[name])
+            return FlextResult[object].fail(f"Plugin '{name}' not found")
+        except Exception as e:
+            return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
+
+    def list_plugins(self) -> FlextResult[list[str]]:
+        """List all registered plugin names."""
+        try:
+            return FlextResult[list[str]].ok(list(self._plugins.keys()))
+        except Exception as e:
+            return FlextResult[list[str]].fail(f"Failed to list plugins: {e}")
+
+    def __repr__(self) -> str:
+        """String representation of the API instance."""
+        connection_status = "connected" if self.is_connected else "disconnected"
+        return f"FlextDbOracleApi(host={self._config.host}, status={connection_status})"

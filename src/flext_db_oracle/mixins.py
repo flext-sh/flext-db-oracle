@@ -29,46 +29,6 @@ from flext_db_oracle.constants import FlextDbOracleConstants
 class OracleIdentifierValidation:
     """Oracle validation usando FlextValidations.Core.Predicates - ELIMINA 9 RETURNS."""
 
-    # Oracle reserved words como constante classe
-    ORACLE_RESERVED = frozenset(
-        {
-            "SELECT",
-            "FROM",
-            "WHERE",
-            "INSERT",
-            "UPDATE",
-            "DELETE",
-            "CREATE",
-            "DROP",
-            "ALTER",
-            "TABLE",
-            "INDEX",
-            "VIEW",
-            "PROCEDURE",
-            "FUNCTION",
-            "TRIGGER",
-            "SEQUENCE",
-            "PACKAGE",
-            "CONSTRAINT",
-            "PRIMARY",
-            "FOREIGN",
-            "KEY",
-            "UNIQUE",
-            "NOT",
-            "NULL",
-            "CHECK",
-            "DEFAULT",
-            "REFERENCES",
-            "ON",
-            "CASCADE",
-            "RESTRICT",
-            "SET",
-            "COMMIT",
-            "ROLLBACK",
-            "SAVEPOINT",
-        }
-    )
-
     @staticmethod
     def create_oracle_identifier_validator() -> Validations.Advanced.CompositeValidator:
         """Cria CompositeValidator usando FlextValidations.Core.Predicates - ELIMINA RETURNS."""
@@ -93,19 +53,22 @@ class OracleIdentifierValidation:
         )
 
         reserved_pred = Validations.Core.Predicates(
-            lambda x: str(x).upper() not in OracleIdentifierValidation.ORACLE_RESERVED,
+            lambda x: str(x).upper() not in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED,
             "reserved_words_check",
         )
 
         # Combinar predicates usando operações lógicas - ELIMINA COMPLEXIDADE
         combined_predicate = not_empty_pred & length_pred & pattern_pred & reserved_pred
 
-        # Converter para validator function
-        def validator_func(identifier: str) -> FlextResult[str]:
+        # Converter para validator function with proper typing
+        def validator_func(identifier: object) -> FlextResult[object]:
+            if not isinstance(identifier, str):
+                return FlextResult[object].fail("Expected string identifier")
             result = combined_predicate(identifier)
             if result.success:
-                return FlextResult[str].ok(identifier.upper())
-            return FlextResult[str].fail(result.error)
+                return FlextResult[object].ok(identifier.upper())
+            error_message = result.error or "Validation failed"
+            return FlextResult[object].fail(error_message)
 
         return Validations.Advanced.CompositeValidator([validator_func])
 
@@ -130,7 +93,7 @@ class OracleValidationFactory:
         if not allow_empty:
             predicates.append(
                 Validations.Core.Predicates(
-                    lambda x: bool(x and x.strip()), "not_empty"
+                    lambda x: bool(x and isinstance(x, str) and x.strip()), "not_empty"
                 )
             )
 
@@ -142,7 +105,7 @@ class OracleValidationFactory:
                 # Reuse Oracle identifier validation
                 Validations.Core.Predicates(
                     lambda x: str(x).upper()
-                    not in OracleIdentifierValidation.ORACLE_RESERVED,
+                    not in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED,
                     "oracle_reserved_check",
                 ),
             ]
@@ -153,13 +116,14 @@ class OracleValidationFactory:
         for pred in predicates[1:]:
             combined &= pred
 
-        def single_validator(value: str) -> FlextResult[str]:
+        def single_validator(value: object) -> FlextResult[object]:
+            if not isinstance(value, str):
+                return FlextResult[object].fail("Expected string value")
             result = combined(value)
-            return (
-                FlextResult[str].ok(value.strip().upper())
-                if result.success
-                else FlextResult[str].fail(result.error)
-            )
+            if result.success:
+                return FlextResult[object].ok(value.strip().upper())
+            error_message = result.error or "Validation failed"
+            return FlextResult[object].fail(error_message)
 
         return Validations.Advanced.CompositeValidator([single_validator])
 
@@ -172,37 +136,42 @@ class OracleValidationFactory:
             return ""
 
         # Single return usando Railway-Oriented Programming
-        return (
+        validation_result = (
             OracleValidationFactory.create_identifier_validator(
                 max_length, allow_empty=allow_empty
             )
             .validate(value)
-            .unwrap_or_raise(ValueError)
-        )  # flext-core unwrap_or_raise
+        )
+
+        if validation_result.success:
+            return str(validation_result.value)
+        raise ValueError(validation_result.error or "Validation failed")
 
 
 @dataclass
 class ParameterObject:
     """Parameter Object usando dataclass - mais simples que implementação customizada."""
 
-    params: dict[str, object] = None
+    params: dict[str, object] | None = None
 
     def __post_init__(self) -> None:
         """Initialize params dict if None."""
         if self.params is None:
-            self.params = {}
+            object.__setattr__(self, "params", {})
 
     def get(self, key: str, *, default: object = None) -> object:
+        if self.params is None:
+            return default
         return self.params.get(key, default)
 
     def require(self, key: str) -> object:
-        if key not in self.params:
+        if self.params is None or key not in self.params:
             msg = f"Required parameter '{key}' not provided"
             raise KeyError(msg)
         return self.params[key]
 
     def has(self, key: str) -> bool:
-        return key in self.params
+        return self.params is not None and key in self.params
 
 
 @dataclass

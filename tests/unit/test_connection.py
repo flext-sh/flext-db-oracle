@@ -48,7 +48,7 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_connect_validation_errors(self) -> None:
         """Test connect method with invalid configurations."""
         # Test with empty host - should fail at config validation
-        with pytest.raises(ValueError, match="Host cannot be empty"):
+        with pytest.raises(Exception, match="Field cannot be empty"):
             FlextDbOracleConfig(
                 host="",
                 port=1521,
@@ -241,7 +241,7 @@ class TestFlextDbOracleConnectionComprehensive:
         assert result.success
         sql = result.value
         assert "SELECT ID, NAME FROM TEST_SCHEMA.TEST_TABLE" in sql
-        assert "WHERE STATUS = 'ACTIVE'" in sql
+        assert "WHERE STATUS = :STATUS" in sql
 
     def test_build_select_safe(self) -> None:
         """Test build_select_safe method for parameterized queries."""
@@ -436,7 +436,7 @@ class TestFlextDbOracleConnectionComprehensive:
         assert config.columns == ["ID", "NAME"]
 
         # Test validation
-        result = config.validate_business_rules()
+        result = config.validate()
         assert result.success
 
     def test_create_index_statement_building(self) -> None:

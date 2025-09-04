@@ -267,7 +267,7 @@ class TestRealOracleExceptionsAdvanced:
             # Try to insert NULL into NOT NULL column - should fail
             # table_name is controlled within test scope - safe for SQL construction
             insert_sql = (
-                "INSERT INTO " + table_name + " (id, required_field) VALUES (1, NULL)"
+                "INSERT INTO " + table_name + " (id, required_field) VALUES (1, NULL)"  # noqa: S608
             )
             result = connected_oracle_api.query(insert_sql)
             assert result.is_failure  # Should fail constraint violation
@@ -402,7 +402,7 @@ class TestRealOracleExceptionHierarchy:
         # Test query truncation for long queries
         # Controlled test data generation - safe for SQL construction in test context
         columns = [f"col{i}" for i in range(100)]
-        long_query = "SELECT " + ", ".join(columns) + " FROM table"
+        long_query = "SELECT " + ", ".join(columns) + " FROM table"  # noqa: S608
 
         query_error = FlextDbOracleExceptions.QueryError(
             "Query too complex",

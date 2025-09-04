@@ -10,10 +10,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from typing import Protocol
+import json
+import os
+from typing import Protocol, cast
 
 from flext_core import FlextDecorators, FlextResult
 from flext_core.utilities import FlextUtilities
+
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 # All protocols consolidated within main class as inner types
 
@@ -166,6 +170,204 @@ class FlextDbOracleUtilities:
             return FlextResult[str].ok(formatted)
         except Exception as e:
             return FlextResult[str].fail(f"Query result formatting failed: {e}")
+
+    @staticmethod
+    def create_config_from_env() -> FlextResult[dict[str, str]]:
+        """Create Oracle configuration from environment variables."""
+        try:
+            config_data = {}
+
+            # Oracle connection environment variables
+            env_mappings = {
+                "FLEXT_TARGET_ORACLE_HOST": "host",
+                "ORACLE_HOST": "host",
+                "FLEXT_TARGET_ORACLE_PORT": "port",
+                "ORACLE_PORT": "port",
+                "FLEXT_TARGET_ORACLE_SERVICE_NAME": "service_name",
+                "ORACLE_SERVICE_NAME": "service_name",
+                "FLEXT_TARGET_ORACLE_USERNAME": "username",
+                "ORACLE_USERNAME": "username",
+                "FLEXT_TARGET_ORACLE_PASSWORD": "password",
+                "ORACLE_PASSWORD": "password",
+            }
+
+            for env_key, config_key in env_mappings.items():
+                value = os.environ.get(env_key)
+                if value:
+                    config_data[config_key] = value
+
+            return FlextResult[dict[str, str]].ok(config_data)
+        except Exception as e:
+            return FlextResult[dict[str, str]].fail(
+                f"Failed to create config from environment: {e}"
+            )
+
+    @staticmethod
+    def _display_query_table(
+        query_result: QueryResult, console: ConsoleProtocol
+    ) -> None:
+        """Display query result as table using Rich console."""
+        try:
+            # Handle different query result types
+            if hasattr(query_result, "to_dict_list"):
+                data = getattr(query_result, "to_dict_list")()
+            elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
+                # Build dict list from columns and rows
+                data = []
+                columns = query_result.columns
+                rows = query_result.rows
+                try:
+                    # Safe casting and iteration
+                    rows_list = (
+                        cast("list[object]", rows) if hasattr(rows, "__iter__") else []
+                    )
+                    columns_list = (
+                        cast("list[object]", columns)
+                        if hasattr(columns, "__iter__")
+                        else []
+                    )
+
+                    for row in rows_list:
+                        row_dict = {}
+                        if isinstance(columns_list, (list, tuple)) and isinstance(
+                            row, (list, tuple)
+                        ):
+                            for i, col in enumerate(columns_list):
+                                row_dict[str(col)] = row[i] if i < len(row) else None
+                        data.append(row_dict)
+                except (TypeError, AttributeError):
+                    # Fallback if iteration fails
+                    data = [{"result": str(query_result)}]
+            # Fallback - try to convert to dict if possible
+            elif hasattr(query_result, "model_dump"):
+                data = [getattr(query_result, "model_dump")()]
+            else:
+                data = [{"result": str(query_result)}]
+
+            if not data:
+                console.print("[yellow]No data to display[/yellow]")
+                return
+
+            # Simple table display without Rich dependency
+            if data:
+                headers = list(data[0].keys())
+                console.print(" | ".join(headers))
+                console.print("-" * (len(" | ".join(headers))))
+                for row in data:
+                    console.print(" | ".join(str(row.get(h, "")) for h in headers))
+
+        except Exception as e:
+            # Fallback to simple print
+            console.print(f"Error displaying table: {e}")
+
+    @staticmethod
+    def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
+        """Create Oracle API instance from configuration."""
+        try:
+            # Import at runtime to avoid circular imports
+            from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
+            from flext_db_oracle.models import FlextDbOracleModels  # noqa: PLC0415
+
+            # Convert port to int with proper type checking
+            port_value = config.get("port", 1521)
+            port_int = int(port_value) if isinstance(port_value, (int, str)) else 1521
+
+            # Convert password to SecretStr
+            from pydantic import SecretStr  # noqa: PLC0415
+            password_value = config.get("password", "")
+            password_str = SecretStr(str(password_value))
+
+            oracle_config = FlextDbOracleModels.OracleConfig(
+                host=str(config.get("host", "localhost")),
+                port=port_int,
+                service_name=str(config.get("service_name", "XE")),
+                username=str(config.get("username", "")),
+                password=password_str,
+                ssl_server_cert_dn=None,
+            )
+
+            # Create API instance with configuration
+            api = FlextDbOracleApi(oracle_config)
+
+            # API creation successful - return the API instance
+            return FlextResult[object].ok(api)
+
+        except Exception as e:
+            return FlextResult[object].fail(f"Failed to create API from config: {e}")
+
+    @staticmethod
+    def validate_port_number(value: int | None) -> int | None:
+        """Centralized port validation logic."""
+        if value is not None and not (
+            FlextDbOracleConstants.NetworkValidation.MIN_PORT
+            <= value
+            <= FlextDbOracleConstants.NetworkValidation.MAX_PORT
+        ):
+            msg = "Port must be between 1 and 65535"
+            raise ValueError(msg)
+        return value
+
+    @staticmethod
+    def validate_port_number_required(value: int) -> int:
+        """Centralized port validation for required fields."""
+        if not (
+            FlextDbOracleConstants.NetworkValidation.MIN_PORT
+            <= value
+            <= FlextDbOracleConstants.NetworkValidation.MAX_PORT
+        ):
+            msg = "Port must be between 1 and 65535"
+            raise ValueError(msg)
+        return value
+
+    @staticmethod
+    def wrap_service_result[T](
+        result: FlextResult[T], operation_name: str, success_value: T | None = None
+    ) -> FlextResult[T]:
+        """Standardize FlextResult wrapping pattern."""
+        if result.success:
+            value = success_value if success_value is not None else result.value
+            return FlextResult[T].ok(value)
+        return FlextResult[T].fail(f"{operation_name} failed: {result.error}")
+
+    @staticmethod
+    def create_success_result[T](value: T) -> FlextResult[T]:
+        """Create successful FlextResult."""
+        return FlextResult[T].ok(value)
+
+    @staticmethod
+    def create_error_result(operation_name: str, error: str) -> FlextResult[object]:
+        """Create error FlextResult with standardized message."""
+        return FlextResult[object].fail(f"{operation_name} failed: {error}")
+
+    @staticmethod
+    def _display_health_data(
+        health_data: object, format_type: str, console: ConsoleProtocol
+    ) -> None:
+        """Display health data in specified format."""
+        try:
+            if format_type.lower() == "table":
+                # Table format display
+                if hasattr(health_data, "model_dump"):
+                    data_dict = getattr(health_data, "model_dump")()
+                    if isinstance(data_dict, dict):
+                        console.print("Health Status:")
+                        console.print("-" * 20)
+                        for key, value in data_dict.items():
+                            console.print(f"{key}: {value}")
+                    else:
+                        console.print(f"Health data: {data_dict}")
+                else:
+                    # Simple string representation
+                    console.print(f"Health data: {health_data}")
+            # JSON or other format
+            elif hasattr(health_data, "model_dump"):
+                data_dict = getattr(health_data, "model_dump")()
+                console.print(json.dumps(data_dict, indent=2))
+            else:
+                console.print(str(health_data))
+
+        except Exception as e:
+            console.print(f"Error displaying health data: {e}")
 
 
 __all__ = ["FlextDbOracleUtilities"]

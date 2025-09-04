@@ -16,7 +16,7 @@ import os
 
 from click.testing import CliRunner
 
-from flext_db_oracle import oracle_cli
+from flext_db_oracle.client import oracle_cli
 
 
 class TestCLIParameterProcessing:
@@ -286,19 +286,9 @@ class TestCLIComprehensivePathCoverage:
         ]
 
         for cmd in command_variations:
-            try:
-                result = runner.invoke(oracle_cli, cmd)
-                # Should not crash - any exit code is acceptable
-                assert result.exit_code in {0, 1, 2}
-            except (SystemExit, KeyboardInterrupt):
-                # Expected exceptions from CLI framework
-                continue
-            except (ImportError, ModuleNotFoundError):
-                # Module import issues - skip command
-                continue
-            except (ValueError, TypeError, RuntimeError):
-                # Expected errors during testing - skip command
-                continue
+            result = runner.invoke(oracle_cli, cmd)
+            # Should not crash - any exit code is acceptable
+            assert result.exit_code in {0, 1, 2}
 
     def test_error_handling_paths(self) -> None:
         """Test error handling paths in CLI."""
@@ -316,16 +306,6 @@ class TestCLIComprehensivePathCoverage:
         ]
 
         for cmd in error_test_commands:
-            try:
-                result = runner.invoke(oracle_cli, cmd)
-                # Error handling should work - exit codes 1 or 2 expected
-                assert result.exit_code in {0, 1, 2}
-            except (SystemExit, KeyboardInterrupt):
-                # Expected exceptions from CLI framework
-                continue
-            except (ImportError, ModuleNotFoundError):
-                # Module import issues - skip command
-                continue
-            except (ValueError, TypeError, RuntimeError):
-                # Expected errors during testing - skip command
-                continue
+            result = runner.invoke(oracle_cli, cmd)
+            # Error handling should work - exit codes 1 or 2 expected
+            assert result.exit_code in {0, 1, 2}

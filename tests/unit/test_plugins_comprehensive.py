@@ -9,7 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
+from flext_tests import FlextTestUtilities
 
 from flext_db_oracle.plugins import FlextDbOraclePlugins
 
@@ -26,49 +29,47 @@ class TestFlextDbOraclePluginsComprehensive:
         assert isinstance(plugins._plugins, dict)
         assert len(plugins._plugins) == 0
 
-    @pytest.mark.skip(reason="create_performance_monitor_plugin method not implemented")
     def test_create_performance_monitor_plugin_success(self) -> None:
         """Test creating performance monitor plugin successfully."""
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_performance_monitor_plugin()
 
-        assert result.success
-        plugin_data = result.value
+        plugin_data = FlextTestUtilities.assert_result_success(result)
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "performance_monitor"
         assert plugin_data["version"] == "1.0.0"
         assert plugin_data["type"] == "monitoring"
-        assert "query_tracking" in plugin_data["capabilities"]
-        assert "performance_metrics" in plugin_data["capabilities"]
-        assert "alerting" in plugin_data["capabilities"]
+        capabilities = plugin_data["capabilities"]
+        assert isinstance(capabilities, list)
+        assert "query_tracking" in capabilities
+        assert "performance_metrics" in capabilities
+        assert "alerting" in capabilities
 
-    @pytest.mark.skip(reason="create_data_validation_plugin method not implemented")
     def test_create_data_validation_plugin_success(self) -> None:
         """Test creating data validation plugin successfully."""
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_data_validation_plugin()
 
-        assert result.success
-        plugin_data = result.value
+        plugin_data = FlextTestUtilities.assert_result_success(result)
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "data_validation"
         assert plugin_data["version"] == "1.0.0"
         assert plugin_data["type"] == "validation"
-        assert "schema_validation" in plugin_data["capabilities"]
-        assert "data_integrity" in plugin_data["capabilities"]
-        assert "constraints" in plugin_data["capabilities"]
+        capabilities = plugin_data["capabilities"]
+        assert isinstance(capabilities, list)
+        assert "schema_validation" in capabilities
+        assert "data_integrity" in capabilities
+        assert "constraints" in capabilities
 
-    @pytest.mark.skip(reason="create_security_audit_plugin method not implemented")
     def test_create_security_audit_plugin_success(self) -> None:
         """Test creating security audit plugin successfully."""
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_security_audit_plugin()
 
-        assert result.success
-        plugin_data = result.value
+        plugin_data = FlextTestUtilities.assert_result_success(result)
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "security_audit"
         assert plugin_data["version"] == "1.0.0"
@@ -184,8 +185,8 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.get_plugin("nonexistent")
 
-        assert not result.success
-        assert "Plugin 'nonexistent' not found" in result.error
+        error_message = FlextTestUtilities.assert_result_failure(result)
+        assert "Plugin 'nonexistent' not found" in error_message
 
     def test_register_all_oracle_plugins_success(self) -> None:
         """Test registering all Oracle plugins successfully."""
@@ -193,15 +194,16 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.register_all_oracle_plugins()
 
-        assert result.success
-        registration_info = result.value
+        registration_info = FlextTestUtilities.assert_result_success(result)
         assert isinstance(registration_info, dict)
         assert registration_info["registered_count"] == 3
         assert registration_info["registration_status"] == "completed"
-        assert len(registration_info["available_plugins"]) == 3
-        assert "performance_monitor" in registration_info["available_plugins"]
-        assert "data_validation" in registration_info["available_plugins"]
-        assert "security_audit" in registration_info["available_plugins"]
+        available_plugins = registration_info["available_plugins"]
+        assert isinstance(available_plugins, list)
+        assert len(available_plugins) == 3
+        assert "performance_monitor" in available_plugins
+        assert "data_validation" in available_plugins
+        assert "security_audit" in available_plugins
 
         # Verify plugins were actually registered
         assert "performance_monitor" in plugins._plugins
@@ -216,19 +218,22 @@ class TestFlextDbOraclePluginsComprehensive:
         assert len(plugins._plugins) == 0
 
         result = plugins.register_all_oracle_plugins()
-        assert result.success
+        FlextTestUtilities.assert_result_success(result)
 
         # Should now have 3 plugins
         assert len(plugins._plugins) == 3
 
         # Verify each plugin type
         perf_plugin = plugins._plugins["performance_monitor"]
+        assert isinstance(perf_plugin, dict)
         assert perf_plugin["type"] == "monitoring"
 
         validation_plugin = plugins._plugins["data_validation"]
+        assert isinstance(validation_plugin, dict)
         assert validation_plugin["type"] == "validation"
 
         security_plugin = plugins._plugins["security_audit"]
+        assert isinstance(security_plugin, dict)
         assert security_plugin["type"] == "security"
 
     def test_complete_plugin_workflow(self) -> None:
@@ -236,7 +241,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # 1. Create custom plugin
-        custom_plugin = {
+        custom_plugin: dict[str, Any] = {
             "name": "custom_test",
             "version": "1.0.0",
             "type": "custom",
@@ -245,21 +250,22 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # 2. Register it
         register_result = plugins.register_plugin("custom_test", custom_plugin)
-        assert register_result.success
+        FlextTestUtilities.assert_result_success(register_result)
 
         # 3. List plugins (should have 1)
         list_result = plugins.list_plugins()
-        assert list_result.success
-        assert len(list_result.value) == 1
+        plugin_list = FlextTestUtilities.assert_result_success(list_result)
+        assert isinstance(plugin_list, dict)
+        assert len(plugin_list) == 1
 
         # 4. Get the specific plugin
         get_result = plugins.get_plugin("custom_test")
-        assert get_result.success
-        assert get_result.value == custom_plugin
+        retrieved_plugin = FlextTestUtilities.assert_result_success(get_result)
+        assert retrieved_plugin == custom_plugin
 
         # 5. Register all Oracle plugins (should add 3 more)
         register_all_result = plugins.register_all_oracle_plugins()
-        assert register_all_result.success
+        FlextTestUtilities.assert_result_success(register_all_result)
 
         # 6. List again (should have 4 total)
         list_all_result = plugins.list_plugins()

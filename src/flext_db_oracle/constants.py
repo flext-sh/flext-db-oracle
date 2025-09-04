@@ -81,6 +81,46 @@ class FlextDbOracleConstants(FlextConstants):
         IDENTIFIER_PATTERN = r"^[A-Za-z][A-Za-z0-9_$#]*$"
         SCHEMA_PATTERN = r"^[A-Za-z][A-Za-z0-9_$#]*$"
 
+        # Oracle reserved words
+        ORACLE_RESERVED = frozenset(
+            {
+                "SELECT",
+                "FROM",
+                "WHERE",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "CREATE",
+                "DROP",
+                "ALTER",
+                "TABLE",
+                "INDEX",
+                "VIEW",
+                "PROCEDURE",
+                "FUNCTION",
+                "TRIGGER",
+                "SEQUENCE",
+                "PACKAGE",
+                "CONSTRAINT",
+                "PRIMARY",
+                "FOREIGN",
+                "KEY",
+                "UNIQUE",
+                "NOT",
+                "NULL",
+                "CHECK",
+                "DEFAULT",
+                "REFERENCES",
+                "ON",
+                "CASCADE",
+                "RESTRICT",
+                "SET",
+                "COMMIT",
+                "ROLLBACK",
+                "SAVEPOINT",
+            }
+        )
+
     class ErrorMessages:
         """Oracle-specific error messages."""
 
@@ -107,6 +147,12 @@ class FlextDbOracleConstants(FlextConstants):
         INDEX_HINT = "/*+ INDEX */"
         FULL_HINT = "/*+ FULL */"
         PARALLEL_HINT = "/*+ PARALLEL */"
+
+    class NetworkValidation:
+        """Network-specific validation constants - inherit from flext-core."""
+
+        MIN_PORT = 1
+        MAX_PORT = 65535
 
 
 # No compatibility aliases - use direct imports only

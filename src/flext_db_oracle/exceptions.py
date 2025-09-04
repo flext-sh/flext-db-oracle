@@ -189,7 +189,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 if isinstance(existing_context, dict):
                     context_dict.update(existing_context)
 
-            error_code = str(params.get("code", "ORACLE_QUERY_ERROR"))
+            error_code = str(params.get("code", default="ORACLE_QUERY_ERROR"))
             super().__init__(message, code=error_code, context=context_dict)
 
     class MetadataError(FlextExceptions._OperationError):
@@ -220,7 +220,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 if isinstance(existing_context, dict):
                     context_dict.update(existing_context)
 
-            error_code = str(params.get("code", "ORACLE_METADATA_ERROR"))
+            error_code = str(params.get("code", default="ORACLE_METADATA_ERROR"))
             super().__init__(message, code=error_code, context=context_dict)
 
     class ConnectionOperationError(ConnectionError):
@@ -257,7 +257,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             error_code = str(
                 params.get(
                     "code",
-                    FlextDbOracleExceptions.OracleErrorCodes.ORACLE_CONNECTION_ERROR.value,
+                    default=FlextDbOracleExceptions.OracleErrorCodes.ORACLE_CONNECTION_ERROR.value,
                 )
             )
             self._error_code = error_code
@@ -283,9 +283,15 @@ class FlextDbOracleExceptions(FlextExceptions):
     # Following FLEXT standards - no backward compatibility
 
 
-# Export API - ONLY single class
+# Create module-level aliases for backward compatibility
+OracleConnectionError = FlextDbOracleExceptions.ConnectionOperationError
+OracleQueryError = FlextDbOracleExceptions.QueryError
+OracleValidationError = FlextDbOracleExceptions.ValidationError
+
+# Export API - Main class plus compatibility aliases
 __all__: list[str] = [
     "FlextDbOracleExceptions",
+    "OracleConnectionError",
+    "OracleQueryError",
+    "OracleValidationError",
 ]
-
-# No module-level compatibility aliases - use FlextDbOracleExceptions directly

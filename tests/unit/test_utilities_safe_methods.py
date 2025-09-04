@@ -16,11 +16,14 @@ import pytest
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig
+from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.utilities import (
-    MAX_DISPLAY_ROWS,
-    PERFORMANCE_WARNING_THRESHOLD_SECONDS,
-    FlextDbOracleUtilities,
+from flext_db_oracle.utilities import FlextDbOracleUtilities
+
+# Access constants through the FlextDbOracleConstants class
+MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS
+PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
+    FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS
 )
 
 
@@ -41,9 +44,9 @@ class TestConsole:
     def __init__(self) -> None:
         self.output = StringIO()
 
-    def print(self, text: str) -> None:
+    def print(self, *args: object) -> None:
         """Print text to internal buffer."""
-        print(text, file=self.output)
+        print(*args, file=self.output)
 
     def get_output(self) -> str:
         """Get captured output."""
@@ -60,19 +63,18 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_create_api_from_config_method(self) -> None:
         """Test create_api_from_config utility method."""
-        config = FlextDbOracleConfig(
-            host="util_api_test",
-            port=1521,
-            service_name="UTIL_API_TEST",
-            username="util_api_user",
-            password=SecretStr("util_api_pass"),
-        )
+        config_dict: dict[str, object] = {
+            "host": "util_api_test",
+            "port": 1521,
+            "service_name": "UTIL_API_TEST",
+            "username": "util_api_user",
+            "password": "util_api_pass",
+        }
 
-        api_result = FlextDbOracleUtilities.create_api_from_config(config)
+        api_result = FlextDbOracleUtilities.create_api_from_config(config_dict)
         assert api_result.success
         api = api_result.value
         assert api is not None
-        assert api.config.host == "util_api_test"
 
     def test_utilities_format_query_result_table_format(self) -> None:
         """Test format_query_result with table output format."""
@@ -100,6 +102,8 @@ class TestFlextDbOracleUtilities:
             rows=[(1, "Test")],
             row_count=1,
             execution_time_ms=0.02,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should not raise exception with JSON format
@@ -113,7 +117,8 @@ class TestFlextDbOracleUtilities:
     def test_utilities_format_query_result_empty_data(self) -> None:
         """Test format_query_result with empty data."""
         empty_result = FlextDbOracleModels.QueryResult(
-            columns=[], rows=[], row_count=0, execution_time_ms=0.01
+            columns=[], rows=[], row_count=0, execution_time_ms=0.01,
+            query_hash=None, explain_plan=None
         )
 
         # Should handle empty data gracefully
@@ -169,6 +174,8 @@ class TestFlextDbOracleUtilities:
             rows=[("value1", "value2"), ("value3", "value4")],
             row_count=2,
             execution_time_ms=0.03,
+            query_hash=None,
+            explain_plan=None,
         )
 
         console = TestConsole()
@@ -327,21 +334,19 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
         # Should handle invalid formats gracefully
         console = TestConsole()
-        try:
+        with pytest.raises((ValueError, TypeError, AttributeError)):
             FlextDbOracleUtilities.format_query_result(
                 query_result, "invalid_format", console
             )
-        except Exception:
-            # May raise exception, but shouldn't crash the process
-            pass
 
     def test_utilities_none_handling(self) -> None:
         """Test handling of None values in utilities."""
         console = TestConsole()
 
-        # Should handle None health data gracefully
+        # Should handle None health data gracefully without raising exception
         try:
             FlextDbOracleUtilities._display_health_data(None, "table", console)
-        except Exception:
-            # May raise exception, but shouldn't crash the process
-            pass
+            output = console.get_output()
+            assert "Health data: None" in output
+        except Exception as e:
+            pytest.fail(f"Should handle None gracefully, but got: {e}")

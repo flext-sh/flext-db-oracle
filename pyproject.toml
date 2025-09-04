@@ -169,10 +169,18 @@ addopts = [
 testpaths = ["tests"]
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests",
+    "integration: Integration tests", 
     "e2e: End-to-end tests",
     "benchmark: Performance benchmark tests",
     "slow: Slow tests",
+    "concurrency: Concurrency tests from flext_tests",
+    "race_condition: Race condition tests",
+    "complexity: Complexity analysis tests",
+    "memory: Memory usage tests", 
+    "memory_limit: Memory limit tests",
+    "performance: Performance tests",
+    "regression: Regression tests",
+    "timeout: Timeout tests",
     "smoke: Smoke tests",
 ]
 filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]

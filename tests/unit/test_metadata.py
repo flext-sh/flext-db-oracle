@@ -7,7 +7,7 @@ instead of mocks, following the user's requirement for real code testing.
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig
-from flext_db_oracle.models import FlextDbOracleColumn, FlextDbOracleTable
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -98,10 +98,10 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
         # Create columns
         columns = [
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="ID", data_type="NUMBER", nullable=False, column_id=1
             ),
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="NAME",
                 data_type="VARCHAR2",
                 data_length=100,
@@ -111,7 +111,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         ]
 
         # Create table
-        table = FlextDbOracleTable(
+        table = FlextDbOracleModels.TableInfo(
             table_name="TEST_TABLE", schema_name="TEST_SCHEMA", columns=columns
         )
 
@@ -177,24 +177,24 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test comprehensive DDL generation functionality using model methods."""
         # Test with various column types
         columns = [
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="ID",
                 data_type="NUMBER",
                 data_precision=10,
                 nullable=False,
                 column_id=1,
             ),
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="CODE",
                 data_type="VARCHAR2",
                 data_length=50,
                 nullable=False,
                 column_id=2,
             ),
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="CREATED_DATE", data_type="DATE", nullable=True, column_id=3
             ),
-            FlextDbOracleColumn(
+            FlextDbOracleModels.ColumnInfo(
                 column_name="AMOUNT",
                 data_type="NUMBER",
                 data_precision=10,
@@ -204,7 +204,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             ),
         ]
 
-        table = FlextDbOracleTable(
+        table = FlextDbOracleModels.TableInfo(
             table_name="COMPLEX_TABLE", schema_name="APP_SCHEMA", columns=columns
         )
 

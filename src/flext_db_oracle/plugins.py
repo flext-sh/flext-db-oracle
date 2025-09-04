@@ -66,6 +66,51 @@ class FlextDbOraclePlugins:
         except Exception as e:
             return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
+    def create_performance_monitor_plugin(self) -> FlextResult[dict[str, object]]:
+        """Create performance monitor plugin data."""
+        try:
+            plugin_data: dict[str, object] = {
+                "name": "performance_monitor",
+                "version": "1.0.0",
+                "type": "monitoring",
+                "capabilities": ["query_tracking", "performance_metrics", "alerting"],
+            }
+            return FlextResult[dict[str, object]].ok(plugin_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Failed to create performance monitor plugin: {e}"
+            )
+
+    def create_data_validation_plugin(self) -> FlextResult[dict[str, object]]:
+        """Create data validation plugin data."""
+        try:
+            plugin_data: dict[str, object] = {
+                "name": "data_validation",
+                "version": "1.0.0",
+                "type": "validation",
+                "capabilities": ["schema_validation", "data_integrity", "constraints"],
+            }
+            return FlextResult[dict[str, object]].ok(plugin_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Failed to create data validation plugin: {e}"
+            )
+
+    def create_security_audit_plugin(self) -> FlextResult[dict[str, object]]:
+        """Create security audit plugin data."""
+        try:
+            plugin_data: dict[str, object] = {
+                "name": "security_audit",
+                "version": "1.0.0",
+                "type": "security",
+                "capabilities": ["access_logging", "privilege_audit", "compliance"],
+            }
+            return FlextResult[dict[str, object]].ok(plugin_data)
+        except Exception as e:
+            return FlextResult[dict[str, object]].fail(
+                f"Failed to create security audit plugin: {e}"
+            )
+
     def register_all_oracle_plugins(self) -> FlextResult[dict[str, object]]:
         """Register all available Oracle plugins.
 
@@ -77,33 +122,21 @@ class FlextDbOraclePlugins:
             plugins_info: dict[str, object] = {}
             plugin_count = 0
 
-            # Register plugins directly
-            perf_plugin: dict[str, object] = {
-                "name": "performance_monitor",
-                "version": "1.0.0",
-                "type": "monitoring",
-                "capabilities": ["query_tracking", "performance_metrics", "alerting"],
-            }
-            self.register_plugin("performance_monitor", perf_plugin)
-            plugin_count += 1
+            # Create and register plugins using factory methods
+            perf_result = self.create_performance_monitor_plugin()
+            if perf_result.success:
+                self.register_plugin("performance_monitor", perf_result.value)
+                plugin_count += 1
 
-            validation_plugin: dict[str, object] = {
-                "name": "data_validation",
-                "version": "1.0.0",
-                "type": "validation",
-                "capabilities": ["schema_validation", "data_integrity", "constraints"],
-            }
-            self.register_plugin("data_validation", validation_plugin)
-            plugin_count += 1
+            validation_result = self.create_data_validation_plugin()
+            if validation_result.success:
+                self.register_plugin("data_validation", validation_result.value)
+                plugin_count += 1
 
-            security_plugin: dict[str, object] = {
-                "name": "security_audit",
-                "version": "1.0.0",
-                "type": "security",
-                "capabilities": ["access_logging", "privilege_audit", "compliance"],
-            }
-            self.register_plugin("security_audit", security_plugin)
-            plugin_count += 1
+            security_result = self.create_security_audit_plugin()
+            if security_result.success:
+                self.register_plugin("security_audit", security_result.value)
+                plugin_count += 1
 
             # Store registration summary
             plugins_info["registered_count"] = plugin_count
