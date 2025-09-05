@@ -133,7 +133,9 @@ class FlextDbOracleUtilities:
 
     @classmethod
     def format_query_result(
-        cls, query_result: object, format_type: str = "table"
+        cls,
+        query_result: object,
+        format_type: str = "table",
     ) -> FlextResult[str]:
         """Format query result for display.
 
@@ -146,14 +148,14 @@ class FlextDbOracleUtilities:
 
             # Use FlextUtilities.TextProcessor for safe format type handling
             safe_format_type = FlextUtilities.TextProcessor.safe_string(
-                format_type
+                format_type,
             ).lower()
 
             # Use FlextUtilities.ProcessingUtils for consistent serialization if needed
             if safe_format_type == "json":
                 try:
                     formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(
-                        query_result
+                        query_result,
                     )
                     return FlextResult[str].ok(formatted)
                 except Exception:
@@ -199,12 +201,13 @@ class FlextDbOracleUtilities:
             return FlextResult[dict[str, str]].ok(config_data)
         except Exception as e:
             return FlextResult[dict[str, str]].fail(
-                f"Failed to create config from environment: {e}"
+                f"Failed to create config from environment: {e}",
             )
 
     @staticmethod
     def _display_query_table(
-        query_result: QueryResult, console: ConsoleProtocol
+        query_result: QueryResult,
+        console: ConsoleProtocol,
     ) -> None:
         """Display query result as table using Rich console."""
         try:
@@ -230,7 +233,8 @@ class FlextDbOracleUtilities:
                     for row in rows_list:
                         row_dict = {}
                         if isinstance(columns_list, (list, tuple)) and isinstance(
-                            row, (list, tuple)
+                            row,
+                            (list, tuple),
                         ):
                             for i, col in enumerate(columns_list):
                                 row_dict[str(col)] = row[i] if i < len(row) else None
@@ -264,20 +268,21 @@ class FlextDbOracleUtilities:
     def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
         """Create Oracle API instance from configuration."""
         try:
-            # Import at runtime to avoid circular imports
-            from flext_db_oracle.api import FlextDbOracleApi  # noqa: PLC0415
-            from flext_db_oracle.models import FlextDbOracleModels  # noqa: PLC0415
+            # Factory method requires late imports to avoid circular dependency
+            import flext_db_oracle.api as api_module
+            import flext_db_oracle.models as models_module
 
             # Convert port to int with proper type checking
             port_value = config.get("port", 1521)
             port_int = int(port_value) if isinstance(port_value, (int, str)) else 1521
 
             # Convert password to SecretStr
-            from pydantic import SecretStr  # noqa: PLC0415
+            from pydantic import SecretStr  # OK - not part of circular import
+
             password_value = config.get("password", "")
             password_str = SecretStr(str(password_value))
 
-            oracle_config = FlextDbOracleModels.OracleConfig(
+            oracle_config = models_module.FlextDbOracleModels.OracleConfig(
                 host=str(config.get("host", "localhost")),
                 port=port_int,
                 service_name=str(config.get("service_name", "XE")),
@@ -287,7 +292,7 @@ class FlextDbOracleUtilities:
             )
 
             # Create API instance with configuration
-            api = FlextDbOracleApi(oracle_config)
+            api = api_module.FlextDbOracleApi(oracle_config)
 
             # API creation successful - return the API instance
             return FlextResult[object].ok(api)
@@ -321,7 +326,9 @@ class FlextDbOracleUtilities:
 
     @staticmethod
     def wrap_service_result[T](
-        result: FlextResult[T], operation_name: str, success_value: T | None = None
+        result: FlextResult[T],
+        operation_name: str,
+        success_value: T | None = None,
     ) -> FlextResult[T]:
         """Standardize FlextResult wrapping pattern."""
         if result.success:
@@ -341,7 +348,9 @@ class FlextDbOracleUtilities:
 
     @staticmethod
     def _display_health_data(
-        health_data: object, format_type: str, console: ConsoleProtocol
+        health_data: object,
+        format_type: str,
+        console: ConsoleProtocol,
     ) -> None:
         """Display health data in specified format."""
         try:

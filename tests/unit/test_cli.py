@@ -58,7 +58,9 @@ class TestFlextDbOracleClientReal:
 
         # Test updating valid preferences
         result = client.configure_preferences(
-            default_output_format="json", query_limit=2000, show_execution_time=False
+            default_output_format="json",
+            query_limit=2000,
+            show_execution_time=False,
         )
 
         assert result.success is True
@@ -73,7 +75,8 @@ class TestFlextDbOracleClientReal:
 
         # Test with invalid preference keys
         result = client.configure_preferences(
-            invalid_key="value", another_invalid="test"
+            invalid_key="value",
+            another_invalid="test",
         )
 
         # Should still succeed but not change preferences
@@ -87,21 +90,25 @@ class TestFlextDbOracleClientReal:
         # Test execute_query without connection
         result = client.execute_query("SELECT 1 FROM DUAL")
         assert not result.success
+        assert result.error
         assert "No active Oracle connection" in result.error
 
         # Test list_schemas without connection
         schemas_result = client.list_schemas()
         assert not schemas_result.success
+        assert schemas_result.error
         assert "No active Oracle connection" in schemas_result.error
 
         # Test list_tables without connection
         tables_result = client.list_tables()
         assert not tables_result.success
+        assert tables_result.error
         assert "No active Oracle connection" in tables_result.error
 
         # Test health_check without connection
         health_result = client.health_check()
         assert not health_result.success
+        assert health_result.error
         assert "No active Oracle connection" in health_result.error
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
@@ -119,6 +126,7 @@ class TestFlextDbOracleClientReal:
 
         # Should fail with real connection error
         assert not result.success
+        assert result.error
         assert (
             "Connection failed" in result.error
             or "Oracle connection failed" in result.error
@@ -138,7 +146,7 @@ class TestFlextDbOracleClientReal:
         except SystemExit:
             # Expected if flext-cli initialization fails
             pytest.skip(
-                "flext-cli initialization failed - expected in test environment"
+                "flext-cli initialization failed - expected in test environment",
             )
 
     def test_run_cli_command_real(self) -> None:
@@ -173,12 +181,13 @@ class TestFlextDbOracleClientReal:
             assert isinstance(commands, list)
             assert len(commands) > 0
 
-            # Verify command structure
+            # Verify command structure - CliCommand actual fields
             for command in commands:
-                assert hasattr(command, "name")
-                assert hasattr(command, "description")
-                assert hasattr(command, "handler")
-                assert hasattr(command, "parameters")
+                assert hasattr(command, "command_line")
+                assert hasattr(command, "status")
+                assert hasattr(command, "execution_time")
+                assert isinstance(command.command_line, str)
+                assert len(command.command_line) > 0
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""
@@ -206,7 +215,8 @@ class TestFlextDbOracleClientReal:
 
         # Change preferences
         client.configure_preferences(
-            default_output_format="json", connection_timeout=60
+            default_output_format="json",
+            connection_timeout=60,
         )
 
         # Verify changes persisted
@@ -235,10 +245,11 @@ class TestFlextDbOracleClientIntegration:
         client = FlextDbOracleClient()
 
         # Test connection attempt (will fail but tests real code path)
+        service_name = config.service_name or "default_service"
         result = client.connect_to_oracle(
             config.host,
             config.port,
-            config.service_name,
+            service_name,
             config.username,
             config.password.get_secret_value(),
         )

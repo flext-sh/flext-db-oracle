@@ -1,6 +1,7 @@
 """Enterprise Oracle Database integration library for FLEXT ecosystem.
 
-Clean, production-ready Oracle database integration following FLEXT architectural patterns.
+Clean, production-ready Oracle database integration following FLEXT
+architectural patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -85,4 +86,7 @@ __all__ = [
 __version__ = "0.9.0"
 __version_info__ = (0, 9, 0)
 __author__ = "flext-team"
-__description__ = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb with flext-core patterns"
+__description__ = (
+    "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "
+    "with flext-core patterns"
+)

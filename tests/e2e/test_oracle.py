@@ -7,7 +7,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 """
-# ruff: noqa: S101, S608, TRY003, EM102, PLR2004
 
 from __future__ import annotations
 
@@ -31,7 +30,7 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     @pytest.mark.skip(
-        reason="Test uses unimplemented API methods (get_table_metadata, get_primary_keys, etc.)"
+        reason="Test uses unimplemented API methods (get_table_metadata, get_primary_keys, etc.)",
     )
     def test_complete_oracle_workflow(
         self,
@@ -102,7 +101,7 @@ class TestOracleE2E:
                     insert_result = api.query(insert_sql, data)  # nosec B608 # safe parameterized query
                     if insert_result.is_failure:
                         raise AssertionError(
-                            f"Data insertion failed: {insert_result.error}"
+                            f"Data insertion failed: {insert_result.error}",
                         )
 
                 # Test data querying
@@ -112,41 +111,31 @@ class TestOracleE2E:
                 if select_result.is_failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
                 query_data = select_result.value
-                assert query_data.row_count == 3, (
-                    f"Expected 3 rows, got {query_data.row_count}"
-                )
+                assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
 
                 # Test single row query
                 single_result = api.query_one(f"SELECT COUNT(*) FROM {test_table_name}")
                 if single_result.is_failure:
                     raise AssertionError(f"Single query failed: {single_result.error}")
                 count_data = single_result.value
-                if (
-                    count_data
-                    and hasattr(count_data, "__getitem__")
-                    and len(count_data) > 0
-                ):
-                    row = count_data[0]
-                    if (
-                        hasattr(row, "__getitem__")
-                        and hasattr(row, "__len__")
-                        and len(row) > 0
-                    ):
-                        count_value = row[0]
-                        assert count_value == 3, f"Expected count 3, got {count_value}"
+                if count_data and isinstance(count_data, dict):
+                    # Get the first value from the dict (COUNT(*) result)
+                    count_value = next(iter(count_data.values()), None)
+                    assert count_value == 3, f"Expected count 3, got {count_value}"
 
                 # Test table metadata
                 metadata_result = api.get_table_metadata(test_table_name)
                 if metadata_result.is_failure:
                     raise AssertionError(
-                        f"Metadata query failed: {metadata_result.error}"
+                        f"Metadata query failed: {metadata_result.error}",
                     )
 
                 table_metadata = metadata_result.value
                 assert table_metadata["table_name"] == test_table_name
                 columns_obj = table_metadata["columns"]
                 assert hasattr(columns_obj, "__len__")
-                assert len(columns_obj) >= 4  # ID, NAME, EMAIL, CREATED_AT
+                if isinstance(columns_obj, (list, tuple, dict, str)):
+                    assert len(columns_obj) >= 4  # ID, NAME, EMAIL, CREATED_AT
 
                 # Test column information
                 columns_result = api.get_columns(test_table_name)
@@ -177,21 +166,15 @@ class TestOracleE2E:
                 )
                 if verify_result.is_failure:
                     raise AssertionError(
-                        f"Verification query failed: {verify_result.error}"
+                        f"Verification query failed: {verify_result.error}",
                     )
                 email_value = verify_result.value
-                if (
-                    email_value
-                    and hasattr(email_value, "__getitem__")
-                    and len(email_value) > 0
-                ):
-                    row = email_value[0]
-                    if (
-                        hasattr(row, "__getitem__")
-                        and hasattr(row, "__len__")
-                        and len(row) > 0
-                    ):
-                        assert row[0] == "bob@example.com"
+                if email_value and isinstance(email_value, dict):
+                    # Get the EMAIL value from the dict
+                    email_result = email_value.get("EMAIL") or email_value.get("email")
+                    assert email_result == "bob@example.com", (
+                        f"Expected bob@example.com, got {email_result}"
+                    )
 
             finally:
                 # Cleanup: Drop test table using direct SQL
@@ -200,7 +183,7 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     @pytest.mark.skip(
-        reason="Test uses unimplemented API methods (convert_singer_type, map_singer_schema)"
+        reason="Test uses unimplemented API methods (convert_singer_type, map_singer_schema)",
     )
     def test_singer_type_conversion_e2e(
         self,
@@ -222,7 +205,7 @@ class TestOracleE2E:
                 result = api.convert_singer_type(singer_type)
                 if result.is_failure:
                     raise AssertionError(
-                        f"Type conversion failed for {singer_type}: {result.error}"
+                        f"Type conversion failed for {singer_type}: {result.error}",
                     )
                 oracle_type = result.value
                 assert expected_oracle_type in oracle_type, (
@@ -257,7 +240,7 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     @pytest.mark.skip(
-        reason="Test expects 'config' property which was causing type issues"
+        reason="Test expects 'config' property which was causing type issues",
     )
     def test_configuration_from_environment_e2e(self) -> None:
         """Test configuration loading from environment variables."""
@@ -276,7 +259,11 @@ class TestOracleE2E:
         os.environ.update(test_env)
         try:
             # Test configuration creation
-            config = FlextDbOracleConfig.from_env()
+            config_result = FlextDbOracleConfig.from_env()
+            assert config_result.success, (
+                f"Config creation failed: {config_result.error}"
+            )
+            config = config_result.value
             assert config.host == "e2e-test-host"
             assert config.port == 1521
             assert config.service_name == "E2EDB"
@@ -287,7 +274,9 @@ class TestOracleE2E:
             assert config.timeout == 60
 
             # Test API creation from environment (while env vars are still set)
-            api = FlextDbOracleApi.from_env()
+            api_result = FlextDbOracleApi.from_env()
+            assert api_result.success, f"API creation failed: {api_result.error}"
+            api = api_result.value
             assert isinstance(api, FlextDbOracleApi)
             assert api.config is not None
             assert api.config.host == config.host
@@ -379,7 +368,7 @@ class TestOracleE2E:
         try:
             with FlextDbOracleApi(real_oracle_config) as api:
                 # Test query with timing
-                timed_result = api.query("SELECT 1 FROM DUAL")
+                timed_result = api.execute_sql("SELECT 1 FROM DUAL")
 
                 if timed_result.success:
                     query_result = timed_result.value

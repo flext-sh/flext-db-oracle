@@ -1,100 +1,57 @@
-"""Targeted CLI Coverage Tests - Hit specific missed lines exactly.
+"""Targeted CLI Coverage Tests - Real Functionality Without Mocks.
 
-Focus on cli.py lines that are not covered:
-- Lines 267-274: Connection parameter processing
-- Lines 458-503: Environment configuration and API creation
-- Lines 721-769: Output formatting functions
+Tests CLI functionality using flext-cli API directly,
+achieving coverage through real operations using flext_tests patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 import os
+import sys
+from pathlib import Path
 
-from click.testing import CliRunner
+from pydantic import SecretStr
 
+# Add flext_tests to path
+sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
+
+from flext_tests import FlextMatchers
+
+from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import oracle_cli
+from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
-class TestCLIParameterProcessing:
-    """Test CLI parameter processing to hit missed lines 267-274."""
+class TestCLIRealFunctionality:
+    """Test CLI using real flext-cli API - NO MOCKS."""
 
-    def test_connection_parameter_processing_lines_267_274(self) -> None:
-        """Test connection parameter processing (EXACT lines 267-274)."""
-        runner = CliRunner()
+    def test_cli_creation_and_basic_functionality(self) -> None:
+        """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""
+        # Test CLI was created successfully
+        if oracle_cli is None:
+            msg = "Oracle CLI should be created successfully"
+            raise AssertionError(msg)
 
-        # Test CLI command with explicit parameters to trigger parameter processing
-        # This should trigger lines 267-274 (ConnectionParams creation)
-        result = runner.invoke(
-            oracle_cli,
-            [
-                "connect",
-                "--host",
-                "localhost",
-                "--port",
-                "1521",
-                "--username",
-                "testuser",
-                "--password",
-                "testpass",
-                "--service-name",
-                "TESTDB",
-            ],
-        )
+        # Test CLI API has required attributes
+        assert hasattr(oracle_cli, "execute")
 
-        # Command should process parameters (might fail connection but processing should work)
-        assert result.exit_code in {0, 1, 2}  # Valid exit codes
+        # Test command history functionality - defensive check first
+        get_history_method = getattr(oracle_cli, "get_command_history", None)
+        if callable(get_history_method):
+            history = get_history_method()
+            assert isinstance(history, list)
+        else:
+            # Command history may not be implemented - check if CLI has execute functionality
+            assert callable(getattr(oracle_cli, "execute", None))
 
-        # Should have attempted to process connection parameters
-        # (Lines 267-274 should be executed even if connection fails)
-
-    def test_connect_env_parameter_processing_alternative(self) -> None:
-        """Test connect-env command parameter processing."""
-        # Set up environment variables for connect-env
-        env_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": "localhost",
-            "FLEXT_TARGET_ORACLE_PORT": "1521",
-            "FLEXT_TARGET_ORACLE_USERNAME": "test",
-            "FLEXT_TARGET_ORACLE_PASSWORD": "test",
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": "TESTDB",
-        }
-
-        runner = CliRunner(env=env_vars)
-
-        # Test connect-env command (might trigger parameter processing paths)
-        result = runner.invoke(oracle_cli, ["connect-env"])
-
-        # Should process even if connection fails
-        assert result.exit_code in {0, 1, 2}
-
-    def test_cli_help_parameter_processing(self) -> None:
-        """Test CLI help parameter processing."""
-        runner = CliRunner()
-
-        # Test various help commands that trigger parameter processing
-        help_commands = [
-            ["--help"],
-            ["connect", "--help"],
-            ["schemas", "--help"],
-            ["tables", "--help"],
-        ]
-
-        for cmd in help_commands:
-            result = runner.invoke(oracle_cli, cmd)
-            # Help should work (exit code 0) and not crash
-            assert result.exit_code in {0, 1, 2}
-
-
-class TestCLIEnvironmentConfiguration:
-    """Test CLI environment configuration to hit missed lines 458-503."""
-
-    def test_environment_config_loading_lines_458_503(self) -> None:
-        """Test environment configuration loading (EXACT lines 458-503)."""
-        # Set up environment variables that should trigger lines 458-503
-        env_vars = {
+    def test_environment_configuration_real(self) -> None:
+        """Test environment configuration using real API functionality."""
+        # Test environment variables loading
+        test_env_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "localhost",
             "FLEXT_TARGET_ORACLE_PORT": "1521",
             "FLEXT_TARGET_ORACLE_USERNAME": "testuser",
@@ -102,210 +59,219 @@ class TestCLIEnvironmentConfiguration:
             "FLEXT_TARGET_ORACLE_SERVICE_NAME": "TESTDB",
         }
 
-        runner = CliRunner(env=env_vars)
+        # Save original environment
+        original_env = {}
+        for key, value in test_env_vars.items():
+            original_env[key] = os.environ.get(key)
+            os.environ[key] = value
 
-        # Test commands that should trigger environment configuration loading
-        # (lines 458-503: config loading, debug output, API creation)
-        commands_to_test = [
-            ["connect-env"],
-            ["connect-env", "--debug"],  # Should trigger debug path (line 462-465)
-            ["health"],  # Might trigger config loading
-        ]
+        try:
+            # Test real API creation from environment
+            api_result = FlextDbOracleApi.from_env()
+            FlextMatchers.assert_result_success(api_result)
 
-        for cmd in commands_to_test:
-            result = runner.invoke(oracle_cli, cmd)
+            api = api_result.value
+            assert api.config.host == "localhost"
+            assert api.config.port == 1521
+            assert api.config.service_name == "TESTDB"
+            assert api.config.username == "testuser"
 
-            # Should process environment config (might fail but processing should happen)
-            assert result.exit_code in {0, 1, 2}
+        finally:
+            # Restore environment
+            for key, original_value in original_env.items():
+                if original_value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = original_value
 
-            # If debug enabled, should have debug output
-            if "--debug" in cmd:
-                # Debug output might be in result.output (line 463-465)
-                pass  # Output check is optional
+    def test_api_observability_and_connection_real(self) -> None:
+        """Test API observability and connection functionality - REAL IMPLEMENTATION."""
+        # Create real API configuration
+        config = FlextDbOracleModels.OracleConfig(
+            host="localhost",
+            port=1521,
+            service_name="TESTDB",
+            username="test",
+            password=SecretStr("test"),
+        )
 
-    def test_api_creation_from_env_error_handling(self) -> None:
-        """Test API creation from environment with error handling."""
-        # Test with missing environment variables to trigger error paths
-        runner = CliRunner(env={})  # Empty environment
+        api = FlextDbOracleApi(config)
 
-        result = runner.invoke(oracle_cli, ["connect-env"])
+        # Test real observability metrics
+        metrics_result = api.get_observability_metrics()
+        FlextMatchers.assert_result_success(metrics_result)
+        assert isinstance(metrics_result.value, dict)
 
-        # Should handle missing environment gracefully
-        assert result.exit_code in {0, 1, 2}
+        # Test real connection testing (will fail but should handle gracefully)
+        connection_result = api.test_connection()
+        assert hasattr(connection_result, "success")
 
-    def test_connection_test_with_observability_path(self) -> None:
-        """Test connection test with observability (line 471)."""
-        # Set up complete environment for observability test
-        env_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": os.getenv(
-                "FLEXT_TARGET_ORACLE_HOST",
-                "localhost",
-            ),
-            "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
-            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_USERNAME",
-                "test",
-            ),
-            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
-                "FLEXT_TARGET_ORACLE_PASSWORD",
-                "test",
-            ),
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_SERVICE_NAME",
-                "TESTDB",
-            ),
+        # Test configuration validation
+        is_valid = api.is_valid()
+        assert isinstance(is_valid, bool)
+        assert is_valid is True  # Config should be valid
+
+    def test_output_formatting_real(self) -> None:
+        """Test output formatting using real functionality."""
+        utilities = FlextDbOracleUtilities()
+
+        # Test real query result formatting
+        test_result = {"column1": "value1", "column2": "value2"}
+
+        # Test different format types
+        for format_type in ["table", "json", "csv"]:
+            format_result = utilities.format_query_result(
+                test_result, format_type=format_type
+            )
+            FlextMatchers.assert_result_success(format_result)
+            assert isinstance(format_result.value, str)
+            assert len(format_result.value) > 0
+
+    def test_error_handling_real(self) -> None:
+        """Test error handling using real functionality - NO MOCKS."""
+        # Create API with invalid configuration to test error handling
+        invalid_config = FlextDbOracleModels.OracleConfig(
+            host="invalid.host",
+            port=9999,
+            service_name="INVALID_SERVICE",
+            username="invalid_user",
+            password=SecretStr("invalid_password"),
+        )
+
+        api = FlextDbOracleApi(invalid_config)
+
+        # Test error handling for operations without connection
+        query_result = api.query("SELECT 1 FROM DUAL")
+        FlextMatchers.assert_result_failure(query_result)
+        assert query_result.error is not None
+        assert (
+            "not connected" in query_result.error.lower()
+            or "connection" in query_result.error.lower()
+        )
+
+        # Test error handling for schema operations
+        schemas_result = api.get_schemas()
+        FlextMatchers.assert_result_failure(schemas_result)
+
+        # Test error handling for table operations
+        tables_result = api.get_tables()
+        FlextMatchers.assert_result_failure(tables_result)
+
+    def test_parameter_processing_real(self) -> None:
+        """Test parameter processing using real API functionality."""
+        # Test parameter processing through API configuration
+        config_data = {
+            "host": "param_test_host",
+            "port": 1521,
+            "service_name": "PARAM_TEST",
+            "username": "param_user",
+            "password": "param_pass",
         }
 
-        runner = CliRunner(env=env_vars)
+        # Test from_config with parameters
+        config = FlextDbOracleModels.OracleConfig(
+            host=config_data["host"],
+            port=config_data["port"],
+            service_name=config_data["service_name"],
+            username=config_data["username"],
+            password=SecretStr(config_data["password"]),
+        )
 
-        # Test command that should trigger observability connection test (line 471)
-        result = runner.invoke(oracle_cli, ["connect-env"])
+        api = FlextDbOracleApi.from_config(config)
 
-        # Should attempt connection test with observability
-        assert result.exit_code in {0, 1, 2}
+        # Verify parameter processing worked
+        assert api.config.host == "param_test_host"
+        assert api.config.port == 1521
+        assert api.config.service_name == "PARAM_TEST"
+        assert api.config.username == "param_user"
 
+    def test_comprehensive_api_coverage_real(self) -> None:
+        """Comprehensive API coverage test using real functionality - NO MOCKS."""
+        # Create comprehensive test configuration
+        config = FlextDbOracleModels.OracleConfig(
+            host="comprehensive_test",
+            port=1521,
+            service_name="COMP_TEST",
+            username="comp_user",
+            password=SecretStr("comp_pass"),
+        )
 
-class TestCLIOutputFormatting:
-    """Test CLI output formatting to hit missed lines 721-769."""
+        api = FlextDbOracleApi(config)
 
-    def test_output_formatting_functions_lines_721_769(self) -> None:
-        """Test output formatting functions (EXACT lines 721-769)."""
-        # Set up Oracle environment for real data formatting
-        env_vars = {
-            "FLEXT_TARGET_ORACLE_HOST": os.getenv(
-                "FLEXT_TARGET_ORACLE_HOST",
-                "localhost",
-            ),
-            "FLEXT_TARGET_ORACLE_PORT": os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521"),
-            "FLEXT_TARGET_ORACLE_USERNAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_USERNAME",
-                "test",
-            ),
-            "FLEXT_TARGET_ORACLE_PASSWORD": os.getenv(
-                "FLEXT_TARGET_ORACLE_PASSWORD",
-                "test",
-            ),
-            "FLEXT_TARGET_ORACLE_SERVICE_NAME": os.getenv(
-                "FLEXT_TARGET_ORACLE_SERVICE_NAME",
-                "TESTDB",
-            ),
-        }
-
-        runner = CliRunner(env=env_vars)
-
-        # Test commands that should trigger output formatting (lines 721-769)
-        formatting_commands = [
-            ["schemas"],  # Should format schema output
-            ["tables"],  # Should format table output
-            ["health"],  # Should format health output
-            ["connect-env"],  # Should format connection output
+        # Test all major API methods with real functionality
+        methods_to_test = [
+            ("is_valid", api.is_valid),
+            ("to_dict", api.to_dict),
+            ("get_observability_metrics", api.get_observability_metrics),
+            ("optimize_query", lambda: api.optimize_query("SELECT * FROM test")),
+            ("list_plugins", api.list_plugins),
         ]
 
-        for cmd in formatting_commands:
-            result = runner.invoke(oracle_cli, cmd)
+        for _method_name, method_call in methods_to_test:
+            result = method_call()
 
-            # Should format output (might fail but formatting code should execute)
-            assert result.exit_code in {0, 1, 2}
+            # All methods should return proper results (success or proper failure)
+            if hasattr(result, "success"):
+                # FlextResult - check it has proper structure
+                assert hasattr(result, "error") or hasattr(result, "value")
+            else:
+                # Direct return (like is_valid, to_dict)
+                assert result is not None
 
-            # Should have some output (formatting functions executed)
-            # Note: output might be empty on failure, but formatting code should run
+    def test_factory_methods_real(self) -> None:
+        """Test factory methods using real functionality - NO MOCKS."""
+        # Test from_env factory method
+        api_result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
+        FlextMatchers.assert_result_success(api_result)  # Should succeed with defaults
 
-    def test_error_output_formatting(self) -> None:
-        """Test error output formatting paths."""
-        runner = CliRunner()
+        api = api_result.value
+        assert api.config.host == "localhost"  # Default value
+        assert api.config.port == 1521  # Default value
+        assert api.config.service_name == "XEPDB1"  # Default value
 
-        # Test commands that should trigger error formatting
-        error_commands = [
-            ["schemas"],  # No connection - should format error
-            ["tables"],  # No connection - should format error
-            ["connect-env"],  # No env vars - should format error
-        ]
+        # Test from_url factory method
+        url_result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
+        FlextMatchers.assert_result_success(url_result)  # Should work now
 
-        for cmd in error_commands:
-            result = runner.invoke(oracle_cli, cmd)
+        url_api = url_result.value
+        assert url_api.config.host == "host"
+        assert url_api.config.port == 1521
+        assert url_api.config.service_name == "service"
 
-            # Should handle errors and format output
-            assert result.exit_code in {0, 1, 2}
+    def test_plugin_system_real(self) -> None:
+        """Test plugin system using real functionality - NO MOCKS."""
+        config = FlextDbOracleModels.OracleConfig(
+            host="plugin_test",
+            port=1521,
+            service_name="PLUGIN_TEST",
+            username="plugin_user",
+            password=SecretStr("plugin_pass"),
+        )
 
-    def test_debug_output_formatting(self) -> None:
-        """Test debug output formatting."""
-        runner = CliRunner()
+        api = FlextDbOracleApi(config)
 
-        # Test commands with debug flag to trigger debug formatting
-        debug_commands = [
-            ["--debug", "schemas"],
-            ["--debug", "health"],
-            ["connect-env", "--debug"],
-        ]
+        # Test plugin registration - real functionality
+        test_plugin = {"name": "test_plugin", "version": "1.0.0"}
+        register_result = api.register_plugin("test_plugin", test_plugin)
+        FlextMatchers.assert_result_success(register_result)
 
-        for cmd in debug_commands:
-            result = runner.invoke(oracle_cli, cmd)
+        # Test plugin listing - real functionality
+        list_result = api.list_plugins()
+        FlextMatchers.assert_result_success(list_result)
+        plugin_list = list_result.value
+        assert "test_plugin" in plugin_list
 
-            # Should process debug output formatting
-            assert result.exit_code in {0, 1, 2}
+        # Test plugin retrieval - real functionality
+        get_result = api.get_plugin("test_plugin")
+        FlextMatchers.assert_result_success(get_result)
+        retrieved_plugin = get_result.value
+        assert retrieved_plugin == test_plugin
 
+        # Test plugin unregistration - real functionality
+        unregister_result = api.unregister_plugin("test_plugin")
+        FlextMatchers.assert_result_success(unregister_result)
 
-class TestCLIComprehensivePathCoverage:
-    """Test comprehensive CLI path coverage for remaining missed lines."""
-
-    def test_cli_command_variations_comprehensive(self) -> None:
-        """Test various CLI command variations to hit different code paths."""
-        runner = CliRunner()
-
-        # Test many different command combinations to hit various paths
-        command_variations = [
-            # Connection commands
-            [
-                "connect",
-                "--host",
-                "test",
-                "--port",
-                "1521",
-                "--username",
-                "u",
-                "--password",
-                "p",
-                "--service-name",
-                "s",
-            ],
-            ["connect-env"],
-            # Schema/table commands
-            ["schemas"],
-            ["tables"],
-            ["tables", "--schema", "TEST"],
-            # Utility commands
-            ["health"],
-            ["--version"],
-            # Help variations
-            ["--help"],
-            ["connect", "--help"],
-            ["schemas", "--help"],
-            # Debug variations
-            ["--debug", "health"],
-            ["--debug", "schemas"],
-        ]
-
-        for cmd in command_variations:
-            result = runner.invoke(oracle_cli, cmd)
-            # Should not crash - any exit code is acceptable
-            assert result.exit_code in {0, 1, 2}
-
-    def test_error_handling_paths(self) -> None:
-        """Test error handling paths in CLI."""
-        runner = CliRunner()
-
-        # Test commands that should trigger various error handling paths
-        error_test_commands = [
-            # Invalid parameters
-            ["connect", "--port", "invalid"],
-            ["connect", "--host", ""],
-            # Missing required parameters
-            ["connect"],
-            # Invalid combinations
-            ["nonexistent-command"],
-        ]
-
-        for cmd in error_test_commands:
-            result = runner.invoke(oracle_cli, cmd)
-            # Error handling should work - exit codes 1 or 2 expected
-            assert result.exit_code in {0, 1, 2}
+        # Verify plugin was removed
+        final_list = api.list_plugins()
+        FlextMatchers.assert_result_success(final_list)
+        assert "test_plugin" not in final_list.value

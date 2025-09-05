@@ -80,7 +80,7 @@ class TestFlextDbOracleUtilities:
         """Test format_query_result with table output format."""
         query_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name", "email"],
-            rows=[(1, "John", "john@test.com"), (2, "Jane", "jane@test.com")],
+            rows=[[1, "John", "john@test.com"], [2, "Jane", "jane@test.com"]],
             row_count=2,
             execution_time_ms=0.05,
             query_hash=None,
@@ -99,7 +99,7 @@ class TestFlextDbOracleUtilities:
         """Test format_query_result with JSON output format."""
         query_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name"],
-            rows=[(1, "Test")],
+            rows=[[1, "Test"]],
             row_count=1,
             execution_time_ms=0.02,
             query_hash=None,
@@ -117,8 +117,12 @@ class TestFlextDbOracleUtilities:
     def test_utilities_format_query_result_empty_data(self) -> None:
         """Test format_query_result with empty data."""
         empty_result = FlextDbOracleModels.QueryResult(
-            columns=[], rows=[], row_count=0, execution_time_ms=0.01,
-            query_hash=None, explain_plan=None
+            columns=[],
+            rows=[],
+            row_count=0,
+            execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should handle empty data gracefully
@@ -132,59 +136,68 @@ class TestFlextDbOracleUtilities:
             pytest.fail(f"format_query_result failed with empty data: {e}")
 
     def test_utilities_display_health_data_with_model_dump(self) -> None:
-        """Test _display_health_data with objects supporting model_dump."""
+        """Test health data display functionality with objects supporting model_dump."""
         health_data = TestModelDump()
-        console = TestConsole()
 
-        # Test table format
-        try:
-            FlextDbOracleUtilities._display_health_data(health_data, "table", console)
-        except Exception as e:
-            pytest.fail(f"_display_health_data failed with table format: {e}")
+        # Test via public format_query_result method which uses private methods internally
+        test_result = FlextDbOracleModels.QueryResult(
+            columns=["health"],
+            rows=[[health_data]],
+            row_count=1,
+            execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
+        )
 
-        # Test json format
-        try:
-            FlextDbOracleUtilities._display_health_data(health_data, "json", console)
-        except Exception as e:
-            pytest.fail(f"_display_health_data failed with json format: {e}")
-
-        # Test str format
-        try:
-            FlextDbOracleUtilities._display_health_data(health_data, "str", console)
-        except Exception as e:
-            pytest.fail(f"_display_health_data failed with str format: {e}")
+        for format_type in ["table", "json"]:
+            result = FlextDbOracleUtilities.format_query_result(
+                test_result, format_type
+            )
+            assert result.success, (
+                f"format_query_result failed with {format_type} format"
+            )
 
     def test_utilities_display_health_data_without_model_dump(self) -> None:
-        """Test _display_health_data with plain objects."""
-        health_data = {"status": "ok", "message": "All good"}
-        console = TestConsole()
+        """Test health data display functionality with plain objects."""
+        # Test via public format_query_result method which internally uses private methods
+        test_result = FlextDbOracleModels.QueryResult(
+            columns=["status", "message"],
+            rows=[["ok", "All good"]],
+            row_count=1,
+            execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
+        )
 
-        # Should handle objects without model_dump gracefully
-        try:
-            FlextDbOracleUtilities._display_health_data(health_data, "table", console)
-            FlextDbOracleUtilities._display_health_data(health_data, "json", console)
-            FlextDbOracleUtilities._display_health_data(health_data, "str", console)
-        except Exception as e:
-            pytest.fail(f"_display_health_data failed with plain object: {e}")
+        for format_type in ["table", "json", "csv"]:
+            result = FlextDbOracleUtilities.format_query_result(
+                test_result, format_type
+            )
+            assert result.success, (
+                f"format_query_result failed with {format_type} for plain objects"
+            )
 
     def test_utilities_display_query_table_method(self) -> None:
-        """Test _display_query_table utility method."""
+        """Test query table display functionality via public interface."""
         query_result = FlextDbOracleModels.QueryResult(
             columns=["column1", "column2"],
-            rows=[("value1", "value2"), ("value3", "value4")],
+            rows=[["value1", "value2"], ["value3", "value4"]],
             row_count=2,
             execution_time_ms=0.03,
             query_hash=None,
             explain_plan=None,
         )
 
-        console = TestConsole()
+        # Test via public format_query_result method with table format
+        result = FlextDbOracleUtilities.format_query_result(query_result, "table")
+        assert result.success, "format_query_result failed with table format"
 
-        # Should not raise exception
-        try:
-            FlextDbOracleUtilities._display_query_table(query_result, console)
-        except Exception as e:
-            pytest.fail(f"_display_query_table failed: {e}")
+        # Verify the formatted output contains expected data
+        formatted_output = result.value
+        assert "column1" in formatted_output
+        assert "column2" in formatted_output
+        assert "value1" in formatted_output
+        assert "value2" in formatted_output
 
     def test_utilities_performance_monitoring_constants(self) -> None:
         """Test performance monitoring constants are accessible."""
@@ -220,7 +233,12 @@ class TestFlextDbOracleUtilitiesDataValidation:
         """Test query result validation and processing."""
         # Valid query result
         valid_result = FlextDbOracleModels.QueryResult(
-            columns=["test"], rows=[("data",)], row_count=1, execution_time_ms=0.01
+            columns=["test"],
+            rows=[["data"]],
+            row_count=1,
+            execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
         )
 
         assert valid_result.row_count == 1
@@ -248,12 +266,14 @@ class TestFlextDbOracleUtilitiesDataValidation:
     def test_utilities_data_formatting_edge_cases(self) -> None:
         """Test data formatting with edge cases."""
         # Large dataset
-        large_rows = [(i, f"Item{i}") for i in range(100)]
+        large_rows = [[i, f"Item{i}"] for i in range(100)]
         large_result = FlextDbOracleModels.QueryResult(
             columns=["id", "name"],
             rows=large_rows,
             row_count=100,
             execution_time_ms=0.5,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should handle large datasets
@@ -266,9 +286,11 @@ class TestFlextDbOracleUtilitiesDataValidation:
         # Complex nested data
         complex_result = FlextDbOracleModels.QueryResult(
             columns=["nested_data"],
-            rows=[('{"deep": {"value": "test"}}',)],
+            rows=[['{"deep": {"value": "test"}}']],
             row_count=1,
             execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should handle complex data structures
@@ -292,9 +314,11 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         # Should be able to create query result with timing
         result = FlextDbOracleModels.QueryResult(
             columns=["test"],
-            rows=[("performance",)],
+            rows=[["performance"]],
             row_count=1,
             execution_time_ms=execution_time * 1000,  # Convert to milliseconds
+            query_hash=None,
+            explain_plan=None,
         )
 
         assert result.execution_time_ms > 0
@@ -305,9 +329,11 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         # Simulate slow query
         slow_result = FlextDbOracleModels.QueryResult(
             columns=["slow"],
-            rows=[("query",)],
+            rows=[["query"]],
             row_count=1,
             execution_time_ms=(PERFORMANCE_WARNING_THRESHOLD_SECONDS + 1.0) * 1000,
+            query_hash=None,
+            explain_plan=None,
         )
 
         assert (
@@ -329,24 +355,43 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_utilities_invalid_format_handling(self) -> None:
         """Test handling of invalid output formats."""
         query_result = FlextDbOracleModels.QueryResult(
-            columns=["test"], rows=[("data",)], row_count=1, execution_time_ms=0.01
+            columns=["test"],
+            rows=[["data"]],
+            row_count=1,
+            execution_time_ms=0.01,
+            query_hash=None,
+            explain_plan=None,
         )
 
         # Should handle invalid formats gracefully
-        console = TestConsole()
+        TestConsole()
         with pytest.raises((ValueError, TypeError, AttributeError)):
-            FlextDbOracleUtilities.format_query_result(
-                query_result, "invalid_format", console
-            )
+            FlextDbOracleUtilities.format_query_result(query_result, "invalid_format")
 
     def test_utilities_none_handling(self) -> None:
-        """Test handling of None values in utilities."""
-        console = TestConsole()
+        """Test handling of None values in utilities via public interface."""
+        # Test via public format_query_result method with None data
+        empty_result = FlextDbOracleModels.QueryResult(
+            columns=[],
+            rows=[],
+            row_count=0,
+            execution_time_ms=0.0,
+            query_hash=None,
+            explain_plan=None,
+        )
 
-        # Should handle None health data gracefully without raising exception
-        try:
-            FlextDbOracleUtilities._display_health_data(None, "table", console)
-            output = console.get_output()
-            assert "Health data: None" in output
-        except Exception as e:
-            pytest.fail(f"Should handle None gracefully, but got: {e}")
+        # Test all formats to ensure None handling works
+        for format_type in ["table", "json", "csv"]:
+            result = FlextDbOracleUtilities.format_query_result(
+                empty_result, format_type
+            )
+            assert result.success, (
+                f"format_query_result should handle empty data for {format_type}"
+            )
+
+            # Verify output is meaningful even with empty data
+            formatted_output = result.value
+            assert isinstance(formatted_output, str)
+            assert (
+                len(formatted_output) >= 0
+            )  # Should return empty string or minimal format

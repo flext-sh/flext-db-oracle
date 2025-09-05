@@ -56,7 +56,7 @@ class TestOracleIntegration:
             raise AssertionError(msg)
 
         # Test query execution
-        query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
+        query_result = connected_api.execute_sql("SELECT SYSDATE FROM DUAL")
         if query_result.is_failure:
             msg = f"Query failed: {query_result.error}"
             raise AssertionError(msg)
@@ -87,7 +87,7 @@ class TestOracleIntegration:
 
         # Test non-existent table
         nonexistent_table_result = connected_api.query(
-            "SELECT * FROM NONEXISTENT_TABLE_12345"
+            "SELECT * FROM NONEXISTENT_TABLE_12345",
         )
         if nonexistent_table_result.success:
             msg = "Query on non-existent table should fail"
@@ -149,7 +149,14 @@ class TestOracleIntegration:
             tables = tables_result.value
             if tables:
                 first_table = tables[0]
-                columns_result = connected_api.get_columns(first_table, first_schema)
+                table_name = (
+                    first_table["name"]
+                    if isinstance(first_table, dict)
+                    else str(first_table)
+                )
+                # Cast table_name to string for type safety
+                table_name_str = str(table_name)
+                columns_result = connected_api.get_columns(table_name_str)
                 if columns_result.is_failure:
                     msg = f"Get columns failed: {columns_result.error}"
                     raise AssertionError(msg)

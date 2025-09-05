@@ -73,6 +73,9 @@ class FlextDbOracleConstants(FlextConstants):
         MAX_TABLE_NAME_LENGTH = 128
         MAX_COLUMN_NAME_LENGTH = 128
         MAX_SCHEMA_NAME_LENGTH = 128
+        MAX_HOSTNAME_LENGTH = 255  # Standard hostname maximum length
+        MAX_USERNAME_LENGTH = 128  # Oracle username maximum length
+        MAX_SERVICE_NAME_LENGTH = 128  # Oracle service name maximum length
         MAX_VARCHAR_LENGTH = 4000
         MIN_COLUMN_FIELDS = 4  # Required fields: name, type, length, nullable
         COLUMN_METADATA_FIELD_COUNT = 7  # Complete metadata fields count
@@ -118,7 +121,7 @@ class FlextDbOracleConstants(FlextConstants):
                 "COMMIT",
                 "ROLLBACK",
                 "SAVEPOINT",
-            }
+            },
         )
 
     class ErrorMessages:

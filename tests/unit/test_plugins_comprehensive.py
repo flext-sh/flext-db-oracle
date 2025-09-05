@@ -9,10 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import pytest
-from flext_tests import FlextTestUtilities
+from flext_tests import FlextMatchers
 
 from flext_db_oracle.plugins import FlextDbOraclePlugins
 
@@ -35,7 +35,8 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_performance_monitor_plugin()
 
-        plugin_data = FlextTestUtilities.assert_result_success(result)
+        FlextMatchers.assert_result_success(result)
+        plugin_data = result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "performance_monitor"
         assert plugin_data["version"] == "1.0.0"
@@ -52,7 +53,8 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_data_validation_plugin()
 
-        plugin_data = FlextTestUtilities.assert_result_success(result)
+        FlextMatchers.assert_result_success(result)
+        plugin_data = result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "data_validation"
         assert plugin_data["version"] == "1.0.0"
@@ -69,14 +71,19 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_security_audit_plugin()
 
-        plugin_data = FlextTestUtilities.assert_result_success(result)
+        FlextMatchers.assert_result_success(result)
+        plugin_data = result.value
         assert isinstance(plugin_data, dict)
+
+        # Type assertion for dict access
         assert plugin_data["name"] == "security_audit"
         assert plugin_data["version"] == "1.0.0"
         assert plugin_data["type"] == "security"
-        assert "access_logging" in plugin_data["capabilities"]
-        assert "privilege_audit" in plugin_data["capabilities"]
-        assert "compliance" in plugin_data["capabilities"]
+
+        capabilities = cast("list[str]", plugin_data["capabilities"])
+        assert "access_logging" in capabilities
+        assert "privilege_audit" in capabilities
+        assert "compliance" in capabilities
 
     def test_register_plugin_success(self) -> None:
         """Test registering a plugin successfully."""
@@ -185,7 +192,8 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.get_plugin("nonexistent")
 
-        error_message = FlextTestUtilities.assert_result_failure(result)
+        FlextMatchers.assert_result_failure(result)
+        error_message = str(result.error)
         assert "Plugin 'nonexistent' not found" in error_message
 
     def test_register_all_oracle_plugins_success(self) -> None:
@@ -194,7 +202,8 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.register_all_oracle_plugins()
 
-        registration_info = FlextTestUtilities.assert_result_success(result)
+        FlextMatchers.assert_result_success(result)
+        registration_info = result.value
         assert isinstance(registration_info, dict)
         assert registration_info["registered_count"] == 3
         assert registration_info["registration_status"] == "completed"
@@ -218,7 +227,7 @@ class TestFlextDbOraclePluginsComprehensive:
         assert len(plugins._plugins) == 0
 
         result = plugins.register_all_oracle_plugins()
-        FlextTestUtilities.assert_result_success(result)
+        FlextMatchers.assert_result_success(result)
 
         # Should now have 3 plugins
         assert len(plugins._plugins) == 3
@@ -241,7 +250,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # 1. Create custom plugin
-        custom_plugin: dict[str, Any] = {
+        custom_plugin: dict[str, object] = {
             "name": "custom_test",
             "version": "1.0.0",
             "type": "custom",
@@ -250,22 +259,24 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # 2. Register it
         register_result = plugins.register_plugin("custom_test", custom_plugin)
-        FlextTestUtilities.assert_result_success(register_result)
+        FlextMatchers.assert_result_success(register_result)
 
         # 3. List plugins (should have 1)
         list_result = plugins.list_plugins()
-        plugin_list = FlextTestUtilities.assert_result_success(list_result)
+        FlextMatchers.assert_result_success(list_result)
+        plugin_list = list_result.value
         assert isinstance(plugin_list, dict)
         assert len(plugin_list) == 1
 
         # 4. Get the specific plugin
         get_result = plugins.get_plugin("custom_test")
-        retrieved_plugin = FlextTestUtilities.assert_result_success(get_result)
+        FlextMatchers.assert_result_success(get_result)
+        retrieved_plugin = get_result.value
         assert retrieved_plugin == custom_plugin
 
         # 5. Register all Oracle plugins (should add 3 more)
         register_all_result = plugins.register_all_oracle_plugins()
-        FlextTestUtilities.assert_result_success(register_all_result)
+        FlextMatchers.assert_result_success(register_all_result)
 
         # 6. List again (should have 4 total)
         list_all_result = plugins.list_plugins()
@@ -357,8 +368,10 @@ class TestFlextDbOraclePluginsComprehensive:
         # Verify complex data preserved
         get_result = plugins.get_plugin("complex")
         assert get_result.success
-        retrieved = get_result.value
-        assert retrieved["nested"]["data"]["deep"] == ["list", "of", "items"]
+        retrieved = cast("dict[str, object]", get_result.value)
+        nested = cast("dict[str, object]", retrieved["nested"])
+        data = cast("dict[str, object]", nested["data"])
+        assert data["deep"] == ["list", "of", "items"]
         assert retrieved["numbers"] == [1, 2, 3, 4, 5]
         assert retrieved["boolean"] is True
         assert retrieved["null_value"] is None
@@ -388,7 +401,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # Register many plugins to test scalability
         for i in range(50):
-            plugin_data = {
+            plugin_data: dict[str, object] = {
                 "name": f"stress_plugin_{i}",
                 "version": "1.0.0",
                 "type": "stress_test",
@@ -406,7 +419,8 @@ class TestFlextDbOraclePluginsComprehensive:
         for i in [0, 25, 49]:  # Test first, middle, last
             get_result = plugins.get_plugin(f"stress_{i}")
             assert get_result.success
-            assert get_result.value["name"] == f"stress_plugin_{i}"
+            plugin_value = cast("dict[str, object]", get_result.value)
+            assert plugin_value["name"] == f"stress_plugin_{i}"
 
         # Unregister half the plugins
         for i in range(0, 50, 2):  # Every other plugin

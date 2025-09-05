@@ -98,7 +98,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             """Initialize usando Parameter Object pattern - ELIMINA MÚLTIPLOS PARÂMETROS."""
             if isinstance(params, str):
                 params = ExceptionParams(
-                    message=params, code="ORACLE_CONFIGURATION_ERROR"
+                    message=params,
+                    code="ORACLE_CONFIGURATION_ERROR",
                 )
 
             resolved_code = params.code or "ORACLE_CONFIGURATION_ERROR"
@@ -160,7 +161,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         """Oracle query error using FlextExceptions proven foundation with Parameter Object pattern."""
 
         def __init__(
-            self, message: str, *, params: ParameterObject | None = None
+            self,
+            message: str,
+            *,
+            params: ParameterObject | None = None,
         ) -> None:
             """Initialize Oracle query error with SQL context via Parameter Object pattern."""
             if params is None:
@@ -196,7 +200,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         """Oracle metadata error using FlextExceptions proven foundation with Parameter Object pattern."""
 
         def __init__(
-            self, message: str, *, params: ParameterObject | None = None
+            self,
+            message: str,
+            *,
+            params: ParameterObject | None = None,
         ) -> None:
             """Initialize Oracle metadata error with schema context via Parameter Object pattern."""
             if params is None:
@@ -227,7 +234,10 @@ class FlextDbOracleExceptions(FlextExceptions):
         """Oracle connection operation error using Parameter Object pattern."""
 
         def __init__(
-            self, message: str, *, params: ParameterObject | None = None
+            self,
+            message: str,
+            *,
+            params: ParameterObject | None = None,
         ) -> None:
             """Initialize Oracle connection operation error with connection context via Parameter Object."""
             if params is None:
@@ -258,7 +268,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 params.get(
                     "code",
                     default=FlextDbOracleExceptions.OracleErrorCodes.ORACLE_CONNECTION_ERROR.value,
-                )
+                ),
             )
             self._error_code = error_code
 

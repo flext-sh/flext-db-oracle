@@ -34,7 +34,8 @@ class OracleIdentifierValidation:
         """Cria CompositeValidator usando FlextValidations.Core.Predicates - ELIMINA RETURNS."""
         # Usar Predicates do flext-core para eliminar múltiplos returns
         not_empty_pred = Validations.Core.Predicates(
-            lambda x: bool(x and isinstance(x, str)), "not_empty"
+            lambda x: bool(x and isinstance(x, str)),
+            "not_empty",
         )
 
         length_pred = Validations.Core.Predicates(
@@ -46,14 +47,16 @@ class OracleIdentifierValidation:
         pattern_pred = Validations.Core.Predicates(
             lambda x: bool(
                 re.match(
-                    FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN, str(x)
-                )
+                    FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
+                    str(x),
+                ),
             ),
             "pattern_check",
         )
 
         reserved_pred = Validations.Core.Predicates(
-            lambda x: str(x).upper() not in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED,
+            lambda x: str(x).upper()
+            not in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED,
             "reserved_words_check",
         )
 
@@ -84,7 +87,9 @@ class OracleValidationFactory:
 
     @staticmethod
     def create_identifier_validator(
-        max_length: int, *, allow_empty: bool = False
+        max_length: int,
+        *,
+        allow_empty: bool = False,
     ) -> Validations.Advanced.CompositeValidator:
         """Cria validador usando Predicates combinados - ELIMINA COMPLEXIDADE."""
         # Predicates base usando flext-core
@@ -93,14 +98,16 @@ class OracleValidationFactory:
         if not allow_empty:
             predicates.append(
                 Validations.Core.Predicates(
-                    lambda x: bool(x and isinstance(x, str) and x.strip()), "not_empty"
-                )
+                    lambda x: bool(x and isinstance(x, str) and x.strip()),
+                    "not_empty",
+                ),
             )
 
         predicates.extend(
             [
                 Validations.Core.Predicates(
-                    lambda x: len(str(x)) <= max_length, "length_check"
+                    lambda x: len(str(x)) <= max_length,
+                    "length_check",
                 ),
                 # Reuse Oracle identifier validation
                 Validations.Core.Predicates(
@@ -108,7 +115,7 @@ class OracleValidationFactory:
                     not in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED,
                     "oracle_reserved_check",
                 ),
-            ]
+            ],
         )
 
         # Combinar todos os predicates em um - ELIMINA MÚLTIPLOS VALIDATORS
@@ -129,19 +136,20 @@ class OracleValidationFactory:
 
     @staticmethod
     def validate_oracle_identifier(
-        value: str, max_length: int, *, allow_empty: bool = False
+        value: str,
+        max_length: int,
+        *,
+        allow_empty: bool = False,
     ) -> str:
         """Valida usando CompositeValidator - SINGLE RETURN."""
         if allow_empty and not value:
             return ""
 
         # Single return usando Railway-Oriented Programming
-        validation_result = (
-            OracleValidationFactory.create_identifier_validator(
-                max_length, allow_empty=allow_empty
-            )
-            .validate(value)
-        )
+        validation_result = OracleValidationFactory.create_identifier_validator(
+            max_length,
+            allow_empty=allow_empty,
+        ).validate(value)
 
         if validation_result.success:
             return str(validation_result.value)

@@ -99,7 +99,10 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         # Create columns
         columns = [
             FlextDbOracleModels.ColumnInfo(
-                column_name="ID", data_type="NUMBER", nullable=False, column_id=1
+                column_name="ID",
+                data_type="NUMBER",
+                nullable=False,
+                column_id=1,
             ),
             FlextDbOracleModels.ColumnInfo(
                 column_name="NAME",
@@ -111,17 +114,19 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         ]
 
         # Create table
-        table = FlextDbOracleModels.TableInfo(
-            table_name="TEST_TABLE", schema_name="TEST_SCHEMA", columns=columns
+        FlextDbOracleModels.TableInfo(
+            table_name="TEST_TABLE",
+            schema_name="TEST_SCHEMA",
+            columns=columns,
         )
 
-        result = self.manager.get_tables(table)
+        result = self.manager.get_tables("TEST_SCHEMA")
         assert hasattr(result, "success")
         # Should fail when not connected to database
         assert not result.success
-        assert (
-            "connection" in result.error.lower() or "connected" in result.error.lower()
-        )
+        assert result.error is not None
+        error_lower = result.error.lower()
+        assert "connection" in error_lower or "connected" in error_lower
 
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
@@ -158,7 +163,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         assert self.manager is self.services
 
         # Test manager has required attributes
-        assert hasattr(self.manager, "connection")
+        assert hasattr(self.manager, "get_connection_status")
         assert self.manager is not None
 
         # Test actual existing metadata methods
@@ -192,7 +197,10 @@ class TestFlextDbOracleMetadataManagerComprehensive:
                 column_id=2,
             ),
             FlextDbOracleModels.ColumnInfo(
-                column_name="CREATED_DATE", data_type="DATE", nullable=True, column_id=3
+                column_name="CREATED_DATE",
+                data_type="DATE",
+                nullable=True,
+                column_id=3,
             ),
             FlextDbOracleModels.ColumnInfo(
                 column_name="AMOUNT",
@@ -205,7 +213,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         ]
 
         table = FlextDbOracleModels.TableInfo(
-            table_name="COMPLEX_TABLE", schema_name="APP_SCHEMA", columns=columns
+            table_name="COMPLEX_TABLE",
+            schema_name="APP_SCHEMA",
+            columns=columns,
         )
 
         # Test DDL generation using model methods instead of missing service methods
@@ -219,9 +229,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         # Test get_tables method with proper parameters (expects schema string, not table object)
         result = self.manager.get_tables("APP_SCHEMA")
         assert not result.success  # Expected to fail when not connected
-        assert (
-            "connection" in result.error.lower() or "connected" in result.error.lower()
-        )
+        assert result.error is not None
+        error_lower = result.error.lower()
+        assert "connection" in error_lower or "connected" in error_lower
 
         # Test table full name and column DDL generation
         full_name = table.get_full_name()

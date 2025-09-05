@@ -28,7 +28,9 @@ class FlextDbOraclePlugins:
     #  "capabilities": ["query_tracking", "performance_metrics", "alerting"]}
 
     def register_plugin(
-        self, name: str, plugin_data: dict[str, object]
+        self,
+        name: str,
+        plugin_data: dict[str, object],
     ) -> FlextResult[None]:
         """Register a plugin."""
         try:
@@ -51,7 +53,7 @@ class FlextDbOraclePlugins:
         try:
             if not self._plugins:
                 return FlextResult[dict[str, object]].fail(
-                    "plugin listing returned empty"
+                    "plugin listing returned empty",
                 )
             return FlextResult[dict[str, object]].ok(self._plugins.copy())
         except Exception as e:
@@ -78,7 +80,7 @@ class FlextDbOraclePlugins:
             return FlextResult[dict[str, object]].ok(plugin_data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
-                f"Failed to create performance monitor plugin: {e}"
+                f"Failed to create performance monitor plugin: {e}",
             )
 
     def create_data_validation_plugin(self) -> FlextResult[dict[str, object]]:
@@ -93,7 +95,7 @@ class FlextDbOraclePlugins:
             return FlextResult[dict[str, object]].ok(plugin_data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
-                f"Failed to create data validation plugin: {e}"
+                f"Failed to create data validation plugin: {e}",
             )
 
     def create_security_audit_plugin(self) -> FlextResult[dict[str, object]]:
@@ -108,7 +110,7 @@ class FlextDbOraclePlugins:
             return FlextResult[dict[str, object]].ok(plugin_data)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
-                f"Failed to create security audit plugin: {e}"
+                f"Failed to create security audit plugin: {e}",
             )
 
     def register_all_oracle_plugins(self) -> FlextResult[dict[str, object]]:
@@ -146,7 +148,7 @@ class FlextDbOraclePlugins:
             return FlextResult[dict[str, object]].ok(plugins_info)
         except Exception as e:
             return FlextResult[dict[str, object]].fail(
-                f"Plugin registration failed: {e}"
+                f"Plugin registration failed: {e}",
             )
 
 

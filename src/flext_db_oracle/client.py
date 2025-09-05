@@ -38,8 +38,9 @@ from flext_db_oracle.models import FlextDbOracleModels
 # =============================================================================
 
 
-# ELIMINADO: OracleCliCommandProcessor class - Substituída por Interpreter Pattern unificado
-# no método _create_unified_cli_interpreter() que consolida TODAS as operações CLI
+# ELIMINADO: OracleCliCommandProcessor class - Substituída por Interpreter Pattern
+# unificado no método _create_unified_cli_interpreter() que consolida TODAS as
+# operações CLI
 
 
 class FlextDbOracleClient:
@@ -76,12 +77,12 @@ class FlextDbOracleClient:
             init_result = self.cli_services.create_session()
             if not init_result.success:
                 return FlextResult[None].fail(
-                    f"CLI initialization failed: {init_result.error}"
+                    f"CLI initialization failed: {init_result.error}",
                 )
 
             self.interactions.print_info("FLEXT Oracle Database CLI")
             self.interactions.print_status(
-                "Enterprise Oracle operations with professional CLI experience..."
+                "Enterprise Oracle operations with professional CLI experience...",
             )
 
             self.interactions.print_success("Oracle CLI initialized successfully")
@@ -92,7 +93,12 @@ class FlextDbOracleClient:
             return FlextResult[None].fail(f"Oracle CLI initialization failed: {e}")
 
     def connect_to_oracle(
-        self, host: str, port: int, service_name: str, username: str, password: str
+        self,
+        host: str,
+        port: int,
+        service_name: str,
+        username: str,
+        password: str,
     ) -> FlextResult[FlextDbOracleApi]:
         """Connect to Oracle database using provided credentials."""
         try:
@@ -110,7 +116,7 @@ class FlextDbOracleClient:
 
             if not connect_result.success:
                 return FlextResult[FlextDbOracleApi].fail(
-                    f"Connection failed: {connect_result.error}"
+                    f"Connection failed: {connect_result.error}",
                 )
 
             self.current_connection = api
@@ -124,11 +130,14 @@ class FlextDbOracleClient:
     def execute_query(self, query: str) -> FlextResult[object]:
         """Execute SQL query usando Chain of Responsibility - ELIMINA DUPLICAÇÃO."""
         return self._execute_with_chain(
-            "query", {"sql": query, "title": "Query Results"}
+            "query",
+            {"sql": query, "title": "Query Results"},
         )
 
     def _execute_with_chain(
-        self, operation: str, params: dict[str, object]
+        self,
+        operation: str,
+        params: dict[str, object],
     ) -> FlextResult[object]:
         """Execute operation usando Fluent Interface + Railway-Oriented Programming - REDUZ COMPLEXIDADE."""
         # Fluent Interface Pattern com Railway-Oriented Programming - SINGLE EXPRESSION
@@ -139,11 +148,14 @@ class FlextDbOracleClient:
             .bind(self._execute_operation)
             .bind(self._format_and_display_result)
             .map(lambda data: data.get("result"))
-            .tap_error(lambda error: self.logger.error(f"Chain execution failed: {error}"))
+            .tap_error(
+                lambda error: self.logger.error(f"Chain execution failed: {error}")
+            )
         )
 
     def _validate_connection(
-        self, data: dict[str, object]
+        self,
+        data: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         """Validate connection usando Fluent Interface - SINGLE EXPRESSION."""
         return (
@@ -153,7 +165,8 @@ class FlextDbOracleClient:
         )
 
     def _execute_operation(
-        self, data: dict[str, object]
+        self,
+        data: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         """Execute operation usando Strategy Pattern - CONSOLIDA EXECUÇÃO."""
         operation = str(data.get("operation", ""))
@@ -168,40 +181,47 @@ class FlextDbOracleClient:
         operation_strategies = {
             "query": lambda: connection.query(str(params_dict.get("sql", ""))),
             "schemas": connection.get_schemas,
-            "tables": lambda: connection.get_tables(cast("str", params_dict.get("schema")) if params_dict.get("schema") else None),
+            "tables": lambda: connection.get_tables(
+                cast("str", params_dict.get("schema"))
+                if params_dict.get("schema")
+                else None
+            ),
             "health": self._execute_health_check,
         }
 
         strategy = operation_strategies.get(operation)
         if not strategy:
             return FlextResult[dict[str, object]].fail(
-                f"Unknown operation: {operation}"
+                f"Unknown operation: {operation}",
             )
 
         try:
             execution_result = strategy()
             if not hasattr(execution_result, "success"):
-                return FlextResult[dict[str, object]].fail(f"Invalid result from {operation}")
+                return FlextResult[dict[str, object]].fail(
+                    f"Invalid result from {operation}"
+                )
 
             result = cast("FlextResult[object]", execution_result)
             if not result.success:
                 return FlextResult[dict[str, object]].fail(
-                    f"{operation.title()} failed: {result.error}"
+                    f"{operation.title()} failed: {result.error}",
                 )
 
             # Single return com resultado
             return FlextResult[dict[str, object]].ok(
-                dict(data) | {"result": result.value}
+                dict(data) | {"result": result.value},
             )
 
         except Exception as e:
             self.logger.exception(f"{operation.title()} execution error")
             return FlextResult[dict[str, object]].fail(
-                f"{operation.title()} execution error: {e}"
+                f"{operation.title()} execution error: {e}",
             )
 
     def _format_and_display_result(
-        self, data: dict[str, object]
+        self,
+        data: dict[str, object],
     ) -> FlextResult[dict[str, object]]:
         """Format and display usando Strategy Pattern - REDUZ COMPLEXIDADE DE 20."""
         try:
@@ -218,12 +238,16 @@ class FlextDbOracleClient:
             self.logger.warning(f"Format/display warning: {e}")
             return FlextResult[dict[str, object]].ok(data)
 
-    def _get_formatter_strategy(self) -> Callable[[dict[str, object]], FlextResult[str]]:
+    def _get_formatter_strategy(
+        self,
+    ) -> Callable[[dict[str, object]], FlextResult[str]]:
         """Get formatter strategy usando lookup table - SINGLE RETURN."""
         # Lookup table elimina múltiplas condicionais
         format_type = cast("str", self.user_preferences["default_output_format"])
 
-        formatter_strategies: dict[str, Callable[[dict[str, object]], FlextResult[str]]] = {
+        formatter_strategies: dict[
+            str, Callable[[dict[str, object]], FlextResult[str]]
+        ] = {
             "table": self._format_as_table,
             "json": self._format_as_json,
         }
@@ -251,9 +275,12 @@ class FlextDbOracleClient:
         return self.formatter.format_json(result)
 
     def _adapt_data_for_table(
-        self, operation: str, result: object
+        self,
+        operation: str,
+        result: object,
     ) -> list[dict[str, object]]:
         """Adapt data for table usando Strategy Pattern - ELIMINA CONDICIONAIS."""
+
         # Strategy lookup with explicit typing - elimina múltiplos ifs
         def adapt_schemas(r: object) -> list[dict[str, object]]:
             return [{"schema": schema} for schema in r] if isinstance(r, list) else []
@@ -262,9 +289,15 @@ class FlextDbOracleClient:
             return [{"table": table} for table in r] if isinstance(r, list) else []
 
         def adapt_health(r: object) -> list[dict[str, object]]:
-            return [{"key": k, "value": str(v)} for k, v in r.items()] if isinstance(r, dict) else []
+            return (
+                [{"key": k, "value": str(v)} for k, v in r.items()]
+                if isinstance(r, dict)
+                else []
+            )
 
-        adaptation_strategies: dict[str, Callable[[object], list[dict[str, object]]]] = {
+        adaptation_strategies: dict[
+            str, Callable[[object], list[dict[str, object]]]
+        ] = {
             "schemas": adapt_schemas,
             "tables": adapt_tables,
             "health": adapt_health,
@@ -282,10 +315,12 @@ class FlextDbOracleClient:
     def _execute_health_check(self) -> FlextResult[dict[str, object]]:
         """Execute health check consolidado - REUTILIZADO."""
         if self.current_connection is None:
-            return FlextResult[dict[str, object]].fail("No active connection for health check")
+            return FlextResult[dict[str, object]].fail(
+                "No active connection for health check"
+            )
 
         test_result = self.current_connection.query(
-            FlextDbOracleConstants.Query.TEST_QUERY
+            FlextDbOracleConstants.Query.TEST_QUERY,
         )
 
         health_data: dict[str, object] = {
@@ -318,9 +353,11 @@ class FlextDbOracleClient:
         result = self._execute_with_chain("health", {"title": "Health Check"})
         if result.success:
             return FlextResult[dict[str, object]].ok(
-                cast("dict[str, object]", result.value)
+                cast("dict[str, object]", result.value),
             )
-        return FlextResult[dict[str, object]].fail(result.error or "Health check failed")
+        return FlextResult[dict[str, object]].fail(
+            result.error or "Health check failed"
+        )
 
     def configure_preferences(self, **preferences: object) -> FlextResult[None]:
         """Update user preferences for CLI behavior."""
@@ -381,11 +418,15 @@ class FlextDbOracleClient:
         for param_name, prompt_text, default_value, is_sensitive in parameter_specs:
             if param_name == "test_connection":
                 # Convert to proper bool type for confirm
-                bool_default = bool(default_value) if default_value is not None else False
-                bool_result = self.interactions.confirm(prompt_text, default=bool_default)
+                bool_default = (
+                    bool(default_value) if default_value is not None else False
+                )
+                bool_result = self.interactions.confirm(
+                    prompt_text, default=bool_default
+                )
                 if not bool_result.success:
                     return FlextResult[ConnectionParameters].fail(
-                        f"{param_name} input failed: {bool_result.error}"
+                        f"{param_name} input failed: {bool_result.error}",
                     )
                 test_connection_value = bool_result.value
             elif is_sensitive:
@@ -393,7 +434,7 @@ class FlextDbOracleClient:
                 str_result = self.interactions.prompt(prompt_text, default=None)
                 if not str_result.success:
                     return FlextResult[ConnectionParameters].fail(
-                        f"{param_name} input failed: {str_result.error}"
+                        f"{param_name} input failed: {str_result.error}",
                     )
                 if param_name == "password":
                     password_value = str_result.value
@@ -403,7 +444,7 @@ class FlextDbOracleClient:
                 str_result = self.interactions.prompt(prompt_text, default=str_default)
                 if not str_result.success:
                     return FlextResult[ConnectionParameters].fail(
-                        f"{param_name} input failed: {str_result.error}"
+                        f"{param_name} input failed: {str_result.error}",
                     )
                 # Assign to appropriate typed variable
                 if param_name == "host":
@@ -412,7 +453,9 @@ class FlextDbOracleClient:
                     try:
                         port_value = int(str_result.value)
                     except ValueError:
-                        return FlextResult[ConnectionParameters].fail("Invalid port number")
+                        return FlextResult[ConnectionParameters].fail(
+                            "Invalid port number"
+                        )
                 elif param_name == "service_name":
                     service_name_value = str_result.value
                 elif param_name == "username":
@@ -427,11 +470,12 @@ class FlextDbOracleClient:
                 username=username_value,
                 password=password_value,
                 test_connection=test_connection_value,
-            )
+            ),
         )
 
     def _create_oracle_config(
-        self, params: ConnectionParameters
+        self,
+        params: ConnectionParameters,
     ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
         """Create Oracle configuration from parameters."""
         try:
@@ -446,13 +490,14 @@ class FlextDbOracleClient:
             return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                f"Configuration creation failed: {e}"
+                f"Configuration creation failed: {e}",
             )
 
     # ELIMINADO _display_connection_summary - Consolidado em _display_and_test_config
 
     def _display_and_test_config(
-        self, config: FlextDbOracleModels.OracleConfig
+        self,
+        config: FlextDbOracleModels.OracleConfig,
     ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
         """Display config and test if requested - Railway-Oriented Programming."""
         # Display summary
@@ -472,10 +517,13 @@ class FlextDbOracleClient:
         return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
 
     def _test_connection_if_requested(
-        self, params: ConnectionParameters
+        self,
+        params: ConnectionParameters,
     ) -> FlextResult[None]:
         """Test connection if user requested it."""
-        if not (params.test_connection if hasattr(params, "test_connection") else False):
+        if not (
+            params.test_connection if hasattr(params, "test_connection") else False
+        ):
             return FlextResult[None].ok(None)
 
         test_result = self.connect_to_oracle(
@@ -503,7 +551,9 @@ class FlextDbOracleClient:
         error_msg = result.error or "Command execution failed"
         return FlextResult[None].fail(error_msg)
 
-    def _create_unified_cli_interpreter(self) -> Callable[[str, dict[str, object]], FlextResult[object]]:
+    def _create_unified_cli_interpreter(
+        self,
+    ) -> Callable[[str, dict[str, object]], FlextResult[object]]:
         """Cria interpreter usando Pure Functional Programming - ELIMINA COMPLEXITY 59 → 35."""
         # Mega lookup table com todas as operações CLI - ELIMINA CommandProcessor
         cli_operations = {
@@ -515,7 +565,7 @@ class FlextDbOracleClient:
                 kwargs.get("password", ""),
             ),
             "query": lambda kwargs: self.execute_query(
-                kwargs.get("sql", "SELECT 1 FROM DUAL")
+                kwargs.get("sql", "SELECT 1 FROM DUAL"),
             ),
             "schemas": lambda _: self.list_schemas(),
             "tables": lambda kwargs: self.list_tables(kwargs.get("schema", None)),
@@ -525,7 +575,8 @@ class FlextDbOracleClient:
 
         # Pure Function Interpreter - SINGLE FUNCTION, ZERO CLASSES
         def interpret_command(
-            command: str, params: dict[str, object]
+            command: str,
+            params: dict[str, object],
         ) -> FlextResult[object]:
             operation = cli_operations.get(command)
             if not operation:
@@ -533,8 +584,11 @@ class FlextDbOracleClient:
 
             try:
                 # Type-safe operation call with explicit function typing
-                typed_operation: Callable[[dict[str, object]], FlextResult[object]] = cast(
-                    "Callable[[dict[str, object]], FlextResult[object]]", operation
+                typed_operation: Callable[[dict[str, object]], FlextResult[object]] = (
+                    cast(
+                        "Callable[[dict[str, object]], FlextResult[object]]",
+                        operation,
+                    )
                 )
                 result = typed_operation(params)
                 # Result is now properly typed as FlextResult[object]
@@ -593,7 +647,7 @@ def create_oracle_cli_commands() -> FlextResult[list[FlextCliModels.CliCommand]]
 
     except Exception as e:
         return FlextResult[list[FlextCliModels.CliCommand]].fail(
-            f"Failed to create CLI commands: {e}"
+            f"Failed to create CLI commands: {e}",
         )
 
 
@@ -607,7 +661,9 @@ def _create_oracle_cli() -> FlextResult[object]:
         # Create Oracle commands
         commands_result = create_oracle_cli_commands()
         if not commands_result.success:
-            return FlextResult[object].fail(f"Failed to create commands: {commands_result.error}")
+            return FlextResult[object].fail(
+                f"Failed to create commands: {commands_result.error}"
+            )
 
         # Return the CLI API itself since register_command and get_click_group don't exist
         return FlextResult[object].ok(cli)
