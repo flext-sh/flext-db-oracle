@@ -170,11 +170,11 @@ class TestCLIRealFunctionality:
 
         # Test from_config with parameters
         config = FlextDbOracleModels.OracleConfig(
-            host=config_data["host"],
-            port=config_data["port"],
-            service_name=config_data["service_name"],
-            username=config_data["username"],
-            password=SecretStr(config_data["password"]),
+            host=str(config_data["host"]),
+            port=int(str(config_data["port"])) if config_data.get("port") else 1521,
+            service_name=str(config_data.get("service_name", "XE")),
+            username=str(config_data["username"]),
+            password=SecretStr(str(config_data["password"])),
         )
 
         api = FlextDbOracleApi.from_config(config)

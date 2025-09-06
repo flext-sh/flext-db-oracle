@@ -10,12 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
+from click import Command
 from click.testing import CliRunner
 
 from flext_db_oracle import oracle_cli
-from typing import cast
-from click import Command
 
 
 class TestRealOracleCli:
@@ -33,7 +34,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI connect command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["connect-env"])
 
         # Should succeed with real Oracle
@@ -49,7 +50,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI query command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -71,7 +72,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI schemas command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "table", "schemas"])
 
         # Should succeed and show schemas
@@ -86,7 +87,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI tables command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "table", "tables"])
 
         # Should succeed and show test tables
@@ -101,7 +102,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI health command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "table", "health"])
 
         # Should succeed and show healthy status
@@ -114,7 +115,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI tables command with schema filtering."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -136,7 +137,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI optimize command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -156,7 +157,7 @@ class TestRealOracleCli:
     ) -> None:
         """Test CLI plugins command with real Oracle container."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["plugins"])
 
         # Should succeed and show plugin information
@@ -178,7 +179,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI with invalid SQL query."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -200,7 +201,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI with invalid table name."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -226,7 +227,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI help command."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--help"])
 
         # Should succeed and show help
@@ -240,7 +241,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI debug mode."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--debug", "connect-env"])
 
         # Should succeed with debug output
@@ -253,7 +254,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI JSON output format."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "json", "schemas"])
 
         # Should succeed with JSON output
@@ -266,7 +267,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI YAML output format."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "yaml", "tables"])
 
         # Should succeed with YAML output
@@ -279,7 +280,7 @@ class TestRealOracleCliErrorHandling:
     ) -> None:
         """Test CLI CSV output format."""
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(cli_command, ["--output", "csv", "tables"])
 
         # Should succeed with CSV output (or fail gracefully)
@@ -302,7 +303,7 @@ class TestRealOracleCliCoverageBoost:
         """Test connection parameter processing (lines 267-274)."""
         # Test with explicit connection parameters
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -331,7 +332,7 @@ class TestRealOracleCliCoverageBoost:
         """Test CLI error handling paths (lines 289-317)."""
         # Test with invalid host (should be quick to fail)
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             [
@@ -360,7 +361,7 @@ class TestRealOracleCliCoverageBoost:
         """Test interactive command paths (lines 458-503)."""
         # Test command that might trigger interactive paths
         # Cast oracle_cli to Command for type safety
-        cli_command = cast(Command, oracle_cli)
+        cli_command = cast("Command", oracle_cli)
         result = cli_runner.invoke(
             cli_command,
             ["query", "--sql", "SELECT COUNT(*) FROM DUAL"],
@@ -379,8 +380,10 @@ class TestRealOracleCliCoverageBoost:
         formats = ["table", "json", "yaml"]
 
         for fmt in formats:
+            # Cast oracle_cli to Command for type safety
+            cli_command = cast("Command", oracle_cli)
             result = cli_runner.invoke(
-                oracle_cli,
+                cli_command,
                 ["--output", fmt, "schemas"] if fmt != "table" else ["schemas"],
             )
 
@@ -406,7 +409,7 @@ class TestRealOracleCliCoverageBoost:
 
         for cmd in commands:
             # Cast oracle_cli to Command for type safety
-            cli_command = cast(Command, oracle_cli)
+            cli_command = cast("Command", oracle_cli)
             result = cli_runner.invoke(cli_command, cmd)
             # Should execute without crashing (exit code can vary)
             assert result.exit_code in {0, 1, 2}  # Allow various valid outcomes

@@ -4,6 +4,8 @@ This module tests the connection functionality with real code paths,
 following the user's requirement for real code testing without mocks.
 """
 
+from typing import cast
+
 import pytest
 from pydantic import SecretStr
 
@@ -370,8 +372,7 @@ class TestFlextDbOracleConnectionComprehensive:
         }
 
         # Cast singer_schema to compatible dict type
-        from typing import cast, Mapping
-        schema_dict = cast(dict[str, object], singer_schema)
+        schema_dict = cast("dict[str, object]", singer_schema)
         result = self.connection.map_singer_schema(schema_dict)
         assert result.success
         mapping = result.value

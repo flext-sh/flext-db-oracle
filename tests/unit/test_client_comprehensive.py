@@ -187,7 +187,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client.cli_services is not None
 
         # Test component types
-        # ruff: noqa: PLC0415 - Import needed for type checking
+
         from flext_cli import (
             FlextCliApi,
             FlextCliFormatters,

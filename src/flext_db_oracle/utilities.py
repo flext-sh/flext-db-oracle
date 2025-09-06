@@ -16,8 +16,7 @@ from typing import Protocol, cast
 
 from flext_core import FlextDecorators, FlextResult
 from flext_core.utilities import FlextUtilities
-
-from flext_db_oracle.constants import FlextDbOracleConstants
+from pydantic import SecretStr
 
 # All protocols consolidated within main class as inner types
 
@@ -268,21 +267,18 @@ class FlextDbOracleUtilities:
     def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
         """Create Oracle API instance from configuration."""
         try:
-            # Factory method requires late imports to avoid circular dependency
-            import flext_db_oracle.api as api_module
-            import flext_db_oracle.models as models_module
+            # Factory method requires runtime imports to avoid circular dependency
+            from flext_db_oracle.api import FlextDbOracleApi
+            from flext_db_oracle.models import FlextDbOracleModels
 
             # Convert port to int with proper type checking
             port_value = config.get("port", 1521)
             port_int = int(port_value) if isinstance(port_value, (int, str)) else 1521
 
-            # Convert password to SecretStr
-            from pydantic import SecretStr  # OK - not part of circular import
-
             password_value = config.get("password", "")
             password_str = SecretStr(str(password_value))
 
-            oracle_config = models_module.FlextDbOracleModels.OracleConfig(
+            oracle_config = FlextDbOracleModels.OracleConfig(
                 host=str(config.get("host", "localhost")),
                 port=port_int,
                 service_name=str(config.get("service_name", "XE")),
@@ -292,59 +288,13 @@ class FlextDbOracleUtilities:
             )
 
             # Create API instance with configuration
-            api = api_module.FlextDbOracleApi(oracle_config)
+            api = FlextDbOracleApi(oracle_config)
 
             # API creation successful - return the API instance
             return FlextResult[object].ok(api)
 
         except Exception as e:
             return FlextResult[object].fail(f"Failed to create API from config: {e}")
-
-    @staticmethod
-    def validate_port_number(value: int | None) -> int | None:
-        """Centralized port validation logic."""
-        if value is not None and not (
-            FlextDbOracleConstants.NetworkValidation.MIN_PORT
-            <= value
-            <= FlextDbOracleConstants.NetworkValidation.MAX_PORT
-        ):
-            msg = "Port must be between 1 and 65535"
-            raise ValueError(msg)
-        return value
-
-    @staticmethod
-    def validate_port_number_required(value: int) -> int:
-        """Centralized port validation for required fields."""
-        if not (
-            FlextDbOracleConstants.NetworkValidation.MIN_PORT
-            <= value
-            <= FlextDbOracleConstants.NetworkValidation.MAX_PORT
-        ):
-            msg = "Port must be between 1 and 65535"
-            raise ValueError(msg)
-        return value
-
-    @staticmethod
-    def wrap_service_result[T](
-        result: FlextResult[T],
-        operation_name: str,
-        success_value: T | None = None,
-    ) -> FlextResult[T]:
-        """Standardize FlextResult wrapping pattern."""
-        if result.success:
-            value = success_value if success_value is not None else result.value
-            return FlextResult[T].ok(value)
-        return FlextResult[T].fail(f"{operation_name} failed: {result.error}")
-
-    @staticmethod
-    def create_success_result[T](value: T) -> FlextResult[T]:
-        """Create successful FlextResult."""
-        return FlextResult[T].ok(value)
-
-    @staticmethod
-    def create_error_result(operation_name: str, error: str) -> FlextResult[object]:
-        """Create error FlextResult with standardized message."""
-        return FlextResult[object].fail(f"{operation_name} failed: {error}")
 
     @staticmethod
     def _display_health_data(

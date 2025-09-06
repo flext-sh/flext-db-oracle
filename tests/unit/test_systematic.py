@@ -75,7 +75,10 @@ class TestAPIMissedLines:
         for operation in operations_to_test:
             result = operation()
             # These should either succeed (if connection works) or fail gracefully
-            assert result.success or result.is_failure
+            assert hasattr(result, "success")
+            assert result.success or (
+                hasattr(result, "is_failure") and result.is_failure
+            )
 
     def test_api_query_operations_571_610(
         self,
@@ -138,7 +141,10 @@ class TestAPIMissedLines:
             for operation in schema_operations:
                 result = operation()
                 # Should handle both success and failure cases
-                assert result.success or result.is_failure
+                assert hasattr(result, "success")
+                assert result.success or (
+                    hasattr(result, "is_failure") and result.is_failure
+                )
 
         finally:
             connected_api.disconnect()
@@ -174,8 +180,8 @@ class TestConnectionMissedLines:
             result = operation()
             # Should handle connection errors gracefully
             # Note: test_connection() returns success=False for not connected state
-            assert result.is_failure or (
-                hasattr(result, "data") and result.value is False
+            assert (hasattr(result, "is_failure") and result.is_failure) or (
+                hasattr(result, "value") and result.value is False
             )
 
     def test_connection_lifecycle_140_147(

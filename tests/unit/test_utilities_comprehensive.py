@@ -14,13 +14,11 @@ import time
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
 from pydantic import BaseModel
 
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_core import FlextResult
 from flext_tests import FlextMatchers
 
 from flext_db_oracle.utilities import FlextDbOracleUtilities
@@ -200,49 +198,20 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result, "success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
-    def test_validate_port_number_real(self) -> None:
-        """Test port number validation - REAL FUNCTIONALITY."""
-        # Valid ports
-        assert self.utilities.validate_port_number(1521) == 1521
-        assert self.utilities.validate_port_number(1) == 1
-        assert self.utilities.validate_port_number(65535) == 65535
-        assert self.utilities.validate_port_number(None) is None
-
-        # Invalid ports should raise or return None
-        try:
-            result = self.utilities.validate_port_number(-1)
-            assert result is None or isinstance(result, int)
-        except (ValueError, TypeError):
-            pass  # Expected for invalid ports
-
-    def test_validate_port_number_required_real(self) -> None:
-        """Test required port number validation - REAL FUNCTIONALITY."""
-        # Valid ports
-        assert self.utilities.validate_port_number_required(1521) == 1521
-        assert self.utilities.validate_port_number_required(1) == 1
-        assert self.utilities.validate_port_number_required(65535) == 65535
-
-        # Invalid ports should raise
-        with pytest.raises((ValueError, TypeError)):
-            self.utilities.validate_port_number_required(-1)
-
-        with pytest.raises((ValueError, TypeError)):
-            self.utilities.validate_port_number_required(70000)
-
     def test_utilities_error_handling_patterns_real(self) -> None:
         """Test utilities error handling patterns - REAL FUNCTIONALITY."""
         utilities = FlextDbOracleUtilities()
 
         # Test with None inputs - use type ignore to test error handling
-        result1 = utilities.escape_oracle_identifier(None)  # type: ignore[arg-type]
+        result1 = utilities.escape_oracle_identifier(None)
         FlextMatchers.assert_result_failure(result1)
 
         # Test with invalid types - use type ignore to test error handling
-        utilities.format_sql_for_oracle(123)  # type: ignore[arg-type]
+        utilities.format_sql_for_oracle(123)
         # Should handle gracefully - may work or fail
 
         # Test create_api_from_config with None
-        result3 = utilities.create_api_from_config(None)  # type: ignore[arg-type]
+        result3 = utilities.create_api_from_config(None)
         FlextMatchers.assert_result_failure(result3)
 
     def test_utilities_performance_tracking_real(self) -> None:
@@ -289,27 +258,6 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result2 = utilities.create_api_from_config({"test": "config"})
         assert hasattr(result2, "success")
         assert hasattr(result2, "error") or hasattr(result2, "value")
-
-    def test_utilities_helper_functions_real(self) -> None:
-        """Test utilities helper functions - REAL FUNCTIONALITY."""
-        utilities = FlextDbOracleUtilities()
-
-        # Test wrap_service_result
-        input_result = FlextResult[str].ok("test_value")
-        wrapped_result = utilities.wrap_service_result(input_result, "test_operation")
-        FlextMatchers.assert_result_success(wrapped_result)
-        assert wrapped_result.value == "test_value"
-
-        # Test create_success_result
-        success_result2 = utilities.create_success_result("success_value")
-        FlextMatchers.assert_result_success(success_result2)
-        assert success_result2.value == "success_value"
-
-        # Test create_error_result
-        error_result = utilities.create_error_result("test_operation", "test_error")
-        FlextMatchers.assert_result_failure(error_result)
-        assert error_result.error is not None
-        assert "test_error" in str(error_result.error)
 
     def test_utilities_string_representations_real(self) -> None:
         """Test utilities string representations - REAL FUNCTIONALITY."""

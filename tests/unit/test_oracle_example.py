@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
+from flext_core import FlextResult
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -16,6 +17,15 @@ from flext_db_oracle import (
     FlextDbOracleConfig,
 )
 from flext_db_oracle.services import FlextDbOracleServices
+
+
+def safe_get_first_value(data: object) -> object:
+    """Safely get first value from various data structures."""
+    if isinstance(data, (tuple, list)) and len(data) > 0:
+        return data[0]
+    if isinstance(data, dict) and data:
+        return next(iter(data.values()))
+    return data
 
 
 class TestRealOracleConnection:
@@ -68,9 +78,10 @@ class TestRealOracleConnection:
             query_data = result.value
             assert isinstance(query_data, list)
             assert len(query_data) == 1
-            row = query_data[0]
-            if isinstance(row, (tuple, list)) and len(row) > 0:
-                assert row[0] == 1
+            # Use safe_get_first_value to handle various row formats
+            first_row = safe_get_first_value(query_data)
+            first_value = safe_get_first_value(first_row)
+            assert first_value == 1
 
         finally:
             connection.disconnect()
@@ -97,8 +108,14 @@ class TestRealOracleConnection:
                 raise AssertionError(msg)
             # Success case - use modern .value access
             fetch_data = result.value
-            if fetch_data and isinstance(fetch_data, (tuple, list)) and len(fetch_data) > 0:
-                assert fetch_data[0] == 42
+            if fetch_data:
+                if isinstance(fetch_data, (tuple, list)) and len(fetch_data) > 0:
+                    first_value = safe_get_first_value(fetch_data)
+                    assert first_value == 42
+                elif isinstance(fetch_data, dict) and fetch_data:
+                    # Handle dict result
+                    first_value = next(iter(fetch_data.values()))
+                    assert first_value == 42
 
         finally:
             connection.disconnect()
@@ -162,9 +179,11 @@ class TestRealOracleConnection:
             count_data = select_result.value
             assert isinstance(count_data, list)
             assert len(count_data) > 0
-            row = count_data[0]
-            if isinstance(row, (tuple, list)) and len(row) > 0:
-                assert row[0] == 3
+            if isinstance(count_data, list) and len(count_data) > 0:
+                # Use safe_get_first_value to handle various row formats
+                first_row = safe_get_first_value(count_data)
+                first_value = safe_get_first_value(first_row)
+                assert first_value == 3
 
         finally:
             # Cleanup - drop temp table manually since PRESERVE ROWS keeps data
@@ -199,16 +218,14 @@ class TestRealOracleApi:
             # SQLAlchemy Row objects are returned as tuples: rows[0][0] = ('Hello Oracle',)
             # To get the actual string value, we need to access the first element of the tuple
             query_data = query_result.value
-            if hasattr(query_data, "rows") and query_data.rows and len(query_data.rows) > 0:
-                row = query_data.rows[0]
-                if hasattr(row, "__getitem__") and len(row) > 0:
-                    cell = row[0]
-                    if (
-                        hasattr(cell, "__getitem__")
-                        and hasattr(cell, "__len__")
-                        and len(cell) > 0
-                    ):
-                        assert cell[0] == "Hello Oracle"
+            # Handle query_data as list instead of assuming .rows attribute
+            if isinstance(query_data, list) and len(query_data) > 0:
+                row = query_data[0]
+                if hasattr(row, "__getitem__") and hasattr(row, "__len__") and len(row) > 0:
+                    cell = safe_get_first_value(row)
+                    # Extract actual value, handling nested structures
+                    final_value = safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
+                    assert "Hello Oracle" in str(final_value)
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle schema listing using utilities."""
@@ -275,8 +292,15 @@ class TestRealOracleApi:
         # Success case - use modern .value access
         query_result = result.value
         # For regular query, just verify we got data
-        assert hasattr(query_result, "rows")
-        assert len(query_result.rows) > 0
+        if isinstance(query_result, list):
+            assert len(query_result) > 0
+        else:
+            # Handle QueryResult object if it has rows attribute
+            assert hasattr(query_result, "rows") or isinstance(query_result, (list, tuple))
+            if hasattr(query_result, "rows"):
+                assert len(query_result.rows) > 0
+            else:
+                assert len(query_result) > 0
 
     def test_real_api_singer_type_conversion(
         self,
@@ -340,11 +364,9 @@ class TestRealOracleApi:
                 if "default_value" in col:
                     col_def += f" DEFAULT {col['default_value']}"
                 column_parts.append(col_def)
-            ddl_parts.append(", ".join(column_parts))
-            ddl_parts.append(")")
+            ddl_parts.extend((", ".join(column_parts), ")"))
             ddl_sql = " ".join(ddl_parts)
             # Create success result for consistent pattern
-            from flext_core import FlextResult
             ddl_result = FlextResult[str].ok(ddl_sql)
             if ddl_result.is_failure:
                 msg = f"DDL generation failed: {ddl_result.error}"

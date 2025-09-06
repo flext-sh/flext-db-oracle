@@ -593,9 +593,12 @@ class FlextDbOracleModels:
         @classmethod
         def validate_port(cls, value: int | None) -> int | None:
             """Validate port number."""
-            # Import at runtime to avoid circular imports
-            import flext_db_oracle.utilities as utils_module
-            return utils_module.FlextDbOracleUtilities.validate_port_number(value)
+            if value is None:
+                return 1521  # Oracle default port
+            if not 1 <= value <= 65535:
+                msg = f"Port must be between 1 and 65535, got {value}"
+                raise ValueError(msg)
+            return value
 
         def get_connection_string_safe(self) -> str:
             """Get connection string without password."""
@@ -682,9 +685,10 @@ class FlextDbOracleModels:
         @classmethod
         def validate_port(cls, value: int) -> int:
             """Validate port number."""
-            # Import at runtime to avoid circular imports
-            import flext_db_oracle.utilities as utils_module
-            return utils_module.FlextDbOracleUtilities.validate_port_number_required(value)
+            if not 1 <= value <= 65535:
+                msg = f"Port must be between 1 and 65535, got {value}"
+                raise ValueError(msg)
+            return value
 
         @field_validator("password", mode="before")
         @classmethod

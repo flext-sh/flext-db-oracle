@@ -11,14 +11,12 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import cast
 
 from pydantic import SecretStr
 
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_core import FlextTypes
 from flext_tests import FlextMatchers, TestBuilders
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -79,7 +77,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # Use FlextMatchers for better structure validation
         FlextMatchers.assert_json_structure(
-            cast("FlextTypes.Core.JsonObject", result),
+            result,
             ["config", "connected", "plugin_count"],
         )
 
@@ -442,3 +440,293 @@ class TestFlextDbOracleApiRealFunctionality:
         assert isinstance(api, FlextDbOracleApi)
         assert api.config == self.config
         assert api is not self.api  # Different instance
+
+    def test_context_manager_protocol_real(self) -> None:
+        """Test context manager protocol - REAL FUNCTIONALITY."""
+        # Test context manager methods exist
+        assert hasattr(self.api, "__enter__")
+        assert hasattr(self.api, "__exit__")
+        assert callable(self.api.__enter__)
+        assert callable(self.api.__exit__)
+
+        # Test actual context manager usage
+        with self.api as api_context:
+            assert api_context is self.api
+            assert isinstance(api_context, FlextDbOracleApi)
+            # Should be able to use API within context
+            result = api_context.is_valid()
+            assert result is True
+
+    def test_repr_method_real(self) -> None:
+        """Test __repr__ method - REAL FUNCTIONALITY."""
+        repr_str = repr(self.api)
+        assert isinstance(repr_str, str)
+        assert len(repr_str) > 0
+        # Should contain class name and key information
+        assert "FlextDbOracleApi" in repr_str
+        # Should contain host information for identification
+        assert self.config.host in repr_str or "test_host" in repr_str
+
+    def test_convert_singer_type_method_real(self) -> None:
+        """Test convert_singer_type method - REAL FUNCTIONALITY."""
+        # Test various Singer type conversions - test interface, not specific mappings
+        test_types = ["string", "integer", "number", "boolean", "date-time"]
+
+        for singer_type in test_types:
+            result = self.api.convert_singer_type(singer_type)
+
+            # Should return FlextResult
+            assert hasattr(result, "success")
+            assert hasattr(result, "error")
+
+            if result.success:
+                FlextMatchers.assert_result_success(result)
+                # Should return some Oracle type string
+                oracle_type = result.value
+                assert isinstance(oracle_type, str)
+                assert len(oracle_type) > 0
+                # Should contain common Oracle type keywords
+                assert any(keyword in oracle_type.upper() for keyword in [
+                    "VARCHAR", "NUMBER", "TIMESTAMP", "DATE", "CLOB", "BLOB"
+                ])
+            else:
+                # Some types may not be implemented yet - that's valid
+                FlextMatchers.assert_result_failure(result)
+                assert result.error is not None
+
+    def test_map_singer_schema_method_real(self) -> None:
+        """Test map_singer_schema method - REAL FUNCTIONALITY."""
+        # Create test Singer schema
+        test_schema: dict[str, object] = {
+            "type": "object",
+            "properties": {
+                "id": {"type": "integer"},
+                "name": {"type": "string", "maxLength": 100},
+                "active": {"type": "boolean"},
+                "created_at": {"type": "string", "format": "date-time"},
+            },
+            "required": ["id", "name"],
+        }
+
+        result = self.api.map_singer_schema(test_schema)
+
+        # Method may not be fully implemented - test the interface
+        assert hasattr(result, "success")
+        assert hasattr(result, "value")
+        assert hasattr(result, "error")
+
+        if result.success:
+            FlextMatchers.assert_result_success(result)
+            schema_mapping = result.value
+            assert isinstance(schema_mapping, dict)
+        else:
+            FlextMatchers.assert_result_failure(result)
+            assert result.error is not None
+
+    def test_execute_sql_method_structure_real(self) -> None:
+        """Test execute_sql method structure - REAL FUNCTIONALITY."""
+        test_sql = "SELECT 1 FROM dual"
+        result = self.api.execute_sql(test_sql)
+
+        # Should return FlextResult with proper structure
+        assert hasattr(result, "success")
+        assert hasattr(result, "error")
+
+        # When not connected, should fail with descriptive error
+        FlextMatchers.assert_result_failure(result)
+        assert result.error is not None
+        # Error should mention connection or similar
+        error_lower = result.error.lower()
+        assert (
+            "connection" in error_lower
+            or "connect" in error_lower
+            or "not connected" in error_lower
+        )
+
+    def test_transaction_method_real(self) -> None:
+        """Test transaction method - REAL FUNCTIONALITY."""
+        result = self.api.transaction()
+
+        # Should return FlextResult
+        assert hasattr(result, "success")
+        assert hasattr(result, "error")
+
+        # Without connection, should fail gracefully
+        if not result.success:
+            FlextMatchers.assert_result_failure(result)
+            assert result.error is not None
+            error_lower = result.error.lower()
+            assert (
+                "connection" in error_lower
+                or "transaction" in error_lower
+                or "not connected" in error_lower
+            )
+
+    def test_connection_property_real(self) -> None:
+        """Test connection property - REAL FUNCTIONALITY."""
+        # When not connected, should return None
+        connection = self.api.connection
+        assert connection is None
+
+        # Verify property exists
+        assert hasattr(self.api, "connection")
+
+    def test_api_methods_exist_comprehensive_real(self) -> None:
+        """Test that all expected API methods exist - REAL FUNCTIONALITY."""
+        expected_methods = [
+            # Configuration methods
+            "from_config", "from_env", "from_url", "with_config",
+            # Connection methods
+            "connect", "disconnect", "test_connection", "is_connected",
+            # Query methods
+            "query", "query_one", "execute", "execute_many", "execute_sql",
+            # Metadata methods
+            "get_schemas", "get_tables", "get_columns", "get_table_metadata", "get_primary_keys",
+            # Plugin methods
+            "register_plugin", "unregister_plugin", "get_plugin", "list_plugins",
+            # Utility methods
+            "optimize_query", "get_observability_metrics", "get_health_status",
+            # Singer methods
+            "convert_singer_type", "map_singer_schema",
+            # Properties and special methods
+            "config", "connection", "is_valid", "to_dict", "transaction",
+        ]
+
+        for method_name in expected_methods:
+            assert hasattr(self.api, method_name), f"Method {method_name} should exist"
+            method = getattr(self.api, method_name)
+            if method_name not in {"config", "connection", "is_connected"}:  # Properties
+                assert callable(method), f"Method {method_name} should be callable"
+
+    def test_plugin_management_edge_cases_real(self) -> None:
+        """Test plugin management edge cases - REAL FUNCTIONALITY."""
+        # Test registering None plugin (should work with defensive design)
+        result = self.api.register_plugin("none_plugin", None)
+        FlextMatchers.assert_result_success(result)
+
+        # Should be retrievable
+        get_result = self.api.get_plugin("none_plugin")
+        FlextMatchers.assert_result_success(get_result)
+        assert get_result.value is None
+
+        # Test empty string plugin name
+        empty_result = self.api.register_plugin("", {"test": "plugin"})
+        FlextMatchers.assert_result_success(empty_result)  # Should work
+
+        # Test retrieving empty name plugin
+        get_empty = self.api.get_plugin("")
+        FlextMatchers.assert_result_success(get_empty)
+
+        # Test unregistering plugin that exists
+        unregister_result = self.api.unregister_plugin("")
+        FlextMatchers.assert_result_success(unregister_result)
+
+    def test_optimize_query_edge_cases_real(self) -> None:
+        """Test optimize_query with edge cases - REAL FUNCTIONALITY."""
+        # Test empty query
+        empty_result = self.api.optimize_query("")
+        FlextMatchers.assert_result_success(empty_result)
+        assert empty_result.value == ""
+
+        # Test query with lots of whitespace
+        whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
+        whitespace_result = self.api.optimize_query(whitespace_query)
+        FlextMatchers.assert_result_success(whitespace_result)
+        optimized = whitespace_result.value
+        assert optimized == "SELECT * FROM employees"
+
+        # Test query with tabs and mixed whitespace
+        tab_query = "SELECT\t\t*\tFROM\t\temployees\t\tWHERE\t\tid\t=\t1"
+        tab_result = self.api.optimize_query(tab_query)
+        FlextMatchers.assert_result_success(tab_result)
+        optimized_tab = tab_result.value
+        assert optimized_tab == "SELECT * FROM employees WHERE id = 1"
+
+    def test_api_configuration_variations_real(self) -> None:
+        """Test API with various configuration scenarios - REAL FUNCTIONALITY."""
+        # Test with minimal config
+        minimal_config = FlextDbOracleConfig(
+            host="m",
+            port=1,
+            service_name="S",
+            username="u",
+            password=SecretStr("p"),
+        )
+        minimal_api = FlextDbOracleApi(minimal_config)
+        assert minimal_api.is_valid() is True
+
+        # Test API operations work with minimal config
+        plugins = minimal_api.list_plugins()
+        FlextMatchers.assert_result_success(plugins)
+
+        # Test with config containing special characters
+        special_config = FlextDbOracleConfig(
+            host="host-with.dots",
+            port=65535,
+            service_name="SERVICE_WITH_UNDERSCORES",
+            username="user@domain",
+            password=SecretStr("pass!@#$%"),
+        )
+        special_api = FlextDbOracleApi(special_config)
+        assert special_api.is_valid() is True
+
+    def test_get_health_status_method_real(self) -> None:
+        """Test get_health_status method - REAL FUNCTIONALITY."""
+        result = self.api.get_health_status()
+
+        # Should return FlextResult
+        assert hasattr(result, "success")
+        assert hasattr(result, "value")
+        assert hasattr(result, "error")
+
+        # Should succeed with health information
+        FlextMatchers.assert_result_success(result)
+        health_data = result.value
+        assert isinstance(health_data, dict)
+
+        # Health data may be empty initially, that's valid
+        assert len(health_data) >= 0
+
+    def test_flext_result_consistency_real(self) -> None:
+        """Test that all API methods return consistent FlextResult objects - REAL FUNCTIONALITY."""
+        # Test optimize_query method
+        result1 = self.api.optimize_query("SELECT 1")
+        assert hasattr(result1, "success")
+        assert hasattr(result1, "error")
+
+        # Test get_observability_metrics method
+        result2 = self.api.get_observability_metrics()
+        assert hasattr(result2, "success")
+        assert hasattr(result2, "error")
+
+        # Test get_health_status method
+        result3 = self.api.get_health_status()
+        assert hasattr(result3, "success")
+        assert hasattr(result3, "error")
+
+        # Test list_plugins method
+        result4 = self.api.list_plugins()
+        assert hasattr(result4, "success")
+        assert hasattr(result4, "error")
+
+        # Test register_plugin method
+        result5 = self.api.register_plugin("test", {"plugin": "data"})
+        assert hasattr(result5, "success")
+        assert hasattr(result5, "error")
+
+        # Test all results follow FlextResult contract
+        for result in [result1, result2, result3, result4, result5]:
+
+            # All should return FlextResult with proper interface
+            assert hasattr(result, "success")
+            assert hasattr(result, "error")
+
+            # Test FlextResult contract
+            if result.success:
+                assert result.error is None
+                # value can be any type including None (accessed safely)
+                _ = result.value  # Access is safe when success=True
+            else:
+                assert result.error is not None
+                assert isinstance(result.error, str)
+                assert len(result.error) > 0

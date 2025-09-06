@@ -230,7 +230,9 @@ class TestDirectCoverageBoostConfig:
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
                 username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
-                password=SecretStr(os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default")),
+                password=SecretStr(
+                    os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default")
+                ),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
             )
 
@@ -434,7 +436,7 @@ class TestDirectCoverageBoostServices:
     def test_services_direct_imports_and_coverage(self) -> None:
         """Test direct services imports for coverage measurement."""
         # Import services module directly to ensure coverage tracking
-        # ruff: noqa: PLC0415 - Import needed for coverage tracking
+
         import flext_db_oracle.services as services_module
 
         # Test FlextDbOracleServices class
