@@ -249,8 +249,6 @@ class TestMetadataError:
 
     def test_metadata_error_with_params(self) -> None:
         """Test MetadataError with ParameterObject."""
-        from flext_db_oracle.mixins import ParameterObject
-
         params = ParameterObject(
             {
                 "code": "META_TABLE_NOT_FOUND",
