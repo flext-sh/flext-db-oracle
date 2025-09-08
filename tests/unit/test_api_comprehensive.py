@@ -9,15 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
-from pydantic import SecretStr
-
-# Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
-
+from flext_core import FlextTypes
 from flext_tests import FlextMatchers, TestBuilders
+from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_db_oracle.models import FlextDbOracleModels
@@ -85,7 +79,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
         # Cast to proper dict type for PyRight
-        config_dict: dict[str, object] = config_obj
+        config_dict: FlextTypes.Core.Dict = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -486,9 +480,17 @@ class TestFlextDbOracleApiRealFunctionality:
                 assert isinstance(oracle_type, str)
                 assert len(oracle_type) > 0
                 # Should contain common Oracle type keywords
-                assert any(keyword in oracle_type.upper() for keyword in [
-                    "VARCHAR", "NUMBER", "TIMESTAMP", "DATE", "CLOB", "BLOB"
-                ])
+                assert any(
+                    keyword in oracle_type.upper()
+                    for keyword in [
+                        "VARCHAR",
+                        "NUMBER",
+                        "TIMESTAMP",
+                        "DATE",
+                        "CLOB",
+                        "BLOB",
+                    ]
+                )
             else:
                 # Some types may not be implemented yet - that's valid
                 FlextMatchers.assert_result_failure(result)
@@ -497,7 +499,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method - REAL FUNCTIONALITY."""
         # Create test Singer schema
-        test_schema: dict[str, object] = {
+        test_schema: FlextTypes.Core.Dict = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -575,27 +577,55 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test that all expected API methods exist - REAL FUNCTIONALITY."""
         expected_methods = [
             # Configuration methods
-            "from_config", "from_env", "from_url", "with_config",
+            "from_config",
+            "from_env",
+            "from_url",
+            "with_config",
             # Connection methods
-            "connect", "disconnect", "test_connection", "is_connected",
+            "connect",
+            "disconnect",
+            "test_connection",
+            "is_connected",
             # Query methods
-            "query", "query_one", "execute", "execute_many", "execute_sql",
+            "query",
+            "query_one",
+            "execute",
+            "execute_many",
+            "execute_sql",
             # Metadata methods
-            "get_schemas", "get_tables", "get_columns", "get_table_metadata", "get_primary_keys",
+            "get_schemas",
+            "get_tables",
+            "get_columns",
+            "get_table_metadata",
+            "get_primary_keys",
             # Plugin methods
-            "register_plugin", "unregister_plugin", "get_plugin", "list_plugins",
+            "register_plugin",
+            "unregister_plugin",
+            "get_plugin",
+            "list_plugins",
             # Utility methods
-            "optimize_query", "get_observability_metrics", "get_health_status",
+            "optimize_query",
+            "get_observability_metrics",
+            "get_health_status",
             # Singer methods
-            "convert_singer_type", "map_singer_schema",
+            "convert_singer_type",
+            "map_singer_schema",
             # Properties and special methods
-            "config", "connection", "is_valid", "to_dict", "transaction",
+            "config",
+            "connection",
+            "is_valid",
+            "to_dict",
+            "transaction",
         ]
 
         for method_name in expected_methods:
             assert hasattr(self.api, method_name), f"Method {method_name} should exist"
             method = getattr(self.api, method_name)
-            if method_name not in {"config", "connection", "is_connected"}:  # Properties
+            if method_name not in {
+                "config",
+                "connection",
+                "is_connected",
+            }:  # Properties
                 assert callable(method), f"Method {method_name} should be callable"
 
     def test_plugin_management_edge_cases_real(self) -> None:
@@ -716,7 +746,6 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # Test all results follow FlextResult contract
         for result in [result1, result2, result3, result4, result5]:
-
             # All should return FlextResult with proper interface
             assert hasattr(result, "success")
             assert hasattr(result, "error")

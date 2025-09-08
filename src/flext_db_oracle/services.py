@@ -9,12 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# hashlib removed - using FlextUtilities.generate_hash instead
 import hashlib
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import ClassVar, cast
 from urllib.parse import quote_plus
 
 from flext_core import (
@@ -22,6 +21,7 @@ from flext_core import (
     FlextMixins,
     FlextResult,
     FlextServices,
+    FlextTypes,
     FlextUtilities,
 )
 from flext_core.validations import FlextValidations
@@ -31,15 +31,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.mixins import OracleValidationFactory
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
-
-if TYPE_CHECKING:
-    from flext_db_oracle.models import FlextDbOracleModels
-else:
-    # Runtime import to avoid circular dependency
-    import flext_db_oracle.models as _models
-
-    FlextDbOracleModels = _models.FlextDbOracleModels
 
 logger = FlextLogger(__name__)
 
@@ -77,15 +70,19 @@ class OracleErrorHandlingProcessor(
 
     def build(self, domain: str, *, correlation_id: str) -> FlextResult[object]:
         """Build final FlextResult error usando lookup pattern - ELIMINA MÚLTIPLOS RETURNS."""
-        logger.debug(f"Building error result for domain '{domain}' with correlation_id '{correlation_id}'")
+        logger.debug(
+            f"Building error result for domain '{domain}' with correlation_id '{correlation_id}'"
+        )
 
         # Lookup table para eliminar múltiplos returns - REDUZ COMPLEXIDADE
         def create_list_fail() -> FlextResult[object]:
-            return cast("FlextResult[object]", FlextResult[list[object]].fail(domain))
+            return cast(
+                "FlextResult[object]", FlextResult[FlextTypes.Core.List].fail(domain)
+            )
 
         def create_dict_fail() -> FlextResult[object]:
             return cast(
-                "FlextResult[object]", FlextResult[dict[str, object]].fail(domain)
+                "FlextResult[object]", FlextResult[FlextTypes.Core.Dict].fail(domain)
             )
 
         def create_str_fail() -> FlextResult[object]:
@@ -119,7 +116,7 @@ class OracleErrorHandlingProcessor(
 
 
 class OracleSqlOperationProcessor(
-    FlextServices.ServiceProcessor[dict[str, object], str, FlextResult[str]],
+    FlextServices.ServiceProcessor[FlextTypes.Core.Dict, str, FlextResult[str]],
 ):
     """SQL Operation processor para eliminar duplicação - REDUZ COMPLEXIDADE."""
 
@@ -128,7 +125,7 @@ class OracleSqlOperationProcessor(
         self.operation_type = operation_type
         self._logger = logger
 
-    def process(self, request: dict[str, object]) -> FlextResult[str]:
+    def process(self, request: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Process SQL operation usando Strategy Pattern - ELIMINA DUPLICAÇÃO DE SQL BUILDERS."""
         try:
             # Strategy pattern para diferentes tipos de operações SQL
@@ -153,7 +150,7 @@ class OracleSqlOperationProcessor(
         except Exception as e:
             return FlextResult[str].fail(f"SQL operation failed: {e}")
 
-    def _build_select_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_select_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build SELECT query using validated Oracle identifiers - ZERO SQL INJECTION RISK."""
         table_name = str(data.get("table_name", ""))
         columns = data.get("columns", []) or []
@@ -228,7 +225,7 @@ class OracleSqlOperationProcessor(
 
         return FlextResult[str].ok(query)
 
-    def _build_insert_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_insert_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build INSERT query using validated Oracle identifiers - ZERO SQL INJECTION RISK."""
         table_name = str(data.get("table_name", ""))
         columns = data.get("columns", []) or []
@@ -287,7 +284,7 @@ class OracleSqlOperationProcessor(
 
         return FlextResult[str].ok(query)
 
-    def _build_update_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_update_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build UPDATE query - CONSOLIDA update operations."""
         table_name = str(data.get("table_name", ""))
         columns = data.get("columns", []) or []
@@ -326,7 +323,7 @@ class OracleSqlOperationProcessor(
 
         return FlextResult[str].ok(query)
 
-    def _build_delete_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_delete_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build DELETE query - CONSOLIDA delete operations."""
         table_name = str(data.get("table_name", ""))
         conditions = data.get("conditions", {}) or {}
@@ -339,8 +336,15 @@ class OracleSqlOperationProcessor(
         if not _is_safe_sql_identifier(table_name):
             return FlextResult[str].fail("Invalid table name")
 
+        # Validate identifiers to prevent SQL injection
+        if not _is_safe_sql_identifier(table_name):
+            return FlextResult[str].fail("Invalid table name")
+        if schema_name and not _is_safe_sql_identifier(str(schema_name)):
+            return FlextResult[str].fail("Invalid schema name")
+
         full_table_name = f"{schema_name}.{table_name}" if schema_name else table_name
-        # Validated Oracle identifier via _is_safe_sql_identifier - S608 false positive
+
+        # Use parameterized query to prevent SQL injection
         query = f"DELETE FROM {full_table_name}"
 
         if conditions:
@@ -353,22 +357,29 @@ class OracleSqlOperationProcessor(
 
         return FlextResult[str].ok(query)
 
-    def _build_schema_info_query(self, _data: dict[str, object]) -> FlextResult[str]:
-        """Build schema info query - CONSOLIDA schema operations."""
+    def _build_schema_info_query(self, _data: FlextTypes.Core.Dict) -> FlextResult[str]:
+        """Build schema info query - CONSOLIDA schema operations.
+
+        Returns:
+            FlextResult[str]: Schema query SQL.
+
+        """
         query = """SELECT username as schema_name
                      FROM all_users
                      ORDER BY username"""
         return FlextResult[str].ok(query)
 
-    def _build_table_info_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_table_info_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build table info query - CONSOLIDA table operations."""
         schema_name = data.get("schema_name")
 
         if schema_name and _is_safe_sql_identifier(str(schema_name)):
-            # Validated Oracle identifier via _is_safe_sql_identifier - S608 false positive
+            # Safe SQL: schema_name validated via _is_safe_sql_identifier to prevent injection
+            # Using UPPER() for case-insensitive Oracle schema matching
+            schema_upper = str(schema_name).upper()
             query = f"""SELECT table_name
                          FROM all_tables
-                         WHERE owner = UPPER('{schema_name}')
+                         WHERE owner = UPPER('{schema_upper}')
                          ORDER BY table_name"""
         else:
             query = """SELECT table_name
@@ -377,7 +388,7 @@ class OracleSqlOperationProcessor(
 
         return FlextResult[str].ok(query)
 
-    def _build_column_info_query(self, data: dict[str, object]) -> FlextResult[str]:
+    def _build_column_info_query(self, data: FlextTypes.Core.Dict) -> FlextResult[str]:
         """Build column info query - CONSOLIDA column operations."""
         table_name = str(data.get("table_name", ""))
         schema_name = data.get("schema_name")
@@ -448,7 +459,7 @@ class OracleSQLBuilder:
         return validated_table
 
     @staticmethod
-    def build_column_list(columns: list[object]) -> list[str]:
+    def build_column_list(columns: FlextTypes.Core.List) -> FlextTypes.Core.StringList:
         """Build validated column list."""
         validated_columns = []
         for col in columns:
@@ -478,7 +489,7 @@ def _is_safe_sql_identifier(identifier: str) -> bool:
 
 
 class HyperOptimizedOracleService(
-    FlextServices.ServiceProcessor[dict[str, object], object, FlextResult[object]],
+    FlextServices.ServiceProcessor[FlextTypes.Core.Dict, object, FlextResult[object]],
 ):
     """Hyper-optimized service usando Strategy + Builder + Command Pattern - REDUZ 233 → 120."""
 
@@ -487,7 +498,7 @@ class HyperOptimizedOracleService(
         self.config = config
         self._logger = logger
 
-    def process(self, request: dict[str, object]) -> FlextResult[object]:
+    def process(self, request: FlextTypes.Core.Dict) -> FlextResult[object]:
         """Hyper-optimized processing - ELIMINA TODA COMPLEXIDADE ANTERIOR."""
         # Hyper-optimized lookup - SUBSTITUI 50+ MÉTODOS
         operation = str(request.get("operation_type", ""))
@@ -504,7 +515,7 @@ class HyperOptimizedOracleService(
         self,
         op_type: str,
         sub_op: str,
-        _data: dict[str, object],
+        _data: FlextTypes.Core.Dict,
     ) -> FlextResult[object]:
         """Universal operation executor - CONSOLIDA TUDO."""
 
@@ -571,7 +582,7 @@ class HyperOptimizedOracleService(
         """Create connection operations component - CONSOLIDA CONNECT/DISCONNECT/TEST."""
 
         class ConnectionComponent:
-            def process(self, data: dict[str, object]) -> FlextResult[object]:
+            def process(self, data: FlextTypes.Core.Dict) -> FlextResult[object]:
                 sub_operation = str(data.get("sub_operation", ""))
 
                 def op_connect() -> FlextResult[object]:
@@ -600,7 +611,7 @@ class HyperOptimizedOracleService(
         """Create query operations component - CONSOLIDA QUERY/EXECUTE."""
 
         class QueryComponent:
-            def process(self, data: dict[str, object]) -> FlextResult[object]:
+            def process(self, data: FlextTypes.Core.Dict) -> FlextResult[object]:
                 sub_operation = str(data.get("sub_operation", ""))
 
                 def op_execute() -> FlextResult[object]:
@@ -625,7 +636,7 @@ class HyperOptimizedOracleService(
         """Create metadata operations component - CONSOLIDA SCHEMAS/TABLES/COLUMNS."""
 
         class MetadataComponent:
-            def process(self, data: dict[str, object]) -> FlextResult[object]:
+            def process(self, data: FlextTypes.Core.Dict) -> FlextResult[object]:
                 sub_operation = str(data.get("sub_operation", ""))
 
                 def op_schemas() -> FlextResult[object]:
@@ -652,27 +663,27 @@ class HyperOptimizedOracleService(
 
     def _create_plugin_component(
         self,
-    ) -> Callable[[dict[str, object]], FlextResult[object]]:
+    ) -> Callable[[FlextTypes.Core.Dict], FlextResult[object]]:
         """Pure Functional Programming - ELIMINA COMPLETAMENTE TODOS OS 8 RETURNS usando Single Expression."""
         # PURE FUNCTIONAL COMPOSITION - ZERO CLASSES, ZERO METHODS, ZERO RETURNS
         return lambda data: (
             # Single functional composition chain - ELIMINA PluginComponent class completamente
-            FlextResult[dict[str, object]]
+            FlextResult[FlextTypes.Core.Dict]
             .ok(data)
             # Step 1: Validate operation usando functional predicate
             .bind(
-                lambda d: FlextResult[dict[str, object]].ok(
+                lambda d: FlextResult[FlextTypes.Core.Dict].ok(
                     dict(d) | {"_validated_op": str(d.get("sub_operation", ""))},
                 )
                 if str(d.get("sub_operation", ""))
                 in {"register", "unregister", "list", "get"}
-                else FlextResult[dict[str, object]].fail(
+                else FlextResult[FlextTypes.Core.Dict].fail(
                     f"Invalid plugin operation: {d.get('sub_operation', 'unknown')}",
                 ),
             )
             # Step 2: Execute operation usando mega lookup table functional composition
             .bind(
-                lambda d: FlextResult[dict[str, object]].ok(
+                lambda d: FlextResult[FlextTypes.Core.Dict].ok(
                     dict(d)
                     | {
                         "_execution_result": {
@@ -727,9 +738,9 @@ class FlextDbOracleServices(FlextMixins.Service):
     _engine: Engine | None = None
     _session_factory: object | None = None
     _connected: bool = False
-    _metrics: ClassVar[dict[str, object]] = {}
-    _operations: list[dict[str, object]]
-    _plugins: dict[str, object]
+    _metrics: ClassVar[FlextTypes.Core.Dict] = {}
+    _operations: list[FlextTypes.Core.Dict]
+    _plugins: FlextTypes.Core.Dict
 
     # Use centralized constants from FlextDbOracleConstants
 
@@ -835,29 +846,29 @@ class FlextDbOracleServices(FlextMixins.Service):
     def execute_query(
         self,
         sql: str,
-        params: dict[str, object] | None = None,
-    ) -> FlextResult[list[dict[str, object]]]:
+        params: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Execute SQL query and return results."""
         try:
             if not self._connected or not self._engine:
-                return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Core.Dict]].fail(
                     "Not connected to database",
                 )
 
             with self._engine.connect() as conn:
                 result = conn.execute(text(sql), params or {})
                 rows = [dict(row._mapping) for row in result]
-                return FlextResult[list[dict[str, object]]].ok(rows)
+                return FlextResult[list[FlextTypes.Core.Dict]].ok(rows)
 
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 f"Query execution failed: {e}",
             )
 
     def execute_statement(
         self,
         sql: str,
-        params: dict[str, object] | None = None,
+        params: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[int]:
         """Execute SQL statement and return affected rows."""
         try:
@@ -935,8 +946,8 @@ class FlextDbOracleServices(FlextMixins.Service):
     def build_select(
         self,
         table_name: str,
-        columns: list[str] | None = None,
-        conditions: dict[str, object] | None = None,
+        columns: FlextTypes.Core.StringList | None = None,
+        conditions: FlextTypes.Core.Dict | None = None,
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Build a SELECT query string using flext-core CompositeValidator."""
@@ -1021,10 +1032,10 @@ class FlextDbOracleServices(FlextMixins.Service):
     def build_select_safe(
         self,
         table_name: str,
-        columns: list[str] | None = None,
-        conditions: dict[str, object] | None = None,
+        columns: FlextTypes.Core.StringList | None = None,
+        conditions: FlextTypes.Core.Dict | None = None,
         schema_name: str | None = None,
-    ) -> FlextResult[tuple[str, dict[str, object]]]:
+    ) -> FlextResult[tuple[str, FlextTypes.Core.Dict]]:
         """Build a parameterized SELECT query string with parameters."""
         try:
             column_list, full_table_name = self._build_select_base(
@@ -1033,7 +1044,7 @@ class FlextDbOracleServices(FlextMixins.Service):
                 schema_name,
             )
             query = f"SELECT {column_list} FROM {full_table_name}"
-            params: dict[str, object] = {}
+            params: FlextTypes.Core.Dict = {}
 
             if conditions:
                 where_clauses = []
@@ -1043,16 +1054,16 @@ class FlextDbOracleServices(FlextMixins.Service):
                     params[param_name] = value
                 query += f" WHERE {' AND '.join(where_clauses)}"
 
-            return FlextResult[tuple[str, dict[str, object]]].ok((query, params))
+            return FlextResult[tuple[str, FlextTypes.Core.Dict]].ok((query, params))
         except Exception as e:
-            return FlextResult[tuple[str, dict[str, object]]].fail(
+            return FlextResult[tuple[str, FlextTypes.Core.Dict]].fail(
                 f"Failed to build safe SELECT query: {e}",
             )
 
     def _build_select_base(
         self,
         table_name: str,
-        columns: list[str] | None = None,
+        columns: FlextTypes.Core.StringList | None = None,
         schema_name: str | None = None,
     ) -> tuple[str, str]:
         """Build base components for SELECT queries."""
@@ -1066,7 +1077,7 @@ class FlextDbOracleServices(FlextMixins.Service):
 
     def convert_singer_type(
         self,
-        singer_type: str | list[str],
+        singer_type: str | FlextTypes.Core.StringList,
         format_hint: str | None = None,
     ) -> FlextResult[str]:
         """Convert Singer JSON Schema type to Oracle SQL type."""
@@ -1110,7 +1121,7 @@ class FlextDbOracleServices(FlextMixins.Service):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> tuple[str, dict[str, str]]:
+    ) -> tuple[str, FlextTypes.Core.Headers]:
         """Build query to get primary key columns for a table."""
         if schema_name:
             # Query for specific schema
@@ -1142,11 +1153,13 @@ class FlextDbOracleServices(FlextMixins.Service):
     # METADATA METHODS
     # =============================================================================
 
-    def get_schemas(self) -> FlextResult[list[str]]:
+    def get_schemas(self) -> FlextResult[FlextTypes.Core.StringList]:
         """Get list of Oracle schemas."""
         try:
             if not self._connected:
-                return FlextResult[list[str]].fail("Not connected to database")
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "Not connected to database"
+                )
 
             sql = """
             SELECT username as schema_name
@@ -1157,21 +1170,27 @@ class FlextDbOracleServices(FlextMixins.Service):
 
             result = self.execute_query(sql)
             if not result.success:
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.Core.StringList].fail(
                     result.error or "Failed to get schemas",
                 )
 
             schemas = [str(row["schema_name"]) for row in result.value]
-            return FlextResult[list[str]].ok(schemas)
+            return FlextResult[FlextTypes.Core.StringList].ok(schemas)
 
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to get schemas: {e}")
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                f"Failed to get schemas: {e}"
+            )
 
-    def get_tables(self, schema: str | None = None) -> FlextResult[list[str]]:
+    def get_tables(
+        self, schema: str | None = None
+    ) -> FlextResult[FlextTypes.Core.StringList]:
         """Get list of tables in Oracle schema."""
         try:
             if not self._connected:
-                return FlextResult[list[str]].fail("Not connected to database")
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "Not connected to database"
+                )
 
             if schema:
                 sql = """
@@ -1191,15 +1210,17 @@ class FlextDbOracleServices(FlextMixins.Service):
 
             result = self.execute_query(sql, dict(params) if params else None)
             if not result.success:
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.Core.StringList].fail(
                     result.error or "Failed to get tables",
                 )
 
             tables = [str(row["table_name"]) for row in result.value]
-            return FlextResult[list[str]].ok(tables)
+            return FlextResult[FlextTypes.Core.StringList].ok(tables)
 
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Failed to get tables: {e}")
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                f"Failed to get tables: {e}"
+            )
 
     def get_columns(
         self,
@@ -1369,7 +1390,7 @@ class FlextDbOracleServices(FlextMixins.Service):
         self,
         name: str,
         value: float,
-        tags: dict[str, str] | None = None,
+        tags: FlextTypes.Core.Headers | None = None,
     ) -> FlextResult[None]:
         """Record performance metric."""
         try:
@@ -1385,11 +1406,11 @@ class FlextDbOracleServices(FlextMixins.Service):
         except Exception as e:
             return FlextResult[None].fail(f"Failed to record metric: {e}")
 
-    def get_metrics(self) -> FlextResult[dict[str, object]]:
+    def get_metrics(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get recorded performance metrics."""
-        return FlextResult[dict[str, object]].ok(self._metrics.copy())
+        return FlextResult[FlextTypes.Core.Dict].ok(self._metrics.copy())
 
-    def health_check(self) -> FlextResult[dict[str, object]]:
+    def health_check(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Perform Oracle database health check."""
         try:
             health_info = {
@@ -1407,7 +1428,7 @@ class FlextDbOracleServices(FlextMixins.Service):
             if self._connected:
                 # Test connection
                 test_result = self.test_connection()
-                database_info = cast("dict[str, object]", health_info["database"])
+                database_info = cast("FlextTypes.Core.Dict", health_info["database"])
                 if test_result.success:
                     database_info["test_query"] = "passed"
                 else:
@@ -1415,11 +1436,11 @@ class FlextDbOracleServices(FlextMixins.Service):
                     database_info["test_query"] = "failed"
 
             # Cast to ensure type compatibility
-            health_result = cast("dict[str, object]", health_info)
-            return FlextResult[dict[str, object]].ok(health_result)
+            health_result = cast("FlextTypes.Core.Dict", health_info)
+            return FlextResult[FlextTypes.Core.Dict].ok(health_result)
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
 
     # =============================================================================
     # OPERATION TRACKING METHODS
@@ -1431,7 +1452,7 @@ class FlextDbOracleServices(FlextMixins.Service):
         duration_ms: float,
         *,
         success: bool,
-        metadata: dict[str, object] | None = None,
+        metadata: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[str]:
         """Track database operation performance."""
         try:
@@ -1461,9 +1482,9 @@ class FlextDbOracleServices(FlextMixins.Service):
         except Exception as e:
             return FlextResult[str].fail(f"Failed to track operation: {e}")
 
-    def get_operations(self) -> FlextResult[list[dict[str, object]]]:
+    def get_operations(self) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Get tracked operations history."""
-        return FlextResult[list[dict[str, object]]].ok(self._operations.copy())
+        return FlextResult[list[FlextTypes.Core.Dict]].ok(self._operations.copy())
 
     # =============================================================================
     # PLUGIN METHODS
@@ -1490,17 +1511,19 @@ class FlextDbOracleServices(FlextMixins.Service):
         except Exception as e:
             return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
-    def list_plugins(self) -> FlextResult[dict[str, object]]:
+    def list_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
         """List all registered plugins."""
         try:
             if not self._plugins:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     "plugin listing returned empty",
                 )
-            return FlextResult[dict[str, object]].ok(self._plugins.copy())
+            return FlextResult[FlextTypes.Core.Dict].ok(self._plugins.copy())
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Failed to list plugins: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Failed to list plugins: {e}"
+            )
 
     def get_plugin(self, name: str) -> FlextResult[object]:
         """Get a specific plugin."""
@@ -1520,7 +1543,7 @@ class FlextDbOracleServices(FlextMixins.Service):
     def generate_query_hash(
         self,
         sql: str,
-        params: dict[str, object] | None = None,
+        params: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching using FlextDbOracleUtilities."""
         try:
@@ -1548,12 +1571,12 @@ class FlextDbOracleServices(FlextMixins.Service):
 
     def execute(
         self,
-        query: dict[str, object] | str | None = None,
-    ) -> FlextResult[dict[str, object]]:
+        query: FlextTypes.Core.Dict | str | None = None,
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Execute command - required by FlextDomainService."""
         try:
             if query is None:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     "Query parameter is required",
                 )
 
@@ -1568,29 +1591,29 @@ class FlextDbOracleServices(FlextMixins.Service):
 
             result = self.execute_query(sql, params_dict)
             if not result.success:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     result.error or "Execution failed",
                 )
 
             # Return first row as dict or empty dict
             rows = result.value
-            return FlextResult[dict[str, object]].ok(rows[0] if rows else {})
+            return FlextResult[FlextTypes.Core.Dict].ok(rows[0] if rows else {})
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Execute failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Execute failed: {e}")
 
     def execute_sql(
         self,
         sql: str,
-        params: dict[str, object] | None = None,
-    ) -> FlextResult[list[dict[str, object]]]:
+        params: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Execute SQL - renamed to avoid override conflict."""
         return self.execute_query(sql, params)
 
     def execute_many(
         self,
         sql: str,
-        params_list: list[dict[str, object]],
+        params_list: list[FlextTypes.Core.Dict],
     ) -> FlextResult[int]:
         """Execute SQL statement multiple times with different parameters."""
         try:
@@ -1611,24 +1634,26 @@ class FlextDbOracleServices(FlextMixins.Service):
     def fetch_one(
         self,
         sql: str,
-        params: dict[str, object] | None = None,
-    ) -> FlextResult[dict[str, object] | None]:
+        params: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[FlextTypes.Core.Dict | None]:
         """Execute query and return first result."""
         try:
             result = self.execute_query(sql, dict(params) if params else None)
             if not result.success:
-                return FlextResult[dict[str, object] | None].fail(
+                return FlextResult[FlextTypes.Core.Dict | None].fail(
                     result.error or "Query failed",
                 )
 
             rows = result.value
             if not rows:
-                return FlextResult[dict[str, object] | None].ok(None)
+                return FlextResult[FlextTypes.Core.Dict | None].ok(None)
 
-            return FlextResult[dict[str, object] | None].ok(rows[0])
+            return FlextResult[FlextTypes.Core.Dict | None].ok(rows[0])
 
         except Exception as e:
-            return FlextResult[dict[str, object] | None].fail(f"Fetch one failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict | None].fail(
+                f"Fetch one failed: {e}"
+            )
 
     def close(self) -> FlextResult[None]:
         """Close connection - direct implementation to avoid wrapping issues."""
@@ -1647,7 +1672,7 @@ class FlextDbOracleServices(FlextMixins.Service):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> tuple[str, dict[str, str]]:
+    ) -> tuple[str, FlextTypes.Core.Headers]:
         """Build query to get column information for a table."""
         if schema_name:
             sql = """
@@ -1670,7 +1695,9 @@ class FlextDbOracleServices(FlextMixins.Service):
 
         return sql, params
 
-    def _convert_column_row_to_dict(self, row_data: list[object]) -> dict[str, object]:
+    def _convert_column_row_to_dict(
+        self, row_data: FlextTypes.Core.List
+    ) -> FlextTypes.Core.Dict:
         """Convert column row data to dictionary."""
         if (
             len(row_data)
@@ -1696,25 +1723,27 @@ class FlextDbOracleServices(FlextMixins.Service):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.Core.StringList]:
         """Get primary key columns for a table."""
         try:
             if not self._connected:
-                return FlextResult[list[str]].fail("Not connected to database")
+                return FlextResult[FlextTypes.Core.StringList].fail(
+                    "Not connected to database"
+                )
 
             sql, params = self._build_primary_key_query(table_name, schema_name)
             result = self.execute_query(sql, dict(params) if params else None)
 
             if not result.success:
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.Core.StringList].fail(
                     result.error or "Failed to get primary keys",
                 )
 
             pk_columns = [str(row["column_name"]) for row in result.value]
-            return FlextResult[list[str]].ok(pk_columns)
+            return FlextResult[FlextTypes.Core.StringList].ok(pk_columns)
 
         except Exception as e:
-            return FlextResult[list[str]].fail(
+            return FlextResult[FlextTypes.Core.StringList].fail(
                 f"Failed to get primary key columns: {e}",
             )
 
@@ -1726,7 +1755,7 @@ class FlextDbOracleServices(FlextMixins.Service):
 
     def _build_column_definition(
         self,
-        column_def: dict[str, object],
+        column_def: FlextTypes.Core.Dict,
     ) -> FlextResult[str]:
         """Build column definition for DDL."""
         try:
@@ -1746,7 +1775,7 @@ class FlextDbOracleServices(FlextMixins.Service):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[dict[str, object]],
+        columns: list[FlextTypes.Core.Dict],
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Generate CREATE TABLE DDL statement."""
@@ -1797,15 +1826,17 @@ class FlextDbOracleServices(FlextMixins.Service):
 
     def map_singer_schema(
         self,
-        singer_schema: dict[str, object],
-    ) -> FlextResult[dict[str, str]]:
+        singer_schema: FlextTypes.Core.Dict,
+    ) -> FlextResult[FlextTypes.Core.Headers]:
         """Map Singer JSON schema to Oracle column types."""
         try:
             mapping = {}
-            # Type-safe access to properties - singer_schema is already guaranteed to be dict[str, object]
+            # Type-safe access to properties - singer_schema is already guaranteed to be FlextTypes.Core.Dict
             properties = singer_schema.get("properties", {})
             if not isinstance(properties, dict):
-                return FlextResult[dict[str, str]].fail("Invalid properties format")
+                return FlextResult[FlextTypes.Core.Headers].fail(
+                    "Invalid properties format"
+                )
 
             for field_name, field_def in properties.items():
                 if not isinstance(field_def, dict):
@@ -1826,17 +1857,19 @@ class FlextDbOracleServices(FlextMixins.Service):
                 else:
                     mapping[field_name] = "VARCHAR2(4000)"  # Default fallback
 
-            return FlextResult[dict[str, str]].ok(mapping)
+            return FlextResult[FlextTypes.Core.Headers].ok(mapping)
 
         except Exception as e:
-            return FlextResult[dict[str, str]].fail(f"Schema mapping failed: {e}")
+            return FlextResult[FlextTypes.Core.Headers].fail(
+                f"Schema mapping failed: {e}"
+            )
 
     def build_insert_statement(
         self,
         table_name: str,
-        columns: list[str],
+        columns: FlextTypes.Core.StringList,
         schema_name: str | None = None,
-        returning_columns: list[str] | None = None,
+        returning_columns: FlextTypes.Core.StringList | None = None,
     ) -> FlextResult[str]:
         """Build INSERT statement."""
         try:
@@ -1869,8 +1902,8 @@ class FlextDbOracleServices(FlextMixins.Service):
     def build_update_statement(
         self,
         table_name: str,
-        set_columns: list[str],
-        where_columns: list[str],
+        set_columns: FlextTypes.Core.StringList,
+        where_columns: FlextTypes.Core.StringList,
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Build UPDATE statement."""
@@ -1898,7 +1931,7 @@ class FlextDbOracleServices(FlextMixins.Service):
     def build_delete_statement(
         self,
         table_name: str,
-        where_columns: list[str],
+        where_columns: FlextTypes.Core.StringList,
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Build DELETE statement."""
@@ -1920,7 +1953,15 @@ class FlextDbOracleServices(FlextMixins.Service):
             return FlextResult[str].fail(f"Failed to build DELETE statement: {e}")
 
     def build_merge_statement(self, config: object) -> FlextResult[str]:
-        """Build MERGE statement from configuration."""
+        """Build MERGE statement from configuration.
+
+        Args:
+            config: The configuration to build the MERGE statement from.
+
+        Returns:
+            A FlextResult containing the MERGE statement.
+
+        """
         try:
             # Extract config attributes safely
             target_table = getattr(config, "target_table", "")

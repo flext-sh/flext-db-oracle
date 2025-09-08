@@ -14,13 +14,11 @@ import json
 import os
 from typing import Protocol, cast
 
-from flext_core import FlextDecorators, FlextResult
-from flext_core.utilities import FlextUtilities
+from flext_core import FlextDecorators, FlextResult, FlextTypes, FlextUtilities
 from pydantic import SecretStr
 
-# All protocols consolidated within main class as inner types
-
-# TYPE_CHECKING imports removed - no longer needed
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.models import FlextDbOracleModels
 
 
 class FlextDbOracleUtilities:
@@ -44,7 +42,7 @@ class FlextDbOracleUtilities:
     class HasModelDump(Protocol):
         """Protocol for objects with model_dump method."""
 
-        def model_dump(self) -> dict[str, object]: ...
+        def model_dump(self) -> FlextTypes.Core.Dict: ...
 
     class QueryResult(Protocol):
         """Protocol for query result objects."""
@@ -64,7 +62,9 @@ class FlextDbOracleUtilities:
 
     @staticmethod
     @FlextDecorators.Reliability.safe_result
-    def generate_query_hash(sql: str, params: dict[str, object] | None = None) -> str:
+    def generate_query_hash(
+        sql: str, params: FlextTypes.Core.Dict | None = None
+    ) -> str:
         """Generate hash for SQL query caching - Oracle specific."""
         # Use FlextUtilities.TextProcessor for normalization
         normalized_sql = FlextUtilities.TextProcessor.safe_string(sql).strip()
@@ -173,7 +173,7 @@ class FlextDbOracleUtilities:
             return FlextResult[str].fail(f"Query result formatting failed: {e}")
 
     @staticmethod
-    def create_config_from_env() -> FlextResult[dict[str, str]]:
+    def create_config_from_env() -> FlextResult[FlextTypes.Core.Headers]:
         """Create Oracle configuration from environment variables."""
         try:
             config_data = {}
@@ -197,9 +197,9 @@ class FlextDbOracleUtilities:
                 if value:
                     config_data[config_key] = value
 
-            return FlextResult[dict[str, str]].ok(config_data)
+            return FlextResult[FlextTypes.Core.Headers].ok(config_data)
         except Exception as e:
-            return FlextResult[dict[str, str]].fail(
+            return FlextResult[FlextTypes.Core.Headers].fail(
                 f"Failed to create config from environment: {e}",
             )
 
@@ -221,10 +221,12 @@ class FlextDbOracleUtilities:
                 try:
                     # Safe casting and iteration
                     rows_list = (
-                        cast("list[object]", rows) if hasattr(rows, "__iter__") else []
+                        cast("FlextTypes.Core.List", rows)
+                        if hasattr(rows, "__iter__")
+                        else []
                     )
                     columns_list = (
-                        cast("list[object]", columns)
+                        cast("FlextTypes.Core.List", columns)
                         if hasattr(columns, "__iter__")
                         else []
                     )
@@ -264,13 +266,9 @@ class FlextDbOracleUtilities:
             console.print(f"Error displaying table: {e}")
 
     @staticmethod
-    def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
+    def create_api_from_config(config: FlextTypes.Core.Dict) -> FlextResult[object]:
         """Create Oracle API instance from configuration."""
         try:
-            # Factory method requires runtime imports to avoid circular dependency
-            from flext_db_oracle.api import FlextDbOracleApi
-            from flext_db_oracle.models import FlextDbOracleModels
-
             # Convert port to int with proper type checking
             port_value = config.get("port", 1521)
             port_int = int(port_value) if isinstance(port_value, (int, str)) else 1521

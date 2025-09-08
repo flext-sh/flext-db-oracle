@@ -2,6 +2,10 @@
 
 This module tests the metadata management functionality with real code paths
 instead of mocks, following the user's requirement for real code testing.
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from pydantic import SecretStr

@@ -5,7 +5,6 @@ or test databases to validate the entire system works end-to-end.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -14,6 +13,7 @@ import os
 from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -225,7 +225,7 @@ class TestOracleE2E:
             }
 
             # Type-safe schema casting for API compatibility
-            typed_schema = cast("dict[str, object]", singer_schema)
+            typed_schema = cast("FlextTypes.Core.Dict", singer_schema)
             schema_result = api.map_singer_schema(typed_schema)
             if schema_result.is_failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")

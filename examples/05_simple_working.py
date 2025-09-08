@@ -6,6 +6,7 @@ without inventing non-existent methods.
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import logging
 

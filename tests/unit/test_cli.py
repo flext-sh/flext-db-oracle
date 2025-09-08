@@ -2,6 +2,10 @@
 
 This module provides comprehensive tests for CLI components using REAL code
 execution without mocks, following FLEXT testing standards.
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 import pytest

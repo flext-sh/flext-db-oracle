@@ -1,4 +1,8 @@
-"""Working API tests using only real methods that exist and work."""
+"""Working API tests using only real methods that exist and work.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from pydantic import SecretStr
 

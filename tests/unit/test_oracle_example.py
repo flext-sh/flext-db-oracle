@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -221,10 +220,16 @@ class TestRealOracleApi:
             # Handle query_data as list instead of assuming .rows attribute
             if isinstance(query_data, list) and len(query_data) > 0:
                 row = query_data[0]
-                if hasattr(row, "__getitem__") and hasattr(row, "__len__") and len(row) > 0:
+                if (
+                    hasattr(row, "__getitem__")
+                    and hasattr(row, "__len__")
+                    and len(row) > 0
+                ):
                     cell = safe_get_first_value(row)
                     # Extract actual value, handling nested structures
-                    final_value = safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
+                    final_value = (
+                        safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
+                    )
                     assert "Hello Oracle" in str(final_value)
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
@@ -296,7 +301,9 @@ class TestRealOracleApi:
             assert len(query_result) > 0
         else:
             # Handle QueryResult object if it has rows attribute
-            assert hasattr(query_result, "rows") or isinstance(query_result, (list, tuple))
+            assert hasattr(query_result, "rows") or isinstance(
+                query_result, (list, tuple)
+            )
             if hasattr(query_result, "rows"):
                 assert len(query_result.rows) > 0
             else:

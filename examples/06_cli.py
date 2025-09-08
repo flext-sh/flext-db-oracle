@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import asyncio
 import contextlib
@@ -19,7 +20,7 @@ from pathlib import Path
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[dict[str, object]]:
+def _get_cli_examples() -> list[FlextTypes.Core.Dict]:
     """Get CLI command examples - DRY pattern for example data."""
     return [
         {
@@ -82,7 +83,7 @@ def _get_cli_examples() -> list[dict[str, object]]:
     ]
 
 
-def _run_example_command(example: dict[str, object]) -> None:
+def _run_example_command(example: FlextTypes.Core.Dict) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return
@@ -120,7 +121,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
+def run_cli_command(cmd: FlextTypes.Core.StringList) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell)."""
 
     async def _run() -> tuple[int, str, str]:

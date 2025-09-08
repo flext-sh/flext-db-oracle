@@ -3,6 +3,8 @@
 Tests the FlextDbOracleServices class completely without mocks,
 achieving maximum coverage through real Oracle service operations using flext_tests.
 
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -14,6 +16,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 # Add flext_tests to path
@@ -170,7 +173,7 @@ class TestFlextDbOracleServicesRealFunctionality:
         assert table_ref_schema == "SYSTEM.USERS"
 
         # Test build_column_list
-        columns: list[object] = ["ID", "NAME", "EMAIL"]
+        columns: FlextTypes.Core.List = ["ID", "NAME", "EMAIL"]
         column_list = OracleSQLBuilder.build_column_list(columns)
         assert isinstance(column_list, list)
         assert len(column_list) == 3
@@ -239,7 +242,7 @@ class TestFlextDbOracleServicesRealFunctionality:
     def test_query_hash_generation_real(self) -> None:
         """Test query hash generation - REAL FUNCTIONALITY."""
         query = "SELECT * FROM USERS WHERE ID = ?"
-        params: dict[str, object] = {"ID": 1}
+        params: FlextTypes.Core.Dict = {"ID": 1}
 
         hash_result = self.services.generate_query_hash(query, params)
         FlextMatchers.assert_result_success(hash_result)
@@ -254,7 +257,7 @@ class TestFlextDbOracleServicesRealFunctionality:
         assert hash_result.value == hash_result2.value
 
         # Different params should produce different hash
-        different_params: dict[str, object] = {"ID": 2}
+        different_params: FlextTypes.Core.Dict = {"ID": 2}
         hash_result3 = self.services.generate_query_hash(query, different_params)
         FlextMatchers.assert_result_success(hash_result3)
         assert hash_result.value != hash_result3.value

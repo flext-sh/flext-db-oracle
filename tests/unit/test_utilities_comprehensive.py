@@ -3,6 +3,8 @@
 Tests the FlextDbOracleUtilities class completely without mocks,
 achieving maximum coverage through real utility operations using flext_tests.
 
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -14,6 +16,7 @@ import time
 from pathlib import Path
 from unittest.mock import Mock
 
+from flext_core import FlextTypes
 from pydantic import BaseModel
 
 # Add flext_tests to path
@@ -179,7 +182,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
     def test_create_api_from_config_invalid_real(self) -> None:
         """Test create_api_from_config with invalid config - REAL FUNCTIONALITY."""
-        invalid_configs: list[dict[str, object]] = [
+        invalid_configs: list[FlextTypes.Core.Dict] = [
             {},  # Empty config
             {"host": "test"},  # Missing required fields
             {"invalid": "config"},  # Invalid field names

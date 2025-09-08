@@ -3,6 +3,8 @@
 Tests the FlextDbOraclePlugins class completely without mocks,
 achieving maximum coverage through real plugin operations.
 
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -12,6 +14,7 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from flext_tests import FlextMatchers
 
 from flext_db_oracle.plugins import FlextDbOraclePlugins
@@ -80,7 +83,7 @@ class TestFlextDbOraclePluginsComprehensive:
         assert plugin_data["version"] == "1.0.0"
         assert plugin_data["type"] == "security"
 
-        capabilities = cast("list[str]", plugin_data["capabilities"])
+        capabilities = cast("FlextTypes.Core.StringList", plugin_data["capabilities"])
         assert "access_logging" in capabilities
         assert "privilege_audit" in capabilities
         assert "compliance" in capabilities
@@ -89,7 +92,7 @@ class TestFlextDbOraclePluginsComprehensive:
         """Test registering a plugin successfully."""
         plugins = FlextDbOraclePlugins()
 
-        plugin_data: dict[str, object] = {
+        plugin_data: FlextTypes.Core.Dict = {
             "name": "test_plugin",
             "version": "1.0.0",
             "type": "test",
@@ -106,11 +109,11 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # Register first plugin
-        plugin_data1: dict[str, object] = {"name": "test", "version": "1.0.0"}
+        plugin_data1: FlextTypes.Core.Dict = {"name": "test", "version": "1.0.0"}
         plugins.register_plugin("test", plugin_data1)
 
         # Register second plugin with same name
-        plugin_data2: dict[str, object] = {"name": "test", "version": "2.0.0"}
+        plugin_data2: FlextTypes.Core.Dict = {"name": "test", "version": "2.0.0"}
         result = plugins.register_plugin("test", plugin_data2)
 
         assert result.success
@@ -121,7 +124,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # Register plugin first
-        plugin_data: dict[str, object] = {"name": "test", "version": "1.0.0"}
+        plugin_data: FlextTypes.Core.Dict = {"name": "test", "version": "1.0.0"}
         plugins.register_plugin("test", plugin_data)
         assert "test" in plugins._plugins
 
@@ -154,8 +157,8 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # Register multiple plugins
-        plugin1: dict[str, object] = {"name": "plugin1", "version": "1.0.0"}
-        plugin2: dict[str, object] = {"name": "plugin2", "version": "1.0.0"}
+        plugin1: FlextTypes.Core.Dict = {"name": "plugin1", "version": "1.0.0"}
+        plugin2: FlextTypes.Core.Dict = {"name": "plugin2", "version": "1.0.0"}
         plugins.register_plugin("plugin1", plugin1)
         plugins.register_plugin("plugin2", plugin2)
 
@@ -174,7 +177,7 @@ class TestFlextDbOraclePluginsComprehensive:
         """Test getting an existing plugin."""
         plugins = FlextDbOraclePlugins()
 
-        plugin_data: dict[str, object] = {
+        plugin_data: FlextTypes.Core.Dict = {
             "name": "test",
             "version": "1.0.0",
             "type": "test",
@@ -250,7 +253,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins = FlextDbOraclePlugins()
 
         # 1. Create custom plugin
-        custom_plugin: dict[str, object] = {
+        custom_plugin: FlextTypes.Core.Dict = {
             "name": "custom_test",
             "version": "1.0.0",
             "type": "custom",
@@ -320,7 +323,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugins2 = FlextDbOraclePlugins()
 
         # Register plugin in first instance
-        plugin_data: dict[str, object] = {"name": "test1", "version": "1.0.0"}
+        plugin_data: FlextTypes.Core.Dict = {"name": "test1", "version": "1.0.0"}
         plugins1.register_plugin("test1", plugin_data)
 
         # Second instance should be empty
@@ -328,7 +331,7 @@ class TestFlextDbOraclePluginsComprehensive:
         assert not list_result2.success  # Should be empty
 
         # Register different plugin in second instance
-        plugin_data2: dict[str, object] = {"name": "test2", "version": "1.0.0"}
+        plugin_data2: FlextTypes.Core.Dict = {"name": "test2", "version": "1.0.0"}
         plugins2.register_plugin("test2", plugin_data2)
 
         # First instance should only have test1
@@ -368,9 +371,9 @@ class TestFlextDbOraclePluginsComprehensive:
         # Verify complex data preserved
         get_result = plugins.get_plugin("complex")
         assert get_result.success
-        retrieved = cast("dict[str, object]", get_result.value)
-        nested = cast("dict[str, object]", retrieved["nested"])
-        data = cast("dict[str, object]", nested["data"])
+        retrieved = cast("FlextTypes.Core.Dict", get_result.value)
+        nested = cast("FlextTypes.Core.Dict", retrieved["nested"])
+        data = cast("FlextTypes.Core.Dict", nested["data"])
         assert data["deep"] == ["list", "of", "items"]
         assert retrieved["numbers"] == [1, 2, 3, 4, 5]
         assert retrieved["boolean"] is True
@@ -401,7 +404,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # Register many plugins to test scalability
         for i in range(50):
-            plugin_data: dict[str, object] = {
+            plugin_data: FlextTypes.Core.Dict = {
                 "name": f"stress_plugin_{i}",
                 "version": "1.0.0",
                 "type": "stress_test",
@@ -419,7 +422,7 @@ class TestFlextDbOraclePluginsComprehensive:
         for i in [0, 25, 49]:  # Test first, middle, last
             get_result = plugins.get_plugin(f"stress_{i}")
             assert get_result.success
-            plugin_value = cast("dict[str, object]", get_result.value)
+            plugin_value = cast("FlextTypes.Core.Dict", get_result.value)
             assert plugin_value["name"] == f"stress_plugin_{i}"
 
         # Unregister half the plugins

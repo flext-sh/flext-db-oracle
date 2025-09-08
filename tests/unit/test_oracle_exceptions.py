@@ -2,13 +2,13 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 from typing import cast
 
+from flext_core import FlextTypes
 from flext_core.exceptions import FlextExceptions
 from pydantic import SecretStr
 
@@ -319,7 +319,7 @@ class TestRealOracleExceptionsAdvanced:
             try:
                 # Convert config_data to proper types
                 port_value = config_data.get("port", 1521)
-                typed_config: dict[str, object] = {
+                typed_config: FlextTypes.Core.Dict = {
                     "host": str(config_data.get("host", "")),
                     "port": int(port_value)
                     if isinstance(port_value, (int, str))

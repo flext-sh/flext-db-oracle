@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 import os
 from typing import cast
@@ -83,7 +84,7 @@ def demo_basic_usage() -> None:
 
 def show_available_examples() -> None:
     """Show information about available examples."""
-    examples: list[dict[str, object]] = [
+    examples: list[FlextTypes.Core.Dict] = [
         {
             "name": "04_comprehensive_oracle_usage.py",
             "description": "Complete Oracle operations demonstration",
@@ -124,7 +125,9 @@ def show_available_examples() -> None:
     ]
 
     for example in examples:
-        features: list[str] = cast("list[str]", example.get("features", []))
+        features: FlextTypes.Core.StringList = cast(
+            "FlextTypes.Core.StringList", example.get("features", [])
+        )
         if isinstance(features, list):
             for _feature in features:
                 pass

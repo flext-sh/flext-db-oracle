@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Self, TypedDict, TypeGuard, cast
 
-from flext_core import FlextLogger, FlextModels, FlextResult
+from flext_core import FlextLogger, FlextModels, FlextResult, FlextTypes
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -459,8 +459,10 @@ class FlextDbOracleModels:
     class QueryResult(FlextModels.Value):
         """Oracle query result model with execution metadata."""
 
-        columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[object]] = Field(
+        columns: FlextTypes.Core.StringList = Field(
+            default_factory=list, description="Column names"
+        )
+        rows: list[FlextTypes.Core.List] = Field(
             default_factory=list,
             description="Result rows",
         )
@@ -490,7 +492,7 @@ class FlextDbOracleModels:
                 raise ValueError(msg)
             return value
 
-        def to_dict_list(self) -> list[dict[str, object]]:
+        def to_dict_list(self) -> list[FlextTypes.Core.Dict]:
             """Convert result to list of dictionaries."""
             if not self.columns:
                 return []
@@ -503,7 +505,7 @@ class FlextDbOracleModels:
                 result.append(row_dict)
             return result
 
-        def get_column_values(self, column_name: str) -> list[object]:
+        def get_column_values(self, column_name: str) -> FlextTypes.Core.List:
             """Get all values for a specific column."""
             try:
                 column_index = self.columns.index(column_name)
@@ -595,7 +597,8 @@ class FlextDbOracleModels:
             """Validate port number."""
             if value is None:
                 return 1521  # Oracle default port
-            if not 1 <= value <= 65535:
+            max_port = 65535
+            if not 1 <= value <= max_port:
                 msg = f"Port must be between 1 and 65535, got {value}"
                 raise ValueError(msg)
             return value
@@ -666,11 +669,63 @@ class FlextDbOracleModels:
             description="Delay between retry attempts in seconds",
         )
 
+        # ------------------------------------------------------------------
+        # Backward-compat / alias expectations (tests e outros pacotes)
+        # Não adicionamos novos campos reais para evitar duplicação de estado;
+        # em vez disso aceitamos nomes antigos via normalização pré-model e
+        # expomos propriedades somente-leitura coerentes.
+        # ------------------------------------------------------------------
+
         # BaseSettings configuration for automatic environment loading
         model_config = SettingsConfigDict(
             env_prefix="FLEXT_TARGET_ORACLE_",
             env_file=".env",
         )
+
+        @model_validator(mode="before")
+        @classmethod
+        def _apply_aliases(cls, data: object) -> object:  # type: ignore[override]
+            """Normaliza chaves de entrada aceitando aliases esperados.
+
+            Aceita: schema -> oracle_schema, use_ssl -> ssl_enabled,
+            pool_min_size -> pool_min, pool_max_size -> pool_max.
+            Ignora pool_enabled (derivada) se fornecida.
+            """
+            if isinstance(data, dict):
+                if "schema" in data and "oracle_schema" not in data:
+                    data["oracle_schema"] = data["schema"]
+                if "use_ssl" in data and "ssl_enabled" not in data:
+                    data["ssl_enabled"] = data["use_ssl"]
+                if "pool_min_size" in data and "pool_min" not in data:
+                    data["pool_min"] = data["pool_min_size"]
+                if "pool_max_size" in data and "pool_max" not in data:
+                    data["pool_max"] = data["pool_max_size"]
+            return data
+
+        # ------------------------------------------------------------------
+        # Propriedades derivadas (não armazenam valor extra)
+        # ------------------------------------------------------------------
+        @property
+        def schema(self) -> str:
+            """Alias para oracle_schema (compat)."""
+            return self.oracle_schema
+
+        @property
+        def use_ssl(self) -> bool:  # noqa: D401 - simples alias
+            return self.ssl_enabled
+
+        @property
+        def pool_min_size(self) -> int:  # noqa: D401 - simples alias
+            return self.pool_min
+
+        @property
+        def pool_max_size(self) -> int:  # noqa: D401 - simples alias
+            return self.pool_max
+
+        @property
+        def pool_enabled(self) -> bool:
+            """Considera pool habilitado se max > 1 ou min > 1."""
+            return self.pool_max > 1 or self.pool_min > 1
 
         @field_validator("host", "username")
         @classmethod
@@ -685,7 +740,8 @@ class FlextDbOracleModels:
         @classmethod
         def validate_port(cls, value: int) -> int:
             """Validate port number."""
-            if not 1 <= value <= 65535:
+            max_port = 65535
+            if not 1 <= value <= max_port:
                 msg = f"Port must be between 1 and 65535, got {value}"
                 raise ValueError(msg)
             return value
@@ -729,7 +785,7 @@ class FlextDbOracleModels:
                     "service_name": os.getenv(f"{prefix}_SERVICE_NAME", "XEPDB1"),
                     "ssl_server_cert_dn": os.getenv(f"{prefix}_SSL_CERT_DN"),
                 }
-                instance = cls.model_validate(config_data)
+                instance = cls(**config_data)
                 return FlextResult[Self].ok(instance)
             except Exception as e:
                 return FlextResult[Self].fail(
@@ -774,7 +830,7 @@ class FlextDbOracleModels:
                     "password": SecretStr(password),
                     "service_name": service_name,
                 }
-                instance = cls.model_validate(config_data)
+                instance = cls(**config_data)
                 return FlextResult[Self].ok(instance)
             except Exception as e:
                 return FlextResult[Self].fail(f"Failed to parse database URL: {e}")
@@ -802,12 +858,12 @@ class FlextDbOracleModels:
         """Configuration for Oracle MERGE statement generation."""
 
         target_table: str
-        source_columns: list[str]
-        merge_keys: list[str]
-        update_columns: list[str] | None = None
-        insert_columns: list[str] | None = None
+        source_columns: FlextTypes.Core.StringList
+        merge_keys: FlextTypes.Core.StringList
+        update_columns: FlextTypes.Core.StringList | None = None
+        insert_columns: FlextTypes.Core.StringList | None = None
         schema_name: str | None = None
-        hints: list[str] | None = None
+        hints: FlextTypes.Core.StringList | None = None
 
     @dataclass
     class CreateIndex:
@@ -815,7 +871,7 @@ class FlextDbOracleModels:
 
         index_name: str
         table_name: str
-        columns: list[str]
+        columns: FlextTypes.Core.StringList
         unique: bool = False
         schema_name: str | None = None
         tablespace: str | None = None
@@ -885,12 +941,12 @@ class FlextDbOracleModels:
         )
 
     @staticmethod
-    def is_dict_like(obj: object) -> TypeGuard[dict[str, object]]:
+    def is_dict_like(obj: object) -> TypeGuard[FlextTypes.Core.Dict]:
         """Type guard for dict-like objects."""
         return hasattr(obj, "get") and hasattr(obj, "items") and hasattr(obj, "keys")
 
     @staticmethod
-    def is_string_list(obj: object) -> TypeGuard[list[str]]:
+    def is_string_list(obj: object) -> TypeGuard[FlextTypes.Core.StringList]:
         """Type guard for list of strings."""
         return isinstance(obj, list) and all(isinstance(item, str) for item in obj)
 

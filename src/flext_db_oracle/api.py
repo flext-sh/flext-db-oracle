@@ -10,15 +10,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from typing import TYPE_CHECKING, Self, cast
+from collections.abc import Sequence
+from typing import Self, cast
 
-from flext_core import FlextLogger, FlextResult
+from flext_core import FlextLogger, FlextResult, FlextTypes
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 logger = FlextLogger(__name__)
 
@@ -39,7 +37,7 @@ class FlextDbOracleApi:
         self._services = FlextDbOracleServices(config)
         self._context_name = context_name or "oracle-api"
         self._logger = logger.bind(component=self._context_name)
-        self._plugins: dict[str, object] = {}
+        self._plugins: FlextTypes.Core.Dict = {}
 
     @property
     def config(self) -> FlextDbOracleModels.OracleConfig:
@@ -77,7 +75,7 @@ class FlextDbOracleApi:
         """
         return cls(config)
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self) -> FlextTypes.Core.Dict:
         """Convert API instance to dictionary representation."""
         return {
             "config": {
@@ -116,23 +114,23 @@ class FlextDbOracleApi:
     def query(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
-    ) -> FlextResult[list[dict[str, object]]]:
+        parameters: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Execute a SELECT query and return all results."""
         return self._services.execute_query(sql, parameters or {})
 
     def query_one(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
-    ) -> FlextResult[dict[str, object] | None]:
+        parameters: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[FlextTypes.Core.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._services.fetch_one(sql, parameters or {})
 
     def execute(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
+        parameters: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         return self._services.execute_statement(sql, parameters or {})
@@ -140,33 +138,33 @@ class FlextDbOracleApi:
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[dict[str, object]],
+        parameters_list: Sequence[FlextTypes.Core.Dict],
     ) -> FlextResult[int]:
         """Execute a statement multiple times with different parameters."""
         return self._services.execute_many(sql, list(parameters_list))
 
     # Schema Introspection
-    def get_schemas(self) -> FlextResult[list[str]]:
+    def get_schemas(self) -> FlextResult[FlextTypes.Core.StringList]:
         """Get list of available schemas."""
         return self._services.get_schemas()
 
     def get_tables(
         self, schema: str | None = None
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Get list of tables in specified schema."""
         try:
             result = self._services.get_tables(schema)
             if result.success:
                 # Convert list of strings to list of dict for consistency with tests
-                table_dicts: list[dict[str, object]] = [
+                table_dicts: list[FlextTypes.Core.Dict] = [
                     {"name": name} for name in result.value
                 ]
-                return FlextResult[list[dict[str, object]]].ok(table_dicts)
-            return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Core.Dict]].ok(table_dicts)
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 result.error or "Failed to get tables"
             )
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 f"Error getting tables: {e}"
             )
 
@@ -174,7 +172,7 @@ class FlextDbOracleApi:
         self,
         table: str,
         schema: str | None = None,
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[FlextTypes.Core.Dict]]:
         """Get column information for specified table."""
         try:
             result = self._services.get_columns(table, schema)
@@ -188,24 +186,24 @@ class FlextDbOracleApi:
                         column_dicts.append(col.__dict__)
                     else:
                         column_dicts.append({"name": str(col)})
-                return FlextResult[list[dict[str, object]]].ok(column_dicts)
-            return FlextResult[list[dict[str, object]]].fail(
+                return FlextResult[list[FlextTypes.Core.Dict]].ok(column_dicts)
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 result.error or "Failed to get columns"
             )
         except Exception as e:
-            return FlextResult[list[dict[str, object]]].fail(
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
                 f"Error getting columns: {e}"
             )
 
     def get_table_metadata(
         self, table: str, schema: str | None = None
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Core.Dict]:
         """Get comprehensive table metadata including columns and constraints."""
         try:
             # Get table information
             tables_result = self.get_tables(schema)
             if not tables_result.success:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to get tables: {tables_result.error}"
                 )
 
@@ -222,36 +220,38 @@ class FlextDbOracleApi:
                     break
 
             if not table_info:
-                return FlextResult[dict[str, object]].fail(f"Table '{table}' not found")
+                return FlextResult[FlextTypes.Core.Dict].fail(
+                    f"Table '{table}' not found"
+                )
 
             # Get columns for this table
             columns_result = self.get_columns(table, schema)
             if not columns_result.success:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to get columns: {columns_result.error}"
                 )
 
-            metadata: dict[str, object] = {
+            metadata: FlextTypes.Core.Dict = {
                 "table_name": table,
                 "schema_name": schema,
                 "columns": columns_result.value,
                 "column_count": len(columns_result.value),
             }
 
-            return FlextResult[dict[str, object]].ok(metadata)
+            return FlextResult[FlextTypes.Core.Dict].ok(metadata)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Error getting table metadata: {e}"
             )
 
     def get_primary_keys(
         self, table: str, schema: str | None = None
-    ) -> FlextResult[list[str]]:
+    ) -> FlextResult[FlextTypes.Core.StringList]:
         """Get primary key column names for specified table."""
         try:
             columns_result = self.get_columns(table, schema)
             if not columns_result.success:
-                return FlextResult[list[str]].fail(
+                return FlextResult[FlextTypes.Core.StringList].fail(
                     f"Failed to get columns: {columns_result.error}"
                 )
 
@@ -277,19 +277,23 @@ class FlextDbOracleApi:
                     if is_likely_pk and isinstance(column_name, str):
                         primary_keys.append(column_name)
 
-            return FlextResult[list[str]].ok(primary_keys)
+            return FlextResult[FlextTypes.Core.StringList].ok(primary_keys)
         except Exception as e:
-            return FlextResult[list[str]].fail(f"Error getting primary keys: {e}")
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                f"Error getting primary keys: {e}"
+            )
 
     def convert_singer_type(
-        self, singer_type: str | list[str], format_hint: str | None = None
+        self,
+        singer_type: str | FlextTypes.Core.StringList,
+        format_hint: str | None = None,
     ) -> FlextResult[str]:
         """Convert Singer JSON Schema type to Oracle SQL type."""
         return self._services.convert_singer_type(singer_type, format_hint)
 
     def map_singer_schema(
-        self, schema: dict[str, object]
-    ) -> FlextResult[dict[str, str]]:
+        self, schema: FlextTypes.Core.Dict
+    ) -> FlextResult[FlextTypes.Core.Headers]:
         """Map Singer JSON Schema to Oracle table schema."""
         return self._services.map_singer_schema(schema)
 
@@ -312,7 +316,7 @@ class FlextDbOracleApi:
         except (AttributeError, ValueError, TypeError) as e:
             return FlextResult[str].fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
+    def get_observability_metrics(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
 
@@ -371,12 +375,16 @@ class FlextDbOracleApi:
         except (KeyError, AttributeError) as e:
             return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
-    def list_plugins(self) -> FlextResult[list[str]]:
+    def list_plugins(self) -> FlextResult[FlextTypes.Core.StringList]:
         """List all registered plugin names."""
         try:
-            return FlextResult[list[str]].ok(list(self._plugins.keys()))
+            return FlextResult[FlextTypes.Core.StringList].ok(
+                list(self._plugins.keys())
+            )
         except (AttributeError, TypeError) as e:
-            return FlextResult[list[str]].fail(f"Failed to list plugins: {e}")
+            return FlextResult[FlextTypes.Core.StringList].fail(
+                f"Failed to list plugins: {e}"
+            )
 
     # Additional methods demanded by tests and real usage
     def execute_sql(self, sql: str) -> FlextResult[FlextDbOracleModels.QueryResult]:
@@ -388,8 +396,8 @@ class FlextDbOracleApi:
                 # Convert result data to proper format for QueryResult
                 # If it's raw data, wrap it in QueryResult
                 # Initialize variables
-                rows_data: list[list[object]] = []
-                columns: list[str] = []
+                rows_data: list[FlextTypes.Core.List] = []
+                columns: FlextTypes.Core.StringList = []
 
                 if isinstance(result.value, list) and result.value:
                     # Check first element to determine format
@@ -418,7 +426,7 @@ class FlextDbOracleApi:
                 f"SQL execution error: {e}"
             )
 
-    def get_health_status(self) -> FlextResult[dict[str, object]]:
+    def get_health_status(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Get database connection health status."""
         try:
             # Delegate to services layer for health check
@@ -429,9 +437,9 @@ class FlextDbOracleApi:
                 "port": self._config.port,
                 "service_name": self._config.service_name,
             }
-            return FlextResult[dict[str, object]].ok(status)
+            return FlextResult[FlextTypes.Core.Dict].ok(status)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
 
     @property
     def connection(self) -> object:

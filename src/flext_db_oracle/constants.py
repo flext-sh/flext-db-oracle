@@ -4,14 +4,13 @@ Oracle Database-specific constants that extend flext-core patterns.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_core import FlextConstants
+from flext_core import FlextConstants, FlextTypes
 
 # =============================================================================
 # ORACLE-SPECIFIC SEMANTIC CONSTANTS - Modern Python 3.13 Structure
@@ -57,7 +56,7 @@ class FlextDbOracleConstants(FlextConstants):
         NUMBER_TYPE = "NUMBER"
 
         # Singer to Oracle type mapping
-        SINGER_TYPE_MAP: ClassVar[dict[str, str]] = {
+        SINGER_TYPE_MAP: ClassVar[FlextTypes.Core.Headers] = {
             "string": "VARCHAR2(4000)",
             "integer": "NUMBER(38)",
             "number": "NUMBER",
@@ -165,6 +164,6 @@ class FlextDbOracleConstants(FlextConstants):
 # EXPORTS - Oracle Database constants API
 # =============================================================================
 
-__all__: list[str] = [
+__all__: FlextTypes.Core.StringList = [
     "FlextDbOracleConstants",
 ]

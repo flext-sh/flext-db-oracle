@@ -1,13 +1,11 @@
 """Enterprise Oracle Database integration library for FLEXT ecosystem.
 
-Clean, production-ready Oracle database integration following FLEXT
-architectural patterns.
-
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import (
@@ -17,6 +15,7 @@ from flext_db_oracle.client import (
 )
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.exceptions import (
+    ExceptionParams,
     FlextDbOracleExceptions,
     OracleConnectionError,
     OracleQueryError,
@@ -75,6 +74,7 @@ __all__ = [
     "OracleValidationFactory",
     "ParameterObject",
     # Exceptions
+    "ExceptionParams",
     "OracleConnectionError",
     "OracleQueryError",
     "OracleValidationError",

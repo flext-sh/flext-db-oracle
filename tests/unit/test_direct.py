@@ -3,9 +3,11 @@
 This module directly calls internal functions to boost coverage from 41% toward ~100%.
 Focus on API (40%), CLI (21%), and other modules with lowest coverage.
 
+
+
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from pathlib import Path
 from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 # Add flext_tests to path
@@ -505,7 +508,7 @@ class TestDirectCoverageBoostServices:
             )
 
             FlextMatchers.assert_result_success(test_data)
-            result = builder.process(cast("dict[str, object]", test_data.value))
+            result = builder.process(cast("FlextTypes.Core.Dict", test_data.value))
 
             # All operations should return a result (success or failure)
             assert result is not None

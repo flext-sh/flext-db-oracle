@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes
 
 from flext_core import FlextLogger, FlextResult, FlextServices
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -18,7 +19,7 @@ logger = FlextLogger(__name__)
 
 
 class OracleExampleProcessor(
-    FlextServices.ServiceProcessor[str, FlextDbOracleApi, dict[str, object]]
+    FlextServices.ServiceProcessor[str, FlextDbOracleApi, FlextTypes.Core.Dict]
 ):
     """Simplified Oracle example usando FlextServices - ELIMINA COMPLEXIDADE."""
 
@@ -36,7 +37,9 @@ class OracleExampleProcessor(
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
 
-    def build(self, api: FlextDbOracleApi, *, correlation_id: str) -> dict[str, object]:
+    def build(
+        self, api: FlextDbOracleApi, *, correlation_id: str
+    ) -> FlextTypes.Core.Dict:
         """Build simple result dictionary."""
         return {
             "status": "connected",

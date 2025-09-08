@@ -907,7 +907,7 @@ async def sync_schema(
 async def get_schema_ddl(
     schema_name: str,
     connection: str,
-    object_types: list[str] = None
+    object_types: FlextTypes.Core.StringList = None
 ):
     """Get DDL for schema objects."""
     ddl = await schema_manager.get_schema_ddl(

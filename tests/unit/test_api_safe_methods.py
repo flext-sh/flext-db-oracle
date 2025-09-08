@@ -1,13 +1,12 @@
 """Tests for FlextDbOracleApi methods that work without Oracle connection.
 
-Focus on methods that don't require database connection to boost coverage:
-- Configuration methods (from_env, from_config, with_config)
-- Plugin management (register_plugin, list_plugins, get_plugin)
-- Query optimization (optimize_query)
-- Observability methods (get_observability_metrics)
-- Utility methods (get_info)
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
+from __future__ import annotations
+
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -113,7 +112,7 @@ class TestFlextDbOracleApiSafeMethods:
             )
 
         # Create a test plugin directly
-        plugin: dict[str, object] = {
+        plugin: FlextTypes.Core.Dict = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -244,7 +243,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         # Create a plugin for testing directly
-        plugin: dict[str, object] = {
+        plugin: FlextTypes.Core.Dict = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",

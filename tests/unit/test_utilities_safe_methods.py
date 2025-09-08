@@ -6,6 +6,10 @@ Focus on utility functionality that doesn't require database connection to boost
 - Query result processing
 - Performance monitoring utilities
 - Output formatting methods
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 import json
@@ -30,7 +34,7 @@ PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
 class TestModelDump:
     """Test class that supports model_dump methods."""
 
-    def model_dump(self) -> dict[str, object]:
+    def model_dump(self) -> FlextTypes.Core.Dict:
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
 
     def model_dump_json(self, *, indent: int | None = None) -> str:
@@ -63,7 +67,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_create_api_from_config_method(self) -> None:
         """Test create_api_from_config utility method."""
-        config_dict: dict[str, object] = {
+        config_dict: FlextTypes.Core.Dict = {
             "host": "util_api_test",
             "port": 1521,
             "service_name": "UTIL_API_TEST",
@@ -365,7 +369,9 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         )
 
         # Should handle invalid formats gracefully - method is defensive and succeeds
-        result = FlextDbOracleUtilities.format_query_result(query_result, "invalid_format")
+        result = FlextDbOracleUtilities.format_query_result(
+            query_result, "invalid_format"
+        )
         # Method handles invalid formats defensively, should still succeed
         assert result.success, "Method should handle invalid format defensively"
         # Should still return some output (default formatting)

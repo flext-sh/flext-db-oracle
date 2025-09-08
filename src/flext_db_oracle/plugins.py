@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 
 
 class FlextDbOraclePlugins:
@@ -21,7 +21,7 @@ class FlextDbOraclePlugins:
 
     def __init__(self) -> None:
         """Initialize Oracle plugins system."""
-        self._plugins: dict[str, object] = {}
+        self._plugins: FlextTypes.Core.Dict = {}
 
     # Factory methods ELIMINATED - create plugin data directly as dicts:
     # {"name": "performance_monitor", "version": "1.0.0", "type": "monitoring",
@@ -30,7 +30,7 @@ class FlextDbOraclePlugins:
     def register_plugin(
         self,
         name: str,
-        plugin_data: dict[str, object],
+        plugin_data: FlextTypes.Core.Dict,
     ) -> FlextResult[None]:
         """Register a plugin."""
         try:
@@ -48,16 +48,18 @@ class FlextDbOraclePlugins:
         except Exception as e:
             return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
-    def list_plugins(self) -> FlextResult[dict[str, object]]:
+    def list_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
         """List all registered plugins."""
         try:
             if not self._plugins:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Core.Dict].fail(
                     "plugin listing returned empty",
                 )
-            return FlextResult[dict[str, object]].ok(self._plugins.copy())
+            return FlextResult[FlextTypes.Core.Dict].ok(self._plugins.copy())
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Failed to list plugins: {e}")
+            return FlextResult[FlextTypes.Core.Dict].fail(
+                f"Failed to list plugins: {e}"
+            )
 
     def get_plugin(self, name: str) -> FlextResult[object]:
         """Get a specific plugin."""
@@ -68,52 +70,52 @@ class FlextDbOraclePlugins:
         except Exception as e:
             return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
-    def create_performance_monitor_plugin(self) -> FlextResult[dict[str, object]]:
+    def create_performance_monitor_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Create performance monitor plugin data."""
         try:
-            plugin_data: dict[str, object] = {
+            plugin_data: FlextTypes.Core.Dict = {
                 "name": "performance_monitor",
                 "version": "1.0.0",
                 "type": "monitoring",
                 "capabilities": ["query_tracking", "performance_metrics", "alerting"],
             }
-            return FlextResult[dict[str, object]].ok(plugin_data)
+            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Failed to create performance monitor plugin: {e}",
             )
 
-    def create_data_validation_plugin(self) -> FlextResult[dict[str, object]]:
+    def create_data_validation_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Create data validation plugin data."""
         try:
-            plugin_data: dict[str, object] = {
+            plugin_data: FlextTypes.Core.Dict = {
                 "name": "data_validation",
                 "version": "1.0.0",
                 "type": "validation",
                 "capabilities": ["schema_validation", "data_integrity", "constraints"],
             }
-            return FlextResult[dict[str, object]].ok(plugin_data)
+            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Failed to create data validation plugin: {e}",
             )
 
-    def create_security_audit_plugin(self) -> FlextResult[dict[str, object]]:
+    def create_security_audit_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Create security audit plugin data."""
         try:
-            plugin_data: dict[str, object] = {
+            plugin_data: FlextTypes.Core.Dict = {
                 "name": "security_audit",
                 "version": "1.0.0",
                 "type": "security",
                 "capabilities": ["access_logging", "privilege_audit", "compliance"],
             }
-            return FlextResult[dict[str, object]].ok(plugin_data)
+            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Failed to create security audit plugin: {e}",
             )
 
-    def register_all_oracle_plugins(self) -> FlextResult[dict[str, object]]:
+    def register_all_oracle_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Register all available Oracle plugins.
 
         Returns:
@@ -121,7 +123,7 @@ class FlextDbOraclePlugins:
 
         """
         try:
-            plugins_info: dict[str, object] = {}
+            plugins_info: FlextTypes.Core.Dict = {}
             plugin_count = 0
 
             # Create and register plugins using factory methods
@@ -145,9 +147,9 @@ class FlextDbOraclePlugins:
             plugins_info["registration_status"] = "completed"
             plugins_info["available_plugins"] = list(self._plugins.keys())
 
-            return FlextResult[dict[str, object]].ok(plugins_info)
+            return FlextResult[FlextTypes.Core.Dict].ok(plugins_info)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Core.Dict].fail(
                 f"Plugin registration failed: {e}",
             )
 

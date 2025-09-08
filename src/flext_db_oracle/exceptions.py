@@ -5,9 +5,6 @@ Single class inheriting from FlextExceptions with all Oracle exception functiona
 as delegated methods, following SOLID principles, PEP8, Python 3.13+, and FLEXT
 structural patterns.
 
-All exception functionality is delegated to flext-core base classes.
-ZERO local BaseError classes - complete elimination of duplication.
-
 Copyright (c) 2025 FLEXT Contributors
 SPDX-License-Identifier: MIT
 """
@@ -17,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from flext_core.exceptions import FlextExceptions
+from flext_core import FlextExceptions, FlextTypes
 
 from flext_db_oracle.mixins import ParameterObject
 
@@ -29,7 +26,7 @@ class ExceptionParams:
 
     message: str
     code: str | None = None
-    context: dict[str, object] | None = None
+    context: FlextTypes.Core.Dict | None = None
 
     def __post_init__(self) -> None:
         """Validação automática usando Python 3.13+ patterns."""
@@ -123,7 +120,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             code: str | None = None,
-            context: dict[str, object] | None = None,
+            context: FlextTypes.Core.Dict | None = None,
         ) -> None:
             """Initialize Oracle processing error via flext-core."""
             resolved_code = code or "ORACLE_PROCESSING_ERROR"
@@ -137,7 +134,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             code: str | None = None,
-            context: dict[str, object] | None = None,
+            context: FlextTypes.Core.Dict | None = None,
         ) -> None:
             """Initialize Oracle authentication error via flext-core."""
             resolved_code = code or "ORACLE_AUTHENTICATION_ERROR"
@@ -151,7 +148,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             code: str | None = None,
-            context: dict[str, object] | None = None,
+            context: FlextTypes.Core.Dict | None = None,
         ) -> None:
             """Initialize Oracle timeout error via flext-core."""
             resolved_code = code or "ORACLE_TIMEOUT_ERROR"
@@ -170,7 +167,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             if params is None:
                 params = ParameterObject()
 
-            context_dict: dict[str, object] = {}
+            context_dict: FlextTypes.Core.Dict = {}
 
             # Extract query parameter with truncation
             if params.has("query"):
@@ -209,7 +206,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             if params is None:
                 params = ParameterObject()
 
-            context_dict: dict[str, object] = {}
+            context_dict: FlextTypes.Core.Dict = {}
 
             # Extract metadata parameters
             for param_name in [
@@ -244,7 +241,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 params = ParameterObject()
 
             # Extract connection parameters for context (stored as instance attribute for potential logging)
-            connection_context: dict[str, object] = {}
+            connection_context: FlextTypes.Core.Dict = {}
 
             for param_name in [
                 "host",
@@ -299,7 +296,7 @@ OracleQueryError = FlextDbOracleExceptions.QueryError
 OracleValidationError = FlextDbOracleExceptions.ValidationError
 
 # Export API - Main class plus compatibility aliases
-__all__: list[str] = [
+__all__: FlextTypes.Core.StringList = [
     "FlextDbOracleExceptions",
     "OracleConnectionError",
     "OracleQueryError",

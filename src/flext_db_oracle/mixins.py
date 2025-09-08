@@ -12,18 +12,12 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass
 
-# IMPORTS REDUZIDOS - Usando flext-core diretamente
-from flext_core import FlextResult
-from flext_core.validations import FlextValidations as Validations
+from flext_core import FlextResult, FlextTypes, FlextValidations as Validations
 
 from flext_db_oracle.constants import FlextDbOracleConstants
-
-# ELIMINADO - Usando FlextValidations.Advanced.CompositeValidator do flext-core
 
 
 class OracleIdentifierValidation:
@@ -160,7 +154,7 @@ class OracleValidationFactory:
 class ParameterObject:
     """Parameter Object usando dataclass - mais simples que implementação customizada."""
 
-    params: dict[str, object] | None = None
+    params: FlextTypes.Core.Dict | None = None
 
     def __post_init__(self) -> None:
         """Initialize params dict if None."""

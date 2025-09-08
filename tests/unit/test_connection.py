@@ -2,6 +2,10 @@
 
 This module tests the connection functionality with real code paths,
 following the user's requirement for real code testing without mocks.
+
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from typing import cast
@@ -372,7 +376,7 @@ class TestFlextDbOracleConnectionComprehensive:
         }
 
         # Cast singer_schema to compatible dict type
-        schema_dict = cast("dict[str, object]", singer_schema)
+        schema_dict = cast("FlextTypes.Core.Dict", singer_schema)
         result = self.connection.map_singer_schema(schema_dict)
         assert result.success
         mapping = result.value
