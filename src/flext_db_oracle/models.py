@@ -684,7 +684,7 @@ class FlextDbOracleModels:
 
         @model_validator(mode="before")
         @classmethod
-        def _apply_aliases(cls, data: object) -> object:  # type: ignore[override]
+        def _apply_aliases(cls, data: object) -> object:
             """Normaliza chaves de entrada aceitando aliases esperados.
 
             Aceita: schema -> oracle_schema, use_ssl -> ssl_enabled,
@@ -706,20 +706,20 @@ class FlextDbOracleModels:
         # Propriedades derivadas (não armazenam valor extra)
         # ------------------------------------------------------------------
         @property
-        def schema(self) -> str:
-            """Alias para oracle_schema (compat)."""
+        def schema_name(self) -> str:
+            """Get the Oracle schema name (compatibility property)."""
             return self.oracle_schema
 
         @property
-        def use_ssl(self) -> bool:  # noqa: D401 - simples alias
+        def use_ssl(self) -> bool:
             return self.ssl_enabled
 
         @property
-        def pool_min_size(self) -> int:  # noqa: D401 - simples alias
+        def pool_min_size(self) -> int:
             return self.pool_min
 
         @property
-        def pool_max_size(self) -> int:  # noqa: D401 - simples alias
+        def pool_max_size(self) -> int:
             return self.pool_max
 
         @property
@@ -785,6 +785,7 @@ class FlextDbOracleModels:
                     "service_name": os.getenv(f"{prefix}_SERVICE_NAME", "XEPDB1"),
                     "ssl_server_cert_dn": os.getenv(f"{prefix}_SSL_CERT_DN"),
                 }
+                # Known Pydantic BaseSettings + MyPy incompatibility issue
                 instance = cls(**config_data)
                 return FlextResult[Self].ok(instance)
             except Exception as e:
@@ -830,6 +831,7 @@ class FlextDbOracleModels:
                     "password": SecretStr(password),
                     "service_name": service_name,
                 }
+                # Known Pydantic BaseSettings + MyPy incompatibility issue
                 instance = cls(**config_data)
                 return FlextResult[Self].ok(instance)
             except Exception as e:

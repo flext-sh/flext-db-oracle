@@ -20,7 +20,7 @@ from pydantic import SecretStr
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextMatchers
+from flext_tests import FlextTestsMatchers
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import oracle_cli
@@ -70,7 +70,7 @@ class TestCLIRealFunctionality:
         try:
             # Test real API creation from environment
             api_result = FlextDbOracleApi.from_env()
-            FlextMatchers.assert_result_success(api_result)
+            FlextTestsMatchers.assert_result_success(api_result)
 
             api = api_result.value
             assert api.config.host == "localhost"
@@ -101,7 +101,7 @@ class TestCLIRealFunctionality:
 
         # Test real observability metrics
         metrics_result = api.get_observability_metrics()
-        FlextMatchers.assert_result_success(metrics_result)
+        FlextTestsMatchers.assert_result_success(metrics_result)
         assert isinstance(metrics_result.value, dict)
 
         # Test real connection testing (will fail but should handle gracefully)
@@ -125,7 +125,7 @@ class TestCLIRealFunctionality:
             format_result = utilities.format_query_result(
                 test_result, format_type=format_type
             )
-            FlextMatchers.assert_result_success(format_result)
+            FlextTestsMatchers.assert_result_success(format_result)
             assert isinstance(format_result.value, str)
             assert len(format_result.value) > 0
 
@@ -144,7 +144,7 @@ class TestCLIRealFunctionality:
 
         # Test error handling for operations without connection
         query_result = api.query("SELECT 1 FROM DUAL")
-        FlextMatchers.assert_result_failure(query_result)
+        FlextTestsMatchers.assert_result_failure(query_result)
         assert query_result.error is not None
         assert (
             "not connected" in query_result.error.lower()
@@ -153,11 +153,11 @@ class TestCLIRealFunctionality:
 
         # Test error handling for schema operations
         schemas_result = api.get_schemas()
-        FlextMatchers.assert_result_failure(schemas_result)
+        FlextTestsMatchers.assert_result_failure(schemas_result)
 
         # Test error handling for table operations
         tables_result = api.get_tables()
-        FlextMatchers.assert_result_failure(tables_result)
+        FlextTestsMatchers.assert_result_failure(tables_result)
 
     def test_parameter_processing_real(self) -> None:
         """Test parameter processing using real API functionality."""
@@ -224,7 +224,9 @@ class TestCLIRealFunctionality:
         """Test factory methods using real functionality - NO MOCKS."""
         # Test from_env factory method
         api_result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
-        FlextMatchers.assert_result_success(api_result)  # Should succeed with defaults
+        FlextTestsMatchers.assert_result_success(
+            api_result
+        )  # Should succeed with defaults
 
         api = api_result.value
         assert api.config.host == "localhost"  # Default value
@@ -233,7 +235,7 @@ class TestCLIRealFunctionality:
 
         # Test from_url factory method
         url_result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
-        FlextMatchers.assert_result_success(url_result)  # Should work now
+        FlextTestsMatchers.assert_result_success(url_result)  # Should work now
 
         url_api = url_result.value
         assert url_api.config.host == "host"
@@ -255,25 +257,25 @@ class TestCLIRealFunctionality:
         # Test plugin registration - real functionality
         test_plugin = {"name": "test_plugin", "version": "1.0.0"}
         register_result = api.register_plugin("test_plugin", test_plugin)
-        FlextMatchers.assert_result_success(register_result)
+        FlextTestsMatchers.assert_result_success(register_result)
 
         # Test plugin listing - real functionality
         list_result = api.list_plugins()
-        FlextMatchers.assert_result_success(list_result)
+        FlextTestsMatchers.assert_result_success(list_result)
         plugin_list = list_result.value
         assert "test_plugin" in plugin_list
 
         # Test plugin retrieval - real functionality
         get_result = api.get_plugin("test_plugin")
-        FlextMatchers.assert_result_success(get_result)
+        FlextTestsMatchers.assert_result_success(get_result)
         retrieved_plugin = get_result.value
         assert retrieved_plugin == test_plugin
 
         # Test plugin unregistration - real functionality
         unregister_result = api.unregister_plugin("test_plugin")
-        FlextMatchers.assert_result_success(unregister_result)
+        FlextTestsMatchers.assert_result_success(unregister_result)
 
         # Verify plugin was removed
         final_list = api.list_plugins()
-        FlextMatchers.assert_result_success(final_list)
+        FlextTestsMatchers.assert_result_success(final_list)
         assert "test_plugin" not in final_list.value

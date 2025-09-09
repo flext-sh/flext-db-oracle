@@ -22,7 +22,7 @@ from pydantic import BaseModel
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextMatchers
+from flext_tests import FlextTestsMatchers
 
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
@@ -55,10 +55,10 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         for input_name, should_succeed in test_cases:
             result = self.utilities.escape_oracle_identifier(input_name)
             if should_succeed:
-                FlextMatchers.assert_result_success(result)
+                FlextTestsMatchers.assert_result_success(result)
                 assert isinstance(result.value, str)
             else:
-                FlextMatchers.assert_result_failure(result)
+                FlextTestsMatchers.assert_result_failure(result)
 
     def test_format_sql_for_oracle_real(self) -> None:
         """Test Oracle SQL formatting - REAL FUNCTIONALITY."""
@@ -75,10 +75,10 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             result = self.utilities.format_sql_for_oracle(input_query)
             # Method has @safe_result decorator, returns FlextResult
             if should_succeed:
-                FlextMatchers.assert_result_success(result)
+                FlextTestsMatchers.assert_result_success(result)
                 assert isinstance(result.value, str)
             else:
-                FlextMatchers.assert_result_failure(result)
+                FlextTestsMatchers.assert_result_failure(result)
 
     def test_generate_query_hash_real(self) -> None:
         """Test query hash generation - REAL FUNCTIONALITY."""
@@ -90,15 +90,15 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = self.utilities.generate_query_hash(query1)
         result2 = self.utilities.generate_query_hash(query2)
 
-        FlextMatchers.assert_result_success(result1)
-        FlextMatchers.assert_result_success(result2)
+        FlextTestsMatchers.assert_result_success(result1)
+        FlextTestsMatchers.assert_result_success(result2)
         assert result1.value == result2.value
 
         # Test that different queries produce different hashes
         query3 = "SELECT * FROM products WHERE id = ?"
         result3 = self.utilities.generate_query_hash(query3)
 
-        FlextMatchers.assert_result_success(result3)
+        FlextTestsMatchers.assert_result_success(result3)
         assert result1.value != result3.value
 
         # Verify hash format - should be hex string
@@ -113,8 +113,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
 
-        FlextMatchers.assert_result_success(result1)
-        FlextMatchers.assert_result_success(result2)
+        FlextTestsMatchers.assert_result_success(result1)
+        FlextTestsMatchers.assert_result_success(result2)
         assert (
             result1.value != result2.value
         )  # Different params should produce different hashes
@@ -129,7 +129,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="json")
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -144,7 +144,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="table")
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -158,7 +158,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             result = self.utilities.format_query_result(
                 mock_result, format_type=format_type
             )
-            FlextMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)
             formatted = result.value
             assert isinstance(formatted, str)
             # Should handle empty data gracefully
@@ -190,7 +190,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         for invalid_config in invalid_configs:
             result = self.utilities.create_api_from_config(invalid_config)
-            FlextMatchers.assert_result_failure(result)
+            FlextTestsMatchers.assert_result_failure(result)
             assert isinstance(result.error, str)
 
     def test_create_config_from_env_real(self) -> None:
@@ -207,7 +207,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         # Test with None inputs - use type ignore to test error handling
         result1 = utilities.escape_oracle_identifier(None)
-        FlextMatchers.assert_result_failure(result1)
+        FlextTestsMatchers.assert_result_failure(result1)
 
         # Test with invalid types - use type ignore to test error handling
         utilities.format_sql_for_oracle(123)
@@ -215,7 +215,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         # Test create_api_from_config with None
         result3 = utilities.create_api_from_config(None)
-        FlextMatchers.assert_result_failure(result3)
+        FlextTestsMatchers.assert_result_failure(result3)
 
     def test_utilities_performance_tracking_real(self) -> None:
         """Test utilities performance tracking - REAL FUNCTIONALITY."""
@@ -224,7 +224,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         # Perform multiple operations
         for i in range(50):
             result = self.utilities.escape_oracle_identifier(f"test_name_{i}")
-            FlextMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)
 
         end_time = time.time()
         elapsed = end_time - start_time
@@ -287,8 +287,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = utilities1.escape_oracle_identifier("test_name")
         result2 = utilities2.escape_oracle_identifier("test_name")
 
-        FlextMatchers.assert_result_success(result1)
-        FlextMatchers.assert_result_success(result2)
+        FlextTestsMatchers.assert_result_success(result1)
+        FlextTestsMatchers.assert_result_success(result2)
         assert result1.value == result2.value  # Same input, same result
 
         # But instances should be independent objects

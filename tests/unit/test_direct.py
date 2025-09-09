@@ -24,7 +24,7 @@ from pydantic import SecretStr
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextMatchers, TestBuilders
+from flext_tests import FlextTestsMatchers, TestBuilders
 
 from flext_db_oracle import (
     Column,
@@ -467,7 +467,7 @@ class TestDirectCoverageBoostServices:
         # Test various error processing
         test_error = ValueError("Test validation error")
         error_result = error_handler.process(test_error)
-        FlextMatchers.assert_result_success(error_result)
+        FlextTestsMatchers.assert_result_success(error_result)
         assert "test_op" in error_result.value
 
     def test_services_error_handling_processors(self) -> None:
@@ -485,7 +485,7 @@ class TestDirectCoverageBoostServices:
 
         for error in test_errors:
             result = error_handler.process(error)
-            FlextMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)
             assert "test_operation" in result.value
 
         # Test query builder with different operation types
@@ -507,13 +507,13 @@ class TestDirectCoverageBoostServices:
                 .build()
             )
 
-            FlextMatchers.assert_result_success(test_data)
+            FlextTestsMatchers.assert_result_success(test_data)
             result = builder.process(cast("FlextTypes.Core.Dict", test_data.value))
 
             # All operations should return a result (success or failure)
             assert result is not None
             if op == "INVALID":
-                FlextMatchers.assert_result_failure(result)
+                FlextTestsMatchers.assert_result_failure(result)
             else:
                 # Valid operations should succeed or fail gracefully
                 assert hasattr(result, "success")
@@ -551,7 +551,7 @@ class TestDirectCoverageBoostServices:
         ]
 
         for config_result in configs:
-            FlextMatchers.assert_result_success(config_result)
+            FlextTestsMatchers.assert_result_success(config_result)
             config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
 
             services = FlextDbOracleServices(config)
@@ -618,7 +618,7 @@ class TestDirectCoverageBoostServices:
 
                 # All SQL methods should return results
                 assert result is not None
-                FlextMatchers.assert_result_success(result)
+                FlextTestsMatchers.assert_result_success(result)
 
                 # Result should contain SQL (might be string or tuple)
                 sql_content = result.value

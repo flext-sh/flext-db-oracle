@@ -15,7 +15,7 @@ from typing import cast
 
 import pytest
 from flext_core import FlextTypes
-from flext_tests import FlextMatchers
+from flext_tests import FlextTestsMatchers
 
 from flext_db_oracle.plugins import FlextDbOraclePlugins
 
@@ -38,7 +38,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_performance_monitor_plugin()
 
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         plugin_data = result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "performance_monitor"
@@ -56,7 +56,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_data_validation_plugin()
 
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         plugin_data = result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "data_validation"
@@ -74,7 +74,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.create_security_audit_plugin()
 
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         plugin_data = result.value
         assert isinstance(plugin_data, dict)
 
@@ -195,7 +195,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.get_plugin("nonexistent")
 
-        FlextMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)
         error_message = str(result.error)
         assert "Plugin 'nonexistent' not found" in error_message
 
@@ -205,7 +205,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.register_all_oracle_plugins()
 
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
         registration_info = result.value
         assert isinstance(registration_info, dict)
         assert registration_info["registered_count"] == 3
@@ -230,7 +230,7 @@ class TestFlextDbOraclePluginsComprehensive:
         assert len(plugins._plugins) == 0
 
         result = plugins.register_all_oracle_plugins()
-        FlextMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)
 
         # Should now have 3 plugins
         assert len(plugins._plugins) == 3
@@ -262,24 +262,24 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # 2. Register it
         register_result = plugins.register_plugin("custom_test", custom_plugin)
-        FlextMatchers.assert_result_success(register_result)
+        FlextTestsMatchers.assert_result_success(register_result)
 
         # 3. List plugins (should have 1)
         list_result = plugins.list_plugins()
-        FlextMatchers.assert_result_success(list_result)
+        FlextTestsMatchers.assert_result_success(list_result)
         plugin_list = list_result.value
         assert isinstance(plugin_list, dict)
         assert len(plugin_list) == 1
 
         # 4. Get the specific plugin
         get_result = plugins.get_plugin("custom_test")
-        FlextMatchers.assert_result_success(get_result)
+        FlextTestsMatchers.assert_result_success(get_result)
         retrieved_plugin = get_result.value
         assert retrieved_plugin == custom_plugin
 
         # 5. Register all Oracle plugins (should add 3 more)
         register_all_result = plugins.register_all_oracle_plugins()
-        FlextMatchers.assert_result_success(register_all_result)
+        FlextTestsMatchers.assert_result_success(register_all_result)
 
         # 6. List again (should have 4 total)
         list_all_result = plugins.list_plugins()

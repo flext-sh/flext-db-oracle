@@ -215,11 +215,7 @@ python = ">=3.13,<3.14"
 
 [tool.poetry.dependencies.flext-core]
 path = "../flext-core"
-develop = true
-
-[tool.poetry.dependencies.flext-observability]
-path = "../flext-observability"
-develop = true
+develop = true 
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.12.3"
