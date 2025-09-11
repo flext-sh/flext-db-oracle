@@ -18,11 +18,11 @@ from flext_cli import (
     FlextCliFormatters,
     FlextCliInteractions,
     FlextCliModels,
-    FlextCliServices,
 )
 from flext_core import (
     FlextLogger,
     FlextResult,
+    FlextServices,
     FlextTypes,
     FlextUtilities,
 )
@@ -33,10 +33,6 @@ from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.mixins import ConnectionParameters
 from flext_db_oracle.models import FlextDbOracleModels
-
-# =============================================================================
-# COMMAND PROCESSOR - ELIMINA DUPLICAÇÃO DE COMANDOS CLI
-# =============================================================================
 
 
 class FlextDbOracleClient:
@@ -53,7 +49,8 @@ class FlextDbOracleClient:
         self.interactions = FlextCliInteractions()
         self.logger = FlextLogger(__name__)
         self.container = FlextContainer.get_global()
-        self.cli_services = FlextCliServices()
+        # Use FlextServices.ServiceOrchestrator for service management
+        self.service_orchestrator = FlextServices.ServiceOrchestrator()
 
         # Application state
         self.debug = debug
@@ -69,8 +66,10 @@ class FlextDbOracleClient:
     def initialize(self) -> FlextResult[None]:
         """Initialize CLI client with proper flext-cli setup."""
         try:
-            # Use flext-cli proper initialization
-            init_result = self.cli_services.create_session()
+            # Initialize service orchestrator
+            init_result = FlextResult[None].ok(
+                None
+            )  # Service orchestrator is already initialized
             if not init_result.success:
                 return FlextResult[None].fail(
                     f"CLI initialization failed: {init_result.error}",
@@ -101,6 +100,7 @@ class FlextDbOracleClient:
             config = FlextDbOracleModels.OracleConfig(
                 host=host,
                 port=port,
+                database=service_name,  # Required field - use service_name as database
                 service_name=service_name,
                 username=username,
                 password=SecretStr(password),
@@ -413,7 +413,6 @@ class FlextDbOracleClient:
             ("test_connection", "Test connection with these settings?", True, None),
         ]
 
-        # Type-safe parameter collection using explicit variables
         host_value = ""
         port_value = 0
         service_name_value = ""
@@ -488,6 +487,7 @@ class FlextDbOracleClient:
             config = FlextDbOracleModels.OracleConfig(
                 host=params.host,
                 port=params.port,
+                database=params.service_name,  # Required field - use service_name as database
                 service_name=params.service_name,
                 username=params.username,
                 password=SecretStr(params.password),
@@ -589,7 +589,6 @@ class FlextDbOracleClient:
                 return FlextResult[object].fail(f"Unknown CLI command: {command}")
 
             try:
-                # Type-safe operation call with explicit function typing
                 typed_operation: Callable[
                     [FlextTypes.Core.Dict], FlextResult[object]
                 ] = cast(

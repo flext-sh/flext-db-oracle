@@ -12,10 +12,6 @@ from typing import ClassVar
 
 from flext_core import FlextConstants, FlextTypes
 
-# =============================================================================
-# ORACLE-SPECIFIC SEMANTIC CONSTANTS - Modern Python 3.13 Structure
-# =============================================================================
-
 
 class FlextDbOracleConstants(FlextConstants):
     """Oracle database constants following Flext[Area][Module] pattern.
@@ -159,10 +155,6 @@ class FlextDbOracleConstants(FlextConstants):
 
 # No compatibility aliases - use direct imports only
 
-
-# =============================================================================
-# EXPORTS - Oracle Database constants API
-# =============================================================================
 
 __all__: FlextTypes.Core.StringList = [
     "FlextDbOracleConstants",

@@ -17,28 +17,60 @@ from typing import ClassVar, cast
 from urllib.parse import quote_plus
 
 from flext_core import (
+    FlextConstants,
+    FlextDomainService,
     FlextLogger,
-    FlextMixins,
     FlextResult,
     FlextServices,
     FlextTypes,
     FlextUtilities,
+    FlextValidations,
 )
-from flext_core.validations import FlextValidations
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.mixins import OracleValidationFactory
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-logger = FlextLogger(__name__)
 
-# =============================================================================
-# ERROR HANDLING SERVICE PROCESSOR - ELIMINA DUPLICAÇÃO DE ERROR HANDLING
-# =============================================================================
+def _validate_oracle_identifier(identifier: str) -> FlextResult[str]:
+    """Validate Oracle identifier using flext-core FlextValidations."""
+    # Oracle identifier pattern: starts with letter, contains alphanumeric and underscores
+    # Maximum 30 characters for regular identifiers (128 for quoted identifiers)
+    oracle_pattern = r"^[A-Z][A-Z0-9_$#]*$"  # Oracle style (uppercase)
+    max_length = FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
+
+    # Use FlextValidations string validation with pattern check
+    string_result = FlextValidations.Rules.StringRules.validate_string(
+        identifier.upper(),  # Oracle normalizes to uppercase
+        min_length=1,
+        max_length=max_length,
+        required=True,
+    )
+
+    if string_result.is_failure:
+        error_msg = f"Invalid Oracle identifier: {string_result.error}"
+        return FlextResult[str].fail(
+            error_msg, error_code=FlextConstants.Errors.VALIDATION_ERROR
+        )
+
+    # Validate Oracle identifier pattern
+    pattern_result = FlextValidations.Rules.StringRules.validate_pattern(
+        string_result.value, oracle_pattern, "Oracle identifier"
+    )
+
+    if pattern_result.is_failure:
+        error_msg = f"Invalid Oracle identifier format: {pattern_result.error}"
+        return FlextResult[str].fail(
+            error_msg, error_code=FlextConstants.Errors.VALIDATION_ERROR
+        )
+
+    return FlextResult[str].ok(pattern_result.value)
+
+
+logger = FlextLogger(__name__)
 
 
 class OracleErrorHandlingProcessor(
@@ -110,11 +142,6 @@ class OracleErrorHandlingProcessor(
         return builder()
 
 
-# =============================================================================
-# SQL OPERATION PROCESSOR - ELIMINA DUPLICAÇÃO DE OPERAÇÕES SQL
-# =============================================================================
-
-
 class OracleSqlOperationProcessor(
     FlextServices.ServiceProcessor[FlextTypes.Core.Dict, str, FlextResult[str]],
 ):
@@ -157,20 +184,18 @@ class OracleSqlOperationProcessor(
         schema_name = data.get("schema_name")
         conditions = data.get("conditions", {}) or {}
 
-        # Type narrowing with proper validation
         if not isinstance(columns, list):
             columns = []
         if not isinstance(conditions, dict):
             conditions = {}
 
-        # Strict Oracle identifier validation using OracleValidationFactory
-        try:
-            validated_table = OracleValidationFactory.validate_oracle_identifier(
-                table_name,
-                FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
+        # Strict Oracle identifier validation using flext-core
+        validated_result = _validate_oracle_identifier(table_name)
+        if validated_result.is_failure:
+            return FlextResult[str].fail(
+                f"Invalid table name: {validated_result.error}"
             )
-        except (ValueError, KeyError) as e:
-            return FlextResult[str].fail(f"Invalid table name: {e}")
+        validated_table = validated_result.value
 
         # Build column list with validated identifiers only
         if not columns:
@@ -178,23 +203,21 @@ class OracleSqlOperationProcessor(
         else:
             validated_columns = []
             for col in columns:
-                try:
-                    validated_col = OracleValidationFactory.validate_oracle_identifier(
-                        str(col),
-                        FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                    )
+                col_result = _validate_oracle_identifier(str(col))
+                if col_result.is_success:
+                    validated_col = col_result.value
                     validated_columns.append(validated_col)
-                except (ValueError, KeyError):
-                    continue  # Skip invalid columns
+                # Skip invalid columns silently (col_result.is_failure)
             column_list = ", ".join(validated_columns) if validated_columns else "*"
 
         # Build table name with optional schema
         if schema_name:
             try:
-                validated_schema = OracleValidationFactory.validate_oracle_identifier(
-                    str(schema_name),
-                    FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                )
+                schema_result = _validate_oracle_identifier(str(schema_name))
+                if schema_result.is_success:
+                    validated_schema = schema_result.value
+                else:
+                    raise ValueError(schema_result.error or "Invalid schema")
                 full_table_name = f"{validated_schema}.{validated_table}"
             except (ValueError, KeyError):
                 full_table_name = validated_table
@@ -210,10 +233,11 @@ class OracleSqlOperationProcessor(
             validated_conditions = {}
             for key, value in conditions.items():
                 try:
-                    validated_key = OracleValidationFactory.validate_oracle_identifier(
-                        str(key),
-                        FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                    )
+                    key_result = _validate_oracle_identifier(str(key))
+                    if key_result.is_success:
+                        validated_key = key_result.value
+                    else:
+                        raise ValueError(key_result.error or "Invalid key")
                     validated_conditions[validated_key] = value
                 except (ValueError, KeyError):
                     continue  # Skip invalid condition keys
@@ -231,16 +255,16 @@ class OracleSqlOperationProcessor(
         columns = data.get("columns", []) or []
         schema_name = data.get("schema_name")
 
-        # Type narrowing with proper validation
         if not isinstance(columns, list):
             columns = []
 
         # Strict Oracle identifier validation
         try:
-            validated_table = OracleValidationFactory.validate_oracle_identifier(
-                table_name,
-                FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-            )
+            table_result = _validate_oracle_identifier(table_name)
+            if table_result.is_success:
+                validated_table = table_result.value
+            else:
+                raise ValueError(table_result.error or "Invalid table name")
         except (ValueError, KeyError) as e:
             return FlextResult[str].fail(f"Invalid table name: {e}")
 
@@ -248,10 +272,11 @@ class OracleSqlOperationProcessor(
         validated_columns = []
         for col in columns:
             try:
-                validated_col = OracleValidationFactory.validate_oracle_identifier(
-                    str(col),
-                    FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                )
+                col_result = _validate_oracle_identifier(str(col))
+                if col_result.is_success:
+                    validated_col = col_result.value
+                else:
+                    raise ValueError(col_result.error or "Invalid column")
                 validated_columns.append(validated_col)
             except (ValueError, KeyError):
                 continue  # Skip invalid columns
@@ -262,10 +287,11 @@ class OracleSqlOperationProcessor(
         # Build table name with optional schema
         if schema_name:
             try:
-                validated_schema = OracleValidationFactory.validate_oracle_identifier(
-                    str(schema_name),
-                    FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                )
+                schema_result = _validate_oracle_identifier(str(schema_name))
+                if schema_result.is_success:
+                    validated_schema = schema_result.value
+                else:
+                    raise ValueError(schema_result.error or "Invalid schema")
                 full_table_name = f"{validated_schema}.{validated_table}"
             except (ValueError, KeyError):
                 full_table_name = validated_table
@@ -291,7 +317,6 @@ class OracleSqlOperationProcessor(
         conditions = data.get("conditions", {}) or {}
         schema_name = data.get("schema_name")
 
-        # Type narrowing with proper validation
         if not isinstance(columns, list):
             columns = []
         if not isinstance(conditions, dict):
@@ -329,7 +354,6 @@ class OracleSqlOperationProcessor(
         conditions = data.get("conditions", {}) or {}
         schema_name = data.get("schema_name")
 
-        # Type narrowing with proper validation
         if not isinstance(conditions, dict):
             conditions = {}
 
@@ -430,19 +454,16 @@ class OracleSqlOperationProcessor(
         return FlextResult[str].ok(domain)
 
 
-# ELIMINADO _is_safe_sql_identifier - Usar OracleValidationFactory.validate_oracle_identifier
-
-
 class OracleSQLBuilder:
     """Secure Oracle SQL builder using validated identifiers - ELIMINATES SQL INJECTION."""
 
     @staticmethod
     def validate_identifier(identifier: str) -> str:
-        """Validate Oracle identifier using OracleValidationFactory."""
-        return OracleValidationFactory.validate_oracle_identifier(
-            identifier,
-            FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-        )
+        """Validate Oracle identifier using flext-core validation."""
+        result = _validate_oracle_identifier(identifier)
+        if result.is_failure:
+            raise ValueError(result.error or "Invalid Oracle identifier")
+        return result.value
 
     @staticmethod
     def build_table_reference(table_name: str, schema_name: str | None = None) -> str:
@@ -472,20 +493,9 @@ class OracleSQLBuilder:
 
 
 def _is_safe_sql_identifier(identifier: str) -> bool:
-    """Helper compatibilidade - usar OracleValidationFactory."""
-    try:
-        OracleValidationFactory.validate_oracle_identifier(
-            identifier,
-            FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-        )
-        return True
-    except (ValueError, KeyError):
-        return False
-
-
-# =============================================================================
-# COMPOSITE PATTERN - CONSOLIDA TODAS AS OPERAÇÕES - REDUZ COMPLEXIDADE 224 → 150
-# =============================================================================
+    """Helper function for SQL identifier validation using flext-core."""
+    result = _validate_oracle_identifier(identifier)
+    return result.is_success
 
 
 class HyperOptimizedOracleService(
@@ -722,7 +732,7 @@ class HyperOptimizedOracleService(
         # Substituído por Pure Functional Composition single expression acima
 
 
-class FlextDbOracleServices(FlextMixins.Service):
+class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
     """Oracle database services usando Composite Pattern - REDUZ COMPLEXIDADE.
 
     Following flext-core pattern: one class per module, all functionality consolidated.
@@ -746,20 +756,19 @@ class FlextDbOracleServices(FlextMixins.Service):
 
     def __init__(
         self,
+        *,  # Force keyword-only arguments
         config: FlextDbOracleModels.OracleConfig,
-        **kwargs: object,
     ) -> None:
         """Initialize Oracle services with configuration."""
-        # Initialize Pydantic model properly
-        super().__init__(**kwargs)
-        # Set config using object.__setattr__ to bypass Pydantic protection
-        object.__setattr__(self, "config", config)
+        # Initialize Pydantic model with config field
+        super().__init__(config=config)  # Pass config as required Pydantic field
 
-        # CRITICAL FIX: Ensure _operations is initialized as fallback
-        if not hasattr(self, "_operations"):
-            object.__setattr__(self, "_operations", [])
-        if not hasattr(self, "_plugins"):
-            object.__setattr__(self, "_plugins", {})
+        # Initialize non-Pydantic fields as object attributes
+        object.__setattr__(self, "_engine", None)
+        object.__setattr__(self, "_session_factory", None)
+        object.__setattr__(self, "_connected", False)
+        object.__setattr__(self, "_operations", [])
+        object.__setattr__(self, "_plugins", {})
 
     def model_post_init(self, __context: object, /) -> None:
         """Post-initialization setup for non-Pydantic attributes."""
@@ -1569,11 +1578,26 @@ class FlextDbOracleServices(FlextMixins.Service):
             return FlextResult[None].fail("Not connected to database")
         return FlextResult[None].ok(None)
 
-    def execute(
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Execute main domain service operation - test connection by default."""
+        test_result = self.test_connection()
+        if test_result.is_success:
+            return FlextResult[FlextTypes.Core.Dict].ok(
+                {
+                    "status": "connected",
+                    "host": self.config.host,
+                    "service_name": self.config.service_name,
+                }
+            )
+        return FlextResult[FlextTypes.Core.Dict].fail(
+            test_result.error or "Connection test failed"
+        )
+
+    def execute_command(
         self,
         query: FlextTypes.Core.Dict | str | None = None,
     ) -> FlextResult[FlextTypes.Core.Dict]:
-        """Execute command - required by FlextDomainService."""
+        """Execute command with flexible input format."""
         try:
             if query is None:
                 return FlextResult[FlextTypes.Core.Dict].fail(
@@ -1589,7 +1613,7 @@ class FlextDbOracleServices(FlextMixins.Service):
                 params = query.get("params")
                 params_dict = dict(params) if isinstance(params, dict) else None
 
-            result = self.execute_query(sql, params_dict)
+            result = self.execute_sql(sql, params_dict)
             if not result.success:
                 return FlextResult[FlextTypes.Core.Dict].fail(
                     result.error or "Execution failed",
@@ -1607,8 +1631,23 @@ class FlextDbOracleServices(FlextMixins.Service):
         sql: str,
         params: FlextTypes.Core.Dict | None = None,
     ) -> FlextResult[list[FlextTypes.Core.Dict]]:
-        """Execute SQL - renamed to avoid override conflict."""
-        return self.execute_query(sql, params)
+        """Execute SQL - calls the main execute_query method at line 874."""
+        # Call the actual implementation at line 874
+        if not self._connected or not self._engine:
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
+                "Not connected to database",
+            )
+
+        try:
+            with self._engine.connect() as conn:
+                result = conn.execute(text(sql), params or {})
+                rows = [dict(row._mapping) for row in result]
+                return FlextResult[list[FlextTypes.Core.Dict]].ok(rows)
+
+        except Exception as e:
+            return FlextResult[list[FlextTypes.Core.Dict]].fail(
+                f"SQL execution failed: {e}",
+            )
 
     def execute_many(
         self,
@@ -1831,7 +1870,7 @@ class FlextDbOracleServices(FlextMixins.Service):
         """Map Singer JSON schema to Oracle column types."""
         try:
             mapping = {}
-            # Type-safe access to properties - singer_schema is already guaranteed to be FlextTypes.Core.Dict
+
             properties = singer_schema.get("properties", {})
             if not isinstance(properties, dict):
                 return FlextResult[FlextTypes.Core.Headers].fail(
@@ -1844,7 +1883,6 @@ class FlextDbOracleServices(FlextMixins.Service):
                 field_type = field_def.get("type")
                 field_format = field_def.get("format")
 
-                # Type-safe conversion with default fallback
                 if field_type is not None:
                     conversion_result = self.convert_singer_type(
                         field_type,

@@ -20,7 +20,7 @@ from pydantic import SecretStr
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextTestsMatchers, TestBuilders
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import FlextDbOracleClient, FlextDbOracleModels
 
@@ -246,7 +246,7 @@ class TestFlextDbOracleClientRealFunctionality:
         """Test client creation using TestBuilders patterns - REAL FUNCTIONALITY."""
         # Use TestBuilders to create test configuration
         config_result = (
-            TestBuilders.result()
+            FlextTestsBuilders.result()
             .with_success_data(
                 FlextDbOracleModels.OracleConfig(
                     host="testbuilder_host",
@@ -260,7 +260,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
         FlextTestsMatchers.assert_result_success(config_result)
-        # Type cast for PyRight
+
         from typing import cast
 
         config = cast("FlextDbOracleModels.OracleConfig", config_result.value)

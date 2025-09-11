@@ -22,7 +22,7 @@ from pydantic import SecretStr
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextTestsMatchers, TestBuilders
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle.models import FlextDbOracleModels, OracleConfig
 from flext_db_oracle.services import FlextDbOracleServices, OracleSQLBuilder
@@ -515,7 +515,7 @@ class TestFlextDbOracleServicesRealFunctionality:
         """Test services with TestBuilders patterns - REAL FUNCTIONALITY."""
         # Use TestBuilders to create test data
         config_result = (
-            TestBuilders.result()
+            FlextTestsBuilders.result()
             .with_success_data(
                 FlextDbOracleModels.OracleConfig(
                     host="testbuilder_host",

@@ -384,7 +384,6 @@ class TestCLIMissedLines:
         # Only test if oracle_cli is available and is a Command
         if oracle_cli is not None and hasattr(oracle_cli, "callback"):
             for cmd in parameter_tests:
-                # Type cast for Click command compatibility
                 result = runner.invoke(cast("Command", oracle_cli), cmd)
                 # Should process parameters without crashing
                 assert result.exit_code in {0, 1, 2}  # Various valid exit codes
@@ -404,7 +403,6 @@ class TestCLIMissedLines:
         # Only test if oracle_cli is available and is a Command
         if oracle_cli is not None and hasattr(oracle_cli, "callback"):
             for cmd in format_tests:
-                # Type cast for Click command compatibility
                 result = runner.invoke(cast("Command", oracle_cli), cmd)
                 # Should format output without crashing
                 assert result.exit_code in {0, 1, 2}  # Various valid outcomes

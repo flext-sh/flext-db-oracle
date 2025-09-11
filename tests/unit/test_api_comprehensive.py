@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextTypes
-from flext_tests import FlextTestsMatchers, TestBuilders
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -350,7 +350,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_api_creation_using_testbuilders_real(self) -> None:
         """Test API creation using TestBuilders patterns - REAL FUNCTIONALITY."""
         config_result = (
-            TestBuilders.result()
+            FlextTestsBuilders.result()
             .with_success_data(
                 FlextDbOracleModels.OracleConfig(
                     host="testbuilder_host",

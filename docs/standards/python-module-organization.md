@@ -371,7 +371,7 @@ class OracleResult[T]:  # Use FlextResult[T] consistently
 │    (Oracle API, CLI, Plugin Management)                │
 ├─────────────────────────────────────────────────────────┤
 │              Domain Layer                               │  # metadata.py, models.py
-│   (Oracle Schema Models, Business Logic)               │  # types.py
+│   (Oracle Schema Models, Business Logic)               │
 ├─────────────────────────────────────────────────────────┤
 │           Infrastructure Layer                          │  # connection.py, config.py
 │  (Connection Pooling, SSL/TLS, Configuration)          │  # observability.py, security.py

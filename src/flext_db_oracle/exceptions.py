@@ -42,11 +42,6 @@ class ExceptionParams:
 # Following FLEXT_REFACTORING_PROMPT.md line 686: "Exceptions - Inherit from FlextExceptions"
 
 
-# =============================================================================
-# FLEXT[AREA][MODULE] PATTERN - Oracle Database Exceptions
-# =============================================================================
-
-
 class FlextDbOracleExceptions(FlextExceptions):
     """Oracle database exceptions following Flext[Area][Module] pattern.
 

@@ -17,6 +17,7 @@ import time
 from io import StringIO
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleConfig

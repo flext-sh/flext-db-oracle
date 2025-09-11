@@ -224,7 +224,6 @@ class TestOracleE2E:
                 },
             }
 
-            # Type-safe schema casting for API compatibility
             typed_schema = cast("FlextTypes.Core.Dict", singer_schema)
             schema_result = api.map_singer_schema(typed_schema)
             if schema_result.is_failure:

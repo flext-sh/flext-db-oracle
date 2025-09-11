@@ -193,6 +193,7 @@ class TestCLIRealFunctionality:
         config = FlextDbOracleModels.OracleConfig(
             host="comprehensive_test",
             port=1521,
+            database="COMP_TEST",  # Required field
             service_name="COMP_TEST",
             username="comp_user",
             password=SecretStr("comp_pass"),

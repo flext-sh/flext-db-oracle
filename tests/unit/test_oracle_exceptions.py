@@ -333,11 +333,9 @@ class TestRealOracleExceptionsAdvanced:
                 # Cast typed_config to specific types for FlextDbOracleConfig
                 FlextDbOracleConfig(
                     host=str(typed_config["host"]),
-                    port=cast("int", typed_config["port"]),  # Type cast for PyRight
+                    port=cast("int", typed_config["port"]),
                     username=str(typed_config["username"]),
-                    password=cast(
-                        "SecretStr", typed_config["password"]
-                    ),  # Type cast for PyRight
+                    password=cast("SecretStr", typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
                 )
                 # Skip validate_business_rules check since method doesn't exist

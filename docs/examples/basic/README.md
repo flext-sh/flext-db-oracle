@@ -620,7 +620,7 @@ async def connection_pooling_example():
             for query_num in range(num_queries):
                 # Simulate varying query types
                 if query_num % 3 == 0:
-                    # Simple query
+                  
                     result = await conn.execute("SELECT COUNT(*) FROM employees")
                     count = await result.fetchone()
 

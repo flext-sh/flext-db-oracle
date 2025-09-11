@@ -34,7 +34,7 @@ class FlextDbOracleApi:
     ) -> None:
         """Initialize API with Oracle configuration."""
         self._config = config
-        self._services = FlextDbOracleServices(config)
+        self._services = FlextDbOracleServices(config=config)
         self._context_name = context_name or "oracle-api"
         self._logger = logger.bind(component=self._context_name)
         self._plugins: FlextTypes.Core.Dict = {}
@@ -309,7 +309,6 @@ class FlextDbOracleApi:
     # Utility Methods
     def optimize_query(self, sql: str) -> FlextResult[str]:
         """Optimize a SQL query for Oracle."""
-        # Simple optimization - remove extra whitespace and normalize
         try:
             optimized = " ".join(sql.split())
             return FlextResult[str].ok(optimized)

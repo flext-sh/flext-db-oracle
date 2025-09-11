@@ -78,7 +78,6 @@ class TestFlextDbOraclePluginsComprehensive:
         plugin_data = result.value
         assert isinstance(plugin_data, dict)
 
-        # Type assertion for dict access
         assert plugin_data["name"] == "security_audit"
         assert plugin_data["version"] == "1.0.0"
         assert plugin_data["type"] == "security"

@@ -24,7 +24,7 @@ from pydantic import SecretStr
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
-from flext_tests import FlextTestsMatchers, TestBuilders
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
     Column,
@@ -495,7 +495,7 @@ class TestDirectCoverageBoostServices:
             builder = OracleSqlOperationProcessor(op)
 
             test_data = (
-                TestBuilders.result()
+                FlextTestsBuilders.result()
                 .with_success_data(
                     {
                         "table": "test_table",
@@ -523,7 +523,7 @@ class TestDirectCoverageBoostServices:
         # Test all configuration scenarios
         configs = [
             # Valid config
-            TestBuilders.result()
+            FlextTestsBuilders.result()
             .with_success_data(
                 FlextDbOracleModels.OracleConfig(
                     host="test_host",
@@ -536,7 +536,7 @@ class TestDirectCoverageBoostServices:
             )
             .build(),
             # Edge case config
-            TestBuilders.result()
+            FlextTestsBuilders.result()
             .with_success_data(
                 FlextDbOracleModels.OracleConfig(
                     host="localhost",

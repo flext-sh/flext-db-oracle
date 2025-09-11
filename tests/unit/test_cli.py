@@ -240,6 +240,7 @@ class TestFlextDbOracleClientIntegration:
         config = FlextDbOracleModels.OracleConfig(
             host="localhost",
             port=1521,
+            database="XE",  # Required field
             service_name="XE",
             username="test",
             password=SecretStr("test"),

@@ -13,15 +13,49 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Self, TypedDict, TypeGuard, cast
 
-from flext_core import FlextLogger, FlextModels, FlextResult, FlextTypes
+from flext_core import (
+    FlextLogger,
+    FlextModels,
+    FlextResult,
+    FlextTypes,
+    FlextValidations,
+)
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic.fields import FieldInfo
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import SettingsConfigDict
 
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.mixins import OracleValidationFactory
 
 logger = FlextLogger(__name__)
+
+
+def _validate_oracle_identifier(identifier: str, max_length: int = 30) -> str:
+    """Validate Oracle identifier using flext-core FlextValidations."""
+    # Oracle identifier pattern: starts with letter, contains alphanumeric and underscores
+    oracle_pattern = r"^[A-Z][A-Z0-9_$#]*$"  # Oracle style (uppercase)
+
+    # Use FlextValidations string validation with pattern check
+    string_result = FlextValidations.Rules.StringRules.validate_string(
+        identifier.upper(),  # Oracle normalizes to uppercase
+        min_length=1,
+        max_length=max_length,
+        required=True,
+    )
+
+    if string_result.is_failure:
+        error_msg = f"Invalid Oracle identifier: {string_result.error}"
+        raise ValueError(error_msg)
+
+    # Validate Oracle identifier pattern
+    pattern_result = FlextValidations.Rules.StringRules.validate_pattern(
+        string_result.value, oracle_pattern, "Oracle identifier"
+    )
+
+    if pattern_result.is_failure:
+        error_msg = f"Invalid Oracle identifier format: {pattern_result.error}"
+        raise ValueError(error_msg)
+
+    return pattern_result.value
 
 
 class FlextDbOracleModels:
@@ -217,10 +251,8 @@ class FlextDbOracleModels:
         @classmethod
         def validate_column_name(cls, value: str) -> str:
             """Validate column name."""
-            return OracleValidationFactory.validate_oracle_identifier(
-                value,
-                FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH,
-                allow_empty=False,
+            return _validate_oracle_identifier(
+                value, FlextDbOracleConstants.OracleValidation.MAX_COLUMN_NAME_LENGTH
             )
 
         @field_validator("data_type")
@@ -363,10 +395,8 @@ class FlextDbOracleModels:
         @classmethod
         def validate_table_name(cls, value: str) -> str:
             """Validate table name."""
-            return OracleValidationFactory.validate_oracle_identifier(
-                value,
-                FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH,
-                allow_empty=False,
+            return _validate_oracle_identifier(
+                value, FlextDbOracleConstants.OracleValidation.MAX_TABLE_NAME_LENGTH
             )
 
         @field_validator("schema_name")
@@ -437,10 +467,8 @@ class FlextDbOracleModels:
         @classmethod
         def validate_schema_name(cls, value: str) -> str:
             """Validate schema name."""
-            return OracleValidationFactory.validate_oracle_identifier(
-                value,
-                FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH,
-                allow_empty=False,
+            return _validate_oracle_identifier(
+                value, FlextDbOracleConstants.OracleValidation.MAX_SCHEMA_NAME_LENGTH
             )
 
         def get_table_by_name(
@@ -621,52 +649,38 @@ class FlextDbOracleModels:
             """Check if connection is active and healthy."""
             return self.is_connected and self.error_message is None
 
-    class OracleConfig(BaseSettings):
-        """Oracle database configuration extending flext-core centralized config."""
+    class OracleConfig(FlextModels.DatabaseConfig):
+        """Oracle database configuration extending flext-core DatabaseConfig."""
 
-        # Core Oracle connection fields
-        host: str = Field(description="Oracle database hostname")
-        port: int = Field(default=1521, description="Oracle database port")
-        username: str = Field(description="Oracle database username")
-        password: SecretStr = Field(description="Oracle database password")
+        # Oracle-specific extensions (inherit all common database fields from base)
+        port: int = Field(
+            default=1521,
+            description="Oracle database port (overrides PostgreSQL default)",
+        )
+
+        # Oracle extends the base DatabaseConfig but overrides password to SecretStr for security
+        password: SecretStr = Field(
+            ..., description="Oracle database password (SecretStr for security)"
+        )
+
+        # Oracle service identification (Oracle-specific)
         service_name: str | None = Field(
             default=None,
-            description="Oracle service name",
+            description="Oracle service name (TNS entry)",
         )
-        sid: str | None = Field(default=None, description="Oracle SID")
+        sid: str | None = Field(default=None, description="Oracle System Identifier")
+
+        # Oracle schema (Oracle-specific naming convention)
         oracle_schema: str = Field(default="PUBLIC", description="Oracle schema name")
 
-        # Connection pool settings
-        pool_min: int = Field(default=1, description="Minimum pool connections")
-        pool_max: int = Field(default=10, description="Maximum pool connections")
-        pool_increment: int = Field(default=1, description="Connection pool increment")
-
-        # Additional Oracle-specific options
-        ssl_enabled: bool = Field(default=False, description="Enable SSL connections")
-        ssl_cert_path: str | None = Field(
-            default=None,
-            description="SSL certificate path",
-        )
-        ssl_key_path: str | None = Field(default=None, description="SSL key path")
+        # Oracle-specific SSL extensions (inherit SSL from base)
         ssl_server_dn_match: bool = Field(
             default=True,
-            description="SSL server DN match",
+            description="Oracle SSL server DN match validation",
         )
         ssl_server_cert_dn: str | None = Field(
             default=None,
-            description="SSL server certificate DN",
-        )
-        timeout: int = Field(default=30, description="Connection timeout seconds")
-        encoding: str = Field(default="UTF-8", description="Character encoding")
-        protocol: str = Field(default="tcp", description="Connection protocol")
-        autocommit: bool = Field(default=False, description="Enable autocommit mode")
-        retry_attempts: int = Field(
-            default=1,
-            description="Number of connection retry attempts",
-        )
-        retry_delay: float = Field(
-            default=1.0,
-            description="Delay between retry attempts in seconds",
+            description="Oracle SSL server certificate DN",
         )
 
         # ------------------------------------------------------------------
@@ -682,50 +696,10 @@ class FlextDbOracleModels:
             env_file=".env",
         )
 
-        @model_validator(mode="before")
-        @classmethod
-        def _apply_aliases(cls, data: object) -> object:
-            """Normaliza chaves de entrada aceitando aliases esperados.
+        # NO alias normalization - use correct field names directly
 
-            Aceita: schema -> oracle_schema, use_ssl -> ssl_enabled,
-            pool_min_size -> pool_min, pool_max_size -> pool_max.
-            Ignora pool_enabled (derivada) se fornecida.
-            """
-            if isinstance(data, dict):
-                if "schema" in data and "oracle_schema" not in data:
-                    data["oracle_schema"] = data["schema"]
-                if "use_ssl" in data and "ssl_enabled" not in data:
-                    data["ssl_enabled"] = data["use_ssl"]
-                if "pool_min_size" in data and "pool_min" not in data:
-                    data["pool_min"] = data["pool_min_size"]
-                if "pool_max_size" in data and "pool_max" not in data:
-                    data["pool_max"] = data["pool_max_size"]
-            return data
-
-        # ------------------------------------------------------------------
-        # Propriedades derivadas (não armazenam valor extra)
-        # ------------------------------------------------------------------
-        @property
-        def schema_name(self) -> str:
-            """Get the Oracle schema name (compatibility property)."""
-            return self.oracle_schema
-
-        @property
-        def use_ssl(self) -> bool:
-            return self.ssl_enabled
-
-        @property
-        def pool_min_size(self) -> int:
-            return self.pool_min
-
-        @property
-        def pool_max_size(self) -> int:
-            return self.pool_max
-
-        @property
-        def pool_enabled(self) -> bool:
-            """Considera pool habilitado se max > 1 ou min > 1."""
-            return self.pool_max > 1 or self.pool_min > 1
+        # NO compatibility properties - use base fields directly
+        # ssl_mode, pool_size, max_overflow, etc. from FlextModels.DatabaseConfig
 
         @field_validator("host", "username")
         @classmethod
@@ -759,9 +733,9 @@ class FlextDbOracleModels:
 
         @model_validator(mode="after")
         def validate_pool_settings(self) -> Self:
-            """Validate pool configuration consistency."""
-            if self.pool_max < self.pool_min:
-                msg = "pool_max must be >= pool_min"
+            """Validate pool configuration using base DatabaseConfig fields."""
+            if self.pool_size > self.max_overflow:
+                msg = f"Pool size ({self.pool_size}) cannot be greater than max overflow ({self.max_overflow})"
                 raise ValueError(msg)
             return self
 
@@ -773,19 +747,39 @@ class FlextDbOracleModels:
                 raise ValueError(msg)
             return self
 
+        # REMOVED from_env - use BaseSettings automatic environment loading
+        # BaseSettings with model_config already handles environment variables
+
         @classmethod
-        def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextResult[Self]:
-            """Create configuration from environment variables."""
+        def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[Self]:
+            """Create OracleConfig from environment variables."""
             try:
+                # Get required and optional values
+                host = os.getenv(f"{prefix}HOST", "localhost")
+                port = int(os.getenv(f"{prefix}PORT", "1521"))
+                username = os.getenv(
+                    f"{prefix}USERNAME", os.getenv(f"{prefix}USER", "")
+                )
+                password = os.getenv(f"{prefix}PASSWORD", "")
+                service_name = os.getenv(f"{prefix}SERVICE_NAME")
+                database = os.getenv(f"{prefix}DATABASE", service_name or "XE")
+
                 config_data = {
-                    "host": os.getenv(f"{prefix}_HOST", "localhost"),
-                    "port": int(os.getenv(f"{prefix}_PORT", "1521")),
-                    "username": os.getenv(f"{prefix}_USERNAME", "system"),
-                    "password": SecretStr(os.getenv(f"{prefix}_PASSWORD", "oracle")),
-                    "service_name": os.getenv(f"{prefix}_SERVICE_NAME", "XEPDB1"),
-                    "ssl_server_cert_dn": os.getenv(f"{prefix}_SSL_CERT_DN"),
+                    "host": host,
+                    "port": port,
+                    "database": database,
+                    "username": username,
+                    "password": SecretStr(password),
+                    "service_name": service_name,
+                    "sid": os.getenv(f"{prefix}SID"),
+                    "oracle_schema": os.getenv(f"{prefix}SCHEMA", "PUBLIC"),
                 }
-                # Known Pydantic BaseSettings + MyPy incompatibility issue
+
+                # Remove empty values
+                config_data = {
+                    k: v for k, v in config_data.items() if v not in {None, ""}
+                }
+
                 instance = cls(**config_data)
                 return FlextResult[Self].ok(instance)
             except Exception as e:
@@ -797,7 +791,6 @@ class FlextDbOracleModels:
         def from_url(cls, database_url: str) -> FlextResult[Self]:
             """Create configuration from database URL."""
             try:
-                # Simple URL parsing for Oracle connections
                 # Format: oracle://username:password@host:port/service_name
                 if not database_url.startswith("oracle://"):
                     msg = "URL must start with 'oracle://'"
@@ -827,6 +820,7 @@ class FlextDbOracleModels:
                 config_data = {
                     "host": host,
                     "port": port,
+                    "database": service_name,  # Use service_name as database
                     "username": username,
                     "password": SecretStr(password),
                     "service_name": service_name,
@@ -892,7 +886,6 @@ class FlextDbOracleModels:
                     return FlextResult[None].fail("Column names cannot be empty")
             return FlextResult[None].ok(None)
 
-    # Type definitions
     class OracleColumnInfo(TypedDict, total=False):
         """TypedDict for Oracle column information from database queries."""
 
@@ -931,7 +924,6 @@ class FlextDbOracleModels:
         created_date: str | None
         last_analyzed: str | None
 
-    # Type guards
     @staticmethod
     def is_plugin_like(obj: object) -> TypeGuard[object]:
         """Type guard to check if object has plugin-like attributes."""

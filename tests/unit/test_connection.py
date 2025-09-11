@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from typing import cast
 
 import pytest
+from flext_core import FlextTypes
 from pydantic import SecretStr
 
 from flext_db_oracle import (

@@ -35,6 +35,7 @@ class TestFlextDbOracleApiSafeMethods:
         config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
+            database="TESTDB",  # Required field
             service_name="TESTDB",
             username="testuser",
             password=SecretStr("testpass"),
@@ -145,6 +146,7 @@ class TestFlextDbOracleApiSafeMethods:
         config = FlextDbOracleConfig(
             host="error_test",
             port=1521,
+            database="ERROR_TEST",  # Required field
             service_name="ERROR_TEST",
             username="error_user",
             password=SecretStr("error_pass"),

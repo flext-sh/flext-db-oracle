@@ -17,7 +17,6 @@ from typing import Protocol, cast
 from flext_core import FlextDecorators, FlextResult, FlextTypes, FlextUtilities
 from pydantic import SecretStr
 
-from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
 
 
@@ -253,7 +252,6 @@ class FlextDbOracleUtilities:
                 console.print("[yellow]No data to display[/yellow]")
                 return
 
-            # Simple table display without Rich dependency
             if data:
                 headers = list(data[0].keys())
                 console.print(" | ".join(headers))
@@ -276,16 +274,20 @@ class FlextDbOracleUtilities:
             password_value = config.get("password", "")
             password_str = SecretStr(str(password_value))
 
+            service_name = str(config.get("service_name", "XE"))
             oracle_config = FlextDbOracleModels.OracleConfig(
                 host=str(config.get("host", "localhost")),
                 port=port_int,
-                service_name=str(config.get("service_name", "XE")),
+                database=service_name,  # Required field - use service_name as database
+                service_name=service_name,
                 username=str(config.get("username", "")),
                 password=password_str,
                 ssl_server_cert_dn=None,
             )
 
-            # Create API instance with configuration
+            # Create API instance with configuration - dynamic import to avoid circular import
+            from flext_db_oracle.api import FlextDbOracleApi
+
             api = FlextDbOracleApi(oracle_config)
 
             # API creation successful - return the API instance
@@ -314,7 +316,6 @@ class FlextDbOracleUtilities:
                     else:
                         console.print(f"Health data: {data_dict}")
                 else:
-                    # Simple string representation
                     console.print(f"Health data: {health_data}")
             # JSON or other format
             elif hasattr(health_data, "model_dump"):

@@ -48,7 +48,6 @@ def oracle_connection() -> Iterator[Engine]:
 def demonstrate_basic_queries() -> None:
     """Demonstrate basic SQLAlchemy 2 queries."""
     with oracle_connection() as engine:
-        # Simple system query
         with engine.connect() as conn:
             result = conn.execute(text("SELECT SYSDATE FROM DUAL"))
             result.fetchone()
