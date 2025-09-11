@@ -1,18 +1,16 @@
-"""FLEXT DB Oracle Simple Usage Example - REDUZIDA COMPLEXIDADE.
+"""FLEXT DB Oracle Simple Usage Example.
 
 Exemplo simplificado usando FlextServices.ServiceProcessor para eliminar
 complexidade e demonstrar padrões flext-core avançados.
-
-ANTES: Complexidade 50 -> DEPOIS: Complexidade ~10 (80% redução)
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
-from flext_core import FlextLogger, FlextResult, FlextServices
+from flext_core import FlextLogger, FlextResult, FlextServices, FlextTypes
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
@@ -26,14 +24,22 @@ class OracleExampleProcessor(
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query."""
         try:
-            config = FlextDbOracleConfig.from_env()
+            config_result = FlextDbOracleConfig.from_env()
+            if not config_result.is_success:
+                return FlextResult[FlextDbOracleApi].fail(
+                    config_result.error or "Failed to load configuration"
+                )
+            config = config_result.value
+
             api = FlextDbOracleApi(config)
 
             connect_result = api.connect()
-            if not connect_result.success:
-                return FlextResult[FlextDbOracleApi].fail(connect_result.error)
+            if not connect_result.is_success:
+                return FlextResult[FlextDbOracleApi].fail(
+                    connect_result.error or "Failed to connect"
+                )
 
-            return FlextResult[FlextDbOracleApi].ok(connect_result.value)
+            return FlextResult[FlextDbOracleApi].ok(api)
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
 
@@ -64,17 +70,38 @@ def demonstrate_basic_operations() -> None:
 def demonstrate_query_operations() -> None:
     """Query operations usando Railway-Oriented Programming."""
     try:
-        config = FlextDbOracleConfig.from_env()
+        config_result = FlextDbOracleConfig.from_env()
+        if not config_result.is_success:
+            logger.error(f"❌ Configuration failed: {config_result.error}")
+            return
+        config = config_result.value
+
         api = FlextDbOracleApi(config)
 
         # Railway-Oriented Programming elimina múltiplos returns
-        (
-            api.connect()
-            .bind(lambda conn: conn.query("SELECT COUNT(*) FROM user_tables"))
-            .bind(lambda result: FlextResult.ok(f"Found {result.rows[0][0]} tables"))
-            .map(lambda msg: logger.info(f"📊 {msg}"))
-            .map_error(lambda err: logger.error(f"❌ Query failed: {err}"))
-        )
+        connect_result = api.connect()
+        if connect_result.is_success:
+            query_result = connect_result.value.query(
+                "SELECT COUNT(*) FROM user_tables"
+            )
+            if query_result.is_success:
+                # Access the first row of the result
+                result_data = query_result.value
+                if result_data and len(result_data) > 0:
+                    # Get the first row and extract the count value
+                    first_row = result_data[0]
+                    if isinstance(first_row, dict) and len(first_row) > 0:
+                        # Get the first value from the dictionary
+                        count = next(iter(first_row.values()))
+                        logger.info(f"📊 Found {count} tables")
+                    else:
+                        logger.info("📊 No data in first row")
+                else:
+                    logger.info("📊 No data returned from query")
+            else:
+                logger.error(f"❌ Query failed: {query_result.error}")
+        else:
+            logger.error(f"❌ Connection failed: {connect_result.error}")
 
     except Exception:
         logger.exception("❌ Setup failed")

@@ -8,13 +8,14 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import asyncio
 import contextlib
 import os
 import sys
 from pathlib import Path
+
+from flext_core import FlextTypes
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3

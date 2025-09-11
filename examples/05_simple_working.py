@@ -6,7 +6,6 @@ without inventing non-existent methods.
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import logging
 
@@ -23,7 +22,11 @@ def demonstrate_real_functionality() -> None:
 
     try:
         # 1. Create configuration from environment
-        config = FlextDbOracleConfig.from_env()
+        config_result = FlextDbOracleConfig.from_env()
+        if not config_result.is_success:
+            logger.error(f"❌ Configuration failed: {config_result.error}")
+            return
+        config = config_result.value
         logger.info(f"✅ Configuration created: {config.host}:{config.port}")
 
         # 2. Create API instance
@@ -48,10 +51,11 @@ def demonstrate_real_functionality() -> None:
 
             # 5. Execute simple query
             query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
-            if query_result.success:
+            if query_result.is_success:
                 result_data = query_result.value
-                logger.info(f"✅ Query successful: {len(result_data.rows)} rows")
-                logger.info(f"   Columns: {result_data.columns}")
+                logger.info(f"✅ Query successful: {len(result_data)} rows")
+                if result_data:
+                    logger.info(f"   First row: {result_data[0]}")
             else:
                 logger.warning(f"⚠️  Query failed: {query_result.error}")
 

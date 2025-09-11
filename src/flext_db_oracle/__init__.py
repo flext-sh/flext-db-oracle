@@ -5,7 +5,6 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import (
@@ -28,10 +27,10 @@ from flext_db_oracle.mixins import (
     ParameterObject,
 )
 from flext_db_oracle.models import (
-    FlextDbOracleModels,
     Column,
     ConnectionStatus,
     CreateIndexConfig,
+    FlextDbOracleModels,
     MergeStatementConfig,
     OracleConfig,
     QueryResult,
@@ -76,44 +75,44 @@ class FlextDbOracleSchema:
 
 
 __all__ = [
+    # Models
+    "Column",
+    # Mixins
+    "ConnectionParameters",
+    "ConnectionStatus",
+    "CreateIndexConfig",
+    "ErrorContextTransformer",
+    # Exceptions
+    "ExceptionParams",
     # Main classes
     "FlextDbOracleApi",
     "FlextDbOracleClient",
+    "FlextDbOracleColumn",
+    "FlextDbOracleConfig",
+    "FlextDbOracleConnection",
     "FlextDbOracleConstants",
     "FlextDbOracleExceptions",
-    "FlextDbOracleModels",
-    "FlextDbOraclePlugins",
-    "FlextDbOracleServices",
-    "FlextDbOracleUtilities",
-    # Configuration
-    "OracleConfig",
-    "FlextDbOracleConfig",
     # Ultra-simple aliases
     "FlextDbOracleMetadataManager",
-    "FlextDbOracleTable",
-    "FlextDbOracleConnection",
+    "FlextDbOracleModels",
     "FlextDbOracleObservabilityManager",
-    "FlextDbOracleColumn",
+    "FlextDbOraclePlugins",
     "FlextDbOracleQueryResult",
     "FlextDbOracleSchema",
-    # Models
-    "Column",
-    "Table",
-    "Schema",
-    "QueryResult",
-    "ConnectionStatus",
-    "CreateIndexConfig",
+    "FlextDbOracleServices",
+    "FlextDbOracleTable",
+    "FlextDbOracleUtilities",
     "MergeStatementConfig",
-    # Mixins
-    "ConnectionParameters",
-    "ErrorContextTransformer",
-    "OracleIdentifierValidation",
-    "ParameterObject",
-    # Exceptions
-    "ExceptionParams",
+    # Configuration
+    "OracleConfig",
     "OracleConnectionError",
+    "OracleIdentifierValidation",
     "OracleQueryError",
     "OracleValidationError",
+    "ParameterObject",
+    "QueryResult",
+    "Schema",
+    "Table",
     # CLI Functions
     "create_oracle_cli_commands",
     "oracle_cli",

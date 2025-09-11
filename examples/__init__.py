@@ -15,18 +15,16 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-from flext_core import FlextTypes
 
 import os
 from typing import cast
 
-from flext_core import FlextLogger
-from pydantic import SecretStr
+from flext_core import FlextLogger, FlextTypes
 
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
-    FlextDbOracleUtilities,
+    FlextDbOracleUtilities as FlextDbOracleUtilities,
 )
 
 logger = FlextLogger(__name__)
@@ -50,7 +48,10 @@ def demo_basic_usage() -> None:
 
     # Create configuration using from_env method
     try:
-        config = FlextDbOracleConfig.from_env()
+        config_result = FlextDbOracleConfig.from_env()
+        if not config_result.is_success:
+            return
+        config = config_result.value
     except Exception:
         return
 
