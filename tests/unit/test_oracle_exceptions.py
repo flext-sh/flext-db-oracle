@@ -132,7 +132,7 @@ class TestRealOracleExceptionsCore:
         assert connect_result.success
 
         try:
-            # Execute real invalid SQL against Oracle
+            # Execute invalid SQL against Oracle
             invalid_queries = [
                 "SELECT FROM",  # Syntax error
                 "SELECT * FROM non_existent_table_12345",  # Table doesn't exist

@@ -241,7 +241,7 @@ make test-fast                # Tests without coverage for speed
 # Code quality
 make format                   # Auto-format code with ruff
 make lint                     # Comprehensive linting
-make type-check               # MyPy type checking
+make type-check             
 make security                 # Security scanning with bandit
 
 # Oracle-specific operations
