@@ -732,8 +732,25 @@ class HyperOptimizedOracleService(
         # Substituído por Pure Functional Composition single expression acima
 
 
+# MONSTER ORACLE FILE: 2092 LINES COM 130 CLASSES/MÉTODOS!
+# GOD OBJECT HELL: Uma classe para TODAS as operações Oracle!
+# DOMAIN SERVICE ABUSE: Database client não é domain service!
+# COMPOSITE PATTERN HELL: "REDUZ COMPLEXIDADE" mas tem 130 métodos!
+
 class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
-    """Oracle database services usando Composite Pattern - REDUZ COMPLEXIDADE.
+    """MONSTER ORACLE CLASS: 2092 lines of database over-engineering!
+
+    ARCHITECTURAL VIOLATIONS:
+    - GOD OBJECT with 130+ methods for all Oracle operations
+    - DOMAIN SERVICE pattern for database client/ORM wrapper
+    - COMPOSITE PATTERN claiming to reduce complexity while having 130 methods
+    - Generic[FlextTypes.Core.Dict] with no apparent purpose
+    - "CONSOLIDATED FUNCTIONALITY" = God object antipattern
+
+    REALITY CHECK: This should be separated into query, migration, and connection modules.
+    MIGRATE TO: SQLAlchemy models + simple query functions + connection manager.
+
+    Oracle database services usando Composite Pattern - REDUZ COMPLEXIDADE.
 
     Following flext-core pattern: one class per module, all functionality consolidated.
     Uses OracleServiceComposite internally para eliminar duplicação.
