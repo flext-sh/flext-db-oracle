@@ -16,8 +16,9 @@
 **CRITICAL ROLE**: flext-db-oracle is the enterprise-grade Oracle Database integration foundation for the entire FLEXT ecosystem. This is a PRODUCTION mission-critical system providing Oracle connectivity, SQL operations, schema management, and database infrastructure with ZERO TOLERANCE for custom Oracle implementations.
 
 **ORACLE DATABASE FOUNDATION RESPONSIBILITIES**:
+
 - ✅ **Enterprise Oracle Integration**: Production-grade Oracle XE 21c integration with SQLAlchemy 2 and oracledb
-- ✅ **FLEXT Ecosystem Integration**: MANDATORY use of flext-core foundation exclusively  
+- ✅ **FLEXT Ecosystem Integration**: MANDATORY use of flext-core foundation exclusively
 - ✅ **SQL Operations Management**: Complete SQL query building, execution, and result processing
 - ✅ **Schema Management**: Oracle schema introspection, metadata extraction, and DDL operations
 - ✅ **Connection Management**: Enterprise connection pooling, failover, and performance optimization
@@ -25,6 +26,7 @@
 - ✅ **Production Quality**: Zero errors across all quality gates with comprehensive Oracle testing
 
 **FLEXT ECOSYSTEM IMPACT** (ORACLE FOUNDATION AUTHORITY):
+
 - **All 32+ FLEXT Projects**: Oracle database foundation for entire ecosystem - NO custom Oracle implementations
 - **Singer/Meltano Foundation**: Core library for flext-tap-oracle, flext-target-oracle, flext-dbt-oracle
 - **Enterprise Data Integration**: Production-ready Oracle ETL operations and data pipeline management
@@ -32,6 +34,7 @@
 - **Oracle Integration Platform**: Complete Oracle abstraction for all FLEXT ecosystem database needs
 
 **ORACLE DATABASE QUALITY IMPERATIVES** (ZERO TOLERANCE ENFORCEMENT):
+
 - 🔴 **ZERO custom Oracle implementations** - ALL Oracle operations through flext-db-oracle foundation
 - 🔴 **ZERO direct SQLAlchemy/oracledb imports** outside flext-db-oracle
 - 🟢 **90%+ test coverage** - Complete Oracle functionality testing with real Oracle XE 21c container
@@ -57,7 +60,7 @@
 src/flext_db_oracle/
 ├── __init__.py                # Public API exports - FLEXT ecosystem integration
 ├── api.py                     # FlextDbOracleApi main Oracle orchestrator (720 statements)
-├── client.py                  # FlextDbOracleClient CLI integration (469 statements) 
+├── client.py                  # FlextDbOracleClient CLI integration (469 statements)
 ├── connection.py              # SQLAlchemy connection management with enterprise pooling
 ├── metadata.py                # Oracle schema introspection and metadata extraction
 ├── models.py                  # FlextDbOracleModels domain models (OracleConfig, QueryResult)
@@ -202,7 +205,7 @@ import asyncio
 async def test_oracle_pipeline():
     # Test Oracle API creation
     api = FlextDbOracleApi()
-    
+
     # Test Oracle configuration
     config = OracleConfig(
         host='localhost',
@@ -211,10 +214,10 @@ async def test_oracle_pipeline():
         username='system',
         password='Oracle123'
     )
-    
+
     # Test Oracle query preparation
     query_result = api.optimize_query('SELECT 1 FROM DUAL')
-    
+
     print('✅ Enterprise Oracle processing pipeline verified')
 
 # Run async test
@@ -244,27 +247,27 @@ import asyncio
 async def enterprise_oracle_query(config: OracleConfig, sql: str) -> FlextResult[FlextDbOracleModels.QueryResult]:
     """Enterprise Oracle query with proper error handling - NO try/except fallbacks."""
     logger = get_logger("oracle_operations")
-    
+
     # Input validation with early return
     if not sql or not sql.strip():
         return FlextResult[FlextDbOracleModels.QueryResult].fail("Empty SQL query provided")
-        
+
     # Use flext-db-oracle exclusively for Oracle operations - NO custom Oracle clients
     api = FlextDbOracleApi()
-    
+
     # Configure Oracle connection through flext-db-oracle foundation
     config_result = api.with_config(config)
     if config_result.is_failure:
         return FlextResult[FlextDbOracleModels.QueryResult].fail(f"Oracle config failed: {config_result.error}")
-        
+
     # Execute Oracle query through flext-db-oracle
     try:
         query_result = await api.query(sql)
         if query_result.is_failure:
             return FlextResult[FlextDbOracleModels.QueryResult].fail(f"Oracle query failed: {query_result.error}")
-            
+
         result_data = query_result.unwrap()
-        
+
         return FlextResult[FlextDbOracleModels.QueryResult].ok(
             FlextDbOracleModels.QueryResult(
                 rows=result_data.get('rows', []),
@@ -278,7 +281,7 @@ async def enterprise_oracle_query(config: OracleConfig, sql: str) -> FlextResult
 
 # ❌ ABSOLUTELY FORBIDDEN - Custom Oracle implementations in ecosystem projects
 # import sqlalchemy  # ZERO TOLERANCE VIOLATION
-# import oracledb  # ZERO TOLERANCE VIOLATION  
+# import oracledb  # ZERO TOLERANCE VIOLATION
 # import cx_Oracle  # ZERO TOLERANCE VIOLATION
 # engine = sqlalchemy.create_engine(...)  # FORBIDDEN - use FlextDbOracleApi
 ```
@@ -294,53 +297,53 @@ import asyncio
 
 class EnterpriseOracleService(FlextDomainService):
     """Enterprise Oracle service using FLEXT foundation - NO custom implementations."""
-    
+
     def __init__(self, oracle_config: OracleConfig) -> None:
         super().__init__()
         self._logger = get_logger("enterprise_oracle_service")
         self._config = oracle_config
         self._api = FlextDbOracleApi()
-        
+
     async def create_oracle_connection(self) -> FlextResult[FlextDbOracleApi]:
         """Create Oracle connection using flext-db-oracle foundation exclusively."""
-        
+
         # Oracle connection configuration through flext-db-oracle
         try:
             config_result = self._api.with_config(self._config)
             if config_result.is_failure:
                 return FlextResult[FlextDbOracleApi].fail(f"Oracle config failed: {config_result.error}")
-                
+
             connect_result = await self._api.connect()
             if connect_result.is_failure:
                 return FlextResult[FlextDbOracleApi].fail(f"Oracle connection failed: {connect_result.error}")
-                
+
             return FlextResult[FlextDbOracleApi].ok(self._api)
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(f"Oracle connection creation failed: {e}")
-    
+
     async def execute_oracle_query(self, sql: str, params: dict = None) -> FlextResult[dict]:
         """Execute Oracle query using flext-db-oracle patterns - NO custom Oracle implementation."""
-        
+
         # Create Oracle connection through flext-db-oracle
         connection_result = await self.create_oracle_connection()
         if connection_result.is_failure:
             return FlextResult[dict].fail(f"Connection failed: {connection_result.error}")
-            
+
         api = connection_result.unwrap()
-        
+
         # Execute Oracle query through flext-db-oracle
         try:
             if params:
                 query_result = await api.execute(sql, params)
             else:
                 query_result = await api.query(sql)
-            
+
             if query_result.is_failure:
                 return FlextResult[dict].fail(f"Oracle query execution failed: {query_result.error}")
-                
+
             # Process query results through flext-db-oracle patterns
             result_data = query_result.unwrap()
-            
+
             return FlextResult[dict].ok({
                 "rows": result_data.get('rows', []),
                 "columns": result_data.get('columns', []),
@@ -349,23 +352,23 @@ class EnterpriseOracleService(FlextDomainService):
             })
         except Exception as e:
             return FlextResult[dict].fail(f"Oracle query execution failed: {e}")
-    
+
     async def get_oracle_schema_info(self, schema_name: str = None) -> FlextResult[dict]:
         """Get Oracle schema information using flext-db-oracle metadata services."""
-        
+
         connection_result = await self.create_oracle_connection()
         if connection_result.is_failure:
             return FlextResult[dict].fail(f"Connection failed: {connection_result.error}")
-            
+
         api = connection_result.unwrap()
-        
+
         try:
             # Get Oracle schemas through flext-db-oracle metadata
             if schema_name:
                 tables_result = await api.get_tables(schema_name)
                 if tables_result.is_failure:
                     return FlextResult[dict].fail(f"Schema introspection failed: {tables_result.error}")
-                    
+
                 tables = tables_result.unwrap()
                 schema_info = {
                     "schema_name": schema_name,
@@ -376,43 +379,43 @@ class EnterpriseOracleService(FlextDomainService):
                 schemas_result = await api.get_schemas()
                 if schemas_result.is_failure:
                     return FlextResult[dict].fail(f"Schema listing failed: {schemas_result.error}")
-                    
+
                 schemas = schemas_result.unwrap()
                 schema_info = {
                     "schemas": schemas,
                     "schema_count": len(schemas)
                 }
-                
+
             return FlextResult[dict].ok(schema_info)
         except Exception as e:
             return FlextResult[dict].fail(f"Oracle schema introspection failed: {e}")
-    
+
     async def execute_oracle_transaction(self, operations: list[dict]) -> FlextResult[dict]:
         """Execute Oracle transaction using flext-db-oracle transaction patterns."""
-        
+
         connection_result = await self.create_oracle_connection()
         if connection_result.is_failure:
             return FlextResult[dict].fail(f"Connection failed: {connection_result.error}")
-            
+
         api = connection_result.unwrap()
-        
+
         try:
             # Execute Oracle transaction through flext-db-oracle
             results = []
             for operation in operations:
                 sql = operation.get('sql')
                 params = operation.get('params', {})
-                
+
                 if operation.get('type') == 'query':
                     result = await api.query(sql, params) if params else await api.query(sql)
                 else:
                     result = await api.execute(sql, params)
-                
+
                 if result.is_failure:
                     return FlextResult[dict].fail(f"Transaction operation failed: {result.error}")
-                    
+
                 results.append(result.unwrap())
-            
+
             return FlextResult[dict].ok({
                 "operations_count": len(operations),
                 "results": results,
@@ -437,43 +440,43 @@ from typing import Dict, Any, Optional
 
 class EnterpriseOracleConfiguration(BaseSettings):
     """Enterprise Oracle configuration using FLEXT patterns and production values."""
-    
+
     # Oracle Connection Configuration (production settings)
     oracle_host: str = "localhost"                       # Production: Oracle server host
     oracle_port: int = 1521                              # Production: Oracle port
     oracle_service_name: str = "XEPDB1"                  # Production: Oracle service name
     oracle_username: str = "system"                      # Production: Oracle username
     oracle_password: SecretStr = SecretStr("${ORACLE_PASSWORD}")  # Production: Oracle password
-    
+
     # Oracle Connection Pool Configuration (enterprise settings)
     oracle_pool_size: int = 20                           # Production: 20 connections
     oracle_max_overflow: int = 30                        # Production: 30 overflow connections
     oracle_pool_timeout: int = 30                        # Production: 30 seconds timeout
     oracle_pool_recycle: int = 3600                      # Production: 1 hour recycle
     oracle_pool_pre_ping: bool = True                    # Production: enable pre-ping
-    
+
     # Oracle Query Configuration (performance settings)
     oracle_query_timeout: int = 300                      # Production: 5 minutes timeout
     oracle_fetch_size: int = 1000                        # Production: 1000 rows per fetch
     oracle_max_rows: int = 100000                        # Production: 100k max rows
     oracle_isolation_level: str = "READ_COMMITTED"       # Production: read committed
-    
+
     # Oracle Security Configuration (enterprise security settings)
     oracle_ssl_verify: bool = True                       # Production: verify SSL
     oracle_ssl_ca_file: Optional[str] = None             # Production: CA file path
     oracle_ssl_cert_file: Optional[str] = None           # Production: client cert
     oracle_ssl_key_file: Optional[str] = None            # Production: client key
-    
+
     # Oracle Monitoring Configuration (observability settings)
     oracle_enable_metrics: bool = True                   # Production: enable metrics
     oracle_slow_query_threshold: float = 1.0             # Production: 1 second threshold
     oracle_log_queries: bool = False                     # Production: disable query logging (security)
     oracle_log_parameters: bool = False                  # Production: disable param logging (security)
-    
+
     class Config:
         env_prefix = "ORACLE_"
         case_sensitive = False
-        
+
     def create_oracle_config(self) -> FlextResult[OracleConfig]:
         """Create Oracle configuration for production environment."""
         try:
@@ -497,11 +500,11 @@ class EnterpriseOracleConfiguration(BaseSettings):
                 ssl_cert_file=self.oracle_ssl_cert_file,
                 ssl_key_file=self.oracle_ssl_key_file
             )
-            
+
             return FlextResult[OracleConfig].ok(config)
         except Exception as e:
             return FlextResult[OracleConfig].fail(f"Oracle config creation failed: {e}")
-            
+
     def create_oracle_connection_string(self) -> FlextResult[str]:
         """Create Oracle connection string for production deployment."""
         try:
@@ -510,41 +513,41 @@ class EnterpriseOracleConfiguration(BaseSettings):
                 f"oracle+oracledb://{self.oracle_username}:{self.oracle_password.get_secret_value()}"
                 f"@{self.oracle_host}:{self.oracle_port}/{self.oracle_service_name}"
             )
-            
+
             # Add connection parameters
             params = []
             if self.oracle_ssl_verify:
                 params.append("ssl_verify=true")
             if self.oracle_ssl_ca_file:
                 params.append(f"ssl_ca={self.oracle_ssl_ca_file}")
-                
+
             if params:
                 connection_string += "?" + "&".join(params)
-            
+
             return FlextResult[str].ok(connection_string)
         except Exception as e:
             return FlextResult[str].fail(f"Oracle connection string creation failed: {e}")
-            
+
     def validate_oracle_security_settings(self) -> FlextResult[None]:
         """Validate Oracle security configuration."""
         logger = get_logger("oracle_config")
-        
+
         # Validate SSL configuration
         if self.oracle_ssl_verify and not self.oracle_ssl_ca_file:
             logger.warning("SSL verification enabled but no CA file specified")
-            
+
         # Validate connection pool settings
         if self.oracle_pool_size > 100:
             return FlextResult[None].fail("Connection pool size too high for production")
-            
+
         # Validate query timeout settings
         if self.oracle_query_timeout > 900:  # 15 minutes
             return FlextResult[None].fail("Query timeout too high for production")
-            
+
         # Validate security logging settings
         if self.oracle_log_queries or self.oracle_log_parameters:
             logger.warning("Query/parameter logging enabled - ensure no sensitive data exposure")
-            
+
         logger.info("Oracle security configuration validated successfully")
         return FlextResult[None].ok(None)
 
@@ -552,12 +555,12 @@ class EnterpriseOracleConfiguration(BaseSettings):
 def create_enterprise_oracle_config() -> FlextResult[EnterpriseOracleConfiguration]:
     """Create and validate enterprise Oracle configuration."""
     config = EnterpriseOracleConfiguration()
-    
+
     # Validate Oracle security settings
     validation_result = config.validate_oracle_security_settings()
     if validation_result.is_failure:
         return FlextResult[EnterpriseOracleConfiguration].fail(validation_result.error)
-        
+
     return FlextResult[EnterpriseOracleConfiguration].ok(config)
 
 # ❌ ABSOLUTELY FORBIDDEN - Custom Oracle configuration bypassing FLEXT patterns
@@ -577,29 +580,29 @@ import click
 
 class EnterpriseOracleCliService:
     """Enterprise Oracle CLI service using flext-db-oracle CLI foundation."""
-    
+
     def __init__(self) -> None:
         self._logger = get_logger("enterprise_oracle_cli")
-        
+
     async def create_oracle_cli_client(self, config: OracleConfig) -> FlextResult[FlextDbOracleClient]:
         """Create Oracle CLI client using flext-db-oracle CLI foundation."""
-        
+
         try:
             # Use flext-db-oracle CLI client - NO direct Click dependencies
             client = FlextDbOracleClient()
-            
+
             # Configure Oracle connection through CLI client
             config_result = await client.configure_oracle_connection(config)
             if config_result.is_failure:
                 return FlextResult[FlextDbOracleClient].fail(f"CLI config failed: {config_result.error}")
-                
+
             return FlextResult[FlextDbOracleClient].ok(client)
         except Exception as e:
             return FlextResult[FlextDbOracleClient].fail(f"Oracle CLI client creation failed: {e}")
-    
+
     async def execute_oracle_cli_command(self, command: str, args: dict = None) -> FlextResult[dict]:
         """Execute Oracle CLI command using flext-db-oracle CLI patterns."""
-        
+
         # Create Oracle configuration from environment
         config = OracleConfig(
             host=args.get('host', 'localhost'),
@@ -608,14 +611,14 @@ class EnterpriseOracleCliService:
             username=args.get('username', 'system'),
             password=args.get('password', 'Oracle123')
         )
-        
+
         # Create CLI client through flext-db-oracle
         client_result = await self.create_oracle_cli_client(config)
         if client_result.is_failure:
             return FlextResult[dict].fail(f"CLI client creation failed: {client_result.error}")
-            
+
         client = client_result.unwrap()
-        
+
         try:
             # Execute Oracle CLI commands through flext-db-oracle
             if command == "test-connection":
@@ -636,10 +639,10 @@ class EnterpriseOracleCliService:
                 result = await client.export_oracle_schema(schema, output_file)
             else:
                 return FlextResult[dict].fail(f"Unknown Oracle CLI command: {command}")
-            
+
             if result.is_failure:
                 return FlextResult[dict].fail(f"Oracle CLI command failed: {result.error}")
-                
+
             return FlextResult[dict].ok(result.unwrap())
         except Exception as e:
             return FlextResult[dict].fail(f"Oracle CLI command execution failed: {e}")
@@ -658,7 +661,7 @@ def enterprise_oracle_cli():
 @click.option('--password', prompt=True, hide_input=True, help='Oracle password')
 def test_connection(host: str, port: int, service_name: str, username: str, password: str):
     """Test Oracle connection using flext-db-oracle."""
-    
+
     async def _test_connection():
         cli_service = EnterpriseOracleCliService()
         result = await cli_service.execute_oracle_cli_command(
@@ -671,14 +674,14 @@ def test_connection(host: str, port: int, service_name: str, username: str, pass
                 'password': password
             }
         )
-        
+
         if result.is_success:
             click.echo("✅ Oracle connection successful")
             data = result.unwrap()
             click.echo(f"Connection time: {data.get('connection_time', 'N/A')} ms")
         else:
             click.echo(f"❌ Oracle connection failed: {result.error}")
-            
+
     asyncio.run(_test_connection())
 
 @enterprise_oracle_cli.command()
@@ -690,7 +693,7 @@ def test_connection(host: str, port: int, service_name: str, username: str, pass
 @click.option('--sql', required=True, help='SQL query to execute')
 def execute_query(host: str, port: int, service_name: str, username: str, password: str, sql: str):
     """Execute Oracle SQL query using flext-db-oracle."""
-    
+
     async def _execute_query():
         cli_service = EnterpriseOracleCliService()
         result = await cli_service.execute_oracle_cli_command(
@@ -704,13 +707,13 @@ def execute_query(host: str, port: int, service_name: str, username: str, passwo
                 'sql': sql
             }
         )
-        
+
         if result.is_success:
             data = result.unwrap()
             click.echo(f"✅ Query executed successfully")
             click.echo(f"Rows returned: {data.get('row_count', 0)}")
             click.echo(f"Execution time: {data.get('execution_time', 'N/A')} ms")
-            
+
             # Display results
             rows = data.get('rows', [])
             columns = data.get('columns', [])
@@ -724,7 +727,7 @@ def execute_query(host: str, port: int, service_name: str, username: str, passwo
                     click.echo(f"... and {len(rows) - 10} more rows")
         else:
             click.echo(f"❌ Query execution failed: {result.error}")
-            
+
     asyncio.run(_execute_query())
 
 # Usage pattern for enterprise Oracle CLI
@@ -779,7 +782,7 @@ if __name__ == "__main__":
 ```bash
 # PHASE 1: Oracle Enterprise Quality (ZERO TOLERANCE)
 make lint                    # Ruff: ZERO violations in src/
-make type-check              # MyPy strict: ZERO errors in src/  
+make type-check              # MyPy strict: ZERO errors in src/
 make security                # Bandit: ZERO critical security vulnerabilities
 
 # PHASE 2: Oracle Abstraction Validation (ECOSYSTEM PROTECTION)
@@ -831,13 +834,15 @@ print('✅ Oracle production environment verified')
 ### Oracle Foundation Development Standards (ENTERPRISE LEADERSHIP)
 
 **ABSOLUTELY FORBIDDEN IN FLEXT-DB-ORACLE**:
+
 - ❌ **Exposing SQLAlchemy/oracledb directly** - all Oracle abstractions must be complete
 - ❌ **Incomplete Oracle abstraction layers** - every Oracle need must have wrapper
 - ❌ **Try/except fallbacks** - Oracle operations must use explicit FlextResult patterns
 - ❌ **Breaking Oracle ecosystem contracts** - maintain API compatibility for all projects
 - ❌ **Custom Oracle implementations** - ALL Oracle operations through flext-db-oracle foundation
 
-**MANDATORY IN FLEXT-DB-ORACLE**:  
+**MANDATORY IN FLEXT-DB-ORACLE**:
+
 - ✅ **Complete Oracle abstraction** - no Oracle operation should require direct SQLAlchemy/oracledb import
 - ✅ **Comprehensive Oracle API** - FlextDbOracleApi covers all enterprise Oracle development needs
 - ✅ **Clean Architecture patterns** - Domain-driven design with Oracle infrastructure abstraction
@@ -851,6 +856,7 @@ print('✅ Oracle production environment verified')
 **CRITICAL**: Oracle foundation tests must validate REAL Oracle functionality and FLEXT ecosystem integration.
 
 **Oracle-Specific Test Requirements**:
+
 - ✅ **Real Oracle XE 21c container tests** - test actual Oracle database operations and connections
 - ✅ **FLEXT ecosystem integration tests** - validate all FLEXT library integrations
 - ✅ **Enterprise Oracle workflow tests** - complete SQL query scenarios with transaction management
@@ -871,12 +877,14 @@ print('✅ Oracle production environment verified')
 ### Oracle Production Testing Environment
 
 **Oracle Test Configuration**:
+
 - **Test Container**: Real Oracle XE 21c container for integration testing
 - **Oracle Client**: Real Oracle client testing with production configuration
 - **Schema Operations**: Real schema introspection and metadata extraction testing
 - **Transaction Management**: Transaction commit/rollback validation with real Oracle
 
 **Enterprise Test Environment Management**:
+
 ```bash
 # Automatic Oracle testing environment
 make oracle-start           # Start Oracle XE 21c development container
@@ -895,12 +903,14 @@ pytest tests/e2e/test_oracle_workflows.py -v --run-oracle
 ### Oracle Foundation Coverage Strategy (PRODUCTION READY)
 
 **Enterprise Oracle Scale Assessment**:
+
 - **Total Oracle Codebase**: 2,500+ lines across 11+ modules
 - **High-Impact Services**: api.py (Oracle API), connection.py (connection management), metadata.py (schema introspection)
 - **Core Oracle Logic**: services.py (SQL building), models.py (domain models), client.py (CLI integration)
 - **Production Integration**: Real Oracle XE 21c container testing with schema operations and transaction management
 
 **PROVEN Coverage Success Strategy**:
+
 1. **Oracle API Priority**: api.py (core Oracle operations) - 90%+ coverage
 2. **Connection Management**: connection.py (connection pooling) - 90%+ coverage
 3. **Schema Operations**: metadata.py (schema introspection) - 90%+ coverage
@@ -910,7 +920,8 @@ pytest tests/e2e/test_oracle_workflows.py -v --run-oracle
 ### Multi-Task Execution Strategy (PROVEN SUCCESSFUL)
 
 **PARALLEL EXECUTION** (Proven approach):
-- **Coverage improvement** AND **FLEXT pattern migration** simultaneously  
+
+- **Coverage improvement** AND **FLEXT pattern migration** simultaneously
 - **Production Oracle testing** during service development
 - **Type safety improvements** inline with Oracle test development
 - **Clean Architecture validation** during Oracle business logic testing
@@ -968,11 +979,11 @@ python -c "
 try:
     from flext_db_oracle import FlextDbOracleApi, OracleConfig
     from flext_db_oracle.models import FlextDbOracleModels
-    
+
     # Verify Oracle API functionality
     api = FlextDbOracleApi()
     assert hasattr(api, 'connect'), 'Oracle API missing connect method'
-    
+
     # Verify Oracle models
     config = OracleConfig(
         host='localhost',
@@ -982,7 +993,7 @@ try:
         password='Oracle123'
     )
     assert config.host == 'localhost', 'Oracle config creation failed'
-    
+
     print('✅ Oracle production configuration validated')
 except Exception as e:
     print(f'❌ Oracle configuration validation failed: {e}')
@@ -997,12 +1008,14 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
 **Common Oracle Foundation Issues**:
 
 1. **FLEXT Ecosystem Integration Gaps**
+
    ```bash
    # Check for missing FLEXT integrations
    grep -r "TODO.*flext\|FIXME.*flext" src/flext_db_oracle/
    ```
 
-2. **Oracle Container Issues** 
+2. **Oracle Container Issues**
+
    ```bash
    # Validate Oracle XE 21c container
    docker-compose -f docker-compose.oracle.yml ps
@@ -1010,18 +1023,20 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
    ```
 
 3. **Oracle Connection Issues**
+
    ```bash
    # Test Oracle connectivity
    make oracle-connect && echo "✅ Oracle connection accessible" || echo "❌ Oracle connection issues"
    ```
 
 4. **Oracle API Issues**
+
    ```bash
    # Test Oracle API functionality
    python -c "
    from flext_db_oracle import FlextDbOracleApi, OracleConfig
    import asyncio
-   
+
    async def test_api():
        api = FlextDbOracleApi()
        config = OracleConfig(
@@ -1033,7 +1048,7 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
        )
        # Structure test - actual Oracle call would require container
        print('✅ Oracle API structure validated')
-       
+
    try:
        asyncio.run(test_api())
    except Exception as e:
@@ -1042,6 +1057,7 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
    ```
 
 5. **FlextResult Migration Issues**
+
    ```bash
    # Find remaining legacy patterns
    grep -r "\.data\|\.unwrap_or(" src/flext_db_oracle/ | wc -l
@@ -1053,6 +1069,7 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
 ### Current Oracle Foundation Status (PRODUCTION READY)
 
 **WORKING ORACLE INFRASTRUCTURE** (✅):
+
 - Complete enterprise Oracle XE 21c integration with SQLAlchemy 2 and oracledb
 - Oracle connection management with connection pooling and transaction support
 - Full FLEXT ecosystem integration (flext-core, flext-cli, flext-observability)
@@ -1061,6 +1078,7 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
 - Comprehensive enterprise Oracle workflows with CLI integration
 
 **PROVEN ORACLE ACHIEVEMENTS** (✅):
+
 - **Zero Quality Gate Failures**: MyPy, PyRight, Ruff all passing with strict configuration
 - **Complete FLEXT Integration**: All Oracle operations through FLEXT ecosystem
 - **Production-Ready**: Real Oracle XE 21c configuration and performance testing
@@ -1069,6 +1087,7 @@ echo "✅ Oracle FLEXT ecosystem validation completed"
 - **Enterprise Patterns**: Connection pooling, transaction management, and security implementations
 
 **ORACLE ECOSYSTEM IMPACT** (ENTERPRISE CRITICAL):
+
 - **All 32+ FLEXT Projects**: Oracle database foundation for entire ecosystem
 - **Singer/Meltano Foundation**: Core library for flext-tap-oracle, flext-target-oracle, flext-dbt-oracle
 - **FLEXT Ecosystem Leadership**: Demonstrates complete FLEXT integration patterns
@@ -1146,6 +1165,7 @@ echo "✅ Oracle Foundation achievement validation COMPLETED"
 ### Oracle Foundation Enterprise Impact Assessment
 
 **ENTERPRISE ORACLE ACHIEVEMENTS**:
+
 1. **Production Oracle Solution**: Complete Oracle database integration for entire FLEXT ecosystem
 2. **FLEXT Ecosystem Leadership**: Demonstrates complete FLEXT integration best practices
 3. **Enterprise Quality Standards**: Zero errors across all quality gates with production testing
@@ -1153,6 +1173,7 @@ echo "✅ Oracle Foundation achievement validation COMPLETED"
 5. **Clean Architecture Excellence**: Clean Architecture with Oracle domain patterns
 
 **ECOSYSTEM LEADERSHIP IMPACT**:
+
 - **FLEXT Integration Model**: Shows how to properly integrate entire FLEXT ecosystem
 - **Enterprise Oracle Standards**: Sets bar for production-ready FLEXT Oracle applications
 - **Oracle Architecture Patterns**: Demonstrates advanced patterns usage at enterprise scale
@@ -1167,6 +1188,7 @@ echo "✅ Oracle Foundation achievement validation COMPLETED"
 **QUALITY LEADERSHIP**: Sets enterprise Oracle standards with zero errors across all quality gates
 
 **PROVEN ACHIEVEMENTS** (Evidence-based validation):
+
 - ✅ **Zero Quality Gate Failures**: MyPy, PyRight, Ruff all passing with strict configuration (ACHIEVED)
 - ✅ **Complete FLEXT Integration**: flext-core, flext-cli, flext-observability (ACHIEVED)
 - ✅ **Oracle Architecture Excellence**: Clean Architecture with Domain-Driven Design (ACHIEVED)
@@ -1175,8 +1197,9 @@ echo "✅ Oracle Foundation achievement validation COMPLETED"
 - ✅ **Oracle Abstraction**: Complete abstraction over SQLAlchemy and oracledb (ACHIEVED)
 
 **ENTERPRISE ORACLE PRIORITIES** (CONTINUOUS IMPROVEMENT):
+
 1. **Production Deployment**: Advanced Oracle monitoring and performance optimization
-2. **Performance Enhancement**: Oracle connection pool tuning for high-scale usage  
+2. **Performance Enhancement**: Oracle connection pool tuning for high-scale usage
 3. **Security Enhancement**: Advanced Oracle security features (encryption, auditing, access control)
 4. **Observability Integration**: Enhanced Oracle metrics, query tracing, and performance monitoring
 5. **Documentation Excellence**: Complete enterprise Oracle development procedures documentation

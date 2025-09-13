@@ -1,6 +1,5 @@
-"""Oracle database plugins following flext-core pattern.
+"""Oracle Database plugins using unified class pattern.
 
-Single consolidated class for Oracle plugin management.
 Eliminates facade pattern and provides direct unified interface.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.

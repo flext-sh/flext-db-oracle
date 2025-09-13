@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from flext_core import FlextTypes
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
-from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_db_oracle.models import FlextDbOracleModels
@@ -27,7 +26,7 @@ class TestFlextDbOracleApiRealFunctionality:
             port=1521,
             service_name="TEST",
             username="test_user",
-            password=SecretStr("test_password"),
+            password="test_password",
         )
         self.api = FlextDbOracleApi(self.config)
 
@@ -50,7 +49,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert config.port == 1521
         assert config.service_name == "TEST"
         assert config.username == "test_user"
-        assert config.password.get_secret_value() == "test_password"
+        assert config.password == "test_password"
 
     def test_is_valid_real_functionality(self) -> None:
         """Test is_valid with real configuration validation - REAL FUNCTIONALITY."""
@@ -357,7 +356,7 @@ class TestFlextDbOracleApiRealFunctionality:
                     port=1521,
                     service_name="testbuilder_service",
                     username="testbuilder_user",
-                    password=SecretStr("testbuilder_password"),
+                    password="testbuilder_password",
                 ),
             )
             .build()
@@ -379,7 +378,7 @@ class TestFlextDbOracleApiRealFunctionality:
             port=1521,
             service_name="service1",
             username="user1",
-            password=SecretStr("password1"),
+            password="password1",
         )
 
         config2 = FlextDbOracleConfig(
@@ -387,7 +386,7 @@ class TestFlextDbOracleApiRealFunctionality:
             port=1522,
             service_name="service2",
             username="user2",
-            password=SecretStr("password2"),
+            password="password2",
         )
 
         api1 = FlextDbOracleApi(config1)
@@ -682,7 +681,7 @@ class TestFlextDbOracleApiRealFunctionality:
             port=1,
             service_name="S",
             username="u",
-            password=SecretStr("p"),
+            password="p",
         )
         minimal_api = FlextDbOracleApi(minimal_config)
         assert minimal_api.is_valid() is True
@@ -697,7 +696,7 @@ class TestFlextDbOracleApiRealFunctionality:
             port=65535,
             service_name="SERVICE_WITH_UNDERSCORES",
             username="user@domain",
-            password=SecretStr("pass!@#$%"),
+            password="pass!@#$%",
         )
         special_api = FlextDbOracleApi(special_config)
         assert special_api.is_valid() is True

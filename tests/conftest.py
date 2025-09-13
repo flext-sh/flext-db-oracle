@@ -16,7 +16,7 @@ import docker
 import pytest
 from pydantic import SecretStr
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
@@ -156,6 +156,7 @@ class OracleContainerManager:
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests - NO MOCKS ALLOWED."""
     # FORCE Oracle container usage for ALL tests - no mocks, only real testing
+    config.addinivalue_line("markers", "oracle: Oracle database integration tests")
     os.environ["SKIP_E2E_TESTS"] = "false"
     os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
     os.environ["USE_REAL_ORACLE"] = "true"
@@ -199,23 +200,26 @@ def oracle_container() -> Generator[None]:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: None) -> FlextDbOracleConfig:
+def real_oracle_config(oracle_container: None) -> FlextDbOracleModels.OracleConfig:
     """Return real Oracle configuration for ALL tests."""
-    return FlextDbOracleConfig(
+    # Ensure Oracle container is available
+    assert oracle_container is not None, "Oracle container must be available for tests"
+    return FlextDbOracleModels.OracleConfig(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
-        service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
-        username=os.getenv("TEST_ORACLE_USER", "flexttest"),
-        ssl_server_cert_dn=None,
+        name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
+        user=os.getenv("TEST_ORACLE_USER", "flexttest"),
         password=SecretStr(os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123")),
-        pool_min=1,
-        pool_max=5,
-        timeout=30,
+        service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
+        ssl_server_cert_dn=None,
+        connection_timeout=30,
     )
 
 
 @pytest.fixture
-def oracle_api(real_oracle_config: FlextDbOracleConfig) -> FlextDbOracleApi:
+def oracle_api(
+    real_oracle_config: FlextDbOracleModels.OracleConfig,
+) -> FlextDbOracleApi:
     """Return connected Oracle API for ALL tests."""
     return FlextDbOracleApi(real_oracle_config)
 

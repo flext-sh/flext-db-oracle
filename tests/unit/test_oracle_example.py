@@ -9,12 +9,8 @@ from __future__ import annotations
 import contextlib
 
 from flext_core import FlextResult
-from pydantic import SecretStr
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleConfig,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -35,7 +31,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle connection and disconnection."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Test connect - using modern .value access after failure check
         result = connection.connect()
@@ -58,7 +54,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle query execution."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -90,7 +86,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle fetch_one."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -124,7 +120,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -141,6 +137,7 @@ class TestRealOracleConnection:
 
             # Create temporary table with PRESERVE ROWS to survive commit
             create_result = connection.execute("""
+
               CREATE GLOBAL TEMPORARY TABLE temp_test_table (
                   id NUMBER,
                   name VARCHAR2(100)
@@ -430,10 +427,10 @@ class TestRealOracleErrorHandling:
             port=1521,
             service_name="XEPDB1",
             username="invalid_user",
-            password=SecretStr("invalid_password"),
+            password="invalid_password",
         )
 
-        connection = FlextDbOracleServices(invalid_config)
+        connection = FlextDbOracleServices(config=invalid_config)
         result = connection.connect()
         assert result.is_failure
         error_msg = (result.error or "").lower()
@@ -450,7 +447,7 @@ class TestRealOracleErrorHandling:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test execution with invalid SQL."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         connect_result = connection.connect()
         if connect_result.is_failure:

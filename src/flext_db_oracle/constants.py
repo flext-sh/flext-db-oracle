@@ -1,6 +1,8 @@
-"""Oracle Database Constants extending flext-core platform constants.
+"""Oracle database constants following unified class pattern.
 
-Oracle Database-specific constants that extend flext-core patterns.
+This module provides Oracle-specific constants organized into nested classes
+for connection configuration, query operations, data types, validation rules,
+error messages, and performance tuning.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

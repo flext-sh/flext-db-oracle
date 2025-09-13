@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 import pytest
 from flext_core import FlextResult
-from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleModels
 from flext_db_oracle.client import (
@@ -185,13 +184,11 @@ class TestFlextDbOracleClientReal:
             assert isinstance(commands, list)
             assert len(commands) > 0
 
-            # Verify command structure - CliCommand actual fields
+            # Verify command structure - simple string commands
             for command in commands:
-                assert hasattr(command, "command_line")
-                assert hasattr(command, "status")
-                assert hasattr(command, "execution_time")
-                assert isinstance(command.command_line, str)
-                assert len(command.command_line) > 0
+                assert isinstance(command, str)
+                assert len(command) > 0
+                assert "oracle-" in command
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""
@@ -240,10 +237,10 @@ class TestFlextDbOracleClientIntegration:
         config = FlextDbOracleModels.OracleConfig(
             host="localhost",
             port=1521,
-            database="XE",  # Required field
+            name="XE",  # Required field
             service_name="XE",
-            username="test",
-            password=SecretStr("test"),
+            user="test",
+            password="test",
             ssl_server_cert_dn=None,
         )
 
@@ -256,7 +253,7 @@ class TestFlextDbOracleClientIntegration:
             config.port,
             service_name,
             config.username,
-            config.password.get_secret_value(),
+            config.password,
         )
 
         # Should fail with connection error, not code errors

@@ -8,14 +8,10 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextTypes
-from flext_core.exceptions import FlextExceptions
+from flext_core import FlextExceptions, FlextTypes
 from pydantic import SecretStr
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleConfig,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.services import FlextDbOracleServices
 
@@ -31,10 +27,10 @@ class TestRealOracleExceptionsCore:
             port=1521,
             service_name="XEPDB1",
             username="invalid_user_12345",
-            password=SecretStr("invalid_password_12345"),
+            password="invalid_password_12345",
         )
 
-        connection = FlextDbOracleServices(invalid_config)
+        connection = FlextDbOracleServices(config=invalid_config)
         result = connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
@@ -66,10 +62,10 @@ class TestRealOracleExceptionsCore:
             port=1521,
             service_name="XEPDB1",
             username="testuser",
-            password=SecretStr("testpass"),
+            password="testpass",
         )
 
-        connection = FlextDbOracleServices(unreachable_config)
+        connection = FlextDbOracleServices(config=unreachable_config)
         result = connection.connect()
 
         # Should fail with connection error - using modern pattern
@@ -104,9 +100,9 @@ class TestRealOracleExceptionsCore:
                 service_name="",  # Empty service name
                 sid="",  # Empty SID
                 username="testuser",
-                password=SecretStr("testpass"),
+                password="testpass",
             )
-            connection = FlextDbOracleServices(invalid_config)
+            connection = FlextDbOracleServices(config=invalid_config)
             result = connection.connect()
 
             # Should fail configuration validation - using modern pattern
@@ -126,7 +122,7 @@ class TestRealOracleExceptionsCore:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test FlextDbOracleExceptions.QueryError with real invalid SQL."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         connect_result = connection.connect()
         assert connect_result.success
@@ -176,7 +172,7 @@ class TestRealOracleExceptionsCore:
             timeout=1,  # 1 second timeout
         )
 
-        connection = FlextDbOracleServices(timeout_config)
+        connection = FlextDbOracleServices(config=timeout_config)
         connect_result = connection.connect()
         assert connect_result.success
 

@@ -899,19 +899,16 @@ impdp system/password FULL=Y DIRECTORY=dp_dir DUMPFILE=full_db.dmp
 #### DR Testing Checklist
 
 1. **Backup Validation**
-
    - Verify backup integrity
    - Test restore procedures
    - Validate recovery time
 
 2. **Failover Testing**
-
    - Test Data Guard switchover
    - Validate application connectivity
    - Measure failover time
 
 3. **Failback Testing**
-
    - Test return to primary site
    - Validate data synchronization
    - Measure failback time

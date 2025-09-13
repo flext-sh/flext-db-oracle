@@ -41,61 +41,30 @@ from flext_db_oracle.plugins import FlextDbOraclePlugins
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-# Main aliases for backward compatibility
-FlextDbOracleConfig = OracleConfig
-
-
-# Ultra-simple aliases for missing classes - test compatibility
-class FlextDbOracleMetadataManager:
-    """Ultra-simple alias for test compatibility - MetadataManager."""
-
-
-class FlextDbOracleTable:
-    """Ultra-simple alias for test compatibility - Table."""
-
-
-class FlextDbOracleConnection:
-    """Ultra-simple alias for test compatibility - Connection."""
-
-
-class FlextDbOracleObservabilityManager:
-    """Ultra-simple alias for test compatibility - ObservabilityManager."""
-
-
-class FlextDbOracleColumn:
-    """Ultra-simple alias for test compatibility - Column."""
-
-
-class FlextDbOracleQueryResult:
-    """Ultra-simple alias for test compatibility - QueryResult."""
-
-
-class FlextDbOracleSchema:
-    """Ultra-simple alias for test compatibility - Schema."""
-
+# CLI integration - oracle_cli is already imported from client module
 
 __all__ = [
-    # Models
     "Column",
-    # Mixins
     "ConnectionParameters",
     "ConnectionStatus",
     "CreateIndexConfig",
     "ErrorContextTransformer",
-    # Exceptions
     "ExceptionParams",
-    # Main classes
+    # Main API components
     "FlextDbOracleApi",
     "FlextDbOracleClient",
     "FlextDbOracleColumn",
     "FlextDbOracleConfig",
     "FlextDbOracleConnection",
+    # Exceptions
+    "FlextDbOracleConnectionError",
     "FlextDbOracleConstants",
+    "FlextDbOracleError",
     "FlextDbOracleExceptions",
-    # Ultra-simple aliases
     "FlextDbOracleMetadataManager",
     "FlextDbOracleModels",
     "FlextDbOracleObservabilityManager",
+    "FlextDbOracleOperationTracker",
     "FlextDbOraclePlugins",
     "FlextDbOracleQueryResult",
     "FlextDbOracleSchema",
@@ -103,25 +72,25 @@ __all__ = [
     "FlextDbOracleTable",
     "FlextDbOracleUtilities",
     "MergeStatementConfig",
-    # Configuration
     "OracleConfig",
+    # Connection and models
+    "OracleConnection",
     "OracleConnectionError",
+    # Mixins
+    "OracleConnectionMixin",
     "OracleIdentifierValidation",
     "OracleQueryError",
+    "OracleQueryMixin",
     "OracleValidationError",
     "ParameterObject",
     "QueryResult",
     "Schema",
     "Table",
-    # CLI Functions
     "create_oracle_cli_commands",
+    # CLI
+    "main",
     "oracle_cli",
+    # Compatibility functions
+    "oracle_connect",
+    "oracle_query",
 ]
-
-__version__ = "0.9.0"
-__version_info__ = (0, 9, 0)
-__author__ = "flext-team"
-__description__ = (
-    "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb "
-    "with flext-core patterns"
-)

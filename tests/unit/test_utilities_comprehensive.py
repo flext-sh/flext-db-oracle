@@ -1,13 +1,4 @@
-"""Comprehensive Oracle Utilities Tests - Real Implementation Without Mocks.
-
-Tests the FlextDbOracleUtilities class completely without mocks,
-achieving maximum coverage through real utility operations using flext_tests.
-
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Test utilities functionality with comprehensive coverage."""
 
 from __future__ import annotations
 
@@ -17,14 +8,13 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from flext_core import FlextTypes
+from flext_tests import FlextTestsMatchers
 from pydantic import BaseModel
+
+from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 # Add flext_tests to path
 sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
-
-from flext_tests import FlextTestsMatchers
-
-from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
 class TestFlextDbOracleUtilitiesRealFunctionality:
@@ -55,10 +45,10 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         for input_name, should_succeed in test_cases:
             result = self.utilities.escape_oracle_identifier(input_name)
             if should_succeed:
-                FlextTestsMatchers.assert_result_success(result)
-                assert isinstance(result.value, str)
+                assert result.is_success
+                assert isinstance(result.unwrap(), str)
             else:
-                FlextTestsMatchers.assert_result_failure(result)
+                assert result.is_failure
 
     def test_format_sql_for_oracle_real(self) -> None:
         """Test Oracle SQL formatting - REAL FUNCTIONALITY."""
@@ -75,10 +65,10 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             result = self.utilities.format_sql_for_oracle(input_query)
             # Method has @safe_result decorator, returns FlextResult
             if should_succeed:
-                FlextTestsMatchers.assert_result_success(result)
-                assert isinstance(result.value, str)
+                assert result.is_success
+                assert isinstance(result.unwrap(), str)
             else:
-                FlextTestsMatchers.assert_result_failure(result)
+                assert result.is_failure
 
     def test_generate_query_hash_real(self) -> None:
         """Test query hash generation - REAL FUNCTIONALITY."""
@@ -90,19 +80,19 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = self.utilities.generate_query_hash(query1)
         result2 = self.utilities.generate_query_hash(query2)
 
-        FlextTestsMatchers.assert_result_success(result1)
-        FlextTestsMatchers.assert_result_success(result2)
-        assert result1.value == result2.value
+        assert result1.is_success
+        assert result2.is_success
+        assert result1.unwrap() == result2.unwrap()
 
         # Test that different queries produce different hashes
         query3 = "SELECT * FROM products WHERE id = ?"
         result3 = self.utilities.generate_query_hash(query3)
 
-        FlextTestsMatchers.assert_result_success(result3)
-        assert result1.value != result3.value
+        assert result3.is_success
+        assert result1.unwrap() != result3.unwrap()
 
         # Verify hash format - should be hex string
-        assert all(c in "0123456789abcdef" for c in result1.value.lower())
+        assert all(c in "0123456789abcdef" for c in result1.unwrap().lower())
 
     def test_generate_query_hash_with_params_real(self) -> None:
         """Test query hash generation with parameters - REAL FUNCTIONALITY."""
@@ -113,10 +103,10 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
 
-        FlextTestsMatchers.assert_result_success(result1)
-        FlextTestsMatchers.assert_result_success(result2)
+        assert result1.is_success
+        assert result2.is_success
         assert (
-            result1.value != result2.value
+            result1.unwrap() != result2.unwrap()
         )  # Different params should produce different hashes
 
     def test_format_query_result_real(self) -> None:
@@ -205,17 +195,17 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         """Test utilities error handling patterns - REAL FUNCTIONALITY."""
         utilities = FlextDbOracleUtilities()
 
-        # Test with None inputs - use type ignore to test error handling
-        result1 = utilities.escape_oracle_identifier(None)
-        FlextTestsMatchers.assert_result_failure(result1)
+        # Test with empty inputs - should fail
+        result1 = utilities.escape_oracle_identifier("")
+        assert result1.is_failure
 
-        # Test with invalid types - use type ignore to test error handling
-        utilities.format_sql_for_oracle(123)
-        # Should handle gracefully - may work or fail
+        # Test with invalid SQL - should handle gracefully
+        result2 = utilities.format_sql_for_oracle("")
+        assert result2.is_success  # Empty string is valid SQL
 
-        # Test create_api_from_config with None
-        result3 = utilities.create_api_from_config(None)
-        FlextTestsMatchers.assert_result_failure(result3)
+        # Test create_api_from_config with empty dict
+        result3 = utilities.create_api_from_config({})
+        assert result3.is_failure
 
     def test_utilities_performance_tracking_real(self) -> None:
         """Test utilities performance tracking - REAL FUNCTIONALITY."""

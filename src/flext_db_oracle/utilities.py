@@ -1,7 +1,7 @@
-"""Oracle Database-specific utilities using flext-core modern API.
+"""Oracle Database utilities providing helper functions and validation.
 
-Migrated from legacy FlextUtilities inheritance to direct usage of flext-core
-functions, eliminating code bloat and using modern FLEXT architectural patterns.
+This module provides utility functions for Oracle database operations
+including query hashing, validation, and configuration management.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,12 +10,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 import os
 from typing import Protocol, cast
 
 from flext_core import FlextDecorators, FlextResult, FlextTypes, FlextUtilities
-from pydantic import SecretStr
 
 from flext_db_oracle.models import FlextDbOracleModels
 
@@ -41,7 +41,9 @@ class FlextDbOracleUtilities:
     class HasModelDump(Protocol):
         """Protocol for objects with model_dump method."""
 
-        def model_dump(self) -> FlextTypes.Core.Dict: ...
+        def model_dump(self) -> FlextTypes.Core.Dict:
+            """Dump model to dictionary."""
+            ...
 
     class QueryResult(Protocol):
         """Protocol for query result objects."""
@@ -53,7 +55,9 @@ class FlextDbOracleUtilities:
     class ConsoleProtocol(Protocol):
         """Protocol for console printing objects."""
 
-        def print(self, *args: object) -> None: ...
+        def print(self, *args: object) -> None:
+            """Print to console."""
+            ...
 
     # =============================================================================
     # ORACLE-SPECIFIC UTILITY METHODS
@@ -63,22 +67,23 @@ class FlextDbOracleUtilities:
     @FlextDecorators.Reliability.safe_result
     def generate_query_hash(
         sql: str, params: FlextTypes.Core.Dict | None = None
-    ) -> str:
+    ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific."""
         # Use FlextUtilities.TextProcessor for normalization
         normalized_sql = FlextUtilities.TextProcessor.safe_string(sql).strip()
         normalized_sql = " ".join(normalized_sql.split())
 
-        # Create content for hashing using FlextUtilities.ProcessingUtils
-        params_json = FlextUtilities.ProcessingUtils.safe_json_stringify(params or {})
+        # Create content for hashing using FlextUtilities
+        params_json = FlextUtilities.safe_json_stringify(params or {})
         hash_content = f"{normalized_sql}|{params_json}"
 
         # Generate SHA-256 hash
-        return hashlib.sha256(hash_content.encode()).hexdigest()[:16]
+        hash_value = hashlib.sha256(hash_content.encode()).hexdigest()[:16]
+        return FlextResult[str].ok(hash_value)
 
     @staticmethod
     @FlextDecorators.Reliability.safe_result
-    def format_sql_for_oracle(sql: str) -> str:
+    def format_sql_for_oracle(sql: str) -> FlextResult[str]:
         """Format SQL query for Oracle logging - Oracle specific."""
         # Use FlextUtilities.TextProcessor for basic formatting
         formatted = FlextUtilities.TextProcessor.safe_string(sql).strip()
@@ -97,7 +102,7 @@ class FlextDbOracleUtilities:
             formatted = formatted.replace(f" {keyword.lower()} ", f"\\n{keyword} ")
             formatted = formatted.replace(f" {keyword.upper()} ", f"\\n{keyword} ")
 
-        return formatted
+        return FlextResult[str].ok(formatted)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> FlextResult[str]:
@@ -149,10 +154,10 @@ class FlextDbOracleUtilities:
                 format_type,
             ).lower()
 
-            # Use FlextUtilities.ProcessingUtils for consistent serialization if needed
+            # Use FlextUtilities for consistent serialization if needed
             if safe_format_type == "json":
                 try:
-                    formatted = FlextUtilities.ProcessingUtils.safe_json_stringify(
+                    formatted = FlextUtilities.safe_json_stringify(
                         query_result,
                     )
                     return FlextResult[str].ok(formatted)
@@ -267,28 +272,37 @@ class FlextDbOracleUtilities:
     def create_api_from_config(config: FlextTypes.Core.Dict) -> FlextResult[object]:
         """Create Oracle API instance from configuration."""
         try:
+            # Validate required fields are present
+            if not config:
+                return FlextResult[object].fail(
+                    "Configuration dictionary cannot be empty"
+                )
+
+            required_fields = ["host", "username"]
+            missing_fields = [
+                field for field in required_fields if not config.get(field)
+            ]
+            if missing_fields:
+                return FlextResult[object].fail(
+                    f"Missing required fields: {', '.join(missing_fields)}"
+                )
+
             # Convert port to int with proper type checking
             port_value = config.get("port", 1521)
             port_int = int(port_value) if isinstance(port_value, (int, str)) else 1521
-
-            password_value = config.get("password", "")
-            password_str = SecretStr(str(password_value))
 
             service_name = str(config.get("service_name", "XE"))
             oracle_config = FlextDbOracleModels.OracleConfig(
                 host=str(config.get("host", "localhost")),
                 port=port_int,
-                database=service_name,  # Required field - use service_name as database
-                service_name=service_name,
-                username=str(config.get("username", "")),
-                password=password_str,
-                ssl_server_cert_dn=None,
+                name=service_name,  # Required field - use service_name as database
+                user=str(config.get("username", "")),
             )
 
-            # Create API instance with configuration - dynamic import to avoid circular import
-            from flext_db_oracle.api import FlextDbOracleApi
-
-            api = FlextDbOracleApi(oracle_config)
+            # Create API instance with configuration (use runtime import to avoid circular imports)
+            api_module = importlib.import_module("flext_db_oracle.api")
+            flext_db_oracle_api_class = getattr(api_module, "FlextDbOracleApi")
+            api = flext_db_oracle_api_class(oracle_config)
 
             # API creation successful - return the API instance
             return FlextResult[object].ok(api)

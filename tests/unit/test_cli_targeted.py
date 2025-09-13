@@ -1,13 +1,4 @@
-"""Targeted CLI Coverage Tests - Real Functionality Without Mocks.
-
-Tests CLI functionality using flext-cli API directly,
-achieving coverage through real operations using flext_tests patterns.
-
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Test CLI functionality with real Oracle operations."""
 
 from __future__ import annotations
 
@@ -15,17 +6,16 @@ import os
 import sys
 from pathlib import Path
 
-from pydantic import SecretStr
-
-# Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
-
 from flext_tests import FlextTestsMatchers
+from pydantic import SecretStr
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import oracle_cli
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
+
+# Add flext_tests to path
+sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
 
 class TestCLIRealFunctionality:
@@ -94,7 +84,7 @@ class TestCLIRealFunctionality:
             port=1521,
             service_name="TESTDB",
             username="test",
-            password=SecretStr("test"),
+            password="test",
         )
 
         api = FlextDbOracleApi(config)
@@ -137,7 +127,7 @@ class TestCLIRealFunctionality:
             port=9999,
             service_name="INVALID_SERVICE",
             username="invalid_user",
-            password=SecretStr("invalid_password"),
+            password="invalid_password",
         )
 
         api = FlextDbOracleApi(invalid_config)
@@ -196,7 +186,7 @@ class TestCLIRealFunctionality:
             database="COMP_TEST",  # Required field
             service_name="COMP_TEST",
             username="comp_user",
-            password=SecretStr("comp_pass"),
+            password="comp_pass",
         )
 
         api = FlextDbOracleApi(config)
@@ -250,7 +240,7 @@ class TestCLIRealFunctionality:
             port=1521,
             service_name="PLUGIN_TEST",
             username="plugin_user",
-            password=SecretStr("plugin_pass"),
+            password="plugin_pass",
         )
 
         api = FlextDbOracleApi(config)

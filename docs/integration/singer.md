@@ -44,7 +44,7 @@ Create a Singer tap that extracts data from Oracle using FLEXT DB Oracle:
 ```python
 # flext-tap-oracle/tap_oracle/tap.py
 from datetime import datetime
-from typing import Dict, List, object
+from typing import Dict, List
 from singer_sdk import Tap, Stream
 from singer_sdk.typing import PropertiesList, Property, StringType, IntegerType
 

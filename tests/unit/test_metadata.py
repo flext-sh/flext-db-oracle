@@ -1,16 +1,12 @@
-"""Comprehensive tests for FlextDbOracleMetadataManager using real code validation.
+"""Test metadata management functionality with real code paths.
 
 This module tests the metadata management functionality with real code paths
 instead of mocks, following the user's requirement for real code testing.
-
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from pydantic import SecretStr
-
-from flext_db_oracle import FlextDbOracleConfig
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 
@@ -20,14 +16,15 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleConfig(
+        self.config = FlextDbOracleModels.OracleConfig(
             host="test",
             port=1521,
+            name="TEST",
+            user="test",
+            password="test",
             service_name="TEST",
-            username="test",
-            password=SecretStr("test"),
         )
-        self.services = FlextDbOracleServices(self.config)
+        self.services = FlextDbOracleServices(config=self.config)
         self.manager = self.services  # They are the same unified class now
 
     def test_metadata_manager_initialization(self) -> None:

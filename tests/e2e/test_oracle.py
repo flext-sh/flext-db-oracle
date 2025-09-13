@@ -14,7 +14,6 @@ from typing import cast
 
 import pytest
 from flext_core import FlextTypes
-from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -267,7 +266,7 @@ class TestOracleE2E:
             assert config.port == 1521
             assert config.service_name == "E2EDB"
             assert config.username == "e2e_user"
-            assert config.password.get_secret_value() == "e2e_password"
+            assert config.password == "e2e_password"
             assert config.pool_min == 2
             assert config.pool_max == 20
             assert config.timeout == 60
@@ -295,7 +294,7 @@ class TestOracleE2E:
             port=9999,
             service_name="INVALID_DB",
             username="invalid_user",
-            password=SecretStr("invalid_password"),
+            password="invalid_password",
         )
 
         api = FlextDbOracleApi(invalid_config)

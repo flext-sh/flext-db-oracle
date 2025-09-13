@@ -1,9 +1,4 @@
-"""Comprehensive Oracle Plugins Tests - Real Implementation.
-
-Tests the FlextDbOraclePlugins class completely without mocks,
-achieving maximum coverage through real plugin operations.
-
-
+"""Comprehensive tests for Oracle plugins.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

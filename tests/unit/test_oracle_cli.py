@@ -1,10 +1,4 @@
-"""Real Oracle CLI Tests - Using Docker Oracle Container.
-
-This module tests CLI functionality against a real Oracle container,
-maximizing coverage of CLI operations using actual database interactions.
-
-
-
+"""Test Oracle CLI operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,13 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 import pytest
 from click import Command
 from click.testing import CliRunner
 
-from flext_db_oracle import oracle_cli
+from flext_db_oracle.cli import main
+
+
+def get_cli_command() -> Command:
+    """Get the CLI command for testing."""
+    return main
 
 
 class TestRealOracleCli:
@@ -32,11 +29,10 @@ class TestRealOracleCli:
     def test_real_cli_connect_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI connect command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["connect-env"])
 
         # Should succeed with real Oracle
@@ -48,11 +44,10 @@ class TestRealOracleCli:
     def test_real_cli_query_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI query command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -70,11 +65,10 @@ class TestRealOracleCli:
     def test_real_cli_schemas_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI schemas command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "table", "schemas"])
 
         # Should succeed and show schemas
@@ -85,11 +79,10 @@ class TestRealOracleCli:
     def test_real_cli_tables_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI tables command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "table", "tables"])
 
         # Should succeed and show test tables
@@ -100,11 +93,10 @@ class TestRealOracleCli:
     def test_real_cli_health_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI health command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "table", "health"])
 
         # Should succeed and show healthy status
@@ -113,11 +105,10 @@ class TestRealOracleCli:
     def test_real_cli_tables_schema_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI tables command with schema filtering."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -135,11 +126,10 @@ class TestRealOracleCli:
     def test_real_cli_optimize_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI optimize command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -155,11 +145,10 @@ class TestRealOracleCli:
     def test_real_cli_plugins_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI plugins command with real Oracle container."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["plugins"])
 
         # Should succeed and show plugin information
@@ -177,11 +166,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_invalid_sql_query(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI with invalid SQL query."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -199,11 +187,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_invalid_table_name(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI with invalid table name."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -225,11 +212,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_help_command(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI help command."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--help"])
 
         # Should succeed and show help
@@ -239,11 +225,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_verbose_debug_mode(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI debug mode."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--debug", "connect-env"])
 
         # Should succeed with debug output
@@ -252,11 +237,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_json_output(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI JSON output format."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "json", "schemas"])
 
         # Should succeed with JSON output
@@ -265,11 +249,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_yaml_output(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI YAML output format."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "yaml", "tables"])
 
         # Should succeed with YAML output
@@ -278,11 +261,10 @@ class TestRealOracleCliErrorHandling:
     def test_real_cli_csv_output(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI CSV output format."""
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(cli_command, ["--output", "csv", "tables"])
 
         # Should succeed with CSV output (or fail gracefully)
@@ -300,12 +282,11 @@ class TestRealOracleCliCoverageBoost:
     def test_real_cli_connection_parameters_processing(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test connection parameter processing (lines 267-274)."""
         # Test with explicit connection parameters
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -329,12 +310,11 @@ class TestRealOracleCliCoverageBoost:
     def test_real_cli_error_handling_paths(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test CLI error handling paths (lines 289-317)."""
         # Test with invalid host (should be quick to fail)
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             [
@@ -358,12 +338,11 @@ class TestRealOracleCliCoverageBoost:
     def test_real_cli_interactive_commands(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test interactive command paths (lines 458-503)."""
         # Test command that might trigger interactive paths
-        # Cast oracle_cli to Command for type safety
-        cli_command = cast("Command", oracle_cli)
+        # Get CLI command for testing
+        cli_command = get_cli_command()
         result = cli_runner.invoke(
             cli_command,
             ["query", "--sql", "SELECT COUNT(*) FROM DUAL"],
@@ -375,15 +354,14 @@ class TestRealOracleCliCoverageBoost:
     def test_real_cli_advanced_output_formatting(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test advanced output formatting (lines 721-769)."""
         # Test multiple output formats to trigger formatting code
         formats = ["table", "json", "yaml"]
 
         for fmt in formats:
-            # Cast oracle_cli to Command for type safety
-            cli_command = cast("Command", oracle_cli)
+            # Get CLI command for testing
+            cli_command = get_cli_command()
             result = cli_runner.invoke(
                 cli_command,
                 ["--output", fmt, "schemas"] if fmt != "table" else ["schemas"],
@@ -395,7 +373,6 @@ class TestRealOracleCliCoverageBoost:
     def test_real_cli_all_commands_coverage(
         self,
         cli_runner: CliRunner,
-        oracle_container: None,
     ) -> None:
         """Test all CLI commands to maximize coverage."""
         commands = [
@@ -410,8 +387,8 @@ class TestRealOracleCliCoverageBoost:
         ]
 
         for cmd in commands:
-            # Cast oracle_cli to Command for type safety
-            cli_command = cast("Command", oracle_cli)
+            # Get CLI command for testing
+            cli_command = get_cli_command()
             result = cli_runner.invoke(cli_command, cmd)
             # Should execute without crashing (exit code can vary)
             assert result.exit_code in {0, 1, 2}  # Allow various valid outcomes

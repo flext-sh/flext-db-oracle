@@ -1,12 +1,4 @@
-"""Tests for FlextDbOracle utilities methods that work without Oracle connection.
-
-Focus on utility functionality that doesn't require database connection to boost coverage:
-- Configuration utilities
-- Data formatting and validation
-- Query result processing
-- Performance monitoring utilities
-- Output formatting methods
-
+"""Test utilities safe methods for Oracle database operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,9 +10,7 @@ from io import StringIO
 
 import pytest
 from flext_core import FlextTypes
-from pydantic import SecretStr
 
-from flext_db_oracle import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
@@ -36,9 +26,11 @@ class TestModelDump:
     """Test class that supports model_dump methods."""
 
     def model_dump(self) -> FlextTypes.Core.Dict:
+        """Dump model to dictionary."""
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
 
     def model_dump_json(self, *, indent: int | None = None) -> str:
+        """Dump model to JSON string."""
         data = self.model_dump()
         return json.dumps(data, indent=indent)
 
@@ -47,6 +39,7 @@ class TestConsole:
     """Real console implementation for testing."""
 
     def __init__(self) -> None:
+        """Initialize test console."""
         self.output = StringIO()
 
     def print(self, *args: object) -> None:
@@ -253,21 +246,21 @@ class TestFlextDbOracleUtilitiesDataValidation:
 
     def test_utilities_configuration_processing(self) -> None:
         """Test configuration processing utilities."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleModels.OracleConfig(
             host="config_test",
             port=1521,
+            name="CONFIG_TEST",
+            user="config_user",
+            password="config_pass",
             service_name="CONFIG_TEST",
-            username="config_user",
-            password=SecretStr("config_pass"),
-            pool_min=2,
-            pool_max=10,
+            max_connections=10,
         )
 
         # Configuration should be valid
         assert config.host == "config_test"
         assert config.port == 1521
-        assert config.pool_min == 2
-        assert config.pool_max == 10
+        assert config.max_connections == 10
+        assert config.pool_size == 10
 
     def test_utilities_data_formatting_edge_cases(self) -> None:
         """Test data formatting with edge cases."""
@@ -319,10 +312,11 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
 
         # Should be able to create query result with timing
         result = FlextDbOracleModels.QueryResult(
+            query="SELECT 'performance' as test",
             columns=["test"],
             rows=[["performance"]],
             row_count=1,
-            execution_time_ms=execution_time * 1000,  # Convert to milliseconds
+            execution_time_ms=int(execution_time * 1000),  # Convert to milliseconds
             query_hash=None,
             explain_plan=None,
         )

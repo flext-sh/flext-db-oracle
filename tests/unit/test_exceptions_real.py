@@ -13,7 +13,6 @@ from __future__ import annotations
 import pytest
 
 from flext_db_oracle import (
-    ExceptionParams,
     FlextDbOracleExceptions,
     ParameterObject,
 )
@@ -24,7 +23,7 @@ class TestExceptionParams:
 
     def test_exception_params_creation(self) -> None:
         """Test creating ExceptionParams with all fields."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Test error",
             code="TEST_CODE",
             context={"key": "value"},
@@ -35,7 +34,7 @@ class TestExceptionParams:
 
     def test_exception_params_defaults(self) -> None:
         """Test ExceptionParams with default values."""
-        params = ExceptionParams(message="Test error")
+        params = FlextDbOracleExceptions.ExceptionParams(message="Test error")
         assert params.message == "Test error"
         assert params.code is None
         assert params.context == {}  # Auto-resolved in __post_init__
@@ -43,16 +42,16 @@ class TestExceptionParams:
     def test_exception_params_empty_message_raises(self) -> None:
         """Test that empty message raises ValueError."""
         with pytest.raises(ValueError, match="Message cannot be empty"):
-            ExceptionParams(message="")
+            FlextDbOracleExceptions.ExceptionParams(message="")
 
     def test_exception_params_whitespace_message_raises(self) -> None:
         """Test that whitespace-only message raises ValueError."""
         with pytest.raises(ValueError, match="Message cannot be empty"):
-            ExceptionParams(message="   ")
+            FlextDbOracleExceptions.ExceptionParams(message="   ")
 
     def test_exception_params_frozen(self) -> None:
         """Test that ExceptionParams is frozen (immutable)."""
-        params = ExceptionParams(message="Test")
+        params = FlextDbOracleExceptions.ExceptionParams(message="Test")
         with pytest.raises(AttributeError):
             setattr(params, "message", "Modified")
 
@@ -91,7 +90,7 @@ class TestValidationError:
 
     def test_validation_error_with_params(self) -> None:
         """Test ValidationError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Field validation failed",
             code="FIELD_ERROR",
             context={"field": "username", "value": "invalid@"},
@@ -119,7 +118,7 @@ class TestConfigurationError:
 
     def test_configuration_error_with_params(self) -> None:
         """Test ConfigurationError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Missing required configuration",
             code="CONFIG_MISSING",
             context={"missing": ["host", "port"]},
@@ -142,7 +141,7 @@ class TestConnectionError:
 
     def test_connection_error_with_params(self) -> None:
         """Test ConnectionError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Unable to connect to Oracle",
             code="CONN_TIMEOUT",
             context={"host": "localhost", "port": 1521, "timeout": 30},
@@ -165,7 +164,7 @@ class TestProcessingError:
 
     def test_processing_error_with_params(self) -> None:
         """Test ProcessingError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Failed to process query result",
             code="PROC_PARSE_ERROR",
             context={"row_count": 1000, "error_at": 500},
@@ -188,7 +187,7 @@ class TestAuthenticationError:
 
     def test_authentication_error_with_params(self) -> None:
         """Test AuthenticationError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Invalid credentials",
             code="AUTH_INVALID_CREDS",
             context={"username": "testuser", "attempts": 3},
@@ -211,7 +210,7 @@ class TestTimeoutError:
 
     def test_timeout_error_with_params(self) -> None:
         """Test TimeoutError with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Query execution timeout",
             code="QUERY_TIMEOUT",
             context={"timeout_seconds": 30, "query": "SELECT * FROM large_table"},
@@ -278,7 +277,7 @@ class TestExceptionHelperMethods:
 
     def test_create_validation_error(self) -> None:
         """Test ValidationError creation with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Invalid input",
             code="ORACLE_VALIDATION_ERROR",
             context={"input": "test"},
@@ -291,7 +290,7 @@ class TestExceptionHelperMethods:
 
     def test_create_configuration_error(self) -> None:
         """Test ConfigurationError creation with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Missing config",
             code="ORACLE_CONFIGURATION_ERROR",
             context={"required": ["host"]},
@@ -303,7 +302,7 @@ class TestExceptionHelperMethods:
 
     def test_create_connection_error(self) -> None:
         """Test DatabaseConnectionError creation with ExceptionParams."""
-        params = ExceptionParams(
+        params = FlextDbOracleExceptions.ExceptionParams(
             message="Connection lost",
             code="ORACLE_CONNECTION_ERROR",
             context={"retry_count": 3},

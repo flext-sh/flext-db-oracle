@@ -13,17 +13,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import sys
-from pathlib import Path
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
-from pydantic import SecretStr
-
-# Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
-
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
@@ -31,30 +23,25 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
     Table,
+    services as services_module,
 )
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import (
     FlextDbOracleServices,
-    OracleErrorHandlingProcessor,
-    OracleSqlOperationProcessor,
 )
 
 
 class TestDirectCoverageBoostAPI:
     """Direct tests for API module missed lines (40% → higher)."""
 
-    def test_api_connection_error_paths_571_610(
-        self,
-        real_oracle_config: FlextDbOracleConfig,
-        oracle_container: None,
-    ) -> None:
+    def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
             username="invalid",
-            password=SecretStr("invalid"),
+            password="invalid",
             service_name="INVALID",
         )
 
@@ -76,7 +63,6 @@ class TestDirectCoverageBoostAPI:
     def test_api_schema_operations_1038_1058(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: None,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
         # Connect first
@@ -112,7 +98,6 @@ class TestDirectCoverageBoostAPI:
     def test_api_query_optimization_758_798(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: object,
     ) -> None:
         """Test API query optimization paths (lines 758-798)."""
         # Connect first
@@ -233,9 +218,7 @@ class TestDirectCoverageBoostConfig:
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
                 username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
-                password=SecretStr(
-                    os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default")
-                ),
+                password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
             )
 
@@ -261,7 +244,7 @@ class TestDirectCoverageBoostConnection:
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
-        connection = FlextDbOracleServices(real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Test multiple connect/disconnect cycles
         for _i in range(3):
@@ -281,11 +264,11 @@ class TestDirectCoverageBoostConnection:
             host="invalid_host",
             port=9999,
             username="invalid",
-            password=SecretStr("invalid"),
+            password="invalid",
             service_name="invalid",
         )
 
-        connection = FlextDbOracleServices(bad_config)
+        connection = FlextDbOracleServices(config=bad_config)
 
         # Test operations on invalid connection
         operations = [
@@ -354,12 +337,9 @@ class TestDirectCoverageBoostTypes:
         """Test type property methods for missed lines."""
         # Test property methods that might not be covered
         column = Column(
-            column_name="ID",
-            column_id=1,
+            name="ID",
             data_type="NUMBER",
             nullable=False,
-            data_precision=10,
-            data_scale=0,
         )
 
         # Test various property combinations
@@ -391,7 +371,7 @@ class TestDirectCoverageBoostObservability:
                 port=1521,
                 service_name="XE",
                 username="test",
-                password=SecretStr("test"),
+                password="test",
                 ssl_server_cert_dn=None,
             )
             api = FlextDbOracleApi(config)
@@ -408,7 +388,6 @@ class TestDirectCoverageBoostObservability:
     def test_observability_metrics_collection(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: object,
     ) -> None:
         """Test observability metrics collection."""
         # Connect first
@@ -440,83 +419,61 @@ class TestDirectCoverageBoostServices:
         """Test direct services imports for coverage measurement."""
         # Import services module directly to ensure coverage tracking
 
-        import flext_db_oracle.services as services_module
-
         # Test FlextDbOracleServices class
         config = FlextDbOracleModels.OracleConfig(
             host="coverage_test",
             port=1521,
             service_name="COVERAGE",
             username="coverage_user",
-            password=SecretStr("coverage_pass"),
+            password="coverage_pass",
             ssl_server_cert_dn=None,
         )
 
-        services = services_module.FlextDbOracleServices(config)
+        services = services_module.FlextDbOracleServices(config=config)
         assert services is not None
 
-        # Test error handler classes
-        error_handler = services_module.OracleErrorHandlingProcessor(
-            "test_op", "test_obj"
+        # Test available service classes
+        assert services is not None
+
+        # Test SQL builder functionality through services
+        identifier_result = services.build_select("test_table", ["col1", "col2"])
+        FlextTestsMatchers.assert_result_success(identifier_result)
+        assert "SELECT" in identifier_result.unwrap()
+
+    def test_services_sql_builder_operations(self) -> None:
+        """Test SQL builder operations for 100% coverage."""
+        # Test SQL builder with various scenarios through services
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            service_name="XEPDB1",
+            username="test",
+            password="test",
         )
-        sql_processor = services_module.OracleSqlOperationProcessor("SELECT")
+        services = FlextDbOracleServices(config=config)
 
-        assert error_handler is not None
-        assert sql_processor is not None
+        # Test identifier validation with various inputs
+        test_identifiers = ["valid_table", "VALID_TABLE", "table123", "test_col"]
 
-        # Test various error processing
-        test_error = ValueError("Test validation error")
-        error_result = error_handler.process(test_error)
-        FlextTestsMatchers.assert_result_success(error_result)
-        assert "test_op" in error_result.value
-
-    def test_services_error_handling_processors(self) -> None:
-        """Test error handling and processing classes for 100% coverage."""
-        # Test error handler edge cases
-        error_handler = OracleErrorHandlingProcessor("test_operation", "object")
-
-        # Test processing various exception types using TestBuilders
-        test_errors = [
-            Exception("Generic error"),
-            ValueError("Value error"),
-            TypeError("Type error"),
-            RuntimeError("Runtime error"),
-        ]
-
-        for error in test_errors:
-            result = error_handler.process(error)
+        for identifier in test_identifiers:
+            result = services.build_select(identifier, ["col1"])
             FlextTestsMatchers.assert_result_success(result)
-            assert "test_operation" in result.value
+            assert identifier.upper() in result.unwrap()
 
-        # Test query builder with different operation types
-        operations = ["SELECT", "INSERT", "UPDATE", "DELETE", "INVALID"]
+        # Test table reference building through services
+        table_ref_result = services.build_select(
+            "test_table", ["col1"], schema="test_schema"
+        )
+        FlextTestsMatchers.assert_result_success(table_ref_result)
+        assert "test_schema.test_table" in table_ref_result.unwrap()
 
-        for op in operations:
-            builder = OracleSqlOperationProcessor(op)
-
-            test_data = (
-                FlextTestsBuilders.result()
-                .with_success_data(
-                    {
-                        "table": "test_table",
-                        "columns": ["id", "name"],
-                        "conditions": {"id": 1},
-                        "values": {"name": "test"},
-                    }
-                )
-                .build()
-            )
-
-            FlextTestsMatchers.assert_result_success(test_data)
-            result = builder.process(cast("FlextTypes.Core.Dict", test_data.value))
-
-            # All operations should return a result (success or failure)
-            assert result is not None
-            if op == "INVALID":
-                FlextTestsMatchers.assert_result_failure(result)
-            else:
-                # Valid operations should succeed or fail gracefully
-                assert hasattr(result, "success")
+        # Test column list building through services
+        test_columns = ["col1", "col2", "col3"]
+        column_result = services.build_select("test_table", test_columns)
+        FlextTestsMatchers.assert_result_success(column_result)
+        result_sql = column_result.unwrap()
+        assert "col1" in result_sql
+        assert "col2" in result_sql
 
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
@@ -530,7 +487,7 @@ class TestDirectCoverageBoostServices:
                     port=1521,
                     service_name="TEST",
                     username="user",
-                    password=SecretStr("pass"),
+                    password="pass",
                     ssl_server_cert_dn=None,
                 ),
             )
@@ -543,7 +500,7 @@ class TestDirectCoverageBoostServices:
                     port=1,  # Edge case port
                     service_name="X",  # Minimal service name
                     username="a",  # Minimal username
-                    password=SecretStr("b"),  # Minimal password
+                    password="b",  # Minimal password
                     ssl_server_cert_dn="test_dn",  # With SSL
                 ),
             )
@@ -554,7 +511,7 @@ class TestDirectCoverageBoostServices:
             FlextTestsMatchers.assert_result_success(config_result)
             config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
 
-            services = FlextDbOracleServices(config)
+            services = FlextDbOracleServices(config=config)
 
             # Test services initialization
             assert services is not None
@@ -582,11 +539,11 @@ class TestDirectCoverageBoostServices:
             port=1521,
             service_name="TEST",
             username="user",
-            password=SecretStr("pass"),
+            password="pass",
             ssl_server_cert_dn=None,
         )
 
-        services = FlextDbOracleServices(config)
+        services = FlextDbOracleServices(config=config)
 
         # Test all SQL generation methods
         sql_test_cases = [

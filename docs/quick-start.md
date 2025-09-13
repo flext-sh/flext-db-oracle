@@ -163,7 +163,7 @@ api = FlextDbOracleApi(config)
 # Connect and execute query
 connect_result = api.connect()
 if connect_result.success:
-  
+
     result = api.execute_query("SELECT * FROM employees WHERE department_id = 10")
 
     if result.success:

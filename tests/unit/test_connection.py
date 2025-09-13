@@ -12,13 +12,13 @@ from typing import cast
 
 import pytest
 from flext_core import FlextTypes
-from pydantic import SecretStr
 
 from flext_db_oracle import (
     CreateIndexConfig,
-    FlextDbOracleConfig,
+    FlextDbOracleModels,
     FlextDbOracleServices,
     MergeStatementConfig,
+    OracleConfig,
 )
 
 
@@ -27,14 +27,15 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleConfig(
+        self.config = FlextDbOracleModels.OracleConfig(
             host="test",
             port=1521,
+            name="TEST",
+            user="test",
+            password="test",
             service_name="TEST",
-            username="test",
-            password=SecretStr("test"),
         )
-        self.connection = FlextDbOracleServices(self.config)
+        self.connection = FlextDbOracleServices(config=self.config)
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
@@ -56,12 +57,12 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test connect method with invalid configurations."""
         # Test with empty host - should fail at config validation
         with pytest.raises(Exception, match="Field cannot be empty"):
-            FlextDbOracleConfig(
+            OracleConfig(
                 host="",
                 port=1521,
                 service_name="TEST",
                 username="test",
-                password=SecretStr("test"),
+                password="test",
             )
 
     def test_disconnect_when_not_connected(self) -> None:
@@ -81,14 +82,14 @@ class TestFlextDbOracleConnectionComprehensive:
         assert "/TEST" in url  # Service name appears after port as /SERVICE_NAME
 
         # Test with SID instead of service_name
-        sid_config = FlextDbOracleConfig(
+        sid_config = OracleConfig(
             host="test",
             port=1521,
             sid="TESTSID",
             username="test",
-            password=SecretStr("test"),
+            password="test",
         )
-        sid_connection = FlextDbOracleServices(sid_config)
+        sid_connection = FlextDbOracleServices(config=sid_config)
         sid_result = sid_connection._build_connection_url()
         assert sid_result.success
         assert "/TESTSID" in sid_result.value
@@ -100,11 +101,11 @@ class TestFlextDbOracleConnectionComprehensive:
             ValueError,
             match="Either SID or service_name must be provided",
         ):
-            FlextDbOracleConfig(
+            OracleConfig(
                 host="test",
                 port=1521,
                 username="test",
-                password=SecretStr("test"),
+                password="test",
                 service_name="",  # Empty string should trigger validation error
             )
 

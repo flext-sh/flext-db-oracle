@@ -1,28 +1,28 @@
-"""Comprehensive Oracle CLI Client Tests - Real Implementation Without Mocks.
-
-Tests the FlextDbOracleClient class completely without mocks,
-achieving maximum coverage through real CLI operations using flext_tests.
-
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Test Oracle CLI client comprehensive functionality."""
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+import inspect
+from typing import cast
 
 import pytest
-from pydantic import SecretStr
-
-# Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
-
+from flext_core import (
+    FlextCliApi,
+    FlextCliFormatters,
+    FlextCliInteractions,
+    FlextCliServices,
+    FlextContainer,
+    FlextLogger,
+)
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
-from flext_db_oracle import FlextDbOracleClient, FlextDbOracleModels
+from flext_db_oracle import (
+    FlextDbOracleClient,
+    FlextDbOracleModels,
+    create_oracle_cli_commands,
+    get_client,
+    oracle_cli,
+)
 
 
 class TestFlextDbOracleClientRealFunctionality:
@@ -139,8 +139,8 @@ class TestFlextDbOracleClientRealFunctionality:
                 host=host,
                 port=port,
                 service_name=service_name,
-                username=username,
-                password=SecretStr(password),
+                user=username,
+                password=password,
                 ssl_server_cert_dn=None,
             )
 
@@ -148,7 +148,7 @@ class TestFlextDbOracleClientRealFunctionality:
             assert config.port == port
             assert config.service_name == service_name
             assert config.username == username
-            assert config.password.get_secret_value() == password
+            assert config.password == password
             assert config.ssl_server_cert_dn is None
 
         except Exception as e:
@@ -189,15 +189,6 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client.cli_services is not None
 
         # Test component types
-
-        from flext_cli import (
-            FlextCliApi,
-            FlextCliFormatters,
-            FlextCliInteractions,
-            FlextCliServices,
-        )
-        from flext_core import FlextLogger
-        from flext_core.container import FlextContainer
 
         assert isinstance(client.cli_api, FlextCliApi)
         assert isinstance(client.formatter, FlextCliFormatters)
@@ -253,15 +244,13 @@ class TestFlextDbOracleClientRealFunctionality:
                     port=1521,
                     service_name="testbuilder_service",
                     username="testbuilder_user",
-                    password=SecretStr("testbuilder_password"),
+                    password="testbuilder_password",
                 ),
             )
             .build()
         )
 
         FlextTestsMatchers.assert_result_success(config_result)
-
-        from typing import cast
 
         config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
 
@@ -274,7 +263,7 @@ class TestFlextDbOracleClientRealFunctionality:
             port=config.port,
             service_name=config.service_name or "default_service",  # Handle None case
             username=config.username,
-            password=config.password.get_secret_value(),
+            password=config.password,
         )
 
         # Should fail connection but validate configuration was processed
@@ -503,7 +492,6 @@ class TestFlextDbOracleClientRealFunctionality:
         assert callable(client.connection_wizard)
 
         # Test that method exists and has proper signature
-        import inspect
 
         signature = inspect.signature(client.connection_wizard)
         assert len(signature.parameters) == 0  # No parameters expected
@@ -515,12 +503,6 @@ class TestFlextDbOracleClientRealFunctionality:
 
     def test_module_level_functions_real(self) -> None:
         """Test module-level functions - REAL FUNCTIONALITY."""
-        from flext_db_oracle.client import (
-            create_oracle_cli_commands,
-            get_client,
-            oracle_cli,
-        )
-
         # Test create_oracle_cli_commands
         commands_result = create_oracle_cli_commands()
         FlextTestsMatchers.assert_result_success(commands_result)

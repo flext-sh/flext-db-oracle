@@ -4,8 +4,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from pydantic import SecretStr
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 
@@ -19,7 +17,7 @@ class TestFlextDbOracleApiWorking:
             port=1521,
             service_name="TEST",
             username="test_user",
-            password=SecretStr("test_password"),
+            password="test_password",
         )
         self.api = FlextDbOracleApi(self.config)
 

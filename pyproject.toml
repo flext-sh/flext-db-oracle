@@ -20,10 +20,15 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "flext-core @ file:///home/marlonsc/flext/flext-core",
     "pydantic-settings (>=2.10.1)",
     "oracledb (>=3.2.0)",
     "pydantic (>=2.11.7)",
     "sqlalchemy (>=2.0.0)",
+    "flext-cli @ file:///home/marlonsc/flext/flext-cli",
+    "structlog (>=25.4.0,<26.0.0)",
+    "referencing (>=0.36.2,<0.37.0)",
+    "termcolor (>=3.1.0,<4.0.0)",
 ]
 [[project.authors]]
 name = "FLEXT Team"
@@ -212,10 +217,8 @@ output = "reports/coverage.xml"
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
-
-[tool.poetry.dependencies.flext-core]
-path = "../flext-core"
-develop = true 
+flext-core = {develop = true}
+flext-cli = {develop = true}
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.12.3"

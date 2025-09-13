@@ -1,10 +1,4 @@
-"""Systematic Coverage Boost Tests - Target EXACT missed lines.
-
-This module targets specific missed lines identified in coverage report,
-focusing on making coverage jump from 41% to as close to 100% as possible.
-
-
-
+"""Systematic tests for Oracle database operations.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,7 +10,6 @@ from typing import cast
 
 from click import Command
 from click.testing import CliRunner
-from pydantic import SecretStr
 
 from flext_db_oracle import (
     Column,
@@ -35,7 +28,6 @@ class TestAPIMissedLines:
     def test_api_error_handling_methods_107_109(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: object,
     ) -> None:
         """Test API error handling methods (EXACT lines 107-109)."""
         # Connect to have a real API instance
@@ -60,12 +52,17 @@ class TestAPIMissedLines:
 
     def test_api_connection_manager_lines_117_133(
         self,
-        real_oracle_config: FlextDbOracleConfig,
-        oracle_container: object,
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
         # Create API without connecting
-        api = FlextDbOracleApi(real_oracle_config)
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            service_name="XEPDB1",
+            user="test",
+            password="test",
+        )
+        api = FlextDbOracleApi(config)
 
         # Try to call methods that should trigger connection manager paths
         operations_to_test = [
@@ -85,7 +82,6 @@ class TestAPIMissedLines:
     def test_api_query_operations_571_610(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: object,
     ) -> None:
         """Test query operations error paths (EXACT lines 571-610)."""
         # Connect first
@@ -117,7 +113,6 @@ class TestAPIMissedLines:
     def test_api_schema_operations_1038_1058(
         self,
         oracle_api: FlextDbOracleApi,
-        oracle_container: object,
     ) -> None:
         """Test schema operations paths (EXACT lines 1038-1058)."""
         # Connect first
@@ -157,19 +152,18 @@ class TestConnectionMissedLines:
 
     def test_connection_error_paths_73_77(
         self,
-        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         # Create connection with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
-            username="invalid",
-            password=SecretStr("invalid"),
+            user="invalid",
+            password="invalid",
             service_name="INVALID",
         )
 
-        connection = FlextDbOracleServices(bad_config)
+        connection = FlextDbOracleServices(config=bad_config)
 
         # Try operations that should trigger error handling paths
         error_operations = [
@@ -188,10 +182,17 @@ class TestConnectionMissedLines:
 
     def test_connection_lifecycle_140_147(
         self,
-        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
-        connection = FlextDbOracleServices(real_oracle_config)
+        config = FlextDbOracleConfig(
+            host="localhost",
+            port=1521,
+            service_name="XEPDB1",
+            user="test",
+            password="test",
+        )
+
+        connection = FlextDbOracleServices(config=config)
 
         # Test connection lifecycle to trigger specific paths
         # Connect
@@ -267,12 +268,9 @@ class TestTypesMissedLines:
         """Test type property methods (EXACT lines 175-187)."""
         # Create column with specific properties
         column = Column(
-            column_name="ID",
-            column_id=1,
+            name="ID",
             data_type="NUMBER",
             nullable=False,
-            data_precision=10,
-            data_scale=0,
         )
 
         # Test property methods that might not be covered

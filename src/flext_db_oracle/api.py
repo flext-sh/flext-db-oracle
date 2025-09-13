@@ -1,7 +1,8 @@
-"""Oracle Database API following FLEXT ecosystem patterns.
+"""Oracle Database API with clean delegation to services layer.
 
-Clean, production-ready Oracle database API that follows SOLID principles,
-uses proper typing, and integrates with flext-core patterns.
+This API provides a clean interface to Oracle database operations
+by delegating all work to the services layer while maintaining
+type safety and proper error handling.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -11,7 +12,7 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Sequence
-from typing import Self, cast
+from typing import Self
 
 from flext_core import FlextLogger, FlextResult, FlextTypes
 
@@ -58,12 +59,12 @@ class FlextDbOracleApi:
             return False
 
     @classmethod
-    def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> FlextDbOracleApi:
+    def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> Self:
         """Create API instance from configuration."""
         return cls(config)
 
     @classmethod
-    def with_config(cls, config: FlextDbOracleModels.OracleConfig) -> FlextDbOracleApi:
+    def with_config(cls, config: FlextDbOracleModels.OracleConfig) -> Self:
         """Create API instance with configuration (alias for from_config).
 
         Args:
@@ -93,9 +94,9 @@ class FlextDbOracleApi:
     def connect(self) -> FlextResult[Self]:
         """Connect to Oracle database."""
         result = self._services.connect()
-        if result.success:
-            return FlextResult[Self].ok(self)
-        return FlextResult[Self].fail(f"Connection failed: {result.error}")
+        if result.is_success:
+            return FlextResult.ok(self)
+        return FlextResult.fail(f"Connection failed: {result.error}")
 
     def disconnect(self) -> FlextResult[None]:
         """Disconnect from Oracle database."""
@@ -154,7 +155,7 @@ class FlextDbOracleApi:
         """Get list of tables in specified schema."""
         try:
             result = self._services.get_tables(schema)
-            if result.success:
+            if result.is_success:
                 # Convert list of strings to list of dict for consistency with tests
                 table_dicts: list[FlextTypes.Core.Dict] = [
                     {"name": name} for name in result.value
@@ -176,7 +177,7 @@ class FlextDbOracleApi:
         """Get column information for specified table."""
         try:
             result = self._services.get_columns(table, schema)
-            if result.success:
+            if result.is_success:
                 # Convert ColumnInfo objects to dict for consistency
                 column_dicts = []
                 for col in result.value:
@@ -202,7 +203,7 @@ class FlextDbOracleApi:
         try:
             # Get table information
             tables_result = self.get_tables(schema)
-            if not tables_result.success:
+            if not tables_result.is_success:
                 return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to get tables: {tables_result.error}"
                 )
@@ -226,7 +227,7 @@ class FlextDbOracleApi:
 
             # Get columns for this table
             columns_result = self.get_columns(table, schema)
-            if not columns_result.success:
+            if not columns_result.is_success:
                 return FlextResult[FlextTypes.Core.Dict].fail(
                     f"Failed to get columns: {columns_result.error}"
                 )
@@ -250,7 +251,7 @@ class FlextDbOracleApi:
         """Get primary key column names for specified table."""
         try:
             columns_result = self.get_columns(table, schema)
-            if not columns_result.success:
+            if not columns_result.is_success:
                 return FlextResult[FlextTypes.Core.StringList].fail(
                     f"Failed to get columns: {columns_result.error}"
                 )
@@ -322,16 +323,13 @@ class FlextDbOracleApi:
     # Configuration
 
     @classmethod
-    def from_env(
-        cls,
-        prefix: str = "FLEXT_TARGET_ORACLE",
-    ) -> FlextResult[Self]:
+    def from_env(cls) -> FlextResult[Self]:
         """Create API instance from environment variables."""
-        config_result = FlextDbOracleModels.OracleConfig.from_env(prefix)
-        if config_result.success:
+        config_result = FlextDbOracleModels.OracleConfig.from_env()
+        if config_result.is_success:
             instance = cls.from_config(config_result.value)
-            return FlextResult[Self].ok(cast("Self", instance))
-        return FlextResult[Self].fail(
+            return FlextResult.ok(instance)
+        return FlextResult.fail(
             f"Failed to load config from environment: {config_result.error}",
         )
 
@@ -339,12 +337,10 @@ class FlextDbOracleApi:
     def from_url(cls, database_url: str) -> FlextResult[Self]:
         """Create API instance from database URL."""
         config_result = FlextDbOracleModels.OracleConfig.from_url(database_url)
-        if config_result.success:
+        if config_result.is_success:
             instance = cls.from_config(config_result.value)
-            return FlextResult[Self].ok(cast("Self", instance))
-        return FlextResult[Self].fail(
-            f"Failed to parse database URL: {config_result.error}"
-        )
+            return FlextResult.ok(instance)
+        return FlextResult.fail(f"Failed to parse database URL: {config_result.error}")
 
     # Plugin System
     def register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
@@ -391,7 +387,7 @@ class FlextDbOracleApi:
         try:
             # Delegate to services layer
             result = self._services.execute_query(sql)
-            if result.success:
+            if result.is_success:
                 # Convert result data to proper format for QueryResult
                 # If it's raw data, wrap it in QueryResult
                 # Initialize variables
@@ -408,6 +404,7 @@ class FlextDbOracleApi:
                     # Note: Only handling dict format for now - other formats can be added when needed
 
                 query_result = FlextDbOracleModels.QueryResult(
+                    query=sql,
                     columns=columns,
                     rows=rows_data,
                     row_count=len(result.value)
@@ -441,9 +438,11 @@ class FlextDbOracleApi:
             return FlextResult[FlextTypes.Core.Dict].fail(f"Health check failed: {e}")
 
     @property
-    def connection(self) -> object:
+    def connection(self) -> object | None:
         """Get connection object (delegates to services)."""
-        return getattr(self._services, "connection", None)
+        if self._services.is_connected():
+            return self._services
+        return None
 
     def __enter__(self) -> Self:
         """Context manager entry."""
