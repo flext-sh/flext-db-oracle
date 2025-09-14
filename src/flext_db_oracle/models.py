@@ -52,6 +52,11 @@ class FlextDbOracleModels:
             default=None, description="SSL server certificate DN"
         )
 
+        # Connection pool configuration
+        pool_min: int = Field(default=2, description="Minimum pool size")
+        pool_max: int = Field(default=20, description="Maximum pool size")
+        timeout: int = Field(default=60, description="Connection timeout in seconds")
+
         # Add properties for backward compatibility
         @property
         def username(self) -> str:
@@ -70,6 +75,9 @@ class FlextDbOracleModels:
                     user=os.getenv("ORACLE_USER", "flext_user"),
                     password=os.getenv("ORACLE_PASSWORD", ""),
                     service_name=os.getenv("ORACLE_SERVICE_NAME"),
+                    pool_min=int(os.getenv("ORACLE_POOL_MIN", "2")),
+                    pool_max=int(os.getenv("ORACLE_POOL_MAX", "20")),
+                    timeout=int(os.getenv("ORACLE_TIMEOUT", "60")),
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:

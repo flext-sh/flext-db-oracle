@@ -9,17 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextLogger, FlextProcessing, FlextResult, FlextTypes
+from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
 
 
-class OracleExampleProcessor(
-    FlextProcessing.ServiceProcessor[str, FlextDbOracleApi, FlextTypes.Core.Dict]
-):
-    """Simplified Oracle example usando FlextProcessing - ELIMINA COMPLEXIDADE."""
+class OracleExampleProcessor(FlextDomainService[str]):
+    """Simplified Oracle example using FlextDomainService - ELIMINA COMPLEXIDADE."""
 
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query."""

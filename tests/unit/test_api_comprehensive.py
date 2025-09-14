@@ -69,7 +69,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert isinstance(result, dict)
 
         # Use FlextTestsMatchers for better structure validation
-        FlextTestsMatchers.assert_json_structure(
+        FlextTestsMatchers.assert_json_structure(  # type: ignore[arg-type]
             result,
             ["config", "connected", "plugin_count"],
         )
@@ -111,7 +111,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test query operations fail gracefully when not connected - REAL FUNCTIONALITY."""
         # Test query method - should fail gracefully without connection
         result = self.api.query("SELECT 1 FROM DUAL")
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -121,7 +121,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_query_one_not_connected_real(self) -> None:
         """Test query_one fails gracefully when not connected - REAL FUNCTIONALITY."""
         result = self.api.query_one("SELECT 1 FROM DUAL")
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -131,7 +131,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_execute_not_connected_real(self) -> None:
         """Test execute fails gracefully when not connected - REAL FUNCTIONALITY."""
         result = self.api.execute("CREATE TABLE test (id NUMBER)")
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -143,7 +143,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_get_schemas_not_connected_real(self) -> None:
         """Test get_schemas fails gracefully when not connected - REAL FUNCTIONALITY."""
         result = self.api.get_schemas()
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -153,7 +153,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_get_tables_not_connected_real(self) -> None:
         """Test get_tables fails gracefully when not connected - REAL FUNCTIONALITY."""
         result = self.api.get_tables()
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -163,7 +163,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_get_columns_not_connected_real(self) -> None:
         """Test get_columns fails gracefully when not connected - REAL FUNCTIONALITY."""
         result = self.api.get_columns("test_table")
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error
         assert (
             "not connected" in result.error.lower()
@@ -176,7 +176,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test test_connection with invalid config - REAL FUNCTIONALITY."""
         # Use real invalid configuration - should fail gracefully
         result = self.api.test_connection()
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         # Should contain connection-related error
         assert result.error is not None
         error_msg = result.error.lower()
@@ -190,7 +190,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_disconnect_when_not_connected_real(self) -> None:
         """Test disconnect when not connected - REAL FUNCTIONALITY."""
         result = self.api.disconnect()
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
 
     # Utility Methods Tests - REAL FUNCTIONALITY
 
@@ -208,7 +208,7 @@ class TestFlextDbOracleApiRealFunctionality:
         for input_query, expected_clean in test_queries:
             result = self.api.optimize_query(input_query)
 
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
             optimized_query = result.value
             assert isinstance(optimized_query, str)
             # The real implementation cleans whitespace and formatting
@@ -218,7 +218,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test observability metrics retrieval - REAL FUNCTIONALITY."""
         result = self.api.get_observability_metrics()
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         metrics = result.value
         assert isinstance(metrics, dict)
         # Current implementation returns empty dict - test actual behavior
@@ -231,7 +231,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
 
         # Since from_env provides defaults, it will succeed but use default values
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         api = result.value
         assert api.config.host == "localhost"  # Default value
         assert api.config.port == 1521  # Default value
@@ -242,7 +242,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
 
         # Should succeed with valid Oracle URL
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         api = result.value
         assert api.config.host == "host"
         assert api.config.port == 1521
@@ -253,7 +253,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test from_url with invalid URL format - REAL FUNCTIONALITY."""
         result = FlextDbOracleApi.from_url("invalid://not-oracle-url")
 
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error is not None
         assert (
             "invalid" in result.error.lower()
@@ -269,7 +269,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.register_plugin("test_plugin", plugin)
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         assert "test_plugin" in self.api._plugins
         assert self.api._plugins["test_plugin"] == plugin
 
@@ -281,14 +281,14 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.unregister_plugin("test_plugin")
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         assert "test_plugin" not in self.api._plugins
 
     def test_plugin_unregistration_not_found_real(self) -> None:
         """Test plugin unregistration when plugin not found - REAL FUNCTIONALITY."""
         result = self.api.unregister_plugin("nonexistent_plugin")
 
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error is not None
         assert "plugin 'nonexistent_plugin' not found" in result.error.lower()
 
@@ -299,7 +299,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.get_plugin("test_plugin")
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         retrieved_plugin = result.value
         assert retrieved_plugin == plugin
 
@@ -307,7 +307,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test plugin retrieval when plugin not found - REAL FUNCTIONALITY."""
         result = self.api.get_plugin("nonexistent_plugin")
 
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error is not None
         assert "plugin 'nonexistent_plugin' not found" in result.error.lower()
 
@@ -320,7 +320,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.list_plugins()
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         plugin_list = result.value
         assert isinstance(plugin_list, list)
         # Should return list of plugin info objects
@@ -331,7 +331,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.list_plugins()
 
         # Should succeed with empty list (based on actual API implementation)
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         plugin_list = result.value
         assert isinstance(plugin_list, list)
         assert len(plugin_list) == 0
@@ -362,7 +362,7 @@ class TestFlextDbOracleApiRealFunctionality:
             .build()
         )
 
-        FlextTestsMatchers.assert_result_success(config_result)
+        FlextTestsMatchers.assert_result_success(config_result)  # type: ignore[arg-type]
         config = config_result.value
         assert isinstance(config, FlextDbOracleModels.OracleConfig)
 
@@ -404,14 +404,12 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # api2 should not have api1's plugin
         api2_list = api2.list_plugins()
-        FlextTestsMatchers.assert_result_success(
-            api2_list
-        )  # Should succeed with empty list
+        FlextTestsMatchers.assert_result_success(api2_list)  # type: ignore[arg-type]  # Should succeed with empty list
         assert api2_list.value == []  # Empty list
 
         # api1 should have its plugin
         api1_list = api1.list_plugins()
-        FlextTestsMatchers.assert_result_success(api1_list)
+        FlextTestsMatchers.assert_result_success(api1_list)  # type: ignore[arg-type]
         plugin_list = api1_list.value
         assert isinstance(plugin_list, list)
         assert len(plugin_list) == 1
@@ -423,7 +421,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.optimize_query(invalid_sql)
 
         # Should still work - optimization is forgiving and cleans whitespace
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         optimized_query = result.value
         assert isinstance(optimized_query, str)
         # Should clean the query even if SQL syntax is invalid
@@ -475,7 +473,7 @@ class TestFlextDbOracleApiRealFunctionality:
             assert hasattr(result, "error")
 
             if result.success:
-                FlextTestsMatchers.assert_result_success(result)
+                FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
                 # Should return some Oracle type string
                 oracle_type = result.value
                 assert isinstance(oracle_type, str)
@@ -494,7 +492,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 )
             else:
                 # Some types may not be implemented yet - that's valid
-                FlextTestsMatchers.assert_result_failure(result)
+                FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
                 assert result.error is not None
 
     def test_map_singer_schema_method_real(self) -> None:
@@ -519,11 +517,11 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         if result.success:
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
             schema_mapping = result.value
             assert isinstance(schema_mapping, dict)
         else:
-            FlextTestsMatchers.assert_result_failure(result)
+            FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
             assert result.error is not None
 
     def test_execute_sql_method_structure_real(self) -> None:
@@ -536,7 +534,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         # When not connected, should fail with descriptive error
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
         assert result.error is not None
         # Error should mention connection or similar
         error_lower = result.error.lower()
@@ -556,7 +554,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # Without connection, should fail gracefully
         if not result.success:
-            FlextTestsMatchers.assert_result_failure(result)
+            FlextTestsMatchers.assert_result_failure(result)  # type: ignore[arg-type]
             assert result.error is not None
             error_lower = result.error.lower()
             assert (
@@ -633,43 +631,43 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test plugin management edge cases - REAL FUNCTIONALITY."""
         # Test registering None plugin (should work with defensive design)
         result = self.api.register_plugin("none_plugin", None)
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
 
         # Should be retrievable
         get_result = self.api.get_plugin("none_plugin")
-        FlextTestsMatchers.assert_result_success(get_result)
+        FlextTestsMatchers.assert_result_success(get_result)  # type: ignore[arg-type]
         assert get_result.value is None
 
         # Test empty string plugin name
         empty_result = self.api.register_plugin("", {"test": "plugin"})
-        FlextTestsMatchers.assert_result_success(empty_result)  # Should work
+        FlextTestsMatchers.assert_result_success(empty_result)  # type: ignore[arg-type]  # Should work
 
         # Test retrieving empty name plugin
         get_empty = self.api.get_plugin("")
-        FlextTestsMatchers.assert_result_success(get_empty)
+        FlextTestsMatchers.assert_result_success(get_empty)  # type: ignore[arg-type]
 
         # Test unregistering plugin that exists
         unregister_result = self.api.unregister_plugin("")
-        FlextTestsMatchers.assert_result_success(unregister_result)
+        FlextTestsMatchers.assert_result_success(unregister_result)  # type: ignore[arg-type]
 
     def test_optimize_query_edge_cases_real(self) -> None:
         """Test optimize_query with edge cases - REAL FUNCTIONALITY."""
         # Test empty query
         empty_result = self.api.optimize_query("")
-        FlextTestsMatchers.assert_result_success(empty_result)
+        FlextTestsMatchers.assert_result_success(empty_result)  # type: ignore[arg-type]
         assert empty_result.value == ""
 
         # Test query with lots of whitespace
         whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
         whitespace_result = self.api.optimize_query(whitespace_query)
-        FlextTestsMatchers.assert_result_success(whitespace_result)
+        FlextTestsMatchers.assert_result_success(whitespace_result)  # type: ignore[arg-type]
         optimized = whitespace_result.value
         assert optimized == "SELECT * FROM employees"
 
         # Test query with tabs and mixed whitespace
         tab_query = "SELECT\t\t*\tFROM\t\temployees\t\tWHERE\t\tid\t=\t1"
         tab_result = self.api.optimize_query(tab_query)
-        FlextTestsMatchers.assert_result_success(tab_result)
+        FlextTestsMatchers.assert_result_success(tab_result)  # type: ignore[arg-type]
         optimized_tab = tab_result.value
         assert optimized_tab == "SELECT * FROM employees WHERE id = 1"
 
@@ -688,7 +686,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # Test API operations work with minimal config
         plugins = minimal_api.list_plugins()
-        FlextTestsMatchers.assert_result_success(plugins)
+        FlextTestsMatchers.assert_result_success(plugins)  # type: ignore[arg-type]
 
         # Test with config containing special characters
         special_config = FlextDbOracleConfig(
@@ -711,7 +709,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         # Should succeed with health information
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
         health_data = result.value
         assert isinstance(health_data, dict)
 
@@ -755,7 +753,7 @@ class TestFlextDbOracleApiRealFunctionality:
             if result.success:
                 assert result.error is None
                 # value can be any type including None (accessed safely)
-                _ = result.value  # Access is safe when success=True
+                _ = getattr(result, "value", None)  # Access is safe when success=True
             else:
                 assert result.error is not None
                 assert isinstance(result.error, str)

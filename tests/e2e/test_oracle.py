@@ -293,7 +293,7 @@ class TestOracleE2E:
             host="nonexistent-host.invalid",
             port=9999,
             service_name="INVALID_DB",
-            username="invalid_user",
+            user="invalid_user",
             password="invalid_password",
         )
 

@@ -437,7 +437,7 @@ class TestDirectCoverageBoostServices:
 
         # Test SQL builder functionality through services
         identifier_result = services.build_select("test_table", ["col1", "col2"])
-        FlextTestsMatchers.assert_result_success(identifier_result)
+        FlextTestsMatchers.assert_result_success(identifier_result)  # type: ignore[arg-type]
         assert "SELECT" in identifier_result.unwrap()
 
     def test_services_sql_builder_operations(self) -> None:
@@ -457,20 +457,20 @@ class TestDirectCoverageBoostServices:
 
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
             assert identifier.upper() in result.unwrap()
 
         # Test table reference building through services
         table_ref_result = services.build_select(
             "test_table", ["col1"], schema="test_schema"
         )
-        FlextTestsMatchers.assert_result_success(table_ref_result)
+        FlextTestsMatchers.assert_result_success(table_ref_result)  # type: ignore[arg-type]
         assert "test_schema.test_table" in table_ref_result.unwrap()
 
         # Test column list building through services
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
-        FlextTestsMatchers.assert_result_success(column_result)
+        FlextTestsMatchers.assert_result_success(column_result)  # type: ignore[arg-type]
         result_sql = column_result.unwrap()
         assert "col1" in result_sql
         assert "col2" in result_sql
@@ -508,7 +508,7 @@ class TestDirectCoverageBoostServices:
         ]
 
         for config_result in configs:
-            FlextTestsMatchers.assert_result_success(config_result)
+            FlextTestsMatchers.assert_result_success(config_result)  # type: ignore[arg-type]
             config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
 
             services = FlextDbOracleServices(config=config)
@@ -575,7 +575,7 @@ class TestDirectCoverageBoostServices:
 
                 # All SQL methods should return results
                 assert result is not None
-                FlextTestsMatchers.assert_result_success(result)
+                FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]
 
                 # Result should contain SQL (might be string or tuple)
                 sql_content = result.value

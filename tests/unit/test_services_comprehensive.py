@@ -60,7 +60,9 @@ class TestFlextDbOracleServicesBasic:
         # Test public connection methods instead
         result = service.test_connection()
         # test_connection returns FlextResult[bool], not connection string
-        assert result.is_success or result.is_failure  # Either success or failure is valid
+        assert (
+            result.is_success or result.is_failure
+        )  # Either success or failure is valid
 
     def test_service_sql_builder_integration(self) -> None:
         """Test service integrates with SQL builder correctly."""
@@ -110,9 +112,7 @@ class TestFlextDbOracleServicesBasic:
 
         # Test safe SELECT with parameters
         conditions = {"id": 1, "status": "active"}
-        safe_result = service.build_select(
-            "USERS", ["id", "name", "email"], conditions
-        )
+        safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
         assert "SELECT" in sql

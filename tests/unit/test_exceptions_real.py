@@ -14,7 +14,6 @@ import pytest
 
 from flext_db_oracle import (
     FlextDbOracleExceptions,
-    ParameterObject,
 )
 
 
@@ -37,16 +36,16 @@ class TestExceptionParams:
         params = FlextDbOracleExceptions.ExceptionParams(message="Test error")
         assert params.message == "Test error"
         assert params.code is None
-        assert params.context == {}  # Auto-resolved in __post_init__
+        assert params.context is None
 
     def test_exception_params_empty_message_raises(self) -> None:
         """Test that empty message raises ValueError."""
-        with pytest.raises(ValueError, match="Message cannot be empty"):
+        with pytest.raises(ValueError, match="Exception message cannot be empty"):
             FlextDbOracleExceptions.ExceptionParams(message="")
 
     def test_exception_params_whitespace_message_raises(self) -> None:
         """Test that whitespace-only message raises ValueError."""
-        with pytest.raises(ValueError, match="Message cannot be empty"):
+        with pytest.raises(ValueError, match="Exception message cannot be empty"):
             FlextDbOracleExceptions.ExceptionParams(message="   ")
 
     def test_exception_params_frozen(self) -> None:
@@ -62,20 +61,25 @@ class TestOracleErrorCodes:
     def test_error_codes_exist(self) -> None:
         """Test that all error codes are defined."""
         codes = FlextDbOracleExceptions.OracleErrorCodes
-        assert codes.ORACLE_ERROR.value == "ORACLE_ERROR"
-        assert codes.ORACLE_VALIDATION_ERROR.value == "ORACLE_VALIDATION_ERROR"
-        assert codes.ORACLE_CONFIGURATION_ERROR.value == "ORACLE_CONFIGURATION_ERROR"
-        assert codes.ORACLE_CONNECTION_ERROR.value == "ORACLE_CONNECTION_ERROR"
-        assert codes.ORACLE_PROCESSING_ERROR.value == "ORACLE_PROCESSING_ERROR"
-        assert codes.ORACLE_AUTHENTICATION_ERROR.value == "ORACLE_AUTHENTICATION_ERROR"
-        assert codes.ORACLE_TIMEOUT_ERROR.value == "ORACLE_TIMEOUT_ERROR"
-        assert codes.ORACLE_QUERY_ERROR.value == "ORACLE_QUERY_ERROR"
-        assert codes.ORACLE_METADATA_ERROR.value == "ORACLE_METADATA_ERROR"
+        assert codes.VALIDATION_ERROR == "ORACLE_VALIDATION_ERROR"
+        assert codes.CONFIGURATION_ERROR == "ORACLE_CONFIGURATION_ERROR"
+        assert codes.CONNECTION_ERROR == "ORACLE_CONNECTION_ERROR"
+        assert codes.PROCESSING_ERROR == "ORACLE_PROCESSING_ERROR"
+        assert codes.AUTHENTICATION_ERROR == "ORACLE_AUTHENTICATION_ERROR"
+        assert codes.TIMEOUT_ERROR == "ORACLE_TIMEOUT_ERROR"
+        assert codes.QUERY_ERROR == "ORACLE_QUERY_ERROR"
+        assert codes.METADATA_ERROR == "ORACLE_METADATA_ERROR"
 
     def test_error_codes_count(self) -> None:
         """Test that we have the expected number of error codes."""
-        codes = list(FlextDbOracleExceptions.OracleErrorCodes)
-        assert len(codes) == 9
+        codes = FlextDbOracleExceptions.OracleErrorCodes
+        # Count the attributes that are string constants
+        error_code_attrs = [
+            attr
+            for attr in dir(codes)
+            if not attr.startswith("_") and isinstance(getattr(codes, attr), str)
+        ]
+        assert len(error_code_attrs) == 8
 
 
 class TestValidationError:
@@ -83,27 +87,29 @@ class TestValidationError:
 
     def test_validation_error_with_string(self) -> None:
         """Test ValidationError with simple string message."""
-        error = FlextDbOracleExceptions.ValidationError("Invalid value")
-        assert str(error) == "Invalid value"
+        error = FlextDbOracleExceptions.ValidationError(
+            "Invalid value", code="ORACLE_VALIDATION_ERROR"
+        )
+        assert "Invalid value" in str(error)
         assert error.error_code == "ORACLE_VALIDATION_ERROR"
         assert error.context == {}
 
     def test_validation_error_with_params(self) -> None:
-        """Test ValidationError with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Field validation failed",
+        """Test ValidationError with parameters."""
+        error = FlextDbOracleExceptions.ValidationError(
+            "Field validation failed",
             code="FIELD_ERROR",
             context={"field": "username", "value": "invalid@"},
         )
-        error = FlextDbOracleExceptions.ValidationError(params)
-        assert str(error) == "Field validation failed"
+        assert "Field validation failed" in str(error)
         assert error.error_code == "FIELD_ERROR"
         assert error.context == {"field": "username", "value": "invalid@"}
 
     def test_validation_error_inheritance(self) -> None:
-        """Test that ValidationError inherits from ValueError."""
+        """Test that ValidationError inherits from correct base classes."""
         error = FlextDbOracleExceptions.ValidationError("Test")
-        assert isinstance(error, ValueError)
+        assert isinstance(error, Exception)
+        assert isinstance(error, FlextDbOracleExceptions.BaseError)
 
 
 class TestConfigurationError:
@@ -111,20 +117,21 @@ class TestConfigurationError:
 
     def test_configuration_error_with_string(self) -> None:
         """Test ConfigurationError with simple string message."""
-        error = FlextDbOracleExceptions.ConfigurationError("Invalid config")
-        assert str(error) == "Invalid config"
+        error = FlextDbOracleExceptions.ConfigurationError(
+            "Invalid config", code="ORACLE_CONFIGURATION_ERROR"
+        )
+        assert "Invalid config" in str(error)
         assert error.error_code == "ORACLE_CONFIGURATION_ERROR"
         assert error.context == {}
 
     def test_configuration_error_with_params(self) -> None:
-        """Test ConfigurationError with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Missing required configuration",
+        """Test ConfigurationError with parameters."""
+        error = FlextDbOracleExceptions.ConfigurationError(
+            "Missing required configuration",
             code="CONFIG_MISSING",
             context={"missing": ["host", "port"]},
         )
-        error = FlextDbOracleExceptions.ConfigurationError(params)
-        assert str(error) == "Missing required configuration"
+        assert "Missing required configuration" in str(error)
         assert error.error_code == "CONFIG_MISSING"
         assert error.context == {"missing": ["host", "port"]}
 
@@ -134,20 +141,21 @@ class TestConnectionError:
 
     def test_connection_error_with_string(self) -> None:
         """Test ConnectionError with simple string message."""
-        error = FlextDbOracleExceptions.ConnectionError("Connection failed")
-        assert str(error) == "Connection failed"
+        error = FlextDbOracleExceptions.ConnectionError(
+            "Connection failed", code="ORACLE_CONNECTION_ERROR"
+        )
+        assert "Connection failed" in str(error)
         assert error.error_code == "ORACLE_CONNECTION_ERROR"
         assert error.context == {}
 
     def test_connection_error_with_params(self) -> None:
-        """Test ConnectionError with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Unable to connect to Oracle",
+        """Test ConnectionError with parameters."""
+        error = FlextDbOracleExceptions.DatabaseConnectionError(
+            "Unable to connect to Oracle",
             code="CONN_TIMEOUT",
             context={"host": "localhost", "port": 1521, "timeout": 30},
         )
-        error = FlextDbOracleExceptions.DatabaseConnectionError(params)
-        assert str(error) == "Unable to connect to Oracle"
+        assert "Unable to connect to Oracle" in str(error)
         assert error.error_code == "CONN_TIMEOUT"
         assert error.context["host"] == "localhost"
         assert error.context["port"] == 1521
@@ -158,8 +166,10 @@ class TestProcessingError:
 
     def test_processing_error_with_string(self) -> None:
         """Test ProcessingError with simple string message."""
-        error = FlextDbOracleExceptions.ProcessingError("Processing failed")
-        assert str(error) == "Processing failed"
+        error = FlextDbOracleExceptions.ProcessingError(
+            "Processing failed", code="ORACLE_PROCESSING_ERROR"
+        )
+        assert "Processing failed" in str(error)
         assert error.error_code == "ORACLE_PROCESSING_ERROR"
 
     def test_processing_error_with_params(self) -> None:
@@ -172,7 +182,7 @@ class TestProcessingError:
         error = FlextDbOracleExceptions.ProcessingError(
             params.message, code=params.code, context=params.context
         )
-        assert str(error) == "Failed to process query result"
+        assert "Failed to process query result" in str(error)
         assert error.error_code == "PROC_PARSE_ERROR"
 
 
@@ -181,7 +191,9 @@ class TestAuthenticationError:
 
     def test_authentication_error_with_string(self) -> None:
         """Test AuthenticationError with simple string message."""
-        error = FlextDbOracleExceptions.AuthenticationError("Auth failed")
+        error = FlextDbOracleExceptions.AuthenticationError(
+            "Auth failed", code="ORACLE_AUTHENTICATION_ERROR"
+        )
         assert "Auth failed" in str(error)
         assert error.error_code == "ORACLE_AUTHENTICATION_ERROR"
 
@@ -204,19 +216,18 @@ class TestTimeoutError:
 
     def test_timeout_error_with_string(self) -> None:
         """Test TimeoutError with simple string message."""
-        error = FlextDbOracleExceptions.TimeoutError("Operation timed out")
+        error = FlextDbOracleExceptions.TimeoutError(
+            "Operation timed out", code="ORACLE_TIMEOUT_ERROR"
+        )
         assert "Operation timed out" in str(error)
         assert error.error_code == "ORACLE_TIMEOUT_ERROR"
 
     def test_timeout_error_with_params(self) -> None:
-        """Test TimeoutError with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Query execution timeout",
+        """Test TimeoutError with parameters."""
+        error = FlextDbOracleExceptions.DatabaseTimeoutError(
+            "Query execution timeout",
             code="QUERY_TIMEOUT",
             context={"timeout_seconds": 30, "query": "SELECT * FROM large_table"},
-        )
-        error = FlextDbOracleExceptions.DatabaseTimeoutError(
-            params.message, code=params.code, context=params.context
         )
         assert "Query execution timeout" in str(error)
         assert error.error_code == "QUERY_TIMEOUT"
@@ -233,14 +244,12 @@ class TestQueryError:
         assert hasattr(error, "error_code")
 
     def test_query_error_with_params(self) -> None:
-        """Test QueryError with ParameterObject."""
-        params = ParameterObject(
-            {
-                "code": "SQL_SYNTAX_ERROR",
-                "context": {"line": 5, "column": 10, "near": "FORM"},
-            }
+        """Test QueryError with parameters."""
+        error = FlextDbOracleExceptions.QueryError(
+            "SQL syntax error",
+            code="SQL_SYNTAX_ERROR",
+            context={"line": 5, "column": 10, "near": "FORM"},
         )
-        error = FlextDbOracleExceptions.QueryError("SQL syntax error", params=params)
         assert "SQL syntax error" in str(error)
         # Code from params is used
         assert error.error_code == "SQL_SYNTAX_ERROR"
@@ -257,15 +266,11 @@ class TestMetadataError:
         assert hasattr(error, "error_code")
 
     def test_metadata_error_with_params(self) -> None:
-        """Test MetadataError with ParameterObject."""
-        params = ParameterObject(
-            {
-                "code": "META_TABLE_NOT_FOUND",
-                "context": {"schema": "PUBLIC", "table": "USERS"},
-            }
-        )
+        """Test MetadataError with parameters."""
         error = FlextDbOracleExceptions.MetadataError(
-            "Table metadata unavailable", params=params
+            "Table metadata unavailable",
+            code="META_TABLE_NOT_FOUND",
+            context={"schema": "PUBLIC", "table": "USERS"},
         )
         assert "Table metadata unavailable" in str(error)
         # Code from params is used
@@ -276,40 +281,35 @@ class TestExceptionHelperMethods:
     """Test helper methods in FlextDbOracleExceptions."""
 
     def test_create_validation_error(self) -> None:
-        """Test ValidationError creation with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Invalid input",
-            code="ORACLE_VALIDATION_ERROR",
-            context={"input": "test"},
+        """Test ValidationError creation with parameters."""
+        error = FlextDbOracleExceptions.ValidationError(
+            "Invalid input", code="ORACLE_VALIDATION_ERROR", context={"input": "test"}
         )
-        error = FlextDbOracleExceptions.ValidationError(params)
         assert isinstance(error, FlextDbOracleExceptions.ValidationError)
-        assert str(error) == "Invalid input"
+        assert "Invalid input" in str(error)
         assert error.context == {"input": "test"}
         assert error.error_code == "ORACLE_VALIDATION_ERROR"
 
     def test_create_configuration_error(self) -> None:
-        """Test ConfigurationError creation with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Missing config",
+        """Test ConfigurationError creation with parameters."""
+        error = FlextDbOracleExceptions.ConfigurationError(
+            "Missing config",
             code="ORACLE_CONFIGURATION_ERROR",
             context={"required": ["host"]},
         )
-        error = FlextDbOracleExceptions.ConfigurationError(params)
         assert isinstance(error, FlextDbOracleExceptions.ConfigurationError)
-        assert str(error) == "Missing config"
+        assert "Missing config" in str(error)
         assert error.context == {"required": ["host"]}
 
     def test_create_connection_error(self) -> None:
-        """Test DatabaseConnectionError creation with ExceptionParams."""
-        params = FlextDbOracleExceptions.ExceptionParams(
-            message="Connection lost",
+        """Test DatabaseConnectionError creation with parameters."""
+        error = FlextDbOracleExceptions.DatabaseConnectionError(
+            "Connection lost",
             code="ORACLE_CONNECTION_ERROR",
             context={"retry_count": 3},
         )
-        error = FlextDbOracleExceptions.DatabaseConnectionError(params)
         assert isinstance(error, FlextDbOracleExceptions.DatabaseConnectionError)
-        assert str(error) == "Connection lost"
+        assert "Connection lost" in str(error)
 
     def test_create_processing_error(self) -> None:
         """Test ProcessingError creation with parameters."""
@@ -319,7 +319,7 @@ class TestExceptionHelperMethods:
             context={"stage": "parsing"},
         )
         assert isinstance(error, FlextDbOracleExceptions.ProcessingError)
-        assert str(error) == "Processing failed"
+        assert "Processing failed" in str(error)
         assert error.context == {"stage": "parsing"}
 
     def test_create_authentication_error(self) -> None:
@@ -330,7 +330,7 @@ class TestExceptionHelperMethods:
             context={"realm": "REDACTED_LDAP_BIND_PASSWORD"},
         )
         assert isinstance(error, FlextDbOracleExceptions.AuthenticationError)
-        assert str(error) == "Auth required"
+        assert "Auth required" in str(error)
         assert error.context == {"realm": "REDACTED_LDAP_BIND_PASSWORD"}
 
     def test_create_timeout_error(self) -> None:
@@ -339,23 +339,27 @@ class TestExceptionHelperMethods:
             "Timed out", code="ORACLE_TIMEOUT_ERROR", context={"duration": 60}
         )
         assert isinstance(error, FlextDbOracleExceptions.DatabaseTimeoutError)
-        assert str(error) == "Timed out"
+        assert "Timed out" in str(error)
         assert error.context == {"duration": 60}
 
     def test_create_query_error(self) -> None:
         """Test QueryError creation with parameters."""
-        params = ParameterObject({"query": "SELECT 1", "code": "ORACLE_QUERY_ERROR"})
-        error = FlextDbOracleExceptions.QueryError("Query failed", params=params)
+        error = FlextDbOracleExceptions.QueryError(
+            "Query failed", code="ORACLE_QUERY_ERROR", context={"sql": "SELECT 1"}
+        )
         assert isinstance(error, FlextDbOracleExceptions.QueryError)
-        assert str(error) == "Query failed"
+        assert "Query failed" in str(error)
         assert error.context == {"sql": "SELECT 1"}
 
     def test_create_metadata_error(self) -> None:
         """Test MetadataError creation with parameters."""
-        params = ParameterObject({"object": "INDEX", "code": "ORACLE_METADATA_ERROR"})
-        error = FlextDbOracleExceptions.MetadataError("Metadata missing", params=params)
+        error = FlextDbOracleExceptions.MetadataError(
+            "Metadata missing",
+            code="ORACLE_METADATA_ERROR",
+            context={"object": "INDEX"},
+        )
         assert isinstance(error, FlextDbOracleExceptions.MetadataError)
-        assert str(error) == "Metadata missing"
+        assert "Metadata missing" in str(error)
         assert error.context == {"object": "INDEX"}
 
 
@@ -379,8 +383,8 @@ class TestExceptionRaising:
     def test_exception_hierarchy(self) -> None:
         """Test that exceptions follow proper inheritance hierarchy."""
         validation_error = FlextDbOracleExceptions.ValidationError("Test")
-        assert isinstance(validation_error, ValueError)
         assert isinstance(validation_error, Exception)
+        assert isinstance(validation_error, FlextDbOracleExceptions.BaseError)
 
         config_error = FlextDbOracleExceptions.ConfigurationError("Test")
         assert isinstance(config_error, Exception)

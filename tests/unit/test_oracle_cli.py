@@ -6,14 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import pytest
-from click import Command
 from click.testing import CliRunner
 
 from flext_db_oracle.cli import main
 
 
-def get_cli_command() -> Command:
+def get_cli_command() -> Callable[[], None]:
     """Get the CLI command for testing."""
     return main
 
