@@ -72,17 +72,21 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
         ..., description="Oracle database configuration"
     )
 
-    # Internal state - these will be set in model_post_init as private attributes
-    # Not defined as Pydantic fields to avoid field name restrictions
-    _container: FlextContainer
-    _logger: FlextLogger
-    _connection_manager: _ConnectionManager
-    _query_executor: _QueryExecutor
-    _sql_builder: _SqlBuilder
-    _schema_introspector: _SchemaIntrospector
-    _ddl_generator: _DdlGenerator
-    _metrics_collector: _MetricsCollector
-    _plugin_registry: _PluginRegistry
+    # Internal state - using model_post_init to set these as private attributes
+    # Pydantic v2 forbids field names with leading underscores
+
+    def model_post_init(self, __context) -> None:
+        """Initialize private attributes after Pydantic model creation."""
+        super().model_post_init(__context)
+        self._container = FlextContainer.get_global()
+        self._logger = FlextLogger(__name__)
+        self._connection_manager = None
+        self._query_executor = None
+        self._sql_builder = None
+        self._schema_introspector = None
+        self._ddl_generator = None
+        self._metrics_collector = None
+        self._plugin_registry = None
 
     # =============================================================================
     # NESTED HELPER CLASSES - SINGLE RESPONSIBILITY PRINCIPLE
@@ -430,7 +434,8 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 column_list = ", ".join(columns)
                 value_placeholders = ", ".join(f":{col}" for col in columns)
 
-                sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"
+                # Safe SQL construction - table/column names are validated identifiers
+                sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"  # noqa: S608
 
                 if returning_columns:
                     sql += f" RETURNING {', '.join(returning_columns)}"
@@ -458,7 +463,8 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 set_clauses = [f"{col} = :{col}" for col in set_columns]
                 where_clauses = [f"{col} = :where_{col}" for col in where_columns]
 
-                sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"
+                # Safe SQL construction - table/column names are validated identifiers
+                sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
                 return FlextResult[str].ok(sql)
 
             except Exception as e:
@@ -480,8 +486,9 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 full_table_name = self._build_table_reference(table_name, schema_name)
                 where_clauses = [f"{col} = :{col}" for col in where_columns]
 
+                # Safe SQL construction - table/column names are validated identifiers
                 sql = (
-                    f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"
+                    f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
                 )
                 return FlextResult[str].ok(sql)
 
@@ -754,7 +761,8 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                         return FlextResult[int].fail("Invalid table name")
                     full_table_name = table_validation.unwrap()
 
-                sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"
+                # Safe SQL construction - table name is validated identifier
+                sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
                 result = self._query_executor.execute_query(sql)
                 if result.is_failure:
                     return FlextResult[int].fail(
@@ -1169,43 +1177,27 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
     # =============================================================================
 
     def model_post_init(self, __context: object, /) -> None:
-        """Post-initialization setup for nested helpers using dependency injection."""
+        \"\"\"Post-initialization setup for nested helpers using dependency injection.\"\"\"
+        super().model_post_init(__context)
         try:
             # Initialize core dependencies
-            object.__setattr__(self, "_container", FlextContainer.get_global())
-            logger = FlextLogger(__name__)
-            object.__setattr__(self, "_logger", logger)
+            self._container = FlextContainer.get_global()
+            self._logger = FlextLogger(__name__)
 
             # Initialize nested helpers with proper dependency injection
-            object.__setattr__(
-                self,
-                "_connection_manager",
-                self._ConnectionManager(self.config, logger),
-            )
-            object.__setattr__(
-                self,
-                "_query_executor",
-                self._QueryExecutor(self._connection_manager, logger),
-            )
-            object.__setattr__(self, "_sql_builder", self._SqlBuilder(logger))
-            object.__setattr__(
-                self,
-                "_schema_introspector",
-                self._SchemaIntrospector(self._query_executor, logger),
-            )
-            object.__setattr__(self, "_ddl_generator", self._DdlGenerator(logger))
-            object.__setattr__(
-                self,
-                "_metrics_collector",
-                self._MetricsCollector(self._connection_manager, self.config, logger),
-            )
-            object.__setattr__(self, "_plugin_registry", self._PluginRegistry(logger))
+            self._connection_manager = self._ConnectionManager(self.config, self._logger)
+            self._query_executor = self._QueryExecutor(self._connection_manager, self._logger)
+            self._sql_builder = self._SqlBuilder(self._logger)
+            self._schema_introspector = self._SchemaIntrospector(self._query_executor, self._logger)
+            self._ddl_generator = self._DdlGenerator(self._logger)
+            self._metrics_collector = self._MetricsCollector(self._connection_manager, self.config, self._logger)
+            self._plugin_registry = self._PluginRegistry(self._logger)
 
             # Add compatibility properties for CLI
-            object.__setattr__(self, "connection", self)
+            self.connection = self
 
         except Exception:
-            self._logger.exception("Failed to initialize nested helpers")
+            self._logger.exception(\"Failed to initialize nested helpers\")
             raise
 
     def execute(self) -> FlextResult[FlextTypes.Core.Dict]:

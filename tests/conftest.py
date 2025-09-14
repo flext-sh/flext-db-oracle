@@ -14,7 +14,6 @@ from pathlib import Path
 
 import docker
 import pytest
-from pydantic import SecretStr
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
@@ -200,16 +199,20 @@ def oracle_container() -> Generator[None]:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: None) -> FlextDbOracleModels.OracleConfig:
+def real_oracle_config(
+    oracle_container: object | None,
+) -> FlextDbOracleModels.OracleConfig:
     """Return real Oracle configuration for ALL tests."""
     # Ensure Oracle container is available
-    assert oracle_container is not None, "Oracle container must be available for tests"
+    if oracle_container is None:
+        msg = "Oracle container must be available for tests"
+        raise RuntimeError(msg)
     return FlextDbOracleModels.OracleConfig(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         user=os.getenv("TEST_ORACLE_USER", "flexttest"),
-        password=SecretStr(os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123")),
+        password=os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123"),
         service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         ssl_server_cert_dn=None,
         connection_timeout=30,

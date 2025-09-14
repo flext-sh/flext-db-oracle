@@ -451,7 +451,7 @@ sqlplus $FLEXT_TARGET_ORACLE_USERNAME/$FLEXT_TARGET_ORACLE_PASSWORD@$FLEXT_TARGE
 
 ## 🎉 Success
 
-You now have FLEXT DB Oracle up and running! This enterprise-grade Oracle integration library provides:
+You now have FLEXT DB Oracle up and running! This Oracle integration library provides:
 
 - ✅ **Type-safe Oracle connectivity** with FlextResult patterns
 - ✅ **Connection pooling** for performance and scalability

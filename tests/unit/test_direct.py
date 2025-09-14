@@ -40,7 +40,7 @@ class TestDirectCoverageBoostAPI:
         bad_config = FlextDbOracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
-            username="invalid",
+            user="invalid",
             password="invalid",
             service_name="INVALID",
         )
@@ -137,35 +137,35 @@ class TestDirectCoverageBoostConfig:
             {
                 "host": "",
                 "port": 1521,
-                "username": "test",
+                "user": "test",
                 "password": "test",
                 "service_name": "test",
             },
             {
                 "host": "localhost",
                 "port": 0,
-                "username": "test",
+                "user": "test",
                 "password": "test",
                 "service_name": "test",
             },
             {
                 "host": "localhost",
                 "port": 1521,
-                "username": "",
+                "user": "",
                 "password": "test",
                 "service_name": "test",
             },
             {
                 "host": "localhost",
                 "port": 1521,
-                "username": "test",
+                "user": "test",
                 "password": "",
                 "service_name": "test",
             },
             {
                 "host": "localhost",
                 "port": 1521,
-                "username": "test",
+                "user": "test",
                 "password": "test",
                 "service_name": "",
             },
@@ -173,14 +173,14 @@ class TestDirectCoverageBoostConfig:
             {
                 "host": "localhost",
                 "port": 65535,
-                "username": "test",
+                "user": "test",
                 "password": "test",
                 "service_name": "test",
             },
             {
                 "host": "localhost",
                 "port": 1,
-                "username": "test",
+                "user": "test",
                 "password": "test",
                 "service_name": "test",
             },
@@ -217,14 +217,14 @@ class TestDirectCoverageBoostConfig:
             config = FlextDbOracleConfig(
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
+                user=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
                 password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
             )
 
             assert config.host == "test_host"
             assert config.port == 1234
-            assert config.username == "test_user"
+            assert config.user == "test_user"
 
         finally:
             # Restore original values
@@ -263,7 +263,7 @@ class TestDirectCoverageBoostConnection:
         bad_config = FlextDbOracleConfig(
             host="invalid_host",
             port=9999,
-            username="invalid",
+            user="invalid",
             password="invalid",
             service_name="invalid",
         )
@@ -370,7 +370,7 @@ class TestDirectCoverageBoostObservability:
                 host="localhost",
                 port=1521,
                 service_name="XE",
-                username="test",
+                user="test",
                 password="test",
                 ssl_server_cert_dn=None,
             )
@@ -424,7 +424,7 @@ class TestDirectCoverageBoostServices:
             host="coverage_test",
             port=1521,
             service_name="COVERAGE",
-            username="coverage_user",
+            user="coverage_user",
             password="coverage_pass",
             ssl_server_cert_dn=None,
         )
@@ -447,7 +447,7 @@ class TestDirectCoverageBoostServices:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            username="test",
+            user="test",
             password="test",
         )
         services = FlextDbOracleServices(config=config)
@@ -486,7 +486,7 @@ class TestDirectCoverageBoostServices:
                     host="test_host",
                     port=1521,
                     service_name="TEST",
-                    username="user",
+                    user="user",
                     password="pass",
                     ssl_server_cert_dn=None,
                 ),
@@ -499,7 +499,7 @@ class TestDirectCoverageBoostServices:
                     host="localhost",
                     port=1,  # Edge case port
                     service_name="X",  # Minimal service name
-                    username="a",  # Minimal username
+                    user="a",  # Minimal user
                     password="b",  # Minimal password
                     ssl_server_cert_dn="test_dn",  # With SSL
                 ),
@@ -538,7 +538,7 @@ class TestDirectCoverageBoostServices:
             host="test",
             port=1521,
             service_name="TEST",
-            username="user",
+            user="user",
             password="pass",
             ssl_server_cert_dn=None,
         )

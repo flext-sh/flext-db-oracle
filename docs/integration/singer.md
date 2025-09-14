@@ -2,7 +2,7 @@
 
 **Integrating FLEXT DB Oracle with Singer Taps, Targets, and Meltano Orchestration**
 
-FLEXT DB Oracle serves as the foundational library for Oracle-based Singer ecosystem components within the FLEXT platform. This guide covers integration patterns for building taps, targets, and DBT models that leverage FLEXT DB Oracle's enterprise-grade Oracle connectivity.
+FLEXT DB Oracle serves as the foundational library for Oracle-based Singer ecosystem components within the FLEXT platform. This guide covers integration patterns for building taps, targets, and DBT models that leverage FLEXT DB Oracle's Oracle connectivity.
 
 ## 🎯 Overview
 

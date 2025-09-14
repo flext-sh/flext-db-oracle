@@ -1,6 +1,6 @@
 # FLEXT DB Oracle Examples
 
-This directory contains comprehensive examples demonstrating real-world usage patterns for FLEXT DB Oracle. Each example follows enterprise-grade practices and showcases different integration scenarios within the FLEXT ecosystem.
+This directory contains examples demonstrating real-world usage patterns for FLEXT DB Oracle. Each example follows practices and showcases different integration scenarios within the FLEXT ecosystem.
 
 ## 📋 Example Categories
 
@@ -357,7 +357,7 @@ def setup_ha_environment():
 1. **Follow naming convention**: `##_descriptive_name.py`
 2. **Include comprehensive docstrings**: Explain purpose and key concepts
 3. **Handle errors gracefully**: Use FlextResult patterns throughout
-4. **Demonstrate best practices**: Show enterprise-grade patterns
+4. **Demonstrate best practices**: Show production patterns
 5. **Include cleanup code**: Proper resource management
 
 ### **Example Structure Template**

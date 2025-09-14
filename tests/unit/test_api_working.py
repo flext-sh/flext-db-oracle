@@ -16,7 +16,7 @@ class TestFlextDbOracleApiWorking:
             host="test_host",
             port=1521,
             service_name="TEST",
-            username="test_user",
+            user="test_user",
             password="test_password",
         )
         self.api = FlextDbOracleApi(self.config)

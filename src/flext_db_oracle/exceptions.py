@@ -8,7 +8,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from flext_core import FlextExceptions, FlextTypes
+
+
+@dataclass(frozen=True)
+class ExceptionParams:
+    """Exception parameters for Oracle database exceptions."""
+
+    message: str
+    code: str | None = None
+    context: FlextTypes.Core.Dict | None = None
+
+    def __post_init__(self) -> None:
+        """Validate exception parameters."""
+        if not self.message or not self.message.strip():
+            msg = "Exception message cannot be empty"
+            raise ValueError(msg)
+
+
+class OracleErrorCodes:
+    """Oracle-specific error codes."""
+
+    VALIDATION_ERROR = "ORACLE_VALIDATION_ERROR"
+    CONFIGURATION_ERROR = "ORACLE_CONFIGURATION_ERROR"
+    CONNECTION_ERROR = "ORACLE_CONNECTION_ERROR"
+    AUTHENTICATION_ERROR = "ORACLE_AUTHENTICATION_ERROR"
+    PROCESSING_ERROR = "ORACLE_PROCESSING_ERROR"
+    TIMEOUT_ERROR = "ORACLE_TIMEOUT_ERROR"
+    QUERY_ERROR = "ORACLE_QUERY_ERROR"
+    METADATA_ERROR = "ORACLE_METADATA_ERROR"
 
 
 class FlextDbOracleExceptions:
@@ -18,6 +48,10 @@ class FlextDbOracleExceptions:
     Uses FlextExceptions.create_module_exception_classes for automatic generation.
     """
 
+    # Exception parameters and error codes
+    ExceptionParams = ExceptionParams
+    OracleErrorCodes = OracleErrorCodes
+
     # Generate all Oracle exception classes using flext-core
     _oracle_exceptions = FlextExceptions.create_module_exception_classes(
         "FLEXT_DB_ORACLE"
@@ -25,6 +59,7 @@ class FlextDbOracleExceptions:
 
     # Direct access to all generated exception classes
     BaseError = _oracle_exceptions["FLEXT_DB_ORACLEBaseError"]
+    Error = BaseError  # Alias for backward compatibility
     ValidationError = _oracle_exceptions["FLEXT_DB_ORACLEValidationError"]
     ConfigurationError = _oracle_exceptions["FLEXT_DB_ORACLEConfigurationError"]
     ConnectionError = _oracle_exceptions["FLEXT_DB_ORACLEConnectionError"]
@@ -34,6 +69,7 @@ class FlextDbOracleExceptions:
 
     # Additional Oracle-specific aliases using existing base classes
     DatabaseConnectionError = ConnectionError
+    DatabaseTimeoutError = TimeoutError
     QueryError = ProcessingError
     MetadataError = ProcessingError
 

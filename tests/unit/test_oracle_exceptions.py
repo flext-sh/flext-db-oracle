@@ -26,7 +26,7 @@ class TestRealOracleExceptionsCore:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            username="invalid_user_12345",
+            user="invalid_user_12345",
             password="invalid_password_12345",
         )
 
@@ -61,7 +61,7 @@ class TestRealOracleExceptionsCore:
             host="unreachable-host-12345.invalid",
             port=1521,
             service_name="XEPDB1",
-            username="testuser",
+            user="testuser",
             password="testpass",
         )
 
@@ -99,7 +99,7 @@ class TestRealOracleExceptionsCore:
                 port=1521,
                 service_name="",  # Empty service name
                 sid="",  # Empty SID
-                username="testuser",
+                user="testuser",
                 password="testpass",
             )
             connection = FlextDbOracleServices(config=invalid_config)
@@ -167,7 +167,7 @@ class TestRealOracleExceptionsCore:
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
-            username=real_oracle_config.username,
+            user=real_oracle_config.user,
             password=real_oracle_config.password,
             timeout=1,  # 1 second timeout
         )
@@ -285,28 +285,28 @@ class TestRealOracleExceptionsAdvanced:
                 "host": "",
                 "port": 1521,
                 "service_name": "XE",
-                "username": "user",
+                "user": "user",
                 "password": "pass",
             },
             {
                 "host": "localhost",
                 "port": -1,
                 "service_name": "XE",
-                "username": "user",
+                "user": "user",
                 "password": "pass",
             },
             {
                 "host": "localhost",
                 "port": 99999,
                 "service_name": "XE",
-                "username": "user",
+                "user": "user",
                 "password": "pass",
             },
             {
                 "host": "localhost",
                 "port": 1521,
                 "service_name": "XE",
-                "username": "",
+                "user": "",
                 "password": "pass",
             },
         ]
@@ -320,7 +320,7 @@ class TestRealOracleExceptionsAdvanced:
                     "port": int(port_value)
                     if isinstance(port_value, (int, str))
                     else 1521,
-                    "username": str(config_data.get("username", "")),
+                    "user": str(config_data.get("user", "")),
                     "password": SecretStr(str(config_data.get("password", ""))),
                 }
                 if "service_name" in config_data:
@@ -330,7 +330,7 @@ class TestRealOracleExceptionsAdvanced:
                 FlextDbOracleConfig(
                     host=str(typed_config["host"]),
                     port=cast("int", typed_config["port"]),
-                    username=str(typed_config["username"]),
+                    user=str(typed_config["user"]),
                     password=cast("SecretStr", typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
                 )

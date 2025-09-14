@@ -482,4 +482,4 @@ class ObservabilityObserver(IOperationObserver):
 
 ---
 
-This Clean Architecture implementation ensures FLEXT DB Oracle remains maintainable, testable, and extensible while providing enterprise-grade Oracle database integration for the FLEXT ecosystem.
+This Clean Architecture implementation ensures FLEXT DB Oracle remains maintainable, testable, and extensible while providing Oracle database integration for the FLEXT ecosystem.

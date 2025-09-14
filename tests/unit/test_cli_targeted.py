@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 
 from flext_tests import FlextTestsMatchers
-from pydantic import SecretStr
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import oracle_cli
@@ -83,7 +82,7 @@ class TestCLIRealFunctionality:
             host="localhost",
             port=1521,
             service_name="TESTDB",
-            username="test",
+            user="test",
             password="test",
         )
 
@@ -126,7 +125,7 @@ class TestCLIRealFunctionality:
             host="invalid.host",
             port=9999,
             service_name="INVALID_SERVICE",
-            username="invalid_user",
+            user="invalid_user",
             password="invalid_password",
         )
 
@@ -134,7 +133,7 @@ class TestCLIRealFunctionality:
 
         # Test error handling for operations without connection
         query_result = api.query("SELECT 1 FROM DUAL")
-        FlextTestsMatchers.assert_result_failure(query_result)
+        assert query_result.is_failure
         assert query_result.error is not None
         assert (
             "not connected" in query_result.error.lower()
@@ -143,11 +142,11 @@ class TestCLIRealFunctionality:
 
         # Test error handling for schema operations
         schemas_result = api.get_schemas()
-        FlextTestsMatchers.assert_result_failure(schemas_result)
+        assert schemas_result.is_failure
 
         # Test error handling for table operations
         tables_result = api.get_tables()
-        FlextTestsMatchers.assert_result_failure(tables_result)
+        assert tables_result.is_failure
 
     def test_parameter_processing_real(self) -> None:
         """Test parameter processing using real API functionality."""
@@ -165,8 +164,8 @@ class TestCLIRealFunctionality:
             host=str(config_data["host"]),
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
-            username=str(config_data["username"]),
-            password=SecretStr(str(config_data["password"])),
+            user=str(config_data["username"]),
+            password=str(config_data["password"]),
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -183,9 +182,9 @@ class TestCLIRealFunctionality:
         config = FlextDbOracleModels.OracleConfig(
             host="comprehensive_test",
             port=1521,
-            database="COMP_TEST",  # Required field
+            name="COMP_TEST",  # Required field
             service_name="COMP_TEST",
-            username="comp_user",
+            user="comp_user",
             password="comp_pass",
         )
 
@@ -214,7 +213,7 @@ class TestCLIRealFunctionality:
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
         # Test from_env factory method
-        api_result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
+        api_result = FlextDbOracleApi.from_env()
         FlextTestsMatchers.assert_result_success(
             api_result
         )  # Should succeed with defaults
@@ -239,7 +238,7 @@ class TestCLIRealFunctionality:
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
-            username="plugin_user",
+            user="plugin_user",
             password="plugin_pass",
         )
 

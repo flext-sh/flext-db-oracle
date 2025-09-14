@@ -14,7 +14,6 @@ from collections.abc import Callable
 from types import SimpleNamespace
 from typing import cast
 
-# Using flext-core Commands directly instead of flext-cli
 from flext_core import (
     FlextContainer,
     FlextLogger,

@@ -25,7 +25,7 @@ class TestFlextDbOracleApiRealFunctionality:
             host="test_host",
             port=1521,
             service_name="TEST",
-            username="test_user",
+            user="test_user",
             password="test_password",
         )
         self.api = FlextDbOracleApi(self.config)
@@ -355,7 +355,7 @@ class TestFlextDbOracleApiRealFunctionality:
                     host="testbuilder_host",
                     port=1521,
                     service_name="testbuilder_service",
-                    username="testbuilder_user",
+                    user="testbuilder_user",
                     password="testbuilder_password",
                 ),
             )
@@ -377,7 +377,7 @@ class TestFlextDbOracleApiRealFunctionality:
             host="instance1",
             port=1521,
             service_name="service1",
-            username="user1",
+            user="user1",
             password="password1",
         )
 
@@ -385,7 +385,7 @@ class TestFlextDbOracleApiRealFunctionality:
             host="instance2",
             port=1522,
             service_name="service2",
-            username="user2",
+            user="user2",
             password="password2",
         )
 
@@ -680,7 +680,7 @@ class TestFlextDbOracleApiRealFunctionality:
             host="m",
             port=1,
             service_name="S",
-            username="u",
+            user="u",
             password="p",
         )
         minimal_api = FlextDbOracleApi(minimal_config)
@@ -695,7 +695,7 @@ class TestFlextDbOracleApiRealFunctionality:
             host="host-with.dots",
             port=65535,
             service_name="SERVICE_WITH_UNDERSCORES",
-            username="user@domain",
+            user="user@domain",
             password="pass!@#$%",
         )
         special_api = FlextDbOracleApi(special_config)

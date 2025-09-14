@@ -320,4 +320,4 @@ Tests are integrated into CI/CD pipelines with:
 
 ---
 
-This comprehensive test suite ensures FLEXT DB Oracle maintains enterprise-grade quality standards while providing fast feedback for development and reliable validation for production deployments.
+This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast feedback for development and reliable validation for production deployments.

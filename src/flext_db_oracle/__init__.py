@@ -7,14 +7,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.cli import FlextDbOracleCliService
 from flext_db_oracle.client import (
     FlextDbOracleClient,
     create_oracle_cli_commands,
+    get_client,
     oracle_cli,
 )
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.exceptions import (
-    ExceptionParams,
     FlextDbOracleExceptions,
     OracleConnectionError,
     OracleQueryError,
@@ -41,7 +42,7 @@ from flext_db_oracle.plugins import FlextDbOraclePlugins
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-# CLI integration - oracle_cli is already imported from client module
+FlextDbOracleConfig = FlextDbOracleModels.OracleConfig
 
 __all__ = [
     "Column",
@@ -49,48 +50,27 @@ __all__ = [
     "ConnectionStatus",
     "CreateIndexConfig",
     "ErrorContextTransformer",
-    "ExceptionParams",
-    # Main API components
     "FlextDbOracleApi",
+    "FlextDbOracleCliService",
     "FlextDbOracleClient",
-    "FlextDbOracleColumn",
     "FlextDbOracleConfig",
-    "FlextDbOracleConnection",
-    # Exceptions
-    "FlextDbOracleConnectionError",
     "FlextDbOracleConstants",
-    "FlextDbOracleError",
     "FlextDbOracleExceptions",
-    "FlextDbOracleMetadataManager",
     "FlextDbOracleModels",
-    "FlextDbOracleObservabilityManager",
-    "FlextDbOracleOperationTracker",
     "FlextDbOraclePlugins",
-    "FlextDbOracleQueryResult",
-    "FlextDbOracleSchema",
     "FlextDbOracleServices",
-    "FlextDbOracleTable",
     "FlextDbOracleUtilities",
     "MergeStatementConfig",
     "OracleConfig",
-    # Connection and models
-    "OracleConnection",
     "OracleConnectionError",
-    # Mixins
-    "OracleConnectionMixin",
     "OracleIdentifierValidation",
     "OracleQueryError",
-    "OracleQueryMixin",
     "OracleValidationError",
     "ParameterObject",
     "QueryResult",
     "Schema",
     "Table",
     "create_oracle_cli_commands",
-    # CLI
-    "main",
+    "get_client",
     "oracle_cli",
-    # Compatibility functions
-    "oracle_connect",
-    "oracle_query",
 ]

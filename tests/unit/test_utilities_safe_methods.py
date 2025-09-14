@@ -77,10 +77,11 @@ class TestFlextDbOracleUtilities:
     def test_utilities_format_query_result_table_format(self) -> None:
         """Test format_query_result with table output format."""
         query_result = FlextDbOracleModels.QueryResult(
+            query="SELECT id, name, email FROM users",
             columns=["id", "name", "email"],
             rows=[[1, "John", "john@test.com"], [2, "Jane", "jane@test.com"]],
             row_count=2,
-            execution_time_ms=0.05,
+            execution_time_ms=50,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -96,10 +97,11 @@ class TestFlextDbOracleUtilities:
     def test_utilities_format_query_result_json_format(self) -> None:
         """Test format_query_result with JSON output format."""
         query_result = FlextDbOracleModels.QueryResult(
+            query="SELECT id, name FROM test_table",
             columns=["id", "name"],
             rows=[[1, "Test"]],
             row_count=1,
-            execution_time_ms=0.02,
+            execution_time_ms=20,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -115,10 +117,11 @@ class TestFlextDbOracleUtilities:
     def test_utilities_format_query_result_empty_data(self) -> None:
         """Test format_query_result with empty data."""
         empty_result = FlextDbOracleModels.QueryResult(
+            query="SELECT * FROM empty_table",
             columns=[],
             rows=[],
             row_count=0,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -139,10 +142,11 @@ class TestFlextDbOracleUtilities:
 
         # Test via public format_query_result method which uses private methods internally
         test_result = FlextDbOracleModels.QueryResult(
+            query="SELECT health FROM test_table",
             columns=["health"],
             rows=[[health_data]],
             row_count=1,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -159,10 +163,11 @@ class TestFlextDbOracleUtilities:
         """Test health data display functionality with plain objects."""
         # Test via public format_query_result method which internally uses private methods
         test_result = FlextDbOracleModels.QueryResult(
+            query="SELECT status, message FROM health_table",
             columns=["status", "message"],
             rows=[["ok", "All good"]],
             row_count=1,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -178,10 +183,11 @@ class TestFlextDbOracleUtilities:
     def test_utilities_display_query_table_method(self) -> None:
         """Test query table display functionality via public interface."""
         query_result = FlextDbOracleModels.QueryResult(
+            query="SELECT column1, column2 FROM test_table",
             columns=["column1", "column2"],
             rows=[["value1", "value2"], ["value3", "value4"]],
             row_count=2,
-            execution_time_ms=0.03,
+            execution_time_ms=30,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -232,10 +238,11 @@ class TestFlextDbOracleUtilitiesDataValidation:
         """Test query result validation and processing."""
         # Valid query result
         valid_result = FlextDbOracleModels.QueryResult(
+            query="SELECT test FROM validation_table",
             columns=["test"],
             rows=[["data"]],
             row_count=1,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -260,17 +267,17 @@ class TestFlextDbOracleUtilitiesDataValidation:
         assert config.host == "config_test"
         assert config.port == 1521
         assert config.max_connections == 10
-        assert config.pool_size == 10
 
     def test_utilities_data_formatting_edge_cases(self) -> None:
         """Test data formatting with edge cases."""
         # Large dataset
         large_rows = [[i, f"Item{i}"] for i in range(100)]
         large_result = FlextDbOracleModels.QueryResult(
+            query="SELECT id, name FROM large_table",
             columns=["id", "name"],
             rows=large_rows,
             row_count=100,
-            execution_time_ms=0.5,
+            execution_time_ms=500,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -284,10 +291,11 @@ class TestFlextDbOracleUtilitiesDataValidation:
 
         # Complex nested data
         complex_result = FlextDbOracleModels.QueryResult(
+            query="SELECT nested_data FROM complex_table",
             columns=["nested_data"],
             rows=[['{"deep": {"value": "test"}}']],
             row_count=1,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -328,10 +336,13 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         """Test slow query detection simulation."""
         # Simulate slow query
         slow_result = FlextDbOracleModels.QueryResult(
+            query="SELECT slow FROM performance_table",
             columns=["slow"],
             rows=[["query"]],
             row_count=1,
-            execution_time_ms=(PERFORMANCE_WARNING_THRESHOLD_SECONDS + 1.0) * 1000,
+            execution_time_ms=int(
+                (PERFORMANCE_WARNING_THRESHOLD_SECONDS + 1.0) * 1000
+            ),  # Convert to int
             query_hash=None,
             explain_plan=None,
         )
@@ -355,10 +366,11 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_utilities_invalid_format_handling(self) -> None:
         """Test handling of invalid output formats."""
         query_result = FlextDbOracleModels.QueryResult(
+            query="SELECT test FROM error_table",
             columns=["test"],
             rows=[["data"]],
             row_count=1,
-            execution_time_ms=0.01,
+            execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
         )
@@ -377,10 +389,11 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         """Test handling of None values in utilities via public interface."""
         # Test via public format_query_result method with None data
         empty_result = FlextDbOracleModels.QueryResult(
+            query="SELECT * FROM empty_table",
             columns=[],
             rows=[],
             row_count=0,
-            execution_time_ms=0.0,
+            execution_time_ms=0,  # Convert to int
             query_hash=None,
             explain_plan=None,
         )

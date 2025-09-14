@@ -72,7 +72,7 @@ The main application service providing high-level Oracle database operations.
 
 ```python
 class FlextDbOracleApi:
-    """Main Oracle database API with enterprise-grade features.
+    """Main Oracle database API with features.
 
     This class serves as the primary entry point for Oracle database operations,
     providing a clean, type-safe interface that integrates with FLEXT Core patterns.

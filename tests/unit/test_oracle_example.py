@@ -426,7 +426,7 @@ class TestRealOracleErrorHandling:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            username="invalid_user",
+            user="invalid_user",
             password="invalid_password",
         )
 

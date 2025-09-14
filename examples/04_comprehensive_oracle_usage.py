@@ -1,6 +1,6 @@
 """FLEXT DB Oracle Simple Usage Example.
 
-Exemplo simplificado usando FlextServices.ServiceProcessor para eliminar
+Exemplo simplificado usando FlextProcessing.ServiceProcessor para eliminar
 complexidade e demonstrar padrões flext-core avançados.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextLogger, FlextResult, FlextServices, FlextTypes
+from flext_core import FlextLogger, FlextProcessing, FlextResult, FlextTypes
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
@@ -17,9 +17,9 @@ logger = FlextLogger(__name__)
 
 
 class OracleExampleProcessor(
-    FlextServices.ServiceProcessor[str, FlextDbOracleApi, FlextTypes.Core.Dict]
+    FlextProcessing.ServiceProcessor[str, FlextDbOracleApi, FlextTypes.Core.Dict]
 ):
-    """Simplified Oracle example usando FlextServices - ELIMINA COMPLEXIDADE."""
+    """Simplified Oracle example usando FlextProcessing - ELIMINA COMPLEXIDADE."""
 
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query."""
@@ -55,7 +55,7 @@ class OracleExampleProcessor(
 
 
 def demonstrate_basic_operations() -> None:
-    """Simple demonstration usando FlextServices patterns."""
+    """Simple demonstration usando FlextProcessing patterns."""
     processor = OracleExampleProcessor()
 
     # Template method pattern elimina complexidade

@@ -6,11 +6,13 @@ import inspect
 from typing import cast
 
 import pytest
-from flext_core import (
+from flext_cli import (
     FlextCliApi,
     FlextCliFormatters,
     FlextCliInteractions,
     FlextCliServices,
+)
+from flext_core import (
     FlextContainer,
     FlextLogger,
 )
@@ -83,7 +85,7 @@ class TestFlextDbOracleClientRealFunctionality:
             host="invalid_host",
             port=9999,
             service_name="invalid_service",
-            username="invalid_user",
+            user="invalid_user",
             password="invalid_password",
         )
 
@@ -113,13 +115,13 @@ class TestFlextDbOracleClientRealFunctionality:
             ("", 1521, "service", "user", "password"),  # Empty host
             ("host", 0, "service", "user", "password"),  # Invalid port
             ("host", 1521, "", "user", "password"),  # Empty service
-            ("host", 1521, "service", "", "password"),  # Empty username
+            ("host", 1521, "service", "", "password"),  # Empty user
             ("host", 1521, "service", "user", ""),  # Empty password
         ]
 
-        for host, port, service, username, password in invalid_configs:
+        for host, port, service, user, password in invalid_configs:
             result = self.client.connect_to_oracle(
-                host, port, service, username, password
+                host, port, service, user, password
             )
             # Should fail validation before attempting connection
             FlextTestsMatchers.assert_result_failure(result)
@@ -130,7 +132,7 @@ class TestFlextDbOracleClientRealFunctionality:
         host = "test_host"
         port = 1521
         service_name = "TEST_SERVICE"
-        username = "test_user"
+        user = "test_user"
         password = "test_password"
 
         # This tests the internal configuration creation logic
@@ -139,7 +141,7 @@ class TestFlextDbOracleClientRealFunctionality:
                 host=host,
                 port=port,
                 service_name=service_name,
-                user=username,
+                user=user,
                 password=password,
                 ssl_server_cert_dn=None,
             )
@@ -147,7 +149,7 @@ class TestFlextDbOracleClientRealFunctionality:
             assert config.host == host
             assert config.port == port
             assert config.service_name == service_name
-            assert config.username == username
+            assert config.user == user
             assert config.password == password
             assert config.ssl_server_cert_dn is None
 
@@ -169,8 +171,8 @@ class TestFlextDbOracleClientRealFunctionality:
             ("host", 1521, "service;DROP TABLE", "user", "pass"),
         ]
 
-        for host, port, service, username, password in invalid_inputs:
-            result = client.connect_to_oracle(host, port, service, username, password)
+        for host, port, service, user, password in invalid_inputs:
+            result = client.connect_to_oracle(host, port, service, user, password)
             # All should fail gracefully without exceptions
             FlextTestsMatchers.assert_result_failure(result)
             assert isinstance(result.error, str)
@@ -243,7 +245,7 @@ class TestFlextDbOracleClientRealFunctionality:
                     host="testbuilder_host",
                     port=1521,
                     service_name="testbuilder_service",
-                    username="testbuilder_user",
+                    user="testbuilder_user",
                     password="testbuilder_password",
                 ),
             )
@@ -262,7 +264,7 @@ class TestFlextDbOracleClientRealFunctionality:
             host=config.host,
             port=config.port,
             service_name=config.service_name or "default_service",  # Handle None case
-            username=config.username,
+            user=config.user,
             password=config.password,
         )
 
