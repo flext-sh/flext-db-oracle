@@ -1,6 +1,6 @@
 # Integration
 
-FLEXT ecosystem integration for flext-db-oracle v0.9.0.
+FLEXT ecosystem integration patterns for flext-db-oracle.
 
 ## FLEXT Core Integration
 

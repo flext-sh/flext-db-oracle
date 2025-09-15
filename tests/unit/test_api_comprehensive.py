@@ -235,7 +235,7 @@ class TestFlextDbOracleApiRealFunctionality:
         api = result.value
         assert api.config.host == "localhost"  # Default value
         assert api.config.port == 1521  # Default value
-        assert api.config.service_name == "XEPDB1"  # Default value
+        assert api.config.service_name is None  # Default value (no env var set)
 
     def test_from_url_valid_url_real(self) -> None:
         """Test from_url factory method with valid Oracle URL - REAL FUNCTIONALITY."""
@@ -472,7 +472,7 @@ class TestFlextDbOracleApiRealFunctionality:
             assert hasattr(result, "success")
             assert hasattr(result, "error")
 
-            if result.success:
+            if result.is_success:
                 FlextTestsMatchers.assert_result_success(result)
                 # Should return some Oracle type string
                 oracle_type = result.value
@@ -516,7 +516,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "value")
         assert hasattr(result, "error")
 
-        if result.success:
+        if result.is_success:
             FlextTestsMatchers.assert_result_success(result)
             schema_mapping = result.value
             assert isinstance(schema_mapping, dict)
@@ -553,7 +553,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         # Without connection, should fail gracefully
-        if not result.success:
+        if not result.is_success:
             FlextTestsMatchers.assert_result_failure(result)
             assert result.error is not None
             error_lower = result.error.lower()
@@ -750,7 +750,7 @@ class TestFlextDbOracleApiRealFunctionality:
             assert hasattr(result, "error")
 
             # Test FlextResult contract
-            if result.success:
+            if result.is_success:
                 assert result.error is None
                 # value can be any type including None (accessed safely)
                 _ = getattr(result, "value", None)  # Access is safe when success=True

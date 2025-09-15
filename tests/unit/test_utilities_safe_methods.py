@@ -70,7 +70,7 @@ class TestFlextDbOracleUtilities:
         }
 
         api_result = FlextDbOracleUtilities.create_api_from_config(config_dict)
-        assert api_result.success
+        assert api_result.is_success
         api = api_result.value
         assert api is not None
 
@@ -90,7 +90,7 @@ class TestFlextDbOracleUtilities:
         TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "table")
-            assert result.success
+            assert result.is_success
         except Exception as e:
             pytest.fail(f"format_query_result failed with table format: {e}")
 
@@ -110,7 +110,7 @@ class TestFlextDbOracleUtilities:
         TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "json")
-            assert result.success
+            assert result.is_success
         except Exception as e:
             pytest.fail(f"format_query_result failed with json format: {e}")
 
@@ -130,9 +130,9 @@ class TestFlextDbOracleUtilities:
         TestConsole()
         try:
             result1 = FlextDbOracleUtilities.format_query_result(empty_result, "table")
-            assert result1.success
+            assert result1.is_success
             result2 = FlextDbOracleUtilities.format_query_result(empty_result, "json")
-            assert result2.success
+            assert result2.is_success
         except Exception as e:
             pytest.fail(f"format_query_result failed with empty data: {e}")
 
@@ -155,7 +155,7 @@ class TestFlextDbOracleUtilities:
             result = FlextDbOracleUtilities.format_query_result(
                 test_result, format_type
             )
-            assert result.success, (
+            assert result.is_success, (
                 f"format_query_result failed with {format_type} format"
             )
 
@@ -176,7 +176,7 @@ class TestFlextDbOracleUtilities:
             result = FlextDbOracleUtilities.format_query_result(
                 test_result, format_type
             )
-            assert result.success, (
+            assert result.is_success, (
                 f"format_query_result failed with {format_type} for plain objects"
             )
 
@@ -194,7 +194,7 @@ class TestFlextDbOracleUtilities:
 
         # Test via public format_query_result method with table format
         result = FlextDbOracleUtilities.format_query_result(query_result, "table")
-        assert result.success, "format_query_result failed with table format"
+        assert result.is_success, "format_query_result failed with table format"
 
         # Verify the formatted output contains expected data
         formatted_output = result.value
@@ -355,7 +355,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         TestConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(slow_result, "table")
-            assert result.success
+            assert result.is_success
         except Exception as e:
             pytest.fail(f"format_query_result failed with slow query: {e}")
 
@@ -380,7 +380,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
             query_result, "invalid_format"
         )
         # Method handles invalid formats defensively, should still succeed
-        assert result.success, "Method should handle invalid format defensively"
+        assert result.is_success, "Method should handle invalid format defensively"
         # Should still return some output (default formatting)
         assert isinstance(result.value, str)
         assert len(result.value) > 0
@@ -403,7 +403,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
             result = FlextDbOracleUtilities.format_query_result(
                 empty_result, format_type
             )
-            assert result.success, (
+            assert result.is_success, (
                 f"format_query_result should handle empty data for {format_type}"
             )
 

@@ -1,6 +1,6 @@
 # Configuration
 
-Oracle database connection configuration for flext-db-oracle v0.9.0.
+Oracle database connection configuration for flext-db-oracle.
 
 ## Basic Configuration
 

@@ -58,7 +58,7 @@ class TestDirectCoverageBoostAPI:
         for operation in operations:
             result = operation()
             # Should handle errors gracefully
-            assert result.is_failure or result.success
+            assert result.is_failure or result.is_success
 
     def test_api_schema_operations_1038_1058(
         self,
@@ -67,7 +67,7 @@ class TestDirectCoverageBoostAPI:
         """Test API schema operations (lines 1038-1058)."""
         # Connect first
         connect_result = oracle_api.connect()
-        if not connect_result.success:
+        if not connect_result.is_success:
             # Skip test if connection fails
             return
 
@@ -88,9 +88,9 @@ class TestDirectCoverageBoostAPI:
                 )
 
                 # Should handle various scenarios
-                assert tables_result.success or tables_result.is_failure
+                assert tables_result.is_success or tables_result.is_failure
                 if columns_result:
-                    assert columns_result.success or columns_result.is_failure
+                    assert columns_result.is_success or columns_result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -102,7 +102,7 @@ class TestDirectCoverageBoostAPI:
         """Test API query optimization paths (lines 758-798)."""
         # Connect first
         connect_result = oracle_api.connect()
-        if not connect_result.success:
+        if not connect_result.is_success:
             # Skip test if connection fails
             return
 
@@ -120,7 +120,7 @@ class TestDirectCoverageBoostAPI:
             for query in complex_queries:
                 result = connected_api.query(query)
                 # Should handle different query types
-                assert result.success or result.is_failure
+                assert result.is_success or result.is_failure
 
         finally:
             connected_api.disconnect()
@@ -249,7 +249,7 @@ class TestDirectCoverageBoostConnection:
         # Test multiple connect/disconnect cycles
         for _i in range(3):
             result = connection.connect()
-            if result.success:
+            if result.is_success:
                 # Test connection status
                 assert connection._engine is not None
 
@@ -282,7 +282,7 @@ class TestDirectCoverageBoostConnection:
             try:
                 result = operation()
                 # Should handle errors gracefully
-                assert result.is_failure or result.success
+                assert result.is_failure or result.is_success
             except (AttributeError, TypeError):
                 # Some operations might not exist or have different signatures
                 pass
@@ -378,7 +378,7 @@ class TestDirectCoverageBoostObservability:
 
             # Test observability metrics
             metrics_result = api.get_observability_metrics()
-            assert metrics_result.success
+            assert metrics_result.is_success
             assert isinstance(metrics_result.value, dict)
 
         except (TypeError, AttributeError, ImportError):
@@ -392,7 +392,7 @@ class TestDirectCoverageBoostObservability:
         """Test observability metrics collection."""
         # Connect first
         connect_result = oracle_api.connect()
-        if not connect_result.success:
+        if not connect_result.is_success:
             # Skip test if connection fails
             return
 
@@ -462,10 +462,11 @@ class TestDirectCoverageBoostServices:
 
         # Test table reference building through services
         table_ref_result = services.build_select(
-            "test_table", ["col1"], schema="test_schema"
+            "test_table", ["col1"], schema_name="test_schema"
         )
         FlextTestsMatchers.assert_result_success(table_ref_result)
-        assert "test_schema.test_table" in table_ref_result.unwrap()
+        sql_result = table_ref_result.unwrap()
+        assert ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result) or "test_schema.test_table" in sql_result
 
         # Test column list building through services
         test_columns = ["col1", "col2", "col3"]
@@ -526,7 +527,7 @@ class TestDirectCoverageBoostServices:
                 url_result = services._build_connection_url()
                 # Should succeed or fail gracefully
                 assert url_result is not None
-                if url_result.success:
+                if url_result.is_success:
                     assert "oracle" in url_result.value.lower()
             except AttributeError:
                 # Method might be private or named differently

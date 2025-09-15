@@ -66,7 +66,7 @@ class TestFlextDbOracleClientReal:
             show_execution_time=False,
         )
 
-        assert result.success is True
+        assert result.is_success is True
         assert client.user_preferences["default_output_format"] == "json"
         assert client.user_preferences["query_limit"] == 2000
         assert client.user_preferences["show_execution_time"] is False
@@ -83,7 +83,7 @@ class TestFlextDbOracleClientReal:
         )
 
         # Should still succeed but not change preferences
-        assert result.success is True
+        assert result.is_success is True
         assert client.user_preferences == original_prefs
 
     def test_connection_without_config(self) -> None:
@@ -92,25 +92,25 @@ class TestFlextDbOracleClientReal:
 
         # Test execute_query without connection
         result = client.execute_query("SELECT 1 FROM DUAL")
-        assert not result.success
+        assert not result.is_success
         assert result.error
         assert "No active Oracle connection" in result.error
 
         # Test list_schemas without connection
         schemas_result = client.list_schemas()
-        assert not schemas_result.success
+        assert not schemas_result.is_success
         assert schemas_result.error
         assert "No active Oracle connection" in schemas_result.error
 
         # Test list_tables without connection
         tables_result = client.list_tables()
-        assert not tables_result.success
+        assert not tables_result.is_success
         assert tables_result.error
         assert "No active Oracle connection" in tables_result.error
 
         # Test health_check without connection
         health_result = client.health_check()
-        assert not health_result.success
+        assert not health_result.is_success
         assert health_result.error
         assert "No active Oracle connection" in health_result.error
 
@@ -123,12 +123,12 @@ class TestFlextDbOracleClientReal:
             host="nonexistent-host-12345.invalid",
             port=9999,
             service_name="INVALID",
-            username="invalid_user",
+            user="invalid_user",
             password="invalid_password",
         )
 
         # Should fail with real connection error
-        assert not result.success
+        assert not result.is_success
         assert result.error
         assert (
             "Connection failed" in result.error
@@ -179,7 +179,7 @@ class TestFlextDbOracleClientReal:
         # Should return FlextResult with commands
         assert isinstance(commands_result, FlextResult)
 
-        if commands_result.success:
+        if commands_result.is_success:
             commands = commands_result.value
             assert isinstance(commands, list)
             assert len(commands) > 0
@@ -196,7 +196,7 @@ class TestFlextDbOracleClientReal:
 
         # Test with None/empty parameters
         result = client.execute_query("")
-        assert not result.success
+        assert not result.is_success
 
         # Test configuration with malformed data
         try:
@@ -252,10 +252,10 @@ class TestFlextDbOracleClientIntegration:
             config.host,
             config.port,
             service_name,
-            config.username,
+            config.user,
             config.password,
         )
 
         # Should fail with connection error, not code errors
-        assert not result.success
+        assert not result.is_success
         assert isinstance(result.error, str)

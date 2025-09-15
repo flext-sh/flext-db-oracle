@@ -31,7 +31,7 @@ class TestOracleIntegration:
 
         # Test connection establishment
         connect_result = api.connect()
-        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
         connected_api = connect_result.value
 
         # Test connection status
@@ -73,12 +73,12 @@ class TestOracleIntegration:
         """Test error handling with real Oracle connection."""
         api = FlextDbOracleApi(real_oracle_config)
         connect_result = api.connect()
-        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
         connected_api = connect_result.value
 
         # Test invalid SQL
         invalid_query_result = connected_api.query("INVALID SQL STATEMENT")
-        if invalid_query_result.success:
+        if invalid_query_result.is_success:
             msg = "Invalid SQL should fail"
             raise AssertionError(msg)
         error_msg = invalid_query_result.error or ""
@@ -88,7 +88,7 @@ class TestOracleIntegration:
         nonexistent_table_result = connected_api.query(
             "SELECT * FROM NONEXISTENT_TABLE_12345",
         )
-        if nonexistent_table_result.success:
+        if nonexistent_table_result.is_success:
             msg = "Query on non-existent table should fail"
             raise AssertionError(msg)
 
@@ -125,7 +125,7 @@ class TestOracleIntegration:
         """Test metadata operations with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
         connect_result = api.connect()
-        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
         connected_api = connect_result.value
 
         # Test schema listing
@@ -172,7 +172,7 @@ class TestOracleIntegration:
         """Test performance-related operations with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
         connect_result = api.connect()
-        assert connect_result.success, f"Connection failed: {connect_result.error}"
+        assert connect_result.is_success, f"Connection failed: {connect_result.error}"
         connected_api = connect_result.value
 
         # Test health check - method not implemented yet

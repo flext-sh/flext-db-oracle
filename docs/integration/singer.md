@@ -150,7 +150,8 @@ class OracleTableStream(Stream):
 
     def get_records(self, context: Dict[str, object] = None) -> object:
         """Extract records from Oracle table."""
-        # Build SQL query
+        # Build SQL query - WARNING: This is example code only!
+        # In production, use SQLAlchemy 2.0 Core API instead of string concatenation
         columns = [col.name for col in self.oracle_table.columns]
         sql = f"SELECT {', '.join(columns)} FROM {self.oracle_table.schema}.{self.oracle_table.name}"
 

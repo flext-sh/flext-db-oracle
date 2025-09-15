@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and solutions for flext-db-oracle v0.9.0.
+Common issues and solutions for flext-db-oracle.
 
 ## Connection Issues
 

@@ -34,7 +34,7 @@ class TestRealOracleExceptionsCore:
         result = connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
-        if result.success:
+        if result.is_success:
             msg = "Connection with invalid credentials should fail"
             raise AssertionError(msg)
         # Failure case - use error directly
@@ -69,7 +69,7 @@ class TestRealOracleExceptionsCore:
         result = connection.connect()
 
         # Should fail with connection error - using modern pattern
-        if result.success:
+        if result.is_success:
             msg = "Connection to unreachable host should fail"
             raise AssertionError(msg)
         # Failure case - use error directly
@@ -106,7 +106,7 @@ class TestRealOracleExceptionsCore:
             result = connection.connect()
 
             # Should fail configuration validation - using modern pattern
-            if result.success:
+            if result.is_success:
                 msg = "Connection with invalid config should fail"
                 raise AssertionError(msg)
             # Failure case - use error directly
@@ -125,7 +125,7 @@ class TestRealOracleExceptionsCore:
         connection = FlextDbOracleServices(config=real_oracle_config)
 
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute invalid SQL against Oracle
@@ -137,7 +137,7 @@ class TestRealOracleExceptionsCore:
             ]
 
             for invalid_sql in invalid_queries:
-                result = connection.execute(invalid_sql)
+                result = connection.execute_query(invalid_sql)
                 assert result.is_failure, f"Query should fail: {invalid_sql}"
 
                 error_msg = (result.error or "").lower()
@@ -174,7 +174,7 @@ class TestRealOracleExceptionsCore:
 
         connection = FlextDbOracleServices(config=timeout_config)
         connect_result = connection.connect()
-        assert connect_result.success
+        assert connect_result.is_success
 
         try:
             # Execute query that might timeout (sleep simulation)
@@ -182,7 +182,7 @@ class TestRealOracleExceptionsCore:
             long_query = (
                 "SELECT * FROM (SELECT LEVEL FROM DUAL CONNECT BY LEVEL <= 100000)"
             )
-            result = connection.execute(long_query)
+            result = connection.execute_query(long_query)
 
             # Either succeeds quickly or fails with timeout-related error
             if result.is_failure:
@@ -220,7 +220,7 @@ class TestRealOracleExceptionsAdvanced:
                 # May succeed with empty results or fail - both are valid
                 # Focus on ensuring no crashes and proper error handling
                 assert (
-                    result.success or result.is_failure
+                    result.is_success or result.is_failure
                 )  # Should return valid FlextResult
 
         # Try to get columns for non-existent table
@@ -250,11 +250,8 @@ class TestRealOracleExceptionsAdvanced:
             ]
 
             for invalid_operation in problematic_operations:
-                # Use execute method instead of non-existent DDL methods
-                if hasattr(connected_oracle_api, "execute"):
-                    result = connected_oracle_api.execute(invalid_operation)
-                else:
-                    result = connected_oracle_api.query(invalid_operation)
+                # Use query method for SQL operations
+                result = connected_oracle_api.query(invalid_operation)
 
                 # Should fail with processing errors
                 assert result.is_failure, f"Operation should fail: {invalid_operation}"
@@ -331,17 +328,16 @@ class TestRealOracleExceptionsAdvanced:
                     host=str(typed_config["host"]),
                     port=cast("int", typed_config["port"]),
                     user=str(typed_config["user"]),
-                    password=cast("SecretStr", typed_config["password"]),
+                    password=str(typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
                 )
                 # Skip validate_business_rules check since method doesn't exist
-                validation_result = (
-                    None  # Method doesn't exist in current implementation
-                )
+                # validation_result = (
+                #     None  # Method doesn't exist in current implementation
+                # )
 
-                # Should either fail validation or catch during creation
-                if validation_result:
-                    assert validation_result.is_failure
+                # Configuration creation should succeed with basic Oracle config
+                # Future: Add business rules validation when implemented
 
             except (ValueError, TypeError):
                 # Config creation itself should fail for invalid data

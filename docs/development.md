@@ -1,6 +1,6 @@
 # Development
 
-Development workflow for flext-db-oracle v0.9.0.
+Development workflow and guidelines for flext-db-oracle.
 
 ## Setup
 

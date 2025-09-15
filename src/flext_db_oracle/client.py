@@ -14,6 +14,11 @@ from collections.abc import Callable
 from types import SimpleNamespace
 from typing import cast
 
+from flext_cli import (
+    FlextCliApi,
+    FlextCliFormatters,
+    FlextCliInteractions,
+)
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -57,20 +62,14 @@ class FlextDbOracleClient:
         }
 
         # Initialize placeholder components for missing attributes
-        self.formatter = SimpleNamespace()
-        self.formatter.format_table = lambda **_: FlextResult[str].ok("table_output")
-        self.formatter.format_json = lambda _: FlextResult[str].ok("json_output")
+        # Initialize flext-cli formatters for proper FLEXT ecosystem integration
+        self.formatter = FlextCliFormatters()
 
-        self.interactions = SimpleNamespace()
-        self.interactions.confirm = lambda _, default=True: FlextResult[bool].ok(
-            default
-        )
-        self.interactions.prompt = lambda _, default="": FlextResult[str].ok(default)
-        self.interactions.print_info = lambda _: None
-        self.interactions.print_success = lambda _: None
+        # Initialize flext-cli interactions for proper FLEXT ecosystem integration
+        self.interactions = FlextCliInteractions()
 
-        # Add missing attributes expected by tests
-        self.cli_api = SimpleNamespace()
+        # Initialize flext-cli API for proper FLEXT ecosystem integration
+        self.cli_api = FlextCliApi()
         self.cli_services = SimpleNamespace()
 
     def initialize(self) -> FlextResult[None]:

@@ -94,7 +94,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.register_plugin("test_plugin", plugin_data)
 
-        assert result.success
+        assert result.is_success
         assert "test_plugin" in plugins._plugins
         assert plugins._plugins["test_plugin"] == plugin_data
 
@@ -110,7 +110,7 @@ class TestFlextDbOraclePluginsComprehensive:
         plugin_data2: FlextTypes.Core.Dict = {"name": "test", "version": "2.0.0"}
         result = plugins.register_plugin("test", plugin_data2)
 
-        assert result.success
+        assert result.is_success
         assert plugins._plugins["test"] == plugin_data2
 
     def test_unregister_plugin_existing(self) -> None:
@@ -125,7 +125,7 @@ class TestFlextDbOraclePluginsComprehensive:
         # Unregister it
         result = plugins.unregister_plugin("test")
 
-        assert result.success
+        assert result.is_success
         assert "test" not in plugins._plugins
 
     def test_unregister_plugin_nonexistent(self) -> None:
@@ -134,7 +134,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.unregister_plugin("nonexistent")
 
-        assert result.success
+        assert result.is_success
 
     def test_list_plugins_empty(self) -> None:
         """Test listing plugins when none are registered."""
@@ -142,7 +142,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.list_plugins()
 
-        assert not result.success
+        assert not result.is_success
         assert result.error is not None
         assert "plugin listing returned empty" in str(result.error)
 
@@ -158,7 +158,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.list_plugins()
 
-        assert result.success
+        assert result.is_success
         plugin_list = result.value
         assert isinstance(plugin_list, dict)
         assert len(plugin_list) == 2
@@ -180,7 +180,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         result = plugins.get_plugin("test")
 
-        assert result.success
+        assert result.is_success
         assert result.value == plugin_data
 
     def test_get_plugin_nonexistent(self) -> None:
@@ -277,16 +277,16 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # 6. List again (should have 4 total)
         list_all_result = plugins.list_plugins()
-        assert list_all_result.success
+        assert list_all_result.is_success
         assert len(list_all_result.value) == 4
 
         # 7. Unregister custom plugin
         unregister_result = plugins.unregister_plugin("custom_test")
-        assert unregister_result.success
+        assert unregister_result.is_success
 
         # 8. Final list (should have 3 Oracle plugins)
         final_list_result = plugins.list_plugins()
-        assert final_list_result.success
+        assert final_list_result.is_success
         assert len(final_list_result.value) == 3
         assert "custom_test" not in final_list_result.value
 
@@ -296,12 +296,12 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # Register all Oracle plugins
         result = plugins.register_all_oracle_plugins()
-        assert result.success
+        assert result.is_success
 
         # Get each plugin and verify data integrity
         for plugin_name in ["performance_monitor", "data_validation", "security_audit"]:
             plugin_result = plugins.get_plugin(plugin_name)
-            assert plugin_result.success
+            assert plugin_result.is_success
 
             plugin_data = plugin_result.value
             assert isinstance(plugin_data, dict)
@@ -322,7 +322,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # Second instance should be empty
         list_result2 = plugins2.list_plugins()
-        assert not list_result2.success  # Should be empty
+        assert not list_result2.is_success  # Should be empty
 
         # Register different plugin in second instance
         plugin_data2: FlextTypes.Core.Dict = {"name": "test2", "version": "1.0.0"}
@@ -330,14 +330,14 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # First instance should only have test1
         list_result1 = plugins1.list_plugins()
-        assert list_result1.success
+        assert list_result1.is_success
         assert len(list_result1.value) == 1
         assert "test1" in list_result1.value
         assert "test2" not in list_result1.value
 
         # Second instance should only have test2
         list_result2_final = plugins2.list_plugins()
-        assert list_result2_final.success
+        assert list_result2_final.is_success
         assert len(list_result2_final.value) == 1
         assert "test2" in list_result2_final.value
         assert "test1" not in list_result2_final.value
@@ -348,7 +348,7 @@ class TestFlextDbOraclePluginsComprehensive:
 
         # Test empty string name
         empty_result = plugins.register_plugin("", {"test": "data"})
-        assert empty_result.success  # Should work, empty string is valid key
+        assert empty_result.is_success  # Should work, empty string is valid key
 
         # Test registration with complex data structures
         complex_plugin = {
@@ -360,11 +360,11 @@ class TestFlextDbOraclePluginsComprehensive:
         }
 
         complex_result = plugins.register_plugin("complex", complex_plugin)
-        assert complex_result.success
+        assert complex_result.is_success
 
         # Verify complex data preserved
         get_result = plugins.get_plugin("complex")
-        assert get_result.success
+        assert get_result.is_success
         retrieved = cast("FlextTypes.Core.Dict", get_result.value)
         nested = cast("FlextTypes.Core.Dict", retrieved["nested"])
         data = cast("FlextTypes.Core.Dict", nested["data"])
@@ -381,15 +381,15 @@ class TestFlextDbOraclePluginsComprehensive:
         # Test all plugin types can be created multiple times
         for _i in range(3):
             perf_result = plugins.create_performance_monitor_plugin()
-            assert perf_result.success
+            assert perf_result.is_success
             assert perf_result.value["name"] == "performance_monitor"
 
             val_result = plugins.create_data_validation_plugin()
-            assert val_result.success
+            assert val_result.is_success
             assert val_result.value["name"] == "data_validation"
 
             sec_result = plugins.create_security_audit_plugin()
-            assert sec_result.success
+            assert sec_result.is_success
             assert sec_result.value["name"] == "security_audit"
 
     def test_plugin_stress_testing(self) -> None:
@@ -405,26 +405,26 @@ class TestFlextDbOraclePluginsComprehensive:
                 "data": f"test_data_{i}",
             }
             result = plugins.register_plugin(f"stress_{i}", plugin_data)
-            assert result.success
+            assert result.is_success
 
         # List all plugins should work with many entries
         list_result = plugins.list_plugins()
-        assert list_result.success
+        assert list_result.is_success
         assert len(list_result.value) == 50
 
         # Get specific plugins should work
         for i in [0, 25, 49]:  # Test first, middle, last
             get_result = plugins.get_plugin(f"stress_{i}")
-            assert get_result.success
+            assert get_result.is_success
             plugin_value = cast("FlextTypes.Core.Dict", get_result.value)
             assert plugin_value["name"] == f"stress_plugin_{i}"
 
         # Unregister half the plugins
         for i in range(0, 50, 2):  # Every other plugin
             unregister_result = plugins.unregister_plugin(f"stress_{i}")
-            assert unregister_result.success
+            assert unregister_result.is_success
 
         # Should have 25 plugins remaining
         final_list_result = plugins.list_plugins()
-        assert final_list_result.success
+        assert final_list_result.is_success
         assert len(final_list_result.value) == 25

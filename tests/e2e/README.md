@@ -278,7 +278,8 @@ def test_high_volume_operations():
     api = FlextDbOracleApi.from_env()
 
     with api:
-        # Test concurrent connections
+        # Test concurrent connections - WARNING: This is example code only!
+        # In production, use SQLAlchemy 2.0 Core API instead of string concatenation
         concurrent_queries = []
         for i in range(10):
             query = f"SELECT * FROM customers WHERE id BETWEEN {i*100} AND {(i+1)*100}"

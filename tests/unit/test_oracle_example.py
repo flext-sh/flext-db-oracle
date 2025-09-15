@@ -65,12 +65,12 @@ class TestRealOracleConnection:
 
         try:
             # Execute simple query - using modern .value access after failure check
-            result = connection.execute("SELECT 1 FROM DUAL")
+            result = connection.execute_query("SELECT 1 FROM DUAL")
             if result.is_failure:
                 msg = f"Query failed: {result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .value access
-            query_data = result.value
+            # Success case - use modern .unwrap() access
+            query_data = result.unwrap()
             assert isinstance(query_data, list)
             assert len(query_data) == 1
             # Use safe_get_first_value to handle various row formats
@@ -101,16 +101,13 @@ class TestRealOracleConnection:
             if result.is_failure:
                 msg = f"Fetch one failed: {result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .value access
-            fetch_data = result.value
+            # Success case - use modern .unwrap() access
+            fetch_data = result.unwrap()
             if fetch_data:
-                if isinstance(fetch_data, (tuple, list)) and len(fetch_data) > 0:
-                    first_value = safe_get_first_value(fetch_data)
-                    assert first_value == 42
-                elif isinstance(fetch_data, dict) and fetch_data:
-                    # Handle dict result
-                    first_value = next(iter(fetch_data.values()))
-                    assert first_value == 42
+                # fetch_one returns dict | None, so we know it's a dict if not None
+                assert isinstance(fetch_data, dict), f"Expected dict, got {type(fetch_data)}"
+                first_value = next(iter(fetch_data.values()))
+                assert first_value == 42
 
         finally:
             connection.disconnect()
@@ -131,12 +128,12 @@ class TestRealOracleConnection:
 
         try:
             # Drop table if it already exists (cleanup from previous runs)
-            connection.execute(
-                "DROP TABLE temp_test_table",
+            connection.execute_statement(
+                "DROP TABLE temp_test_table"
             )  # Ignore errors - table might not exist
 
             # Create temporary table with PRESERVE ROWS to survive commit
-            create_result = connection.execute("""
+            create_result = connection.execute_statement("""
 
               CREATE GLOBAL TEMPORARY TABLE temp_test_table (
                   id NUMBER,
@@ -167,12 +164,12 @@ class TestRealOracleConnection:
             assert many_result == 3  # Row count
 
             # Verify data - using modern .value access after failure check
-            select_result = connection.execute("SELECT COUNT(*) FROM temp_test_table")
+            select_result = connection.execute_query("SELECT COUNT(*) FROM temp_test_table")
             if select_result.is_failure:
                 msg = f"Count query failed: {select_result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .value access
-            count_data = select_result.value
+            # Success case - use modern .unwrap() access
+            count_data = select_result.unwrap()
             assert isinstance(count_data, list)
             assert len(count_data) > 0
             if isinstance(count_data, list) and len(count_data) > 0:
@@ -184,7 +181,7 @@ class TestRealOracleConnection:
         finally:
             # Cleanup - drop temp table manually since PRESERVE ROWS keeps data
             with contextlib.suppress(Exception):
-                connection.execute("DROP TABLE temp_test_table")
+                connection.execute_statement("DROP TABLE temp_test_table")
             connection.disconnect()
 
 
@@ -457,7 +454,7 @@ class TestRealOracleErrorHandling:
 
         try:
             # Execute invalid SQL
-            result = connection.execute("SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST")
+            result = connection.execute_query("SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST")
             assert result.is_failure
             assert (
                 "table" in (result.error or "").lower()

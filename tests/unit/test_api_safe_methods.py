@@ -60,7 +60,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
         health_result = api.get_health_status()
 
-        assert health_result.success
+        assert health_result.is_success
         assert isinstance(health_result.value, dict)
 
     def test_api_optimize_query_method(self) -> None:
@@ -77,7 +77,7 @@ class TestFlextDbOracleApiSafeMethods:
 
         # Test with simple SELECT query
         result = api.optimize_query("SELECT * FROM employees")
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, str)
 
         # Test with complex query
@@ -85,7 +85,7 @@ class TestFlextDbOracleApiSafeMethods:
             "SELECT e.*, d.name FROM employees e JOIN departments d ON e.dept_id = d.id"
         )
         result2 = api.optimize_query(complex_query)
-        assert result2.success
+        assert result2.is_success
         assert isinstance(result2.value, str)
 
     def test_api_plugin_management_methods(self) -> None:
@@ -103,7 +103,7 @@ class TestFlextDbOracleApiSafeMethods:
         # Test list_plugins (may be empty initially - that's OK)
         plugins_result = api.list_plugins()
         # Empty plugin list is acceptable behavior
-        if plugins_result.success:
+        if plugins_result.is_success:
             assert isinstance(plugins_result.value, list)
         else:
             # API may return error for empty plugin list - that's valid behavior
@@ -123,12 +123,12 @@ class TestFlextDbOracleApiSafeMethods:
 
         # Test register_plugin
         register_result = api.register_plugin("performance_monitor", plugin)
-        assert register_result.success
+        assert register_result.is_success
 
         # Test list_plugins after registration (current implementation may still return error)
         plugins_after = api.list_plugins()
         # The API may still return error due to current plugin listing implementation
-        if plugins_after.success:
+        if plugins_after.is_success:
             assert isinstance(plugins_after.value, list)
             assert len(plugins_after.value) >= 1
         else:
@@ -139,7 +139,7 @@ class TestFlextDbOracleApiSafeMethods:
         # Test get_plugin
         plugin["name"] if isinstance(plugin, dict) else "performance_monitor"
         get_result = api.get_plugin("performance_monitor")
-        assert get_result.success
+        assert get_result.is_success
         assert get_result.value == plugin
 
     def test_api_plugin_error_handling(self) -> None:
@@ -157,13 +157,13 @@ class TestFlextDbOracleApiSafeMethods:
 
         # Test get_plugin with non-existent plugin
         result = api.get_plugin("non_existent_plugin")
-        assert not result.success
+        assert not result.is_success
         assert result.error is not None
         assert "not found" in result.error.lower()
 
         # Test register_plugin with None plugin data (architecture is defensive)
         register_result = api.register_plugin("test_plugin", None)
-        assert register_result.success  # Architecture allows None plugins
+        assert register_result.is_success  # Architecture allows None plugins
 
     def test_api_connection_properties_without_connection(self) -> None:
         """Test connection-related properties when not connected."""
@@ -200,7 +200,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         result = api.get_observability_metrics()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
 
         # Metrics dict should be valid (may be empty initially)
@@ -255,9 +255,9 @@ class TestFlextDbOracleApiSafeMethods:
 
         # Test plugin registration and retrieval
         register_result = api.register_plugin("performance_monitor", plugin)
-        assert register_result.success
+        assert register_result.is_success
 
         # Test plugin retrieval
         get_result = api.get_plugin("performance_monitor")
-        assert get_result.success
+        assert get_result.is_success
         assert get_result.value == plugin

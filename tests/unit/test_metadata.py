@@ -43,7 +43,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         assert hasattr(result, "error")
 
         # When not connected, should return failure
-        assert not result.success
+        assert not result.is_success
         assert result.error is not None
         assert (
             "not connected" in result.error.lower()
@@ -55,43 +55,43 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         # Test with default schema
         result = self.manager.get_tables()
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
         # Test with specific schema
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.success  # Should fail when not connected
+        assert not result_with_schema.is_success  # Should fail when not connected
 
     def test_get_columns_structure(self) -> None:
         """Test get_columns method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
         # Test with schema
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.success
+        assert not result_with_schema.is_success
 
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
         # Test with schema
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.success
+        assert not result_with_schema.is_success
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_COLUMN")
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
         result = self.manager.get_schemas()
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
@@ -121,7 +121,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         result = self.manager.get_tables("TEST_SCHEMA")
         assert hasattr(result, "success")
         # Should fail when not connected to database
-        assert not result.success
+        assert not result.is_success
         assert result.error is not None
         error_lower = result.error.lower()
         assert "connection" in error_lower or "connected" in error_lower
@@ -130,7 +130,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test test_connection method structure."""
         result = self.manager.get_schemas()
         assert hasattr(result, "success")
-        assert not result.success  # Should fail when not connected
+        assert not result.is_success  # Should fail when not connected
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
@@ -151,7 +151,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
             # When not connected, should fail with descriptive error
             if method_name != "generate_ddl":  # DDL doesn't require connection
-                assert not result.success
+                assert not result.is_success
                 assert result.error is not None
                 assert len(result.error) > 0
 
@@ -216,7 +216,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
         # Test get_tables method with proper parameters (expects schema string, not table object)
         result = self.manager.get_tables("APP_SCHEMA")
-        assert not result.success  # Expected to fail when not connected
+        assert not result.is_success  # Expected to fail when not connected
         assert result.error is not None
         error_lower = result.error.lower()
         assert "connection" in error_lower or "connected" in error_lower
@@ -225,11 +225,11 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test validation logic in metadata operations."""
         # Test empty/invalid parameters
         result_empty_table = self.manager.get_tables("")
-        assert not result_empty_table.success
+        assert not result_empty_table.is_success
 
         result_empty_schema = self.manager.get_tables("")
-        assert not result_empty_schema.success
+        assert not result_empty_schema.is_success
 
         # Test None parameters where not allowed
         result_none_table = self.manager.get_tables(None)
-        assert not result_none_table.success
+        assert not result_none_table.is_success

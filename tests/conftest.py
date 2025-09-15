@@ -231,7 +231,7 @@ def oracle_api(
 def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
     connect_result = oracle_api.connect()
-    if connect_result.success:
+    if connect_result.is_success:
         connected_api = connect_result.value
         yield connected_api
         with contextlib.suppress(Exception):

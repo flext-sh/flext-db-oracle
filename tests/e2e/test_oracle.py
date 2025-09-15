@@ -14,6 +14,8 @@ from typing import cast
 
 import pytest
 from flext_core import FlextTypes
+from sqlalchemy import MetaData, Table, insert, select, update
+from sqlalchemy.sql import Insert, Select, Update
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -86,10 +88,11 @@ class TestOracleE2E:
                 raise AssertionError(f"Table creation failed: {execute_result.error}")
 
             try:
-                # Test data insertion
-                insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES (:id, :name, :email)"
+                # Test data insertion using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
+                metadata = MetaData()
+                table = Table(test_table_name, metadata)
 
-                # Insert test data
+                # Insert test data using proper SQLAlchemy patterns
                 test_data = [
                     {"id": 1, "name": "John Doe", "email": "john@example.com"},
                     {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
@@ -97,23 +100,25 @@ class TestOracleE2E:
                 ]
 
                 for data in test_data:
-                    insert_result = api.query(insert_sql, data)  # nosec B608 # safe parameterized query
+                    # Build proper SQLAlchemy INSERT statement - NO STRING CONCATENATION
+                    insert_stmt: Insert = insert(table).values(**data)
+                    insert_result = api.execute_statement(insert_stmt)
                     if insert_result.is_failure:
                         raise AssertionError(
                             f"Data insertion failed: {insert_result.error}",
                         )
 
-                # Test data querying
-                select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID",
-                )
+                # Test data querying using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
+                select_stmt: Select = select(table).order_by(table.c.ID)
+                select_result = api.execute_statement(select_stmt)
                 if select_result.is_failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
                 query_data = select_result.value
                 assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
 
-                # Test single row query
-                single_result = api.query_one(f"SELECT COUNT(*) FROM {test_table_name}")
+                # Test single row query using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
+                count_stmt: Select = select(table.c.ID.count())
+                single_result = api.execute_statement(count_stmt)
                 if single_result.is_failure:
                     raise AssertionError(f"Single query failed: {single_result.error}")
                 count_data = single_result.value
@@ -150,19 +155,16 @@ class TestOracleE2E:
                 primary_keys = pk_result.value
                 assert "ID" in primary_keys, "ID should be primary key"  # nosec B608
 
-                # Test transaction
+                # Test transaction using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
                 with api.transaction():
-                    update_result = api.query(
-                        f"UPDATE {test_table_name} SET EMAIL = :email WHERE ID = :id",
-                        {"id": 3, "email": "bob@example.com"},
-                    )
+                    update_stmt: Update = update(table).where(table.c.ID == 3).values(EMAIL="bob@example.com")
+                    update_result = api.execute_statement(update_stmt)
                     if update_result.is_failure:
                         raise AssertionError(f"Update failed: {update_result.error}")
 
-                # Verify transaction committed
-                verify_result = api.query_one(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
-                )
+                # Verify transaction committed using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
+                verify_stmt: Select = select(table.c.EMAIL).where(table.c.ID == 3)
+                verify_result = api.execute_statement(verify_stmt)
                 if verify_result.is_failure:
                     raise AssertionError(
                         f"Verification query failed: {verify_result.error}",
@@ -258,7 +260,7 @@ class TestOracleE2E:
         try:
             # Test configuration creation
             config_result = FlextDbOracleConfig.from_env()
-            assert config_result.success, (
+            assert config_result.is_success, (
                 f"Config creation failed: {config_result.error}"
             )
             config = config_result.value
@@ -273,7 +275,7 @@ class TestOracleE2E:
 
             # Test API creation from environment (while env vars are still set)
             api_result = FlextDbOracleApi.from_env()
-            assert api_result.success, f"API creation failed: {api_result.error}"
+            assert api_result.is_success, f"API creation failed: {api_result.error}"
             api = api_result.value
             assert isinstance(api, FlextDbOracleApi)
             assert api.config is not None
@@ -306,13 +308,13 @@ class TestOracleE2E:
 
         # Operations without connection should fail gracefully
         query_result = api.query("SELECT 1 FROM DUAL")
-        if query_result.success:
+        if query_result.is_success:
             msg = "Query should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (query_result.error or "").lower()
 
         metadata_result = api.get_tables()
-        if metadata_result.success:
+        if metadata_result.is_success:
             msg = "Get tables should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (metadata_result.error or "").lower()
@@ -368,7 +370,7 @@ class TestOracleE2E:
                 # Test query with timing
                 timed_result = api.execute_sql("SELECT 1 FROM DUAL")
 
-                if timed_result.success:
+                if timed_result.is_success:
                     query_result = timed_result.value
                     assert hasattr(query_result, "execution_time_ms")
                     assert query_result.execution_time_ms >= 0

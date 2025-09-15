@@ -1,8 +1,8 @@
 # flext-db-oracle
 
-**Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **python-oracledb** with FLEXT architectural patterns.
+**Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **python-oracledb** with FLEXT patterns.
 
-> **⚠️ STATUS**: Core functionality implemented. CLI formatters incomplete, no async support, DataFrame features pending.
+> **⚠️ STATUS**: Functional foundation with critical gaps. CLI formatters incomplete, no async support, missing modern Oracle features.
 
 ---
 
@@ -10,61 +10,56 @@
 
 ### For the FLEXT Ecosystem
 
-flext-db-oracle serves as the Oracle database foundation across 32+ FLEXT projects, providing standardized Oracle connectivity, schema management, and query execution with FLEXT patterns.
+flext-db-oracle provides Oracle database integration for FLEXT ecosystem projects, implementing connection management, schema operations, and query execution using FLEXT architectural patterns.
 
 ### Key Responsibilities
 
-1. **Oracle Database Foundation** - Standardized Oracle integration for all FLEXT projects
-2. **Singer Ecosystem Base** - Foundation for flext-tap-oracle, flext-target-oracle, flext-dbt-oracle
-3. **Schema Management** - Oracle metadata extraction, DDL operations, schema comparison
-4. **Connection Management** - Enterprise connection pooling and resource management
+1. **Oracle Connectivity** - Database connections and resource management
+2. **Schema Operations** - Metadata extraction and schema introspection
+3. **Query Execution** - SQL operations with FlextResult error handling
+4. **Foundation Library** - Base for Oracle-related FLEXT projects
 
 ### Integration Points
 
-- **flext-tap-oracle** → Oracle data extraction using this foundation
-- **flext-target-oracle** → Oracle data loading through these services
-- **flext-dbt-oracle** → Oracle transformations with shared connection patterns
-- **All 32 FLEXT Projects** → Standardized Oracle operations when needed
+- **flext-tap-oracle** → Oracle data extraction (if it exists)
+- **flext-target-oracle** → Oracle data loading (if it exists)
+- **FLEXT ecosystem** → Oracle operations when needed
 
 ---
 
-## 🏗️ Architecture and Patterns
+## 🏗️ Architecture and Implementation
 
 ### FLEXT-Core Integration Status
 
 | Pattern             | Status | Description                    |
 | ------------------- | ------ | ------------------------------ |
-| **FlextResult<T>**  | 🟢 95% | Comprehensive error handling   |
-| **FlextService**    | 🟢 90% | Domain service patterns        |
-| **FlextContainer**  | 🟡 70% | Dependency injection partial   |
-| **Domain Patterns** | 🟢 85% | Clean Architecture with DDD    |
+| **FlextResult<T>**  | 🟢 Comprehensive | 784 occurrences across codebase   |
+| **FlextContainer**  | 🟡 Basic | Used in 4 source files   |
+| **FlextLogger**     | 🟡 Basic | Used in 4 source files    |
+| **FlextDomainService** | 🟡 Partial | 2 implementations found |
 
-> **Status**: 🔴 Critical | 🟡 Partial | 🟢 Complete
+> **Status**: 🔴 Missing | 🟡 Partial | 🟢 Complete
 
-### Architecture Overview
+### Current Implementation
 
-```mermaid
-graph TB
-    CLI[CLI Interface] --> API[FlextDbOracleApi]
-    API --> Services[FlextDbOracleServices]
-    Services --> Models[Domain Models]
-    Services --> Connection[Connection Pool]
-    Connection --> Oracle[(Oracle Database)]
-
-    API --> Logger[FlextLogger]
-    API --> Container[FlextContainer]
-    Services --> Result[FlextResult Pattern]
-```
-
-**Current Implementation**:
-- 4,517 lines across 12 source files
+**Source Code Metrics**:
+- 12 Python modules, 4,517 lines of code
+- 511 functions defined across modules
+- 0 async functions (no async/await support)
 - SQLAlchemy 2.0 with python-oracledb driver
-- Connection pooling and transaction management
-- 28 test files with 8,633 lines of validation
+- 28 test files with 8,633 lines of test code
 
-**Technology Gaps**:
-- No async support (0 async methods found)
-- No DataFrame integration (python-oracledb 3.4+ ready)
+**Working Components**:
+- Connection management with pooling
+- Schema introspection (tables, columns)
+- Query execution with parameter binding
+- FlextResult error handling patterns
+- CLI interface structure (with placeholder formatters)
+
+**Critical Gaps**:
+- CLI formatters use SimpleNamespace placeholders (client.py:60-74)
+- No async support (required for modern Python applications)
+- No DataFrame integration (python-oracledb 3.4+ supports this)
 - No Oracle 23ai features (Vector types, statement pipelining)
 
 ---

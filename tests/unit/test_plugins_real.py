@@ -31,7 +31,7 @@ class TestFlextDbOraclePluginsReal:
         }
 
         result = plugins.register_plugin("test_plugin", plugin_data)
-        assert result.success
+        assert result.is_success
         assert result.value is None
         assert "test_plugin" in plugins._plugins
         assert plugins._plugins["test_plugin"] == plugin_data
@@ -43,12 +43,12 @@ class TestFlextDbOraclePluginsReal:
         # Register first plugin
         plugin1: dict[str, object] = {"name": "plugin1", "version": "1.0.0"}
         result1 = plugins.register_plugin("plugin1", plugin1)
-        assert result1.success
+        assert result1.is_success
 
         # Register second plugin
         plugin2: dict[str, object] = {"name": "plugin2", "version": "2.0.0"}
         result2 = plugins.register_plugin("plugin2", plugin2)
-        assert result2.success
+        assert result2.is_success
 
         # Verify both registered
         assert len(plugins._plugins) == 2
@@ -66,7 +66,7 @@ class TestFlextDbOraclePluginsReal:
 
         # Now unregister it
         result = plugins.unregister_plugin("test")
-        assert result.success
+        assert result.is_success
         assert result.value is None
         assert "test" not in plugins._plugins
 
@@ -76,14 +76,14 @@ class TestFlextDbOraclePluginsReal:
 
         # Unregister non-existent plugin - should succeed
         result = plugins.unregister_plugin("nonexistent")
-        assert result.success  # Returns success even if plugin doesn't exist
+        assert result.is_success  # Returns success even if plugin doesn't exist
 
     def test_list_plugins_empty(self) -> None:
         """Test listing plugins when none registered."""
         plugins = FlextDbOraclePlugins()
 
         result = plugins.list_plugins()
-        assert not result.success
+        assert not result.is_success
         assert result.error == "plugin listing returned empty"
 
     def test_list_plugins_with_data(self) -> None:
@@ -98,7 +98,7 @@ class TestFlextDbOraclePluginsReal:
 
         # List plugins
         result = plugins.list_plugins()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
         assert len(result.value) == 2
         assert "plugin1" in result.value
@@ -116,7 +116,7 @@ class TestFlextDbOraclePluginsReal:
 
         # Get the plugin
         result = plugins.get_plugin("test")
-        assert result.success
+        assert result.is_success
         assert result.value == plugin_data
 
     def test_get_plugin_not_found(self) -> None:
@@ -124,7 +124,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         result = plugins.get_plugin("nonexistent")
-        assert not result.success
+        assert not result.is_success
         assert result.error is not None
         assert "Plugin 'nonexistent' not found" in result.error
 
@@ -133,7 +133,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_performance_monitor_plugin()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
         assert result.value["name"] == "performance_monitor"
         assert result.value["version"] == "1.0.0"
@@ -149,7 +149,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_data_validation_plugin()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
         assert result.value["name"] == "data_validation"
         assert result.value["version"] == "1.0.0"
@@ -165,7 +165,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         result = plugins.create_security_audit_plugin()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
         assert result.value["name"] == "security_audit"
         assert result.value["version"] == "1.0.0"
@@ -181,7 +181,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         result = plugins.register_all_oracle_plugins()
-        assert result.success
+        assert result.is_success
         assert isinstance(result.value, dict)
 
         # Check registration summary
@@ -205,36 +205,36 @@ class TestFlextDbOraclePluginsReal:
 
         # Start with empty system
         list_result = plugins.list_plugins()
-        assert not list_result.success
+        assert not list_result.is_success
 
         # Register all plugins
         register_result = plugins.register_all_oracle_plugins()
-        assert register_result.success
+        assert register_result.is_success
         assert register_result.value["registered_count"] == 3
 
         # List should now succeed
         list_result = plugins.list_plugins()
-        assert list_result.success
+        assert list_result.is_success
         assert len(list_result.value) == 3
 
         # Get specific plugin
         get_result = plugins.get_plugin("performance_monitor")
-        assert get_result.success
+        assert get_result.is_success
         plugin_data = get_result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["name"] == "performance_monitor"
 
         # Unregister one plugin
         unregister_result = plugins.unregister_plugin("performance_monitor")
-        assert unregister_result.success
+        assert unregister_result.is_success
 
         # Verify it's gone
         get_result = plugins.get_plugin("performance_monitor")
-        assert not get_result.success
+        assert not get_result.is_success
 
         # List should show 2 plugins
         list_result = plugins.list_plugins()
-        assert list_result.success
+        assert list_result.is_success
         assert len(list_result.value) == 2
 
     def test_plugin_overwrite(self) -> None:
@@ -244,16 +244,16 @@ class TestFlextDbOraclePluginsReal:
         # Register initial plugin
         plugin_v1: dict[str, object] = {"name": "test", "version": "1.0.0"}
         result1 = plugins.register_plugin("test", plugin_v1)
-        assert result1.success
+        assert result1.is_success
 
         # Overwrite with new version
         plugin_v2 = {"name": "test", "version": "2.0.0", "updated": True}
         result2 = plugins.register_plugin("test", plugin_v2)
-        assert result2.success
+        assert result2.is_success
 
         # Verify it was overwritten
         get_result = plugins.get_plugin("test")
-        assert get_result.success
+        assert get_result.is_success
         plugin_data = get_result.value
         assert isinstance(plugin_data, dict)
         assert plugin_data["version"] == "2.0.0"
@@ -273,7 +273,7 @@ class TestFlextDbOraclePluginsReal:
 
         # Get plugin and modify returned data
         get_result = plugins.get_plugin("test")
-        assert get_result.success
+        assert get_result.is_success
 
         # Since we store the object directly, modifications will affect it
         # This is expected behavior - plugins are mutable references
@@ -283,6 +283,6 @@ class TestFlextDbOraclePluginsReal:
 
         # Verify the stored data is affected (expected for mutable references)
         get_result2 = plugins.get_plugin("test")
-        assert get_result2.success
+        assert get_result2.is_success
         if isinstance(get_result2.value, dict) and "mutable" in get_result2.value:
             assert 4 in get_result2.value["mutable"]

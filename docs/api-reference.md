@@ -1,8 +1,8 @@
 # API Reference
 
-API documentation for flext-db-oracle v0.9.0.
+Oracle Database integration API for FLEXT ecosystem - version 0.9.0.
 
-## Imports
+## Core Imports
 
 ```python
 from flext_db_oracle import (
@@ -14,7 +14,7 @@ from flext_db_oracle import (
 
 ## FlextDbOracleApi
 
-Main Oracle database interface with 36 methods.
+Oracle database interface providing 36 methods for connection management, query execution, and schema operations using FLEXT patterns.
 
 ### Connection Methods
 

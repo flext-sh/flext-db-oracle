@@ -48,6 +48,9 @@ class FlextDbOracleModels:
         service_name: str | None = Field(
             default=None, description="Oracle service name"
         )
+        sid: str | None = Field(
+            default=None, description="Oracle SID (System Identifier)"
+        )
         ssl_server_cert_dn: str | None = Field(
             default=None, description="SSL server certificate DN"
         )
@@ -64,20 +67,20 @@ class FlextDbOracleModels:
             return self.user
 
         @classmethod
-        def from_env(cls) -> FlextResult[FlextDbOracleModels.OracleConfig]:
-            """Create OracleConfig from environment variables."""
+        def from_env(cls, prefix: str = "ORACLE") -> FlextResult[FlextDbOracleModels.OracleConfig]:
+            """Create OracleConfig from environment variables with optional prefix."""
             try:
-                # Type-safe config creation
+                # Type-safe config creation using prefix
                 config = cls(
-                    host=os.getenv("ORACLE_HOST", "localhost"),
-                    port=int(os.getenv("ORACLE_PORT", "1521")),
-                    name=os.getenv("ORACLE_DB", "XE"),
-                    user=os.getenv("ORACLE_USER", "flext_user"),
-                    password=os.getenv("ORACLE_PASSWORD", ""),
-                    service_name=os.getenv("ORACLE_SERVICE_NAME"),
-                    pool_min=int(os.getenv("ORACLE_POOL_MIN", "2")),
-                    pool_max=int(os.getenv("ORACLE_POOL_MAX", "20")),
-                    timeout=int(os.getenv("ORACLE_TIMEOUT", "60")),
+                    host=os.getenv(f"{prefix}_HOST", "localhost"),
+                    port=int(os.getenv(f"{prefix}_PORT", "1521")),
+                    name=os.getenv(f"{prefix}_DB", "XE"),
+                    user=os.getenv(f"{prefix}_USER", "flext_user"),
+                    password=os.getenv(f"{prefix}_PASSWORD", ""),
+                    service_name=os.getenv(f"{prefix}_SERVICE_NAME"),
+                    pool_min=int(os.getenv(f"{prefix}_POOL_MIN", "2")),
+                    pool_max=int(os.getenv(f"{prefix}_POOL_MAX", "20")),
+                    timeout=int(os.getenv(f"{prefix}_TIMEOUT", "60")),
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:
@@ -288,10 +291,13 @@ class FlextDbOracleModels:
     class CreateIndexConfig(FlextModels.Value):
         """Index creation config using flext-core Value."""
 
+        index_name: str
         table_name: str
-        column_names: list[str]
-        index_name: str | None = None
+        columns: list[str]
+        schema_name: str | None = None
         unique: bool = False
+        tablespace: str | None = None
+        parallel: int | None = None
 
     class MergeStatementConfig(FlextModels.Value):
         """Merge statement config using flext-core Value."""

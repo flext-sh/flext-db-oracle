@@ -34,10 +34,22 @@ from flext_core import (
     FlextTypes,
 )
 from pydantic import Field
-from sqlalchemy import create_engine, text
+from sqlalchemy import (
+    Column,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    create_engine,
+    delete,
+    insert,
+    select,
+    text,
+    update,
+)
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, sessionmaker
 
+# SQLAlchemy 2.0 Core API - removed ORM imports
 from flext_db_oracle.models import FlextDbOracleModels, OracleValidation
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
@@ -87,7 +99,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
         RESPONSIBILITIES:
         - Connection establishment and URL building
         - Connection testing and health validation
-        - Session and transaction context management
+        - Connection and transaction context management
         - Connection cleanup and resource disposal
         """
 
@@ -98,7 +110,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             self.config = config
             self._logger = logger
             self._engine: Engine | None = None
-            self._session_factory: object | None = None
+            # SQLAlchemy 2.0 Core API - removed session factory
             self._connected: bool = False
 
         def connect(self) -> FlextResult[bool]:
@@ -117,7 +129,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                     echo=False,
                 )
 
-                self._session_factory = sessionmaker(bind=self._engine)
+                # SQLAlchemy 2.0 Core API - removed session factory initialization
 
                 # Test connection with explicit validation
                 test_result = self._test_connection_internal()
@@ -140,7 +152,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 if self._engine:
                     self._engine.dispose()
                     self._engine = None
-                    self._session_factory = None
+                    # SQLAlchemy 2.0 Core API - removed session factory cleanup
                     self._connected = False
                     self._logger.info("Disconnected from Oracle database")
                 return FlextResult[bool].ok(data=True)
@@ -169,21 +181,14 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 return FlextResult[bool].fail(f"Connection test failed: {e}")
 
         @contextmanager
-        def get_session(self) -> Generator[Session]:
-            """Get database session context manager."""
-            if not self._session_factory:
-                msg = "No session factory available"
+        def get_connection(self) -> Generator[object]:
+            """Get database connection context manager for SQLAlchemy 2.0 Core API."""
+            if not self._engine:
+                msg = "No database engine available"
                 raise RuntimeError(msg)
 
-            if not callable(self._session_factory):
-                error_msg = "Session factory is not callable"
-                raise TypeError(error_msg)
-
-            session: Session = cast("Session", self._session_factory())
-            try:
-                yield session
-            finally:
-                session.close()
+            with self._engine.connect() as connection:
+                yield connection
 
         @contextmanager
         def transaction(self) -> Generator[object]:
@@ -349,20 +354,43 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 return FlextResult[str].fail(f"Failed to generate query hash: {e}")
 
     class _SqlBuilder:
-        """Nested helper for SQL statement construction and validation.
+        """Nested helper for SQL statement construction using SQLAlchemy 2.0 Core API.
 
-        SINGLE RESPONSIBILITY: Build SQL statements safely with validation.
+        SINGLE RESPONSIBILITY: Build SQL statements safely with SQLAlchemy Core.
 
         RESPONSIBILITIES:
-        - SELECT statement construction with parameters
-        - INSERT/UPDATE/DELETE statement building
+        - SELECT statement construction with SQLAlchemy select()
+        - INSERT/UPDATE/DELETE statement building with SQLAlchemy Core
         - MERGE statement generation for upserts
-        - SQL injection prevention through validation
+        - SQL injection prevention through SQLAlchemy Core API
         """
 
         def __init__(self, logger: FlextLogger) -> None:
-            """Initialize the SQL builder."""
+            """Initialize the SQL builder with SQLAlchemy 2.0 metadata."""
             self._logger = logger
+            self._metadata = MetaData()
+
+        def _create_table_object(
+            self, table_name: str, schema_name: str | None = None
+        ) -> Table:
+            """Create SQLAlchemy Table object for modern query building."""
+            # Validate identifiers first
+            validated_table = OracleValidation.validate_identifier(table_name).unwrap()
+            validated_schema = None
+            if schema_name:
+                validated_schema = OracleValidation.validate_identifier(schema_name).unwrap()
+
+            # Create a dynamic table with common column types for query building
+            # This allows SQLAlchemy to handle SQL injection prevention
+            return Table(
+                validated_table,
+                self._metadata,
+                Column("id", Integer),
+                Column("name", String(255)),
+                schema=validated_schema,
+                autoload_with=None,
+                extend_existing=True
+            )
 
         def build_select(
             self,
@@ -371,7 +399,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             conditions: FlextTypes.Core.Dict | None = None,
             schema_name: str | None = None,
         ) -> FlextResult[str]:
-            """Build a SELECT query string with validation."""
+            """Build a SELECT query using SQLAlchemy 2.0 Core API."""
             try:
                 # Validate identifiers to prevent SQL injection
                 validation_result = self._validate_identifiers(
@@ -382,16 +410,28 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                         validation_result.error or "Validation failed"
                     )
 
-                # Build query using secure SQL builder
-                full_table_name = self._build_table_reference(table_name, schema_name)
-                column_list = ", ".join(columns) if columns else "*"
-                # Safe SQL construction - table/column names are validated identifiers
-                query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608
+                # Create SQLAlchemy table object for modern query building
+                table = self._create_table_object(table_name, schema_name)
 
+                # Build SELECT statement using SQLAlchemy 2.0 Core API
+                if columns:
+                    # For specific columns, use text() for dynamic column selection
+                    validated_columns = [col for col in columns if self._is_safe_identifier(col)]
+                    column_exprs = [text(col) for col in validated_columns]
+                    stmt = select(*column_exprs).select_from(table)
+                else:
+                    # Select all columns
+                    stmt = select(table)
+
+                # Add WHERE conditions using SQLAlchemy parameterization
                 if conditions:
-                    where_clauses = [f"{key} = :{key}" for key in conditions]
-                    query += f" WHERE {' AND '.join(where_clauses)}"
+                    for key in conditions:
+                        if self._is_safe_identifier(key):
+                            # Use text() with bound parameters for dynamic column references
+                            stmt = stmt.where(text(f"{key} = :{key}"))
 
+                # Compile to string - SQLAlchemy handles SQL injection prevention
+                query = str(stmt.compile(compile_kwargs={"literal_binds": False}))
                 return FlextResult[str].ok(query)
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to build SELECT query: {e}")
@@ -403,7 +443,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             schema_name: str | None = None,
             returning_columns: FlextTypes.Core.StringList | None = None,
         ) -> FlextResult[str]:
-            """Build INSERT statement with validation."""
+            """Build INSERT statement using SQLAlchemy 2.0 Core API."""
             try:
                 # Validate all identifiers
                 for col in columns:
@@ -417,17 +457,21 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                                 f"Invalid RETURNING column: {col}"
                             )
 
-                full_table_name = self._build_table_reference(table_name, schema_name)
-                column_list = ", ".join(columns)
-                value_placeholders = ", ".join(f":{col}" for col in columns)
+                # Create SQLAlchemy table object for modern query building
+                table = self._create_table_object(table_name, schema_name)
 
-                # Safe SQL construction - table/column names are validated identifiers
-                sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"  # noqa: S608
+                # Build INSERT statement using SQLAlchemy 2.0 Core API
+                stmt = insert(table)
 
+                # Add RETURNING clause if specified (Oracle support)
                 if returning_columns:
-                    sql += f" RETURNING {', '.join(returning_columns)}"
+                    # Use text() for dynamic RETURNING columns
+                    returning_exprs = [text(col) for col in returning_columns]
+                    stmt = stmt.returning(*returning_exprs)
 
-                return FlextResult[str].ok(sql)
+                # Compile to string - SQLAlchemy handles SQL injection prevention
+                query = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+                return FlextResult[str].ok(query)
 
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to build INSERT statement: {e}")
@@ -439,20 +483,33 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             where_columns: FlextTypes.Core.StringList,
             schema_name: str | None = None,
         ) -> FlextResult[str]:
-            """Build UPDATE statement with validation."""
+            """Build UPDATE statement using SQLAlchemy 2.0 Core API."""
             try:
                 # Validate all column names
                 for col in set_columns + where_columns:
                     if not self._is_safe_identifier(col):
                         return FlextResult[str].fail(f"Invalid column name: {col}")
 
-                full_table_name = self._build_table_reference(table_name, schema_name)
-                set_clauses = [f"{col} = :{col}" for col in set_columns]
-                where_clauses = [f"{col} = :where_{col}" for col in where_columns]
+                # Create SQLAlchemy table object for modern query building
+                table = self._create_table_object(table_name, schema_name)
 
-                # Safe SQL construction - table/column names are validated identifiers
-                sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
-                return FlextResult[str].ok(sql)
+                # Build UPDATE statement using SQLAlchemy 2.0 Core API
+                stmt = update(table)
+
+                # Add WHERE conditions using text() for dynamic columns
+                for col in where_columns:
+                    stmt = stmt.where(text(f"{col} = :where_{col}"))
+
+                # Add VALUES placeholder - actual values will be provided at execution time
+                # SQLAlchemy requires at least one value to generate valid SQL
+                if set_columns:
+                    # Use dictionary comprehension with string keys for SQLAlchemy values()
+                    values_dict = {col: text(f":{col}") for col in set_columns}
+                    stmt = stmt.values(values_dict)
+
+                # Compile to string - SQLAlchemy handles SQL injection prevention
+                query = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+                return FlextResult[str].ok(query)
 
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to build UPDATE statement: {e}")
@@ -463,21 +520,26 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             where_columns: FlextTypes.Core.StringList,
             schema_name: str | None = None,
         ) -> FlextResult[str]:
-            """Build DELETE statement with validation."""
+            """Build DELETE statement using SQLAlchemy 2.0 Core API."""
             try:
                 # Validate all column names
                 for col in where_columns:
                     if not self._is_safe_identifier(col):
                         return FlextResult[str].fail(f"Invalid WHERE column: {col}")
 
-                full_table_name = self._build_table_reference(table_name, schema_name)
-                where_clauses = [f"{col} = :{col}" for col in where_columns]
+                # Create SQLAlchemy table object for modern query building
+                table = self._create_table_object(table_name, schema_name)
 
-                # Safe SQL construction - table/column names are validated identifiers
-                sql = (
-                    f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
-                )
-                return FlextResult[str].ok(sql)
+                # Build DELETE statement using SQLAlchemy 2.0 Core API
+                stmt = delete(table)
+
+                # Add WHERE conditions using text() for dynamic columns
+                for col in where_columns:
+                    stmt = stmt.where(text(f"{col} = :{col}"))
+
+                # Compile to string - SQLAlchemy handles SQL injection prevention
+                query = str(stmt.compile(compile_kwargs={"literal_binds": False}))
+                return FlextResult[str].ok(query)
 
             except Exception as e:
                 return FlextResult[str].fail(f"Failed to build DELETE statement: {e}")
@@ -738,18 +800,32 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                     table_validation = OracleValidation.validate_identifier(table_name)
                     if schema_validation.is_failure or table_validation.is_failure:
                         return FlextResult[int].fail("Invalid schema or table name")
-                    full_table_name = (
-                        f"{schema_validation.unwrap()}.{table_validation.unwrap()}"
-                    )
                 else:
                     # Validate just table name
                     table_validation = OracleValidation.validate_identifier(table_name)
                     if table_validation.is_failure:
                         return FlextResult[int].fail("Invalid table name")
-                    full_table_name = table_validation.unwrap()
 
-                # Safe SQL construction - table name is validated identifier
-                sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
+                # Use SQLAlchemy 2.0 Core API for modern SQL generation
+                # Create a Table object for the count query
+                metadata = MetaData()
+                validated_table = OracleValidation.validate_identifier(table_name).unwrap()
+                validated_schema = None
+                if schema_name:
+                    validated_schema = OracleValidation.validate_identifier(schema_name).unwrap()
+
+                table = Table(
+                    validated_table,
+                    metadata,
+                    Column("id", Integer),  # Placeholder column
+                    schema=validated_schema,
+                    autoload_with=None,
+                    extend_existing=True
+                )
+
+                # Build COUNT query using SQLAlchemy 2.0 Core API
+                stmt = select(text("COUNT(*) as row_count")).select_from(table)
+                sql = str(stmt.compile(compile_kwargs={"literal_binds": False}))
                 result = self._query_executor.execute_query(sql)
                 if result.is_failure:
                     return FlextResult[int].fail(
@@ -1243,10 +1319,10 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
         return self._connection_manager.test_connection()
 
     @contextmanager
-    def get_session(self) -> Generator[Session]:
-        """Get database session context manager."""
-        with self._connection_manager.get_session() as session:
-            yield session
+    def get_connection(self) -> Generator[object]:
+        """Get database connection context manager for SQLAlchemy 2.0 Core API."""
+        with self._connection_manager.get_connection() as connection:
+            yield connection
 
     @contextmanager
     def transaction(self) -> Generator[object]:
@@ -1332,6 +1408,32 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
         return self._sql_builder.build_delete_statement(
             table_name, where_columns, schema_name
         )
+
+    def build_create_index_statement(
+        self,
+        config: FlextDbOracleModels.CreateIndexConfig,
+    ) -> FlextResult[str]:
+        """Build CREATE INDEX statement."""
+        try:
+            # Build the basic CREATE INDEX statement
+            unique_keyword = "UNIQUE " if config.unique else ""
+            schema_prefix = f"{config.schema_name}." if config.schema_name else ""
+            table_ref = f"{schema_prefix}{config.table_name}"
+            index_ref = f"{schema_prefix}{config.index_name}"
+            columns_str = ", ".join(config.columns)
+
+            sql = f"CREATE {unique_keyword}INDEX {index_ref} ON {table_ref} ({columns_str})"
+
+            # Add optional clauses
+            if config.tablespace:
+                sql += f" TABLESPACE {config.tablespace}"
+
+            if config.parallel:
+                sql += f" PARALLEL {config.parallel}"
+
+            return FlextResult[str].ok(sql)
+        except Exception as e:
+            return FlextResult[str].fail(f"Failed to build CREATE INDEX statement: {e}")
 
     # Schema Introspection Delegation
     def get_schemas(self) -> FlextResult[FlextTypes.Core.StringList]:
