@@ -1,99 +1,177 @@
-# Getting Started
+# Getting Started with flext-db-oracle
 
-Basic setup and usage for flext-db-oracle v0.9.0.
+Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.
 
 ## Prerequisites
 
 - Python 3.13+
-- Access to Oracle database
+- Oracle database access (XE 21c container or remote Oracle)
 - Poetry for dependency management
 
 ## Installation
 
 ```bash
+# Clone FLEXT ecosystem
+git clone https://github.com/flext-sh/flext.git
 cd flext/flext-db-oracle
+
+# Install dependencies
 poetry install
+
+# Development setup (optional)
+make setup
 ```
 
-## Basic Usage
+## Quick Connection Test
 
 ```python
-from flext_db_oracle import FlextDbOracleApi
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
-# Configure connection
-config = FlextDbOracleModels.OracleConfig(
+# Configure Oracle connection
+config = OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",
-    user="system",
+    username="system",
     password="Oracle123"
 )
 
-# Create API instance
+# Create API instance with FLEXT patterns
 api = FlextDbOracleApi(config)
 
-# Test connection
-result = api.test_connection()
-if result.is_success:
-    print("Connected to Oracle")
+# Test connection using FlextResult pattern
+connection_result = api.test_connection()
+if connection_result.is_success:
+    print("✅ Connected to Oracle successfully")
 else:
-    print(f"Connection failed: {result.error}")
-
-# Execute query
-query_result = api.query("SELECT 1 FROM DUAL")
-if query_result.is_success:
-    data = query_result.value
-    print(f"Query returned {len(data)} rows")
+    print(f"❌ Connection failed: {connection_result.error}")
 ```
 
-## Environment Variables
+## Basic Operations
 
-```bash
-export ORACLE_HOST="localhost"
-export ORACLE_PORT="1521"
-export ORACLE_SERVICE_NAME="XEPDB1"
-export ORACLE_USERNAME="system"
-export ORACLE_PASSWORD="Oracle123"
+### Query Execution
+
+```python
+# Execute SELECT query with parameters
+result = api.query(
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit",
+    {"limit": 5}
+)
+
+if result.is_success:
+    tables = result.unwrap()
+    print(f"Found {len(tables)} tables")
+    for table in tables:
+        print(f"  - {table.get('table_name')}")
 ```
 
-## CLI Usage
+### Schema Operations
+
+```python
+# List available schemas
+schemas_result = api.get_schemas()
+if schemas_result.is_success:
+    schemas = schemas_result.unwrap()
+    print(f"Available schemas: {schemas}")
+
+# Get tables in a schema
+tables_result = api.get_tables("SYSTEM")
+if tables_result.is_success:
+    tables = tables_result.unwrap()
+    print(f"SYSTEM schema has {len(tables)} tables")
+```
+
+## Oracle XE Development Container
+
+For local development, use Oracle XE 21c container:
 
 ```bash
-# Test connection (uses environment variables)
+# Start Oracle XE container (takes 2-3 minutes to initialize)
+docker-compose -f docker-compose.oracle.yml up -d
+
+# Monitor startup progress
+docker-compose -f docker-compose.oracle.yml logs -f oracle-xe
+
+# Test connectivity once ready
+make oracle-connect
+```
+
+**Connection Details**:
+- Host: localhost
+- Port: 1521
+- Service Name: XEPDB1
+- Username: system
+- Password: Oracle123
+
+## Configuration Options
+
+### Environment Variables
+
+```bash
+export FLEXT_TARGET_ORACLE_HOST="localhost"
+export FLEXT_TARGET_ORACLE_PORT="1521"
+export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
+export FLEXT_TARGET_ORACLE_USERNAME="system"
+export FLEXT_TARGET_ORACLE_PASSWORD="Oracle123"
+```
+
+### Configuration from Environment
+
+```python
+from flext_db_oracle import FlextDbOracleApi
+
+# Load configuration from environment variables
+api_result = FlextDbOracleApi.from_env()
+if api_result.is_success:
+    api = api_result.unwrap()
+    print("API configured from environment")
+```
+
+## CLI Interface
+
+```bash
+# Basic health check
 python -m flext_db_oracle.cli health
 
-# Note: CLI uses SimpleNamespace placeholders for formatting
+# List schemas
+python -m flext_db_oracle.cli schemas
+
+# Execute SQL query
+python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
+
+# Note: CLI formatters currently use SimpleNamespace placeholders
 ```
 
-## Available Operations
+## Current Capabilities
 
-- `api.query(sql)` - Execute SELECT statements
-- `api.execute(sql)` - Execute INSERT/UPDATE/DELETE statements
-- `api.get_schemas()` - List database schemas
-- `api.get_tables(schema)` - List tables in schema
-- `api.get_columns(table, schema)` - Get column information
+**Working Features**:
+- SQLAlchemy 2.0 integration with Oracle
+- FlextResult error handling patterns
+- Connection pooling and management
+- Schema introspection (tables, columns)
+- Query execution with parameter binding
+- FLEXT ecosystem integration patterns
 
-## Oracle XE Container
+**Known Limitations**:
+- CLI formatters incomplete (SimpleNamespace placeholders in client.py:60-67)
+- No async support (required for modern Python applications)
+- No DataFrame integration (python-oracledb 3.4+ supports DataFrames)
+- No Oracle 23ai features (Vector types, statement pipelining)
 
-For testing, use Oracle XE container:
+## Next Steps
 
-```bash
-# Start Oracle XE (if docker-compose.yml exists)
-docker-compose up -d
+1. **[Architecture Overview](architecture.md)** - Understand the design patterns
+2. **[API Reference](api-reference.md)** - Complete API documentation
+3. **[Configuration Guide](configuration.md)** - Advanced configuration options
+4. **[Development Guide](development.md)** - Contributing to the project
 
-# Connect to localhost:1521/XEPDB1 with system/Oracle123
-```
+## Need Help?
 
-## Limitations
-
-- No async support (0 async methods)
-- No DataFrame integration
-- CLI has SimpleNamespace placeholders
-- Only SQLAlchemy abstraction (no direct python-oracledb)
-
-For more details, see [Configuration](configuration.md) and [API Reference](api-reference.md).
+- **Documentation**: Check the [docs/](.) directory
+- **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
+- **Troubleshooting**: See [troubleshooting.md](troubleshooting.md)
 
 ---
 
-Updated: September 17, 2025 | Version: 0.9.0
+**Version**: 0.9.0 | **Updated**: September 17, 2025
+**Part of**: [FLEXT Ecosystem](../README.md) - Oracle Database Integration Foundation

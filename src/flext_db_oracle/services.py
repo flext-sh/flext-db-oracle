@@ -386,7 +386,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 full_table_name = self._build_table_reference(table_name, schema_name)
                 column_list = ", ".join(columns) if columns else "*"
                 # Safe SQL construction - table/column names are validated identifiers
-                query = f"SELECT {column_list} FROM {full_table_name}"
+                query = f"SELECT {column_list} FROM {full_table_name}"  # noqa: S608
 
                 if conditions:
                     where_clauses = [f"{key} = :{key}" for key in conditions]
@@ -422,7 +422,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 value_placeholders = ", ".join(f":{col}" for col in columns)
 
                 # Safe SQL construction - table/column names are validated identifiers
-                sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"
+                sql = f"INSERT INTO {full_table_name} ({column_list}) VALUES ({value_placeholders})"  # noqa: S608
 
                 if returning_columns:
                     sql += f" RETURNING {', '.join(returning_columns)}"
@@ -451,7 +451,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 where_clauses = [f"{col} = :where_{col}" for col in where_columns]
 
                 # Safe SQL construction - table/column names are validated identifiers
-                sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"
+                sql = f"UPDATE {full_table_name} SET {', '.join(set_clauses)} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
                 return FlextResult[str].ok(sql)
 
             except Exception as e:
@@ -475,7 +475,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
 
                 # Safe SQL construction - table/column names are validated identifiers
                 sql = (
-                    f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"
+                    f"DELETE FROM {full_table_name} WHERE {' AND '.join(where_clauses)}"  # noqa: S608
                 )
                 return FlextResult[str].ok(sql)
 
@@ -749,7 +749,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                     full_table_name = table_validation.unwrap()
 
                 # Safe SQL construction - table name is validated identifier
-                sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"
+                sql = f"SELECT COUNT(*) as row_count FROM {full_table_name}"  # noqa: S608
                 result = self._query_executor.execute_query(sql)
                 if result.is_failure:
                     return FlextResult[int].fail(

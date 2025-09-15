@@ -162,8 +162,9 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         def display_message(self, message: str) -> None:
             """Display message to user - direct output for CLI."""
-            # Simple print output for CLI
-            print(message)
+            # Use sys.stdout for CLI output instead of print
+            sys.stdout.write(f"{message}\n")
+            sys.stdout.flush()
 
     def execute_health_check(
         self,
