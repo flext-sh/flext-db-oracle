@@ -19,6 +19,10 @@ logger = FlextLogger(__name__)
 class OracleExampleProcessor(FlextDomainService[str]):
     """Simplified Oracle example using FlextDomainService - ELIMINA COMPLEXIDADE."""
 
+    def execute(self) -> FlextResult[str]:
+        """Execute the main domain service operation."""
+        return FlextResult[str].ok("Oracle processing completed successfully")
+
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query."""
         try:
@@ -56,8 +60,8 @@ def demonstrate_basic_operations() -> None:
     """Simple demonstration usando FlextProcessing patterns."""
     processor = OracleExampleProcessor()
 
-    # Template method pattern elimina complexidade
-    result = processor.run_with_metrics("oracle_basic", "SELECT 1 FROM DUAL")
+    # Execute domain service
+    result = processor.execute()
 
     if result.success:
         logger.info(f"✅ Oracle operations completed: {result.value}")

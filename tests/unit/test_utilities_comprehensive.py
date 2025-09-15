@@ -119,7 +119,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="json")
-        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]  # type: ignore[arg-type]
+        FlextTestsMatchers.assert_result_success(result)
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -134,7 +134,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="table")
-        FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]  # type: ignore[arg-type]
+        FlextTestsMatchers.assert_result_success(result)
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -148,7 +148,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             result = self.utilities.format_query_result(
                 mock_result, format_type=format_type
             )
-            FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]  # type: ignore[arg-type]  # type: ignore[arg-type]
+            FlextTestsMatchers.assert_result_success(result)
             formatted = result.value
             assert isinstance(formatted, str)
             # Should handle empty data gracefully
@@ -214,7 +214,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         # Perform multiple operations
         for i in range(50):
             result = self.utilities.escape_oracle_identifier(f"test_name_{i}")
-            FlextTestsMatchers.assert_result_success(result)  # type: ignore[arg-type]  # type: ignore[arg-type]  # type: ignore[arg-type]
+            FlextTestsMatchers.assert_result_success(result)
 
         end_time = time.time()
         elapsed = end_time - start_time
@@ -277,8 +277,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result1 = utilities1.escape_oracle_identifier("test_name")
         result2 = utilities2.escape_oracle_identifier("test_name")
 
-        FlextTestsMatchers.assert_result_success(result1)  # type: ignore[arg-type]
-        FlextTestsMatchers.assert_result_success(result2)  # type: ignore[arg-type]
+        FlextTestsMatchers.assert_result_success(result1)
+        FlextTestsMatchers.assert_result_success(result2)
         assert result1.value == result2.value  # Same input, same result
 
         # But instances should be independent objects

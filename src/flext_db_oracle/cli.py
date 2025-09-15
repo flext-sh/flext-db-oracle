@@ -11,9 +11,18 @@ from __future__ import annotations
 
 import json
 import sys
+from typing import TYPE_CHECKING
 
 from flext_cli import FlextCliMain
 from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
+
+if TYPE_CHECKING:
+    import yaml
+else:
+    try:
+        import yaml
+    except ImportError:
+        yaml = None
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
@@ -133,15 +142,10 @@ class FlextDbOracleCliService(FlextDomainService[str]):
                 return FlextResult[str].ok(json.dumps(data, indent=2))
             if output_format == "yaml":
                 # Simple YAML formatting
-                try:
-                    import yaml  # noqa: PLC0415
-
-                    data = {"title": title, "items": string_items}
-                    return FlextResult[str].ok(
-                        yaml.dump(data, default_flow_style=False)
-                    )
-                except ImportError:
+                if yaml is None:
                     return FlextResult[str].fail("YAML library not available")
+                data = {"title": title, "items": string_items}
+                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
             # Plain format
             output_lines = [title, *string_items]
             return FlextResult[str].ok("\n".join(output_lines))
@@ -151,20 +155,15 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             if output_format == "json":
                 return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
             if output_format == "yaml":
-                try:
-                    import yaml  # noqa: PLC0415
-
-                    return FlextResult[str].ok(
-                        yaml.dump(data, default_flow_style=False)
-                    )
-                except ImportError:
+                if yaml is None:
                     return FlextResult[str].fail("YAML library not available")
+                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
             return FlextResult[str].ok(str(data))
 
         def display_message(self, message: str) -> None:
             """Display message to user - direct output for CLI."""
             # Simple print output for CLI
-            print(message)  # noqa: T201
+            print(message)
 
     def execute_health_check(
         self,

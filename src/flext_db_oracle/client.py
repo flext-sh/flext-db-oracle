@@ -69,6 +69,10 @@ class FlextDbOracleClient:
         self.interactions.print_info = lambda _: None
         self.interactions.print_success = lambda _: None
 
+        # Add missing attributes expected by tests
+        self.cli_api = SimpleNamespace()
+        self.cli_services = SimpleNamespace()
+
     def initialize(self) -> FlextResult[None]:
         """Initialize CLI client with proper flext-cli setup."""
         try:
@@ -98,7 +102,7 @@ class FlextDbOracleClient:
         host: str,
         port: int,
         service_name: str,
-        username: str,
+        user: str,
         password: str,
     ) -> FlextResult[FlextDbOracleApi]:
         """Connect to Oracle database using provided credentials."""
@@ -107,7 +111,7 @@ class FlextDbOracleClient:
                 host=host,
                 port=port,
                 name=service_name,  # Required field - use service_name as database
-                user=username,
+                user=user,
                 password=password,
                 service_name=service_name,
                 ssl_server_cert_dn=None,

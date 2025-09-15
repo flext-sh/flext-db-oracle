@@ -323,9 +323,9 @@ class FlextDbOracleApi:
     # Configuration
 
     @classmethod
-    def from_env(cls) -> FlextResult[Self]:
+    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextResult[Self]:
         """Create API instance from environment variables."""
-        config_result = FlextDbOracleModels.OracleConfig.from_env()
+        config_result = FlextDbOracleModels.OracleConfig.from_env(prefix)
         if config_result.is_success:
             instance = cls.from_config(config_result.value)
             return FlextResult.ok(instance)
