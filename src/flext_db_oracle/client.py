@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
-from types import SimpleNamespace
 from typing import cast
 
 from flext_cli import (
     FlextCliApi,
     FlextCliFormatters,
     FlextCliInteractions,
+    FlextCliServices,
 )
 from flext_core import (
     FlextContainer,
@@ -70,7 +70,7 @@ class FlextDbOracleClient:
 
         # Initialize flext-cli API for proper FLEXT ecosystem integration
         self.cli_api = FlextCliApi()
-        self.cli_services = SimpleNamespace()
+        self.cli_services = FlextCliServices()
 
     def initialize(self) -> FlextResult[None]:
         """Initialize CLI client with proper flext-cli setup."""
