@@ -1,1 +1,0 @@
-TOAD for Oracle Scripts - Popular Oracle IDE scripts and utilities

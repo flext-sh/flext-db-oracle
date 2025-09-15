@@ -1,9 +1,0 @@
-#!/usr/bin/env python3
-"""FLEXT DB Oracle CLI executable script."""
-
-import sys
-
-from flext_db_oracle.cli.main import main
-
-if __name__ == "__main__":
-    sys.exit(main())
