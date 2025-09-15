@@ -428,7 +428,9 @@ class TestFlextDbOracleClientRealFunctionality:
                 "params": {"title": "Test Results"},
                 "result": [{"test": "value"}],
             }
-            format_result = strategy(test_data)
+            # Cast to expected type for formatter strategy
+            data_for_formatter = cast("dict[str, object]", test_data)
+            format_result = strategy(data_for_formatter)
             assert hasattr(format_result, "success")
 
         # Test _adapt_data_for_table
@@ -473,13 +475,15 @@ class TestFlextDbOracleClientRealFunctionality:
 
         # Test _format_as_json
         if hasattr(client, "_format_as_json"):
-            json_result = client._format_as_json(test_data)
+            data_for_json = cast("dict[str, object]", test_data)
+            json_result = client._format_as_json(data_for_json)
             assert hasattr(json_result, "success")
             # Should work with formatter
 
         # Test _format_as_table
         if hasattr(client, "_format_as_table"):
-            table_result = client._format_as_table(test_data)
+            data_for_table = cast("dict[str, object]", test_data)
+            table_result = client._format_as_table(data_for_table)
             assert hasattr(table_result, "success")
             # Should work with formatter
 
@@ -517,9 +521,9 @@ class TestFlextDbOracleClientRealFunctionality:
         # Test oracle_cli variable (may be None if flext-cli not available)
         # This tests the _create_oracle_cli function indirectly
         if oracle_cli is not None:
-            # If available, should have CLI interface
-            assert hasattr(oracle_cli, "execute") or hasattr(
-                oracle_cli, "get_command_history"
+            # If available, should have CLI interface methods
+            assert hasattr(oracle_cli, "execute_query") or hasattr(
+                oracle_cli, "run_cli_command"
             )
 
     def test_error_handling_comprehensive_real(self) -> None:

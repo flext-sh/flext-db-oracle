@@ -21,6 +21,7 @@ from flext_cli import (
 )
 from flext_core import (
     FlextContainer,
+    FlextDomainService,
     FlextLogger,
     FlextProcessing,
     FlextResult,
@@ -34,7 +35,7 @@ from flext_db_oracle.mixins import ConnectionParameters
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class FlextDbOracleClient:
+class FlextDbOracleClient(FlextDomainService[FlextTypes.Core.Dict]):
     """Unified Oracle database CLI client with ONLY flext-cli integration.
 
     Single class containing all CLI functionality without click dependencies,
@@ -43,6 +44,7 @@ class FlextDbOracleClient:
 
     def __init__(self, *, debug: bool = False) -> None:
         """Initialize Oracle CLI client with flext-cli components."""
+        super().__init__()  # Initialize FlextDomainService base
         self.logger = FlextLogger(__name__)
         # Simple CLI implementation without flext-cli dependencies
         self.logger.info("Oracle CLI client initialized")
@@ -615,65 +617,92 @@ class FlextDbOracleClient:
 
         return interpret_command
 
+    # Class-level singleton management
+    _client_instance: FlextDbOracleClient | None = None
 
-# Global client instance
-_client: FlextDbOracleClient | None = None
+    @classmethod
+    def get_client(cls) -> FlextDbOracleClient:
+        """Get or create global Oracle CLI client instance."""
+        if cls._client_instance is None:
+            client = cls()
+            init_result = client.initialize()
+            if not init_result.success:
+                # Use proper error reporting
+                sys.stderr.write(f"Failed to initialize Oracle CLI: {init_result.error}\n")
+                sys.exit(1)
+            cls._client_instance = client
+        return cls._client_instance
 
+    @staticmethod
+    def create_oracle_cli_commands() -> FlextResult[list[str]]:
+        """Create Oracle CLI commands using simple string list."""
+        try:
+            commands = [
+                "oracle-connect --host localhost --port 1521",
+                "oracle-query --sql 'SELECT 1 FROM DUAL'",
+                "oracle-schemas",
+                "oracle-tables --schema SYSTEM",
+                "oracle-health",
+                "oracle-wizard",
+            ]
 
-def get_client() -> FlextDbOracleClient:
-    """Get or create global Oracle CLI client instance."""
-    if globals().get("_client") is None:
-        client = FlextDbOracleClient()
-        init_result = client.initialize()
-        if not init_result.success:
-            # Use proper error reporting
-            sys.stderr.write(f"Failed to initialize Oracle CLI: {init_result.error}\n")
-            sys.exit(1)
-        globals()["_client"] = client
-    return cast("FlextDbOracleClient", globals()["_client"])
+            return FlextResult[list[str]].ok(commands)
 
-
-# FLEXT CLI Integration - NO CLICK DEPENDENCIES
-def create_oracle_cli_commands() -> FlextResult[list[str]]:
-    """Create Oracle CLI commands using simple string list."""
-    try:
-        commands = [
-            "oracle-connect --host localhost --port 1521",
-            "oracle-query --sql 'SELECT 1 FROM DUAL'",
-            "oracle-schemas",
-            "oracle-tables --schema SYSTEM",
-            "oracle-health",
-            "oracle-wizard",
-        ]
-
-        return FlextResult[list[str]].ok(commands)
-
-    except Exception as e:
-        return FlextResult[list[str]].fail(
-            f"Failed to create CLI commands: {e}",
-        )
-
-
-# Create Oracle CLI instance for external use
-def _create_oracle_cli() -> FlextResult[object]:
-    """Create Oracle CLI using simple implementation."""
-    try:
-        # Create Oracle commands
-        commands_result = create_oracle_cli_commands()
-        if not commands_result.success:
-            return FlextResult[object].fail(
-                f"Failed to create commands: {commands_result.error}"
+        except Exception as e:
+            return FlextResult[list[str]].fail(
+                f"Failed to create CLI commands: {e}",
             )
 
-        # Return simple CLI object
-        return FlextResult[object].ok(object())
-    except Exception as e:
-        return FlextResult[object].fail(f"CLI creation failed: {e}")
+    @classmethod
+    def _create_oracle_cli(cls) -> FlextResult[FlextDbOracleClient]:
+        """Create Oracle CLI using FlextDbOracleClient implementation."""
+        try:
+            # Create Oracle client instance
+            client = cls()
+            init_result = client.initialize()
+            if not init_result.success:
+                return FlextResult[FlextDbOracleClient].fail(
+                    f"Failed to initialize client: {init_result.error}"
+                )
+
+            return FlextResult[FlextDbOracleClient].ok(client)
+        except Exception as e:
+            return FlextResult[FlextDbOracleClient].fail(f"CLI creation failed: {e}")
+
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Execute default domain service operation - return client status."""
+        try:
+            status_data: FlextTypes.Core.Dict = {
+                "client_initialized": True,
+                "connection_active": self.current_connection is not None,
+                "user_preferences": self.user_preferences.copy(),
+                "debug_mode": self.debug,
+            }
+            return FlextResult[FlextTypes.Core.Dict].ok(status_data)
+        except Exception as e:
+            return FlextResult[FlextTypes.Core.Dict].fail(f"Client execution failed: {e}")
+
+    class _OracleCliFactory:
+        """Nested helper class for Oracle CLI instance management."""
+
+        @staticmethod
+        def create_cli_instance() -> FlextDbOracleClient | None:
+            """Create Oracle CLI instance - REAL IMPLEMENTATION using FlextDbOracleClient."""
+            oracle_cli_result = FlextDbOracleClient._create_oracle_cli()
+            return oracle_cli_result.value if oracle_cli_result.success else None
 
 
-# Oracle CLI instance - REAL IMPLEMENTATION using flext-cli
-_oracle_cli_result = _create_oracle_cli()
-oracle_cli = _oracle_cli_result.value if _oracle_cli_result.success else None
+# Oracle CLI instance - REAL IMPLEMENTATION using FlextDbOracleClient
+oracle_cli = FlextDbOracleClient._OracleCliFactory.create_cli_instance()
+
+# Backward compatibility functions that delegate to class methods
+def get_client() -> FlextDbOracleClient:
+    """Get or create global Oracle CLI client instance."""
+    return FlextDbOracleClient.get_client()
+
+def create_oracle_cli_commands() -> FlextResult[list[str]]:
+    """Create Oracle CLI commands using simple string list."""
+    return FlextDbOracleClient.create_oracle_cli_commands()
 
 
 # Export the main components - INCLUDING oracle_cli

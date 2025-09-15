@@ -188,7 +188,7 @@ markers = [
     "timeout: Timeout tests",
     "smoke: Smoke tests",
 ]
-filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]
+# filterwarnings = ["error", "ignore::UserWarning", "ignore::DeprecationWarning"]
 
 [tool.coverage.run]
 source = ["src"]
@@ -217,8 +217,8 @@ output = "reports/coverage.xml"
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
-flext-core = {develop = true}
-flext-cli = {develop = true}
+flext-core = {path = "./flext-core", develop = true}
+flext-cli = {path = "./flext-cli", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.12.3"

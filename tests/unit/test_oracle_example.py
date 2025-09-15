@@ -10,7 +10,7 @@ import contextlib
 
 from flext_core import FlextResult
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, OracleConfig
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -28,7 +28,7 @@ class TestRealOracleConnection:
 
     def test_real_connection_connect_disconnect(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test real Oracle connection and disconnection."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -51,7 +51,7 @@ class TestRealOracleConnection:
 
     def test_real_connection_execute_query(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test real Oracle query execution."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -83,7 +83,7 @@ class TestRealOracleConnection:
 
     def test_real_connection_fetch_one(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test real Oracle fetch_one."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -116,7 +116,7 @@ class TestRealOracleConnection:
 
     def test_real_connection_execute_many(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -194,7 +194,7 @@ class TestRealOracleApi:
 
     def test_real_api_connect_context_manager(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test real Oracle API with context manager."""
         with FlextDbOracleApi(real_oracle_config) as api:
@@ -294,18 +294,9 @@ class TestRealOracleApi:
             raise AssertionError(msg)
         # Success case - use modern .value access
         query_result = result.value
-        # For regular query, just verify we got data
-        if isinstance(query_result, list):
-            assert len(query_result) > 0
-        else:
-            # Handle QueryResult object if it has rows attribute
-            assert hasattr(query_result, "rows") or isinstance(
-                query_result, (list, tuple)
-            )
-            if hasattr(query_result, "rows"):
-                assert len(query_result.rows) > 0
-            else:
-                assert len(query_result) > 0
+        # For regular query, result is always a list of dictionaries
+        assert isinstance(query_result, list), f"Expected list, got {type(query_result)}"
+        assert len(query_result) > 0, "Expected at least one row in result"
 
     def test_real_api_singer_type_conversion(
         self,
@@ -381,7 +372,7 @@ class TestRealOracleApi:
 
             # Execute DDL - using modern .value access after failure check
             # Use execute method instead of non-existent execute_ddl
-            execute_result = connected_oracle_api.execute(ddl_sql)
+            execute_result = connected_oracle_api.execute_sql(ddl_sql)
             if execute_result.is_failure:
                 msg = f"DDL execution failed: {execute_result.error}"
                 raise AssertionError(msg)
@@ -415,7 +406,7 @@ class TestRealOracleApi:
             with contextlib.suppress(Exception):
                 # Use direct SQL instead of non-existent drop_table_ddl
                 drop_sql = f"DROP TABLE {table_name}"
-                connected_oracle_api.execute(drop_sql)
+                connected_oracle_api.execute_sql(drop_sql)
 
 
 class TestRealOracleErrorHandling:
@@ -423,7 +414,7 @@ class TestRealOracleErrorHandling:
 
     def test_real_connection_invalid_credentials(self) -> None:
         """Test connection with invalid credentials."""
-        invalid_config = FlextDbOracleConfig(
+        invalid_config = OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -445,7 +436,7 @@ class TestRealOracleErrorHandling:
 
     def test_real_connection_invalid_sql(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test execution with invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -472,7 +463,7 @@ class TestRealOracleErrorHandling:
 
     def test_real_api_not_connected_operations(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test API operations when not connected."""
         api = FlextDbOracleApi(real_oracle_config)

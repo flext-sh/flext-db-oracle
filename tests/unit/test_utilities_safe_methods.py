@@ -35,7 +35,7 @@ class TestModelDump:
         return json.dumps(data, indent=indent)
 
 
-class TestConsole:
+class MockConsole:
     """Real console implementation for testing."""
 
     def __init__(self) -> None:
@@ -87,7 +87,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should not raise exception with table format
-        TestConsole()
+        MockConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "table")
             assert result.is_success
@@ -107,7 +107,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should not raise exception with JSON format
-        TestConsole()
+        MockConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(query_result, "json")
             assert result.is_success
@@ -127,7 +127,7 @@ class TestFlextDbOracleUtilities:
         )
 
         # Should handle empty data gracefully
-        TestConsole()
+        MockConsole()
         try:
             result1 = FlextDbOracleUtilities.format_query_result(empty_result, "table")
             assert result1.is_success
@@ -283,7 +283,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
         )
 
         # Should handle large datasets
-        TestConsole()
+        MockConsole()
         try:
             FlextDbOracleUtilities.format_query_result(large_result, "table")
         except Exception as e:
@@ -301,7 +301,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
         )
 
         # Should handle complex data structures
-        TestConsole()
+        MockConsole()
         try:
             FlextDbOracleUtilities.format_query_result(complex_result, "json")
         except Exception as e:
@@ -352,7 +352,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
         )
 
         # Should handle slow query formatting
-        TestConsole()
+        MockConsole()
         try:
             result = FlextDbOracleUtilities.format_query_result(slow_result, "table")
             assert result.is_success

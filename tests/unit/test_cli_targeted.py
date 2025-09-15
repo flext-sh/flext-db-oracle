@@ -28,7 +28,7 @@ class TestCLIRealFunctionality:
             raise AssertionError(msg)
 
         # Test CLI API has required attributes
-        assert hasattr(oracle_cli, "execute")
+        assert hasattr(oracle_cli, "execute_query")
 
         # Test command history functionality - defensive check first
         get_history_method = getattr(oracle_cli, "get_command_history", None)
@@ -37,7 +37,7 @@ class TestCLIRealFunctionality:
             assert isinstance(history, list)
         else:
             # Command history may not be implemented - check if CLI has execute functionality
-            assert callable(getattr(oracle_cli, "execute", None))
+            assert callable(getattr(oracle_cli, "execute_query", None))
 
     def test_environment_configuration_real(self) -> None:
         """Test environment configuration using real API functionality."""

@@ -21,7 +21,7 @@ from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 from flext_db_oracle import (
     Column,
     FlextDbOracleApi,
-    FlextDbOracleConfig,
+    OracleConfig,
     Table,
     services as services_module,
 )
@@ -37,7 +37,7 @@ class TestDirectCoverageBoostAPI:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
-        bad_config = FlextDbOracleConfig(
+        bad_config = OracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
             user="invalid",
@@ -47,18 +47,18 @@ class TestDirectCoverageBoostAPI:
 
         api = FlextDbOracleApi(bad_config)
 
-        # Try operations that should trigger connection error paths
-        operations = [
-            api.test_connection,
-            api.get_schemas,
-            api.get_tables,
-            lambda: api.query("SELECT 1 FROM DUAL"),
-        ]
+        # Test operations individually with proper typing
+        result1 = api.test_connection()
+        assert result1.is_failure or result1.is_success
 
-        for operation in operations:
-            result = operation()
-            # Should handle errors gracefully
-            assert result.is_failure or result.is_success
+        result2 = api.get_schemas()
+        assert result2.is_failure or result2.is_success
+
+        result3 = api.get_tables()
+        assert result3.is_failure or result3.is_success
+
+        result4 = api.query("SELECT 1 FROM DUAL")
+        assert result4.is_failure or result4.is_success
 
     def test_api_schema_operations_1038_1058(
         self,
@@ -132,63 +132,28 @@ class TestDirectCoverageBoostConfig:
     def test_config_validation_edge_cases(self) -> None:
         """Test config validation edge cases for missed lines."""
         # Test various config scenarios that might not be covered
-        test_cases = [
-            # Empty/invalid values
-            {
-                "host": "",
-                "port": 1521,
-                "user": "test",
-                "password": "test",
-                "service_name": "test",
-            },
-            {
-                "host": "localhost",
-                "port": 0,
-                "user": "test",
-                "password": "test",
-                "service_name": "test",
-            },
-            {
-                "host": "localhost",
-                "port": 1521,
-                "user": "",
-                "password": "test",
-                "service_name": "test",
-            },
-            {
-                "host": "localhost",
-                "port": 1521,
-                "user": "test",
-                "password": "",
-                "service_name": "test",
-            },
-            {
-                "host": "localhost",
-                "port": 1521,
-                "user": "test",
-                "password": "test",
-                "service_name": "",
-            },
+        # Create configs individually to avoid type issues with dictionary unpacking
+        test_configs = [
+            # Empty/invalid values - these should fail validation
+            ("", 1521, "test", "test", "test"),  # empty host
+            ("localhost", 0, "test", "test", "test"),  # invalid port
+            ("localhost", 1521, "", "test", "test"),  # empty user
+            ("localhost", 1521, "test", "", "test"),  # empty password
+            ("localhost", 1521, "test", "test", ""),  # empty service_name
             # Edge values
-            {
-                "host": "localhost",
-                "port": 65535,
-                "user": "test",
-                "password": "test",
-                "service_name": "test",
-            },
-            {
-                "host": "localhost",
-                "port": 1,
-                "user": "test",
-                "password": "test",
-                "service_name": "test",
-            },
+            ("localhost", 65535, "test", "test", "test"),  # max port
+            ("localhost", 1, "test", "test", "test"),  # min port
         ]
 
-        for case in test_cases:
+        for host, port, user, password, service_name in test_configs:
             try:
-                config = FlextDbOracleConfig(**case)
+                config = OracleConfig(
+                    host=host,
+                    port=port,
+                    user=user,
+                    password=password,
+                    service_name=service_name,
+                )
                 # Should create config or fail gracefully
                 assert config is not None
             except (ValueError, TypeError):
@@ -214,7 +179,7 @@ class TestDirectCoverageBoostConfig:
 
         try:
             # Test config creation from environment (if supported)
-            config = FlextDbOracleConfig(
+            config = OracleConfig(
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
                 user=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
@@ -240,7 +205,7 @@ class TestDirectCoverageBoostConnection:
 
     def test_connection_edge_cases(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: OracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
@@ -250,8 +215,8 @@ class TestDirectCoverageBoostConnection:
         for _i in range(3):
             result = connection.connect()
             if result.is_success:
-                # Test connection status
-                assert connection._engine is not None
+                # Test connection status using public API
+                assert connection.is_connected()
 
                 # Test multiple disconnect calls
                 connection.disconnect()
@@ -260,7 +225,7 @@ class TestDirectCoverageBoostConnection:
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
         # Create connection with invalid config
-        bad_config = FlextDbOracleConfig(
+        bad_config = OracleConfig(
             host="invalid_host",
             port=9999,
             user="invalid",
@@ -281,8 +246,16 @@ class TestDirectCoverageBoostConnection:
         for operation in operations:
             try:
                 result = operation()
-                # Should handle errors gracefully
-                assert result.is_failure or result.is_success
+                # Different operations return different types
+                if hasattr(result, "is_failure") and hasattr(result, "is_success"):
+                    # FlextResult type
+                    assert result.is_failure or result.is_success
+                elif isinstance(result, bool):
+                    # Boolean return like is_connected()
+                    assert isinstance(result, bool)
+                else:
+                    # Other return types should be valid
+                    assert result is not None or result is None
             except (AttributeError, TypeError):
                 # Some operations might not exist or have different signatures
                 pass
@@ -297,15 +270,11 @@ class TestDirectCoverageBoostTypes:
         # Column validation edge cases
         try:
             column = Column(
-                column_name="TEST_COLUMN",
-                column_id=1,
+                name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
-                data_length=100,
-                data_precision=None,
-                data_scale=None,
             )
-            assert column.column_name == "TEST_COLUMN"
+            assert column.name == "TEST_COLUMN"
         except (TypeError, ValueError):
             # Should handle validation errors
             pass
@@ -313,22 +282,26 @@ class TestDirectCoverageBoostTypes:
         # Table validation edge cases
         try:
             table = Table(
-                table_name="TEST_TABLE",
-                schema_name="TEST_SCHEMA",
+                name="TEST_TABLE",
+                owner="TEST_SCHEMA",
                 columns=[],  # Empty columns
             )
-            assert table.table_name == "TEST_TABLE"
+            assert table.name == "TEST_TABLE"
         except (TypeError, ValueError):
             # Should handle validation errors
             pass
 
-        # Schema validation edge cases
+        # Schema validation through valid column/table creation
         try:
-            # Skip Schema instantiation as it's an abstract class requiring validate_business_rules implementation
-            # This test was meant to test schema validation but Schema is abstract
-            # Using FlextDbOracleModels.SchemaInfo would also be abstract
-            # We'll test schema validation through API methods instead
-            assert True  # Placeholder for schema validation tests via API
+            # Test edge case column properties
+            column2 = Column(
+                name="EDGE_COL",
+                data_type="NUMBER",
+                nullable=False,
+                default_value="0"
+            )
+            assert hasattr(column2, "name")
+            assert hasattr(column2, "data_type")
         except (TypeError, ValueError, NotImplementedError):
             # Should handle validation errors and abstract method errors
             pass
@@ -342,21 +315,26 @@ class TestDirectCoverageBoostTypes:
             nullable=False,
         )
 
-        # Test various property combinations
-        properties_to_test = [
-            lambda: column.full_type_spec,
-            lambda: column.is_key_column,
-            lambda: str(column),
-            lambda: repr(column),
-        ]
+        # Test actual properties that exist on Column model
+        assert column.name == "ID"
+        assert column.data_type == "NUMBER"
+        assert column.nullable is False
 
-        for prop_func in properties_to_test:
-            try:
-                result = prop_func()
-                assert result is not None
-            except (AttributeError, TypeError):
-                # Some properties might not exist
-                pass
+        # Test string representations
+        str_repr = str(column)
+        assert str_repr is not None
+
+        repr_str = repr(column)
+        assert repr_str is not None
+
+        # Test with default value
+        column_with_default = Column(
+            name="TEST_COL",
+            data_type="VARCHAR2",
+            nullable=True,
+            default_value="DEFAULT_VALUE"
+        )
+        assert column_with_default.default_value == "DEFAULT_VALUE"
 
 
 class TestDirectCoverageBoostObservability:
@@ -443,7 +421,7 @@ class TestDirectCoverageBoostServices:
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
         # Test SQL builder with various scenarios through services
-        config = FlextDbOracleConfig(
+        config = OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -524,16 +502,13 @@ class TestDirectCoverageBoostServices:
             # Test connection state methods (without actually connecting)
             assert not services.is_connected()
 
-            # Test URL building (critical path not often covered)
-            try:
-                url_result = services._build_connection_url()
-                # Should succeed or fail gracefully
-                assert url_result is not None
-                if url_result.is_success:
-                    assert "oracle" in url_result.value.lower()
-            except AttributeError:
-                # Method might be private or named differently
-                pass
+            # Test connection functionality (without actual Oracle server)
+            # Test connection attempt - this internally uses URL building
+            result = services.connect()
+            # Should fail gracefully without Oracle server but URL building should work
+            assert hasattr(result, "is_failure")  # Should return FlextResult
+            # Expected to fail without Oracle server - check that it's a proper failure
+            assert result.is_failure
 
     def test_services_sql_generation_comprehensive(self) -> None:
         """Test SQL generation methods comprehensively for 100% coverage."""
@@ -551,25 +526,26 @@ class TestDirectCoverageBoostServices:
         # Test all SQL generation methods
         sql_test_cases = [
             {
-                "method": "build_select_safe",
+                "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),
             },
             {
                 "method": "build_insert_statement",
-                "args": ("test_table", {"id": 1, "name": "test"}),
+                "args": ("test_table", ["id", "name"]),
             },
             {
                 "method": "build_update_statement",
-                "args": ("test_table", {"name": "updated"}, {"id": 1}),
+                "args": ("test_table", ["name"], ["id"]),
             },
             {
                 "method": "build_delete_statement",
-                "args": ("test_table", {"id": 1}),
+                "args": ("test_table", ["id"]),
             },
         ]
 
-        for case in sql_test_cases:
-            method_name = case["method"]
+        for case_dict in sql_test_cases:
+            case = cast("dict[str, str | tuple[str, ...]]", case_dict)
+            method_name = str(case["method"])
             args = case["args"]
 
             try:

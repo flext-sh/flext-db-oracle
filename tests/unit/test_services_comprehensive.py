@@ -247,7 +247,7 @@ class TestFlextDbOracleServicesBasic:
         assert "UPDATE" in update_result.value
         assert "SET" in update_result.value
         assert "WHERE" in update_result.value
-        assert "name = :name" in update_result.value
+        assert "name=:name" in update_result.value
 
     def test_service_delete_statement_building(self) -> None:
         """Test DELETE statement building."""

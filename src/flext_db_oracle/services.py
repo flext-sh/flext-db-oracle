@@ -389,6 +389,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 self._metadata,
                 Column("id", Integer),
                 Column("name", String(255)),
+                Column("email", String(255)),
                 schema=validated_schema,
                 autoload_with=None,
                 extend_existing=True,

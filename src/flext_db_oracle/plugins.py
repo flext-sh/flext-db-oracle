@@ -8,10 +8,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
-class FlextDbOraclePlugins:
+class FlextDbOraclePlugins(FlextUtilities):
     """Single consolidated Oracle plugins class.
 
     Following flext-core pattern: one class per module, all functionality consolidated.

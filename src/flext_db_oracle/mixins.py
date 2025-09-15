@@ -11,12 +11,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from flext_core import FlextResult, FlextTypes, FlextValidations
+from flext_core import FlextMixins, FlextResult, FlextTypes, FlextValidations
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleMixins:
+class FlextDbOracleMixins(FlextMixins):
     """Unified Oracle utilities using flext-core exclusively.
 
     NO LOCAL IMPLEMENTATIONS - everything delegates to flext-core.

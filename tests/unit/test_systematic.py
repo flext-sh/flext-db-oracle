@@ -14,8 +14,8 @@ from click.testing import CliRunner
 from flext_db_oracle import (
     Column,
     FlextDbOracleApi,
-    FlextDbOracleConfig,
     FlextDbOraclePlugins,
+    OracleConfig,
     Table,
     oracle_cli,
 )
@@ -55,7 +55,7 @@ class TestAPIMissedLines:
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
         # Create API without connecting
-        config = FlextDbOracleConfig(
+        config = OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -64,20 +64,24 @@ class TestAPIMissedLines:
         )
         api = FlextDbOracleApi(config)
 
-        # Try to call methods that should trigger connection manager paths
-        operations_to_test = [
-            api.test_connection,
-            api.get_schemas,
-            api.get_tables,
-        ]
+        # Test each method individually with proper typing
+        result1 = api.test_connection()
+        assert hasattr(result1, "is_success")
+        assert result1.is_success or (
+            hasattr(result1, "is_failure") and result1.is_failure
+        )
 
-        for operation in operations_to_test:
-            result = operation()
-            # These should either succeed (if connection works) or fail gracefully
-            assert hasattr(result, "success")
-            assert result.is_success or (
-                hasattr(result, "is_failure") and result.is_failure
-            )
+        result2 = api.get_schemas()
+        assert hasattr(result2, "is_success")
+        assert result2.is_success or (
+            hasattr(result2, "is_failure") and result2.is_failure
+        )
+
+        result3 = api.get_tables()
+        assert hasattr(result3, "is_success")
+        assert result3.is_success or (
+            hasattr(result3, "is_failure") and result3.is_failure
+        )
 
     def test_api_query_operations_571_610(
         self,
@@ -124,24 +128,33 @@ class TestAPIMissedLines:
         connected_api = connect_result.value
 
         try:
-            # Test operations that should trigger schema operation paths
-            schema_operations = [
-                lambda: connected_api.get_tables("NONEXISTENT_SCHEMA"),
-                lambda: connected_api.get_columns(
-                    "NONEXISTENT_TABLE",
-                    "NONEXISTENT_SCHEMA",
-                ),
-                connected_api.get_schemas,  # Should work
-                lambda: connected_api.get_tables("FLEXTTEST"),  # Should work
-            ]
+            # Test operations individually with proper typing
+            result1 = connected_api.get_tables("NONEXISTENT_SCHEMA")
+            assert hasattr(result1, "is_success")
+            assert result1.is_success or (
+                hasattr(result1, "is_failure") and result1.is_failure
+            )
 
-            for operation in schema_operations:
-                result = operation()
-                # Should handle both success and failure cases
-                assert hasattr(result, "success")
-                assert result.is_success or (
-                    hasattr(result, "is_failure") and result.is_failure
-                )
+            result2 = connected_api.get_columns(
+                "NONEXISTENT_TABLE",
+                "NONEXISTENT_SCHEMA",
+            )
+            assert hasattr(result2, "is_success")
+            assert result2.is_success or (
+                hasattr(result2, "is_failure") and result2.is_failure
+            )
+
+            result3 = connected_api.get_schemas()
+            assert hasattr(result3, "is_success")
+            assert result3.is_success or (
+                hasattr(result3, "is_failure") and result3.is_failure
+            )
+
+            result4 = connected_api.get_tables("FLEXTTEST")
+            assert hasattr(result4, "is_success")
+            assert result4.is_success or (
+                hasattr(result4, "is_failure") and result4.is_failure
+            )
 
         finally:
             connected_api.disconnect()
@@ -155,7 +168,7 @@ class TestConnectionMissedLines:
     ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         # Create connection with invalid config to trigger error paths
-        bad_config = FlextDbOracleConfig(
+        bad_config = OracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
             user="invalid",
@@ -184,7 +197,7 @@ class TestConnectionMissedLines:
         self,
     ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
-        config = FlextDbOracleConfig(
+        config = OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -216,53 +229,48 @@ class TestTypesMissedLines:
     def test_types_validation_lines_120_132(self) -> None:
         """Test type validation paths (EXACT lines 120-132)."""
         # Test various column configurations to trigger validation paths
-        test_configurations = [
-            # Valid configuration
-            {
-                "column_name": "TEST_COL",
-                "column_id": 1,
-                "data_type": "VARCHAR2",
-                "nullable": True,
-                "data_length": 100,
-                "data_precision": None,
-                "data_scale": None,
-            },
-            # Configuration with precision
-            {
-                "column_name": "NUM_COL",
-                "column_id": 2,
-                "data_type": "NUMBER",
-                "nullable": False,
-                "data_length": None,
-                "data_precision": 10,
-                "data_scale": 2,
-            },
-            # Edge case configuration
-            {
-                "column_name": "EDGE_COL",
-                "column_id": 3,
-                "data_type": "DATE",
-                "nullable": True,
-                "data_length": None,
-                "data_precision": None,
-                "data_scale": None,
-            },
-        ]
+        # Valid configuration
+        try:
+            column1 = Column(
+                name="TEST_COL",
+                data_type="VARCHAR2",
+                nullable=True,
+            )
+            assert column1.name == "TEST_COL"
+            assert column1.data_type == "VARCHAR2"
+            str_repr = str(column1)
+            assert str_repr is not None
+        except (TypeError, ValueError):
+            pass  # Expected validation error
 
-        for config in test_configurations:
-            try:
-                column = Column(**config)
-                # Test property methods to trigger more lines
-                assert column.name == config["column_name"]
-                assert column.data_type == config["data_type"]
+        # Configuration with non-nullable
+        try:
+            column2 = Column(
+                name="NUM_COL",
+                data_type="NUMBER",
+                nullable=False,
+            )
+            assert column2.name == "NUM_COL"
+            assert column2.data_type == "NUMBER"
+            str_repr = str(column2)
+            assert str_repr is not None
+        except (TypeError, ValueError):
+            pass  # Expected validation error
 
-                # Test string representations if they exist
-                str_repr = str(column)
-                assert str_repr is not None
-
-            except (TypeError, ValueError):
-                # Should handle validation errors gracefully
-                pass  # Expected validation error
+        # Edge case configuration
+        try:
+            column3 = Column(
+                name="EDGE_COL",
+                data_type="DATE",
+                nullable=True,
+                default_value="SYSDATE",
+            )
+            assert column3.name == "EDGE_COL"
+            assert column3.data_type == "DATE"
+            str_repr = str(column3)
+            assert str_repr is not None
+        except (TypeError, ValueError):
+            pass  # Expected validation error  # Expected validation error  # Expected validation error
 
     def test_types_property_methods_175_187(self) -> None:
         """Test type property methods (EXACT lines 175-187)."""

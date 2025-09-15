@@ -459,14 +459,19 @@ Use --help with any command for detailed options.
         self._OutputFormatter(self._cli_main).display_message(f"❌ {error_msg}")
         return FlextResult[str].fail(error_msg)
 
+    @staticmethod
+    def main() -> None:
+        """Main CLI entry point using flext-cli exclusively."""
+        cli_service = FlextDbOracleCliService()
+        result = cli_service.run_cli()
+
+        if result.is_failure:
+            sys.exit(1)
+
 
 def main() -> None:
     """Main CLI entry point using flext-cli exclusively."""
-    cli_service = FlextDbOracleCliService()
-    result = cli_service.run_cli()
-
-    if result.is_failure:
-        sys.exit(1)
+    FlextDbOracleCliService.main()
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ from flext_core import FlextDecorators, FlextResult, FlextTypes, FlextUtilities
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class FlextDbOracleUtilities:
+class FlextDbOracleUtilities(FlextUtilities):
     """Oracle Database utilities using flext-core modern API.
 
     Uses FlextUtilities direct functions to reduce complexity and eliminate inheritance.

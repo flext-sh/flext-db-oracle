@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 logger = FlextLogger(__name__)
 
@@ -26,7 +26,7 @@ class OracleExampleProcessor(FlextDomainService[str]):
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query."""
         try:
-            config_result = FlextDbOracleConfig.from_env()
+            config_result = OracleConfig.from_env()
             if not config_result.is_success:
                 return FlextResult[FlextDbOracleApi].fail(
                     config_result.error or "Failed to load configuration"
@@ -72,7 +72,7 @@ def demonstrate_basic_operations() -> None:
 def demonstrate_query_operations() -> None:
     """Query operations usando Railway-Oriented Programming."""
     try:
-        config_result = FlextDbOracleConfig.from_env()
+        config_result = OracleConfig.from_env()
         if not config_result.is_success:
             logger.error(f"❌ Configuration failed: {config_result.error}")
             return

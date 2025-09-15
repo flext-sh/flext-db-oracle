@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ def demonstrate_real_functionality() -> None:
 
     try:
         # 1. Create configuration from environment
-        config_result = FlextDbOracleConfig.from_env()
+        config_result = OracleConfig.from_env()
         if not config_result.is_success:
             logger.error(f"❌ Configuration failed: {config_result.error}")
             return

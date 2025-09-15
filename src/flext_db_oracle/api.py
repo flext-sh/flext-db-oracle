@@ -14,7 +14,7 @@ import contextlib
 from collections.abc import Sequence
 from typing import Self
 
-from flext_core import FlextLogger, FlextResult, FlextTypes
+from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -22,7 +22,7 @@ from flext_db_oracle.services import FlextDbOracleServices
 logger = FlextLogger(__name__)
 
 
-class FlextDbOracleApi:
+class FlextDbOracleApi(FlextDomainService[FlextTypes.Core.Dict]):
     """Oracle Database API with clean delegation to services layer.
 
     This API provides a clean interface to Oracle database operations
@@ -34,6 +34,7 @@ class FlextDbOracleApi:
         self, config: FlextDbOracleModels.OracleConfig, context_name: str | None = None
     ) -> None:
         """Initialize API with Oracle configuration."""
+        super().__init__()  # Initialize FlextDomainService base
         self._config = config
         self._services = FlextDbOracleServices(config=config)
         self._context_name = context_name or "oracle-api"
@@ -128,7 +129,7 @@ class FlextDbOracleApi:
         """Execute a SELECT query and return first result or None."""
         return self._services.fetch_one(sql, parameters or {})
 
-    def execute(
+    def execute_sql(
         self,
         sql: str,
         parameters: FlextTypes.Core.Dict | None = None,
@@ -143,6 +144,23 @@ class FlextDbOracleApi:
     ) -> FlextResult[int]:
         """Execute a statement multiple times with different parameters."""
         return self._services.execute_many(sql, list(parameters_list))
+
+    def execute_statement(
+        self,
+        sql: str | object,  # Accept both string and SQLAlchemy objects
+        parameters: FlextTypes.Core.Dict | None = None,
+    ) -> FlextResult[int]:
+        """Execute SQL statement directly and return affected rows."""
+        try:
+            # Handle SQLAlchemy objects by converting to string
+            if hasattr(sql, "__str__") and not isinstance(sql, str):
+                sql_text = str(sql)
+            else:
+                sql_text = str(sql)
+
+            return self._services.execute_statement(sql_text, parameters or {})
+        except Exception as e:
+            return FlextResult[int].fail(f"Statement execution failed: {e}")
 
     # Schema Introspection
     def get_schemas(self) -> FlextResult[FlextTypes.Core.StringList]:
@@ -384,8 +402,8 @@ class FlextDbOracleApi:
             )
 
     # Additional methods demanded by tests and real usage
-    def execute_sql(self, sql: str) -> FlextResult[FlextDbOracleModels.QueryResult]:
-        """Execute SQL query and return results."""
+    def execute_query_sql(self, sql: str) -> FlextResult[FlextDbOracleModels.QueryResult]:
+        """Execute SQL query and return results as QueryResult."""
         try:
             # Delegate to services layer
             result = self._services.execute_query(sql)
@@ -457,6 +475,13 @@ class FlextDbOracleApi:
                 # Log cleanup attempt but suppress errors during context exit
                 logger.debug("Attempting disconnect during context manager exit")
                 self._services.disconnect()
+
+    def execute(self) -> FlextResult[FlextTypes.Core.Dict]:
+        """Execute default domain service operation - return API status."""
+        try:
+            return FlextResult[FlextTypes.Core.Dict].ok(self.to_dict())
+        except Exception as e:
+            return FlextResult[FlextTypes.Core.Dict].fail(f"API execution failed: {e}")
 
     def __repr__(self) -> str:
         """Return string representation of the API instance."""

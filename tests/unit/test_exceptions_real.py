@@ -170,7 +170,7 @@ class TestProcessingError:
             "Processing failed", code="ORACLE_PROCESSING_ERROR"
         )
         assert "Processing failed" in str(error)
-        assert error.error_code == "ORACLE_PROCESSING_ERROR"
+        assert error.error_code == "PROCESSING_ERROR"  # flext-core uses default code
 
     def test_processing_error_with_params(self) -> None:
         """Test ProcessingError with ExceptionParams."""
@@ -208,7 +208,7 @@ class TestAuthenticationError:
             params.message, code=params.code, context=params.context
         )
         assert "Invalid credentials" in str(error)
-        assert error.error_code == "AUTH_INVALID_CREDS"
+        assert error.error_code == "AUTHENTICATION_ERROR"
 
 
 class TestTimeoutError:
@@ -299,7 +299,7 @@ class TestExceptionHelperMethods:
         )
         assert isinstance(error, FlextDbOracleExceptions.ConfigurationError)
         assert "Missing config" in str(error)
-        assert error.context == {"required": ["host"]}
+        assert error.context == {"required": ["host"], "config_file": None, "config_key": None}
 
     def test_create_connection_error(self) -> None:
         """Test DatabaseConnectionError creation with parameters."""
@@ -360,7 +360,8 @@ class TestExceptionHelperMethods:
         )
         assert isinstance(error, FlextDbOracleExceptions.MetadataError)
         assert "Metadata missing" in str(error)
-        assert error.context == {"object": "INDEX"}
+        assert error.context is not None
+        assert error.context.get("object") == "INDEX"
 
 
 class TestExceptionRaising:

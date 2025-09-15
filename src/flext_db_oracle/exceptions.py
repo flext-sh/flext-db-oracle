@@ -13,59 +13,53 @@ from dataclasses import dataclass
 from flext_core import FlextExceptions, FlextTypes
 
 
-@dataclass(frozen=True)
-class ExceptionParams:
-    """Exception parameters for Oracle database exceptions."""
-
-    message: str
-    code: str | None = None
-    context: FlextTypes.Core.Dict | None = None
-
-    def __post_init__(self) -> None:
-        """Validate exception parameters."""
-        if not self.message or not self.message.strip():
-            msg = "Exception message cannot be empty"
-            raise ValueError(msg)
-
-
-class OracleErrorCodes:
-    """Oracle-specific error codes."""
-
-    VALIDATION_ERROR = "ORACLE_VALIDATION_ERROR"
-    CONFIGURATION_ERROR = "ORACLE_CONFIGURATION_ERROR"
-    CONNECTION_ERROR = "ORACLE_CONNECTION_ERROR"
-    AUTHENTICATION_ERROR = "ORACLE_AUTHENTICATION_ERROR"
-    PROCESSING_ERROR = "ORACLE_PROCESSING_ERROR"
-    TIMEOUT_ERROR = "ORACLE_TIMEOUT_ERROR"
-    QUERY_ERROR = "ORACLE_QUERY_ERROR"
-    METADATA_ERROR = "ORACLE_METADATA_ERROR"
-
-
-class FlextDbOracleExceptions:
+class FlextDbOracleExceptions(FlextExceptions):
     """Unified Oracle Database Exception System using flext-core exclusively.
 
     NO LOCAL IMPLEMENTATIONS - everything delegates to flext-core.
     Uses FlextExceptions.create_module_exception_classes for automatic generation.
     """
 
+    # Nested helper classes (single class per module pattern)
+    @dataclass(frozen=True)
+    class _ExceptionParams:
+        """Exception parameters for Oracle database exceptions."""
+
+        message: str
+        code: str | None = None
+        context: FlextTypes.Core.Dict | None = None
+
+        def __post_init__(self) -> None:
+            """Validate exception parameters."""
+            if not self.message or not self.message.strip():
+                msg = "Exception message cannot be empty"
+                raise ValueError(msg)
+
+    class _OracleErrorCodes:
+        """Oracle-specific error codes."""
+
+        VALIDATION_ERROR = "ORACLE_VALIDATION_ERROR"
+        CONFIGURATION_ERROR = "ORACLE_CONFIGURATION_ERROR"
+        CONNECTION_ERROR = "ORACLE_CONNECTION_ERROR"
+        AUTHENTICATION_ERROR = "ORACLE_AUTHENTICATION_ERROR"
+        PROCESSING_ERROR = "ORACLE_PROCESSING_ERROR"
+        TIMEOUT_ERROR = "ORACLE_TIMEOUT_ERROR"
+        QUERY_ERROR = "ORACLE_QUERY_ERROR"
+        METADATA_ERROR = "ORACLE_METADATA_ERROR"
+
     # Exception parameters and error codes
-    ExceptionParams = ExceptionParams
-    OracleErrorCodes = OracleErrorCodes
+    ExceptionParams = _ExceptionParams
+    OracleErrorCodes = _OracleErrorCodes
 
-    # Generate all Oracle exception classes using flext-core
-    _oracle_exceptions = FlextExceptions.create_module_exception_classes(
-        "FLEXT_DB_ORACLE"
-    )
-
-    # Direct access to all generated exception classes
-    BaseError = _oracle_exceptions["FLEXT_DB_ORACLEBaseError"]
-    Error = BaseError  # Alias for backward compatibility
-    ValidationError = _oracle_exceptions["FLEXT_DB_ORACLEValidationError"]
-    ConfigurationError = _oracle_exceptions["FLEXT_DB_ORACLEConfigurationError"]
-    ConnectionError = _oracle_exceptions["FLEXT_DB_ORACLEConnectionError"]
-    AuthenticationError = _oracle_exceptions["FLEXT_DB_ORACLEAuthenticationError"]
-    ProcessingError = _oracle_exceptions["FLEXT_DB_ORACLEProcessingError"]
-    TimeoutError = _oracle_exceptions["FLEXT_DB_ORACLETimeoutError"]
+    # Use FlextExceptions directly - no module generation needed
+    BaseError = FlextExceptions.BaseError
+    # Error is inherited from FlextExceptions base class
+    ValidationError = FlextExceptions.ValidationError
+    ConfigurationError = FlextExceptions.ConfigurationError
+    ConnectionError = FlextExceptions.ConnectionError
+    AuthenticationError = FlextExceptions.AuthenticationError
+    ProcessingError = FlextExceptions.ProcessingError
+    TimeoutError = FlextExceptions.TimeoutError
 
     # Additional Oracle-specific aliases using existing base classes
     DatabaseConnectionError = ConnectionError

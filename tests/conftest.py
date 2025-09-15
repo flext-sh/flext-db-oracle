@@ -21,7 +21,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 TEST_ORACLE_PASSWORD = "FlextTest123"
 
 
-class TestOperationError(Exception):
+class OperationTestError(Exception):
     """Custom exception for test operations to avoid TRY003 lint warnings."""
 
     def __init__(self, operation: str, error: str) -> None:

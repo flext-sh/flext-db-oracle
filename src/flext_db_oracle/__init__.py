@@ -7,7 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.cli import FlextDbOracleCliService
+
+# from flext_db_oracle.cli import FlextDbOracleCliService
 from flext_db_oracle.client import (
     FlextDbOracleClient,
     create_oracle_cli_commands,
@@ -42,7 +43,7 @@ from flext_db_oracle.plugins import FlextDbOraclePlugins
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-FlextDbOracleConfig = FlextDbOracleModels.OracleConfig
+# FlextDbOracleConfig alias removed - use OracleConfig directly
 
 __all__ = [
     "Column",
@@ -51,9 +52,8 @@ __all__ = [
     "CreateIndexConfig",
     "ErrorContextTransformer",
     "FlextDbOracleApi",
-    "FlextDbOracleCliService",
+    # "FlextDbOracleCliService",
     "FlextDbOracleClient",
-    "FlextDbOracleConfig",
     "FlextDbOracleConstants",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",

@@ -199,13 +199,11 @@ class TestFlextDbOracleClientReal:
         assert not result.is_success
 
         # Test configuration with malformed data
-        try:
-            bad_result = client.configure_preferences(valid_key=None)
-            # Should handle gracefully
-            assert isinstance(bad_result, FlextResult)
-        except Exception:
-            # Some parameter combinations might raise exceptions
-            pass
+        bad_result = client.configure_preferences(valid_key=None)
+        # Should handle gracefully and return FlextResult
+        assert isinstance(bad_result, FlextResult)
+        # The method handles None values gracefully (returns success with warning)
+        assert bad_result.is_success
 
     def test_client_preferences_persistence(self) -> None:
         """Test that preference changes persist within client instance."""

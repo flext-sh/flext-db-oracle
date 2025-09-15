@@ -23,18 +23,42 @@ ORACLE_IDENTIFIER_PATTERN = r"^[A-Z][A-Z0-9_$#]*$"
 MAX_HOSTNAME_LENGTH = 253
 
 
-class FlextDbOracleModels:
+class FlextDbOracleModels(FlextModels):
     """Oracle database models using flext-core exclusively - ZERO duplication."""
 
     # Use flext-core for ALL model functionality - NO custom implementations
 
+    # Nested validation helper (single class per module pattern)
+    class _OracleValidation:
+        """Centralized Oracle validation using flext-core exclusively."""
+
+        @staticmethod
+        def validate_identifier(identifier: str) -> FlextResult[str]:
+            """Validate Oracle identifier using flext-core BusinessValidators - Single Source of Truth."""
+            result = FlextValidations.BusinessValidators.validate_string_field(
+                identifier.upper(),
+                min_length=1,
+                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
+                pattern=ORACLE_IDENTIFIER_PATTERN,
+            )
+            if result.is_failure:
+                error_msg = f"Invalid Oracle identifier: {result.error}"
+                return FlextResult[str].fail(error_msg)
+            return FlextResult[str].ok(result.unwrap())
+
     # Base models from flext-core
     Entity = FlextModels.Entity
     Value = FlextModels.Value
-    TimestampedModel = FlextModels.TimestampedModel
 
     # Database configuration from flext-core
-    DatabaseConfig = FlextModels.SystemConfigs.DatabaseConfig
+    DatabaseConfig = FlextModels.DatabaseConfig
+
+    # Oracle-specific field definitions using flext-core patterns
+    host_field = Field(default="localhost", description="Oracle database host")
+    port_field = Field(default=1521, description="Oracle database port")
+    username_field = Field(..., description="Oracle database username")
+    password_field = Field(..., description="Oracle database password")
+    service_name_field = Field(default="XE", description="Oracle service name")
 
     class OracleConfig(FlextModels.SystemConfigs.DatabaseConfig):
         """Oracle-specific configuration extending flext-core DatabaseConfig."""
@@ -335,20 +359,5 @@ __all__: FlextTypes.Core.StringList = [
 ]
 
 
-# Centralized validation methods - Single Source of Truth
-class OracleValidation:
-    """Centralized Oracle validation using flext-core exclusively."""
-
-    @staticmethod
-    def validate_identifier(identifier: str) -> FlextResult[str]:
-        """Validate Oracle identifier using flext-core BusinessValidators - Single Source of Truth."""
-        result = FlextValidations.BusinessValidators.validate_string_field(
-            identifier.upper(),
-            min_length=1,
-            max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-            pattern=ORACLE_IDENTIFIER_PATTERN,
-        )
-        if result.is_failure:
-            error_msg = f"Invalid Oracle identifier: {result.error}"
-            return FlextResult[str].fail(error_msg)
-        return FlextResult[str].ok(result.unwrap())
+# Expose validation methods through the unified class
+OracleValidation = FlextDbOracleModels._OracleValidation
