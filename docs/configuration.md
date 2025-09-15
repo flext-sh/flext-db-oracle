@@ -38,13 +38,13 @@ api = FlextDbOracleApi(config)
 
 ## Connection Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| host | str | - | Oracle server hostname |
-| port | int | 1521 | Oracle port number |
-| service_name | str | - | Oracle service name |
-| user | str | - | Oracle username |
-| password | str | - | Oracle password |
+| Parameter    | Type | Default | Description            |
+| ------------ | ---- | ------- | ---------------------- |
+| host         | str  | -       | Oracle server hostname |
+| port         | int  | 1521    | Oracle port number     |
+| service_name | str  | -       | Oracle service name    |
+| user         | str  | -       | Oracle username        |
+| password     | str  | -       | Oracle password        |
 
 ## Testing Connection
 

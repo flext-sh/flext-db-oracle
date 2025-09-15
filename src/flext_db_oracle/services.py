@@ -378,7 +378,9 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
             validated_table = OracleValidation.validate_identifier(table_name).unwrap()
             validated_schema = None
             if schema_name:
-                validated_schema = OracleValidation.validate_identifier(schema_name).unwrap()
+                validated_schema = OracleValidation.validate_identifier(
+                    schema_name
+                ).unwrap()
 
             # Create a dynamic table with common column types for query building
             # This allows SQLAlchemy to handle SQL injection prevention
@@ -389,7 +391,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 Column("name", String(255)),
                 schema=validated_schema,
                 autoload_with=None,
-                extend_existing=True
+                extend_existing=True,
             )
 
         def build_select(
@@ -416,7 +418,9 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 # Build SELECT statement using SQLAlchemy 2.0 Core API
                 if columns:
                     # For specific columns, use text() for dynamic column selection
-                    validated_columns = [col for col in columns if self._is_safe_identifier(col)]
+                    validated_columns = [
+                        col for col in columns if self._is_safe_identifier(col)
+                    ]
                     column_exprs = [text(col) for col in validated_columns]
                     stmt = select(*column_exprs).select_from(table)
                 else:
@@ -809,10 +813,14 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 # Use SQLAlchemy 2.0 Core API for modern SQL generation
                 # Create a Table object for the count query
                 metadata = MetaData()
-                validated_table = OracleValidation.validate_identifier(table_name).unwrap()
+                validated_table = OracleValidation.validate_identifier(
+                    table_name
+                ).unwrap()
                 validated_schema = None
                 if schema_name:
-                    validated_schema = OracleValidation.validate_identifier(schema_name).unwrap()
+                    validated_schema = OracleValidation.validate_identifier(
+                        schema_name
+                    ).unwrap()
 
                 table = Table(
                     validated_table,
@@ -820,7 +828,7 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                     Column("id", Integer),  # Placeholder column
                     schema=validated_schema,
                     autoload_with=None,
-                    extend_existing=True
+                    extend_existing=True,
                 )
 
                 # Build COUNT query using SQLAlchemy 2.0 Core API

@@ -1,6 +1,6 @@
 # flext-db-oracle
 
-**Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **python-oracledb** with FLEXT patterns.
+**Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **Python-oracledb** with FLEXT patterns.
 
 > **⚠️ STATUS**: Functional foundation with critical gaps. CLI formatters incomplete, no async support, missing modern Oracle features.
 
@@ -31,25 +31,27 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 
 ### FLEXT-Core Integration Status
 
-| Pattern             | Status | Description                    |
-| ------------------- | ------ | ------------------------------ |
-| **FlextResult<T>**  | 🟢 Comprehensive | 784 occurrences across codebase   |
-| **FlextContainer**  | 🟡 Basic | Used in 4 source files   |
-| **FlextLogger**     | 🟡 Basic | Used in 4 source files    |
-| **FlextDomainService** | 🟡 Partial | 2 implementations found |
+| Pattern                | Status           | Description                     |
+| ---------------------- | ---------------- | ------------------------------- |
+| **FlextResult<T>**     | 🟢 Comprehensive | 784 occurrences across codebase |
+| **FlextContainer**     | 🟡 Basic         | Used in 4 source files          |
+| **FlextLogger**        | 🟡 Basic         | Used in 4 source files          |
+| **FlextDomainService** | 🟡 Partial       | 2 implementations found         |
 
 > **Status**: 🔴 Missing | 🟡 Partial | 🟢 Complete
 
 ### Current Implementation
 
 **Source Code Metrics**:
+
 - 12 Python modules, 4,517 lines of code
 - 511 functions defined across modules
 - 0 async functions (no async/await support)
-- SQLAlchemy 2.0 with python-oracledb driver
+- SQLAlchemy 2.0 with Python-oracledb driver
 - 28 test files with 8,633 lines of test code
 
 **Working Components**:
+
 - Connection management with pooling
 - Schema introspection (tables, columns)
 - Query execution with parameter binding
@@ -57,9 +59,10 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 - CLI interface structure (with placeholder formatters)
 
 **Critical Gaps**:
+
 - CLI formatters use SimpleNamespace placeholders (client.py:60-74)
 - No async support (required for modern Python applications)
-- No DataFrame integration (python-oracledb 3.4+ supports this)
+- No DataFrame integration (Python-oracledb 3.4+ supports this)
 - No Oracle 23ai features (Vector types, statement pipelining)
 
 ---
@@ -184,6 +187,7 @@ Zero tolerance quality requirements:
 ### Current Version (0.9.0)
 
 **Working Features**:
+
 - SQLAlchemy 2.0 Oracle integration
 - FlextResult error handling
 - Connection pooling and management
@@ -191,13 +195,15 @@ Zero tolerance quality requirements:
 - CLI interface structure
 
 **Known Issues**:
+
 - CLI formatters incomplete (SimpleNamespace placeholders)
 - No async support (required for modern Python apps)
-- No DataFrame integration (python-oracledb 3.4+ available)
+- No DataFrame integration (Python-oracledb 3.4+ available)
 
 ### Next Version (0.10.0)
 
 **Planned Improvements**:
+
 - Complete CLI formatter implementation
 - Async support for modern frameworks
 - DataFrame integration for data science workflows
@@ -230,6 +236,7 @@ Zero tolerance quality requirements:
 ### Quality Standards
 
 All contributions must pass:
+
 - `make validate` - Complete validation pipeline
 - Code review for FLEXT pattern compliance
 - Integration test validation with Oracle container

@@ -105,7 +105,9 @@ class TestRealOracleConnection:
             fetch_data = result.unwrap()
             if fetch_data:
                 # fetch_one returns dict | None, so we know it's a dict if not None
-                assert isinstance(fetch_data, dict), f"Expected dict, got {type(fetch_data)}"
+                assert isinstance(fetch_data, dict), (
+                    f"Expected dict, got {type(fetch_data)}"
+                )
                 first_value = next(iter(fetch_data.values()))
                 assert first_value == 42
 
@@ -164,7 +166,9 @@ class TestRealOracleConnection:
             assert many_result == 3  # Row count
 
             # Verify data - using modern .value access after failure check
-            select_result = connection.execute_query("SELECT COUNT(*) FROM temp_test_table")
+            select_result = connection.execute_query(
+                "SELECT COUNT(*) FROM temp_test_table"
+            )
             if select_result.is_failure:
                 msg = f"Count query failed: {select_result.error}"
                 raise AssertionError(msg)
@@ -454,7 +458,9 @@ class TestRealOracleErrorHandling:
 
         try:
             # Execute invalid SQL
-            result = connection.execute_query("SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST")
+            result = connection.execute_query(
+                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST"
+            )
             assert result.is_failure
             assert (
                 "table" in (result.error or "").lower()

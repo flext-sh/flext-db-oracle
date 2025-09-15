@@ -67,7 +67,9 @@ class FlextDbOracleModels:
             return self.user
 
         @classmethod
-        def from_env(cls, prefix: str = "ORACLE") -> FlextResult[FlextDbOracleModels.OracleConfig]:
+        def from_env(
+            cls, prefix: str = "ORACLE"
+        ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
             """Create OracleConfig from environment variables with optional prefix."""
             try:
                 # Type-safe config creation using prefix

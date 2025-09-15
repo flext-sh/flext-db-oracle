@@ -25,12 +25,15 @@ logger.info("Oracle operation completed")
 Foundation for Singer taps and targets:
 
 ### flext-tap-oracle
+
 Uses FlextDbOracleApi for data extraction from Oracle databases.
 
 ### flext-target-oracle
+
 Uses FlextDbOracleApi for data loading into Oracle databases.
 
 ### flext-dbt-oracle
+
 Uses FlextDbOracleApi for Oracle SQL transformations.
 
 ## CLI Integration

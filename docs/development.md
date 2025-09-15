@@ -28,12 +28,14 @@ make validate
 ## Implementation Status
 
 ### Working Components
+
 - Core database operations (query, execute, schema introspection)
 - SQLAlchemy 2.0 integration
 - FlextResult error handling
 - Configuration management
 
 ### Known Issues
+
 - CLI has SimpleNamespace placeholders (client.py:60-67)
 - No async support (0 async methods)
 - No DataFrame integration

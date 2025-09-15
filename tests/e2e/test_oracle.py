@@ -157,7 +157,11 @@ class TestOracleE2E:
 
                 # Test transaction using SQLAlchemy 2.0 Core API - NO STRING CONCATENATION
                 with api.transaction():
-                    update_stmt: Update = update(table).where(table.c.ID == 3).values(EMAIL="bob@example.com")
+                    update_stmt: Update = (
+                        update(table)
+                        .where(table.c.ID == 3)
+                        .values(EMAIL="bob@example.com")
+                    )
                     update_result = api.execute_statement(update_stmt)
                     if update_result.is_failure:
                         raise AssertionError(f"Update failed: {update_result.error}")

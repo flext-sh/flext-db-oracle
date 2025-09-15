@@ -12,6 +12,7 @@
 ### Implementation Reality Check
 
 **Actual Source Code Metrics**:
+
 - Total source files: 12 Python files
 - Total source lines: 4,517 lines
 - Functions defined: 511 functions
@@ -23,19 +24,23 @@
 ### False Claims Identified
 
 **Documentation claimed async support exists** - this is false:
+
 - No `async def` functions in entire codebase
 - No `await` statements anywhere
 - No AsyncFlextDbOracleApi mentioned in previous docs
 
 **Documentation claimed 95% FlextResult coverage** - investigation shows:
+
 - FlextResult usage: 784 occurrences across files
 - This indicates good coverage but percentage was not verified
 
 ### Critical Issues Confirmed
 
 #### 1. CLI Formatters Incomplete (Verified)
+
 **Location**: `src/flext_db_oracle/client.py` lines 60-74
 **Evidence**:
+
 ```python
 self.formatter = SimpleNamespace()
 self.formatter.format_table = lambda **_: FlextResult[str].ok("table_output")
@@ -45,18 +50,21 @@ self.interactions = SimpleNamespace()
 self.cli_api = SimpleNamespace()
 self.cli_services = SimpleNamespace()
 ```
+
 **Impact**: CLI commands return placeholder strings instead of formatted output
 **Priority**: High - affects basic usability
 
 #### 2. No Async Support (Confirmed)
+
 **Evidence**: Manual search confirms 0 async functions
 **Gap**: Modern Python database libraries expect async support
-**Research finding**: python-oracledb 3.4+ supports full async operations
+**Research finding**: Python-oracledb 3.4+ supports full async operations
 
 #### 3. No Modern Oracle Features
+
 **DataFrame Integration**: Zero references to pandas, polars, or DataFrame APIs
 **Oracle 23ai Features**: No Vector type support, no statement pipelining
-**Research gap**: python-oracledb 3.4+ includes these features
+**Research gap**: Python-oracledb 3.4+ includes these features
 
 ---
 
@@ -64,7 +72,8 @@ self.cli_services = SimpleNamespace()
 
 ### Current Python Oracle Library Landscape
 
-**Direct python-oracledb 3.4+** (Modern Approach):
+**Direct Python-oracledb 3.4+** (Modern Approach):
+
 - Full async support with `connect_async()` and `AsyncConnection`
 - DataFrame methods: `fetch_df_all()`, `fetch_df_batches()`
 - Oracle 23ai Vector type support for AI workloads
@@ -72,6 +81,7 @@ self.cli_services = SimpleNamespace()
 - Statement pipelining for performance
 
 **SQLAlchemy 2.0** (Our Current Approach):
+
 - Mature ORM abstraction layer
 - Async support available but not implemented here
 - More complex setup for simple operations
@@ -82,6 +92,7 @@ self.cli_services = SimpleNamespace()
 ### Technology Standards Gap Analysis
 
 **Missing in 2025 Context**:
+
 1. **Async Operations**: Expected standard for non-blocking I/O
 2. **DataFrame Interoperability**: Essential for data science workflows
 3. **AI Database Features**: Vector types for machine learning applications
@@ -94,8 +105,10 @@ self.cli_services = SimpleNamespace()
 ### Phase 1: Critical Usability (1-2 weeks)
 
 #### Fix CLI Formatters
+
 **Current State**: SimpleNamespace placeholders return static strings
 **Target**: Real formatting implementations
+
 ```python
 # Replace in client.py lines 60-74
 class _RealFormatter:
@@ -105,30 +118,38 @@ class _RealFormatter:
     def format_json(self, data: Any) -> FlextResult[str]:
         # Real JSON formatting
 ```
+
 **Effort**: 8-16 hours
 
 ### Phase 2: Modern Standards Alignment (3-6 weeks)
 
 #### Add Async Support
+
 **Approach**: Parallel async API implementation
+
 ```python
 class AsyncFlextDbOracleApi:
     async def connect(self) -> FlextResult[Self]: ...
     async def query(self, sql: str) -> FlextResult[List[Dict]]: ...
 ```
+
 **Effort**: 40-60 hours
 
 #### DataFrame Integration
-**Leverage**: python-oracledb 3.4+ DataFrame capabilities
+
+**Leverage**: Python-oracledb 3.4+ DataFrame capabilities
+
 ```python
 def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
     # Use connection.fetch_df_all()
 ```
+
 **Effort**: 24-40 hours
 
 ### Phase 3: Advanced Features (Optional)
 
 #### Oracle 23ai Support
+
 - Vector data types for AI applications
 - Statement pipelining for performance
 - Enhanced connection pooling
@@ -142,6 +163,7 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Actual FLEXT Integration Status
 
 **Verified Integration**:
+
 - FlextResult usage: 784 occurrences (comprehensive)
 - FlextContainer usage: 4 files import and use
 - FlextLogger usage: 4 files import and use
@@ -152,12 +174,14 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Comparison with flext-core Standards
 
 **flext-core provides**:
+
 - FlextResult railway pattern (foundation)
 - FlextContainer dependency injection
 - FlextDomainService base classes
 - Type safety patterns
 
 **flext-db-oracle implements**:
+
 - ✅ FlextResult comprehensive usage
 - ✅ FlextContainer basic usage
 - ✅ FlextDomainService inheritance
@@ -167,12 +191,14 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Avoiding Duplication with Workspace Docs
 
 **flext-core documentation covers**:
+
 - FlextResult patterns and usage
 - FlextContainer dependency injection
 - Domain-driven design principles
 - Type safety requirements
 
 **flext-db-oracle documentation should focus on**:
+
 - Oracle-specific implementation details
 - Database connection management
 - Schema introspection capabilities
@@ -186,10 +212,12 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Development Effort (Realistic Assessment)
 
 **Critical Path** (Phase 1): 16-24 hours
+
 - CLI formatter implementation: 8-16 hours
 - Testing and validation: 8 hours
 
 **Modern Standards** (Phase 2): 64-100 hours
+
 - Async API implementation: 40-60 hours
 - DataFrame integration: 24-40 hours
 
@@ -198,11 +226,13 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Technical Dependencies
 
 **Required**:
-- Upgrade to python-oracledb 3.4+ (from current version)
+
+- Upgrade to Python-oracledb 3.4+ (from current version)
 - Oracle 23ai database for testing advanced features
 - Performance testing infrastructure
 
 **Optional**:
+
 - Apache Arrow for zero-copy operations
 - Advanced monitoring tools
 
@@ -218,7 +248,7 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
    - **Decision**: Option A for backward compatibility
 
 2. **DataFrame Integration Approach**:
-   - **Option A**: Wrapper around python-oracledb DataFrame methods (recommended)
+   - **Option A**: Wrapper around Python-oracledb DataFrame methods (recommended)
    - **Option B**: SQLAlchemy DataFrame abstraction
    - **Decision**: Option A for performance
 
@@ -230,6 +260,7 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Backward Compatibility Requirements
 
 **Non-Negotiable**:
+
 - All existing APIs must continue working
 - FlextResult patterns maintained
 - Connection configuration compatibility
@@ -242,12 +273,14 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Current Quality Status
 
 **Achieved**:
+
 - Zero linting errors (Ruff)
 - Zero type errors (MyPy strict mode)
 - Zero security vulnerabilities (Bandit)
 - Comprehensive FlextResult usage
 
 **Testing**:
+
 - 28 test files with 8,633 lines
 - Integration with Oracle XE container
 - Real database validation approach
@@ -266,6 +299,7 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 ### Corrected Assessment
 
 **What Works**:
+
 - Solid SQLAlchemy 2.0 foundation
 - Comprehensive FlextResult integration
 - Connection pooling implementation
@@ -273,12 +307,14 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 - FLEXT ecosystem compliance
 
 **Critical Issues**:
+
 1. CLI formatters return placeholder strings (verified in source)
 2. Zero async support despite modern expectations
 3. No DataFrame integration despite driver capability
 4. Missing Oracle 23ai features for AI workloads
 
 **Documentation Issues Corrected**:
+
 - Removed false claims about async support
 - Corrected FlextResult coverage percentages
 - Eliminated promotional language

@@ -466,7 +466,9 @@ class TestDirectCoverageBoostServices:
         )
         FlextTestsMatchers.assert_result_success(table_ref_result)
         sql_result = table_ref_result.unwrap()
-        assert ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result) or "test_schema.test_table" in sql_result
+        assert (
+            "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
+        ) or "test_schema.test_table" in sql_result
 
         # Test column list building through services
         test_columns = ["col1", "col2", "col3"]

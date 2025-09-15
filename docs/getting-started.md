@@ -97,6 +97,7 @@ make oracle-connect
 ```
 
 **Connection Details**:
+
 - Host: localhost
 - Port: 1521
 - Service Name: XEPDB1
@@ -145,6 +146,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 ## Current Capabilities
 
 **Working Features**:
+
 - SQLAlchemy 2.0 integration with Oracle
 - FlextResult error handling patterns
 - Connection pooling and management
@@ -153,9 +155,10 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 - FLEXT ecosystem integration patterns
 
 **Known Limitations**:
+
 - CLI formatters incomplete (SimpleNamespace placeholders in client.py:60-67)
 - No async support (required for modern Python applications)
-- No DataFrame integration (python-oracledb 3.4+ supports DataFrames)
+- No DataFrame integration (Python-oracledb 3.4+ supports DataFrames)
 - No Oracle 23ai features (Vector types, statement pipelining)
 
 ## Next Steps
@@ -165,7 +168,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 3. **[Configuration Guide](configuration.md)** - Advanced configuration options
 4. **[Development Guide](development.md)** - Contributing to the project
 
-## Need Help?
+## Need Help
 
 - **Documentation**: Check the [docs/](.) directory
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)

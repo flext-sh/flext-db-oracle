@@ -20,12 +20,12 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 ### FLEXT Pattern Integration
 
-| Pattern | Implementation | Status |
-|---------|---------------|--------|
-| **FlextResult<T>** | Monadic error handling | 🟢 Complete |
-| **FlextDomainService** | Base service patterns | 🟢 Implemented |
-| **FlextContainer** | Dependency injection | 🟡 Partial |
-| **FlextLogger** | Structured logging | 🟢 Integrated |
+| Pattern                | Implementation         | Status         |
+| ---------------------- | ---------------------- | -------------- |
+| **FlextResult<T>**     | Monadic error handling | 🟢 Complete    |
+| **FlextDomainService** | Base service patterns  | 🟢 Implemented |
+| **FlextContainer**     | Dependency injection   | 🟡 Partial     |
+| **FlextLogger**        | Structured logging     | 🟢 Integrated  |
 
 ## Module Architecture
 
@@ -47,6 +47,7 @@ src/flext_db_oracle/
 ```
 
 **Implementation Stats**:
+
 - 4,517 lines across 12 source files
 - 36 API methods in FlextDbOracleApi
 - 8 helper classes in services layer
@@ -80,6 +81,7 @@ graph TB
 ### Bounded Context
 
 **Oracle Database Integration Context**:
+
 - **Entities**: OracleConfig, QueryResult, ColumnInfo, TableMetadata
 - **Value Objects**: ConnectionString, QueryParameters
 - **Domain Services**: Schema introspection, query optimization
@@ -88,11 +90,13 @@ graph TB
 ### Aggregates
 
 **Connection Aggregate**:
+
 - Root: OracleConnection
 - Entities: ConnectionPool, Transaction
 - Behaviors: Connect, disconnect, execute, query
 
 **Schema Aggregate**:
+
 - Root: DatabaseSchema
 - Entities: Table, Column, Index, Constraint
 - Behaviors: Introspect, compare, generate DDL
@@ -134,16 +138,19 @@ FlextDbOracleException (base)
 ### Current Implementation
 
 **Database Layer**:
+
 - SQLAlchemy 2.0 (ORM and Core)
-- python-oracledb 3.2+ (Oracle driver)
+- Python-oracledb 3.2+ (Oracle driver)
 - Connection pooling and transaction management
 
 **FLEXT Integration**:
+
 - flext-core (FlextResult, FlextContainer, FlextLogger)
 - flext-cli (CLI patterns and utilities)
 - Domain-driven design patterns
 
 **Quality Assurance**:
+
 - MyPy strict mode type checking
 - Ruff comprehensive linting
 - Bandit security scanning
@@ -152,8 +159,9 @@ FlextDbOracleException (base)
 ### Technology Gaps (2025 Standards)
 
 **Missing Modern Features**:
+
 - **Async Support**: No async/await patterns (0 async methods found)
-- **DataFrame Integration**: python-oracledb 3.4+ supports pandas/polars
+- **DataFrame Integration**: Python-oracledb 3.4+ supports pandas/polars
 - **Oracle 23ai Features**: Vector types, statement pipelining
 - **Zero-Copy Data**: Apache Arrow PyCapsule Interface
 
@@ -179,6 +187,7 @@ engine = create_engine(
 ### Pool Configuration
 
 **Production Settings**:
+
 - Pool size: 20 connections
 - Max overflow: 30 connections
 - Pool timeout: 30 seconds
@@ -201,6 +210,7 @@ class OraclePlugin(ABC):
 ```
 
 **Current Plugin Support**:
+
 - Query validation plugins
 - Performance monitoring plugins
 - Schema validation plugins
@@ -211,12 +221,14 @@ class OraclePlugin(ABC):
 ### Testing Strategy
 
 **Test Categories**:
+
 - **Unit Tests**: Component isolation with mocks
 - **Integration Tests**: Real Oracle XE 21c container
 - **Performance Tests**: Connection pool and query optimization
 - **Security Tests**: SQL injection prevention
 
 **Coverage Targets**:
+
 - Source code: 90% line coverage
 - API methods: 100% method coverage
 - Error paths: Comprehensive failure scenario testing
@@ -224,12 +236,14 @@ class OraclePlugin(ABC):
 ### Development Standards
 
 **Code Quality**:
+
 - Type hints on all public APIs
 - Docstrings following Google style
 - SOLID principles implementation
 - Clean Architecture boundaries enforced
 
 **FLEXT Compliance**:
+
 - FlextResult for all fallible operations
 - FlextContainer for dependency injection
 - FlextLogger for structured logging
@@ -240,16 +254,19 @@ class OraclePlugin(ABC):
 ### Planned Improvements
 
 **Async Support** (v0.10.0):
-- Async API methods using python-oracledb async support
+
+- Async API methods using Python-oracledb async support
 - AsyncFlextDbOracleApi parallel implementation
 - Backward compatibility maintained
 
 **DataFrame Integration** (v0.10.0):
+
 - Zero-copy data interchange with Apache Arrow
 - Direct pandas/polars integration
 - Performance optimization for data science workflows
 
 **Oracle 23ai Features** (v0.11.0):
+
 - Vector data type support for AI applications
 - Statement pipelining for performance
 - Enhanced DRCP multi-pool configuration
