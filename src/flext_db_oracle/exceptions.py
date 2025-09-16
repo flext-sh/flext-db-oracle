@@ -87,14 +87,8 @@ class FlextDbOracleExceptions(FlextExceptions):
         return isinstance(error, cls.BaseError)
 
 
-# Module-level aliases for backward compatibility - direct references to flext-core generated classes
-OracleConnectionError = FlextDbOracleExceptions.DatabaseConnectionError
-OracleQueryError = FlextDbOracleExceptions.QueryError
-OracleValidationError = FlextDbOracleExceptions.ValidationError
+# ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleExceptions.ClassName directly
 
 __all__: FlextTypes.Core.StringList = [
     "FlextDbOracleExceptions",
-    "OracleConnectionError",
-    "OracleQueryError",
-    "OracleValidationError",
 ]

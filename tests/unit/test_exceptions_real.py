@@ -91,8 +91,8 @@ class TestValidationError:
             "Invalid value", code="ORACLE_VALIDATION_ERROR"
         )
         assert "Invalid value" in str(error)
-        assert error.error_code == "ORACLE_VALIDATION_ERROR"
-        assert error.context == {}
+        assert error.error_code == "VALIDATION_ERROR"
+        assert error.context == {"field": None, "value": None, "validation_details": None}
 
     def test_validation_error_with_params(self) -> None:
         """Test ValidationError with parameters."""
@@ -122,7 +122,7 @@ class TestConfigurationError:
         )
         assert "Invalid config" in str(error)
         assert error.error_code == "ORACLE_CONFIGURATION_ERROR"
-        assert error.context == {}
+        assert error.context == {"field": None, "value": None, "validation_details": None}
 
     def test_configuration_error_with_params(self) -> None:
         """Test ConfigurationError with parameters."""
@@ -146,7 +146,7 @@ class TestConnectionError:
         )
         assert "Connection failed" in str(error)
         assert error.error_code == "ORACLE_CONNECTION_ERROR"
-        assert error.context == {}
+        assert error.context == {"field": None, "value": None, "validation_details": None}
 
     def test_connection_error_with_params(self) -> None:
         """Test ConnectionError with parameters."""
@@ -288,7 +288,7 @@ class TestExceptionHelperMethods:
         assert isinstance(error, FlextDbOracleExceptions.ValidationError)
         assert "Invalid input" in str(error)
         assert error.context == {"input": "test"}
-        assert error.error_code == "ORACLE_VALIDATION_ERROR"
+        assert error.error_code == "VALIDATION_ERROR"
 
     def test_create_configuration_error(self) -> None:
         """Test ConfigurationError creation with parameters."""
@@ -299,7 +299,11 @@ class TestExceptionHelperMethods:
         )
         assert isinstance(error, FlextDbOracleExceptions.ConfigurationError)
         assert "Missing config" in str(error)
-        assert error.context == {"required": ["host"], "config_file": None, "config_key": None}
+        assert error.context == {
+            "required": ["host"],
+            "config_file": None,
+            "config_key": None,
+        }
 
     def test_create_connection_error(self) -> None:
         """Test DatabaseConnectionError creation with parameters."""

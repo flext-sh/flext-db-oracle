@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
-    OracleConfig,
 )
 
 
@@ -48,7 +47,7 @@ class TestFlextDbOracleConnectionSimple:
     def test_config_validation(self) -> None:
         """Test Oracle config validation."""
         # Test with valid config
-        config = OracleConfig(
+        config = FlextDbOracleModels.OracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",

@@ -12,11 +12,7 @@ import pytest
 from flext_core import FlextResult
 
 from flext_db_oracle import FlextDbOracleModels
-from flext_db_oracle.client import (
-    FlextDbOracleClient,
-    create_oracle_cli_commands,
-    get_client,
-)
+from flext_db_oracle.client import FlextDbOracleClient
 
 
 class TestFlextDbOracleClientReal:
@@ -139,11 +135,11 @@ class TestFlextDbOracleClientReal:
         """Test global client getter with real functionality."""
         # This may initialize flext-cli components
         try:
-            client = get_client()
+            client = FlextDbOracleClient.get_client()
             assert isinstance(client, FlextDbOracleClient)
 
             # Test that subsequent calls return same instance
-            client2 = get_client()
+            client2 = FlextDbOracleClient.get_client()
             assert client is client2
 
         except SystemExit:
@@ -171,24 +167,17 @@ class TestFlextDbOracleClientReal:
         assert hasattr(client, "connection_wizard")
         assert callable(client.connection_wizard)
 
-    def test_create_oracle_cli_commands_real(self) -> None:
-        """Test CLI commands creation with real FlextCliModels."""
-        # Test command creation
-        commands_result = create_oracle_cli_commands()
+    def test_oracle_cli_client_methods_real(self) -> None:
+        """Test FlextDbOracleClient has proper CLI methods."""
+        # Test CLI client has required methods
+        client = FlextDbOracleClient()
 
-        # Should return FlextResult with commands
-        assert isinstance(commands_result, FlextResult)
-
-        if commands_result.is_success:
-            commands = commands_result.value
-            assert isinstance(commands, list)
-            assert len(commands) > 0
-
-            # Verify command structure - simple string commands
-            for command in commands:
-                assert isinstance(command, str)
-                assert len(command) > 0
-                assert "oracle-" in command
+        # Test that client has required methods
+        assert hasattr(client, "connect_to_oracle")
+        assert hasattr(client, "execute_query")
+        assert hasattr(client, "list_schemas")
+        assert hasattr(client, "list_tables")
+        assert hasattr(client, "health_check")
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""

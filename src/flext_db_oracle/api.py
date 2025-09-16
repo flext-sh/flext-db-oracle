@@ -402,7 +402,9 @@ class FlextDbOracleApi(FlextDomainService[FlextTypes.Core.Dict]):
             )
 
     # Additional methods demanded by tests and real usage
-    def execute_query_sql(self, sql: str) -> FlextResult[FlextDbOracleModels.QueryResult]:
+    def execute_query_sql(
+        self, sql: str
+    ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:
             # Delegate to services layer

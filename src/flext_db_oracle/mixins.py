@@ -104,18 +104,8 @@ class FlextDbOracleMixins(FlextMixins):
             return FlextResult[T].fail(f"{self.context}: {result.error}")
 
 
-# Module-level aliases for backward compatibility - direct references to unified class
-OracleIdentifierValidation = FlextDbOracleMixins.OracleValidation
-OracleValidationFactory = FlextDbOracleMixins.OracleValidation  # Same functionality
-ParameterObject = FlextDbOracleMixins.ParameterContainer
-ConnectionParameters = FlextDbOracleMixins.ConnectionConfig
-ErrorContextTransformer = FlextDbOracleMixins.ErrorTransformer
+# ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleMixins.ClassName directly
 
 __all__ = [
-    "ConnectionParameters",
-    "ErrorContextTransformer",
     "FlextDbOracleMixins",
-    "OracleIdentifierValidation",
-    "OracleValidationFactory",
-    "ParameterObject",
 ]

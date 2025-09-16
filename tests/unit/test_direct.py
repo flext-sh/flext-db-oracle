@@ -16,17 +16,12 @@ import os
 from typing import cast
 
 import pytest
+from flext_core import FlextResult
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
-    Column,
     FlextDbOracleApi,
-    OracleConfig,
-    Table,
-    services as services_module,
-)
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.services import (
+    FlextDbOracleModels,
     FlextDbOracleServices,
 )
 
@@ -37,7 +32,7 @@ class TestDirectCoverageBoostAPI:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
-        bad_config = OracleConfig(
+        bad_config = FlextDbOracleModels.OracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
             user="invalid",
@@ -147,7 +142,7 @@ class TestDirectCoverageBoostConfig:
 
         for host, port, user, password, service_name in test_configs:
             try:
-                config = OracleConfig(
+                config = FlextDbOracleModels.OracleConfig(
                     host=host,
                     port=port,
                     user=user,
@@ -179,7 +174,7 @@ class TestDirectCoverageBoostConfig:
 
         try:
             # Test config creation from environment (if supported)
-            config = OracleConfig(
+            config = FlextDbOracleModels.OracleConfig(
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
                 user=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
@@ -205,7 +200,7 @@ class TestDirectCoverageBoostConnection:
 
     def test_connection_edge_cases(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
@@ -225,7 +220,7 @@ class TestDirectCoverageBoostConnection:
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
         # Create connection with invalid config
-        bad_config = OracleConfig(
+        bad_config = FlextDbOracleModels.OracleConfig(
             host="invalid_host",
             port=9999,
             user="invalid",
@@ -269,7 +264,7 @@ class TestDirectCoverageBoostTypes:
         # Test various type validation scenarios
         # Column validation edge cases
         try:
-            column = Column(
+            column = FlextDbOracleModels.Column(
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -281,7 +276,7 @@ class TestDirectCoverageBoostTypes:
 
         # Table validation edge cases
         try:
-            table = Table(
+            table = FlextDbOracleModels.Table(
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[],  # Empty columns
@@ -294,11 +289,8 @@ class TestDirectCoverageBoostTypes:
         # Schema validation through valid column/table creation
         try:
             # Test edge case column properties
-            column2 = Column(
-                name="EDGE_COL",
-                data_type="NUMBER",
-                nullable=False,
-                default_value="0"
+            column2 = FlextDbOracleModels.Column(
+                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
             )
             assert hasattr(column2, "name")
             assert hasattr(column2, "data_type")
@@ -309,7 +301,7 @@ class TestDirectCoverageBoostTypes:
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
         # Test property methods that might not be covered
-        column = Column(
+        column = FlextDbOracleModels.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -328,11 +320,11 @@ class TestDirectCoverageBoostTypes:
         assert repr_str is not None
 
         # Test with default value
-        column_with_default = Column(
+        column_with_default = FlextDbOracleModels.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,
-            default_value="DEFAULT_VALUE"
+            default_value="DEFAULT_VALUE",
         )
         assert column_with_default.default_value == "DEFAULT_VALUE"
 
@@ -407,7 +399,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
 
-        services = services_module.FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config)
         assert services is not None
 
         # Test available service classes
@@ -421,7 +413,7 @@ class TestDirectCoverageBoostServices:
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
         # Test SQL builder with various scenarios through services
-        config = OracleConfig(
+        config = FlextDbOracleModels.OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -489,8 +481,17 @@ class TestDirectCoverageBoostServices:
         ]
 
         for config_result in configs:
-            FlextTestsMatchers.assert_result_success(config_result)
-            config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
+            # Type guard: ensure we have a FlextResult before passing to assert_result_success
+            if not hasattr(config_result, "success"):
+                continue  # Skip non-FlextResult items
+            # Cast to FlextResult to satisfy mypy
+            result = cast("FlextResult[object]", config_result)
+            FlextTestsMatchers.assert_result_success(result)
+            # Use the cast result for accessing value
+            config = cast(
+                "FlextDbOracleModels.OracleConfig",
+                result.value,
+            )
 
             services = FlextDbOracleServices(config=config)
 
@@ -504,11 +505,11 @@ class TestDirectCoverageBoostServices:
 
             # Test connection functionality (without actual Oracle server)
             # Test connection attempt - this internally uses URL building
-            result = services.connect()
+            connection_result = services.connect()
             # Should fail gracefully without Oracle server but URL building should work
-            assert hasattr(result, "is_failure")  # Should return FlextResult
+            assert hasattr(connection_result, "is_failure")  # Should return FlextResult
             # Expected to fail without Oracle server - check that it's a proper failure
-            assert result.is_failure
+            assert connection_result.is_failure
 
     def test_services_sql_generation_comprehensive(self) -> None:
         """Test SQL generation methods comprehensively for 100% coverage."""

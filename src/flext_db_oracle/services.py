@@ -50,7 +50,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 
 # SQLAlchemy 2.0 Core API - removed ORM imports
-from flext_db_oracle.models import FlextDbOracleModels, OracleValidation
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
@@ -375,12 +375,16 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
         ) -> Table:
             """Create SQLAlchemy Table object for modern query building."""
             # Validate identifiers first
-            validated_table = OracleValidation.validate_identifier(table_name).unwrap()
+            validated_table = FlextDbOracleModels._OracleValidation.validate_identifier(
+                table_name
+            ).unwrap()
             validated_schema = None
             if schema_name:
-                validated_schema = OracleValidation.validate_identifier(
-                    schema_name
-                ).unwrap()
+                validated_schema = (
+                    FlextDbOracleModels._OracleValidation.validate_identifier(
+                        schema_name
+                    ).unwrap()
+                )
 
             # Create a dynamic table with common column types for query building
             # This allows SQLAlchemy to handle SQL injection prevention
@@ -582,18 +586,33 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
 
         def _is_safe_identifier(self, identifier: str) -> bool:
             """Check if identifier is safe for SQL using Oracle validation."""
-            result = OracleValidation.validate_identifier(identifier)
-            return result.is_success
+            result = FlextDbOracleModels._OracleValidation.validate_identifier(
+                identifier
+            )
+            return bool(result.is_success)
 
         def _build_table_reference(
             self, table_name: str, schema_name: str | None = None
         ) -> str:
             """Build validated table reference with optional schema."""
-            validated_table = OracleValidation.validate_identifier(table_name).unwrap()
+            table_result = FlextDbOracleModels._OracleValidation.validate_identifier(
+                table_name
+            )
+            if table_result.is_failure:
+                error_msg = f"Invalid table name: {table_result.error}"
+                raise ValueError(error_msg)
+            validated_table = str(table_result.unwrap())
+
             if schema_name:
-                validated_schema = OracleValidation.validate_identifier(
-                    schema_name
-                ).unwrap()
+                schema_result = (
+                    FlextDbOracleModels._OracleValidation.validate_identifier(
+                        schema_name
+                    )
+                )
+                if schema_result.is_failure:
+                    error_msg = f"Invalid schema name: {schema_result.error}"
+                    raise ValueError(error_msg)
+                validated_schema = str(schema_result.unwrap())
                 return f"{validated_schema}.{validated_table}"
             return validated_table
 
@@ -799,29 +818,43 @@ class FlextDbOracleServices(FlextDomainService[FlextTypes.Core.Dict]):
                 # Use validated table reference builder to prevent SQL injection
                 if schema_name:
                     # Validate both schema and table names
-                    schema_validation = OracleValidation.validate_identifier(
-                        schema_name
+                    schema_validation = (
+                        FlextDbOracleModels._OracleValidation.validate_identifier(
+                            schema_name
+                        )
                     )
-                    table_validation = OracleValidation.validate_identifier(table_name)
+                    table_validation = (
+                        FlextDbOracleModels._OracleValidation.validate_identifier(
+                            table_name
+                        )
+                    )
                     if schema_validation.is_failure or table_validation.is_failure:
                         return FlextResult[int].fail("Invalid schema or table name")
                 else:
                     # Validate just table name
-                    table_validation = OracleValidation.validate_identifier(table_name)
+                    table_validation = (
+                        FlextDbOracleModels._OracleValidation.validate_identifier(
+                            table_name
+                        )
+                    )
                     if table_validation.is_failure:
                         return FlextResult[int].fail("Invalid table name")
 
                 # Use SQLAlchemy 2.0 Core API for modern SQL generation
                 # Create a Table object for the count query
                 metadata = MetaData()
-                validated_table = OracleValidation.validate_identifier(
-                    table_name
-                ).unwrap()
+                validated_table = (
+                    FlextDbOracleModels._OracleValidation.validate_identifier(
+                        table_name
+                    ).unwrap()
+                )
                 validated_schema = None
                 if schema_name:
-                    validated_schema = OracleValidation.validate_identifier(
-                        schema_name
-                    ).unwrap()
+                    validated_schema = (
+                        FlextDbOracleModels._OracleValidation.validate_identifier(
+                            schema_name
+                        ).unwrap()
+                    )
 
                 table = Table(
                     validated_table,

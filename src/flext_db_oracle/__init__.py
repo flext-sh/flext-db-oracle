@@ -7,70 +7,29 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle.api import FlextDbOracleApi
-
-# from flext_db_oracle.cli import FlextDbOracleCliService
-from flext_db_oracle.client import (
-    FlextDbOracleClient,
-    create_oracle_cli_commands,
-    get_client,
-    oracle_cli,
-)
+from flext_db_oracle.client import FlextDbOracleClient
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.exceptions import (
-    FlextDbOracleExceptions,
-    OracleConnectionError,
-    OracleQueryError,
-    OracleValidationError,
-)
-from flext_db_oracle.mixins import (
-    ConnectionParameters,
-    ErrorContextTransformer,
-    OracleIdentifierValidation,
-    ParameterObject,
-)
-from flext_db_oracle.models import (
-    Column,
-    ConnectionStatus,
-    CreateIndexConfig,
-    FlextDbOracleModels,
-    MergeStatementConfig,
-    OracleConfig,
-    QueryResult,
-    Schema,
-    Table,
-)
+from flext_db_oracle.exceptions import FlextDbOracleExceptions
+from flext_db_oracle.mixins import FlextDbOracleMixins
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.plugins import FlextDbOraclePlugins
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-# FlextDbOracleConfig alias removed - use OracleConfig directly
+# ZERO TOLERANCE: No aliases - use unified classes directly
+
+# Create alias for OracleConfig
+OracleConfig = FlextDbOracleModels.OracleConfig
 
 __all__ = [
-    "Column",
-    "ConnectionParameters",
-    "ConnectionStatus",
-    "CreateIndexConfig",
-    "ErrorContextTransformer",
     "FlextDbOracleApi",
-    # "FlextDbOracleCliService",
     "FlextDbOracleClient",
     "FlextDbOracleConstants",
     "FlextDbOracleExceptions",
+    "FlextDbOracleMixins",
     "FlextDbOracleModels",
     "FlextDbOraclePlugins",
     "FlextDbOracleServices",
     "FlextDbOracleUtilities",
-    "MergeStatementConfig",
     "OracleConfig",
-    "OracleConnectionError",
-    "OracleIdentifierValidation",
-    "OracleQueryError",
-    "OracleValidationError",
-    "ParameterObject",
-    "QueryResult",
-    "Schema",
-    "Table",
-    "create_oracle_cli_commands",
-    "get_client",
-    "oracle_cli",
 ]

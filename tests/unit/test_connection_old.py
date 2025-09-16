@@ -14,11 +14,8 @@ import pytest
 from flext_core import FlextTypes
 
 from flext_db_oracle import (
-    CreateIndexConfig,
     FlextDbOracleModels,
     FlextDbOracleServices,
-    MergeStatementConfig,
-    OracleConfig,
 )
 
 
@@ -57,7 +54,7 @@ class TestFlextDbOracleConnectionComprehensive:
         """Test connect method with invalid configurations."""
         # Test with empty host - should fail at config validation
         with pytest.raises(Exception, match="Field cannot be empty"):
-            OracleConfig(
+            FlextDbOracleModels.OracleConfig(
                 host="",
                 port=1521,
                 service_name="TEST",
@@ -87,7 +84,7 @@ class TestFlextDbOracleConnectionComprehensive:
             ValueError,
             match="Either SID or service_name must be provided",
         ):
-            OracleConfig(
+            FlextDbOracleModels.OracleConfig(
                 host="test",
                 port=1521,
                 user="test",
@@ -399,8 +396,8 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def test_merge_statement_config_validation(self) -> None:
         """Test MERGE statement config validation."""
-        # Test that MergeStatementConfig can be created with correct fields
-        config = MergeStatementConfig(
+        # Test that FlextDbOracleModels.MergeStatementConfig can be created with correct fields
+        config = FlextDbOracleModels.MergeStatementConfig(
             target_table="TARGET_TABLE",
             source_query="SELECT ID, NAME, STATUS FROM source_table",
             merge_conditions=["target.ID = source.ID"],
@@ -414,9 +411,9 @@ class TestFlextDbOracleConnectionComprehensive:
         assert config.insert_columns == ["ID", "NAME", "STATUS"]
 
     def test_create_index_config_validation(self) -> None:
-        """Test CreateIndexConfig validation."""
+        """Test FlextDbOracleModels.CreateIndexConfig validation."""
         # Valid config
-        config = CreateIndexConfig(
+        config = FlextDbOracleModels.CreateIndexConfig(
             index_name="IDX_TEST",
             table_name="TEST_TABLE",
             columns=["ID", "NAME"],
@@ -430,7 +427,7 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def test_create_index_statement_building(self) -> None:
         """Test CREATE INDEX statement building."""
-        config = CreateIndexConfig(
+        config = FlextDbOracleModels.CreateIndexConfig(
             index_name="IDX_TEST",
             table_name="TEST_TABLE",
             columns=["ID", "NAME"],

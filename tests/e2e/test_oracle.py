@@ -17,7 +17,7 @@ from flext_core import FlextTypes
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    OracleConfig,
+    FlextDbOracleModels,
 )
 from tests.conftest import OperationTestError
 
@@ -33,7 +33,7 @@ class TestOracleE2E:
     )
     def test_complete_oracle_workflow(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test complete Oracle workflow end-to-end.
 
@@ -104,23 +104,33 @@ class TestOracleE2E:
                         )
 
                 # Test data querying using SQL query - NO STRING CONCATENATION
-                select_result = api.query(f"SELECT * FROM {test_table_name} ORDER BY ID")
+                select_result = api.query(
+                    f"SELECT * FROM {test_table_name} ORDER BY ID"
+                )
                 if select_result.is_failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
                 query_data = select_result.value
                 # query_data should be a list of dictionaries
-                assert isinstance(query_data, list), f"Expected list, got {type(query_data)}"
+                assert isinstance(query_data, list), (
+                    f"Expected list, got {type(query_data)}"
+                )
                 assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
 
                 # Test single row query using SQL count query
-                count_result = api.query(f"SELECT COUNT(*) as row_count FROM {test_table_name}")
+                count_result = api.query(
+                    f"SELECT COUNT(*) as row_count FROM {test_table_name}"
+                )
                 if count_result.is_failure:
                     raise AssertionError(f"Count query failed: {count_result.error}")
                 count_data = count_result.value
                 # count_data should be a list with one dictionary containing the count
-                assert isinstance(count_data, list), f"Expected list, got {type(count_data)}"
+                assert isinstance(count_data, list), (
+                    f"Expected list, got {type(count_data)}"
+                )
                 assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
-                count_value = count_data[0].get("ROW_COUNT") or count_data[0].get("row_count")
+                count_value = count_data[0].get("ROW_COUNT") or count_data[0].get(
+                    "row_count"
+                )
                 assert count_value == 3, f"Expected count 3, got {count_value}"
 
                 # Test table metadata
@@ -159,14 +169,18 @@ class TestOracleE2E:
                         raise AssertionError(f"Update failed: {update_result.error}")
 
                 # Verify transaction committed using SQL query
-                verify_result = api.query(f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3")
+                verify_result = api.query(
+                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3"
+                )
                 if verify_result.is_failure:
                     raise AssertionError(
                         f"Verification query failed: {verify_result.error}",
                     )
                 email_data = verify_result.value
                 # email_data should be a list with one dictionary containing the email
-                assert isinstance(email_data, list), f"Expected list, got {type(email_data)}"
+                assert isinstance(email_data, list), (
+                    f"Expected list, got {type(email_data)}"
+                )
                 assert len(email_data) == 1, f"Expected 1 row, got {len(email_data)}"
                 email_result = email_data[0].get("EMAIL") or email_data[0].get("email")
                 assert email_result == "bob@example.com", (
@@ -184,7 +198,7 @@ class TestOracleE2E:
     )
     def test_singer_type_conversion_e2e(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
         with FlextDbOracleApi(real_oracle_config) as api:
@@ -255,7 +269,7 @@ class TestOracleE2E:
         os.environ.update(test_env)
         try:
             # Test configuration creation
-            config_result = OracleConfig.from_env()
+            config_result = FlextDbOracleModels.OracleConfig.from_env()
             assert config_result.is_success, (
                 f"Config creation failed: {config_result.error}"
             )
@@ -287,7 +301,7 @@ class TestOracleE2E:
     def test_error_handling_e2e(self) -> None:
         """Test error handling in end-to-end scenarios."""
         # Test with invalid configuration
-        invalid_config = OracleConfig(
+        invalid_config = FlextDbOracleModels.OracleConfig(
             host="nonexistent-host.invalid",
             port=9999,
             service_name="INVALID_DB",
@@ -318,7 +332,7 @@ class TestOracleE2E:
     @pytest.mark.e2e
     def test_concurrent_operations_e2e(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test concurrent database operations."""
         # This test would be expanded with actual threading/asyncio in a real scenario
@@ -355,7 +369,7 @@ class TestOracleE2E:
     @pytest.mark.benchmark
     def test_performance_benchmark_e2e(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         # This test would use pytest-benchmark in a real scenario

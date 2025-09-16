@@ -11,7 +11,7 @@ from typing import cast
 from flext_core import FlextExceptions, FlextTypes
 from pydantic import SecretStr
 
-from flext_db_oracle import FlextDbOracleApi, OracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.services import FlextDbOracleServices
 
@@ -22,7 +22,7 @@ class TestRealOracleExceptionsCore:
     def test_real_authentication_error_scenario(self) -> None:
         """Test FlextDbOracleExceptions.AuthenticationError with real invalid credentials."""
         # Use real invalid credentials against Oracle container
-        invalid_config = OracleConfig(
+        invalid_config = FlextDbOracleModels.OracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -57,7 +57,7 @@ class TestRealOracleExceptionsCore:
     def test_real_connection_error_scenario(self) -> None:
         """Test FlextDbOracleExceptions.ConnectionError with real unreachable host."""
         # Use real unreachable host
-        unreachable_config = OracleConfig(
+        unreachable_config = FlextDbOracleModels.OracleConfig(
             host="unreachable-host-12345.invalid",
             port=1521,
             service_name="XEPDB1",
@@ -94,7 +94,7 @@ class TestRealOracleExceptionsCore:
         """Test FlextDbOracleExceptions.ConfigurationError with real invalid config."""
         # Test config without service_name or sid - should fail validation
         try:
-            invalid_config = OracleConfig(
+            invalid_config = FlextDbOracleModels.OracleConfig(
                 host="localhost",
                 port=1521,
                 service_name="",  # Empty service name
@@ -119,7 +119,7 @@ class TestRealOracleExceptionsCore:
 
     def test_real_query_error_scenario(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test FlextDbOracleExceptions.QueryError with real invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -159,11 +159,11 @@ class TestRealOracleExceptionsCore:
 
     def test_real_timeout_error_scenario(
         self,
-        real_oracle_config: OracleConfig,
+        real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test FlextDbOracleExceptions.TimeoutError with real long-running query."""
         # Create config with very short timeout
-        timeout_config = OracleConfig(
+        timeout_config = FlextDbOracleModels.OracleConfig(
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
@@ -323,8 +323,8 @@ class TestRealOracleExceptionsAdvanced:
                 if "service_name" in config_data:
                     typed_config["service_name"] = str(config_data["service_name"])
 
-                # Cast typed_config to specific types for OracleConfig
-                OracleConfig(
+                # Cast typed_config to specific types for FlextDbOracleModels.OracleConfig
+                FlextDbOracleModels.OracleConfig(
                     host=str(typed_config["host"]),
                     port=cast("int", typed_config["port"]),
                     user=str(typed_config["user"]),

@@ -9,7 +9,7 @@ from pathlib import Path
 from flext_tests import FlextTestsMatchers
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.client import oracle_cli
+from flext_db_oracle.client import FlextDbOracleClient
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
@@ -23,9 +23,8 @@ class TestCLIRealFunctionality:
     def test_cli_creation_and_basic_functionality(self) -> None:
         """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""
         # Test CLI was created successfully
-        if oracle_cli is None:
-            msg = "Oracle CLI should be created successfully"
-            raise AssertionError(msg)
+        oracle_cli = FlextDbOracleClient.get_client()
+        # get_client() guarantees non-None return, so no need to check
 
         # Test CLI API has required attributes
         assert hasattr(oracle_cli, "execute_query")

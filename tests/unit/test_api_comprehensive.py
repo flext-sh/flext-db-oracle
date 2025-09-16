@@ -14,8 +14,7 @@ from typing import cast
 from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
-from flext_db_oracle import FlextDbOracleApi, OracleConfig
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 
 class TestFlextDbOracleApiRealFunctionality:
@@ -23,7 +22,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
-        self.config = OracleConfig(
+        self.config = FlextDbOracleModels.OracleConfig(
             host="test_host",
             port=1521,
             service_name="TEST",
@@ -364,8 +363,15 @@ class TestFlextDbOracleApiRealFunctionality:
             .build()
         )
 
-        FlextTestsMatchers.assert_result_success(config_result)
-        config = config_result.value
+        # Type guard: ensure we have a FlextResult before passing to assert_result_success
+        if not hasattr(config_result, "success"):
+            msg = "Expected FlextResult with .success attribute"
+            raise AssertionError(msg)
+
+        # Cast to FlextResult to satisfy mypy
+        result = cast("FlextResult[object]", config_result)
+        FlextTestsMatchers.assert_result_success(result)
+        config = result.value
         assert isinstance(config, FlextDbOracleModels.OracleConfig)
 
         api = FlextDbOracleApi.from_config(config)
@@ -375,7 +381,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_api_multiple_instances_isolation_real(self) -> None:
         """Test that multiple API instances are properly isolated - REAL FUNCTIONALITY."""
-        config1 = OracleConfig(
+        config1 = FlextDbOracleModels.OracleConfig(
             host="instance1",
             port=1521,
             service_name="service1",
@@ -383,7 +389,7 @@ class TestFlextDbOracleApiRealFunctionality:
             password="password1",
         )
 
-        config2 = OracleConfig(
+        config2 = FlextDbOracleModels.OracleConfig(
             host="instance2",
             port=1522,
             service_name="service2",
@@ -676,7 +682,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_api_configuration_variations_real(self) -> None:
         """Test API with various configuration scenarios - REAL FUNCTIONALITY."""
         # Test with minimal config
-        minimal_config = OracleConfig(
+        minimal_config = FlextDbOracleModels.OracleConfig(
             host="m",
             port=1,
             service_name="S",
@@ -691,7 +697,7 @@ class TestFlextDbOracleApiRealFunctionality:
         FlextTestsMatchers.assert_result_success(plugins)
 
         # Test with config containing special characters
-        special_config = OracleConfig(
+        special_config = FlextDbOracleModels.OracleConfig(
             host="host-with.dots",
             port=65535,
             service_name="SERVICE_WITH_UNDERSCORES",
@@ -756,7 +762,9 @@ class TestFlextDbOracleApiRealFunctionality:
             if result_typed.is_success:
                 assert result_typed.error is None
                 # value can be any type including None (accessed safely)
-                _ = getattr(result_typed, "value", None)  # Access is safe when success=True
+                _ = getattr(
+                    result_typed, "value", None
+                )  # Access is safe when success=True
             else:
                 assert result_typed.error is not None
                 assert isinstance(result_typed.error, str)

@@ -42,7 +42,8 @@ class DockerCommandExecutor:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
             client = docker.from_env()
-            client.ping()
+            # Add type ignore for untyped docker client ping method
+            client.ping()  # type: ignore[no-untyped-call]
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 

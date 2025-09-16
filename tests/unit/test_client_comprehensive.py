@@ -15,15 +15,13 @@ from flext_cli import (
 from flext_core import (
     FlextContainer,
     FlextLogger,
+    FlextResult,
 )
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleModels,
-    create_oracle_cli_commands,
-    get_client,
-    oracle_cli,
 )
 
 
@@ -250,15 +248,22 @@ class TestFlextDbOracleClientRealFunctionality:
             .build()
         )
 
-        FlextTestsMatchers.assert_result_success(config_result)
+        # Type guard: ensure we have a FlextResult before passing to assert_result_success
+        if not hasattr(config_result, "success"):
+            msg = "Expected FlextResult with .success attribute"
+            raise AssertionError(msg)
 
-        config = cast("FlextDbOracleModels.OracleConfig", config_result.value)
+        # Cast to FlextResult to satisfy mypy
+        result = cast("FlextResult[object]", config_result)
+        FlextTestsMatchers.assert_result_success(result)
+
+        config = cast("FlextDbOracleModels.OracleConfig", result.value)
 
         # Test that client can work with TestBuilders-created configuration
         client = FlextDbOracleClient()
 
         # Attempt connection (will fail, but tests configuration handling)
-        result = client.connect_to_oracle(
+        connection_result = client.connect_to_oracle(
             host=config.host,
             port=config.port,
             service_name=config.service_name or "default_service",  # Handle None case
@@ -267,7 +272,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
         # Should fail connection but validate configuration was processed
-        FlextTestsMatchers.assert_result_failure(result)
+        FlextTestsMatchers.assert_result_failure(connection_result)
 
     def test_client_string_representation_real(self) -> None:
         """Test client string representation methods - REAL FUNCTIONALITY."""
@@ -506,25 +511,20 @@ class TestFlextDbOracleClientRealFunctionality:
         assert hasattr(client, "_display_and_test_config")
 
     def test_module_level_functions_real(self) -> None:
-        """Test module-level functions - REAL FUNCTIONALITY."""
-        # Test create_oracle_cli_commands
-        commands_result = create_oracle_cli_commands()
-        FlextTestsMatchers.assert_result_success(commands_result)
-        commands = commands_result.value
-        assert isinstance(commands, list)
-        assert len(commands) > 0
-
-        # Test get_client function
-        client_instance = get_client()
+        """Test singleton client pattern - REAL FUNCTIONALITY."""
+        # Test singleton client access
+        client_instance = FlextDbOracleClient.get_client()
         assert isinstance(client_instance, FlextDbOracleClient)
 
-        # Test oracle_cli variable (may be None if flext-cli not available)
-        # This tests the _create_oracle_cli function indirectly
-        if oracle_cli is not None:
-            # If available, should have CLI interface methods
-            assert hasattr(oracle_cli, "execute_query") or hasattr(
-                oracle_cli, "run_cli_command"
-            )
+        # Test that subsequent calls return same instance
+        client_instance2 = FlextDbOracleClient.get_client()
+        assert client_instance is client_instance2
+
+        # Test that client has required CLI methods
+        assert hasattr(client_instance, "execute_query")
+        assert hasattr(client_instance, "list_schemas")
+        assert hasattr(client_instance, "list_tables")
+        assert hasattr(client_instance, "health_check")
 
     def test_error_handling_comprehensive_real(self) -> None:
         """Test comprehensive error handling patterns - REAL FUNCTIONALITY."""

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_core import FlextTypes
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, OracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 
 class TestFlextDbOracleApiSafeMethods:
@@ -212,7 +212,7 @@ class TestFlextDbOracleApiSafeMethods:
     def test_api_initialization_variations(self) -> None:
         """Test different API initialization patterns."""
         # Basic initialization
-        config1 = OracleConfig(
+        config1 = FlextDbOracleModels.OracleConfig(
             host="init1",
             port=1521,
             service_name="INIT1",
@@ -223,7 +223,7 @@ class TestFlextDbOracleApiSafeMethods:
         assert api1.config.host == "init1"
 
         # With context name
-        config2 = OracleConfig(
+        config2 = FlextDbOracleModels.OracleConfig(
             host="init2",
             port=1521,
             service_name="INIT2",
