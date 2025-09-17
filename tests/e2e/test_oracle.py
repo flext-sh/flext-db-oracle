@@ -13,8 +13,8 @@ import os
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
 
+from flext_core import FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
@@ -305,7 +305,7 @@ class TestOracleE2E:
             host="nonexistent-host.invalid",
             port=9999,
             service_name="INVALID_DB",
-            user="invalid_user",
+            username="invalid_user",
             password="invalid_password",
         )
 
@@ -372,9 +372,6 @@ class TestOracleE2E:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
-        # This test would use pytest-benchmark in a real scenario
-        # For now, validate that timing information is captured
-
         try:
             with FlextDbOracleApi(real_oracle_config) as api:
                 # Test query with timing

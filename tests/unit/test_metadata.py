@@ -19,10 +19,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         self.config = FlextDbOracleModels.OracleConfig(
             host="test",
             port=1521,
-            name="TEST",
-            user="test",
-            password="test",
             service_name="TEST",
+            username="test",
+            password="test",
         )
         self.services = FlextDbOracleServices(config=self.config)
         self.manager = self.services  # They are the same unified class now

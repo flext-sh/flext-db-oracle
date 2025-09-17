@@ -10,23 +10,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import re
 from datetime import datetime
+from typing import ClassVar
 
-from flext_core import FlextModels, FlextResult, FlextTypes, FlextValidations
-from pydantic import Field, field_validator
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Oracle-specific constants from domain requirements
-MAX_PORT = 65535
-MIN_PORT = 1
-MAX_ORACLE_IDENTIFIER_LENGTH = 30
-ORACLE_IDENTIFIER_PATTERN = r"^[A-Z][A-Z0-9_$#]*$"
-MAX_HOSTNAME_LENGTH = 253
-MAX_QUERY_TIMEOUT_SECONDS = 3600  # Maximum query timeout (1 hour)
+from flext_core import FlextModels, FlextResult
+
+from .constants import FlextDbOracleConstants
 
 
-class FlextDbOracleModels(FlextModels):
-    """Oracle database models using flext-core exclusively - ZERO duplication."""
+class FlextDbOracleModels(FlextModels.Entity):
+    """Oracle database models using flext-core exclusively."""
 
     # Use flext-core for ALL model functionality - NO custom implementations
 
@@ -36,39 +33,61 @@ class FlextDbOracleModels(FlextModels):
 
         @staticmethod
         def validate_identifier(identifier: str) -> FlextResult[str]:
-            """Validate Oracle identifier using flext-core BusinessValidators - Single Source of Truth."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                identifier.upper(),
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid Oracle identifier: {result.error}"
+            """Validate Oracle identifier using direct validation - Single Source of Truth."""
+            # Convert to uppercase for Oracle convention
+            upper_identifier = identifier.upper()
+
+            # Basic validation
+            if not isinstance(upper_identifier, str) or not upper_identifier.strip():
+                return FlextResult[str].fail("Oracle identifier cannot be empty")
+
+            # Length validation
+            if len(upper_identifier) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                error_msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 return FlextResult[str].fail(error_msg)
-            return FlextResult[str].ok(result.unwrap())
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_identifier):
+                error_msg = "Oracle identifier contains invalid characters"
+                return FlextResult[str].fail(error_msg)
+
+            return FlextResult[str].ok(upper_identifier)
 
     # Base models from flext-core
-    Entity = FlextModels.Entity
-    Value = FlextModels.Value
+    Entity: ClassVar[type] = FlextModels.Entity
+    Value: ClassVar[type] = FlextModels.Value
 
     # Database configuration from flext-core
-    DatabaseConfig = FlextModels.DatabaseConfig
+    DatabaseConfig: ClassVar[type] = FlextModels.Entity
 
     # Oracle-specific field definitions using flext-core patterns
-    host_field = Field(default="localhost", description="Oracle database host")
-    port_field = Field(default=1521, description="Oracle database port")
-    username_field = Field(..., description="Oracle database username")
-    password_field = Field(..., description="Oracle database password")
-    service_name_field = Field(default="XE", description="Oracle service name")
+    host_field: ClassVar[object] = Field(
+        default="localhost", description="Oracle database host"
+    )
+    port_field: ClassVar[object] = Field(
+        default=1521, description="Oracle database port"
+    )
+    username_field: ClassVar[object] = Field(
+        ..., description="Oracle database username"
+    )
+    password_field: ClassVar[object] = Field(
+        ..., description="Oracle database password"
+    )
+    service_name_field: ClassVar[object] = Field(
+        default="XE", description="Oracle service name"
+    )
 
-    class OracleConfig(FlextModels.SystemConfigs.DatabaseConfig):
+    class OracleConfig(FlextModels.Entity):
         """Oracle-specific configuration extending flext-core DatabaseConfig with pydantic-settings support."""
 
         # Oracle-specific defaults using flext-core field validation
         host: str = Field(default="localhost", description="Oracle database host")
         port: int = Field(default=1521, description="Oracle database port")
         name: str = Field(default="XE", description="Oracle database name")
+
+        # Authentication fields
+        username: str = Field(description="Oracle database username")
+        password: str = Field(description="Oracle database password")
 
         # Oracle-specific fields not in base DatabaseConfig
         service_name: str | None = Field(
@@ -88,9 +107,9 @@ class FlextDbOracleModels(FlextModels):
 
         # Add properties for backward compatibility
         @property
-        def username(self) -> str:
-            """Alias for user field from base DatabaseConfig."""
-            return self.user
+        def user(self) -> str:
+            """Alias for username field for backward compatibility."""
+            return self.username
 
         @classmethod
         def from_env(
@@ -103,7 +122,7 @@ class FlextDbOracleModels(FlextModels):
                     host=os.getenv(f"{prefix}_HOST", "localhost"),
                     port=int(os.getenv(f"{prefix}_PORT", "1521")),
                     name=os.getenv(f"{prefix}_DB", "XE"),
-                    user=os.getenv(f"{prefix}_USER", "flext_user"),
+                    username=os.getenv(f"{prefix}_USER", "flext_user"),
                     password=os.getenv(f"{prefix}_PASSWORD", ""),
                     service_name=os.getenv(f"{prefix}_SERVICE_NAME"),
                     pool_min=int(os.getenv(f"{prefix}_POOL_MIN", "2")),
@@ -161,7 +180,7 @@ class FlextDbOracleModels(FlextModels):
                     host=host,
                     port=port,
                     name=service_name or "XE",
-                    user=user,
+                    username=user,
                     password=password,
                     service_name=service_name,
                 )
@@ -174,46 +193,103 @@ class FlextDbOracleModels(FlextModels):
         @field_validator("host")
         @classmethod
         def validate_host(cls, v: str) -> str:
-            """Validate host using flext-core BusinessValidators."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v, min_length=1, max_length=MAX_HOSTNAME_LENGTH
-            )
-            if result.is_failure:
-                error_msg = f"Invalid host: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate host using direct validation."""
+            if not isinstance(v, str) or not v.strip():
+                msg = "Host cannot be empty"
+                raise ValueError(msg)
+            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH:
+                msg = f"Host too long (max {FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH} chars)"
+                raise ValueError(msg)
+            return v.strip()
 
         @field_validator("port")
         @classmethod
         def validate_port(cls, v: int) -> int:
-            """Validate port using flext-core TypeValidators."""
-            int_result = FlextValidations.TypeValidators.validate_integer(v)
-            if int_result.is_failure:
-                error_msg = f"Invalid port: {int_result.error}"
-                raise ValueError(error_msg)
+            """Validate port using direct validation."""
+            if not isinstance(v, int) or isinstance(v, bool):
+                msg = "Port must be an integer"
+                raise TypeError(msg)
 
-            port_val = int_result.unwrap()
-            if not (MIN_PORT <= port_val <= MAX_PORT):
-                error_msg = (
-                    f"Port must be between {MIN_PORT}-{MAX_PORT}, got {port_val}"
-                )
+            if not (FlextDbOracleConstants.OracleValidation.MIN_PORT <= v <= FlextDbOracleConstants.OracleValidation.MAX_PORT):
+                error_msg = f"Port must be between {FlextDbOracleConstants.OracleValidation.MIN_PORT}-{FlextDbOracleConstants.OracleValidation.MAX_PORT}, got {v}"
                 raise ValueError(error_msg)
-            return port_val
+            return v
 
         @field_validator("name")
         @classmethod
         def validate_database_name(cls, v: str) -> str:
-            """Validate database name using flext-core BusinessValidators."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v.upper(),  # Oracle normalizes to uppercase
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid database name: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate database name using direct validation."""
+            # Oracle normalizes to uppercase
+            upper_name = v.upper()
+
+            # Basic validation
+            if not isinstance(upper_name, str) or not upper_name.strip():
+                msg = "Database name cannot be empty"
+                raise ValueError(msg)
+
+            # Length validation
+            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = (
+                    f"Database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                )
+                raise ValueError(msg)
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+                msg = "Database name contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_name
+
+        @field_validator("service_name")
+        @classmethod
+        def validate_service_name(cls, v: str | None) -> str | None:
+            """Validate Oracle service name."""
+            if v is None:
+                return None
+
+            # Check if empty string
+            if not isinstance(v, str) or not v.strip():
+                msg = "Service name cannot be empty when provided"
+                raise ValueError(msg)
+
+            # Validate identifier if not empty
+            upper_name = v.upper()
+            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = (
+                    f"Service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                )
+                raise ValueError(msg)
+
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+                msg = "Service name contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_name
+
+        @field_validator("sid")
+        @classmethod
+        def validate_sid(cls, v: str | None) -> str | None:
+            """Validate Oracle SID."""
+            if v is None:
+                return None
+
+            # Check if empty string
+            if not isinstance(v, str) or not v.strip():
+                msg = "SID cannot be empty when provided"
+                raise ValueError(msg)
+
+            # Validate identifier if not empty
+            upper_name = v.upper()
+            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = f"SID too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                raise ValueError(msg)
+
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+                msg = "SID contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_name
 
     class OracleSettings(BaseSettings):
         """Oracle database settings using pydantic-settings BaseSettings for configuration management.
@@ -224,7 +300,9 @@ class FlextDbOracleModels(FlextModels):
 
         # Oracle connection settings
         oracle_host: str = Field(
-            default="localhost", description="Oracle database host", validation_alias="ORACLE_HOST"
+            default="localhost",
+            description="Oracle database host",
+            validation_alias="ORACLE_HOST",
         )
         oracle_port: int = Field(
             default=1521,
@@ -234,10 +312,14 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_PORT",
         )
         oracle_user: str = Field(
-            default="system", description="Oracle database username", validation_alias="ORACLE_USER"
+            default="system",
+            description="Oracle database username",
+            validation_alias="ORACLE_USER",
         )
         oracle_password: str = Field(
-            default="", description="Oracle database password", validation_alias="ORACLE_PASSWORD"
+            default="",
+            description="Oracle database password",
+            validation_alias="ORACLE_PASSWORD",
         )
         oracle_service_name: str = Field(
             default="XEPDB1",
@@ -245,12 +327,16 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_SERVICE_NAME",
         )
         oracle_database_name: str = Field(
-            default="XE", description="Oracle database name", validation_alias="ORACLE_DATABASE_NAME"
+            default="XE",
+            description="Oracle database name",
+            validation_alias="ORACLE_DATABASE_NAME",
         )
 
         # Oracle-specific settings
         oracle_sid: str | None = Field(
-            default=None, description="Oracle SID (System Identifier)", validation_alias="ORACLE_SID"
+            default=None,
+            description="Oracle SID (System Identifier)",
+            validation_alias="ORACLE_SID",
         )
         oracle_ssl_server_cert_dn: str | None = Field(
             default=None,
@@ -258,7 +344,9 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_SSL_SERVER_CERT_DN",
         )
         oracle_ssl_verify: bool = Field(
-            default=True, description="Verify SSL certificates", validation_alias="ORACLE_SSL_VERIFY"
+            default=True,
+            description="Verify SSL certificates",
+            validation_alias="ORACLE_SSL_VERIFY",
         )
 
         # Connection pool settings
@@ -322,33 +410,42 @@ class FlextDbOracleModels(FlextModels):
         @field_validator("oracle_host")
         @classmethod
         def validate_oracle_host(cls, v: str) -> str:
-            """Validate Oracle host using flext-core BusinessValidators."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v, min_length=1, max_length=MAX_HOSTNAME_LENGTH
-            )
-            if result.is_failure:
-                error_msg = f"Invalid Oracle host: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate Oracle host using direct validation."""
+            if not isinstance(v, str) or not v.strip():
+                msg = "Oracle host cannot be empty"
+                raise ValueError(msg)
+            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH:
+                msg = f"Oracle host too long (max {FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH} chars)"
+                raise ValueError(msg)
+            return v.strip()
 
         @field_validator("oracle_service_name", "oracle_database_name")
         @classmethod
         def validate_oracle_identifier(cls, v: str) -> str:
-            """Validate Oracle identifiers using flext-core BusinessValidators."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v.upper(),
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid Oracle identifier: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate Oracle identifiers using direct validation."""
+            # Oracle normalizes to uppercase
+            upper_v = v.upper()
+
+            # Basic validation
+            if not isinstance(upper_v, str) or not upper_v.strip():
+                msg = "Oracle identifier cannot be empty"
+                raise ValueError(msg)
+
+            # Length validation
+            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                raise ValueError(msg)
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+                msg = "Oracle identifier contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_v
 
         @field_validator("oracle_pool_max_size")
         @classmethod
-        def validate_pool_sizes(cls, v: int, info: object) -> int:
+        def validate_pool_sizes(cls, v: int, info: ValidationInfo) -> int:
             """Validate that max pool size is greater than min pool size."""
             if hasattr(info, "data") and "oracle_pool_min_size" in info.data:
                 min_size = info.data["oracle_pool_min_size"]
@@ -380,7 +477,7 @@ class FlextDbOracleModels(FlextModels):
                     host=self.oracle_host,
                     port=self.oracle_port,
                     name=self.oracle_database_name,
-                    user=self.oracle_user,
+                    username=self.oracle_user,
                     password=self.oracle_password,
                     service_name=self.oracle_service_name,
                     sid=self.oracle_sid,
@@ -427,9 +524,9 @@ class FlextDbOracleModels(FlextModels):
                 return FlextResult[None].fail("Max pool size must be >= min pool size")
 
             # Validate timeout settings
-            if self.oracle_query_timeout > MAX_QUERY_TIMEOUT_SECONDS:
+            if self.oracle_query_timeout > FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS:
                 return FlextResult[None].fail(
-                    f"Query timeout too high (max {MAX_QUERY_TIMEOUT_SECONDS} seconds)"
+                    f"Query timeout too high (max {FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS} seconds)"
                 )
 
             # Security validations
@@ -465,45 +562,49 @@ class FlextDbOracleModels(FlextModels):
         def create_development_config(cls) -> FlextDbOracleModels.OracleSettings:
             """Create Oracle settings for development environment."""
             # Use model_validate to bypass mypy constructor signature issues
-            return cls.model_validate({
-                "oracle_host": "localhost",
-                "oracle_port": 1521,
-                "oracle_user": "system",
-                "oracle_password": "Oracle123",  # noqa: S106  # Dev environment only
-                "oracle_service_name": "XEPDB1",
-                "oracle_database_name": "XE",
-                "oracle_pool_min_size": 2,
-                "oracle_pool_max_size": 10,
-                "oracle_pool_timeout": 30,
-                "oracle_query_timeout": 60,
-                "oracle_echo_queries": True,  # OK for development
-                "oracle_log_queries": True,  # OK for development
-                "oracle_ssl_verify": False,  # OK for local development
-            })
+            return cls.model_validate(
+                {
+                    "oracle_host": "localhost",
+                    "oracle_port": 1521,
+                    "oracle_user": "system",
+                    "oracle_password": "Oracle123",
+                    "oracle_service_name": "XEPDB1",
+                    "oracle_database_name": "XE",
+                    "oracle_pool_min_size": 2,
+                    "oracle_pool_max_size": 10,
+                    "oracle_pool_timeout": 30,
+                    "oracle_query_timeout": 60,
+                    "oracle_echo_queries": True,  # OK for development
+                    "oracle_log_queries": True,  # OK for development
+                    "oracle_ssl_verify": False,  # OK for local development
+                }
+            )
 
         @classmethod
         def create_production_config(cls) -> FlextDbOracleModels.OracleSettings:
             """Create Oracle settings template for production environment."""
             # Use model_validate to bypass mypy constructor signature issues
-            return cls.model_validate({
-                "oracle_host": "${ORACLE_HOST}",
-                "oracle_port": 1521,
-                "oracle_user": "${ORACLE_USER}",
-                "oracle_password": "${ORACLE_PASSWORD}",  # noqa: S106  # Template variable
-                "oracle_service_name": "${ORACLE_SERVICE_NAME}",
-                "oracle_database_name": "${ORACLE_DATABASE_NAME}",
-                "oracle_pool_min_size": 10,
-                "oracle_pool_max_size": 50,
-                "oracle_pool_timeout": 60,
-                "oracle_query_timeout": 300,
-                "oracle_echo_queries": False,
-                "oracle_log_queries": False,
-                "oracle_ssl_verify": True,
-                "oracle_enable_metrics": True,
-                "oracle_slow_query_threshold": 2.0,
-            })
+            return cls.model_validate(
+                {
+                    "oracle_host": "${ORACLE_HOST}",
+                    "oracle_port": 1521,
+                    "oracle_user": "${ORACLE_USER}",
+                    "oracle_password": "${ORACLE_PASSWORD}",
+                    "oracle_service_name": "${ORACLE_SERVICE_NAME}",
+                    "oracle_database_name": "${ORACLE_DATABASE_NAME}",
+                    "oracle_pool_min_size": 10,
+                    "oracle_pool_max_size": 50,
+                    "oracle_pool_timeout": 60,
+                    "oracle_query_timeout": 300,
+                    "oracle_echo_queries": False,
+                    "oracle_log_queries": False,
+                    "oracle_ssl_verify": True,
+                    "oracle_enable_metrics": True,
+                    "oracle_slow_query_threshold": 2.0,
+                }
+            )
 
-    class ConnectionStatus(FlextModels.Value):
+    class ConnectionStatus(FlextModels.Entity):
         """Connection status using flext-core Value object."""
 
         is_connected: bool = False
@@ -518,13 +619,13 @@ class FlextDbOracleModels(FlextModels):
         port: int | None = None
         service_name: str | None = None
         username: str | None = None
-        version: str | None = None
+        db_version: str | None = None
 
     class QueryResult(FlextModels.Entity):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[FlextTypes.Core.Dict] = Field(default_factory=list)
+        result_data: list[dict[str, object]] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
@@ -548,17 +649,26 @@ class FlextDbOracleModels(FlextModels):
         @field_validator("name", "owner")
         @classmethod
         def validate_oracle_identifier(cls, v: str) -> str:
-            """Validate Oracle identifiers using flext-core."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v.upper(),
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid Oracle identifier: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate Oracle identifiers using direct validation."""
+            # Oracle normalizes to uppercase
+            upper_v = v.upper()
+
+            # Basic validation
+            if not isinstance(upper_v, str) or not upper_v.strip():
+                msg = "Oracle identifier cannot be empty"
+                raise ValueError(msg)
+
+            # Length validation
+            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                raise ValueError(msg)
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+                msg = "Oracle identifier contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_v
 
     class Column(FlextModels.Entity):
         """Oracle column using flext-core Entity."""
@@ -571,17 +681,26 @@ class FlextDbOracleModels(FlextModels):
         @field_validator("name")
         @classmethod
         def validate_column_name(cls, v: str) -> str:
-            """Validate column name using flext-core."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v.upper(),
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid column name: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            """Validate column name using direct validation."""
+            # Oracle normalizes to uppercase
+            upper_v = v.upper()
+
+            # Basic validation
+            if not isinstance(upper_v, str) or not upper_v.strip():
+                msg = "Column name cannot be empty"
+                raise ValueError(msg)
+
+            # Length validation
+            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = f"Column name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                raise ValueError(msg)
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+                msg = "Column name contains invalid characters"
+                raise ValueError(msg)
+
+            return upper_v
 
     class Schema(FlextModels.Entity):
         """Oracle schema using flext-core Entity."""
@@ -593,18 +712,25 @@ class FlextDbOracleModels(FlextModels):
         @classmethod
         def validate_schema_name(cls, v: str) -> str:
             """Validate schema name using flext-core."""
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                v.upper(),
-                min_length=1,
-                max_length=MAX_ORACLE_IDENTIFIER_LENGTH,
-                pattern=ORACLE_IDENTIFIER_PATTERN,
-            )
-            if result.is_failure:
-                error_msg = f"Invalid schema name: {result.error}"
-                raise ValueError(error_msg)
-            return result.unwrap()
+            # Direct validation using isinstance and basic checks
+            schema_name = v.upper()
 
-    class CreateIndexConfig(FlextModels.Value):
+            # Length validation
+            if not isinstance(schema_name, str) or len(schema_name) < 1:
+                msg = "Schema name must be a non-empty string"
+                raise ValueError(msg)
+            if len(schema_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+                msg = f"Schema name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} characters)"
+                raise ValueError(msg)
+
+            # Pattern validation
+            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, schema_name):
+                msg = f"Invalid schema name format: {schema_name}"
+                raise ValueError(msg)
+
+            return schema_name
+
+    class CreateIndexConfig(FlextModels.Entity):
         """Index creation config using flext-core Value."""
 
         index_name: str
@@ -615,7 +741,7 @@ class FlextDbOracleModels(FlextModels):
         tablespace: str | None = None
         parallel: int | None = None
 
-    class MergeStatementConfig(FlextModels.Value):
+    class MergeStatementConfig(FlextModels.Entity):
         """Merge statement config using flext-core Value."""
 
         target_table: str
@@ -627,7 +753,7 @@ class FlextDbOracleModels(FlextModels):
 
 # ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
-__all__: FlextTypes.Core.StringList = [
+__all__: list[str] = [
     "FlextDbOracleModels",
 ]
 

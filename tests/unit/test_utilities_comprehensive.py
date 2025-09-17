@@ -7,10 +7,10 @@ import time
 from pathlib import Path
 from unittest.mock import Mock
 
-from flext_core import FlextTypes
 from flext_tests import FlextTestsMatchers
 from pydantic import BaseModel
 
+from flext_core import FlextTypes
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 # Add flext_tests to path
@@ -25,12 +25,12 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         self.utilities = FlextDbOracleUtilities()
 
     def test_utilities_initialization_real(self) -> None:
-        """Test utilities initialization - REAL FUNCTIONALITY."""
+        """Test utilities initialization."""
         assert self.utilities is not None
         assert isinstance(self.utilities, FlextDbOracleUtilities)
 
     def test_escape_oracle_identifier_real(self) -> None:
-        """Test Oracle identifier escaping - REAL FUNCTIONALITY."""
+        """Test Oracle identifier escaping."""
         test_cases = [
             # Valid identifiers
             ("VALID_NAME", True),
@@ -51,7 +51,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
                 assert result.is_failure
 
     def test_format_sql_for_oracle_real(self) -> None:
-        """Test Oracle SQL formatting - REAL FUNCTIONALITY."""
+        """Test Oracle SQL formatting."""
         test_queries = [
             # Basic formatting
             ("SELECT * FROM table", True),
@@ -71,7 +71,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
                 assert result.is_failure
 
     def test_generate_query_hash_real(self) -> None:
-        """Test query hash generation - REAL FUNCTIONALITY."""
+        """Test query hash generation."""
         # Test that same queries produce same hash
         query1 = "SELECT * FROM users WHERE id = ?"
         query2 = "SELECT * FROM users WHERE id = ?"
@@ -95,7 +95,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert all(c in "0123456789abcdef" for c in result1.unwrap().lower())
 
     def test_generate_query_hash_with_params_real(self) -> None:
-        """Test query hash generation with parameters - REAL FUNCTIONALITY."""
+        """Test query hash generation with parameters."""
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
         params1 = {"id": 1, "name": "John"}
         params2 = {"id": 2, "name": "Jane"}
@@ -110,7 +110,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         )  # Different params should produce different hashes
 
     def test_format_query_result_real(self) -> None:
-        """Test query result formatting - REAL FUNCTIONALITY."""
+        """Test query result formatting."""
         # Mock QueryResult
         mock_result = Mock()
         mock_result.fetchall.return_value = [
@@ -126,7 +126,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         # Should be formatted properly
 
     def test_format_query_result_table_real(self) -> None:
-        """Test query result table formatting - REAL FUNCTIONALITY."""
+        """Test query result table formatting."""
         mock_result = Mock()
         mock_result.fetchall.return_value = [
             {"id": 1, "name": "John", "email": "john@example.com"},
@@ -140,7 +140,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert isinstance(formatted, str)
 
     def test_format_query_result_empty_real(self) -> None:
-        """Test query result formatting with empty data - REAL FUNCTIONALITY."""
+        """Test query result formatting with empty data."""
         mock_result = Mock()
         mock_result.fetchall.return_value = []
 
@@ -154,7 +154,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             # Should handle empty data gracefully
 
     def test_create_api_from_config_method_real(self) -> None:
-        """Test create_api_from_config method - REAL FUNCTIONALITY."""
+        """Test create_api_from_config method."""
         # Test with valid config dictionary
         config_dict = {
             "host": "test_host",
@@ -171,7 +171,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_create_api_from_config_invalid_real(self) -> None:
-        """Test create_api_from_config with invalid config - REAL FUNCTIONALITY."""
+        """Test create_api_from_config with invalid config."""
         invalid_configs: list[FlextTypes.Core.Dict] = [
             {},  # Empty config
             {"host": "test"},  # Missing required fields
@@ -184,7 +184,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
             assert isinstance(result.error, str)
 
     def test_create_config_from_env_real(self) -> None:
-        """Test create_config_from_env method - REAL FUNCTIONALITY."""
+        """Test create_config_from_env method."""
         result = self.utilities.create_config_from_env()
 
         # Should return FlextResult - may fail if env vars not set
@@ -192,7 +192,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_utilities_error_handling_patterns_real(self) -> None:
-        """Test utilities error handling patterns - REAL FUNCTIONALITY."""
+        """Test utilities error handling patterns."""
         utilities = FlextDbOracleUtilities()
 
         # Test with empty inputs - should fail
@@ -208,7 +208,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert result3.is_failure
 
     def test_utilities_performance_tracking_real(self) -> None:
-        """Test utilities performance tracking - REAL FUNCTIONALITY."""
+        """Test utilities performance tracking."""
         start_time = time.time()
 
         # Perform multiple operations
@@ -223,7 +223,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert elapsed < 1.0
 
     def test_utilities_protocols_integration_real(self) -> None:
-        """Test utilities protocols integration - REAL FUNCTIONALITY."""
+        """Test utilities protocols integration."""
 
         # Test HasModelDump protocol with Pydantic model
         class TestModel(BaseModel):
@@ -240,7 +240,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert model_data["name"] == "test"
 
     def test_utilities_integration_with_flext_core_patterns_real(self) -> None:
-        """Test utilities integration with flext-core patterns - REAL FUNCTIONALITY."""
+        """Test utilities integration with flext-core patterns."""
         utilities = FlextDbOracleUtilities()
 
         # Test FlextResult operations
@@ -253,7 +253,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result2, "error") or hasattr(result2, "value")
 
     def test_utilities_string_representations_real(self) -> None:
-        """Test utilities string representations - REAL FUNCTIONALITY."""
+        """Test utilities string representations."""
         utilities = FlextDbOracleUtilities()
 
         # Test repr/str don't crash
@@ -266,7 +266,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert len(str_repr) > 0
 
     def test_utilities_multiple_instances_isolation_real(self) -> None:
-        """Test that multiple utility instances are properly isolated - REAL FUNCTIONALITY."""
+        """Test that multiple utility instances are properly isolated."""
         utilities1 = FlextDbOracleUtilities()
         utilities2 = FlextDbOracleUtilities()
 

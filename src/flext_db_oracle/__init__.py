@@ -18,9 +18,6 @@ from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 # ZERO TOLERANCE: No aliases - use unified classes directly
 
-# Create alias for OracleConfig
-OracleConfig = FlextDbOracleModels.OracleConfig
-
 __all__ = [
     "FlextDbOracleApi",
     "FlextDbOracleClient",
@@ -31,5 +28,4 @@ __all__ = [
     "FlextDbOraclePlugins",
     "FlextDbOracleServices",
     "FlextDbOracleUtilities",
-    "OracleConfig",
 ]

@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextTypes
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 
@@ -19,10 +18,9 @@ class TestFlextDbOracleApiSafeMethods:
         config = FlextDbOracleModels.OracleConfig(
             host="test",
             port=1521,
-            name="TEST",
-            user="test",
-            password="test",
             service_name="TEST",
+            username="test",
+            password="test",
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -37,7 +35,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             name="TESTDB",  # Required field
             service_name="TESTDB",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
 
@@ -52,7 +50,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="health_test",
             port=1521,
             name="HEALTH_TEST",
-            user="health_user",
+            username="health_user",
             password="health_pass",
             service_name="HEALTH_TEST",
         )
@@ -69,7 +67,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="optimize_test",
             port=1521,
             service_name="OPT_TEST",
-            user="opt_user",
+            username="opt_user",
             password="opt_pass",
         )
 
@@ -94,7 +92,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
-            user="plugin_user",
+            username="plugin_user",
             password="plugin_pass",
         )
 
@@ -149,7 +147,7 @@ class TestFlextDbOracleApiSafeMethods:
             port=1521,
             name="ERROR_TEST",  # Required field
             service_name="ERROR_TEST",
-            user="error_user",
+            username="error_user",
             password="error_pass",
         )
 
@@ -171,7 +169,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="prop_test",
             port=1521,
             service_name="PROP_TEST",
-            user="prop_user",
+            username="prop_user",
             password="prop_pass",
         )
 
@@ -193,7 +191,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="metrics_test",
             port=1521,
             service_name="METRICS_TEST",
-            user="metrics_user",
+            username="metrics_user",
             password="metrics_pass",
         )
 
@@ -216,7 +214,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="init1",
             port=1521,
             service_name="INIT1",
-            user="user1",
+            username="user1",
             password="pass1",
         )
         api1 = FlextDbOracleApi(config1)
@@ -227,7 +225,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="init2",
             port=1521,
             service_name="INIT2",
-            user="user2",
+            username="user2",
             password="pass2",
         )
         api2 = FlextDbOracleApi(config2, context_name="test_context")
@@ -240,7 +238,7 @@ class TestFlextDbOracleApiSafeMethods:
             host="test_helper",
             port=1521,
             service_name="HELPER_TEST",
-            user="helper_user",
+            username="helper_user",
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)

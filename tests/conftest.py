@@ -9,8 +9,9 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from pathlib import Path
+from typing import cast
 
 import docker
 import pytest
@@ -31,6 +32,24 @@ class OperationTestError(Exception):
         self.error = error
 
 
+def _docker_ping_safe(client: docker.DockerClient) -> bool:
+    """Type-safe wrapper for docker client ping method.
+
+    Args:
+        client: Docker client instance from docker SDK
+
+    Returns:
+        bool: True if Docker daemon is reachable
+
+    Raises:
+        Exception: If docker ping fails
+
+    """
+    # Use cast to handle the untyped ping method from docker SDK
+    ping_method = cast("Callable[[], bool]", client.ping)
+    return ping_method()
+
+
 class DockerCommandExecutor:
     """Execute Docker commands safely with proper error handling."""
 
@@ -42,8 +61,11 @@ class DockerCommandExecutor:
         """Check if Docker and Docker Compose are available via SDK."""
         try:
             client = docker.from_env()
-            # Add type ignore for untyped docker client ping method
-            client.ping()  # type: ignore[no-untyped-call]
+            # Use type-safe wrapper for untyped docker client ping method
+            is_available = _docker_ping_safe(client)
+            if not is_available:  # pragma: no cover - environment dependent
+                msg = "Docker daemon is not responding"
+                raise RuntimeError(msg)
         except Exception as e:  # pragma: no cover - environment dependent
             raise RuntimeError from e
 
@@ -154,25 +176,21 @@ class OracleContainerManager:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    """Configure pytest with Oracle container for ALL tests - NO MOCKS ALLOWED."""
-    # FORCE Oracle container usage for ALL tests - no mocks, only real testing
+    """Configure pytest with Oracle container for ALL tests."""
     config.addinivalue_line("markers", "oracle: Oracle database integration tests")
     os.environ["SKIP_E2E_TESTS"] = "false"
     os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
     os.environ["USE_REAL_ORACLE"] = "true"
-    # Oracle connection configuration for ALL tests
     os.environ["TEST_ORACLE_HOST"] = "localhost"
     os.environ["TEST_ORACLE_PORT"] = "1521"
     os.environ["TEST_ORACLE_SERVICE"] = "XEPDB1"
     os.environ["TEST_ORACLE_USER"] = "flexttest"
     os.environ["TEST_ORACLE_PASSWORD"] = TEST_ORACLE_PASSWORD
-    # Set FLEXT target environment variables for consistency across ALL tests
     os.environ["FLEXT_TARGET_ORACLE_HOST"] = "localhost"
     os.environ["FLEXT_TARGET_ORACLE_PORT"] = "1521"
     os.environ["FLEXT_TARGET_ORACLE_SERVICE_NAME"] = "XEPDB1"
     os.environ["FLEXT_TARGET_ORACLE_USERNAME"] = "flexttest"
     os.environ["FLEXT_TARGET_ORACLE_PASSWORD"] = TEST_ORACLE_PASSWORD
-    # PYTEST CONFIGURADO PARA USAR ORACLE REAL - SEM MOCKS!
 
 
 @pytest.fixture(scope="session")
@@ -212,11 +230,10 @@ def real_oracle_config(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
-        user=os.getenv("TEST_ORACLE_USER", "flexttest"),
+        username=os.getenv("TEST_ORACLE_USER", "flexttest"),
         password=os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123"),
         service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         ssl_server_cert_dn=None,
-        connection_timeout=30,
     )
 
 
@@ -239,6 +256,3 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
             connected_api.disconnect()
     else:
         pytest.skip(f"Could not connect to Oracle: {connect_result.error}")
-
-
-# REMOVE ALL MOCK FIXTURES - ONLY REAL ORACLE TESTING ALLOWED

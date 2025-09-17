@@ -16,9 +16,9 @@ import os
 from typing import cast
 
 import pytest
-from flext_core import FlextResult
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
+from flext_core import FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
@@ -35,7 +35,7 @@ class TestDirectCoverageBoostAPI:
         bad_config = FlextDbOracleModels.OracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
-            user="invalid",
+            username="invalid",
             password="invalid",
             service_name="INVALID",
         )
@@ -145,7 +145,7 @@ class TestDirectCoverageBoostConfig:
                 config = FlextDbOracleModels.OracleConfig(
                     host=host,
                     port=port,
-                    user=user,
+                    username=user,
                     password=password,
                     service_name=service_name,
                 )
@@ -177,14 +177,14 @@ class TestDirectCoverageBoostConfig:
             config = FlextDbOracleModels.OracleConfig(
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
-                user=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
+                username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
                 password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
             )
 
             assert config.host == "test_host"
             assert config.port == 1234
-            assert config.user == "test_user"
+            assert config.username == "test_user"
 
         finally:
             # Restore original values
@@ -223,7 +223,7 @@ class TestDirectCoverageBoostConnection:
         bad_config = FlextDbOracleModels.OracleConfig(
             host="invalid_host",
             port=9999,
-            user="invalid",
+            username="invalid",
             password="invalid",
             service_name="invalid",
         )
@@ -340,7 +340,7 @@ class TestDirectCoverageBoostObservability:
                 host="localhost",
                 port=1521,
                 service_name="XE",
-                user="test",
+                username="test",
                 password="test",
                 ssl_server_cert_dn=None,
             )
@@ -394,7 +394,7 @@ class TestDirectCoverageBoostServices:
             host="coverage_test",
             port=1521,
             service_name="COVERAGE",
-            user="coverage_user",
+            username="coverage_user",
             password="coverage_pass",
             ssl_server_cert_dn=None,
         )
@@ -417,7 +417,7 @@ class TestDirectCoverageBoostServices:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            user="test",
+            username="test",
             password="test",
         )
         services = FlextDbOracleServices(config=config)
@@ -459,7 +459,7 @@ class TestDirectCoverageBoostServices:
                     host="test_host",
                     port=1521,
                     service_name="TEST",
-                    user="user",
+                    username="user",
                     password="pass",
                     ssl_server_cert_dn=None,
                 ),
@@ -472,7 +472,7 @@ class TestDirectCoverageBoostServices:
                     host="localhost",
                     port=1,  # Edge case port
                     service_name="X",  # Minimal service name
-                    user="a",  # Minimal user
+                    username="a",  # Minimal user
                     password="b",  # Minimal password
                     ssl_server_cert_dn="test_dn",  # With SSL
                 ),
@@ -517,7 +517,7 @@ class TestDirectCoverageBoostServices:
             host="test",
             port=1521,
             service_name="TEST",
-            user="user",
+            username="user",
             password="pass",
             ssl_server_cert_dn=None,
         )

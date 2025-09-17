@@ -115,7 +115,7 @@ class _RealFormatter:
     def format_table(self, data: List[Dict], **options) -> FlextResult[str]:
         # Real table formatting logic
 
-    def format_json(self, data: Any) -> FlextResult[str]:
+    def format_json(self, data: object) -> FlextResult[str]:
         # Real JSON formatting
 ```
 

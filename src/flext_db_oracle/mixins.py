@@ -9,40 +9,50 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
-from flext_core import FlextMixins, FlextResult, FlextTypes, FlextValidations
-
+from flext_core import FlextMixins, FlextResult, FlextTypes
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleMixins(FlextMixins):
-    """Unified Oracle utilities using flext-core exclusively.
-
-    NO LOCAL IMPLEMENTATIONS - everything delegates to flext-core.
-    Uses FlextValidations.BusinessValidators for all validation logic.
-    """
+    """Unified Oracle utilities using flext-core exclusivel."""
 
     class OracleValidation:
-        """Oracle-specific validation using flext-core BusinessValidators exclusively."""
+        """Oracle-specific validation using FlextModels validation methods exclusively."""
 
         @staticmethod
         def validate_identifier(identifier: str) -> FlextResult[str]:
-            """Validate Oracle identifier using flext-core BusinessValidators."""
-            # Use flext-core BusinessValidators directly
-            result = FlextValidations.BusinessValidators.validate_string_field(
-                identifier.upper(),
-                min_length=1,
-                max_length=FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH,
-                pattern=FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
-            )
+            """Validate Oracle identifier using direct validation."""
+            # Convert to uppercase for Oracle convention
+            upper_identifier = identifier.upper()
 
-            if result.is_failure:
+            # Basic validation checks
+            if not isinstance(upper_identifier, str) or not upper_identifier.strip():
+                return FlextResult[str].fail("Oracle identifier cannot be empty")
+
+            # Length validation
+            if (
+                len(upper_identifier)
+                > FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
+            ):
                 return FlextResult[str].fail(
-                    f"Invalid Oracle identifier: {result.error}"
+                    f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH} chars)"
                 )
 
-            validated_identifier = result.unwrap()
+            # Pattern validation
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
+                upper_identifier,
+            ):
+                return FlextResult[str].fail(
+                    "Oracle identifier contains invalid characters"
+                )
+
+            validated_identifier = upper_identifier
+
+            # Validation passed
 
             # Oracle-specific business rule: check reserved words
             if (

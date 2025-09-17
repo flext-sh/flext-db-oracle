@@ -52,7 +52,7 @@ class TestAPIMissedLines:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            user="test",
+            username="test",
             password="test",
         )
         api = FlextDbOracleApi(config)
@@ -164,7 +164,7 @@ class TestConnectionMissedLines:
         bad_config = FlextDbOracleModels.OracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
-            user="invalid",
+            username="invalid",
             password="invalid",
             service_name="INVALID",
         )
@@ -194,7 +194,7 @@ class TestConnectionMissedLines:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            user="test",
+            username="test",
             password="test",
         )
 
@@ -383,6 +383,6 @@ class TestCLIMissedLines:
         # Test CLI client output functionality instead
         client = FlextDbOracleClient()
         assert client is not None
-        # Test that client has formatter functionality
-        assert hasattr(client, "formatter")
-        assert hasattr(client, "interactions")
+        # Test that client has actual attributes
+        assert hasattr(client, "user_preferences")
+        assert hasattr(client, "current_connection")

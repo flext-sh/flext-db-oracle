@@ -11,19 +11,12 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import TYPE_CHECKING
+from typing import Protocol
+
+import yaml
 
 from flext_cli import FlextCliMain
 from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
-
-if TYPE_CHECKING:
-    import yaml
-else:
-    try:
-        import yaml
-    except ImportError:
-        yaml = None
-
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
 
@@ -49,6 +42,13 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         except Exception:
             self._cli_main = None
 
+    class _YamlModule(Protocol):
+        """Protocol for YAML module interface."""
+
+        def dump(self, data: object, *, default_flow_style: bool = True) -> str:
+            """Dump data as YAML string."""
+            ...
+
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""
 
@@ -71,7 +71,7 @@ class FlextDbOracleCliService(FlextDomainService[str]):
                     host=host,
                     port=port,
                     service_name=service_name,
-                    user=username,  # Use 'user' not 'username'
+                    username=username,  # Fixed: Use 'username' parameter name
                     password=password,
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
@@ -141,9 +141,7 @@ class FlextDbOracleCliService(FlextDomainService[str]):
                 data = {"title": title, "items": string_items}
                 return FlextResult[str].ok(json.dumps(data, indent=2))
             if output_format == "yaml":
-                # Simple YAML formatting
-                if yaml is None:
-                    return FlextResult[str].fail("YAML library not available")
+                # Simple YAML formatting - yaml is always available since imported
                 data = {"title": title, "items": string_items}
                 return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
             # Plain format
@@ -155,8 +153,7 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             if output_format == "json":
                 return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
             if output_format == "yaml":
-                if yaml is None:
-                    return FlextResult[str].fail("YAML library not available")
+                # YAML is always available since imported at module level
                 return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
             return FlextResult[str].ok(str(data))
 
@@ -459,20 +456,21 @@ Use --help with any command for detailed options.
         self._OutputFormatter(self._cli_main).display_message(f"❌ {error_msg}")
         return FlextResult[str].fail(error_msg)
 
-    @staticmethod
-    def main() -> None:
+    @classmethod
+    def main(cls) -> None:
         """Main CLI entry point using flext-cli exclusively."""
-        cli_service = FlextDbOracleCliService()
+        cli_service = cls()
         result = cli_service.run_cli()
 
         if result.is_failure:
             sys.exit(1)
 
+    @classmethod
+    def run_main(cls) -> None:
+        """Module-level main entry point."""
+        cls.main()
 
-def main() -> None:
-    """Main CLI entry point using flext-cli exclusively."""
-    FlextDbOracleCliService.main()
 
 
 if __name__ == "__main__":
-    main()
+    FlextDbOracleCliService.run_main()

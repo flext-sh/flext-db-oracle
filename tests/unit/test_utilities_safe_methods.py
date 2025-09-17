@@ -9,8 +9,8 @@ import time
 from io import StringIO
 
 import pytest
-from flext_core import FlextTypes
 
+from flext_core import FlextTypes
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
@@ -257,16 +257,16 @@ class TestFlextDbOracleUtilitiesDataValidation:
             host="config_test",
             port=1521,
             name="CONFIG_TEST",
-            user="config_user",
+            username="config_user",
             password="config_pass",
             service_name="CONFIG_TEST",
-            max_connections=10,
+            pool_max=10,
         )
 
         # Configuration should be valid
         assert config.host == "config_test"
         assert config.port == 1521
-        assert config.max_connections == 10
+        assert config.pool_max == 10
 
     def test_utilities_data_formatting_edge_cases(self) -> None:
         """Test data formatting with edge cases."""

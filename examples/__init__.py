@@ -20,7 +20,6 @@ import os
 from typing import cast
 
 from flext_core import FlextLogger, FlextTypes
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleUtilities as FlextDbOracleUtilities,

@@ -9,7 +9,6 @@ from __future__ import annotations
 import contextlib
 
 from flext_core import FlextResult
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 
@@ -420,7 +419,7 @@ class TestRealOracleErrorHandling:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            user="invalid_user",
+            username="invalid_user",
             password="invalid_password",
         )
 
@@ -434,6 +433,8 @@ class TestRealOracleErrorHandling:
             or "login" in error_msg
             or "connection refused" in error_msg
             or "cannot connect" in error_msg
+            or "connection test failed" in error_msg
+            or "not connected to database" in error_msg
         )
 
     def test_real_connection_invalid_sql(

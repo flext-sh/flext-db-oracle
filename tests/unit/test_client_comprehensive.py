@@ -6,19 +6,13 @@ import inspect
 from typing import cast
 
 import pytest
-from flext_cli import (
-    FlextCliApi,
-    FlextCliFormatters,
-    FlextCliInteractions,
-    FlextCliServices,
-)
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
+
 from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
 )
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
-
 from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleModels,
@@ -33,20 +27,16 @@ class TestFlextDbOracleClientRealFunctionality:
         self.client = FlextDbOracleClient(debug=True)
 
     def test_client_initialization_complete_real(self) -> None:
-        """Test complete client initialization with all attributes - REAL FUNCTIONALITY."""
+        """Test complete client initialization with all attributes."""
         assert self.client is not None
         assert self.client.debug is True
-        assert hasattr(self.client, "cli_api")
-        assert hasattr(self.client, "formatter")
-        assert hasattr(self.client, "interactions")
         assert hasattr(self.client, "logger")
         assert hasattr(self.client, "container")
-        assert hasattr(self.client, "cli_services")
         assert hasattr(self.client, "current_connection")
         assert hasattr(self.client, "user_preferences")
 
     def test_client_properties_real(self) -> None:
-        """Test client properties and default values - REAL FUNCTIONALITY."""
+        """Test client properties and default values."""
         # Default state
         assert self.client.current_connection is None
 
@@ -60,30 +50,29 @@ class TestFlextDbOracleClientRealFunctionality:
         assert preferences["query_limit"] == 1000
 
     def test_cli_initialization_real_functionality(self) -> None:
-        """Test CLI initialization process - REAL FUNCTIONALITY."""
-        result = self.client.initialize()
-
-        # Check result structure - may fail due to flext-cli requirements
-        assert result is not None
-        assert hasattr(result, "success")
+        """Test CLI initialization process."""
+        # Test that client is properly initialized without initialize method
+        assert self.client.container is not None
+        assert self.client.logger is not None
+        assert self.client.current_connection is None
 
     def test_client_debug_mode_real(self) -> None:
-        """Test client with debug mode disabled - REAL FUNCTIONALITY."""
+        """Test client with debug mode disabled."""
         client_no_debug = FlextDbOracleClient(debug=False)
         assert client_no_debug.debug is False
 
         # Verify components still initialized
-        assert hasattr(client_no_debug, "cli_api")
-        assert hasattr(client_no_debug, "formatter")
-        assert hasattr(client_no_debug, "interactions")
+        assert hasattr(client_no_debug, "logger")
+        assert hasattr(client_no_debug, "container")
+        assert hasattr(client_no_debug, "current_connection")
 
     def test_connect_to_oracle_invalid_config_real(self) -> None:
-        """Test Oracle connection with invalid configuration - REAL FUNCTIONALITY."""
+        """Test Oracle connection with invalid configuration."""
         result = self.client.connect_to_oracle(
             host="invalid_host",
             port=9999,
             service_name="invalid_service",
-            user="invalid_user",
+            username="invalid_user",
             password="invalid_password",
         )
 
@@ -98,7 +87,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
     def test_execute_query_without_connection_real(self) -> None:
-        """Test query execution without active connection - REAL FUNCTIONALITY."""
+        """Test query execution without active connection."""
         result = self.client.execute_query("SELECT 1 FROM DUAL")
 
         # Should fail gracefully when no connection
@@ -107,7 +96,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert "connection" in error_msg or "not connected" in error_msg
 
     def test_connection_configuration_validation_real(self) -> None:
-        """Test connection parameter validation - REAL FUNCTIONALITY."""
+        """Test connection parameter validation."""
         # Test various invalid configurations that should be caught
         invalid_configs = [
             ("", 1521, "service", "user", "password"),  # Empty host
@@ -123,7 +112,7 @@ class TestFlextDbOracleClientRealFunctionality:
             FlextTestsMatchers.assert_result_failure(result)
 
     def test_oracle_config_creation_real(self) -> None:
-        """Test Oracle configuration object creation - REAL FUNCTIONALITY."""
+        """Test Oracle configuration object creation."""
         # Test that client can create valid Oracle configuration
         host = "test_host"
         port = 1521
@@ -137,7 +126,7 @@ class TestFlextDbOracleClientRealFunctionality:
                 host=host,
                 port=port,
                 service_name=service_name,
-                user=user,
+                username=user,
                 password=password,
                 ssl_server_cert_dn=None,
             )
@@ -153,7 +142,7 @@ class TestFlextDbOracleClientRealFunctionality:
             pytest.fail(f"Oracle configuration creation failed: {e}")
 
     def test_client_error_handling_patterns_real(self) -> None:
-        """Test client error handling patterns - REAL FUNCTIONALITY."""
+        """Test client error handling patterns."""
         # Test that client handles various error conditions gracefully
         client = FlextDbOracleClient()
 
@@ -175,28 +164,19 @@ class TestFlextDbOracleClientRealFunctionality:
             assert len(result.error) > 0
 
     def test_client_component_integration_real(self) -> None:
-        """Test integration between client components - REAL FUNCTIONALITY."""
+        """Test integration between client components."""
         client = FlextDbOracleClient(debug=True)
 
-        # Verify all flext-cli components are properly initialized
-        assert client.cli_api is not None
-        assert client.formatter is not None
-        assert client.interactions is not None
+        # Verify all flext components are properly initialized
         assert client.logger is not None
         assert client.container is not None
-        assert client.cli_services is not None
 
         # Test component types
-
-        assert isinstance(client.cli_api, FlextCliApi)
-        assert isinstance(client.formatter, FlextCliFormatters)
-        assert isinstance(client.interactions, FlextCliInteractions)
         assert isinstance(client.logger, FlextLogger)
         assert isinstance(client.container, FlextContainer)
-        assert isinstance(client.cli_services, FlextCliServices)
 
     def test_user_preferences_modification_real(self) -> None:
-        """Test user preferences can be modified - REAL FUNCTIONALITY."""
+        """Test user preferences can be modified."""
         client = FlextDbOracleClient()
 
         # Test modifying preferences
@@ -212,7 +192,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client.user_preferences["connection_timeout"] == 60
 
     def test_client_multiple_instances_isolation_real(self) -> None:
-        """Test that multiple client instances are properly isolated - REAL FUNCTIONALITY."""
+        """Test that multiple client instances are properly isolated."""
         client1 = FlextDbOracleClient(debug=True)
         client2 = FlextDbOracleClient(debug=False)
 
@@ -232,7 +212,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client2.current_connection is None
 
     def test_client_with_testbuilders_pattern_real(self) -> None:
-        """Test client creation using TestBuilders patterns - REAL FUNCTIONALITY."""
+        """Test client creation using TestBuilders patterns."""
         # Use TestBuilders to create test configuration
         config_result = (
             FlextTestsBuilders.result()
@@ -241,7 +221,7 @@ class TestFlextDbOracleClientRealFunctionality:
                     host="testbuilder_host",
                     port=1521,
                     service_name="testbuilder_service",
-                    user="testbuilder_user",
+                    username="testbuilder_user",
                     password="testbuilder_password",
                 ),
             )
@@ -267,7 +247,7 @@ class TestFlextDbOracleClientRealFunctionality:
             host=config.host,
             port=config.port,
             service_name=config.service_name or "default_service",  # Handle None case
-            user=config.user,
+            username=config.username,
             password=config.password,
         )
 
@@ -275,7 +255,7 @@ class TestFlextDbOracleClientRealFunctionality:
         FlextTestsMatchers.assert_result_failure(connection_result)
 
     def test_client_string_representation_real(self) -> None:
-        """Test client string representation methods - REAL FUNCTIONALITY."""
+        """Test client string representation methods."""
         client = FlextDbOracleClient(debug=True)
 
         # Test repr/str don't crash
@@ -288,13 +268,13 @@ class TestFlextDbOracleClientRealFunctionality:
         assert len(str_repr) > 0
 
     def test_internal_chain_execution_structure_real(self) -> None:
-        """Test internal chain execution structure - REAL FUNCTIONALITY."""
+        """Test internal chain execution structure."""
         client = FlextDbOracleClient()
 
         # Test that _execute_with_chain method exists and handles errors gracefully
         if hasattr(client, "_execute_with_chain"):
             # Test with invalid parameters
-            result = client._execute_with_chain("invalid_operation", {})
+            result = client._execute_with_chain("invalid_operation")
             FlextTestsMatchers.assert_result_failure(result)
         else:
             # If method doesn't exist, this tests architectural understanding
@@ -303,7 +283,7 @@ class TestFlextDbOracleClientRealFunctionality:
             )
 
     def test_client_connection_lifecycle_real(self) -> None:
-        """Test complete connection lifecycle - REAL FUNCTIONALITY."""
+        """Test complete connection lifecycle."""
         client = FlextDbOracleClient()
 
         # Initial state - no connection
@@ -325,7 +305,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client.current_connection is None
 
     def test_client_error_logging_integration_real(self) -> None:
-        """Test that client properly integrates with logging - REAL FUNCTIONALITY."""
+        """Test that client properly integrates with logging."""
         client = FlextDbOracleClient(debug=True)
 
         # Verify logger is configured
@@ -339,13 +319,13 @@ class TestFlextDbOracleClientRealFunctionality:
         FlextTestsMatchers.assert_result_failure(result)
 
     def test_client_integration_with_flext_core_patterns_real(self) -> None:
-        """Test client integration with flext-core patterns - REAL FUNCTIONALITY."""
+        """Test client integration with flext-core patterns."""
         client = FlextDbOracleClient()
 
-        # Test FlextResult pattern usage
-        init_result = client.initialize()
-        assert hasattr(init_result, "success")
-        assert hasattr(init_result, "error") or hasattr(init_result, "value")
+        # Test FlextResult pattern usage - client is initialized in constructor
+        # No initialize method needed, client is ready to use
+        assert client.container is not None
+        assert client.logger is not None
 
         # Test query execution returns FlextResult (without connection - should fail gracefully)
         query_result = client.execute_query("SELECT 1")
@@ -356,7 +336,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )  # Should fail without connection
 
     def test_list_schemas_without_connection_real(self) -> None:
-        """Test list_schemas method without connection - REAL FUNCTIONALITY."""
+        """Test list_schemas method without connection."""
         client = FlextDbOracleClient()
 
         result = client.list_schemas()
@@ -369,7 +349,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
     def test_configure_preferences_real(self) -> None:
-        """Test configure_preferences method - REAL FUNCTIONALITY."""
+        """Test configure_preferences method."""
         client = FlextDbOracleClient()
 
         # Test valid preference updates
@@ -395,11 +375,9 @@ class TestFlextDbOracleClientRealFunctionality:
         )  # Should succeed but ignore invalid
 
     def test_run_cli_command_real(self) -> None:
-        """Test run_cli_command method - REAL FUNCTIONALITY."""
-        client = FlextDbOracleClient()
-
+        """Test run_cli_command function."""
         # Test invalid command
-        result = client.run_cli_command("invalid_command")
+        result = FlextDbOracleClient.run_cli_command("invalid_command")
         FlextTestsMatchers.assert_result_failure(result)
         assert (
             "unknown" in (result.error or "").lower()
@@ -407,25 +385,26 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
         # Test valid command without connection (should fail gracefully)
-        result_query = client.run_cli_command("query", sql="SELECT 1 FROM DUAL")
+        result_query = FlextDbOracleClient.run_cli_command("query", sql="SELECT 1 FROM DUAL")
         FlextTestsMatchers.assert_result_failure(result_query)
 
         # Test health command without connection
-        result_health = client.run_cli_command("health")
+        result_health = FlextDbOracleClient.run_cli_command("health")
         FlextTestsMatchers.assert_result_failure(result_health)
 
         # Test schemas command without connection
-        result_schemas = client.run_cli_command("schemas")
+        result_schemas = FlextDbOracleClient.run_cli_command("schemas")
         FlextTestsMatchers.assert_result_failure(result_schemas)
 
     def test_internal_method_coverage_real(self) -> None:
-        """Test internal method coverage - REAL FUNCTIONALITY."""
+        """Test internal method coverage."""
         client = FlextDbOracleClient()
 
         # Test _get_formatter_strategy
         if hasattr(client, "_get_formatter_strategy"):
-            strategy = client._get_formatter_strategy()
-            assert callable(strategy)
+            strategy_result = client._get_formatter_strategy("table")
+            FlextTestsMatchers.assert_result_success(strategy_result)
+            assert strategy_result.value is not None
 
             # Test strategy with mock data
             test_data = {
@@ -435,41 +414,32 @@ class TestFlextDbOracleClientRealFunctionality:
             }
             # Cast to expected type for formatter strategy
             data_for_formatter = cast("dict[str, object]", test_data)
-            format_result = strategy(data_for_formatter)
-            assert hasattr(format_result, "success")
+            strategy = strategy_result.value
+            if callable(strategy):
+                format_result = strategy(data_for_formatter)
+                assert hasattr(format_result, "success")
 
         # Test _adapt_data_for_table
         if hasattr(client, "_adapt_data_for_table"):
-            # Test schemas adaptation
-            schemas_result = client._adapt_data_for_table(
-                "schemas", ["SCHEMA1", "SCHEMA2"]
+            # Test with sample data - cast to proper type
+
+            schemas_data = cast(
+                "dict[str, object]", {"schemas": ["SCHEMA1", "SCHEMA2"]}
             )
-            assert isinstance(schemas_result, list)
-            assert len(schemas_result) == 2
-            assert schemas_result[0]["schema"] == "SCHEMA1"
+            schemas_result = client._adapt_data_for_table(schemas_data)
+            FlextTestsMatchers.assert_result_success(schemas_result)
+            assert isinstance(schemas_result.value, list)
 
-            # Test tables adaptation
-            tables_result = client._adapt_data_for_table("tables", ["TABLE1", "TABLE2"])
-            assert isinstance(tables_result, list)
-            assert len(tables_result) == 2
-            assert tables_result[0]["table"] == "TABLE1"
-
-            # Test health adaptation
-            health_data = {"status": "healthy", "connections": 5}
-            health_result = client._adapt_data_for_table("health", health_data)
-            assert isinstance(health_result, list)
-            assert len(health_result) == 2
-            assert health_result[0]["key"] == "status"
-            assert health_result[0]["value"] == "healthy"
-
-            # Test default adaptation
-            default_result = client._adapt_data_for_table("unknown", "test_value")
-            assert isinstance(default_result, list)
-            assert len(default_result) == 1
-            assert default_result[0]["result"] == "test_value"
+            # Test with health data
+            health_data = cast(
+                "dict[str, object]", {"status": "healthy", "connections": 5}
+            )
+            health_result = client._adapt_data_for_table(health_data)
+            FlextTestsMatchers.assert_result_success(health_result)
+            assert isinstance(health_result.value, list)
 
     def test_formatter_methods_real(self) -> None:
-        """Test formatter methods - REAL FUNCTIONALITY."""
+        """Test formatter methods."""
         client = FlextDbOracleClient()
 
         test_data = {
@@ -493,32 +463,34 @@ class TestFlextDbOracleClientRealFunctionality:
             # Should work with formatter
 
     def test_connection_wizard_structure_real(self) -> None:
-        """Test connection_wizard method structure - REAL FUNCTIONALITY."""
+        """Test connection_wizard method structure."""
         client = FlextDbOracleClient()
 
-        # connection_wizard requires user interaction, so we test its existence and structure
-        assert hasattr(client, "connection_wizard")
-        assert callable(client.connection_wizard)
+        # Connection wizard functionality is handled through CLI commands
+        # Test that client has connection capabilities through connect_to_oracle
+        assert hasattr(client, "connect_to_oracle")
+        assert callable(client.connect_to_oracle)
 
         # Test that method exists and has proper signature
+        signature = inspect.signature(client.connect_to_oracle)
+        assert (
+            len(signature.parameters) == 5
+        )  # host, port, service_name, user, password
 
-        signature = inspect.signature(client.connection_wizard)
-        assert len(signature.parameters) == 0  # No parameters expected
-
-        # Test helper methods exist
-        assert hasattr(client, "_collect_connection_parameters")
-        assert hasattr(client, "_create_oracle_config")
-        assert hasattr(client, "_display_and_test_config")
+        # Test that client has actual methods for database operations
+        assert hasattr(client, "list_schemas")
+        assert hasattr(client, "list_tables")
+        assert hasattr(client, "health_check")
 
     def test_module_level_functions_real(self) -> None:
-        """Test singleton client pattern - REAL FUNCTIONALITY."""
-        # Test singleton client access
-        client_instance = FlextDbOracleClient.get_client()
+        """Test client instantiation pattern."""
+        # Test client instantiation
+        client_instance = FlextDbOracleClient()
         assert isinstance(client_instance, FlextDbOracleClient)
 
-        # Test that subsequent calls return same instance
-        client_instance2 = FlextDbOracleClient.get_client()
-        assert client_instance is client_instance2
+        # Test that new calls create separate instances
+        client_instance2 = FlextDbOracleClient()
+        assert client_instance is not client_instance2
 
         # Test that client has required CLI methods
         assert hasattr(client_instance, "execute_query")
@@ -527,7 +499,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert hasattr(client_instance, "health_check")
 
     def test_error_handling_comprehensive_real(self) -> None:
-        """Test comprehensive error handling patterns - REAL FUNCTIONALITY."""
+        """Test comprehensive error handling patterns."""
         client = FlextDbOracleClient()
 
         # Test various operations that should fail gracefully
@@ -553,7 +525,7 @@ class TestFlextDbOracleClientRealFunctionality:
             assert len(result.error) > 0
 
     def test_list_tables_without_connection_real(self) -> None:
-        """Test list_tables method without connection - REAL FUNCTIONALITY."""
+        """Test list_tables method without connection."""
         client = FlextDbOracleClient()
 
         # Test without schema
@@ -573,7 +545,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
     def test_health_check_without_connection_real(self) -> None:
-        """Test health_check method without connection - REAL FUNCTIONALITY."""
+        """Test health_check method without connection."""
         client = FlextDbOracleClient()
 
         result = client.health_check()

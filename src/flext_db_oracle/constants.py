@@ -66,11 +66,19 @@ class FlextDbOracleConstants(FlextConstants):
     class OracleValidation:
         """Oracle-specific validation limits and patterns."""
 
+        # Constants moved from models.py for consolidation
+        MAX_PORT = 65535
+        MIN_PORT = 1
+        MAX_ORACLE_IDENTIFIER_LENGTH = 30
+        ORACLE_IDENTIFIER_PATTERN = r"^[A-Z][A-Z0-9_$#]*$"
+        MAX_HOSTNAME_LENGTH = 253
+        MAX_QUERY_TIMEOUT_SECONDS = 3600  # Maximum query timeout (1 hour)
+
+        # Existing constants (keeping for compatibility)
         MAX_IDENTIFIER_LENGTH = 128
         MAX_TABLE_NAME_LENGTH = 128
         MAX_COLUMN_NAME_LENGTH = 128
         MAX_SCHEMA_NAME_LENGTH = 128
-        MAX_HOSTNAME_LENGTH = 255  # Standard hostname maximum length
         MAX_USERNAME_LENGTH = 128  # Oracle username maximum length
         MAX_SERVICE_NAME_LENGTH = 128  # Oracle service name maximum length
         MAX_VARCHAR_LENGTH = 4000

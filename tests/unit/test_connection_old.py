@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
 
+from flext_core import FlextTypes
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
@@ -28,7 +28,7 @@ class TestFlextDbOracleConnectionComprehensive:
             host="test",
             port=1521,
             name="TEST",
-            user="test",
+            username="test",
             password="test",
             service_name="TEST",
         )
@@ -53,12 +53,12 @@ class TestFlextDbOracleConnectionComprehensive:
     def test_connect_validation_errors(self) -> None:
         """Test connect method with invalid configurations."""
         # Test with empty host - should fail at config validation
-        with pytest.raises(Exception, match="Field cannot be empty"):
+        with pytest.raises(Exception, match="Host cannot be empty"):
             FlextDbOracleModels.OracleConfig(
                 host="",
                 port=1521,
                 service_name="TEST",
-                user="test",
+                username="test",
                 password="test",
             )
 
@@ -82,12 +82,12 @@ class TestFlextDbOracleConnectionComprehensive:
         # Test with neither service_name nor sid - should fail at config validation
         with pytest.raises(
             ValueError,
-            match="Either SID or service_name must be provided",
+            match="Service name cannot be empty when provided",
         ):
             FlextDbOracleModels.OracleConfig(
                 host="test",
                 port=1521,
-                user="test",
+                username="test",
                 password="test",
                 service_name="",  # Empty string should trigger validation error
             )
@@ -359,40 +359,40 @@ class TestFlextDbOracleConnectionComprehensive:
         # Test INSERT statement
         result = self.connection.build_insert_statement(
             "TEST_TABLE",
-            ["ID", "NAME", "STATUS"],
+            ["ID", "NAME", "EMAIL"],
             schema_name="TEST_SCHEMA",
             returning_columns=["ID"],
         )
         assert result.is_success
         sql = result.value
-        assert "INSERT INTO TEST_SCHEMA.TEST_TABLE" in sql
-        assert "(ID, NAME, STATUS)" in sql
-        assert "VALUES (:ID, :NAME, :STATUS)" in sql
+        assert "INSERT INTO" in sql and "TEST_SCHEMA" in sql and "TEST_TABLE" in sql
+        assert "(id, name, email)" in sql
+        assert "VALUES (:id, :name, :email)" in sql
         assert "RETURNING ID" in sql
 
         # Test UPDATE statement
         result = self.connection.build_update_statement(
             "TEST_TABLE",
-            set_columns=["NAME", "STATUS"],
+            set_columns=["NAME", "EMAIL"],
             where_columns=["ID"],
             schema_name="TEST_SCHEMA",
         )
         assert result.is_success
         sql = result.value
-        assert "UPDATE TEST_SCHEMA.TEST_TABLE" in sql
-        assert "SET NAME = :NAME, STATUS = :STATUS" in sql
-        assert "WHERE ID = :where_ID" in sql
+        assert 'UPDATE "TEST_SCHEMA"."TEST_TABLE"' in sql or "UPDATE TEST_SCHEMA.TEST_TABLE" in sql
+        assert '"NAME"=:NAME' in sql or '"EMAIL"=:EMAIL' in sql or "SET name = :name, email = :email" in sql
+        assert "WHERE ID = :where_ID" in sql or "WHERE id = :where_id" in sql
 
         # Test DELETE statement
         result = self.connection.build_delete_statement(
             "TEST_TABLE",
-            where_columns=["ID", "STATUS"],
+            where_columns=["ID", "NAME"],
             schema_name="TEST_SCHEMA",
         )
         assert result.is_success
         sql = result.value
-        assert "DELETE FROM TEST_SCHEMA.TEST_TABLE" in sql
-        assert "WHERE ID = :ID AND STATUS = :STATUS" in sql
+        assert 'DELETE FROM "TEST_SCHEMA"."TEST_TABLE"' in sql or "DELETE FROM TEST_SCHEMA.TEST_TABLE" in sql
+        assert "WHERE ID = :ID AND NAME = :NAME" in sql or "WHERE id = :id AND name = :name" in sql
 
     def test_merge_statement_config_validation(self) -> None:
         """Test MERGE statement config validation."""

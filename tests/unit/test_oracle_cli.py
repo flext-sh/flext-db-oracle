@@ -9,7 +9,6 @@ from __future__ import annotations
 import sys
 
 from flext_core import FlextDomainService
-
 from flext_db_oracle.cli import FlextDbOracleCliService
 
 

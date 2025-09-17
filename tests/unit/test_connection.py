@@ -22,7 +22,7 @@ class TestFlextDbOracleConnectionSimple:
             host="test",
             port=1521,
             name="TEST",
-            user="test",
+            username="test",
             password="test",
             service_name="TEST",
         )
@@ -51,7 +51,7 @@ class TestFlextDbOracleConnectionSimple:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="test",
+            username="test",
             password="test",
         )
         assert config.host == "localhost"

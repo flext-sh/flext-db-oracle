@@ -21,7 +21,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -34,7 +34,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -50,7 +50,7 @@ class TestFlextDbOracleServicesBasic:
             host="testhost",
             port=1521,
             service_name="TESTDB",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -70,7 +70,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -87,7 +87,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -105,7 +105,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -126,7 +126,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -153,7 +153,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -183,7 +183,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -212,7 +212,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -232,7 +232,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -255,7 +255,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -274,7 +274,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -297,7 +297,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -323,7 +323,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -343,7 +343,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -365,7 +365,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -394,7 +394,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -412,7 +412,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -431,7 +431,7 @@ class TestFlextDbOracleServicesBasic:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -451,7 +451,7 @@ class TestServiceErrorHandling:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -469,7 +469,7 @@ class TestServiceErrorHandling:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -485,7 +485,7 @@ class TestServiceErrorHandling:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)

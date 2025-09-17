@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextExceptions, FlextTypes
 from pydantic import SecretStr
 
+from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.services import FlextDbOracleServices
@@ -26,7 +26,7 @@ class TestRealOracleExceptionsCore:
             host="localhost",
             port=1521,
             service_name="XEPDB1",
-            user="invalid_user_12345",
+            username="invalid_user_12345",
             password="invalid_password_12345",
         )
 
@@ -51,6 +51,8 @@ class TestRealOracleExceptionsCore:
                 "connection refused",
                 "cannot connect",
                 "name or service not known",
+                "connection test failed",
+                "not connected to database",
             ]
         )
 
@@ -61,7 +63,7 @@ class TestRealOracleExceptionsCore:
             host="unreachable-host-12345.invalid",
             port=1521,
             service_name="XEPDB1",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
 
@@ -99,7 +101,7 @@ class TestRealOracleExceptionsCore:
                 port=1521,
                 service_name="",  # Empty service name
                 sid="",  # Empty SID
-                user="testuser",
+                username="testuser",
                 password="testpass",
             )
             connection = FlextDbOracleServices(config=invalid_config)
@@ -167,7 +169,7 @@ class TestRealOracleExceptionsCore:
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
-            user=real_oracle_config.user,
+            username=real_oracle_config.username,
             password=real_oracle_config.password,
             timeout=1,  # 1 second timeout
         )
@@ -327,7 +329,7 @@ class TestRealOracleExceptionsAdvanced:
                 FlextDbOracleModels.OracleConfig(
                     host=str(typed_config["host"]),
                     port=cast("int", typed_config["port"]),
-                    user=str(typed_config["user"]),
+                    username=str(typed_config["user"]),
                     password=str(typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
                 )
@@ -361,12 +363,13 @@ class TestRealOracleExceptionHierarchy:
         assert issubclass(FlextDbOracleExceptions.TimeoutError, Exception)
         assert issubclass(FlextDbOracleExceptions.ValidationError, Exception)
 
-        # Test that domain-specific exceptions inherit from FlextExceptions.BaseError (factory-created)
-
-        assert issubclass(FlextDbOracleExceptions.QueryError, FlextExceptions.BaseError)
+        # Test that domain-specific exceptions inherit from local BaseError
+        assert issubclass(
+            FlextDbOracleExceptions.QueryError, FlextDbOracleExceptions.BaseError
+        )
         assert issubclass(
             FlextDbOracleExceptions.MetadataError,
-            FlextExceptions.BaseError,
+            FlextDbOracleExceptions.BaseError,
         )
 
     def test_real_exception_instantiation(self) -> None:

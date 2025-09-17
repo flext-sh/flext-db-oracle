@@ -15,33 +15,18 @@ import json
 import os
 from typing import Protocol, cast
 
-from flext_core import FlextDecorators, FlextResult, FlextTypes, FlextUtilities
-
+from flext_core import FlextResult, FlextTypes
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class FlextDbOracleUtilities(FlextUtilities):
-    """Oracle Database utilities using flext-core modern API.
-
-    Uses FlextUtilities direct functions to reduce complexity and eliminate inheritance.
-    Only Oracle-specific functionality is implemented here.
-
-    Uses FlextUtilities modern API:
-    - FlextUtilities.Generators: UUID, timestamps, correlation IDs
-    - FlextUtilities.TextProcessor: formatting, validation
-    - FlextUtilities.Validators: data validation
-    - FlextUtilities.Performance: tracking, metrics
-    - FlextUtilities.JSON: JSON processing
-    - FlextUtilities.Decorators: utility decorators
-
-    Following flext-core pattern: Single class per module with all functionality consolidated.
-    """
+class FlextDbOracleUtilities:
+    """Oracle Database utilities using flext-core modern API."""
 
     # Consolidated protocols as class attributes
     class HasModelDump(Protocol):
         """Protocol for objects with model_dump method."""
 
-        def model_dump(self) -> FlextTypes.Core.Dict:
+        def model_dump(self) -> dict[str, object]:
             """Dump model to dictionary."""
             ...
 
@@ -64,29 +49,27 @@ class FlextDbOracleUtilities(FlextUtilities):
     # =============================================================================
 
     @staticmethod
-    @FlextDecorators.Reliability.safe_result
     def generate_query_hash(
-        sql: str, params: FlextTypes.Core.Dict | None = None
+        sql: str, params: dict[str, object] | None = None
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific."""
-        # Use FlextUtilities.TextProcessor for normalization
-        normalized_sql = FlextUtilities.TextProcessor.safe_string(sql).strip()
+        # Use standard string processing for normalization
+        normalized_sql = str(sql).strip()
         normalized_sql = " ".join(normalized_sql.split())
 
-        # Create content for hashing using FlextUtilities
-        params_json = FlextUtilities.safe_json_stringify(params or {})
+        # Create content for hashing using standard JSON
+        params_json = json.dumps(params or {}, sort_keys=True)
         hash_content = f"{normalized_sql}|{params_json}"
 
         # Generate SHA-256 hash
         hash_value = hashlib.sha256(hash_content.encode()).hexdigest()[:16]
-        return FlextResult[str].ok(hash_value)
+        return FlextResult.ok(hash_value)
 
     @staticmethod
-    @FlextDecorators.Reliability.safe_result
     def format_sql_for_oracle(sql: str) -> FlextResult[str]:
         """Format SQL query for Oracle logging - Oracle specific."""
-        # Use FlextUtilities.TextProcessor for basic formatting
-        formatted = FlextUtilities.TextProcessor.safe_string(sql).strip()
+        # Use standard string processing for basic formatting
+        formatted = str(sql).strip()
 
         # Oracle-specific keyword formatting
         oracle_keywords = [
@@ -102,33 +85,33 @@ class FlextDbOracleUtilities(FlextUtilities):
             formatted = formatted.replace(f" {keyword.lower()} ", f"\\n{keyword} ")
             formatted = formatted.replace(f" {keyword.upper()} ", f"\\n{keyword} ")
 
-        return FlextResult[str].ok(formatted)
+        return FlextResult.ok(formatted)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> FlextResult[str]:
         """Escape Oracle identifier for safe SQL construction - Oracle specific."""
         try:
-            # Use FlextUtilities.TextProcessor for safe string handling
-            clean_identifier = FlextUtilities.TextProcessor.safe_string(identifier)
+            # Use standard string processing for safe string handling
+            clean_identifier = str(identifier).strip()
             clean_identifier = clean_identifier.strip('"').strip("'")
 
             # Validate identifier length manually
             if len(clean_identifier) < 1:
-                return FlextResult[str].fail(f"Empty Oracle identifier: {identifier}")
+                return FlextResult.fail(f"Empty Oracle identifier: {identifier}")
 
             # Oracle identifier validation - alphanumeric + underscore + dollar + hash
             allowed_chars = (
                 clean_identifier.replace("_", "").replace("$", "").replace("#", "")
             )
             if not allowed_chars.isalnum():
-                return FlextResult[str].fail(f"Invalid Oracle identifier: {identifier}")
+                return FlextResult.fail(f"Invalid Oracle identifier: {identifier}")
 
             # Oracle identifiers should be uppercase
             escaped = f'"{clean_identifier.upper()}"'
 
-            return FlextResult[str].ok(escaped)
+            return FlextResult.ok(escaped)
         except Exception as e:
-            return FlextResult[str].fail(f"Failed to escape Oracle identifier: {e}")
+            return FlextResult.fail(f"Failed to escape Oracle identifier: {e}")
 
     # Factory methods ELIMINATED - use direct class instantiation:
     # FlextDbOracleModels.OracleConfig.from_env()
@@ -147,24 +130,20 @@ class FlextDbOracleUtilities(FlextUtilities):
         try:
             # Validate inputs manually
             if query_result is None:
-                return FlextResult[str].fail("Query result is None")
+                return FlextResult.fail("Query result is None")
 
-            # Use FlextUtilities.TextProcessor for safe format type handling
-            safe_format_type = FlextUtilities.TextProcessor.safe_string(
-                format_type,
-            ).lower()
+            # Use standard string processing for safe format type handling
+            safe_format_type = str(format_type).lower()
 
-            # Use FlextUtilities for consistent serialization if needed
+            # Use standard JSON for consistent serialization if needed
             if safe_format_type == "json":
                 try:
-                    formatted = FlextUtilities.safe_json_stringify(
-                        query_result,
-                    )
-                    return FlextResult[str].ok(formatted)
+                    formatted = json.dumps(query_result, indent=2)
+                    return FlextResult.ok(formatted)
                 except Exception:
                     # Fallback for non-serializable objects
                     formatted = f"Query result (non-serializable): {type(query_result).__name__}"
-                    return FlextResult[str].ok(formatted)
+                    return FlextResult.ok(formatted)
 
             # Table format or other formats
             if safe_format_type == "table":
@@ -172,9 +151,9 @@ class FlextDbOracleUtilities(FlextUtilities):
             else:
                 formatted = f"Query result in {safe_format_type} format: {type(query_result).__name__}"
 
-            return FlextResult[str].ok(formatted)
+            return FlextResult.ok(formatted)
         except Exception as e:
-            return FlextResult[str].fail(f"Query result formatting failed: {e}")
+            return FlextResult.fail(f"Query result formatting failed: {e}")
 
     @staticmethod
     def create_config_from_env() -> FlextResult[FlextTypes.Core.Headers]:
@@ -201,9 +180,9 @@ class FlextDbOracleUtilities(FlextUtilities):
                 if value:
                     config_data[config_key] = value
 
-            return FlextResult[FlextTypes.Core.Headers].ok(config_data)
+            return FlextResult.ok(config_data)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Headers].fail(
+            return FlextResult.fail(
                 f"Failed to create config from environment: {e}",
             )
 
@@ -269,21 +248,19 @@ class FlextDbOracleUtilities(FlextUtilities):
             console.print(f"Error displaying table: {e}")
 
     @staticmethod
-    def create_api_from_config(config: FlextTypes.Core.Dict) -> FlextResult[object]:
+    def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
         """Create Oracle API instance from configuration."""
         try:
             # Validate required fields are present
             if not config:
-                return FlextResult[object].fail(
-                    "Configuration dictionary cannot be empty"
-                )
+                return FlextResult.fail("Configuration dictionary cannot be empty")
 
             required_fields = ["host", "username"]
             missing_fields = [
                 field for field in required_fields if not config.get(field)
             ]
             if missing_fields:
-                return FlextResult[object].fail(
+                return FlextResult.fail(
                     f"Missing required fields: {', '.join(missing_fields)}"
                 )
 
@@ -296,7 +273,8 @@ class FlextDbOracleUtilities(FlextUtilities):
                 host=str(config.get("host", "localhost")),
                 port=port_int,
                 name=service_name,  # Required field - use service_name as database
-                user=str(config.get("username", "")),
+                username=str(config.get("username", "")),
+                password=str(config.get("password", "")),
             )
 
             # Create API instance with configuration (use runtime import to avoid circular imports)
@@ -305,10 +283,10 @@ class FlextDbOracleUtilities(FlextUtilities):
             api = flext_db_oracle_api_class(oracle_config)
 
             # API creation successful - return the API instance
-            return FlextResult[object].ok(api)
+            return FlextResult.ok(api)
 
         except Exception as e:
-            return FlextResult[object].fail(f"Failed to create API from config: {e}")
+            return FlextResult.fail(f"Failed to create API from config: {e}")
 
     @staticmethod
     def _display_health_data(

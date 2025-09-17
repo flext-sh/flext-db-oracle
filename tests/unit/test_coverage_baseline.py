@@ -52,7 +52,7 @@ class TestBasicModelCreation:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",  # Using 'user' instead of 'username'
+            username="testuser",  # Using 'user' instead of 'username'
             password="testpass",
         )
         assert config.host == "localhost"
@@ -68,7 +68,7 @@ class TestBasicModelCreation:
             host="secure.example.com",
             port=2484,
             service_name="SECURE_DB",
-            user="secure_user",
+            username="secure_user",
             password="secure_pass",
             ssl_server_cert_dn="CN=secure.example.com",
         )
@@ -94,7 +94,7 @@ class TestFlextDbOracleServices:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -107,7 +107,7 @@ class TestFlextDbOracleServices:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -119,7 +119,7 @@ class TestFlextDbOracleServices:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
@@ -136,7 +136,7 @@ class TestFlextDbOracleServices:
             host="localhost",
             port=1521,
             service_name="TEST",
-            user="testuser",
+            username="testuser",
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)

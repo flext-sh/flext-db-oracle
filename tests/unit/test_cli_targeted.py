@@ -23,8 +23,8 @@ class TestCLIRealFunctionality:
     def test_cli_creation_and_basic_functionality(self) -> None:
         """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""
         # Test CLI was created successfully
-        oracle_cli = FlextDbOracleClient.get_client()
-        # get_client() guarantees non-None return, so no need to check
+        oracle_cli = FlextDbOracleClient()
+        # Constructor guarantees non-None return, so no need to check
 
         # Test CLI API has required attributes
         assert hasattr(oracle_cli, "execute_query")
@@ -81,7 +81,7 @@ class TestCLIRealFunctionality:
             host="localhost",
             port=1521,
             service_name="TESTDB",
-            user="test",
+            username="test",
             password="test",
         )
 
@@ -124,7 +124,7 @@ class TestCLIRealFunctionality:
             host="invalid.host",
             port=9999,
             service_name="INVALID_SERVICE",
-            user="invalid_user",
+            username="invalid_user",
             password="invalid_password",
         )
 
@@ -163,7 +163,7 @@ class TestCLIRealFunctionality:
             host=str(config_data["host"]),
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
-            user=str(config_data["username"]),
+            username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
 
@@ -183,7 +183,7 @@ class TestCLIRealFunctionality:
             port=1521,
             name="COMP_TEST",  # Required field
             service_name="COMP_TEST",
-            user="comp_user",
+            username="comp_user",
             password="comp_pass",
         )
 
@@ -229,7 +229,7 @@ class TestCLIRealFunctionality:
         url_api = url_result.value
         assert url_api.config.host == "host"
         assert url_api.config.port == 1521
-        assert url_api.config.service_name == "service"
+        assert url_api.config.service_name == "SERVICE"
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
@@ -237,7 +237,7 @@ class TestCLIRealFunctionality:
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
-            user="plugin_user",
+            username="plugin_user",
             password="plugin_pass",
         )
 
