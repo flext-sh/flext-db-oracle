@@ -9,9 +9,8 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Callable, Generator
+from collections.abc import Generator
 from pathlib import Path
-from typing import cast
 
 import docker
 import pytest
@@ -45,9 +44,9 @@ def _docker_ping_safe(client: docker.DockerClient) -> bool:
         Exception: If docker ping fails
 
     """
-    # Use cast to handle the untyped ping method from docker SDK
-    ping_method = cast("Callable[[], bool]", client.ping)
-    return ping_method()
+    # Direct ping call with proper typing - no hasattr needed
+    result: object = client.ping()  # type: ignore[no-untyped-call]
+    return bool(result)
 
 
 class DockerCommandExecutor:

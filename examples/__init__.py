@@ -23,8 +23,8 @@ from flext_core import FlextLogger, FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleUtilities as FlextDbOracleUtilities,
-    OracleConfig,
 )
+from flext_db_oracle.models import FlextDbOracleModels
 
 logger = FlextLogger(__name__)
 
@@ -47,7 +47,7 @@ def demo_basic_usage() -> None:
 
     # Create configuration using from_env method
     try:
-        config_result = OracleConfig.from_env()
+        config_result = FlextDbOracleModels.OracleConfig.from_env()
         if not config_result.is_success:
             return
         config = config_result.value

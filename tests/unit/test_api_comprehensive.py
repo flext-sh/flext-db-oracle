@@ -11,10 +11,15 @@ from __future__ import annotations
 
 from typing import cast
 
+import pytest
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_core import FlextResult, FlextTypes
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleModels,
+    dispatcher as oracle_dispatcher,
+)
 
 
 class TestFlextDbOracleApiRealFunctionality:
@@ -137,6 +142,44 @@ class TestFlextDbOracleApiRealFunctionality:
             "not connected" in result.error.lower()
             or "connection" in result.error.lower()
         )
+
+    def test_dispatcher_query_flow_when_feature_enabled(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Ensure dispatcher handles query execution when feature flag is enabled."""
+        monkeypatch.setenv("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", "1")
+        api = FlextDbOracleApi(self.config)
+
+        class StubDispatcher:
+            def __init__(self) -> None:
+                self.commands: list[object] = []
+
+            def dispatch(self, command: object) -> FlextResult[object]:
+                self.commands.append(command)
+                return FlextResult[object].ok(
+                    [
+                        {"result": 1},
+                    ]
+                )
+
+        stub_dispatcher = StubDispatcher()
+
+        monkeypatch.setattr(
+            "flext_db_oracle.api.oracle_dispatcher.FlextDbOracleDispatcher.build_dispatcher",
+            lambda *_, **__: stub_dispatcher,
+            raising=False,
+        )
+        result = api.query("SELECT 1 FROM DUAL")
+
+        assert result.is_success
+        assert stub_dispatcher.commands, "dispatcher should receive the command"
+        assert isinstance(
+            stub_dispatcher.commands[0],
+            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteQueryCommand,
+        )
+
+        monkeypatch.delenv("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", raising=False)
 
     # Schema Operations Tests
 
@@ -433,13 +476,6 @@ class TestFlextDbOracleApiRealFunctionality:
         # Should clean the query even if SQL syntax is invalid
         assert optimized_query == "INVALID SQL SYNTAX HERE"
 
-    def test_api_with_config_method_real(self) -> None:
-        """Test with_config class method."""
-        api = FlextDbOracleApi.with_config(self.config)
-        assert isinstance(api, FlextDbOracleApi)
-        assert api.config == self.config
-        assert api is not self.api  # Different instance
-
     def test_context_manager_protocol_real(self) -> None:
         """Test context manager protocol."""
         # Test context manager methods exist
@@ -585,7 +621,6 @@ class TestFlextDbOracleApiRealFunctionality:
             "from_config",
             "from_env",
             "from_url",
-            "with_config",
             # Connection methods
             "connect",
             "disconnect",

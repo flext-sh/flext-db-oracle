@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_core.exceptions import FlextExceptions
 
 from flext_db_oracle import (
     FlextDbOracleExceptions,
@@ -156,7 +157,7 @@ class TestConnectionError:
 
     def test_connection_error_with_string(self) -> None:
         """Test ConnectionError with simple string message."""
-        error = FlextDbOracleExceptions.ConnectionError(
+        error = FlextDbOracleExceptions.OracleConnectionError(
             "Connection failed", code="ORACLE_CONNECTION_ERROR"
         )
         assert "Connection failed" in str(error)
@@ -168,7 +169,7 @@ class TestConnectionError:
 
     def test_connection_error_with_params(self) -> None:
         """Test ConnectionError with parameters."""
-        error = FlextDbOracleExceptions.DatabaseConnectionError(
+        error = FlextDbOracleExceptions.OracleConnectionError(
             "Unable to connect to Oracle",
             code="CONN_TIMEOUT",
             context={"host": "localhost", "port": 1521, "timeout": 30},
@@ -238,7 +239,7 @@ class TestTimeoutError:
 
     def test_timeout_error_with_string(self) -> None:
         """Test TimeoutError with simple string message."""
-        error = FlextDbOracleExceptions.TimeoutError(
+        error = FlextDbOracleExceptions.OracleTimeoutError(
             "Operation timed out", code="ORACLE_TIMEOUT_ERROR"
         )
         assert "Operation timed out" in str(error)
@@ -246,7 +247,7 @@ class TestTimeoutError:
 
     def test_timeout_error_with_params(self) -> None:
         """Test TimeoutError with parameters."""
-        error = FlextDbOracleExceptions.DatabaseTimeoutError(
+        error = FlextDbOracleExceptions.OracleTimeoutError(
             "Query execution timeout",
             code="QUERY_TIMEOUT",
             context={"timeout_seconds": 30, "query": "SELECT * FROM large_table"},
@@ -332,12 +333,12 @@ class TestExceptionHelperMethods:
 
     def test_create_connection_error(self) -> None:
         """Test DatabaseConnectionError creation with parameters."""
-        error = FlextDbOracleExceptions.DatabaseConnectionError(
+        error = FlextDbOracleExceptions.OracleConnectionError(
             "Connection lost",
             code="ORACLE_CONNECTION_ERROR",
             context={"retry_count": 3},
         )
-        assert isinstance(error, FlextDbOracleExceptions.DatabaseConnectionError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleConnectionError)
         assert "Connection lost" in str(error)
 
     def test_create_processing_error(self) -> None:
@@ -368,10 +369,10 @@ class TestExceptionHelperMethods:
 
     def test_create_timeout_error(self) -> None:
         """Test DatabaseTimeoutError creation with parameters."""
-        error = FlextDbOracleExceptions.DatabaseTimeoutError(
+        error = FlextDbOracleExceptions.OracleTimeoutError(
             "Timed out", code="ORACLE_TIMEOUT_ERROR", context={"duration": 60}
         )
-        assert isinstance(error, FlextDbOracleExceptions.DatabaseTimeoutError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleTimeoutError)
         assert "Timed out" in str(error)
         assert error.context["duration"] == 60  # Custom context is preserved
         assert (
@@ -428,3 +429,35 @@ class TestExceptionRaising:
 
         config_error = FlextDbOracleExceptions.ConfigurationError("Test")
         assert isinstance(config_error, Exception)
+
+
+class TestFactoryMethods:
+    """Test factory methods for creating specific exception types."""
+
+    def test_create_validation_error_factory(self) -> None:
+        """Test create_validation_error factory method."""
+        error = FlextDbOracleExceptions.create_validation_error(
+            "Validation failed", context={"field": "username"}
+        )
+        # Factory method returns FlextExceptions._ValidationError, not local ValidationError
+
+        assert isinstance(error, FlextExceptions._ValidationError)
+        assert "Validation failed" in str(error)
+
+    def test_create_connection_error_factory(self) -> None:
+        """Test create_connection_error factory method."""
+        error = FlextDbOracleExceptions.create_connection_error(
+            "Connection failed", context={"host": "localhost"}
+        )
+        # Factory method returns FlextExceptions._ConnectionError, not OracleConnectionError
+
+        assert isinstance(error, FlextExceptions._ConnectionError)
+        assert "Connection failed" in str(error)
+
+    def test_is_oracle_error_method(self) -> None:
+        """Test is_oracle_error utility method."""
+        oracle_error = FlextDbOracleExceptions.ValidationError("Test")
+        non_oracle_error = ValueError("Test")
+
+        assert FlextDbOracleExceptions.is_oracle_error(oracle_error) is True
+        assert FlextDbOracleExceptions.is_oracle_error(non_oracle_error) is False

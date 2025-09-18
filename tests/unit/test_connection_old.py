@@ -379,8 +379,15 @@ class TestFlextDbOracleConnectionComprehensive:
         )
         assert result.is_success
         sql = result.value
-        assert 'UPDATE "TEST_SCHEMA"."TEST_TABLE"' in sql or "UPDATE TEST_SCHEMA.TEST_TABLE" in sql
-        assert '"NAME"=:NAME' in sql or '"EMAIL"=:EMAIL' in sql or "SET name = :name, email = :email" in sql
+        assert (
+            'UPDATE "TEST_SCHEMA"."TEST_TABLE"' in sql
+            or "UPDATE TEST_SCHEMA.TEST_TABLE" in sql
+        )
+        assert (
+            '"NAME"=:NAME' in sql
+            or '"EMAIL"=:EMAIL' in sql
+            or "SET name = :name, email = :email" in sql
+        )
         assert "WHERE ID = :where_ID" in sql or "WHERE id = :where_id" in sql
 
         # Test DELETE statement
@@ -391,8 +398,14 @@ class TestFlextDbOracleConnectionComprehensive:
         )
         assert result.is_success
         sql = result.value
-        assert 'DELETE FROM "TEST_SCHEMA"."TEST_TABLE"' in sql or "DELETE FROM TEST_SCHEMA.TEST_TABLE" in sql
-        assert "WHERE ID = :ID AND NAME = :NAME" in sql or "WHERE id = :id AND name = :name" in sql
+        assert (
+            'DELETE FROM "TEST_SCHEMA"."TEST_TABLE"' in sql
+            or "DELETE FROM TEST_SCHEMA.TEST_TABLE" in sql
+        )
+        assert (
+            "WHERE ID = :ID AND NAME = :NAME" in sql
+            or "WHERE id = :id AND name = :name" in sql
+        )
 
     def test_merge_statement_config_validation(self) -> None:
         """Test MERGE statement config validation."""
@@ -447,7 +460,7 @@ class TestFlextDbOracleConnectionComprehensive:
 
     def test_close_connection(self) -> None:
         """Test close method."""
-        result = self.connection.close()
+        result = self.connection.disconnect()
         assert result.is_success
 
     def test_execute_query_when_not_connected(self) -> None:

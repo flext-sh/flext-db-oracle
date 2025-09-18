@@ -21,11 +21,6 @@ from flext_core import (
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
 
-# Type alias for command result to avoid object
-type CommandResult = (
-    FlextResult[dict[str, object]] | FlextResult[list[str]] | FlextResult[object]
-)
-
 
 class FlextDbOracleClient:
     """Oracle Database CLI client with proper FLEXT ecosystem integration.
@@ -138,9 +133,7 @@ class FlextDbOracleClient:
 
             if operation == "list_tables":
                 schema = str(params.get("schema", ""))
-                tables_result = self.current_connection.get_tables(
-                    schema if schema else None
-                )
+                tables_result = self.current_connection.get_tables(schema or None)
                 if tables_result.is_success:
                     return FlextResult[dict[str, object]].ok(
                         {"tables": tables_result.value}
@@ -388,7 +381,9 @@ class FlextDbOracleClient:
                 health_result = health_cmd()
                 if health_result.is_success:
                     return FlextResult[str].ok(f"Health check: {health_result.value}")
-                return FlextResult[str].fail(health_result.error or "Health check failed")
+                return FlextResult[str].fail(
+                    health_result.error or "Health check failed"
+                )
 
             # Log unused params for debugging but don't remove them as they may be used for future operations
             if params:

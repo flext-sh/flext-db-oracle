@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from typing import ClassVar
 
 from flext_core import FlextConstants, FlextTypes
@@ -161,6 +162,19 @@ class FlextDbOracleConstants(FlextConstants):
 
         MIN_PORT = 1
         MAX_PORT = 65535
+
+    class FeatureFlags:
+        """Feature toggles for progressive dispatcher rollout."""
+
+        @staticmethod
+        def _env_enabled(flag_name: str, default: str = "0") -> bool:
+            value = os.environ.get(flag_name, default)
+            return value.lower() not in {"0", "false", "no"}
+
+        @classmethod
+        def dispatcher_enabled(cls) -> bool:
+            """Return True when dispatcher integration should be used."""
+            return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
 
 # No compatibility aliases - use direct imports only

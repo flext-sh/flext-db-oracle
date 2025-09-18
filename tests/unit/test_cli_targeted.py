@@ -64,7 +64,7 @@ class TestCLIRealFunctionality:
             assert api.config.host == "localhost"
             assert api.config.port == 1521
             assert api.config.service_name == "TESTDB"
-            assert api.config.user == "testuser"
+            assert api.config.username == "testuser"
 
         finally:
             # Restore environment

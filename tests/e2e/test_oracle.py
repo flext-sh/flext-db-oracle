@@ -19,7 +19,8 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
 )
-from tests.conftest import OperationTestError
+
+from ..conftest import OperationTestError
 
 
 class TestOracleE2E:

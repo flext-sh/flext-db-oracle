@@ -36,11 +36,23 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         super().__init__()
         self._container = FlextContainer.get_global()
         self._logger = FlextLogger(__name__)
-        # Initialize CLI components without heavy configuration dependencies
+        # Initialize CLI components with explicit error handling
+        cli_result = self._initialize_cli_main()
+        if cli_result.is_failure:
+            self._logger.warning(f"CLI initialization failed: {cli_result.error}")
+            self._cli_main: FlextCliMain | None = None
+        else:
+            self._cli_main = cli_result.unwrap()
+
+    def _initialize_cli_main(self) -> FlextResult[FlextCliMain]:
+        """Initialize CLI main component with explicit error handling."""
         try:
-            self._cli_main: FlextCliMain | None = FlextCliMain()
-        except Exception:
-            self._cli_main = None
+            cli_main = FlextCliMain()
+            return FlextResult[FlextCliMain].ok(cli_main)
+        except Exception as e:
+            return FlextResult[FlextCliMain].fail(
+                f"FlextCliMain initialization failed: {e}"
+            )
 
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""
@@ -469,7 +481,6 @@ Use --help with any command for detailed options.
     def run_main(cls) -> None:
         """Module-level main entry point."""
         cls.main()
-
 
 
 if __name__ == "__main__":

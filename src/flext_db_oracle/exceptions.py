@@ -218,7 +218,7 @@ class FlextDbOracleExceptions:
             context: FlextTypes.Core.Dict | None = None,
         ) -> None:
             """Initialize query error."""
-            actual_code = code if code else "PROCESSING_ERROR"
+            actual_code = code or "PROCESSING_ERROR"
             super().__init__(message, actual_code, context)
 
     class MetadataError(ProcessingError):
@@ -234,14 +234,6 @@ class FlextDbOracleExceptions:
             # MetadataError is alias for ProcessingError (code parameter ignored)
             _ = code  # Ignored - MetadataError uses fixed PROCESSING_ERROR code
             super().__init__(message, "PROCESSING_ERROR", context)
-
-    # Aliases for backward compatibility with tests (avoiding builtin shadowing)
-    ConnectionError = OracleConnectionError
-    TimeoutError = OracleTimeoutError
-
-    # Additional Oracle-specific aliases using the custom base classes
-    DatabaseConnectionError = OracleConnectionError
-    DatabaseTimeoutError = OracleTimeoutError
 
     @classmethod
     def create_validation_error(

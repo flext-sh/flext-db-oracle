@@ -57,7 +57,7 @@ class TestRealOracleExceptionsCore:
         )
 
     def test_real_connection_error_scenario(self) -> None:
-        """Test FlextDbOracleExceptions.ConnectionError with real unreachable host."""
+        """Test FlextDbOracleExceptions.OracleConnectionError with real unreachable host."""
         # Use real unreachable host
         unreachable_config = FlextDbOracleModels.OracleConfig(
             host="unreachable-host-12345.invalid",
@@ -356,11 +356,11 @@ class TestRealOracleExceptionHierarchy:
         assert issubclass(FlextDbOracleExceptions.Error, Exception)
         assert issubclass(FlextDbOracleExceptions.AuthenticationError, Exception)
         assert issubclass(FlextDbOracleExceptions.ConfigurationError, Exception)
-        assert issubclass(FlextDbOracleExceptions.ConnectionError, Exception)
+        assert issubclass(FlextDbOracleExceptions.OracleConnectionError, Exception)
         assert issubclass(FlextDbOracleExceptions.MetadataError, Exception)
         assert issubclass(FlextDbOracleExceptions.ProcessingError, Exception)
         assert issubclass(FlextDbOracleExceptions.QueryError, Exception)
-        assert issubclass(FlextDbOracleExceptions.TimeoutError, Exception)
+        assert issubclass(FlextDbOracleExceptions.OracleTimeoutError, Exception)
         assert issubclass(FlextDbOracleExceptions.ValidationError, Exception)
 
         # Test that domain-specific exceptions inherit from local BaseError

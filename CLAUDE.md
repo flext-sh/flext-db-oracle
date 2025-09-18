@@ -6,7 +6,19 @@
 
 **References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and [README.md](README.md) for project overview.
 
-**Copyright (c) 2025 FLEXT Team. All rights reserved.**  
+**Hierarchy**: This document provides project-specific standards based on workspace-level patterns defined in [../CLAUDE.md](../CLAUDE.md). For architectural principles, quality gates, and MCP server usage, reference the main workspace standards.
+
+## 🔗 MCP SERVER INTEGRATION
+
+| MCP Server | Purpose | Status |
+|------------|---------|--------|
+| **serena** | Oracle codebase analysis and code navigation | **ACTIVE** |
+| **sequential-thinking** | Oracle architecture problem solving | **ACTIVE** |
+| **github** | Oracle ecosystem integration and PRs | **ACTIVE** |
+
+**Usage**: `claude mcp list` for available servers, leverage for Oracle-specific development patterns and analysis.
+
+**Copyright (c) 2025 FLEXT Team. All rights reserved.**
 **License**: MIT
 
 ---
@@ -436,7 +448,7 @@ class EnterpriseOracleService(FlextDomainService):
 from flext_core import FlextResult, get_logger
 from flext_db_oracle.models import OracleConfig, FlextDbOracleModels
 from pydantic import BaseSettings, SecretStr
-from typing import Dict, Any, Optional
+from typing import Dict, object, Optional
 
 class EnterpriseOracleConfiguration(BaseSettings):
     """Enterprise Oracle configuration using FLEXT patterns and production values."""

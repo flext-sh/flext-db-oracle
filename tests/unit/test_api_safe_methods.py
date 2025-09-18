@@ -39,7 +39,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="testpass",
         )
 
-        api = FlextDbOracleApi.with_config(config)
+        api = FlextDbOracleApi.from_config(config)
         assert api is not None
         assert api.config.host == "localhost"
         assert api.config.port == 1521

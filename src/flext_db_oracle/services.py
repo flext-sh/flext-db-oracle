@@ -1495,49 +1495,6 @@ class FlextDbOracleServices(FlextModels.Entity):
         """Get a specific plugin."""
         return self._plugin_registry.get_plugin(name)
 
-    # Legacy compatibility methods for existing tests
-    def execute_command(
-        self, query: dict[str, object] | str | None = None
-    ) -> FlextResult[dict[str, object]]:
-        """Execute command with flexible input format."""
-        try:
-            if query is None:
-                return FlextResult[dict[str, object]].fail(
-                    "Query parameter is required"
-                )
-
-            # Handle both string and dict input
-            if isinstance(query, str):
-                sql = query
-                params_dict = None
-            else:
-                sql = str(query.get("sql", ""))
-                params = query.get("params")
-                params_dict = dict(params) if isinstance(params, dict) else None
-
-            result = self.execute_query(sql, params_dict)
-            if result.is_failure:
-                return FlextResult[dict[str, object]].fail(
-                    result.error or "Execution failed"
-                )
-
-            # Return first row as dict or empty dict
-            rows = result.unwrap()
-            return FlextResult[dict[str, object]].ok(rows[0] if rows else {})
-
-        except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Execute failed: {e}")
-
-    def execute_sql(
-        self, sql: str, params: dict[str, object] | None = None
-    ) -> FlextResult[list[dict[str, object]]]:
-        """Execute SQL - compatibility method."""
-        return self.execute_query(sql, params)
-
-    def close(self) -> FlextResult[None]:
-        """Close connection - compatibility method."""
-        return self.disconnect()
-
 
 # Export the single refactored class following flext-core pattern
 __all__ = ["FlextDbOracleServices"]

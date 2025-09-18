@@ -42,12 +42,18 @@ class FlextDbOracleModels(FlextModels.Entity):
                 return FlextResult[str].fail("Oracle identifier cannot be empty")
 
             # Length validation
-            if len(upper_identifier) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(upper_identifier)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 error_msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 return FlextResult[str].fail(error_msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_identifier):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_identifier,
+            ):
                 error_msg = "Oracle identifier contains invalid characters"
                 return FlextResult[str].fail(error_msg)
 
@@ -104,12 +110,6 @@ class FlextDbOracleModels(FlextModels.Entity):
         pool_min: int = Field(default=2, description="Minimum pool size")
         pool_max: int = Field(default=20, description="Maximum pool size")
         timeout: int = Field(default=60, description="Connection timeout in seconds")
-
-        # Add properties for backward compatibility
-        @property
-        def user(self) -> str:
-            """Alias for username field for backward compatibility."""
-            return self.username
 
         @classmethod
         def from_env(
@@ -210,7 +210,11 @@ class FlextDbOracleModels(FlextModels.Entity):
                 msg = "Port must be an integer"
                 raise TypeError(msg)
 
-            if not (FlextDbOracleConstants.OracleValidation.MIN_PORT <= v <= FlextDbOracleConstants.OracleValidation.MAX_PORT):
+            if not (
+                FlextDbOracleConstants.OracleValidation.MIN_PORT
+                <= v
+                <= FlextDbOracleConstants.OracleValidation.MAX_PORT
+            ):
                 error_msg = f"Port must be between {FlextDbOracleConstants.OracleValidation.MIN_PORT}-{FlextDbOracleConstants.OracleValidation.MAX_PORT}, got {v}"
                 raise ValueError(error_msg)
             return v
@@ -228,14 +232,18 @@ class FlextDbOracleModels(FlextModels.Entity):
                 raise ValueError(msg)
 
             # Length validation
-            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-                msg = (
-                    f"Database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-                )
+            if (
+                len(upper_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
+                msg = f"Database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_name,
+            ):
                 msg = "Database name contains invalid characters"
                 raise ValueError(msg)
 
@@ -255,13 +263,17 @@ class FlextDbOracleModels(FlextModels.Entity):
 
             # Validate identifier if not empty
             upper_name = v.upper()
-            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-                msg = (
-                    f"Service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-                )
+            if (
+                len(upper_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
+                msg = f"Service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_name,
+            ):
                 msg = "Service name contains invalid characters"
                 raise ValueError(msg)
 
@@ -281,11 +293,17 @@ class FlextDbOracleModels(FlextModels.Entity):
 
             # Validate identifier if not empty
             upper_name = v.upper()
-            if len(upper_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(upper_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 msg = f"SID too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_name):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_name,
+            ):
                 msg = "SID contains invalid characters"
                 raise ValueError(msg)
 
@@ -432,12 +450,18 @@ class FlextDbOracleModels(FlextModels.Entity):
                 raise ValueError(msg)
 
             # Length validation
-            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(upper_v)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_v,
+            ):
                 msg = "Oracle identifier contains invalid characters"
                 raise ValueError(msg)
 
@@ -447,8 +471,9 @@ class FlextDbOracleModels(FlextModels.Entity):
         @classmethod
         def validate_pool_sizes(cls, v: int, info: ValidationInfo) -> int:
             """Validate that max pool size is greater than min pool size."""
-            if hasattr(info, "data") and "oracle_pool_min_size" in info.data:
-                min_size = info.data["oracle_pool_min_size"]
+            # Use proper Pydantic V2 context access instead of legacy .data
+            if info.context and "oracle_pool_min_size" in info.context:
+                min_size = info.context["oracle_pool_min_size"]
                 if v < min_size:
                     msg = f"Max pool size ({v}) must be >= min pool size ({min_size})"
                     raise ValueError(msg)
@@ -524,7 +549,10 @@ class FlextDbOracleModels(FlextModels.Entity):
                 return FlextResult[None].fail("Max pool size must be >= min pool size")
 
             # Validate timeout settings
-            if self.oracle_query_timeout > FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS:
+            if (
+                self.oracle_query_timeout
+                > FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS
+            ):
                 return FlextResult[None].fail(
                     f"Query timeout too high (max {FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS} seconds)"
                 )
@@ -659,12 +687,18 @@ class FlextDbOracleModels(FlextModels.Entity):
                 raise ValueError(msg)
 
             # Length validation
-            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(upper_v)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_v,
+            ):
                 msg = "Oracle identifier contains invalid characters"
                 raise ValueError(msg)
 
@@ -691,12 +725,18 @@ class FlextDbOracleModels(FlextModels.Entity):
                 raise ValueError(msg)
 
             # Length validation
-            if len(upper_v) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(upper_v)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 msg = f"Column name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, upper_v):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                upper_v,
+            ):
                 msg = "Column name contains invalid characters"
                 raise ValueError(msg)
 
@@ -719,12 +759,18 @@ class FlextDbOracleModels(FlextModels.Entity):
             if not isinstance(schema_name, str) or len(schema_name) < 1:
                 msg = "Schema name must be a non-empty string"
                 raise ValueError(msg)
-            if len(schema_name) > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            if (
+                len(schema_name)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
                 msg = f"Schema name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} characters)"
                 raise ValueError(msg)
 
             # Pattern validation
-            if not re.match(FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN, schema_name):
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                schema_name,
+            ):
                 msg = f"Invalid schema name format: {schema_name}"
                 raise ValueError(msg)
 

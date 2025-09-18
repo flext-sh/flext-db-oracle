@@ -77,7 +77,11 @@ class TestFlextDbOracleClientReal:
         # Should succeed and add the new preferences (no validation in current implementation)
         assert result.is_success is True
         # New preferences are added to the original ones
-        expected_prefs = {**original_prefs, "invalid_key": "value", "another_invalid": "test"}
+        expected_prefs = {
+            **original_prefs,
+            "invalid_key": "value",
+            "another_invalid": "test",
+        }
         assert client.user_preferences == expected_prefs
 
     def test_connection_without_config(self) -> None:
@@ -229,7 +233,7 @@ class TestFlextDbOracleClientIntegration:
             config.host,
             config.port,
             service_name,
-            config.user,
+            config.username,
             config.password,
         )
 

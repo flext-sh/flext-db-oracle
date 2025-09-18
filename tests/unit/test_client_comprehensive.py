@@ -134,7 +134,7 @@ class TestFlextDbOracleClientRealFunctionality:
             assert config.host == host
             assert config.port == port
             assert config.service_name == service_name
-            assert config.user == user
+            assert config.username == user
             assert config.password == password
             assert config.ssl_server_cert_dn is None
 
@@ -385,7 +385,9 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
         # Test valid command without connection (should fail gracefully)
-        result_query = FlextDbOracleClient.run_cli_command("query", sql="SELECT 1 FROM DUAL")
+        result_query = FlextDbOracleClient.run_cli_command(
+            "query", sql="SELECT 1 FROM DUAL"
+        )
         FlextTestsMatchers.assert_result_failure(result_query)
 
         # Test health command without connection

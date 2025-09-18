@@ -58,7 +58,7 @@ class TestBasicModelCreation:
         assert config.host == "localhost"
         assert config.port == 1521
         assert config.service_name == "TEST"
-        assert config.user == "testuser"
+        assert config.username == "testuser"
         # Password should be a string
         assert config.password == "testpass"
 
