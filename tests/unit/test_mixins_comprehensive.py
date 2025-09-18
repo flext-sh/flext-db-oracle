@@ -201,7 +201,7 @@ class TestParameterContainer:
         # Create container and manually set params to None to test edge case
         container = FlextDbOracleMixins.ParameterContainer()
         # Simulate the case where params might be None despite __post_init__
-        object.__setattr__(container, "params", None)
+        setattr(container, "params", None)
 
         assert container.get("any_key") is None
         assert container.get("any_key", default="default") == "default"
@@ -229,7 +229,7 @@ class TestParameterContainer:
         """Test requiring values when params is None."""
         # Create container and manually set params to None to test edge case
         container = FlextDbOracleMixins.ParameterContainer()
-        object.__setattr__(container, "params", None)
+        setattr(container, "params", None)
 
         with pytest.raises(KeyError) as exc_info:
             container.require("any_key")

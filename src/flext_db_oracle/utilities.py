@@ -15,11 +15,11 @@ import json
 import os
 from typing import Protocol, cast
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult, FlextTypes, FlextUtilities
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class FlextDbOracleUtilities:
+class FlextDbOracleUtilities(FlextUtilities):
     """Oracle Database utilities using flext-core modern API."""
 
     # Consolidated protocols as class attributes

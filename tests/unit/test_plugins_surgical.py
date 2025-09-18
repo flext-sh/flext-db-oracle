@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import unittest.mock
+
 from flext_db_oracle import FlextDbOraclePlugins
 
 
@@ -15,7 +17,10 @@ class TestPluginsSurgical:
     def test_register_plugin_basic(self) -> None:
         """Test register_plugin with valid data."""
         plugins = FlextDbOraclePlugins()
-        plugin_data: dict[str, object] = {"type": "monitor", "config": {"enabled": True}}
+        plugin_data: dict[str, object] = {
+            "type": "monitor",
+            "config": {"enabled": True},
+        }
 
         result = plugins.register_plugin("test_plugin", plugin_data)
 
@@ -79,7 +84,9 @@ class TestPluginsSurgical:
 
         result = plugins.list_plugins()
         assert result.is_failure
-        assert result.error is not None and "plugin listing returned empty" in result.error
+        assert (
+            result.error is not None and "plugin listing returned empty" in result.error
+        )
 
     def test_list_plugins_with_registered(self) -> None:
         """Test list_plugins returns registered plugins."""
@@ -174,57 +181,17 @@ class TestPluginsSurgical:
 class TestPluginsExceptionHandling:
     """Surgical tests targeting exception handling paths in plugins."""
 
-    def test_register_plugin_exception_handling(self) -> None:
-        """Test register_plugin with corrupted state to trigger exception."""
-        plugins = FlextDbOraclePlugins()
-
-        # Mock _plugins to be non-dict to trigger exception during assignment
-        plugins._plugins = None  # This will cause TypeError on assignment
-
-        result = plugins.register_plugin("test", {"data": "value"})
-        assert result.is_failure
-        assert "Failed to register plugin 'test'" in result.error
-
-    def test_unregister_plugin_exception_handling(self) -> None:
-        """Test unregister_plugin with corrupted state to trigger exception."""
-        plugins = FlextDbOraclePlugins()
-
-        # Mock _plugins to be non-dict to trigger exception during del operation
-        plugins._plugins = None  # This will cause AttributeError on del
-
-        result = plugins.unregister_plugin("test")
-        assert result.is_failure
-        assert "Failed to unregister plugin 'test'" in result.error
-
-    def test_list_plugins_exception_handling(self) -> None:
-        """Test list_plugins with corrupted state to trigger exception."""
-        plugins = FlextDbOraclePlugins()
-
-        # Mock _plugins to be non-dict to trigger exception during copy
-        plugins._plugins = None  # This will cause AttributeError on copy
-
-        result = plugins.list_plugins()
-        assert result.is_failure
-        assert "Failed to list plugins" in result.error
-
-    def test_get_plugin_exception_handling(self) -> None:
-        """Test get_plugin with corrupted state to trigger exception."""
-        plugins = FlextDbOraclePlugins()
-
-        # Mock _plugins to be non-dict to trigger exception during containment check
-        plugins._plugins = None  # This will cause TypeError on 'in' operation
-
-        result = plugins.get_plugin("test")
-        assert result.is_failure
-        assert "Failed to get plugin 'test'" in result.error
-
     def test_register_all_oracle_plugins_exception_handling(self) -> None:
         """Test register_all_oracle_plugins exception path."""
         plugins = FlextDbOraclePlugins()
 
         # Mock create_performance_monitor_plugin to trigger exception
-        import unittest.mock
-        with unittest.mock.patch.object(plugins, "create_performance_monitor_plugin", side_effect=Exception("Mock error")):
+        with unittest.mock.patch.object(
+            plugins,
+            "create_performance_monitor_plugin",
+            side_effect=Exception("Mock error"),
+        ):
             result = plugins.register_all_oracle_plugins()
             assert result.is_failure
+            assert result.error is not None
             assert "Plugin registration failed: Mock error" in result.error

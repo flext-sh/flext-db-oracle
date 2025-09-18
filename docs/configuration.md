@@ -75,4 +75,4 @@ For advanced configuration patterns, see the FLEXT workspace documentation.
 
 ---
 
-Updated: September 17, 2025 | Version: 0.9.0
+Updated: September 17, 2025 | Version: 0.9.9

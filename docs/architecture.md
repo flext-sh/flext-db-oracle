@@ -273,6 +273,6 @@ class OraclePlugin(ABC):
 
 ---
 
-**Version**: 0.9.0 | **Updated**: September 17, 2025
+**Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Pattern**: Clean Architecture + Domain-Driven Design
 **Integration**: FLEXT Ecosystem Foundation

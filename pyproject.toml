@@ -63,7 +63,7 @@ strict = true
 check_untyped_defs = true
 disallow_any_decorated = false
 disallow_any_explicit = true
-disallow_any_expr = false          # Too restrictive for real-world usage
+disallow_any_expr = false           # Too restrictive for real-world usage
 disallow_any_generics = true
 disallow_any_unimported = true
 disallow_incomplete_defs = true
@@ -174,14 +174,14 @@ addopts = [
 testpaths = ["tests"]
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests", 
+    "integration: Integration tests",
     "e2e: End-to-end tests",
     "benchmark: Performance benchmark tests",
     "slow: Slow tests",
     "concurrency: Concurrency tests from flext_tests",
     "race_condition: Race condition tests",
     "complexity: Complexity analysis tests",
-    "memory: Memory usage tests", 
+    "memory: Memory usage tests",
     "memory_limit: Memory limit tests",
     "performance: Performance tests",
     "regression: Regression tests",
@@ -217,8 +217,6 @@ output = "reports/coverage.xml"
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"
-flext-core = {path = "./flext-core", develop = true}
-flext-cli = {path = "./flext-cli", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 ruff = ">=0.12.3"

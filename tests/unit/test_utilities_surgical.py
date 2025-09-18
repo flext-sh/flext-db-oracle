@@ -211,3 +211,62 @@ class TestUtilitiesSurgical:
         formatted = result.unwrap()
         assert not formatted.startswith(" ")
         assert not formatted.endswith(" ")
+
+    def test_format_query_result_none_input(self) -> None:
+        """Test format_query_result with None input."""
+        result = FlextDbOracleUtilities.format_query_result(None)
+        assert result.is_failure
+        assert result.error is not None
+        assert "Query result is None" in result.error
+
+    def test_format_query_result_json_format(self) -> None:
+        """Test format_query_result with JSON format."""
+        data = {"rows": [{"id": 1, "name": "test"}], "count": 1}
+        result = FlextDbOracleUtilities.format_query_result(data, "json")
+
+        assert result.is_success
+        formatted = result.unwrap()
+        assert '"rows"' in formatted
+        assert '"count": 1' in formatted
+
+    def test_format_query_result_json_non_serializable(self) -> None:
+        """Test format_query_result with non-serializable object."""
+
+        class NonSerializable:
+            pass
+
+        data = NonSerializable()
+        result = FlextDbOracleUtilities.format_query_result(data, "json")
+
+        assert result.is_success
+        formatted = result.unwrap()
+        assert "Query result (non-serializable): NonSerializable" in formatted
+
+    def test_format_query_result_table_format(self) -> None:
+        """Test format_query_result with table format."""
+        data = [{"id": 1, "name": "test"}, {"id": 2, "name": "user"}]
+        result = FlextDbOracleUtilities.format_query_result(data, "table")
+
+        assert result.is_success
+        formatted = result.unwrap()
+        assert isinstance(formatted, str)
+
+    def test_format_query_result_unknown_format(self) -> None:
+        """Test format_query_result with unknown format type."""
+        data = {"test": "data"}
+        result = FlextDbOracleUtilities.format_query_result(data, "unknown")
+
+        assert result.is_success
+        formatted = result.unwrap()
+        assert isinstance(formatted, str)
+
+    def test_format_query_result_table_format_list_data(self) -> None:
+        """Test format_query_result table format with list data."""
+        data = [["John", 25], ["Jane", 30]]
+        result = FlextDbOracleUtilities.format_query_result(data, "table")
+
+        assert result.is_success
+        formatted = result.unwrap()
+        # The function returns a generic message for list data
+        assert "table" in formatted.lower()
+        assert isinstance(formatted, str)

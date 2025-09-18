@@ -1,6 +1,6 @@
 # API Reference
 
-Oracle Database integration API for FLEXT ecosystem - version 0.9.0.
+Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports
 
@@ -130,4 +130,4 @@ else:
 
 ---
 
-Updated: September 17, 2025 | Version: 0.9.0
+Updated: September 17, 2025 | Version: 0.9.9

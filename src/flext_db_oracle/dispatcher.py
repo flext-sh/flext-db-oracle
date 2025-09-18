@@ -80,13 +80,13 @@ class FlextDbOracleDispatcher:
         registry = FlextDispatcherRegistry(dispatcher)
 
         # Create properly typed handler functions using object type for flexibility
-        def connect_handler(_cmd: object) -> object:  # noqa: PT019
+        def connect_handler(_cmd: object) -> object:
             return services.connect()
 
-        def disconnect_handler(_cmd: object) -> object:  # noqa: PT019
+        def disconnect_handler(_cmd: object) -> object:
             return services.disconnect()
 
-        def test_connection_handler(_cmd: object) -> object:  # noqa: PT019
+        def test_connection_handler(_cmd: object) -> object:
             return services.test_connection()
 
         def execute_query_handler(cmd: object) -> object:
@@ -113,7 +113,7 @@ class FlextDbOracleDispatcher:
             parameters_list = getattr(cmd, "parameters_list", [])
             return services.execute_many(sql, parameters_list)
 
-        def get_schemas_handler(_cmd: object) -> object:  # noqa: PT019
+        def get_schemas_handler(_cmd: object) -> object:
             return services.get_schemas()
 
         def get_tables_handler(cmd: object) -> object:

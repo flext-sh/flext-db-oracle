@@ -470,7 +470,7 @@ Use --help with any command for detailed options.
 
     @classmethod
     def main(cls) -> None:
-        """Main CLI entry point using flext-cli exclusively."""
+        """Execute main CLI entry point using flext-cli exclusively."""
         cli_service = cls()
         result = cli_service.run_cli()
 

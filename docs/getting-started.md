@@ -176,5 +176,5 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 
 ---
 
-**Version**: 0.9.0 | **Updated**: September 17, 2025
+**Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Part of**: [FLEXT Ecosystem](../README.md) - Oracle Database Integration Foundation

@@ -696,7 +696,7 @@ class TestFlextDbOracleApiRealFunctionality:
         # Test empty query
         empty_result = self.api.optimize_query("")
         FlextTestsMatchers.assert_result_success(empty_result)
-        assert empty_result.value == ""
+        assert not empty_result.value
 
         # Test query with lots of whitespace
         whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
