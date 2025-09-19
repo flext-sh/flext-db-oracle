@@ -106,7 +106,8 @@ class TestOracleConnectionHelper:
         """Test config creation fails without password."""
         result = (
             FlextDbOracleCliService._OracleConnectionHelper.create_config_from_params(
-                host="test-host", username="test_user",
+                host="test-host",
+                username="test_user",
             )
         )
 
@@ -117,7 +118,9 @@ class TestOracleConnectionHelper:
         """Test config creation fails with empty password."""
         result = (
             FlextDbOracleCliService._OracleConnectionHelper.create_config_from_params(
-                host="test-host", username="test_user", password="",
+                host="test-host",
+                username="test_user",
+                password="",
             )
         )
 
@@ -342,7 +345,8 @@ class TestCliServiceOperations:
         )
 
         with patch.object(
-            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection",
+            FlextDbOracleCliService._OracleConnectionHelper,
+            "validate_connection",
         ) as mock_validate:
             mock_validate.return_value = FlextResult[bool].ok(True)
 
@@ -378,7 +382,8 @@ class TestCliServiceOperations:
         cli_service = FlextDbOracleCliService()
 
         with patch.object(
-            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection",
+            FlextDbOracleCliService._OracleConnectionHelper,
+            "validate_connection",
         ) as mock_validate:
             mock_validate.return_value = FlextResult[bool].fail("Database unreachable")
 

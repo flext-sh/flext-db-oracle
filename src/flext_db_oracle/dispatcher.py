@@ -81,13 +81,16 @@ class FlextDbOracleDispatcher:
         registry = FlextDispatcherRegistry(dispatcher)
 
         # Create properly typed handler functions using object type for flexibility
-        def connect_handler(cmd: object) -> object:  # noqa: ARG001
+        def connect_handler(_cmd: object) -> object:
             return services.connect()
 
-        def disconnect_handler(cmd: object) -> object:  # noqa: ARG001
+        def disconnect_handler(_cmd: object) -> object:
             return services.disconnect()
 
-        def test_connection_handler(cmd: object) -> object:  # noqa: ARG001
+        def test_connection_handler(_cmd: object) -> object:
+            """Test Oracle connection handler - cmd parameter required by dispatcher interface."""
+            # Parameter _cmd is required by dispatcher interface but not used in this handler
+            _ = _cmd  # Explicitly acknowledge unused parameter
             return services.test_connection()
 
         def execute_query_handler(cmd: object) -> object:
@@ -114,7 +117,7 @@ class FlextDbOracleDispatcher:
             parameters_list = getattr(cmd, "parameters_list", [])
             return services.execute_many(sql, parameters_list)
 
-        def get_schemas_handler(cmd: object) -> object:  # noqa: ARG001
+        def get_schemas_handler(_cmd: object) -> object:
             return services.get_schemas()
 
         def get_tables_handler(cmd: object) -> object:
@@ -130,7 +133,9 @@ class FlextDbOracleDispatcher:
 
         # Use register_function_map with proper typing
 
-        function_map: dict[type, tuple[Callable[[object], object], dict[str, object] | None]] = {
+        function_map: dict[
+            type, tuple[Callable[[object], object], dict[str, object] | None]
+        ] = {
             cls.ConnectCommand: (connect_handler, None),
             cls.DisconnectCommand: (disconnect_handler, None),
             cls.TestConnectionCommand: (test_connection_handler, None),

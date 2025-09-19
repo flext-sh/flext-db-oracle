@@ -45,7 +45,10 @@ class OracleExampleProcessor(FlextDomainService[str]):
             return FlextResult[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
 
     def build(
-        self, api: FlextDbOracleApi, *, correlation_id: str,
+        self,
+        api: FlextDbOracleApi,
+        *,
+        correlation_id: str,
     ) -> FlextTypes.Core.Dict:
         """Build simple result dictionary."""
         return {

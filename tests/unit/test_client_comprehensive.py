@@ -386,7 +386,8 @@ class TestFlextDbOracleClientRealFunctionality:
 
         # Test valid command without connection (should fail gracefully)
         result_query = FlextDbOracleClient.run_cli_command(
-            "query", sql="SELECT 1 FROM DUAL",
+            "query",
+            sql="SELECT 1 FROM DUAL",
         )
         FlextTestsMatchers.assert_result_failure(result_query)
 
@@ -426,7 +427,8 @@ class TestFlextDbOracleClientRealFunctionality:
             # Test with sample data - cast to proper type
 
             schemas_data = cast(
-                "dict[str, object]", {"schemas": ["SCHEMA1", "SCHEMA2"]},
+                "dict[str, object]",
+                {"schemas": ["SCHEMA1", "SCHEMA2"]},
             )
             schemas_result = client._adapt_data_for_table(schemas_data)
             FlextTestsMatchers.assert_result_success(schemas_result)
@@ -434,7 +436,8 @@ class TestFlextDbOracleClientRealFunctionality:
 
             # Test with health data
             health_data = cast(
-                "dict[str, object]", {"status": "healthy", "connections": 5},
+                "dict[str, object]",
+                {"status": "healthy", "connections": 5},
             )
             health_result = client._adapt_data_for_table(health_data)
             FlextTestsMatchers.assert_result_success(health_result)

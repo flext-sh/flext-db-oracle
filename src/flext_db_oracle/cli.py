@@ -189,7 +189,11 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Create configuration
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host, port, service_name, username, password,
+            host,
+            port,
+            service_name,
+            username,
+            password,
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
@@ -240,7 +244,11 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host, port, service_name, username, password,
+            host,
+            port,
+            service_name,
+            username,
+            password,
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
@@ -279,7 +287,9 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Format and display schemas
         formatted_result = formatter.format_list_output(
-            schemas, "Available Oracle Schemas", output_format,
+            schemas,
+            "Available Oracle Schemas",
+            output_format,
         )
         if formatted_result.is_success:
             formatter.display_message(formatted_result.unwrap())
@@ -301,7 +311,11 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host, port, service_name, username, password,
+            host,
+            port,
+            service_name,
+            username,
+            password,
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
@@ -340,7 +354,9 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Format and display tables
         formatted_result = formatter.format_list_output(
-            tables, f"Tables in schema {schema}", output_format,
+            tables,
+            f"Tables in schema {schema}",
+            output_format,
         )
         if formatted_result.is_success:
             formatter.display_message(formatted_result.unwrap())
@@ -370,7 +386,11 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host, port, service_name, username, password,
+            host,
+            port,
+            service_name,
+            username,
+            password,
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
@@ -415,7 +435,8 @@ class FlextDbOracleCliService(FlextDomainService[str]):
 
         # Format result using specified output format
         formatted_result = formatter.format_data(
-            {"rows": row_count, "result": result}, output_format,
+            {"rows": row_count, "result": result},
+            output_format,
         )
         if formatted_result.is_success:
             return FlextResult[str].ok(formatted_result.unwrap())

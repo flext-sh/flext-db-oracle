@@ -120,7 +120,8 @@ class TestDispatcherSurgical:
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         query_cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
-            sql="SELECT 1 FROM DUAL", parameters={},
+            sql="SELECT 1 FROM DUAL",
+            parameters={},
         )
 
         result = dispatcher.dispatch(query_cmd)
@@ -139,7 +140,8 @@ class TestDispatcherSurgical:
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         fetch_cmd = FlextDbOracleDispatcher.FetchOneCommand(
-            sql="SELECT 1 FROM DUAL", parameters={},
+            sql="SELECT 1 FROM DUAL",
+            parameters={},
         )
 
         result = dispatcher.dispatch(fetch_cmd)
@@ -158,7 +160,8 @@ class TestDispatcherSurgical:
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         stmt_cmd = FlextDbOracleDispatcher.ExecuteStatementCommand(
-            sql="SELECT 1 FROM DUAL", parameters={},
+            sql="SELECT 1 FROM DUAL",
+            parameters={},
         )
 
         result = dispatcher.dispatch(stmt_cmd)
@@ -231,7 +234,8 @@ class TestDispatcherSurgical:
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         columns_cmd = FlextDbOracleDispatcher.GetColumnsCommand(
-            table="USERS", schema="PUBLIC",
+            table="USERS",
+            schema="PUBLIC",
         )
 
         result = dispatcher.dispatch(columns_cmd)
@@ -259,7 +263,8 @@ class TestDispatcherCommandClasses:
     def test_execute_query_command_with_parameters(self) -> None:
         """Test ExecuteQueryCommand with SQL and parameters."""
         cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
-            sql="SELECT * FROM users WHERE id = :id", parameters={"id": 123},
+            sql="SELECT * FROM users WHERE id = :id",
+            parameters={"id": 123},
         )
         assert cmd.sql == "SELECT * FROM users WHERE id = :id"
         assert cmd.parameters == {"id": 123}
@@ -267,7 +272,8 @@ class TestDispatcherCommandClasses:
     def test_fetch_one_command_with_parameters(self) -> None:
         """Test FetchOneCommand with SQL and parameters."""
         cmd = FlextDbOracleDispatcher.FetchOneCommand(
-            sql="SELECT * FROM users WHERE id = :id", parameters={"id": 456},
+            sql="SELECT * FROM users WHERE id = :id",
+            parameters={"id": 456},
         )
         assert cmd.sql == "SELECT * FROM users WHERE id = :id"
         assert cmd.parameters == {"id": 456}

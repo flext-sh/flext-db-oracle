@@ -30,7 +30,9 @@ class FlextDbOracleApi(FlextModels.Entity):
     """Oracle Database API with clean delegation to services layer."""
 
     def __init__(
-        self, config: FlextDbOracleModels.OracleConfig, context_name: str | None = None,
+        self,
+        config: FlextDbOracleModels.OracleConfig,
+        context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration."""
         super().__init__()  # Initialize FlextDomainService base
@@ -196,7 +198,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         params = parameters or {}
         return self._dispatch_or(
             oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                sql, params,
+                sql,
+                params,
             ),
             lambda: self._services.execute_statement(sql, params),
         )
@@ -210,7 +213,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         params_list = list(parameters_list)
         return self._dispatch_or(
             oracle_dispatcher.FlextDbOracleDispatcher.ExecuteManyCommand(
-                sql, params_list,
+                sql,
+                params_list,
             ),
             lambda: self._services.execute_many(sql, params_list),
         )
@@ -231,7 +235,8 @@ class FlextDbOracleApi(FlextModels.Entity):
             params = parameters or {}
             return self._dispatch_or(
                 oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                    sql_text, params,
+                    sql_text,
+                    params,
                 ),
                 lambda: self._services.execute_statement(sql_text, params),
             )
@@ -247,7 +252,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         )
 
     def get_tables(
-        self, schema: str | None = None,
+        self,
+        schema: str | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Get list of tables in specified schema."""
         try:
@@ -274,7 +280,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         try:
             result = self._dispatch_or(
                 oracle_dispatcher.FlextDbOracleDispatcher.GetColumnsCommand(
-                    table, schema,
+                    table,
+                    schema,
                 ),
                 lambda: self._services.get_columns(table, schema),
             )
@@ -294,7 +301,9 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Error getting columns: {e}")
 
     def get_table_metadata(
-        self, table: str, schema: str | None = None,
+        self,
+        table: str,
+        schema: str | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Get comprehensive table metadata including columns and constraints."""
         try:
@@ -337,7 +346,9 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Error getting table metadata: {e}")
 
     def get_primary_keys(
-        self, table: str, schema: str | None = None,
+        self,
+        table: str,
+        schema: str | None = None,
     ) -> FlextResult[list[str]]:
         """Get primary key column names for specified table."""
         try:
@@ -382,7 +393,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         return self._services.convert_singer_type(singer_type, format_hint)
 
     def map_singer_schema(
-        self, schema: dict[str, object],
+        self,
+        schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
         return self._services.map_singer_schema(schema)
@@ -470,7 +482,8 @@ class FlextDbOracleApi(FlextModels.Entity):
 
     # Additional methods demanded by tests and real usage
     def execute_query_sql(
-        self, sql: str,
+        self,
+        sql: str,
     ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:

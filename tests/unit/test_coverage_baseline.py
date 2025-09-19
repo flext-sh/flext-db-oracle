@@ -77,7 +77,10 @@ class TestBasicModelCreation:
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
         column = Models.Column(
-            name="ID", data_type="NUMBER", nullable=False, default_value="1",
+            name="ID",
+            data_type="NUMBER",
+            nullable=False,
+            default_value="1",
         )
         assert column.name == "ID"
         assert column.data_type == "NUMBER"

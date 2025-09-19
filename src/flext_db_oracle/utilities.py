@@ -50,7 +50,8 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def generate_query_hash(
-        sql: str, params: dict[str, object] | None = None,
+        sql: str,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific."""
         # Use standard string processing for normalization

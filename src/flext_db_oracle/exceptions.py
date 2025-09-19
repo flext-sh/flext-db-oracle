@@ -237,17 +237,21 @@ class FlextDbOracleExceptions:
 
     @classmethod
     def create_validation_error(
-        cls, message: str, context: FlextTypes.Core.Dict | None = None,
-    ) -> FlextExceptions._ValidationError:
+        cls,
+        message: str,
+        context: FlextTypes.Core.Dict | None = None,
+    ) -> FlextExceptions.ValidationError:
         """Factory method for validation errors using flext-core."""
-        return FlextExceptions._ValidationError(message, context=context)
+        return FlextExceptions.ValidationError(message, context=context)
 
     @classmethod
     def create_connection_error(
-        cls, message: str, context: FlextTypes.Core.Dict | None = None,
-    ) -> FlextExceptions._ConnectionError:
+        cls,
+        message: str,
+        context: FlextTypes.Core.Dict | None = None,
+    ) -> FlextExceptions.ConnectionError:
         """Factory method for connection errors using flext-core."""
-        return FlextExceptions._ConnectionError(message, context=context)
+        return FlextExceptions.ConnectionError(message, context=context)
 
     @classmethod
     def is_oracle_error(cls, error: Exception) -> bool:

@@ -796,7 +796,9 @@ class TestFlextDbOracleApiRealFunctionality:
                 assert result_typed.error is None
                 # value can be any type including None (accessed safely)
                 _ = getattr(
-                    result_typed, "value", None,
+                    result_typed,
+                    "value",
+                    None,
                 )  # Access is safe when success=True
             else:
                 assert result_typed.error is not None

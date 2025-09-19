@@ -92,7 +92,9 @@ class FlextDbOracleClient:
             return FlextResult[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(
-        self, operation: str, **params: object,
+        self,
+        operation: str,
+        **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Execute operation with validation chain."""
         validation_result = self._validate_connection()
@@ -114,7 +116,9 @@ class FlextDbOracleClient:
         return FlextResult[None].ok(None)
 
     def _execute_operation(
-        self, operation: str, **params: object,
+        self,
+        operation: str,
+        **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Execute Oracle operation with error handling."""
         if not self.current_connection:
@@ -255,7 +259,8 @@ class FlextDbOracleClient:
             return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
     def _adapt_data_for_table(
-        self, data: dict[str, object],
+        self,
+        data: dict[str, object],
     ) -> FlextResult[list[dict[str, object]]]:
         """Adapt data for table display."""
         try:
@@ -274,7 +279,8 @@ class FlextDbOracleClient:
                 )
 
             adaptation_strategies: dict[
-                str, Callable[[object], list[dict[str, object]]],
+                str,
+                Callable[[object], list[dict[str, object]]],
             ] = {
                 "schemas": adapt_schemas,
                 "tables": adapt_tables,
@@ -335,11 +341,15 @@ class FlextDbOracleClient:
         return self._format_and_display_result(operation_result, format_type)
 
     def execute_query(
-        self, sql: str, params: dict[str, object] | None = None,
+        self,
+        sql: str,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Execute SQL query with formatted output."""
         operation_result = self._execute_with_chain(
-            "query", sql=sql, params=params or {},
+            "query",
+            sql=sql,
+            params=params or {},
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
@@ -361,7 +371,8 @@ class FlextDbOracleClient:
         try:
             self.user_preferences.update(preferences)
             self.logger.info(
-                "Client preferences updated", extra={"preferences": preferences},
+                "Client preferences updated",
+                extra={"preferences": preferences},
             )
             return FlextResult[None].ok(None)
         except Exception as e:

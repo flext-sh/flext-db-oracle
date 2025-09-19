@@ -126,7 +126,8 @@ def show_available_examples() -> None:
 
     for example in examples:
         features: FlextTypes.Core.StringList = cast(
-            "FlextTypes.Core.StringList", example.get("features", []),
+            "FlextTypes.Core.StringList",
+            example.get("features", []),
         )
         if isinstance(features, list):
             for _feature in features:
