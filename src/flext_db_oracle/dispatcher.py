@@ -86,7 +86,7 @@ class FlextDbOracleDispatcher:
         def disconnect_handler(_cmd: object) -> object:
             return services.disconnect()
 
-        def test_connection_handler(_cmd: object) -> object:
+        def test_connection_handler() -> object:
             return services.test_connection()
 
         def execute_query_handler(cmd: object) -> object:
