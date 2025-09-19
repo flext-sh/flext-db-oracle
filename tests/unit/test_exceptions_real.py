@@ -89,7 +89,7 @@ class TestValidationError:
     def test_validation_error_with_string(self) -> None:
         """Test ValidationError with simple string message."""
         error = FlextDbOracleExceptions.ValidationError(
-            "Invalid value", code="ORACLE_VALIDATION_ERROR"
+            "Invalid value", code="ORACLE_VALIDATION_ERROR",
         )
         assert "Invalid value" in str(error)
         assert error.error_code == "VALIDATION_ERROR"
@@ -127,7 +127,7 @@ class TestConfigurationError:
     def test_configuration_error_with_string(self) -> None:
         """Test ConfigurationError with simple string message."""
         error = FlextDbOracleExceptions.ConfigurationError(
-            "Invalid config", code="ORACLE_CONFIGURATION_ERROR"
+            "Invalid config", code="ORACLE_CONFIGURATION_ERROR",
         )
         assert "Invalid config" in str(error)
         assert error.error_code == "CONFIGURATION_ERROR"  # flext-core uses default code
@@ -158,7 +158,7 @@ class TestConnectionError:
     def test_connection_error_with_string(self) -> None:
         """Test ConnectionError with simple string message."""
         error = FlextDbOracleExceptions.OracleConnectionError(
-            "Connection failed", code="ORACLE_CONNECTION_ERROR"
+            "Connection failed", code="ORACLE_CONNECTION_ERROR",
         )
         assert "Connection failed" in str(error)
         assert error.error_code == "CONNECTION_ERROR"  # flext-core uses default code
@@ -186,7 +186,7 @@ class TestProcessingError:
     def test_processing_error_with_string(self) -> None:
         """Test ProcessingError with simple string message."""
         error = FlextDbOracleExceptions.ProcessingError(
-            "Processing failed", code="ORACLE_PROCESSING_ERROR"
+            "Processing failed", code="ORACLE_PROCESSING_ERROR",
         )
         assert "Processing failed" in str(error)
         assert error.error_code == "PROCESSING_ERROR"  # flext-core uses default code
@@ -199,7 +199,7 @@ class TestProcessingError:
             context={"row_count": 1000, "error_at": 500},
         )
         error = FlextDbOracleExceptions.ProcessingError(
-            params.message, code=params.code, context=params.context
+            params.message, code=params.code, context=params.context,
         )
         assert "Failed to process query result" in str(error)
         assert error.error_code == "PROC_PARSE_ERROR"  # Uses the code that was passed
@@ -211,7 +211,7 @@ class TestAuthenticationError:
     def test_authentication_error_with_string(self) -> None:
         """Test AuthenticationError with simple string message."""
         error = FlextDbOracleExceptions.AuthenticationError(
-            "Auth failed", code="ORACLE_AUTHENTICATION_ERROR"
+            "Auth failed", code="ORACLE_AUTHENTICATION_ERROR",
         )
         assert "Auth failed" in str(error)
         assert (
@@ -226,7 +226,7 @@ class TestAuthenticationError:
             context={"username": "testuser", "attempts": 3},
         )
         error = FlextDbOracleExceptions.AuthenticationError(
-            params.message, code=params.code, context=params.context
+            params.message, code=params.code, context=params.context,
         )
         assert "Invalid credentials" in str(error)
         assert (
@@ -240,7 +240,7 @@ class TestTimeoutError:
     def test_timeout_error_with_string(self) -> None:
         """Test TimeoutError with simple string message."""
         error = FlextDbOracleExceptions.OracleTimeoutError(
-            "Operation timed out", code="ORACLE_TIMEOUT_ERROR"
+            "Operation timed out", code="ORACLE_TIMEOUT_ERROR",
         )
         assert "Operation timed out" in str(error)
         assert error.error_code == "TIMEOUT_ERROR"  # flext-core uses default code
@@ -308,7 +308,7 @@ class TestExceptionHelperMethods:
     def test_create_validation_error(self) -> None:
         """Test ValidationError creation with parameters."""
         error = FlextDbOracleExceptions.ValidationError(
-            "Invalid input", code="ORACLE_VALIDATION_ERROR", context={"input": "test"}
+            "Invalid input", code="ORACLE_VALIDATION_ERROR", context={"input": "test"},
         )
         assert isinstance(error, FlextDbOracleExceptions.ValidationError)
         assert "Invalid input" in str(error)
@@ -370,7 +370,7 @@ class TestExceptionHelperMethods:
     def test_create_timeout_error(self) -> None:
         """Test DatabaseTimeoutError creation with parameters."""
         error = FlextDbOracleExceptions.OracleTimeoutError(
-            "Timed out", code="ORACLE_TIMEOUT_ERROR", context={"duration": 60}
+            "Timed out", code="ORACLE_TIMEOUT_ERROR", context={"duration": 60},
         )
         assert isinstance(error, FlextDbOracleExceptions.OracleTimeoutError)
         assert "Timed out" in str(error)
@@ -382,7 +382,7 @@ class TestExceptionHelperMethods:
     def test_create_query_error(self) -> None:
         """Test QueryError creation with parameters."""
         error = FlextDbOracleExceptions.QueryError(
-            "Query failed", code="ORACLE_QUERY_ERROR", context={"sql": "SELECT 1"}
+            "Query failed", code="ORACLE_QUERY_ERROR", context={"sql": "SELECT 1"},
         )
         assert isinstance(error, FlextDbOracleExceptions.QueryError)
         assert "Query failed" in str(error)
@@ -437,7 +437,7 @@ class TestFactoryMethods:
     def test_create_validation_error_factory(self) -> None:
         """Test create_validation_error factory method."""
         error = FlextDbOracleExceptions.create_validation_error(
-            "Validation failed", context={"field": "username"}
+            "Validation failed", context={"field": "username"},
         )
         # Factory method returns FlextExceptions._ValidationError, not local ValidationError
 
@@ -447,7 +447,7 @@ class TestFactoryMethods:
     def test_create_connection_error_factory(self) -> None:
         """Test create_connection_error factory method."""
         error = FlextDbOracleExceptions.create_connection_error(
-            "Connection failed", context={"host": "localhost"}
+            "Connection failed", context={"host": "localhost"},
         )
         # Factory method returns FlextExceptions._ConnectionError, not OracleConnectionError
 

@@ -146,7 +146,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         for format_type in ["table", "json", "csv"]:
             result = self.utilities.format_query_result(
-                mock_result, format_type=format_type
+                mock_result, format_type=format_type,
             )
             FlextTestsMatchers.assert_result_success(result)
             formatted = result.value

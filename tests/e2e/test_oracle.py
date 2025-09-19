@@ -106,7 +106,7 @@ class TestOracleE2E:
 
                 # Test data querying using SQL query - NO STRING CONCATENATION
                 select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID"
+                    f"SELECT * FROM {test_table_name} ORDER BY ID",
                 )
                 if select_result.is_failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
@@ -119,7 +119,7 @@ class TestOracleE2E:
 
                 # Test single row query using SQL count query
                 count_result = api.query(
-                    f"SELECT COUNT(*) as row_count FROM {test_table_name}"
+                    f"SELECT COUNT(*) as row_count FROM {test_table_name}",
                 )
                 if count_result.is_failure:
                     raise AssertionError(f"Count query failed: {count_result.error}")
@@ -130,7 +130,7 @@ class TestOracleE2E:
                 )
                 assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
                 count_value = count_data[0].get("ROW_COUNT") or count_data[0].get(
-                    "row_count"
+                    "row_count",
                 )
                 assert count_value == 3, f"Expected count 3, got {count_value}"
 
@@ -171,7 +171,7 @@ class TestOracleE2E:
 
                 # Verify transaction committed using SQL query
                 verify_result = api.query(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3"
+                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
                 )
                 if verify_result.is_failure:
                     raise AssertionError(

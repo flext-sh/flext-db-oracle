@@ -364,7 +364,7 @@ class TestErrorTransformer:
 
         assert transformed_result.is_failure
         assert "Database Operation: original error message" in str(
-            transformed_result.error
+            transformed_result.error,
         )
 
     def test_error_transformer_different_contexts(self) -> None:

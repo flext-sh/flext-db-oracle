@@ -165,7 +165,7 @@ class TestFlextDbOracleServicesBasic:
                 "name": {"type": "string"},
                 "created_at": {"type": "string", "format": "date-time"},
                 "is_active": {"type": "boolean"},
-            }
+            },
         }
 
         mapping_result = service.map_singer_schema(singer_schema)
@@ -241,7 +241,7 @@ class TestFlextDbOracleServicesBasic:
         set_columns = ["name", "email"]
         where_columns = ["id"]
         update_result = service.build_update_statement(
-            "USERS", set_columns, where_columns
+            "USERS", set_columns, where_columns,
         )
         assert update_result.is_success
         assert "UPDATE" in update_result.value
@@ -350,7 +350,7 @@ class TestFlextDbOracleServicesBasic:
 
         # Test operation tracking
         track_result = service.track_operation(
-            "SELECT", 25.0, success=True, metadata={"table": "users"}
+            "SELECT", 25.0, success=True, metadata={"table": "users"},
         )
         assert track_result.is_success
 

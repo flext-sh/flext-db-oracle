@@ -365,7 +365,7 @@ class TestRealOracleExceptionHierarchy:
 
         # Test that domain-specific exceptions inherit from local BaseError
         assert issubclass(
-            FlextDbOracleExceptions.QueryError, FlextDbOracleExceptions.BaseError
+            FlextDbOracleExceptions.QueryError, FlextDbOracleExceptions.BaseError,
         )
         assert issubclass(
             FlextDbOracleExceptions.MetadataError,

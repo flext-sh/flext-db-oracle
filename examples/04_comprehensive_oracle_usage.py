@@ -28,7 +28,7 @@ class OracleExampleProcessor(FlextDomainService[str]):
             config_result = FlextDbOracleModels.OracleConfig.from_env()
             if not config_result.is_success:
                 return FlextResult[FlextDbOracleApi].fail(
-                    config_result.error or "Failed to load configuration"
+                    config_result.error or "Failed to load configuration",
                 )
             config = config_result.value
 
@@ -37,7 +37,7 @@ class OracleExampleProcessor(FlextDomainService[str]):
             connect_result = api.connect()
             if not connect_result.is_success:
                 return FlextResult[FlextDbOracleApi].fail(
-                    connect_result.error or "Failed to connect"
+                    connect_result.error or "Failed to connect",
                 )
 
             return FlextResult[FlextDbOracleApi].ok(api)
@@ -45,7 +45,7 @@ class OracleExampleProcessor(FlextDomainService[str]):
             return FlextResult[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
 
     def build(
-        self, api: FlextDbOracleApi, *, correlation_id: str
+        self, api: FlextDbOracleApi, *, correlation_id: str,
     ) -> FlextTypes.Core.Dict:
         """Build simple result dictionary."""
         return {
@@ -83,7 +83,7 @@ def demonstrate_query_operations() -> None:
         connect_result = api.connect()
         if connect_result.is_success:
             query_result = connect_result.value.query(
-                "SELECT COUNT(*) FROM user_tables"
+                "SELECT COUNT(*) FROM user_tables",
             )
             if query_result.is_success:
                 # Access the first row of the result

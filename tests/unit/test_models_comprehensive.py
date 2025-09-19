@@ -105,7 +105,7 @@ class TestOracleConfig:
     def test_oracle_config_defaults(self) -> None:
         """Test Oracle configuration default values."""
         config = FlextDbOracleModels.OracleConfig(
-            username="test_user", password="test_password"
+            username="test_user", password="test_password",
         )
 
         assert config.host == "localhost"
@@ -121,7 +121,7 @@ class TestOracleConfig:
         """Test Oracle config validation fails with empty host."""
         with pytest.raises(ValidationError) as exc_info:
             FlextDbOracleModels.OracleConfig(
-                host="", username="test_user", password="test_password"
+                host="", username="test_user", password="test_password",
             )
 
         errors = exc_info.value.errors()
@@ -131,7 +131,7 @@ class TestOracleConfig:
         """Test Oracle config validation fails with whitespace-only host."""
         with pytest.raises(ValidationError) as exc_info:
             FlextDbOracleModels.OracleConfig(
-                host="   ", username="test_user", password="test_password"
+                host="   ", username="test_user", password="test_password",
             )
 
         errors = exc_info.value.errors()

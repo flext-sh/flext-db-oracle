@@ -45,7 +45,7 @@ def _docker_ping_safe(client: docker.DockerClient) -> bool:
 
     """
     # Direct ping call with proper typing - no hasattr needed
-    result: object = client.ping()
+    result: object = client.ping()  # type: ignore[no-untyped-call]
     return bool(result)
 
 

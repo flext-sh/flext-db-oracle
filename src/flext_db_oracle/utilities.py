@@ -50,7 +50,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def generate_query_hash(
-        sql: str, params: dict[str, object] | None = None
+        sql: str, params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific."""
         # Use standard string processing for normalization
@@ -261,7 +261,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             ]
             if missing_fields:
                 return FlextResult.fail(
-                    f"Missing required fields: {', '.join(missing_fields)}"
+                    f"Missing required fields: {', '.join(missing_fields)}",
                 )
 
             # Convert port to int with proper type checking
@@ -279,7 +279,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
             # Create API instance with configuration (use runtime import to avoid circular imports)
             api_module = importlib.import_module("flext_db_oracle.api")
-            flext_db_oracle_api_class = getattr(api_module, "FlextDbOracleApi")
+            flext_db_oracle_api_class = api_module.FlextDbOracleApi
             api = flext_db_oracle_api_class(oracle_config)
 
             # API creation successful - return the API instance

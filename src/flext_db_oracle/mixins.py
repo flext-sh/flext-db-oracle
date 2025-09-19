@@ -38,7 +38,7 @@ class FlextDbOracleMixins(FlextMixins):
                 > FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
             ):
                 return FlextResult[str].fail(
-                    f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH} chars)"
+                    f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH} chars)",
                 )
 
             # Pattern validation
@@ -47,7 +47,7 @@ class FlextDbOracleMixins(FlextMixins):
                 upper_identifier,
             ):
                 return FlextResult[str].fail(
-                    "Oracle identifier contains invalid characters"
+                    "Oracle identifier contains invalid characters",
                 )
 
             validated_identifier = upper_identifier
@@ -60,7 +60,7 @@ class FlextDbOracleMixins(FlextMixins):
                 in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED
             ):
                 return FlextResult[str].fail(
-                    f"Identifier '{validated_identifier}' is a reserved word"
+                    f"Identifier '{validated_identifier}' is a reserved word",
                 )
 
             return FlextResult[str].ok(validated_identifier)

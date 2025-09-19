@@ -30,7 +30,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     """Oracle Database API with clean delegation to services layer."""
 
     def __init__(
-        self, config: FlextDbOracleModels.OracleConfig, context_name: str | None = None
+        self, config: FlextDbOracleModels.OracleConfig, context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration."""
         super().__init__()  # Initialize FlextDomainService base
@@ -89,7 +89,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         if self._dispatcher is None:
             self._dispatcher = (
                 oracle_dispatcher.FlextDbOracleDispatcher.build_dispatcher(
-                    self._services
+                    self._services,
                 )
             )
         return self._dispatcher
@@ -126,7 +126,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     def connect(self) -> FlextResult[Self]:
         """Connect to Oracle database."""
         dispatch_result = self._dispatch_command(
-            oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand()
+            oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand(),
         )
         if dispatch_result is not None:
             if dispatch_result.is_success:
@@ -143,7 +143,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     def disconnect(self) -> FlextResult[None]:
         """Disconnect from Oracle database."""
         dispatch_result = self._dispatch_command(
-            oracle_dispatcher.FlextDbOracleDispatcher.DisconnectCommand()
+            oracle_dispatcher.FlextDbOracleDispatcher.DisconnectCommand(),
         )
         if dispatch_result is not None:
             return cast("FlextResult[None]", dispatch_result)
@@ -196,7 +196,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         params = parameters or {}
         return self._dispatch_or(
             oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                sql, params
+                sql, params,
             ),
             lambda: self._services.execute_statement(sql, params),
         )
@@ -210,7 +210,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         params_list = list(parameters_list)
         return self._dispatch_or(
             oracle_dispatcher.FlextDbOracleDispatcher.ExecuteManyCommand(
-                sql, params_list
+                sql, params_list,
             ),
             lambda: self._services.execute_many(sql, params_list),
         )
@@ -231,7 +231,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             params = parameters or {}
             return self._dispatch_or(
                 oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                    sql_text, params
+                    sql_text, params,
                 ),
                 lambda: self._services.execute_statement(sql_text, params),
             )
@@ -247,7 +247,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         )
 
     def get_tables(
-        self, schema: str | None = None
+        self, schema: str | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Get list of tables in specified schema."""
         try:
@@ -274,7 +274,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         try:
             result = self._dispatch_or(
                 oracle_dispatcher.FlextDbOracleDispatcher.GetColumnsCommand(
-                    table, schema
+                    table, schema,
                 ),
                 lambda: self._services.get_columns(table, schema),
             )
@@ -294,7 +294,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Error getting columns: {e}")
 
     def get_table_metadata(
-        self, table: str, schema: str | None = None
+        self, table: str, schema: str | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Get comprehensive table metadata including columns and constraints."""
         try:
@@ -322,7 +322,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             columns_result = self.get_columns(table, schema)
             if not columns_result.is_success:
                 return FlextResult.fail(
-                    f"Failed to get columns: {columns_result.error}"
+                    f"Failed to get columns: {columns_result.error}",
                 )
 
             metadata: dict[str, object] = {
@@ -337,14 +337,14 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Error getting table metadata: {e}")
 
     def get_primary_keys(
-        self, table: str, schema: str | None = None
+        self, table: str, schema: str | None = None,
     ) -> FlextResult[list[str]]:
         """Get primary key column names for specified table."""
         try:
             columns_result = self.get_columns(table, schema)
             if not columns_result.is_success:
                 return FlextResult.fail(
-                    f"Failed to get columns: {columns_result.error}"
+                    f"Failed to get columns: {columns_result.error}",
                 )
 
             primary_keys = []
@@ -382,7 +382,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         return self._services.convert_singer_type(singer_type, format_hint)
 
     def map_singer_schema(
-        self, schema: dict[str, object]
+        self, schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
         return self._services.map_singer_schema(schema)
@@ -415,7 +415,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextResult[Self]:
         """Create API instance from environment variables."""
         config_result = FlextDbOracleModels.OracleConfig.from_env(
-            prefix.replace("FLEXT_TARGET_", "")
+            prefix.replace("FLEXT_TARGET_", ""),
         )
         if config_result.is_success:
             instance = cls.from_config(config_result.value)
@@ -470,7 +470,7 @@ class FlextDbOracleApi(FlextModels.Entity):
 
     # Additional methods demanded by tests and real usage
     def execute_query_sql(
-        self, sql: str
+        self, sql: str,
     ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:

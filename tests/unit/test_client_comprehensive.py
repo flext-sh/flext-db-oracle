@@ -279,7 +279,7 @@ class TestFlextDbOracleClientRealFunctionality:
         else:
             # If method doesn't exist, this tests architectural understanding
             pytest.skip(
-                "_execute_with_chain method not found - testing architectural understanding"
+                "_execute_with_chain method not found - testing architectural understanding",
             )
 
     def test_client_connection_lifecycle_real(self) -> None:
@@ -332,7 +332,7 @@ class TestFlextDbOracleClientRealFunctionality:
         assert hasattr(query_result, "success")
         assert hasattr(query_result, "error") or hasattr(query_result, "value")
         FlextTestsMatchers.assert_result_failure(
-            query_result
+            query_result,
         )  # Should fail without connection
 
     def test_list_schemas_without_connection_real(self) -> None:
@@ -371,7 +371,7 @@ class TestFlextDbOracleClientRealFunctionality:
         )
 
         FlextTestsMatchers.assert_result_success(
-            result_invalid
+            result_invalid,
         )  # Should succeed but ignore invalid
 
     def test_run_cli_command_real(self) -> None:
@@ -386,7 +386,7 @@ class TestFlextDbOracleClientRealFunctionality:
 
         # Test valid command without connection (should fail gracefully)
         result_query = FlextDbOracleClient.run_cli_command(
-            "query", sql="SELECT 1 FROM DUAL"
+            "query", sql="SELECT 1 FROM DUAL",
         )
         FlextTestsMatchers.assert_result_failure(result_query)
 
@@ -426,7 +426,7 @@ class TestFlextDbOracleClientRealFunctionality:
             # Test with sample data - cast to proper type
 
             schemas_data = cast(
-                "dict[str, object]", {"schemas": ["SCHEMA1", "SCHEMA2"]}
+                "dict[str, object]", {"schemas": ["SCHEMA1", "SCHEMA2"]},
             )
             schemas_result = client._adapt_data_for_table(schemas_data)
             FlextTestsMatchers.assert_result_success(schemas_result)
@@ -434,7 +434,7 @@ class TestFlextDbOracleClientRealFunctionality:
 
             # Test with health data
             health_data = cast(
-                "dict[str, object]", {"status": "healthy", "connections": 5}
+                "dict[str, object]", {"status": "healthy", "connections": 5},
             )
             health_result = client._adapt_data_for_table(health_data)
             FlextTestsMatchers.assert_result_success(health_result)
@@ -521,7 +521,7 @@ class TestFlextDbOracleClientRealFunctionality:
             assert hasattr(result, "success")
             assert hasattr(result, "error") or hasattr(result, "value")
             FlextTestsMatchers.assert_result_failure(
-                result
+                result,
             )  # Should fail without connection
             assert isinstance(result.error, str)
             assert len(result.error) > 0

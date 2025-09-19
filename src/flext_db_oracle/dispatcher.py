@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from flext_core import FlextBus, FlextDispatcher, FlextDispatcherRegistry
@@ -80,13 +81,13 @@ class FlextDbOracleDispatcher:
         registry = FlextDispatcherRegistry(dispatcher)
 
         # Create properly typed handler functions using object type for flexibility
-        def connect_handler(_cmd: object) -> object:
+        def connect_handler(cmd: object) -> object:  # noqa: ARG001
             return services.connect()
 
-        def disconnect_handler(_cmd: object) -> object:
+        def disconnect_handler(cmd: object) -> object:  # noqa: ARG001
             return services.disconnect()
 
-        def test_connection_handler() -> object:
+        def test_connection_handler(cmd: object) -> object:  # noqa: ARG001
             return services.test_connection()
 
         def execute_query_handler(cmd: object) -> object:
@@ -113,7 +114,7 @@ class FlextDbOracleDispatcher:
             parameters_list = getattr(cmd, "parameters_list", [])
             return services.execute_many(sql, parameters_list)
 
-        def get_schemas_handler(_cmd: object) -> object:
+        def get_schemas_handler(cmd: object) -> object:  # noqa: ARG001
             return services.get_schemas()
 
         def get_tables_handler(cmd: object) -> object:
@@ -127,20 +128,22 @@ class FlextDbOracleDispatcher:
             schema = getattr(cmd, "schema", None)
             return services.get_columns(table, schema)
 
-        registry.register_function_map(
-            {
-                cls.ConnectCommand: (connect_handler, None),
-                cls.DisconnectCommand: (disconnect_handler, None),
-                cls.TestConnectionCommand: (test_connection_handler, None),
-                cls.ExecuteQueryCommand: (execute_query_handler, None),
-                cls.FetchOneCommand: (fetch_one_handler, None),
-                cls.ExecuteStatementCommand: (execute_statement_handler, None),
-                cls.ExecuteManyCommand: (execute_many_handler, None),
-                cls.GetSchemasCommand: (get_schemas_handler, None),
-                cls.GetTablesCommand: (get_tables_handler, None),
-                cls.GetColumnsCommand: (get_columns_handler, None),
-            }
-        )
+        # Use register_function_map with proper typing
+
+        function_map: dict[type, tuple[Callable[[object], object], dict[str, object] | None]] = {
+            cls.ConnectCommand: (connect_handler, None),
+            cls.DisconnectCommand: (disconnect_handler, None),
+            cls.TestConnectionCommand: (test_connection_handler, None),
+            cls.ExecuteQueryCommand: (execute_query_handler, None),
+            cls.FetchOneCommand: (fetch_one_handler, None),
+            cls.ExecuteStatementCommand: (execute_statement_handler, None),
+            cls.ExecuteManyCommand: (execute_many_handler, None),
+            cls.GetSchemasCommand: (get_schemas_handler, None),
+            cls.GetTablesCommand: (get_tables_handler, None),
+            cls.GetColumnsCommand: (get_columns_handler, None),
+        }
+
+        registry.register_function_map(function_map)
 
         return dispatcher
 

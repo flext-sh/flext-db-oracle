@@ -57,7 +57,7 @@ class FlextDbOraclePlugins(FlextUtilities):
             return FlextResult[FlextTypes.Core.Dict].ok(self._plugins.copy())
         except Exception as e:
             return FlextResult[FlextTypes.Core.Dict].fail(
-                f"Failed to list plugins: {e}"
+                f"Failed to list plugins: {e}",
             )
 
     def get_plugin(self, name: str) -> FlextResult[object]:

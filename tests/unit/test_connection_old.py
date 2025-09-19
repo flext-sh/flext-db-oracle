@@ -274,7 +274,7 @@ class TestFlextDbOracleConnectionComprehensive:
                 "data_type": "NUMBER",
                 "nullable": False,
                 "primary_key": True,
-            }
+            },
         ]
         result = self.connection.create_table_ddl("TEST_TABLE", columns)
         assert result.is_success

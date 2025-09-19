@@ -91,7 +91,7 @@ class TestOracleConnectionHelper:
         """Test config creation with default parameters."""
         result = (
             FlextDbOracleCliService._OracleConnectionHelper.create_config_from_params(
-                password="test_password"
+                password="test_password",
             )
         )
 
@@ -106,7 +106,7 @@ class TestOracleConnectionHelper:
         """Test config creation fails without password."""
         result = (
             FlextDbOracleCliService._OracleConnectionHelper.create_config_from_params(
-                host="test-host", username="test_user"
+                host="test-host", username="test_user",
             )
         )
 
@@ -117,7 +117,7 @@ class TestOracleConnectionHelper:
         """Test config creation fails with empty password."""
         result = (
             FlextDbOracleCliService._OracleConnectionHelper.create_config_from_params(
-                host="test-host", username="test_user", password=""
+                host="test-host", username="test_user", password="",
             )
         )
 
@@ -151,7 +151,7 @@ class TestOracleConnectionHelper:
 
             result = (
                 FlextDbOracleCliService._OracleConnectionHelper.validate_connection(
-                    config
+                    config,
                 )
             )
 
@@ -170,12 +170,12 @@ class TestOracleConnectionHelper:
 
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
             mock_connect.return_value = FlextResult[FlextDbOracleApi].fail(
-                "Connection failed"
+                "Connection failed",
             )
 
             result = (
                 FlextDbOracleCliService._OracleConnectionHelper.validate_connection(
-                    config
+                    config,
                 )
             )
 
@@ -342,7 +342,7 @@ class TestCliServiceOperations:
         )
 
         with patch.object(
-            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection"
+            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection",
         ) as mock_validate:
             mock_validate.return_value = FlextResult[bool].ok(True)
 
@@ -378,7 +378,7 @@ class TestCliServiceOperations:
         cli_service = FlextDbOracleCliService()
 
         with patch.object(
-            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection"
+            FlextDbOracleCliService._OracleConnectionHelper, "validate_connection",
         ) as mock_validate:
             mock_validate.return_value = FlextResult[bool].fail("Database unreachable")
 
@@ -401,7 +401,7 @@ class TestCliServiceOperations:
 
         mock_api = Mock()
         mock_api.get_schemas.return_value = FlextResult[list[str]].ok(
-            ["SCHEMA1", "SCHEMA2", "SCHEMA3"]
+            ["SCHEMA1", "SCHEMA2", "SCHEMA3"],
         )
 
         with (
@@ -411,7 +411,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
             mock_get_schemas.return_value = FlextResult[list[str]].ok(
-                ["SCHEMA1", "SCHEMA2"]
+                ["SCHEMA1", "SCHEMA2"],
             )
 
             result = cli_service.execute_list_schemas(
@@ -436,7 +436,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].fail(
-                "Connection failed"
+                "Connection failed",
             )
 
             result = cli_service.execute_list_schemas(
@@ -463,7 +463,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
             mock_get_schemas.return_value = FlextResult[list[str]].fail(
-                "Schema query failed"
+                "Schema query failed",
             )
 
             result = cli_service.execute_list_schemas(
@@ -488,7 +488,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
             mock_get_tables.return_value = FlextResult[list[str]].ok(
-                ["TABLE1", "TABLE2"]
+                ["TABLE1", "TABLE2"],
             )
 
             result = cli_service.execute_list_tables(
@@ -542,7 +542,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
             mock_query.return_value = FlextResult[list[dict[str, object]]].ok(
-                mock_result
+                mock_result,
             )
 
             result = cli_service.execute_query(

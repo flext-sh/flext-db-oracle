@@ -62,7 +62,7 @@ class FlextDbOracleClient:
             actual_password = password or os.getenv("ORACLE_PASSWORD", "")
             if not actual_password:
                 return FlextResult[FlextDbOracleApi].fail(
-                    "Password is required (provide via parameter or ORACLE_PASSWORD env var)"
+                    "Password is required (provide via parameter or ORACLE_PASSWORD env var)",
                 )
 
             self.logger.info(f"Connecting to Oracle at {host}:{port}/{service_name}")
@@ -85,20 +85,20 @@ class FlextDbOracleClient:
                 self.logger.info("Oracle connection established successfully")
                 return FlextResult[FlextDbOracleApi].ok(api)
             return FlextResult[FlextDbOracleApi].fail(
-                f"Oracle connection failed: {connect_result.error}"
+                f"Oracle connection failed: {connect_result.error}",
             )
 
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(
-        self, operation: str, **params: object
+        self, operation: str, **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Execute operation with validation chain."""
         validation_result = self._validate_connection()
         if validation_result.is_failure:
             return FlextResult[dict[str, object]].fail(
-                validation_result.error or "Validation failed"
+                validation_result.error or "Validation failed",
             )
 
         return self._execute_operation(operation, **params)
@@ -114,7 +114,7 @@ class FlextDbOracleClient:
         return FlextResult[None].ok(None)
 
     def _execute_operation(
-        self, operation: str, **params: object
+        self, operation: str, **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Execute Oracle operation with error handling."""
         if not self.current_connection:
@@ -125,10 +125,10 @@ class FlextDbOracleClient:
                 schemas_result = self.current_connection.get_schemas()
                 if schemas_result.is_success:
                     return FlextResult[dict[str, object]].ok(
-                        {"schemas": schemas_result.value}
+                        {"schemas": schemas_result.value},
                     )
                 return FlextResult[dict[str, object]].fail(
-                    schemas_result.error or "Schema listing failed"
+                    schemas_result.error or "Schema listing failed",
                 )
 
             if operation == "list_tables":
@@ -136,10 +136,10 @@ class FlextDbOracleClient:
                 tables_result = self.current_connection.get_tables(schema or None)
                 if tables_result.is_success:
                     return FlextResult[dict[str, object]].ok(
-                        {"tables": tables_result.value}
+                        {"tables": tables_result.value},
                     )
                 return FlextResult[dict[str, object]].fail(
-                    tables_result.error or "Table listing failed"
+                    tables_result.error or "Table listing failed",
                 )
 
             if operation == "query":
@@ -159,10 +159,10 @@ class FlextDbOracleClient:
                             "row_count": len(query_result.value)
                             if query_result.value
                             else 0,
-                        }
+                        },
                     )
                 return FlextResult[dict[str, object]].fail(
-                    query_result.error or "Query execution failed"
+                    query_result.error or "Query execution failed",
                 )
 
             if operation == "health_check":
@@ -170,11 +170,11 @@ class FlextDbOracleClient:
                 if health_result.is_success:
                     return FlextResult[dict[str, object]].ok(health_result.value)
                 return FlextResult[dict[str, object]].fail(
-                    health_result.error or "Health check failed"
+                    health_result.error or "Health check failed",
                 )
 
             return FlextResult[dict[str, object]].fail(
-                f"Unknown operation: {operation}"
+                f"Unknown operation: {operation}",
             )
 
         except Exception as e:
@@ -193,7 +193,7 @@ class FlextDbOracleClient:
         formatter_result = self._get_formatter_strategy(format_type)
         if formatter_result.is_failure:
             return FlextResult[str].fail(
-                formatter_result.error or "Formatter strategy failed"
+                formatter_result.error or "Formatter strategy failed",
             )
 
         formatter = formatter_result.value
@@ -226,7 +226,7 @@ class FlextDbOracleClient:
             adapted_result = self._adapt_data_for_table(data)
             if adapted_result.is_failure:
                 return FlextResult[str].fail(
-                    adapted_result.error or "Data adaptation failed"
+                    adapted_result.error or "Data adaptation failed",
                 )
 
             adapted_data = adapted_result.value
@@ -255,7 +255,7 @@ class FlextDbOracleClient:
             return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
     def _adapt_data_for_table(
-        self, data: dict[str, object]
+        self, data: dict[str, object],
     ) -> FlextResult[list[dict[str, object]]]:
         """Adapt data for table display."""
         try:
@@ -274,7 +274,7 @@ class FlextDbOracleClient:
                 )
 
             adaptation_strategies: dict[
-                str, Callable[[object], list[dict[str, object]]]
+                str, Callable[[object], list[dict[str, object]]],
             ] = {
                 "schemas": adapt_schemas,
                 "tables": adapt_tables,
@@ -293,7 +293,7 @@ class FlextDbOracleClient:
             return FlextResult[list[dict[str, object]]].ok(result)
         except Exception as e:
             return FlextResult[list[dict[str, object]]].fail(
-                f"Data adaptation failed: {e}"
+                f"Data adaptation failed: {e}",
             )
 
     def _execute_health_check(self) -> FlextResult[dict[str, object]]:
@@ -302,7 +302,7 @@ class FlextDbOracleClient:
             validation_result = self._validate_connection()
             if validation_result.is_failure:
                 return FlextResult[dict[str, object]].fail(
-                    validation_result.error or "Connection validation failed"
+                    validation_result.error or "Connection validation failed",
                 )
 
             if not self.current_connection:
@@ -335,11 +335,11 @@ class FlextDbOracleClient:
         return self._format_and_display_result(operation_result, format_type)
 
     def execute_query(
-        self, sql: str, params: dict[str, object] | None = None
+        self, sql: str, params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Execute SQL query with formatted output."""
         operation_result = self._execute_with_chain(
-            "query", sql=sql, params=params or {}
+            "query", sql=sql, params=params or {},
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
@@ -361,7 +361,7 @@ class FlextDbOracleClient:
         try:
             self.user_preferences.update(preferences)
             self.logger.info(
-                "Client preferences updated", extra={"preferences": preferences}
+                "Client preferences updated", extra={"preferences": preferences},
             )
             return FlextResult[None].ok(None)
         except Exception as e:
@@ -382,13 +382,13 @@ class FlextDbOracleClient:
                 if health_result.is_success:
                     return FlextResult[str].ok(f"Health check: {health_result.value}")
                 return FlextResult[str].fail(
-                    health_result.error or "Health check failed"
+                    health_result.error or "Health check failed",
                 )
 
             # Log unused params for debugging but don't remove them as they may be used for future operations
             if params:
                 FlextLogger(__name__).debug(
-                    f"Unused CLI parameters for operation '{operation}': {params}"
+                    f"Unused CLI parameters for operation '{operation}': {params}",
                 )
 
             return FlextResult[str].fail(f"Unknown CLI operation: {operation}")

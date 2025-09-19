@@ -153,7 +153,7 @@ class TestFlextDbOracleUtilities:
 
         for format_type in ["table", "json"]:
             result = FlextDbOracleUtilities.format_query_result(
-                test_result, format_type
+                test_result, format_type,
             )
             assert result.is_success, (
                 f"format_query_result failed with {format_type} format"
@@ -174,7 +174,7 @@ class TestFlextDbOracleUtilities:
 
         for format_type in ["table", "json", "csv"]:
             result = FlextDbOracleUtilities.format_query_result(
-                test_result, format_type
+                test_result, format_type,
             )
             assert result.is_success, (
                 f"format_query_result failed with {format_type} for plain objects"
@@ -341,7 +341,7 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
             rows=[["query"]],
             row_count=1,
             execution_time_ms=int(
-                (PERFORMANCE_WARNING_THRESHOLD_SECONDS + 1.0) * 1000
+                (PERFORMANCE_WARNING_THRESHOLD_SECONDS + 1.0) * 1000,
             ),  # Convert to int
             query_hash=None,
             explain_plan=None,
@@ -377,7 +377,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
         # Should handle invalid formats gracefully - method is defensive and succeeds
         result = FlextDbOracleUtilities.format_query_result(
-            query_result, "invalid_format"
+            query_result, "invalid_format",
         )
         # Method handles invalid formats defensively, should still succeed
         assert result.is_success, "Method should handle invalid format defensively"
@@ -401,7 +401,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         # Test all formats to ensure None handling works
         for format_type in ["table", "json", "csv"]:
             result = FlextDbOracleUtilities.format_query_result(
-                empty_result, format_type
+                empty_result, format_type,
             )
             assert result.is_success, (
                 f"format_query_result should handle empty data for {format_type}"

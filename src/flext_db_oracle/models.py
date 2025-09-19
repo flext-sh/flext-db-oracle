@@ -68,19 +68,19 @@ class FlextDbOracleModels(FlextModels.Entity):
 
     # Oracle-specific field definitions using flext-core patterns
     host_field: ClassVar[object] = Field(
-        default="localhost", description="Oracle database host"
+        default="localhost", description="Oracle database host",
     )
     port_field: ClassVar[object] = Field(
-        default=1521, description="Oracle database port"
+        default=1521, description="Oracle database port",
     )
     username_field: ClassVar[object] = Field(
-        ..., description="Oracle database username"
+        ..., description="Oracle database username",
     )
     password_field: ClassVar[object] = Field(
-        ..., description="Oracle database password"
+        ..., description="Oracle database password",
     )
     service_name_field: ClassVar[object] = Field(
-        default="XE", description="Oracle service name"
+        default="XE", description="Oracle service name",
     )
 
     class OracleConfig(FlextModels.Entity):
@@ -97,13 +97,13 @@ class FlextDbOracleModels(FlextModels.Entity):
 
         # Oracle-specific fields not in base DatabaseConfig
         service_name: str | None = Field(
-            default=None, description="Oracle service name"
+            default=None, description="Oracle service name",
         )
         sid: str | None = Field(
-            default=None, description="Oracle SID (System Identifier)"
+            default=None, description="Oracle SID (System Identifier)",
         )
         ssl_server_cert_dn: str | None = Field(
-            default=None, description="SSL server certificate DN"
+            default=None, description="SSL server certificate DN",
         )
 
         # Connection pool configuration
@@ -113,7 +113,7 @@ class FlextDbOracleModels(FlextModels.Entity):
 
         @classmethod
         def from_env(
-            cls, prefix: str = "ORACLE"
+            cls, prefix: str = "ORACLE",
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
             """Create OracleConfig from environment variables with optional prefix."""
             try:
@@ -132,7 +132,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                    f"Failed to create config from env: {e}"
+                    f"Failed to create config from env: {e}",
                 )
 
         @classmethod
@@ -143,7 +143,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                 # oracle://user:password@host:port/service_name
                 if not url.startswith("oracle://"):
                     return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                        "URL must start with oracle://"
+                        "URL must start with oracle://",
                     )
 
                 # Remove protocol
@@ -159,7 +159,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                         password = ""
                 else:
                     return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                        "Invalid URL format"
+                        "Invalid URL format",
                     )
 
                 # Parse host:port/service_name
@@ -187,7 +187,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                    f"Failed to parse URL: {e}"
+                    f"Failed to parse URL: {e}",
                 )
 
         @field_validator("host")
@@ -369,52 +369,52 @@ class FlextDbOracleModels(FlextModels.Entity):
 
         # Connection pool settings
         oracle_pool_min_size: int = Field(
-            default=2, description="Minimum pool size", ge=1
+            default=2, description="Minimum pool size", ge=1,
         )
         oracle_pool_max_size: int = Field(
-            default=20, description="Maximum pool size", ge=1
+            default=20, description="Maximum pool size", ge=1,
         )
         oracle_pool_timeout: int = Field(
-            default=60, description="Connection timeout in seconds", ge=1
+            default=60, description="Connection timeout in seconds", ge=1,
         )
         oracle_pool_recycle: int = Field(
-            default=3600, description="Pool recycle time in seconds", ge=60
+            default=3600, description="Pool recycle time in seconds", ge=60,
         )
         oracle_pool_pre_ping: bool = Field(
-            default=True, description="Enable connection pre-ping"
+            default=True, description="Enable connection pre-ping",
         )
 
         # Query settings
         oracle_query_timeout: int = Field(
-            default=300, description="Query timeout in seconds", ge=1
+            default=300, description="Query timeout in seconds", ge=1,
         )
         oracle_fetch_size: int = Field(
-            default=1000, description="Default fetch size", ge=1
+            default=1000, description="Default fetch size", ge=1,
         )
         oracle_max_rows: int = Field(
-            default=100000, description="Maximum rows per query", ge=1
+            default=100000, description="Maximum rows per query", ge=1,
         )
 
         # Performance settings
         oracle_enable_autocommit: bool = Field(
-            default=False, description="Enable autocommit"
+            default=False, description="Enable autocommit",
         )
         oracle_isolation_level: str = Field(
-            default="READ_COMMITTED", description="Transaction isolation level"
+            default="READ_COMMITTED", description="Transaction isolation level",
         )
         oracle_echo_queries: bool = Field(
-            default=False, description="Echo SQL queries (debug only)"
+            default=False, description="Echo SQL queries (debug only)",
         )
 
         # Monitoring settings
         oracle_enable_metrics: bool = Field(
-            default=True, description="Enable performance metrics"
+            default=True, description="Enable performance metrics",
         )
         oracle_slow_query_threshold: float = Field(
-            default=1.0, description="Slow query threshold in seconds", ge=0.1
+            default=1.0, description="Slow query threshold in seconds", ge=0.1,
         )
         oracle_log_queries: bool = Field(
-            default=False, description="Log queries (security risk in production)"
+            default=False, description="Log queries (security risk in production)",
         )
 
         model_config = SettingsConfigDict(
@@ -514,7 +514,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
-                    f"Failed to convert settings to Oracle config: {e}"
+                    f"Failed to convert settings to Oracle config: {e}",
                 )
 
         def get_connection_url(self) -> FlextResult[str]:
@@ -541,7 +541,7 @@ class FlextDbOracleModels(FlextModels.Entity):
             # Check for required password in production-like settings
             if not self.oracle_password and self.oracle_host != "localhost":
                 return FlextResult[None].fail(
-                    "Password required for non-localhost connections"
+                    "Password required for non-localhost connections",
                 )
 
             # Validate pool configuration
@@ -554,20 +554,20 @@ class FlextDbOracleModels(FlextModels.Entity):
                 > FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS
             ):
                 return FlextResult[None].fail(
-                    f"Query timeout too high (max {FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS} seconds)"
+                    f"Query timeout too high (max {FlextDbOracleConstants.OracleValidation.MAX_QUERY_TIMEOUT_SECONDS} seconds)",
                 )
 
             # Security validations
             if self.oracle_log_queries and self.oracle_host != "localhost":
                 return FlextResult[None].fail(
-                    "Query logging disabled for security in non-localhost environments"
+                    "Query logging disabled for security in non-localhost environments",
                 )
 
             return FlextResult[None].ok(None)
 
         @classmethod
         def load_from_file(
-            cls, config_file: str = ".env"
+            cls, config_file: str = ".env",
         ) -> FlextResult[FlextDbOracleModels.OracleSettings]:
             """Load Oracle settings from configuration file."""
             try:
@@ -577,13 +577,13 @@ class FlextDbOracleModels(FlextModels.Entity):
                 validation_result = settings.validate_configuration()
                 if validation_result.is_failure:
                     return FlextResult["FlextDbOracleModels.OracleSettings"].fail(
-                        f"Configuration validation failed: {validation_result.error}"
+                        f"Configuration validation failed: {validation_result.error}",
                     )
 
                 return FlextResult["FlextDbOracleModels.OracleSettings"].ok(settings)
             except Exception as e:
                 return FlextResult["FlextDbOracleModels.OracleSettings"].fail(
-                    f"Failed to load settings from {config_file}: {e}"
+                    f"Failed to load settings from {config_file}: {e}",
                 )
 
         @classmethod
@@ -605,7 +605,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                     "oracle_echo_queries": True,  # OK for development
                     "oracle_log_queries": True,  # OK for development
                     "oracle_ssl_verify": False,  # OK for local development
-                }
+                },
             )
 
         @classmethod
@@ -629,7 +629,7 @@ class FlextDbOracleModels(FlextModels.Entity):
                     "oracle_ssl_verify": True,
                     "oracle_enable_metrics": True,
                     "oracle_slow_query_threshold": 2.0,
-                }
+                },
             )
 
     class ConnectionStatus(FlextModels.Entity):
@@ -661,10 +661,10 @@ class FlextDbOracleModels(FlextModels.Entity):
         columns: list[str] = Field(default_factory=list, description="Column names")
         rows: list[list[object]] = Field(default_factory=list, description="Row data")
         query_hash: str | None = Field(
-            default=None, description="Query hash for caching"
+            default=None, description="Query hash for caching",
         )
         explain_plan: str | None = Field(
-            default=None, description="Query execution plan"
+            default=None, description="Query execution plan",
         )
 
     class Table(FlextModels.Entity):

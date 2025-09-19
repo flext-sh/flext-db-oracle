@@ -111,7 +111,7 @@ class TestCLIRealFunctionality:
         # Test different format types
         for format_type in ["table", "json", "csv"]:
             format_result = utilities.format_query_result(
-                test_result, format_type=format_type
+                test_result, format_type=format_type,
             )
             FlextTestsMatchers.assert_result_success(format_result)
             assert isinstance(format_result.value, str)
@@ -214,7 +214,7 @@ class TestCLIRealFunctionality:
         # Test from_env factory method
         api_result = FlextDbOracleApi.from_env()
         FlextTestsMatchers.assert_result_success(
-            api_result
+            api_result,
         )  # Should succeed with defaults
 
         api = api_result.value

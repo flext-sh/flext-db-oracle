@@ -290,7 +290,7 @@ class TestDirectCoverageBoostTypes:
         try:
             # Test edge case column properties
             column2 = FlextDbOracleModels.Column(
-                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
+                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0",
             )
             assert hasattr(column2, "name")
             assert hasattr(column2, "data_type")
@@ -432,7 +432,7 @@ class TestDirectCoverageBoostServices:
 
         # Test table reference building through services
         table_ref_result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema"
+            "test_table", ["col1"], schema_name="test_schema",
         )
         FlextTestsMatchers.assert_result_success(table_ref_result)
         sql_result = table_ref_result.unwrap()

@@ -130,7 +130,7 @@ class TestRealOracleConnection:
         try:
             # Drop table if it already exists (cleanup from previous runs)
             connection.execute_statement(
-                "DROP TABLE temp_test_table"
+                "DROP TABLE temp_test_table",
             )  # Ignore errors - table might not exist
 
             # Create temporary table with PRESERVE ROWS to survive commit
@@ -166,7 +166,7 @@ class TestRealOracleConnection:
 
             # Verify data - using modern .value access after failure check
             select_result = connection.execute_query(
-                "SELECT COUNT(*) FROM temp_test_table"
+                "SELECT COUNT(*) FROM temp_test_table",
             )
             if select_result.is_failure:
                 msg = f"Count query failed: {select_result.error}"
@@ -453,7 +453,7 @@ class TestRealOracleErrorHandling:
         try:
             # Execute invalid SQL
             result = connection.execute_query(
-                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST"
+                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST",
             )
             assert result.is_failure
             assert (
