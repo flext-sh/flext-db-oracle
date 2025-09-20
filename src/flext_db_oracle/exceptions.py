@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from flext_core import FlextExceptions, FlextTypes
+from flext_core import FlextTypes
 
 
 class FlextDbOracleExceptions:
@@ -240,7 +240,7 @@ class FlextDbOracleExceptions:
         cls,
         message: str,
         context: FlextTypes.Core.Dict | None = None,
-    ) -> "FlextDbOracleExceptions.ValidationError":
+    ) -> FlextDbOracleExceptions.ValidationError:
         """Factory method for validation errors using flext-core."""
         return cls.ValidationError(message, context=context)
 
@@ -249,7 +249,7 @@ class FlextDbOracleExceptions:
         cls,
         message: str,
         context: FlextTypes.Core.Dict | None = None,
-    ) -> "FlextDbOracleExceptions.OracleConnectionError":
+    ) -> FlextDbOracleExceptions.OracleConnectionError:
         """Factory method for connection errors using flext-core."""
         return cls.OracleConnectionError(message, context=context)
 

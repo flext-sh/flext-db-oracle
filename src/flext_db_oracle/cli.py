@@ -45,7 +45,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             self._cli_main = cli_result.unwrap()
 
     def _initialize_cli_main(self) -> FlextResult[FlextCliMain]:
-        """Initialize CLI main component with explicit error handling."""
+        """Initialize CLI main component with explicit error handling.
+
+        Returns:
+            FlextResult[FlextCliMain]: CLI main component or error.
+
+        """
         try:
             cli_main = FlextCliMain()
             return FlextResult[FlextCliMain].ok(cli_main)
@@ -72,7 +77,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             username: str = "system",
             password: str = "",
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
-            """Create Oracle configuration from parameters."""
+            """Create Oracle configuration from parameters.
+
+            Returns:
+                FlextResult[FlextDbOracleModels.OracleConfig]: Configuration or error.
+
+            """
             if not password:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                     "Password is required for Oracle connection",
@@ -96,7 +106,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         def validate_connection(
             config: FlextDbOracleModels.OracleConfig,
         ) -> FlextResult[bool]:
-            """Validate Oracle database connection."""
+            """Validate Oracle database connection.
+
+            Returns:
+                FlextResult[bool]: True if connection valid, False otherwise.
+
+            """
             # Create new API instance with the config
             new_api = FlextDbOracleApi(config)
 
@@ -117,12 +132,22 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             self._cli_main = cli_main
 
         def format_success_message(self, message: str) -> FlextResult[str]:
-            """Format success message using simple formatting."""
+            """Format success message using simple formatting.
+
+            Returns:
+                FlextResult[str]: Formatted success message.
+
+            """
             formatted_msg = f"✅ {message}"
             return FlextResult[str].ok(formatted_msg)
 
         def format_error_message(self, error: str) -> FlextResult[str]:
-            """Format error message using simple formatting."""
+            """Format error message using simple formatting.
+
+            Returns:
+                FlextResult[str]: Formatted error message.
+
+            """
             formatted_msg = f"❌ {error}"
             return FlextResult[str].ok(formatted_msg)
 
@@ -132,7 +157,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             title: str,
             output_format: str = "table",
         ) -> FlextResult[str]:
-            """Format list output using simple formatters."""
+            """Format list output using simple formatters.
+
+            Returns:
+                FlextResult[str]: Formatted list output.
+
+            """
             # Convert dict items to string representation
             if items and isinstance(items[0], dict):
                 string_items = [
@@ -161,7 +191,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
             return FlextResult[str].ok("\n".join(output_lines))
 
         def format_data(self, data: object, output_format: str) -> FlextResult[str]:
-            """Format any data object using simple formatters."""
+            """Format any data object using simple formatters.
+
+            Returns:
+                FlextResult[str]: Formatted data.
+
+            """
             if output_format == "json":
                 return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
             if output_format == "yaml":
@@ -184,7 +219,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         password: str = "",
         output_format: str = "table",
     ) -> FlextResult[str]:
-        """Execute Oracle database health check."""
+        """Execute Oracle database health check.
+
+        Returns:
+            FlextResult[str]: Health check result or error.
+
+        """
         formatter = self._OutputFormatter(self._cli_main)
 
         # Create configuration
@@ -239,7 +279,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         password: str = "",
         output_format: str = "table",
     ) -> FlextResult[str]:
-        """Execute Oracle schemas listing."""
+        """Execute Oracle schemas listing.
+
+        Returns:
+            FlextResult[str]: Schemas list or error.
+
+        """
         formatter = self._OutputFormatter(self._cli_main)
 
         # Create configuration and validate connection
@@ -306,7 +351,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         password: str = "",
         output_format: str = "table",
     ) -> FlextResult[str]:
-        """Execute Oracle tables listing for a schema."""
+        """Execute Oracle tables listing for a schema.
+
+        Returns:
+            FlextResult[str]: Tables list or error.
+
+        """
         formatter = self._OutputFormatter(self._cli_main)
 
         # Create configuration and validate connection
@@ -375,7 +425,12 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         password: str = "",
         output_format: str = "table",
     ) -> FlextResult[str]:
-        """Execute SQL query against Oracle database."""
+        """Execute SQL query against Oracle database.
+
+        Returns:
+            FlextResult[str]: Query results or error.
+
+        """
         formatter = self._OutputFormatter(self._cli_main)
 
         if not sql.strip():
@@ -444,12 +499,22 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
     def execute(self) -> FlextResult[str]:
-        """Execute domain service - required by FlextDomainService."""
+        """Execute domain service - required by FlextDomainService.
+
+        Returns:
+            FlextResult[str]: Service status.
+
+        """
         self._logger.info("Oracle CLI service initialized")
         return FlextResult[str].ok("Oracle CLI service ready")
 
     def run_cli(self, args: list[str] | None = None) -> FlextResult[str]:
-        """Run CLI with command line arguments simulation."""
+        """Run CLI with command line arguments simulation.
+
+        Returns:
+            FlextResult[str]: CLI execution result.
+
+        """
         if args is None:
             args = sys.argv[1:]
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Simple working Oracle example using only real API methods.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 This example demonstrates the actual functionality available in flext-db-oracle
 without inventing non-existent methods.
 """

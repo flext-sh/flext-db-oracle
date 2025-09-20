@@ -52,10 +52,8 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Check if API configuration is valid."""
         try:
             return (
-                self._config.host is not None
-                and self._config.port > 0
+                self._config.port > 0
                 and self._config.service_name is not None
-                and self._config.username is not None
             )
         except AttributeError:
             # Config object may be None or missing attributes

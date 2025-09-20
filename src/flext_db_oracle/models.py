@@ -604,7 +604,12 @@ class FlextDbOracleModels(FlextModels.Entity):
             cls,
             config_file: str = ".env",
         ) -> FlextResult[FlextDbOracleModels.OracleSettings]:
-            """Load Oracle settings from configuration file."""
+            """Load Oracle settings from configuration file.
+
+            Returns:
+                FlextResult[FlextDbOracleModels.OracleSettings]: Settings or error.
+
+            """
             try:
                 settings = cls()
 
@@ -714,7 +719,12 @@ class FlextDbOracleModels(FlextModels.Entity):
         @field_validator("name", "owner")
         @classmethod
         def validate_oracle_identifier(cls, v: str) -> str:
-            """Validate Oracle identifiers using direct validation."""
+            """Validate Oracle identifiers using direct validation.
+
+            Returns:
+                str: Validated Oracle identifier.
+
+            """
             # Oracle normalizes to uppercase
             upper_v = v.upper()
 
@@ -752,7 +762,12 @@ class FlextDbOracleModels(FlextModels.Entity):
         @field_validator("name")
         @classmethod
         def validate_column_name(cls, v: str) -> str:
-            """Validate column name using direct validation."""
+            """Validate column name using direct validation.
+
+            Returns:
+                str: Validated column name.
+
+            """
             # Oracle normalizes to uppercase
             upper_v = v.upper()
 
@@ -788,7 +803,12 @@ class FlextDbOracleModels(FlextModels.Entity):
         @field_validator("name")
         @classmethod
         def validate_schema_name(cls, v: str) -> str:
-            """Validate schema name using flext-core."""
+            """Validate schema name using flext-core.
+
+            Returns:
+                str: Validated schema name.
+
+            """
             # Direct validation using isinstance and basic checks
             schema_name = v.upper()
 

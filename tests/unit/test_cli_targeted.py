@@ -1,4 +1,8 @@
-"""Test CLI functionality with real Oracle operations."""
+"""Test CLI functionality with real Oracle operations.
+
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,9 +16,6 @@ from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.client import FlextDbOracleClient
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
-
-# Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
 
 class TestCLIRealFunctionality:

@@ -1,5 +1,8 @@
 """Comprehensive tests for FlextDbOracleServices module.
 
+Copyright (c) 2025 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+
 These tests focus on testing the services functionality without requiring
 a real Oracle database connection, using mocked connections and result data.
 """
