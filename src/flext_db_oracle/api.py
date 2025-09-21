@@ -15,7 +15,7 @@ import logging
 from collections.abc import Callable, Sequence
 from typing import Self, TypeVar, cast
 
-from flext_core import FlextDispatcher, FlextModels, FlextResult
+from flext_core import FlextConstants, FlextDispatcher, FlextModels, FlextResult
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -316,7 +316,10 @@ class FlextDbOracleApi(FlextModels.Entity):
     def _is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
-            return self._config.port > 0 and self._config.service_name is not None
+            return (
+                self._config.port > FlextConstants.Performance.MIN_CURRENT_STEP
+                and self._config.service_name is not None
+            )
         except AttributeError:
             # Config object may be None or missing attributes
             return False
