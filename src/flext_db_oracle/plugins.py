@@ -31,7 +31,12 @@ class FlextDbOraclePlugins(FlextUtilities):
         name: str,
         plugin_data: FlextTypes.Core.Dict,
     ) -> FlextResult[None]:
-        """Register a plugin."""
+        """Register a plugin.
+
+        Returns:
+            FlextResult[None]: Success or error.
+
+        """
         try:
             self._plugins[name] = plugin_data
             return FlextResult[None].ok(None)
@@ -39,7 +44,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             return FlextResult[None].fail(f"Failed to register plugin '{name}': {e}")
 
     def unregister_plugin(self, name: str) -> FlextResult[None]:
-        """Unregister a plugin."""
+        """Unregister a plugin.
+
+        Returns:
+            FlextResult[None]: Success or error.
+
+        """
         try:
             if name in self._plugins:
                 del self._plugins[name]
@@ -48,7 +58,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
     def list_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """List all registered plugins."""
+        """List all registered plugins.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Plugin dictionary or error.
+
+        """
         try:
             if not self._plugins:
                 return FlextResult[FlextTypes.Core.Dict].fail(
@@ -61,7 +76,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             )
 
     def get_plugin(self, name: str) -> FlextResult[object]:
-        """Get a specific plugin."""
+        """Get a specific plugin.
+
+        Returns:
+            FlextResult[object]: Plugin data or error.
+
+        """
         try:
             if name not in self._plugins:
                 return FlextResult[object].fail(f"Plugin '{name}' not found")
@@ -70,7 +90,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
     def create_performance_monitor_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Create performance monitor plugin data."""
+        """Create performance monitor plugin data.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+
+        """
         try:
             plugin_data: FlextTypes.Core.Dict = {
                 "name": "performance_monitor",
@@ -85,7 +110,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             )
 
     def create_data_validation_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Create data validation plugin data."""
+        """Create data validation plugin data.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+
+        """
         try:
             plugin_data: FlextTypes.Core.Dict = {
                 "name": "data_validation",
@@ -100,7 +130,12 @@ class FlextDbOraclePlugins(FlextUtilities):
             )
 
     def create_security_audit_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
-        """Create security audit plugin data."""
+        """Create security audit plugin data.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+
+        """
         try:
             plugin_data: FlextTypes.Core.Dict = {
                 "name": "security_audit",

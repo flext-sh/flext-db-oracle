@@ -53,7 +53,12 @@ class FlextDbOracleUtilities(FlextUtilities):
         sql: str,
         params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
-        """Generate hash for SQL query caching - Oracle specific."""
+        """Generate hash for SQL query caching - Oracle specific.
+
+        Returns:
+            FlextResult[str]: Query hash or error.
+
+        """
         # Use standard string processing for normalization
         normalized_sql = str(sql).strip()
         normalized_sql = " ".join(normalized_sql.split())
@@ -68,7 +73,12 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def format_sql_for_oracle(sql: str) -> FlextResult[str]:
-        """Format SQL query for Oracle logging - Oracle specific."""
+        """Format SQL query for Oracle logging - Oracle specific.
+
+        Returns:
+            FlextResult[str]: Formatted SQL or error.
+
+        """
         # Use standard string processing for basic formatting
         formatted = str(sql).strip()
 
@@ -90,7 +100,12 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> FlextResult[str]:
-        """Escape Oracle identifier for safe SQL construction - Oracle specific."""
+        """Escape Oracle identifier for safe SQL construction - Oracle specific.
+
+        Returns:
+            FlextResult[str]: Escaped identifier or error.
+
+        """
         try:
             # Use standard string processing for safe string handling
             clean_identifier = str(identifier).strip()
@@ -127,6 +142,10 @@ class FlextDbOracleUtilities(FlextUtilities):
         """Format query result for display.
 
         Uses FlextUtilities for consistent formatting and validation.
+
+        Returns:
+            FlextResult[str]: Formatted result or error.
+
         """
         try:
             # Validate inputs manually
@@ -158,7 +177,12 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def create_config_from_env() -> FlextResult[FlextTypes.Core.Headers]:
-        """Create Oracle configuration from environment variables."""
+        """Create Oracle configuration from environment variables.
+
+        Returns:
+            FlextResult[FlextTypes.Core.Headers]: Configuration or error.
+
+        """
         try:
             config_data = {}
 
@@ -250,7 +274,12 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
-        """Create Oracle API instance from configuration."""
+        """Create Oracle API instance from configuration.
+
+        Returns:
+            FlextResult[object]: API instance or error.
+
+        """
         try:
             # Validate required fields are present
             if not config:

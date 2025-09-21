@@ -21,7 +21,15 @@ logger = FlextLogger(__name__)
 
 
 def create_oracle_config() -> FlextDbOracleModels.OracleConfig:
-    """Create Oracle configuration from environment variables."""
+    """Create Oracle configuration from environment variables.
+
+    Returns:
+        FlextDbOracleModels.OracleConfig: Validated Oracle configuration.
+
+    Raises:
+        ValueError: If configuration loading fails.
+
+    """
     config_result = FlextDbOracleModels.OracleConfig.from_env()
     if not config_result.is_success:
         msg = f"Failed to load configuration: {config_result.error}"
@@ -31,7 +39,13 @@ def create_oracle_config() -> FlextDbOracleModels.OracleConfig:
 
 @contextmanager
 def oracle_connection() -> Iterator[Engine]:
-    """Context manager for Oracle SQLAlchemy connection."""
+    """Context manager for Oracle SQLAlchemy connection.
+
+    Raises:
+        RuntimeError: If connection to Oracle fails.
+        NotImplementedError: If engine access is not implemented.
+
+    """
     config = create_oracle_config()
     api = FlextDbOracleApi(config)
 
@@ -179,7 +193,12 @@ def demonstrate_transaction_management() -> None:
 
 
 def main() -> int:
-    """Demonstrate SQLAlchemy 2 integration."""
+    """Demonstrate SQLAlchemy 2 integration.
+
+    Returns:
+        int: Exit code (0 for success, 1 for failure).
+
+    """
     # Check environment
     create_oracle_config()
 

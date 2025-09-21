@@ -19,11 +19,21 @@ class OracleExampleProcessor(FlextDomainService[str]):
     """Simplified Oracle example using FlextDomainService - ELIMINA COMPLEXIDADE."""
 
     def execute(self) -> FlextResult[str]:
-        """Execute the main domain service operation."""
+        """Execute the main domain service operation.
+
+        Returns:
+            FlextResult[str]: Success result with completion message.
+
+        """
         return FlextResult[str].ok("Oracle processing completed successfully")
 
     def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
-        """Process Oracle connection and execute query."""
+        """Process Oracle connection and execute query.
+
+        Returns:
+            FlextResult[FlextDbOracleApi]: Success result with connected API instance.
+
+        """
         try:
             config_result = FlextDbOracleModels.OracleConfig.from_env()
             if not config_result.is_success:
@@ -50,7 +60,12 @@ class OracleExampleProcessor(FlextDomainService[str]):
         *,
         correlation_id: str,
     ) -> FlextTypes.Core.Dict:
-        """Build simple result dictionary."""
+        """Build simple result dictionary.
+
+        Returns:
+            FlextTypes.Core.Dict: Dictionary with status and connection info.
+
+        """
         return {
             "status": "connected",
             "correlation_id": correlation_id,

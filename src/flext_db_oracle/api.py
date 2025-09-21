@@ -26,6 +26,265 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
+class _ConnectionHelper:
+    """Helper class for connection management operations."""
+
+    def __init__(self, api: FlextDbOracleApi) -> None:
+        self._api = api
+
+    def _connect(self) -> FlextResult[FlextDbOracleApi]:
+        """Connect to Oracle database.
+
+        Returns:
+            FlextResult[FlextDbOracleApi]: Success result with connected API instance.
+
+        """
+        dispatch_result = self._api._dispatch_command(
+            oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand(),
+        )
+        if dispatch_result is not None:
+            if dispatch_result.is_success:
+                return FlextResult.ok(self._api)
+            return FlextResult.fail(
+                dispatch_result.error or "Connection failed",
+            )
+
+        result = self._api._services.connect()
+        if result.is_success:
+            return FlextResult.ok(self._api)
+        return FlextResult.fail(f"Connection failed: {result.error}")
+
+    def _disconnect(self) -> FlextResult[None]:
+        """Disconnect from Oracle database.
+
+        Returns:
+            FlextResult[None]: Success result when disconnected.
+
+        """
+        dispatch_result = self._api._dispatch_command(
+            oracle_dispatcher.FlextDbOracleDispatcher.DisconnectCommand(),
+        )
+        if dispatch_result is not None:
+            return cast("FlextResult[None]", dispatch_result)
+
+        return self._api._services.disconnect()
+
+    def _test_connection(self) -> FlextResult[bool]:
+        """Test Oracle database connection.
+
+        Returns:
+            FlextResult[bool]: Success result with connection test status.
+
+        """
+        return self._api._dispatch_or(
+            oracle_dispatcher.FlextDbOracleDispatcher.TestConnectionCommand(),
+            self._api._services.test_connection,
+        )
+
+    @property
+    def _is_connected(self) -> bool:
+        """Check if connected to the database."""
+        return self._api._services.is_connected()
+
+
+class _QueryHelper:
+    """Helper class for query operations."""
+
+    def __init__(self, api: FlextDbOracleApi) -> None:
+        self._api = api
+
+    def _query(
+        self,
+        sql: str,
+        parameters: dict[str, object] | None = None,
+    ) -> FlextResult[list[dict[str, object]]]:
+        """Execute a SELECT query and return all results.
+
+        Returns:
+            FlextResult[list[dict[str, object]]]: Success result with query results.
+
+        """
+        params = parameters or {}
+        return self._api._dispatch_or(
+            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteQueryCommand(sql, params),
+            lambda: self._api._services.execute_query(sql, params),
+        )
+
+    def _query_one(
+        self,
+        sql: str,
+        parameters: dict[str, object] | None = None,
+    ) -> FlextResult[dict[str, object] | None]:
+        """Execute a SELECT query and return first result or None.
+
+        Returns:
+            FlextResult[dict[str, object] | None]: Success result with first row or None.
+
+        """
+        params = parameters or {}
+        return self._api._dispatch_or(
+            oracle_dispatcher.FlextDbOracleDispatcher.FetchOneCommand(sql, params),
+            lambda: self._api._services.fetch_one(sql, params),
+        )
+
+    def _execute_sql(
+        self,
+        sql: str,
+        parameters: dict[str, object] | None = None,
+    ) -> FlextResult[int]:
+        """Execute an INSERT/UPDATE/DELETE statement and return rows affected.
+
+        Returns:
+            FlextResult[int]: Success result with number of affected rows.
+
+        """
+        params = parameters or {}
+        return self._api._dispatch_or(
+            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
+                sql,
+                params,
+            ),
+            lambda: self._api._services.execute_statement(sql, params),
+        )
+
+    def _execute_many(
+        self,
+        sql: str,
+        parameters_list: Sequence[dict[str, object]],
+    ) -> FlextResult[int]:
+        """Execute a statement multiple times with different parameters.
+
+        Returns:
+            FlextResult[int]: Success result with total number of affected rows.
+
+        """
+        params_list = list(parameters_list)
+        return self._api._dispatch_or(
+            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteManyCommand(
+                sql,
+                params_list,
+            ),
+            lambda: self._api._services.execute_many(sql, params_list),
+        )
+
+    def _execute_statement(
+        self,
+        sql: str | object,  # Accept both string and SQLAlchemy objects
+        parameters: dict[str, object] | None = None,
+    ) -> FlextResult[int]:
+        """Execute SQL statement directly and return affected rows.
+
+        Returns:
+            FlextResult[int]: Success result with number of affected rows.
+
+        """
+        try:
+            # Handle SQLAlchemy objects by converting to string
+            if hasattr(sql, "__str__") and not isinstance(sql, str):
+                sql_text = str(sql)
+            else:
+                sql_text = str(sql)
+
+            params = parameters or {}
+            return self._api._dispatch_or(
+                oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
+                    sql_text,
+                    params,
+                ),
+                lambda: self._api._services.execute_statement(sql_text, params),
+            )
+        except (AttributeError, TypeError, ValueError) as e:
+            return FlextResult.fail(f"Statement execution failed: {e}")
+
+
+class _MetadataHelper:
+    """Helper class for metadata operations."""
+
+    def __init__(self, api: FlextDbOracleApi) -> None:
+        self._api = api
+
+    def _get_schemas(self) -> FlextResult[list[str]]:
+        """Get list of available schemas.
+
+        Returns:
+            FlextResult[list[str]]: Success result with list of schema names.
+
+        """
+        return self._api._services.get_schemas()
+
+    def _get_tables(
+        self,
+        schema: str | None = None,
+    ) -> FlextResult[list[dict[str, object]]]:
+        """Get list of tables in schema."""
+        return self._api._services.get_tables(schema)
+
+    def _get_columns(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> FlextResult[list[dict[str, object]]]:
+        """Get column information for a table."""
+        return self._api._services.get_columns(table_name, schema)
+
+    def _get_table_metadata(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> FlextResult[dict[str, object]]:
+        """Get comprehensive metadata for a table."""
+        return self._api._services.get_table_metadata(table_name, schema)
+
+    def _get_primary_keys(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> FlextResult[list[str]]:
+        """Get primary key columns for a table."""
+        return self._api._services.get_primary_keys(table_name, schema)
+
+
+class _PluginHelper:
+    """Helper class for plugin management."""
+
+    def __init__(self, api: FlextDbOracleApi) -> None:
+        self._api = api
+
+    def _register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
+        """Register a plugin with the services layer."""
+        try:
+            self._api._plugins[name] = plugin
+            return FlextResult.ok(None)
+        except (KeyError, AttributeError, TypeError) as e:
+            return FlextResult.fail(f"Failed to register plugin '{name}': {e}")
+
+    def _unregister_plugin(self, name: str) -> FlextResult[None]:
+        """Unregister a plugin from the services layer."""
+        try:
+            if name in self._api._plugins:
+                del self._api._plugins[name]
+                return FlextResult.ok(None)
+            return FlextResult.fail(f"Plugin '{name}' not found")
+        except (KeyError, AttributeError) as e:
+            return FlextResult.fail(f"Failed to unregister plugin '{name}': {e}")
+
+    def _get_plugin(self, name: str) -> FlextResult[object]:
+        """Get a registered plugin by name."""
+        try:
+            if name in self._api._plugins:
+                return FlextResult.ok(self._api._plugins[name])
+            return FlextResult.fail(f"Plugin '{name}' not found")
+        except (KeyError, AttributeError) as e:
+            return FlextResult.fail(f"Failed to get plugin '{name}': {e}")
+
+    def _list_plugins(self) -> FlextResult[list[str]]:
+        """List all registered plugin names."""
+        try:
+            return FlextResult.ok(list(self._api._plugins.keys()))
+        except (AttributeError, TypeError) as e:
+            return FlextResult.fail(f"Failed to list plugins: {e}")
+
+
 class FlextDbOracleApi(FlextModels.Entity):
     """Oracle Database API with clean delegation to services layer."""
 
@@ -43,18 +302,21 @@ class FlextDbOracleApi(FlextModels.Entity):
         self._plugins: dict[str, object] = {}
         self._dispatcher: FlextDispatcher | None = None
 
+        # Initialize helper instances
+        self._connection_helper = _ConnectionHelper(self)
+        self._query_helper = _QueryHelper(self)
+        self._metadata_helper = _MetadataHelper(self)
+        self._plugin_helper = _PluginHelper(self)
+
     @property
     def config(self) -> FlextDbOracleModels.OracleConfig:
         """Get the Oracle configuration."""
         return self._config
 
-    def is_valid(self) -> bool:
+    def _is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
-            return (
-                self._config.port > 0
-                and self._config.service_name is not None
-            )
+            return self._config.port > 0 and self._config.service_name is not None
         except AttributeError:
             # Config object may be None or missing attributes
             return False
@@ -64,7 +326,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Create API instance from configuration."""
         return cls(config)
 
-    def to_dict(self) -> dict[str, object]:
+    def _to_dict(self) -> dict[str, object]:
         """Convert API instance to dictionary representation."""
         return {
             "config": {
@@ -122,58 +384,47 @@ class FlextDbOracleApi(FlextModels.Entity):
             return cast("FlextResult[T]", dispatched)
         return fallback()
 
-    # Connection Management
+    # Connection Management - delegate to helper
     def connect(self) -> FlextResult[Self]:
-        """Connect to Oracle database."""
-        dispatch_result = self._dispatch_command(
-            oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand(),
-        )
-        if dispatch_result is not None:
-            if dispatch_result.is_success:
-                return FlextResult.ok(self)
-            return FlextResult.fail(
-                dispatch_result.error or "Connection failed",
-            )
+        """Connect to Oracle database.
 
-        result = self._services.connect()
-        if result.is_success:
-            return FlextResult.ok(self)
-        return FlextResult.fail(f"Connection failed: {result.error}")
+        Returns:
+            FlextResult[Self]: Success result with connected API instance.
+
+        """
+        return self._connection_helper._connect()
 
     def disconnect(self) -> FlextResult[None]:
-        """Disconnect from Oracle database."""
-        dispatch_result = self._dispatch_command(
-            oracle_dispatcher.FlextDbOracleDispatcher.DisconnectCommand(),
-        )
-        if dispatch_result is not None:
-            return cast("FlextResult[None]", dispatch_result)
+        """Disconnect from Oracle database.
 
-        return self._services.disconnect()
+        Returns:
+            FlextResult[None]: Success result when disconnected.
+
+        """
+        return self._connection_helper._disconnect()
 
     def test_connection(self) -> FlextResult[bool]:
-        """Test Oracle database connection."""
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.TestConnectionCommand(),
-            self._services.test_connection,
-        )
+        """Test Oracle database connection.
+
+        Returns:
+            FlextResult[bool]: Success result with connection test status.
+
+        """
+        return self._connection_helper._test_connection()
 
     @property
     def is_connected(self) -> bool:
         """Check if connected to the database."""
-        return self._services.is_connected()
+        return self._connection_helper._is_connected
 
-    # Query Operations
+    # Query Operations - delegate to helper
     def query(
         self,
         sql: str,
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Execute a SELECT query and return all results."""
-        params = parameters or {}
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteQueryCommand(sql, params),
-            lambda: self._services.execute_query(sql, params),
-        )
+        return self._query_helper._query(sql, parameters)
 
     def query_one(
         self,
@@ -181,11 +432,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[dict[str, object] | None]:
         """Execute a SELECT query and return first result or None."""
-        params = parameters or {}
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.FetchOneCommand(sql, params),
-            lambda: self._services.fetch_one(sql, params),
-        )
+        return self._query_helper._query_one(sql, parameters)
 
     def execute_sql(
         self,
@@ -193,14 +440,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
-        params = parameters or {}
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                sql,
-                params,
-            ),
-            lambda: self._services.execute_statement(sql, params),
-        )
+        return self._query_helper._execute_sql(sql, parameters)
 
     def execute_many(
         self,
@@ -208,14 +448,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         parameters_list: Sequence[dict[str, object]],
     ) -> FlextResult[int]:
         """Execute a statement multiple times with different parameters."""
-        params_list = list(parameters_list)
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteManyCommand(
-                sql,
-                params_list,
-            ),
-            lambda: self._services.execute_many(sql, params_list),
-        )
+        return self._query_helper._execute_many(sql, parameters_list)
 
     def execute_statement(
         self,
@@ -223,166 +456,45 @@ class FlextDbOracleApi(FlextModels.Entity):
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[int]:
         """Execute SQL statement directly and return affected rows."""
-        try:
-            # Handle SQLAlchemy objects by converting to string
-            if hasattr(sql, "__str__") and not isinstance(sql, str):
-                sql_text = str(sql)
-            else:
-                sql_text = str(sql)
+        return self._query_helper._execute_statement(sql, parameters)
 
-            params = parameters or {}
-            return self._dispatch_or(
-                oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                    sql_text,
-                    params,
-                ),
-                lambda: self._services.execute_statement(sql_text, params),
-            )
-        except Exception as e:
-            return FlextResult.fail(f"Statement execution failed: {e}")
-
-    # Schema Introspection
-    def get_schemas(self) -> FlextResult[list[str]]:
+    # Schema Introspection - delegate to helper
+    def _get_schemas(self) -> FlextResult[list[str]]:
         """Get list of available schemas."""
-        return self._dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.GetSchemasCommand(),
-            self._services.get_schemas,
-        )
+        return self._metadata_helper._get_schemas()
 
-    def get_tables(
+    def _get_tables(
         self,
         schema: str | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Get list of tables in specified schema."""
-        try:
-            result = self._dispatch_or(
-                oracle_dispatcher.FlextDbOracleDispatcher.GetTablesCommand(schema),
-                lambda: self._services.get_tables(schema),
-            )
-            if result.is_success:
-                # Convert list of strings to list of dict for consistency with tests
-                table_dicts: list[dict[str, object]] = [
-                    {"name": name} for name in result.value
-                ]
-                return FlextResult.ok(table_dicts)
-            return FlextResult.fail(result.error or "Failed to get tables")
-        except Exception as e:
-            return FlextResult.fail(f"Error getting tables: {e}")
+        return self._metadata_helper._get_tables(schema)
 
-    def get_columns(
+    def _get_columns(
         self,
         table: str,
         schema: str | None = None,
     ) -> FlextResult[list[dict[str, object]]]:
         """Get column information for specified table."""
-        try:
-            result = self._dispatch_or(
-                oracle_dispatcher.FlextDbOracleDispatcher.GetColumnsCommand(
-                    table,
-                    schema,
-                ),
-                lambda: self._services.get_columns(table, schema),
-            )
-            if result.is_success:
-                # Convert ColumnInfo objects to dict for consistency
-                column_dicts = []
-                for col in result.value:
-                    if hasattr(col, "model_dump"):
-                        column_dicts.append(col.model_dump())
-                    elif hasattr(col, "__dict__"):
-                        column_dicts.append(col.__dict__)
-                    else:
-                        column_dicts.append({"name": str(col)})
-                return FlextResult.ok(column_dicts)
-            return FlextResult.fail(result.error or "Failed to get columns")
-        except Exception as e:
-            return FlextResult.fail(f"Error getting columns: {e}")
+        return self._metadata_helper._get_columns(table, schema)
 
-    def get_table_metadata(
+    def _get_table_metadata(
         self,
         table: str,
         schema: str | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Get comprehensive table metadata including columns and constraints."""
-        try:
-            # Get table information
-            tables_result = self.get_tables(schema)
-            if not tables_result.is_success:
-                return FlextResult.fail(f"Failed to get tables: {tables_result.error}")
+        return self._metadata_helper._get_table_metadata(table, schema)
 
-            # Find the specific table
-            table_info = None
-            for tbl in tables_result.value:
-                tbl_name = tbl.get("name", "")
-                if (
-                    isinstance(tbl, dict)
-                    and isinstance(tbl_name, str)
-                    and tbl_name.upper() == table.upper()
-                ):
-                    table_info = tbl
-                    break
-
-            if not table_info:
-                return FlextResult.fail(f"Table '{table}' not found")
-
-            # Get columns for this table
-            columns_result = self.get_columns(table, schema)
-            if not columns_result.is_success:
-                return FlextResult.fail(
-                    f"Failed to get columns: {columns_result.error}",
-                )
-
-            metadata: dict[str, object] = {
-                "table_name": table,
-                "schema_name": schema,
-                "columns": columns_result.value,
-                "column_count": len(columns_result.value),
-            }
-
-            return FlextResult.ok(metadata)
-        except Exception as e:
-            return FlextResult.fail(f"Error getting table metadata: {e}")
-
-    def get_primary_keys(
+    def _get_primary_keys(
         self,
         table: str,
         schema: str | None = None,
     ) -> FlextResult[list[str]]:
         """Get primary key column names for specified table."""
-        try:
-            columns_result = self.get_columns(table, schema)
-            if not columns_result.is_success:
-                return FlextResult.fail(
-                    f"Failed to get columns: {columns_result.error}",
-                )
+        return self._metadata_helper._get_primary_keys(table, schema)
 
-            primary_keys = []
-            for col in columns_result.value:
-                if isinstance(col, dict):
-                    # Check various indicators of primary key
-                    column_name = col.get("column_name", "")
-                    nullable = col.get("nullable", True)
-                    column_id = col.get("column_id", 0)
-
-                    # Heuristic for primary key detection
-                    if isinstance(column_name, str):
-                        name_lower = column_name.lower()
-                    else:
-                        continue  # Skip if not string
-                    is_likely_pk = (
-                        name_lower in {"id", "pk"}
-                        or name_lower.endswith(("_id", "_pk"))
-                        or (column_id == 1 and not nullable)
-                    )
-
-                    if is_likely_pk and isinstance(column_name, str):
-                        primary_keys.append(column_name)
-
-            return FlextResult.ok(primary_keys)
-        except Exception as e:
-            return FlextResult.fail(f"Error getting primary keys: {e}")
-
-    def convert_singer_type(
+    def _convert_singer_type(
         self,
         singer_type: str | list[str],
         format_hint: str | None = None,
@@ -390,7 +502,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Convert Singer JSON Schema type to Oracle SQL type."""
         return self._services.convert_singer_type(singer_type, format_hint)
 
-    def map_singer_schema(
+    def _map_singer_schema(
         self,
         schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
@@ -398,7 +510,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         return self._services.map_singer_schema(schema)
 
     # Transaction Management
-    def transaction(self) -> FlextResult[object]:
+    def _transaction(self) -> FlextResult[object]:
         """Get a transaction context manager."""
         try:
             transaction_context = self._services.transaction()
@@ -407,7 +519,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Transaction creation failed: {e}")
 
     # Utility Methods
-    def optimize_query(self, sql: str) -> FlextResult[str]:
+    def _optimize_query(self, sql: str) -> FlextResult[str]:
         """Optimize a SQL query for Oracle."""
         try:
             optimized = " ".join(sql.split())
@@ -415,7 +527,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         except (AttributeError, ValueError, TypeError) as e:
             return FlextResult.fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
+    def _get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
 
@@ -443,43 +555,25 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.ok(instance)
         return FlextResult.fail(f"Failed to parse database URL: {config_result.error}")
 
-    # Plugin System
-    def register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
+    # Plugin System - delegate to helper
+    def _register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
         """Register a plugin with the services layer."""
-        try:
-            self._plugins[name] = plugin
-            return FlextResult.ok(None)
-        except (KeyError, AttributeError, TypeError) as e:
-            return FlextResult.fail(f"Failed to register plugin '{name}': {e}")
+        return self._plugin_helper._register_plugin(name, plugin)
 
-    def unregister_plugin(self, name: str) -> FlextResult[None]:
+    def _unregister_plugin(self, name: str) -> FlextResult[None]:
         """Unregister a plugin from the services layer."""
-        try:
-            if name in self._plugins:
-                del self._plugins[name]
-                return FlextResult.ok(None)
-            return FlextResult.fail(f"Plugin '{name}' not found")
-        except (KeyError, AttributeError) as e:
-            return FlextResult.fail(f"Failed to unregister plugin '{name}': {e}")
+        return self._plugin_helper._unregister_plugin(name)
 
-    def get_plugin(self, name: str) -> FlextResult[object]:
+    def _get_plugin(self, name: str) -> FlextResult[object]:
         """Get a registered plugin by name."""
-        try:
-            if name in self._plugins:
-                return FlextResult.ok(self._plugins[name])
-            return FlextResult.fail(f"Plugin '{name}' not found")
-        except (KeyError, AttributeError) as e:
-            return FlextResult.fail(f"Failed to get plugin '{name}': {e}")
+        return self._plugin_helper._get_plugin(name)
 
-    def list_plugins(self) -> FlextResult[list[str]]:
+    def _list_plugins(self) -> FlextResult[list[str]]:
         """List all registered plugin names."""
-        try:
-            return FlextResult.ok(list(self._plugins.keys()))
-        except (AttributeError, TypeError) as e:
-            return FlextResult.fail(f"Failed to list plugins: {e}")
+        return self._plugin_helper._list_plugins()
 
     # Additional methods demanded by tests and real usage
-    def execute_query_sql(
+    def _execute_query_sql(
         self,
         sql: str,
     ) -> FlextResult[FlextDbOracleModels.QueryResult]:
@@ -521,7 +615,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         except Exception as e:
             return FlextResult.fail(f"SQL execution error: {e}")
 
-    def get_health_status(self) -> FlextResult[dict[str, object]]:
+    def _get_health_status(self) -> FlextResult[dict[str, object]]:
         """Get database connection health status."""
         try:
             # Delegate to services layer for health check
@@ -537,7 +631,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.fail(f"Health check failed: {e}")
 
     @property
-    def connection(self) -> object | None:
+    def _connection(self) -> object | None:
         """Get connection object (delegates to services)."""
         if self._services.is_connected():
             return self._services
@@ -555,7 +649,7 @@ class FlextDbOracleApi(FlextModels.Entity):
                 logger.debug("Attempting disconnect during context manager exit")
                 self._services.disconnect()
 
-    def execute(self) -> FlextResult[dict[str, object]]:
+    def _execute(self) -> FlextResult[dict[str, object]]:
         """Execute default domain service operation - return API status."""
         try:
             return FlextResult.ok(self.to_dict())

@@ -22,7 +22,12 @@ MAX_OUTPUT_LINES = 3
 
 
 def _get_cli_examples() -> list[FlextTypes.Core.Dict]:
-    """Get CLI command examples - DRY pattern for example data."""
+    """Get CLI command examples - DRY pattern for example data.
+
+    Returns:
+        list[FlextTypes.Core.Dict]: List of CLI command examples with metadata.
+
+    """
     return [
         {
             "name": "Show CLI Help",
@@ -113,7 +118,12 @@ def _run_example_command(example: FlextTypes.Core.Dict) -> None:
 
 
 def _check_oracle_env() -> bool:
-    """Check if Oracle environment variables are set - DRY pattern."""
+    """Check if Oracle environment variables are set - DRY pattern.
+
+    Returns:
+        bool: True if all required environment variables are set.
+
+    """
     required_vars = [
         "FLEXT_TARGET_ORACLE_HOST",
         "FLEXT_TARGET_ORACLE_USERNAME",
@@ -123,7 +133,12 @@ def _check_oracle_env() -> bool:
 
 
 def run_cli_command(cmd: FlextTypes.Core.StringList) -> tuple[int, str, str]:
-    """Run CLI command and return exit code, stdout, stderr (no shell)."""
+    """Run CLI command and return exit code, stdout, stderr (no shell).
+
+    Returns:
+        tuple[int, str, str]: Exit code, stdout, and stderr from command execution.
+
+    """
 
     async def _run() -> tuple[int, str, str]:
         proc = await asyncio.create_subprocess_exec(

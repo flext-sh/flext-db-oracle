@@ -24,7 +24,12 @@ class FlextDbOracleMixins(FlextMixins):
 
         @staticmethod
         def validate_identifier(identifier: str) -> FlextResult[str]:
-            """Validate Oracle identifier using direct validation."""
+            """Validate Oracle identifier using direct validation.
+
+            Returns:
+                FlextResult[str]: Validated identifier or error.
+
+            """
             # Convert to uppercase for Oracle convention
             upper_identifier = identifier.upper()
 
@@ -77,13 +82,26 @@ class FlextDbOracleMixins(FlextMixins):
                 object.__setattr__(self, "params", {})
 
         def get(self, key: str, *, default: object = None) -> object:
-            """Get parameter value with default fallback."""
+            """Get parameter value with default fallback.
+
+            Returns:
+                object: Parameter value or default.
+
+            """
             if self.params is None:
                 return default
             return self.params.get(key, default)
 
         def require(self, key: str) -> object:
-            """Get required parameter value, raising KeyError if missing."""
+            """Get required parameter value, raising KeyError if missing.
+
+            Returns:
+                object: Required parameter value.
+
+            Raises:
+                KeyError: If the required parameter is missing.
+
+            """
             if self.params is None or key not in self.params:
                 msg = f"Required parameter '{key}' not provided"
                 raise KeyError(msg)
@@ -108,7 +126,12 @@ class FlextDbOracleMixins(FlextMixins):
             self.context = context
 
         def transform[T](self, result: FlextResult[T]) -> FlextResult[T]:
-            """Transform result by adding context to error messages."""
+            """Transform result by adding context to error messages.
+
+            Returns:
+                FlextResult[T]: Transformed result.
+
+            """
             if result.is_success:
                 return result
             return FlextResult[T].fail(f"{self.context}: {result.error}")

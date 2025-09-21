@@ -56,7 +56,12 @@ class FlextDbOracleClient:
         username: str = "system",
         password: str | None = None,  # Remove hardcoded password
     ) -> FlextResult[FlextDbOracleApi]:
-        """Connect to Oracle database with provided parameters."""
+        """Connect to Oracle database with provided parameters.
+
+        Returns:
+            FlextResult[FlextDbOracleApi]: API instance or error.
+
+        """
         try:
             # Use environment variable or require password to be provided
             actual_password = password or os.getenv("ORACLE_PASSWORD", "")
@@ -96,7 +101,12 @@ class FlextDbOracleClient:
         operation: str,
         **params: object,
     ) -> FlextResult[dict[str, object]]:
-        """Execute operation with validation chain."""
+        """Execute operation with validation chain.
+
+        Returns:
+            FlextResult[dict[str, object]]: Operation result or error.
+
+        """
         validation_result = self._validate_connection()
         if validation_result.is_failure:
             return FlextResult[dict[str, object]].fail(
@@ -106,7 +116,12 @@ class FlextDbOracleClient:
         return self._execute_operation(operation, **params)
 
     def _validate_connection(self) -> FlextResult[None]:
-        """Validate current Oracle connection."""
+        """Validate current Oracle connection.
+
+        Returns:
+            FlextResult[None]: Success or error.
+
+        """
         if not self.current_connection:
             return FlextResult[None].fail("No active Oracle connection")
 
@@ -120,7 +135,12 @@ class FlextDbOracleClient:
         operation: str,
         **params: object,
     ) -> FlextResult[dict[str, object]]:
-        """Execute Oracle operation with error handling."""
+        """Execute Oracle operation with error handling.
+
+        Returns:
+            FlextResult[dict[str, object]]: Operation result or error.
+
+        """
         if not self.current_connection:
             return FlextResult[dict[str, object]].fail("No active connection")
 
@@ -189,7 +209,12 @@ class FlextDbOracleClient:
         operation_result: FlextResult[dict[str, object]],
         format_type: str = "table",
     ) -> FlextResult[str]:
-        """Format and display operation result."""
+        """Format and display operation result.
+
+        Returns:
+            FlextResult[str]: Formatted result or error.
+
+        """
         if operation_result.is_failure:
             return FlextResult[str].fail(operation_result.error or "Operation failed")
 
@@ -209,7 +234,12 @@ class FlextDbOracleClient:
         return FlextResult[str].fail("Invalid formatter strategy")
 
     def _get_formatter_strategy(self, format_type: str) -> FlextResult[object]:
-        """Get formatter strategy for output format."""
+        """Get formatter strategy for output format.
+
+        Returns:
+            FlextResult[object]: Formatter strategy or error.
+
+        """
         try:
             formatter_strategies: dict[str, object] = {
                 "table": self._format_as_table,
@@ -224,7 +254,12 @@ class FlextDbOracleClient:
             return FlextResult[object].fail(f"Formatter strategy error: {e}")
 
     def _format_as_table(self, data: dict[str, object]) -> FlextResult[str]:
-        """Format data as table output."""
+        """Format data as table output.
+
+        Returns:
+            FlextResult[str]: Table formatted data or error.
+
+        """
         try:
             # Adapt data for table display
             adapted_result = self._adapt_data_for_table(data)
@@ -252,7 +287,12 @@ class FlextDbOracleClient:
             return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _format_as_json(self, data: dict[str, object]) -> FlextResult[str]:
-        """Format data as JSON output."""
+        """Format data as JSON output.
+
+        Returns:
+            FlextResult[str]: JSON formatted data or error.
+
+        """
         try:
             return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
         except Exception as e:
@@ -262,7 +302,12 @@ class FlextDbOracleClient:
         self,
         data: dict[str, object],
     ) -> FlextResult[list[dict[str, object]]]:
-        """Adapt data for table display."""
+        """Adapt data for table display.
+
+        Returns:
+            FlextResult[list[dict[str, object]]]: Adapted data or error.
+
+        """
         try:
 
             def adapt_schemas(r: object) -> list[dict[str, object]]:
@@ -303,7 +348,12 @@ class FlextDbOracleClient:
             )
 
     def _execute_health_check(self) -> FlextResult[dict[str, object]]:
-        """Execute Oracle health check."""
+        """Execute Oracle health check.
+
+        Returns:
+            FlextResult[dict[str, object]]: Health check result or error.
+
+        """
         try:
             validation_result = self._validate_connection()
             if validation_result.is_failure:
@@ -329,13 +379,23 @@ class FlextDbOracleClient:
             return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
 
     def list_schemas(self) -> FlextResult[str]:
-        """List Oracle schemas with formatted output."""
+        """List Oracle schemas with formatted output.
+
+        Returns:
+            FlextResult[str]: Formatted schemas list or error.
+
+        """
         operation_result = self._execute_with_chain("list_schemas")
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
     def list_tables(self, schema: str | None = None) -> FlextResult[str]:
-        """List Oracle tables with formatted output."""
+        """List Oracle tables with formatted output.
+
+        Returns:
+            FlextResult[str]: Formatted tables list or error.
+
+        """
         operation_result = self._execute_with_chain("list_tables", schema=schema or "")
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
@@ -345,7 +405,12 @@ class FlextDbOracleClient:
         sql: str,
         params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
-        """Execute SQL query with formatted output."""
+        """Execute SQL query with formatted output.
+
+        Returns:
+            FlextResult[str]: Formatted query results or error.
+
+        """
         operation_result = self._execute_with_chain(
             "query",
             sql=sql,
@@ -355,11 +420,21 @@ class FlextDbOracleClient:
         return self._format_and_display_result(operation_result, format_type)
 
     def health_check(self) -> FlextResult[dict[str, object]]:
-        """Perform Oracle health check."""
+        """Perform Oracle health check.
+
+        Returns:
+            FlextResult[dict[str, object]]: Health check result or error.
+
+        """
         return self._execute_health_check()
 
     def disconnect(self) -> FlextResult[None]:
-        """Disconnect from Oracle database."""
+        """Disconnect from Oracle database.
+
+        Returns:
+            FlextResult[None]: Success or error.
+
+        """
         if self.current_connection:
             result = self.current_connection.disconnect()
             self.current_connection = None
@@ -367,7 +442,12 @@ class FlextDbOracleClient:
         return FlextResult[None].ok(None)
 
     def configure_preferences(self, **preferences: object) -> FlextResult[None]:
-        """Configure client preferences."""
+        """Configure client preferences.
+
+        Returns:
+            FlextResult[None]: Success or error.
+
+        """
         try:
             self.user_preferences.update(preferences)
             self.logger.info(
@@ -380,7 +460,12 @@ class FlextDbOracleClient:
 
     @classmethod
     def run_cli_command(cls, operation: str, **params: object) -> FlextResult[str]:
-        """Run Oracle CLI command with proper error handling."""
+        """Run Oracle CLI command with proper error handling.
+
+        Returns:
+            FlextResult[str]: Command result or error.
+
+        """
         try:
             client = cls()
 
