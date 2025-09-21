@@ -16,7 +16,6 @@ import os
 from typing import cast
 
 import pytest
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_core import FlextResult
 from flext_db_oracle import (
@@ -24,6 +23,7 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
 )
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 
 class TestDirectCoverageBoostAPI:

@@ -12,7 +12,6 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import (
@@ -20,6 +19,7 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     dispatcher as oracle_dispatcher,
 )
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 
 class TestFlextDbOracleApiRealFunctionality:
