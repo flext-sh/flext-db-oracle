@@ -9,14 +9,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextDomainService, FlextLogger, FlextResult, FlextTypes
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 logger = FlextLogger(__name__)
 
 
-class OracleExampleProcessor(FlextDomainService[str]):
-    """Simplified Oracle example using FlextDomainService - ELIMINA COMPLEXIDADE."""
+class OracleExampleProcessor(FlextService[str]):
+    """Simplified Oracle example using FlextService - ELIMINA COMPLEXIDADE."""
 
     def execute(self) -> FlextResult[str]:
         """Execute the main domain service operation.

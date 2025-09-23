@@ -36,7 +36,7 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 | **FlextResult<T>**     | 🟢 Comprehensive | 784 occurrences across codebase |
 | **FlextContainer**     | 🟡 Basic         | Used in 4 source files          |
 | **FlextLogger**        | 🟡 Basic         | Used in 4 source files          |
-| **FlextDomainService** | 🟡 Partial       | 2 implementations found         |
+| **FlextService** | 🟡 Partial       | 2 implementations found         |
 
 > **Status**: 🔴 Missing · 1.0.0 Release Preparation | 🟡 Partial | 🟢 Complete
 
@@ -228,7 +228,7 @@ Zero tolerance quality requirements:
 ### FLEXT-Core Compliance Checklist
 
 - [ ] Use FlextResult for all error handling
-- [ ] Implement FlextDomainService patterns
+- [ ] Implement FlextService patterns
 - [ ] Follow Clean Architecture principles
 - [ ] Add comprehensive type hints
 - [ ] Include working code examples

@@ -167,7 +167,7 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 - FlextResult usage: 784 occurrences (comprehensive)
 - FlextContainer usage: 4 files import and use
 - FlextLogger usage: 4 files import and use
-- FlextDomainService: 2 implementations found
+- FlextService: 2 implementations found
 
 **Integration Score**: ~85% (based on actual usage, not claims)
 
@@ -177,14 +177,14 @@ def fetch_dataframe(self, sql: str) -> FlextResult[DataFrame]:
 
 - FlextResult railway pattern (foundation)
 - FlextContainer dependency injection
-- FlextDomainService base classes
+- FlextService base classes
 - Type safety patterns
 
 **flext-db-oracle implements**:
 
 - ✅ FlextResult comprehensive usage
 - ✅ FlextContainer basic usage
-- ✅ FlextDomainService inheritance
+- ✅ FlextService inheritance
 - ❌ Missing: Complete async patterns
 - ❌ Missing: Modern Oracle features
 

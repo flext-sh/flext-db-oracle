@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import sys
 
-from flext_core import FlextDomainService
+from flext_core import FlextService
 from flext_db_oracle.cli import FlextDbOracleCliService
 
 
@@ -77,9 +77,9 @@ class TestCliServiceIntegration:
         assert cli_service._logger is not None
 
     def test_cli_service_domain_service_inheritance(self) -> None:
-        """Test CLI service inherits from FlextDomainService."""
+        """Test CLI service inherits from FlextService."""
         cli_service = FlextDbOracleCliService()
-        assert isinstance(cli_service, FlextDomainService)
+        assert isinstance(cli_service, FlextService)
 
     def test_cli_service_configuration(self) -> None:
         """Test CLI service configuration handling."""

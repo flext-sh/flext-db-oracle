@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from flext_core import FlextBus, FlextDispatcher, FlextDispatcherRegistry
+from flext_core import FlextBus, FlextDispatcher, FlextRegistry
 from flext_db_oracle.services import FlextDbOracleServices
 
 
@@ -82,7 +82,7 @@ class FlextDbOracleDispatcher:
     ) -> FlextDispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = FlextDispatcher(bus=bus)
-        registry = FlextDispatcherRegistry(dispatcher)
+        registry = FlextRegistry(dispatcher)
 
         # Create properly typed handler functions using object type for flexibility
         def connect_handler(_cmd: object) -> object:

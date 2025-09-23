@@ -17,7 +17,7 @@ from typing import cast
 
 import pytest
 
-from flext_core import FlextResult
+from flext_core import FlextConstants, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
@@ -33,7 +33,7 @@ class TestDirectCoverageBoostAPI:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleModels.OracleConfig(
-            host="127.0.0.1",  # Invalid but quick to fail
+            host=FlextConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
             port=9999,
             username="invalid",
             password="invalid",
@@ -586,7 +586,9 @@ class TestDirectCoverageBoostServices:
                 elif method_name.startswith("build_update"):
                     assert "UPDATE" in sql_text.upper()
                 elif method_name.startswith("build_delete"):
-                    assert "DELETE" in sql_text.upper()
+                    assert (
+                        FlextConstants.Platform.HTTP_METHOD_DELETE in sql_text.upper()
+                    )
 
             except AttributeError:
                 # Method might not exist or be named differently

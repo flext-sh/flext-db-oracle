@@ -294,7 +294,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration."""
-        super().__init__()  # Initialize FlextDomainService base
+        super().__init__()  # Initialize FlextService base
         self._config = config
         self._services = FlextDbOracleServices(config=config)
         self._context_name = context_name or "oracle-api"

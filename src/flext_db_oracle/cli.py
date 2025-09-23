@@ -16,12 +16,12 @@ from typing import Protocol
 import yaml
 
 from flext_cli import FlextCliMain
-from flext_core import FlextContainer, FlextDomainService, FlextLogger, FlextResult
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextService
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class FlextDbOracleCliService(FlextDomainService[str]):
+class FlextDbOracleCliService(FlextService[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
     ZERO TOLERANCE COMPLIANCE:
@@ -499,7 +499,7 @@ class FlextDbOracleCliService(FlextDomainService[str]):
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
     def execute(self) -> FlextResult[str]:
-        """Execute domain service - required by FlextDomainService.
+        """Execute domain service - required by FlextService.
 
         Returns:
             FlextResult[str]: Service status.
