@@ -16,7 +16,7 @@ import pytest
 from pydantic import ValidationError
 
 from flext_core import FlextModels
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleModels
 
 
 class TestOracleValidation:

@@ -9,8 +9,7 @@ from __future__ import annotations
 import contextlib
 
 from flext_core import FlextResult
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
-from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, FlextDbOracleServices
 
 
 def safe_get_first_value(data: object) -> object:

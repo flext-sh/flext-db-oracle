@@ -10,12 +10,10 @@ without inventing non-existent methods.
 
 from __future__ import annotations
 
-import logging
-
+from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = FlextLogger(__name__)
 
 
 def demonstrate_real_functionality() -> None:

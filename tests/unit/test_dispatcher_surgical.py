@@ -10,9 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextBus, FlextDispatcher
-from flext_db_oracle import FlextDbOracleModels
-from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleModels,
+    FlextDbOracleServices,
+)
 
 
 class TestDispatcherSurgical:

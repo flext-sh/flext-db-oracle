@@ -91,48 +91,49 @@ class FlextDbOracleDispatcher:
         def disconnect_handler(_cmd: object) -> object:
             return services.disconnect()
 
-        def test_connection_handler(_cmd: object) -> object:
-            """Test Oracle connection handler - cmd parameter required by dispatcher interface."""
-            # Parameter _cmd is required by dispatcher interface but not used in this handler
-            _ = _cmd  # Explicitly acknowledge unused parameter
+        def connection_test_handler(_command_data: object) -> object:
+            """Oracle connection test handler - command_data parameter required by dispatcher interface."""
+            # Parameter _command_data is required by dispatcher interface but not used in this handler
             return services.test_connection()
 
-        def execute_query_handler(cmd: object) -> object:
+        def execute_query_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            sql = getattr(cmd, "sql", "")
-            parameters = getattr(cmd, "parameters", None) or {}
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.execute_query(sql, parameters)
 
-        def fetch_one_handler(cmd: object) -> object:
+        def fetch_one_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            sql = getattr(cmd, "sql", "")
-            parameters = getattr(cmd, "parameters", None) or {}
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.fetch_one(sql, parameters)
 
-        def execute_statement_handler(cmd: object) -> object:
+        def execute_statement_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            sql = getattr(cmd, "sql", "")
-            parameters = getattr(cmd, "parameters", None) or {}
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.execute_statement(sql, parameters)
 
-        def execute_many_handler(cmd: object) -> object:
+        def execute_many_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            sql = getattr(cmd, "sql", "")
-            parameters_list = getattr(cmd, "parameters_list", [])
+            sql = getattr(command, "sql", "")
+            parameters_list: list[dict[str, object]] = getattr(
+                command, "parameters_list", []
+            )
             return services.execute_many(sql, parameters_list)
 
         def get_schemas_handler(_cmd: object) -> object:
             return services.get_schemas()
 
-        def get_tables_handler(cmd: object) -> object:
+        def get_tables_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            schema = getattr(cmd, "schema", None)
+            schema = getattr(command, "schema", None)
             return services.get_tables(schema)
 
-        def get_columns_handler(cmd: object) -> object:
+        def get_columns_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
-            table = getattr(cmd, "table", "")
-            schema = getattr(cmd, "schema", None)
+            table = getattr(command, "table", "")
+            schema = getattr(command, "schema", None)
             return services.get_columns(table, schema)
 
         # Use register_function_map with proper typing
@@ -142,7 +143,7 @@ class FlextDbOracleDispatcher:
         ] = {
             cls.ConnectCommand: (connect_handler, None),
             cls.DisconnectCommand: (disconnect_handler, None),
-            cls.TestConnectionCommand: (test_connection_handler, None),
+            cls.TestConnectionCommand: (connection_test_handler, None),
             cls.ExecuteQueryCommand: (execute_query_handler, None),
             cls.FetchOneCommand: (fetch_one_handler, None),
             cls.ExecuteStatementCommand: (execute_statement_handler, None),

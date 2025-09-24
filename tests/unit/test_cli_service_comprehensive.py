@@ -15,9 +15,11 @@ from unittest.mock import Mock, patch
 import yaml
 
 from flext_core import FlextResult
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.cli import FlextDbOracleCliService
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleCliService,
+    FlextDbOracleModels,
+)
 
 
 class TestFlextDbOracleCliService:
@@ -30,11 +32,11 @@ class TestFlextDbOracleCliService:
         assert cli_service is not None
         assert cli_service._container is not None
         assert cli_service._logger is not None
-        # _cli_main may be None if FlextCliMain fails to initialize
+        # _cli_main may be None if FlextCliCommands fails to initialize
 
     def test_cli_service_initialization_with_cli_failure(self) -> None:
-        """Test CLI service initialization when FlextCliMain fails."""
-        with patch("flext_db_oracle.cli.FlextCliMain") as mock_cli_main:
+        """Test CLI service initialization when FlextCliCommands fails."""
+        with patch("flext_db_oracle.cli.FlextCliCommands") as mock_cli_main:
             mock_cli_main.side_effect = Exception("CLI initialization error")
 
             cli_service = FlextDbOracleCliService()
@@ -48,20 +50,20 @@ class TestFlextDbOracleCliService:
 
         result = cli_service._initialize_cli_main()
 
-        # Should return a result, might succeed or fail depending on FlextCliMain availability
+        # Should return a result, might succeed or fail depending on FlextCliCommands availability
         assert isinstance(result, FlextResult)
 
     def test_initialize_cli_main_failure(self) -> None:
         """Test CLI main initialization failure handling."""
         cli_service = FlextDbOracleCliService()
 
-        with patch("flext_db_oracle.cli.FlextCliMain") as mock_cli_main:
+        with patch("flext_db_oracle.cli.FlextCliCommands") as mock_cli_main:
             mock_cli_main.side_effect = Exception("Initialization error")
 
             result = cli_service._initialize_cli_main()
 
             assert result.is_failure
-            assert "FlextCliMain initialization failed" in str(result.error)
+            assert "FlextCliCommands initialization failed" in str(result.error)
 
 
 class TestOracleConnectionHelper:

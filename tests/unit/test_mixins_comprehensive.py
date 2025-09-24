@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 from flext_core import FlextMixins, FlextResult
-from flext_db_oracle.mixins import FlextDbOracleMixins, __all__
+from flext_db_oracle import FlextDbOracleMixins, __all__
 
 
 class TestOracleValidation:

@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOracleClient,
     FlextDbOracleModels,
     FlextDbOraclePlugins,
+    FlextDbOracleServices,
 )
-from flext_db_oracle.client import FlextDbOracleClient
-from flext_db_oracle.services import FlextDbOracleServices
 
 
 class TestAPIMissedLines:

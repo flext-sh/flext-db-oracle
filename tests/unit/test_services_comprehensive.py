@@ -11,8 +11,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServices
 
 
 class TestFlextDbOracleServicesBasic:

@@ -11,7 +11,7 @@ from typing import cast
 import pytest
 
 from flext_core import FlextTypes
-from flext_db_oracle.plugins import FlextDbOraclePlugins
+from flext_db_oracle import FlextDbOraclePlugins
 from flext_tests import FlextTestsMatchers
 
 

@@ -6,19 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import sys
 import time
-from pathlib import Path
 from unittest.mock import Mock
 
 from pydantic import BaseModel
 
 from flext_core import FlextTypes
-from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle import FlextDbOracleUtilities
 from flext_tests import FlextTestsMatchers
 
 # Add flext_tests to path
-sys.path.insert(0, str(Path(__file__).parents[4] / "flext-core" / "src"))
 
 
 class TestFlextDbOracleUtilitiesRealFunctionality:

@@ -9,7 +9,7 @@ from __future__ import annotations
 import sys
 
 from flext_core import FlextService
-from flext_db_oracle.cli import FlextDbOracleCliService
+from flext_db_oracle import FlextDbOracleCliService
 
 
 class TestFlextDbOracleCliService:

@@ -15,7 +15,13 @@ import json
 import os
 from typing import Protocol, cast
 
-from flext_core import FlextConstants, FlextResult, FlextTypes, FlextUtilities
+from flext_core import (
+    FlextConstants,
+    FlextResult,
+    FlextTypes,
+    FlextUtilities,
+)
+from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 
 
@@ -26,7 +32,7 @@ class FlextDbOracleUtilities(FlextUtilities):
     class HasModelDump(Protocol):
         """Protocol for objects with model_dump method."""
 
-        def model_dump(self) -> dict[str, object]:
+        def model_dump(self: object) -> dict[str, object]:
             """Dump model to dictionary."""
             ...
 
@@ -64,7 +70,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         normalized_sql = " ".join(normalized_sql.split())
 
         # Create content for hashing using standard JSON
-        params_json = json.dumps(params or {}, sort_keys=True)
+        params_json: dict[str, object] = json.dumps(params or {}, sort_keys=True)
         hash_content = f"{normalized_sql}|{params_json}"
 
         # Generate SHA-256 hash
@@ -188,16 +194,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
             # Oracle connection environment variables
             env_mappings = {
-                "FLEXT_TARGET_ORACLE_HOST": "host",
-                "ORACLE_HOST": "host",
-                "FLEXT_TARGET_ORACLE_PORT": "port",
-                "ORACLE_PORT": "port",
-                "FLEXT_TARGET_ORACLE_SERVICE_NAME": "service_name",
-                "ORACLE_SERVICE_NAME": "service_name",
-                "FLEXT_TARGET_ORACLE_USERNAME": "username",
-                "ORACLE_USERNAME": "username",
-                "FLEXT_TARGET_ORACLE_PASSWORD": "password",
-                "ORACLE_PASSWORD": "password",
+                **FlextDbOracleConstants.Environment.ENV_MAPPING,
             }
 
             for env_key, config_key in env_mappings.items():
@@ -220,7 +217,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         try:
             # Handle different query result types
             if hasattr(query_result, "to_dict_list"):
-                data = getattr(query_result, "to_dict_list")()
+                data: dict[str, object] = getattr(query_result, "to_dict_list")()
             elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
                 # Build dict list from columns and rows
                 data = []
@@ -250,12 +247,12 @@ class FlextDbOracleUtilities(FlextUtilities):
                         data.append(row_dict)
                 except (TypeError, AttributeError):
                     # Fallback if iteration fails
-                    data = [{"result": str(query_result)}]
+                    data: dict[str, object] = [{"result": str(query_result)}]
             # Fallback - try to convert to dict if possible
             elif hasattr(query_result, "model_dump"):
-                data = [getattr(query_result, "model_dump")()]
+                data: dict[str, object] = [getattr(query_result, "model_dump")()]
             else:
-                data = [{"result": str(query_result)}]
+                data: dict[str, object] = [{"result": str(query_result)}]
 
             if not data:
                 console.print("[yellow]No data to display[/yellow]")
@@ -309,6 +306,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 name=service_name,  # Required field - use service_name as database
                 username=str(config.get("username", "")),
                 password=str(config.get("password", "")),
+                domain_events=[],  # Required by FlextModels.Entity
             )
 
             # Create API instance with configuration (use runtime import to avoid circular imports)
@@ -333,7 +331,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             if format_type.lower() == "table":
                 # Table format display
                 if hasattr(health_data, "model_dump"):
-                    data_dict = getattr(health_data, "model_dump")()
+                    data_dict: dict[str, object] = getattr(health_data, "model_dump")()
                     if isinstance(data_dict, dict):
                         console.print("Health Status:")
                         console.print("-" * 20)
@@ -345,7 +343,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                     console.print(f"Health data: {health_data}")
             # JSON or other format
             elif hasattr(health_data, "model_dump"):
-                data_dict = getattr(health_data, "model_dump")()
+                data_dict: dict[str, object] = getattr(health_data, "model_dump")()
                 console.print(json.dumps(data_dict, indent=2))
             else:
                 console.print(str(health_data))

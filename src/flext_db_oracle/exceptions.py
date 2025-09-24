@@ -10,10 +10,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from flext_core import FlextTypes
+from flext_core import FlextExceptions, FlextTypes
 
 
-class FlextDbOracleExceptions:
+class FlextDbOracleExceptions(FlextExceptions):
     """Unified Oracle Database Exception System using flext-core exclusively."""
 
     @dataclass(frozen=True)
@@ -24,7 +24,7 @@ class FlextDbOracleExceptions:
         code: str | None = None
         context: FlextTypes.Core.Dict | None = None
 
-        def __post_init__(self) -> None:
+        def __post_init__(self: object) -> None:
             """Validate exception parameters."""
             if not self.message or not self.message.strip():
                 msg = "Exception message cannot be empty"

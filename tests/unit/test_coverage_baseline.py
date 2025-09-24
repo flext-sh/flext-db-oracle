@@ -9,12 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
-from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.exceptions import FlextDbOracleExceptions
-from flext_db_oracle.models import FlextDbOracleModels as Models
-from flext_db_oracle.services import FlextDbOracleServices
-from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConstants,
+    FlextDbOracleExceptions,
+    FlextDbOracleModels,
+    FlextDbOracleModels as Models,
+    FlextDbOracleServices,
+    FlextDbOracleUtilities,
+)
 
 
 class TestModuleImports:

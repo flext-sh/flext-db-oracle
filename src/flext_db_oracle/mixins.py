@@ -40,15 +40,15 @@ class FlextDbOracleMixins(FlextMixins):
             # Length validation
             if (
                 len(upper_identifier)
-                > FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.Validation.MAX_IDENTIFIER_LENGTH
             ):
                 return FlextResult[str].fail(
-                    f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH} chars)",
+                    f"Oracle identifier too long (max {FlextDbOracleConstants.Validation.MAX_IDENTIFIER_LENGTH} chars)",
                 )
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.Validation.IDENTIFIER_PATTERN,
                 upper_identifier,
             ):
                 return FlextResult[str].fail(
@@ -62,7 +62,7 @@ class FlextDbOracleMixins(FlextMixins):
             # Oracle-specific business rule: check reserved words
             if (
                 validated_identifier
-                in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED
+                in FlextDbOracleConstants.Validation.ORACLE_RESERVED
             ):
                 return FlextResult[str].fail(
                     f"Identifier '{validated_identifier}' is a reserved word",
@@ -76,7 +76,7 @@ class FlextDbOracleMixins(FlextMixins):
 
         params: FlextTypes.Core.Dict | None = None
 
-        def __post_init__(self) -> None:
+        def __post_init__(self: object) -> None:
             """Initialize params dict if None."""
             if self.params is None:
                 object.__setattr__(self, "params", {})

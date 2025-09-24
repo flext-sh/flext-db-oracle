@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-import time
 from collections.abc import Generator
 from pathlib import Path
 
@@ -16,6 +15,7 @@ import docker
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_tests import FlextTestDocker
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
@@ -50,128 +50,79 @@ def _docker_ping_safe(client: docker.DockerClient) -> bool:
 
 
 class DockerCommandExecutor:
-    """Execute Docker commands safely with proper error handling."""
+    """Execute Docker commands safely with proper error handling - DEPRECATED.
+
+    This class is kept for backwards compatibility but should not be used directly.
+    Use FlextTestDocker instead for consistent container management.
+    """
 
     def __init__(self, compose_file: Path) -> None:
         """Initialize with compose file path."""
         self.compose_file = compose_file
 
     def check_docker_availability(self) -> None:
-        """Check if Docker and Docker Compose are available via SDK."""
-        try:
-            client = docker.from_env()
-            # Use type-safe wrapper for untyped docker client ping method
-            is_available = _docker_ping_safe(client)
-            if not is_available:  # pragma: no cover - environment dependent
-                msg = "Docker daemon is not responding"
-                raise RuntimeError(msg)
-        except Exception as e:  # pragma: no cover - environment dependent
-            raise RuntimeError from e
+        """Check if Docker is available - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
     def check_container_status(self) -> bool:
-        """Check if Oracle container is running."""
-        try:
-            client = docker.from_env()
-            containers = client.containers.list(all=True)
-            return any(
-                (getattr(ctr, "name", "") and ("oracle" in ctr.name))
-                or any("oracle" in str(tag) for tag in getattr(ctr.image, "tags", []))
-                for ctr in containers
-            )
-        except Exception:
-            return False
+        """Check container status - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
     def check_container_health(self) -> bool:
-        """Check if Oracle container is healthy."""
-        try:
-            client = docker.from_env()
-            for ctr in client.containers.list(all=True):
-                if ctr.name == "flext-oracle-test":
-                    details = client.api.inspect_container(ctr.id)
-                    status = (
-                        details.get("State", {}).get("Health", {}).get("Status", "")
-                    )
-                    return bool(status == "healthy")
-        except Exception:
-            return False
-        return False
+        """Check container health - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
     def start_container(self) -> None:
-        """Start Oracle container."""
-        # NOTE: Starting docker-compose via SDK is not supported in this test helper.
-        raise RuntimeError
+        """Start container - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
     def run_setup_script(self) -> bool:
-        """Run database setup script."""
-        # Not supported without docker-compose CLI; require manual run for test env
-        return False
+        """Run setup script - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
     def is_setup_completed(self) -> bool:
-        """Check if the setup container has completed successfully."""
-        try:
-            client = docker.from_env()
-            try:
-                setup_ctr = client.containers.get("flext-oracle-setup")
-            except Exception:
-                return False
-            setup_ctr.reload()
-            # Consider success when container exited with code 0
-            state = setup_ctr.attrs.get("State", {})
-            status = str(state.get("Status", ""))
-            exit_code_raw = state.get("ExitCode", 1)
-            exit_code = (
-                int(exit_code_raw) if isinstance(exit_code_raw, (int, str)) else 1
-            )
-            return bool(status == "exited" and exit_code == 0)
-        except Exception:
-            return False
+        """Check setup completion - use FlextTestDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        raise DeprecationWarning(msg)
 
 
 class OracleContainerManager:
-    """Manage Oracle container lifecycle for testing."""
+    """Manage Oracle container lifecycle for testing - DEPRECATED.
+
+    This class is kept for backwards compatibility but should not be used directly.
+    Use FlextTestDocker fixtures instead for consistent container management.
+    """
 
     def __init__(self, compose_file: Path) -> None:
         """Initialize with compose file path."""
-        self.docker_executor = DockerCommandExecutor(compose_file)
-        self.max_health_attempts = 120  # 10 minutes max
-        self.health_check_interval = 5  # seconds
+        self.compose_file = compose_file
+        self.max_health_attempts = 120
+        self.health_check_interval = 5
 
     def ensure_container_ready(self) -> None:
-        """Ensure Oracle container is running and healthy."""
-        self.docker_executor.check_docker_availability()
-        container_running = self.docker_executor.check_container_status()
-        is_healthy = container_running and self.docker_executor.check_container_health()
-        if not container_running or not is_healthy:
-            self._start_and_wait_for_health()
-        # Always wait for setup completion to ensure test user exists
-        self._wait_for_setup_completion()
+        """Ensure container is ready - use FlextTestDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        raise DeprecationWarning(msg)
 
     def _start_and_wait_for_health(self) -> None:
-        """Start container and wait for it to become healthy."""
-        self.docker_executor.start_container()
-        self._wait_for_healthy_status()
+        """Start and wait for health - use FlextTestDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        raise DeprecationWarning(msg)
 
     def _wait_for_healthy_status(self) -> None:
-        """Wait for container to become healthy."""
-        for _attempt in range(self.max_health_attempts):
-            if self.docker_executor.check_container_health():
-                self.docker_executor.run_setup_script()
-                time.sleep(self.health_check_interval)
-                return
-            time.sleep(self.health_check_interval)
-        pytest.exit(
-            "Oracle container failed to become healthy - cannot run tests without Oracle",
-        )
+        """Wait for healthy status - use FlextTestDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        raise DeprecationWarning(msg)
 
     def _wait_for_setup_completion(self) -> None:
-        """Wait until the setup container has created the test user/schema."""
-        for _attempt in range(self.max_health_attempts):
-            if self.docker_executor.is_setup_completed():
-                return
-            time.sleep(self.health_check_interval)
-        pytest.exit(
-            "Oracle setup container did not complete in time - test user may be missing",
-        )
+        """Wait for setup completion - use FlextTestDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        raise DeprecationWarning(msg)
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -193,27 +144,50 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 @pytest.fixture(scope="session")
-def oracle_container() -> Generator[None]:
-    """Ensure Oracle container is running for ORACLE tests only."""
-    project_root = Path(__file__).parent.parent
-    compose_file = project_root / "docker-compose.oracle.yml"
+def docker_control() -> FlextTestDocker:
+    """Provide FlextTestDocker instance for container management."""
+    return FlextTestDocker()
 
-    if not compose_file.exists():
-        pytest.skip("Docker compose file not found - skipping Oracle container tests")
 
-    try:
-        container_manager = OracleContainerManager(compose_file)
-        container_manager.ensure_container_ready()
-        yield
+@pytest.fixture(scope="session")
+def shared_oracle_container(docker_control: FlextTestDocker) -> FlextTestDocker:
+    """Start and maintain flext-oracle-db-test container.
 
-    except RuntimeError as e:
-        pytest.skip(f"Oracle container not available: {e}")
-    except FileNotFoundError:
-        pytest.skip("Docker/Docker Compose not available")
-    except OSError as e:
-        pytest.skip(f"OS error managing Oracle container: {e}")
-    except Exception as e:
-        pytest.skip(f"Error managing Oracle container: {e}")
+    Container auto-starts if not running and remains running after tests.
+    """
+    result = docker_control.start_container("flext-oracle-db-test")
+    if result.is_failure:
+        pytest.skip(f"Failed to start Oracle container: {result.error}")
+
+    yield "flext-oracle-db-test"
+
+    # Keep container running after tests
+    docker_control.stop_container("flext-oracle-db-test", remove=False)
+
+
+@pytest.fixture(scope="session")
+def oracle_container(shared_oracle_container: object) -> Generator[None]:
+    """Ensure Oracle container is running for ORACLE tests only.
+
+    This fixture uses the shared FlextTestDocker container management.
+    """
+    # Suppress unused parameter warning - fixture is used for side effects
+    _ = shared_oracle_container
+    return
+
+
+# Shared Oracle container fixture
+@pytest.fixture(scope="session", autouse=True)
+def ensure_shared_docker_container(shared_oracle_container: object) -> None:
+    """Ensure shared Docker container is started for the test session.
+
+    This fixture automatically starts the shared Oracle container if not running,
+    and ensures it's available for all tests in the session.
+    """
+    # Suppress unused parameter warning - fixture is used for side effects
+    _ = shared_oracle_container
+    # The shared_oracle_container fixture will be invoked automatically
+    # and will start/stop the container for the entire test session
 
 
 @pytest.fixture

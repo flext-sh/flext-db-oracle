@@ -31,12 +31,12 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 
 ### FLEXT-Core Integration Status
 
-| Pattern                | Status           | Description                     |
-| ---------------------- | ---------------- | ------------------------------- |
-| **FlextResult<T>**     | 🟢 Comprehensive | 784 occurrences across codebase |
-| **FlextContainer**     | 🟡 Basic         | Used in 4 source files          |
-| **FlextLogger**        | 🟡 Basic         | Used in 4 source files          |
-| **FlextService** | 🟡 Partial       | 2 implementations found         |
+| Pattern            | Status           | Description                     |
+| ------------------ | ---------------- | ------------------------------- |
+| **FlextResult<T>** | 🟢 Comprehensive | 784 occurrences across codebase |
+| **FlextContainer** | 🟡 Basic         | Used in 4 source files          |
+| **FlextLogger**    | 🟡 Basic         | Used in 4 source files          |
+| **FlextService**   | 🟡 Partial       | 2 implementations found         |
 
 > **Status**: 🔴 Missing · 1.0.0 Release Preparation | 🟡 Partial | 🟢 Complete
 

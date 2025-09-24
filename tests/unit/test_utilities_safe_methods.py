@@ -11,9 +11,11 @@ from io import StringIO
 import pytest
 
 from flext_core import FlextTypes
-from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.utilities import FlextDbOracleUtilities
+from flext_db_oracle import (
+    FlextDbOracleConstants,
+    FlextDbOracleModels,
+    FlextDbOracleUtilities,
+)
 
 # Access constants through the FlextDbOracleConstants class
 MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS
