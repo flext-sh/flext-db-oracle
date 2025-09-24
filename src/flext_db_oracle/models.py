@@ -22,7 +22,7 @@ from flext_core import FlextModels, FlextResult
 from .constants import FlextDbOracleConstants
 
 
-class FlextDbOracleModels(FlextModels.Entity):
+class FlextDbOracleModels(FlextModels):
     """Oracle database models using flext-core exclusively."""
 
     # Use flext-core for ALL model functionality - NO custom implementations

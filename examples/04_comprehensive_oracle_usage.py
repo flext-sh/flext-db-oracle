@@ -1,6 +1,6 @@
 """FLEXT DB Oracle Simple Usage Example.
 
-Exemplo simplificado usando FlextProcessing.ServiceProcessor para eliminar
+Exemplo simplificado usando FlextProcessors.ServiceProcessor para eliminar
 complexidade e demonstrar padrões flext-core avançados.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -74,7 +74,7 @@ class OracleExampleProcessor(FlextService[str]):
 
 
 def demonstrate_basic_operations() -> None:
-    """Simple demonstration usando FlextProcessing patterns."""
+    """Simple demonstration usando FlextProcessors patterns."""
     processor = OracleExampleProcessor()
 
     # Execute domain service
