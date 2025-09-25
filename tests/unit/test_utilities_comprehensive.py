@@ -169,7 +169,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result = self.utilities.create_api_from_config(config_dict)
 
         # Should return FlextResult
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_create_api_from_config_invalid_real(self) -> None:
@@ -190,7 +190,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         result = self.utilities.create_config_from_env()
 
         # Should return FlextResult - may fail if env vars not set
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_utilities_error_handling_patterns_real(self) -> None:
@@ -247,11 +247,11 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         # Test FlextResult operations
         result1 = utilities.escape_oracle_identifier("test_name")
-        assert hasattr(result1, "success")
+        assert hasattr(result1, "is_success")
         assert hasattr(result1, "error") or hasattr(result1, "value")
 
         result2 = utilities.create_api_from_config({"test": "config"})
-        assert hasattr(result2, "success")
+        assert hasattr(result2, "is_success")
         assert hasattr(result2, "error") or hasattr(result2, "value")
 
     def test_utilities_string_representations_real(self) -> None:

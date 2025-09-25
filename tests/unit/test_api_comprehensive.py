@@ -761,33 +761,33 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test that all API methods return consistent FlextResult objects."""
         # Test optimize_query method
         result1 = self.api.optimize_query("SELECT 1")
-        assert hasattr(result1, "success")
+        assert hasattr(result1, "is_success")
         assert hasattr(result1, "error")
 
         # Test get_observability_metrics method
         result2 = self.api.get_observability_metrics()
-        assert hasattr(result2, "success")
+        assert hasattr(result2, "is_success")
         assert hasattr(result2, "error")
 
         # Test get_health_status method
         result3 = self.api.get_health_status()
-        assert hasattr(result3, "success")
+        assert hasattr(result3, "is_success")
         assert hasattr(result3, "error")
 
         # Test list_plugins method
         result4 = self.api.list_plugins()
-        assert hasattr(result4, "success")
+        assert hasattr(result4, "is_success")
         assert hasattr(result4, "error")
 
         # Test register_plugin method
         result5 = self.api.register_plugin("test", {"plugin": "data"})
-        assert hasattr(result5, "success")
+        assert hasattr(result5, "is_success")
         assert hasattr(result5, "error")
 
         # Test all results follow FlextResult contract
         for result in [result1, result2, result3, result4, result5]:
             # All should return FlextResult with proper interface
-            assert hasattr(result, "success")
+            assert hasattr(result, "is_success")
             assert hasattr(result, "error")
 
             # Test FlextResult contract

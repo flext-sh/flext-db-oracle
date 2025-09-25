@@ -135,7 +135,7 @@ class TestFlextDbOracleServicesBasic:
 
         # Test basic type conversions
         assert service.convert_singer_type("string").value == "VARCHAR2(4000)"
-        assert service.convert_singer_type("integer").value == "NUMBER"
+        assert service.convert_singer_type("integer").value == "NUMBER(38)"
         assert service.convert_singer_type("number").value == "NUMBER"
         assert service.convert_singer_type("boolean").value == "NUMBER(1)"
 
@@ -174,7 +174,7 @@ class TestFlextDbOracleServicesBasic:
         assert mapping_result.is_success
 
         mapping = mapping_result.value
-        assert mapping["id"] == "NUMBER"
+        assert mapping["id"] == "NUMBER(38)"
         assert mapping["name"] == "VARCHAR2(4000)"
         assert mapping["created_at"] == "TIMESTAMP"
         assert mapping["is_active"] == "NUMBER(1)"

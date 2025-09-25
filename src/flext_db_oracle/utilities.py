@@ -16,7 +16,6 @@ import os
 from typing import Protocol, cast
 
 from flext_core import (
-    FlextConstants,
     FlextResult,
     FlextTypes,
     FlextUtilities,
@@ -291,22 +290,24 @@ class FlextDbOracleUtilities(FlextUtilities):
                     f"Missing required fields: {', '.join(missing_fields)}",
                 )
 
-            # Convert port to int with proper type checking
-            port_value = config.get("port", FlextConstants.Platform.ORACLE_DEFAULT_PORT)
+            # Convert port to int with proper type checking - use FlextDbOracleConstants
+            port_value = config.get(
+                "port", FlextDbOracleConstants.Connection.DEFAULT_PORT
+            )
             port_int = (
                 int(port_value)
                 if isinstance(port_value, (int, str))
-                else FlextConstants.Platform.ORACLE_DEFAULT_PORT
+                else FlextDbOracleConstants.Connection.DEFAULT_PORT
             )
 
             service_name = str(config.get("service_name", "XE"))
             oracle_config = FlextDbOracleModels.OracleConfig(
-                host=str(config.get("host", FlextConstants.Platform.DEFAULT_HOST)),
+                host=str(config.get("host", "localhost")),
                 port=port_int,
                 name=service_name,  # Required field - use service_name as database
                 username=str(config.get("username", "")),
                 password=str(config.get("password", "")),
-                domain_events=[],  # Required by FlextModels.Entity
+                service_name=service_name,
             )
 
             # Create API instance with configuration (use runtime import to avoid circular imports)

@@ -50,6 +50,15 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
         DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
 
+    class Network:
+        """Oracle network configuration constants."""
+
+        MIN_PORT: Final[int] = 1
+        MAX_PORT: Final[int] = 65535
+        DEFAULT_PORT: Final[int] = 1521
+        DEFAULT_LISTENER_PORT: Final[int] = 1521
+        DEFAULT_SSL_PORT: Final[int] = 2484
+
     class Query:
         """Oracle query and operation constants."""
 

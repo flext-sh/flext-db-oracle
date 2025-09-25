@@ -359,8 +359,8 @@ class TestFlextDbOracleModelsStructure:
     """Test FlextDbOracleModels class structure and inheritance."""
 
     def test_models_inheritance(self) -> None:
-        """Test FlextDbOracleModels inherits from FlextModels.Entity."""
-        assert issubclass(FlextDbOracleModels, FlextModels.Entity)
+        """Test FlextDbOracleModels inherits from FlextModels."""
+        assert issubclass(FlextDbOracleModels, FlextModels)
 
     def test_nested_validation_class(self) -> None:
         """Test _OracleValidation nested class exists."""

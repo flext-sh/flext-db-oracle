@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import pytest
 
-from flext_core import FlextExceptions
 from flext_db_oracle import (
     FlextDbOracleExceptions,
 )
@@ -456,9 +455,9 @@ class TestFactoryMethods:
             "Validation failed",
             context={"field": "username"},
         )
-        # Factory method returns FlextExceptions._ValidationError, not local ValidationError
+        # Factory method returns FlextDbOracleExceptions.ValidationError
 
-        assert isinstance(error, FlextExceptions._ValidationError)
+        assert isinstance(error, FlextDbOracleExceptions.ValidationError)
         assert "Validation failed" in str(error)
 
     def test_create_connection_error_factory(self) -> None:
@@ -467,9 +466,9 @@ class TestFactoryMethods:
             "Connection failed",
             context={"host": "localhost"},
         )
-        # Factory method returns FlextExceptions._ConnectionError, not OracleConnectionError
+        # Factory method returns OracleConnectionError
 
-        assert isinstance(error, FlextExceptions._ConnectionError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleConnectionError)
         assert "Connection failed" in str(error)
 
     def test_is_oracle_error_method(self) -> None:

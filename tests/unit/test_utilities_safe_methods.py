@@ -18,9 +18,9 @@ from flext_db_oracle import (
 )
 
 # Access constants through the FlextDbOracleConstants class
-MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS
+MAX_DISPLAY_ROWS = FlextDbOracleConstants.Performance.MAX_DISPLAY_ROWS
 PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
-    FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS
+    FlextDbOracleConstants.Performance.PERFORMANCE_WARNING_THRESHOLD_SECONDS
 )
 
 

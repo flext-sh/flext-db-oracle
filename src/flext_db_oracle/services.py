@@ -697,7 +697,7 @@ class FlextDbOracleServices(FlextModels.Entity):
                         result.error or "Failed to get columns",
                     )
 
-                columns = []
+                columns: list[FlextDbOracleModels.Column] = []
                 for row in result.unwrap():
                     column = FlextDbOracleModels.Column(
                         name=str(row["column_name"]),
@@ -1341,7 +1341,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         self,
         sql: str,
         params: FlextTypes.Core.Dict | None = None,
-    ) -> FlextResult[dict[str, object] | None]:
+    ) -> FlextResult[dict[str, object], None]:
         """Execute query and return first result."""
         return self._query_executor.fetch_one(sql, params)
 

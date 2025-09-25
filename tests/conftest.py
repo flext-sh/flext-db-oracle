@@ -11,7 +11,6 @@ import os
 from collections.abc import Generator
 from pathlib import Path
 
-import docker
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
@@ -31,22 +30,22 @@ class OperationTestError(Exception):
         self.error = error
 
 
-def _docker_ping_safe(client: docker.DockerClient) -> bool:
-    """Type-safe wrapper for docker client ping method.
+def _docker_connectivity_safe(docker_manager: FlextTestDocker) -> bool:
+    """Type-safe wrapper for Docker connectivity check.
 
     Args:
-        client: Docker client instance from docker SDK
+        docker_manager: FlextTestDocker unified Docker management instance
 
     Returns:
-        bool: True if Docker daemon is reachable
-
-    Raises:
-        Exception: If docker ping fails
+        bool: True if Docker daemon is accessible, False otherwise.
 
     """
-    # Direct ping call with proper typing - no hasattr needed
-    result: object = client.ping()
-    return bool(result)
+    try:
+        # Test Docker connectivity by checking if any container is available
+        docker_manager.is_container_running()
+        return True
+    except Exception:  # Catch all docker exceptions
+        return False
 
 
 class DockerCommandExecutor:

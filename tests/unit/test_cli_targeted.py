@@ -94,7 +94,7 @@ class TestCLIRealFunctionality:
 
         # Test real connection testing (will fail but should handle gracefully)
         connection_result = api.test_connection()
-        assert hasattr(connection_result, "success")
+        assert hasattr(connection_result, "is_success")
 
         # Test configuration validation
         is_valid = api.is_valid()

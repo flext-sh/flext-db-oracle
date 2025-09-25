@@ -102,7 +102,7 @@ class TestRealOracleConnection:
             # Success case - use modern .unwrap() access
             fetch_data = result.unwrap()
             if fetch_data:
-                # fetch_one returns dict | None, so we know it's a dict if not None
+                # fetch_one returns Union[dict, None], so we know it's a dict if not None
                 assert isinstance(fetch_data, dict), (
                     f"Expected dict, got {type(fetch_data)}"
                 )
@@ -352,7 +352,7 @@ class TestRealOracleApi:
             # Use real DDL generation method instead of create_table_ddl
             # Build DDL manually since create_table_ddl doesn't exist
             ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts = []
+            column_parts: list[str] = []
             for col in columns:
                 col_def = f"{col['name']} {col['type']}"
                 if not col.get("nullable", True):

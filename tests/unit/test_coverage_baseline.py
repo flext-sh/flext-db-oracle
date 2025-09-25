@@ -181,7 +181,7 @@ class TestConstants:
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
-        assert hasattr(FlextDbOracleConstants, "OracleValidation")
+        assert hasattr(FlextDbOracleConstants, "Validation")
 
 
 class TestExceptions:

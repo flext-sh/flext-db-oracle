@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable, Sequence
-from typing import Self, TypeVar, cast
+from typing import Self, cast
 
 from flext_core import (
     FlextConstants,
@@ -20,6 +20,7 @@ from flext_core import (
     FlextLogger,
     FlextModels,
     FlextResult,
+    T,
 )
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
@@ -28,7 +29,6 @@ from flext_db_oracle.services import FlextDbOracleServices
 from . import dispatcher as oracle_dispatcher
 
 logger = FlextLogger(__name__)
-T = TypeVar("T")
 
 
 class _ConnectionHelper:
@@ -126,11 +126,11 @@ class _QueryHelper:
         self,
         sql: str,
         parameters: dict[str, object] | None = None,
-    ) -> FlextResult[dict[str, object] | None]:
+    ) -> FlextResult[dict[str, object], None]:
         """Execute a SELECT query and return first result or None.
 
         Returns:
-            FlextResult[dict[str, object] | None]: Success result with first row or None.
+            FlextResult[dict[str, object], None]: Success result with first row or None.
 
         """
         params = parameters or {}
@@ -212,11 +212,11 @@ class _QueryHelper:
         self, sql: str, parameters: dict[str, object] | None = None
     ) -> FlextResult[list[dict[str, object]]]:
         """Execute a SELECT query and return all results."""
-        return self._query(sql, parameters)
+        return self.query_helper(sql, parameters)
 
     def query_one(
         self, sql: str, parameters: dict[str, object] | None = None
-    ) -> FlextResult[dict[str, object] | None]:
+    ) -> FlextResult[dict[str, object], None]:
         """Execute a SELECT query and return first result or None."""
         return self._query_one(sql, parameters)
 
@@ -389,7 +389,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         self._services: FlextDbOracleServices = FlextDbOracleServices(config=config)
         self._context_name = context_name or "oracle-api"
         self._logger = logger
-        self.plugins: dict[str, object] = {}
+        self._plugins: dict[str, object] = {}
         self._dispatcher: FlextDispatcher | None = None
 
         # Initialize helper instances
@@ -414,10 +414,23 @@ class FlextDbOracleApi(FlextModels.Entity):
             # Config object may be None or missing attributes
             return False
 
+    def is_valid(self) -> bool:
+        """Check if API configuration is valid - public interface."""
+        return self._is_valid()
+
     @classmethod
     def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> Self:
         """Create API instance from configuration."""
         return cls(config)
+
+    def to_dict(self) -> dict[str, object]:
+        """Convert API instance to dictionary representation.
+
+        Returns:
+            dict[str, object]: Dictionary containing API state information.
+
+        """
+        return self._to_dict()
 
     def _to_dict(self) -> dict[str, object]:
         """Convert API instance to dictionary representation."""
@@ -457,7 +470,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     @property
     def plugins(self) -> dict[str, object]:
         """Get the plugins dictionary."""
-        return self.plugins
+        return self._plugins
 
     def get_dispatcher(self) -> FlextDispatcher | None:
         """Get the dispatcher instance."""
@@ -530,7 +543,7 @@ class FlextDbOracleApi(FlextModels.Entity):
     @property
     def is_connected(self) -> bool:
         """Check if connected to the database."""
-        return self._connection_helper.is_connected_helper()
+        return self._connection_helper.is_connected_helper
 
     # Query Operations - delegate to helper
     def query(
@@ -545,7 +558,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         self,
         sql: str,
         parameters: dict[str, object] | None = None,
-    ) -> FlextResult[dict[str, object] | None]:
+    ) -> FlextResult[dict[str, object], None]:
         """Execute a SELECT query and return first result or None."""
         return self._query_helper.query_one(sql, parameters)
 
@@ -617,12 +630,44 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Convert Singer JSON Schema type to Oracle SQL type."""
         return self._services.convert_singer_type(singer_type, format_hint)
 
+    def convert_singer_type(
+        self,
+        singer_type: str | list[str],
+        format_hint: str | None = None,
+    ) -> FlextResult[str]:
+        """Convert Singer JSON Schema type to Oracle SQL type.
+
+        Args:
+            singer_type: Singer JSON Schema type definition.
+            format_hint: Optional format hint for type conversion.
+
+        Returns:
+            FlextResult[str]: Oracle SQL type or error.
+
+        """
+        return self._convert_singer_type(singer_type, format_hint)
+
     def _map_singer_schema(
         self,
         schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
         return self._services.map_singer_schema(schema)
+
+    def map_singer_schema(
+        self,
+        schema: dict[str, object],
+    ) -> FlextResult[dict[str, str]]:
+        """Map Singer JSON Schema to Oracle table schema.
+
+        Args:
+            schema: Singer JSON Schema definition.
+
+        Returns:
+            FlextResult[dict[str, str]]: Oracle table schema mapping or error.
+
+        """
+        return self._map_singer_schema(schema)
 
     # Transaction Management
     def _transaction(self) -> FlextResult[object]:
@@ -633,6 +678,15 @@ class FlextDbOracleApi(FlextModels.Entity):
         except (AttributeError, RuntimeError, ValueError) as e:
             return FlextResult.fail(f"Transaction creation failed: {e}")
 
+    def transaction(self) -> FlextResult[object]:
+        """Get a transaction context manager.
+
+        Returns:
+            FlextResult[object]: Transaction context manager or error.
+
+        """
+        return self._transaction()
+
     # Utility Methods
     def _optimize_query(self, sql: str) -> FlextResult[str]:
         """Optimize a SQL query for Oracle."""
@@ -642,9 +696,30 @@ class FlextDbOracleApi(FlextModels.Entity):
         except (AttributeError, ValueError, TypeError) as e:
             return FlextResult.fail(f"Query optimization failed: {e}")
 
+    def optimize_query(self, sql: str) -> FlextResult[str]:
+        """Optimize a SQL query for Oracle.
+
+        Args:
+            sql (str): The SQL query to optimize.
+
+        Returns:
+            FlextResult[str]: Optimized query or error.
+
+        """
+        return self._optimize_query(sql)
+
     def _get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
+
+    def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
+        """Get observability metrics for the connection.
+
+        Returns:
+            FlextResult[dict[str, object]]: Observability metrics or error.
+
+        """
+        return self._get_observability_metrics()
 
     # Configuration
 
@@ -749,12 +824,26 @@ class FlextDbOracleApi(FlextModels.Entity):
         except Exception as e:
             return FlextResult.fail(f"Health check failed: {e}")
 
+    def get_health_status(self) -> FlextResult[dict[str, object]]:
+        """Get database connection health status.
+
+        Returns:
+            FlextResult[dict[str, object]]: Health status information or error.
+
+        """
+        return self._get_health_status()
+
     @property
     def _connection(self) -> object | None:
         """Get connection object (delegates to services)."""
         if self._services.is_connected():
             return self._services
         return None
+
+    @property
+    def connection(self) -> object | None:
+        """Get connection object - public interface."""
+        return self._connection
 
     def __enter__(self) -> Self:
         """Context manager entry."""
@@ -774,6 +863,15 @@ class FlextDbOracleApi(FlextModels.Entity):
             return FlextResult.ok(self.to_dict())
         except Exception as e:
             return FlextResult.fail(f"API execution failed: {e}")
+
+    def execute(self) -> FlextResult[dict[str, object]]:
+        """Execute default domain service operation - return API status.
+
+        Returns:
+            FlextResult[dict[str, object]]: API status information or error.
+
+        """
+        return self._execute()
 
     def __repr__(self) -> str:
         """Return string representation of the API instance."""

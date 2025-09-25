@@ -166,19 +166,19 @@ class FlextDbOraclePlugins(FlextUtilities):
 
             # Create and register plugins using factory methods
             perf_result: FlextResult[object] = self.create_performance_monitor_plugin()
-            if perf_result.success:
+            if perf_result.is_success:
                 self.register_plugin("performance_monitor", perf_result.value)
                 plugin_count += 1
 
             validation_result: FlextResult[object] = (
                 self.create_data_validation_plugin()
             )
-            if validation_result.success:
+            if validation_result.is_success:
                 self.register_plugin("data_validation", validation_result.value)
                 plugin_count += 1
 
             security_result: FlextResult[object] = self.create_security_audit_plugin()
-            if security_result.success:
+            if security_result.is_success:
                 self.register_plugin("security_audit", security_result.value)
                 plugin_count += 1
 

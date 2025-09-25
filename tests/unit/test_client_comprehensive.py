@@ -525,7 +525,7 @@ class TestFlextDbOracleClientRealFunctionality:
             result = method(*args)
 
             # All methods should return FlextResult and fail gracefully without connection
-            assert hasattr(result, "success")
+            assert hasattr(result, "is_success")
             assert hasattr(result, "error") or hasattr(result, "value")
             FlextTestsMatchers.assert_result_failure(
                 result,
