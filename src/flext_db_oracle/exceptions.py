@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import override
 
 from flext_core import FlextExceptions, FlextTypes
 
@@ -46,6 +47,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class BaseError(Exception):
         """Base error class for Oracle exceptions."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -61,6 +63,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class Error(BaseError):
         """General Oracle error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -73,6 +76,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class ValidationError(BaseError):
         """Oracle validation error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -84,9 +88,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             _ = code  # Ignored - flext-core uses fixed code
             actual_code = "VALIDATION_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "field": None,
-                "value": None,
-                "validation_details": None,
+                "field": "None",
+                "value": "None",
+                "validation_details": "None",
             }
             if context:
                 # Add custom fields but preserve default field values
@@ -100,6 +104,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class ConfigurationError(BaseError):
         """Oracle configuration error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -111,8 +116,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             _ = code  # Ignored - flext-core uses fixed code
             actual_code = "CONFIGURATION_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "config_key": None,
-                "config_file": None,
+                "config_key": "None",
+                "config_file": "None",
             }
             if context:
                 actual_context.update(context)
@@ -121,6 +126,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleConnectionError(BaseError):
         """Oracle connection error (renamed to avoid builtin shadowing)."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -132,8 +138,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             _ = code  # Ignored - flext-core uses fixed code
             actual_code = "CONNECTION_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "endpoint": None,
-                "service": None,
+                "endpoint": "None",
+                "service": "None",
             }
             if context:
                 actual_context.update(context)
@@ -142,6 +148,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class AuthenticationError(BaseError):
         """Oracle authentication error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -153,8 +160,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             _ = code  # Ignored - flext-core uses fixed code
             actual_code = "AUTHENTICATION_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "auth_method": None,
-                "user": None,
+                "auth_method": "None",
+                "user": "None",
             }
             if context:
                 actual_context.update(context)
@@ -163,6 +170,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class ProcessingError(BaseError):
         """Oracle processing error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -177,8 +185,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             else:
                 actual_code = "PROCESSING_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "business_rule": None,
-                "stage": None,
+                "business_rule": "None",
+                "stage": "None",
             }
             if context:
                 actual_context.update(context)
@@ -187,6 +195,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleTimeoutError(BaseError):
         """Oracle timeout error (renamed to avoid builtin shadowing)."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -201,8 +210,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             else:
                 actual_code = "TIMEOUT_ERROR"
             actual_context: FlextTypes.Core.Dict = {
-                "timeout_seconds": None,
-                "operation": None,
+                "timeout_seconds": "None",
+                "operation": "None",
             }
             if context:
                 actual_context.update(context)
@@ -211,6 +220,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class QueryError(ProcessingError):
         """Oracle query error."""
 
+        @override
         def __init__(
             self,
             message: str,
@@ -224,6 +234,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     class MetadataError(ProcessingError):
         """Oracle metadata error."""
 
+        @override
         def __init__(
             self,
             message: str,

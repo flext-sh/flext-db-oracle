@@ -9,7 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
 import re
 from datetime import datetime
 from typing import ClassVar
@@ -20,6 +19,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from flext_core import FlextModels, FlextResult
 
 from .constants import FlextDbOracleConstants
+
+# Import for standardized configuration usage
 
 
 class FlextDbOracleModels(FlextModels):
@@ -127,19 +128,35 @@ class FlextDbOracleModels(FlextModels):
             cls,
             prefix: str = "ORACLE",
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
-            """Create OracleConfig from environment variables with optional prefix."""
+            """Create OracleConfig from environment variables using FlextDbOracleConfig.
+
+            DEPRECATED: Use FlextDbOracleConfig directly for standardized configuration.
+            This method now uses FlextDbOracleConfig internally to maintain consistency.
+
+            Args:
+                prefix: Environment variable prefix (deprecated, not used with FlextDbOracleConfig)
+
+            """
+            _ = prefix  # Parameter required by API but not used in standardized config
             try:
-                # Type-safe config creation using prefix
+                # Lazy import to avoid circular imports
+                from .config import FlextDbOracleConfig  # noqa: PLC0415
+
+                # Use the standardized FlextDbOracleConfig instead of direct os.getenv
+                # Note: FlextDbOracleConfig uses its own standardized env prefix pattern
+                standardized_config = FlextDbOracleConfig()
+
+                # Map from FlextDbOracleConfig to OracleConfig for backward compatibility
                 config = cls(
-                    host=os.getenv(f"{prefix}_HOST", "localhost"),
-                    port=int(os.getenv(f"{prefix}_PORT", "1521")),
-                    name=os.getenv(f"{prefix}_DB", "XE"),
-                    username=os.getenv(f"{prefix}_USER", "flext_user"),
-                    password=os.getenv(f"{prefix}_PASSWORD", ""),
-                    service_name=os.getenv(f"{prefix}_SERVICE_NAME"),
-                    pool_min=int(os.getenv(f"{prefix}_POOL_MIN", "2")),
-                    pool_max=int(os.getenv(f"{prefix}_POOL_MAX", "20")),
-                    timeout=int(os.getenv(f"{prefix}_TIMEOUT", "60")),
+                    host=standardized_config.oracle_host,
+                    port=standardized_config.oracle_port,
+                    name=standardized_config.oracle_database_name,
+                    username=standardized_config.oracle_username,
+                    password=standardized_config.oracle_password.get_secret_value(),
+                    service_name=standardized_config.oracle_service_name,
+                    pool_min=standardized_config.pool_min,
+                    pool_max=standardized_config.pool_max,
+                    timeout=standardized_config.pool_timeout,
                     domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
@@ -164,7 +181,7 @@ class FlextDbOracleModels(FlextModels):
 
                 # Parse user:password@host:port/service_name
                 if "@" in url_parts:
-                    user_pass, host_port_service = url_parts.split("@", 1)
+                    host_port_service, user_pass = url_parts.split("@", 1)
                     if ":" in user_pass:
                         user, password = user_pass.split(":", 1)
                     else:
@@ -177,7 +194,7 @@ class FlextDbOracleModels(FlextModels):
 
                 # Parse host:port/service_name
                 if "/" in host_port_service:
-                    host_port, service_name = host_port_service.split("/", 1)
+                    service_name, host_port = host_port_service.split("/", 1)
                 else:
                     host_port = host_port_service
                     service_name = None
@@ -651,9 +668,9 @@ class FlextDbOracleModels(FlextModels):
                     "oracle_pool_max_size": 10,
                     "oracle_pool_timeout": 30,
                     "oracle_query_timeout": 60,
-                    "oracle_echo_queries": True,  # OK for development
-                    "oracle_log_queries": True,  # OK for development
-                    "oracle_ssl_verify": False,  # OK for local development
+                    "oracle_echo_queries": "True",  # OK for development
+                    "oracle_log_queries": "True",  # OK for development
+                    "oracle_ssl_verify": "False",  # OK for local development
                 },
             )
 
@@ -673,10 +690,10 @@ class FlextDbOracleModels(FlextModels):
                     "oracle_pool_max_size": 50,
                     "oracle_pool_timeout": 60,
                     "oracle_query_timeout": 300,
-                    "oracle_echo_queries": False,
-                    "oracle_log_queries": False,
-                    "oracle_ssl_verify": True,
-                    "oracle_enable_metrics": True,
+                    "oracle_echo_queries": "False",
+                    "oracle_log_queries": "False",
+                    "oracle_ssl_verify": "True",
+                    "oracle_enable_metrics": "True",
                     "oracle_slow_query_threshold": 2.0,
                 },
             )

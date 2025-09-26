@@ -9,7 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import Field, ValidationInfo, field_validator
+import threading
+from typing import ClassVar
+
+from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
 from flext_core import FlextConfig, FlextResult
@@ -23,6 +26,10 @@ class FlextDbOracleConfig(FlextConfig):
     connection settings, pool configuration, performance tuning, and security.
     Uses Pydantic BaseSettings for validation and environment variable support.
     """
+
+    # Singleton pattern attributes
+    _global_instance: ClassVar[FlextDbOracleConfig | None] = None
+    _lock: ClassVar[threading.Lock] = threading.Lock()
 
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_DB_ORACLE_",
@@ -46,7 +53,7 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Oracle Connection Configuration
     oracle_host: str = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_HOST,
+        default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
         description="Oracle database hostname or IP address",
     )
 
@@ -77,9 +84,9 @@ class FlextDbOracleConfig(FlextConfig):
         description="Oracle database username",
     )
 
-    oracle_password: str = Field(
-        default="",
-        description="Oracle database password",
+    oracle_password: SecretStr = Field(
+        default_factory=lambda: SecretStr(""),
+        description="Oracle database password (sensitive)",
     )
 
     oracle_charset: str = Field(
@@ -118,28 +125,28 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Performance Configuration
     query_timeout: int = Field(
-        default=FlextDbOracleConstants.Performance.DEFAULT_QUERY_TIMEOUT,
+        default=FlextDbOracleConstants.Defaults.DEFAULT_QUERY_TIMEOUT,
         ge=1,
         le=3600,
         description="Query timeout in seconds",
     )
 
     fetch_size: int = Field(
-        default=FlextDbOracleConstants.Performance.DEFAULT_FETCH_SIZE,
+        default=FlextDbOracleConstants.Query.DEFAULT_ARRAY_SIZE,
         ge=1,
         le=10000,
         description="Default fetch size for queries",
     )
 
     max_retries: int = Field(
-        default=FlextDbOracleConstants.Performance.DEFAULT_MAX_RETRIES,
+        default=3,
         ge=0,
         le=10,
         description="Maximum number of retry attempts",
     )
 
     retry_delay: float = Field(
-        default=FlextDbOracleConstants.Performance.DEFAULT_RETRY_DELAY,
+        default=1.0,
         ge=0.1,
         le=60.0,
         description="Delay between retry attempts in seconds",
@@ -147,12 +154,12 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Security Configuration
     use_ssl: bool = Field(
-        default=FlextDbOracleConstants.Security.DEFAULT_USE_SSL,
+        default=False,
         description="Use SSL/TLS for database connection",
     )
 
     ssl_verify: bool = Field(
-        default=FlextDbOracleConstants.Security.DEFAULT_SSL_VERIFY,
+        default=True,
         description="Verify SSL certificates",
     )
 
@@ -173,29 +180,29 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Logging Configuration
     log_queries: bool = Field(
-        default=FlextDbOracleConstants.Logging.DEFAULT_LOG_QUERIES,
+        default=False,
         description="Log SQL queries",
     )
 
     log_query_params: bool = Field(
-        default=FlextDbOracleConstants.Logging.DEFAULT_LOG_QUERY_PARAMS,
+        default=False,
         description="Log query parameters",
     )
 
     log_performance: bool = Field(
-        default=FlextDbOracleConstants.Logging.DEFAULT_LOG_PERFORMANCE,
+        default=False,
         description="Log query performance metrics",
     )
 
     performance_threshold_warning: float = Field(
-        default=FlextDbOracleConstants.Logging.DEFAULT_PERFORMANCE_THRESHOLD_WARNING,
+        default=5.0,
         ge=0.1,
         le=60.0,
         description="Performance warning threshold in seconds",
     )
 
     performance_threshold_critical: float = Field(
-        default=FlextDbOracleConstants.Logging.DEFAULT_PERFORMANCE_THRESHOLD_CRITICAL,
+        default=30.0,
         ge=0.1,
         le=300.0,
         description="Performance critical threshold in seconds",
@@ -265,7 +272,7 @@ class FlextDbOracleConfig(FlextConfig):
         if not self.oracle_username:
             return FlextResult[None].fail("Oracle username is required")
 
-        if not self.oracle_password:
+        if not self.oracle_password.get_secret_value():
             return FlextResult[None].fail("Oracle password is required")
 
         # Validate pool configuration
@@ -295,3 +302,43 @@ class FlextDbOracleConfig(FlextConfig):
         if self.oracle_sid:
             return f"{self.oracle_host}:{self.oracle_port}:{self.oracle_sid}"
         return f"{self.oracle_host}:{self.oracle_port}"
+
+    def get_connection_config(self) -> dict[str, object]:
+        """Get connection configuration (without exposing secrets)."""
+        return {
+            "host": self.oracle_host,
+            "port": self.oracle_port,
+            "service_name": self.oracle_service_name,
+            "database_name": self.oracle_database_name,
+            "sid": self.oracle_sid,
+            "username": self.oracle_username,
+            "charset": self.oracle_charset,
+            "password_configured": bool(self.oracle_password.get_secret_value()),
+        }
+
+    @classmethod
+    def create_for_environment(
+        cls, environment: str, **overrides: object
+    ) -> FlextDbOracleConfig:
+        """Create configuration for specific environment."""
+        return cls(environment=environment, **overrides)
+
+    @classmethod
+    def create_default(cls) -> FlextDbOracleConfig:
+        """Create default configuration instance."""
+        return cls()
+
+    # Singleton pattern override for proper typing
+    @classmethod
+    def get_global_instance(cls) -> FlextDbOracleConfig:
+        """Get the global singleton instance of FlextDbOracleConfig."""
+        if cls._global_instance is None:
+            with cls._lock:
+                if cls._global_instance is None:
+                    cls._global_instance = cls()
+        return cls._global_instance
+
+    @classmethod
+    def reset_global_instance(cls) -> None:
+        """Reset the global FlextDbOracleConfig instance (mainly for testing)."""
+        cls._global_instance = None

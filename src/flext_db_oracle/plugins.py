@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 from flext_core import FlextResult, FlextTypes, FlextUtilities
 
 
@@ -18,12 +20,13 @@ class FlextDbOraclePlugins(FlextUtilities):
     Provides unified plugin management interface.
     """
 
+    @override
     def __init__(self: object) -> None:
         """Initialize Oracle plugins system."""
         self._plugins: FlextTypes.Core.Dict = {}
 
     # Factory methods ELIMINATED - create plugin data directly as dicts:
-    # {"name": "performance_monitor", "version": "1.0.0", "type": "monitoring",
+    # {"name": "performance_monitor", "version": 1.0.0, "type": "monitoring",
     #  "capabilities": ["query_tracking", "performance_metrics", "alerting"]}
 
     def register_plugin(

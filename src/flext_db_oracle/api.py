@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Callable, Sequence
-from typing import Self, cast
+from typing import Self, cast, override
 
 from flext_core import (
     FlextConstants,
@@ -34,6 +34,11 @@ logger = FlextLogger(__name__)
 class _ConnectionHelper:
     """Helper class for connection management operations."""
 
+    @override
+    @override
+    @override
+    @override
+    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api: FlextDbOracleApi = api
 
@@ -102,6 +107,11 @@ class _ConnectionHelper:
 class _QueryHelper:
     """Helper class for query operations."""
 
+    @override
+    @override
+    @override
+    @override
+    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api = api
 
@@ -113,7 +123,7 @@ class _QueryHelper:
         """Execute a SELECT query and return all results.
 
         Returns:
-            FlextResult[list[dict[str, object]]]: Success result with query results.
+            FlextResult[list[dict["str", "object"]]]: Success result with query results.
 
         """
         params = parameters or {}
@@ -130,7 +140,7 @@ class _QueryHelper:
         """Execute a SELECT query and return first result or None.
 
         Returns:
-            FlextResult[dict[str, object], None]: Success result with first row or None.
+            FlextResult[dict["str", "object"], None]: Success result with first row or None.
 
         """
         params = parameters or {}
@@ -242,6 +252,11 @@ class _QueryHelper:
 class _MetadataHelper:
     """Helper class for metadata operations."""
 
+    @override
+    @override
+    @override
+    @override
+    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api = api
 
@@ -317,6 +332,11 @@ class _MetadataHelper:
 class _PluginHelper:
     """Helper class for plugin management."""
 
+    @override
+    @override
+    @override
+    @override
+    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api = api
 
@@ -378,6 +398,11 @@ class _PluginHelper:
 class FlextDbOracleApi(FlextModels.Entity):
     """Oracle Database API with clean delegation to services layer."""
 
+    @override
+    @override
+    @override
+    @override
+    @override
     def __init__(
         self,
         config: FlextDbOracleModels.OracleConfig,
@@ -427,7 +452,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Convert API instance to dictionary representation.
 
         Returns:
-            dict[str, object]: Dictionary containing API state information.
+            dict["str", "object"]: Dictionary containing API state information.
 
         """
         return self._to_dict()
@@ -442,7 +467,7 @@ class FlextDbOracleApi(FlextModels.Entity):
                 "username": self._config.username,
                 # Note: not exposing password for security
             },
-            "connected": False,  # Would require connection check
+            "connected": "False",  # Would require connection check
             "plugin_count": len(self.plugins),
         }
 
@@ -664,7 +689,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             schema: Singer JSON Schema definition.
 
         Returns:
-            FlextResult[dict[str, str]]: Oracle table schema mapping or error.
+            FlextResult[dict["str", "str"]]: Oracle table schema mapping or error.
 
         """
         return self._map_singer_schema(schema)
@@ -716,7 +741,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Get observability metrics for the connection.
 
         Returns:
-            FlextResult[dict[str, object]]: Observability metrics or error.
+            FlextResult[dict["str", "object"]]: Observability metrics or error.
 
         """
         return self._get_observability_metrics()
@@ -828,7 +853,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Get database connection health status.
 
         Returns:
-            FlextResult[dict[str, object]]: Health status information or error.
+            FlextResult[dict["str", "object"]]: Health status information or error.
 
         """
         return self._get_health_status()
@@ -864,15 +889,17 @@ class FlextDbOracleApi(FlextModels.Entity):
         except Exception as e:
             return FlextResult.fail(f"API execution failed: {e}")
 
+    @override
     def execute(self) -> FlextResult[dict[str, object]]:
         """Execute default domain service operation - return API status.
 
         Returns:
-            FlextResult[dict[str, object]]: API status information or error.
+            FlextResult[dict["str", "object"]]: API status information or error.
 
         """
         return self._execute()
 
+    @override
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
         connection_status = "connected" if self.is_connected else "disconnected"

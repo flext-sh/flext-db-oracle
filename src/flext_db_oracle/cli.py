@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Protocol
+from typing import Protocol, override
 
 import yaml
 
@@ -37,6 +37,7 @@ class FlextDbOracleCliService(FlextService[str]):
     - flext-cli for ALL output formatting and user interaction
     """
 
+    @override
     def __init__(self: object) -> None:
         """Initialize Oracle CLI Service."""
         super().__init__()
@@ -133,6 +134,7 @@ class FlextDbOracleCliService(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
+        @override
         def __init__(self, cli_main: FlextCliCommands | None = None) -> None:
             """Initialize output formatter without external dependencies."""
             self._cli_main = cli_main
@@ -186,11 +188,11 @@ class FlextDbOracleCliService(FlextService[str]):
                 return FlextResult[str].ok("\n".join(output_lines))
             if output_format == "json":
                 # Simple JSON formatting
-                data = {"title": title, "items": string_items}
+                data = {"title": "title", "items": "string_items"}
                 return FlextResult[str].ok(json.dumps(data, indent=2))
             if output_format == "yaml":
                 # Simple YAML formatting - yaml is always available since imported
-                data = {"title": title, "items": string_items}
+                data = {"title": "title", "items": "string_items"}
                 return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
             # Plain format
             output_lines = [title, *string_items]
@@ -504,7 +506,7 @@ class FlextDbOracleCliService(FlextService[str]):
 
         # Format result using specified output format
         formatted_result = formatter.format_data(
-            {"rows": row_count, "result": result},
+            {"rows": "row_count", "result": "result"},
             output_format,
         )
         if formatted_result.is_success:
@@ -512,6 +514,7 @@ class FlextDbOracleCliService(FlextService[str]):
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
+    @override
     def execute(self: object) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 

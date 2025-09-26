@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import override
 
 from flext_core import FlextMixins, FlextResult, FlextTypes
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -121,6 +122,7 @@ class FlextDbOracleMixins(FlextMixins):
     class ErrorTransformer:
         """Error context transformation using flext-core Result patterns."""
 
+        @override
         def __init__(self, context: str) -> None:
             """Initialize error context transformer."""
             self.context = context

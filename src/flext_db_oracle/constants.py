@@ -111,7 +111,7 @@ class FlextDbOracleConstants(FlextConstants):
 
         # Field validation
         MIN_COLUMN_FIELDS: Final[int] = (
-            4  # Required fields: name, type, length, nullable
+            4  # Required fields: "name", type, length, nullable
         )
         COLUMN_METADATA_FIELD_COUNT: Final[int] = 7  # Complete metadata fields count
 
@@ -217,8 +217,12 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
         PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
         MAX_DISPLAY_ROWS: Final[int] = 1000
-        DEFAULT_BATCH_SIZE: Final[int] = 100
-        MAX_BATCH_SIZE: Final[int] = 10000
+        DEFAULT_BATCH_SIZE: Final[int] = (
+            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextConstants
+        MAX_BATCH_SIZE: Final[int] = (
+            FlextConstants.Performance.BatchProcessing.MAX_ITEMS
+        )  # Reference FlextConstants
         DEFAULT_POOL_RECYCLE: Final[int] = 3600  # 1 hour
 
         # Oracle hints
@@ -285,12 +289,16 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_POOL_MIN: Final[int] = 2
         DEFAULT_POOL_MAX: Final[int] = 20
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
-        DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
+        DEFAULT_CONNECTION_TIMEOUT: Final[int] = (
+            FlextConstants.Network.DEFAULT_TIMEOUT
+        )  # Reference FlextConstants
 
         # Query defaults
         DEFAULT_QUERY_TIMEOUT: Final[int] = 60
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
-        DEFAULT_BATCH_SIZE: Final[int] = 100
+        DEFAULT_BATCH_SIZE: Final[int] = (
+            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextConstants
 
         # Performance defaults
         DEFAULT_COMMIT_SIZE: Final[int] = 1000

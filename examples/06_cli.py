@@ -15,8 +15,6 @@ import os
 import sys
 from pathlib import Path
 
-from flext_core import FlextTypes
-
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 

@@ -13,7 +13,7 @@ TESTS_DIR := tests
 COV_DIR := flext_db_oracle
 
 # Quality Standards
-MIN_COVERAGE := 90
+MIN_COVERAGE := 100
 
 # Oracle Configuration
 ORACLE_HOST := localhost
@@ -39,7 +39,7 @@ info: ## Show project information
 	@echo "Project: $(PROJECT_NAME)"
 	@echo "Python: $(PYTHON_VERSION)+"
 	@echo "Poetry: $(POETRY)"
-	@echo "Coverage: $(MIN_COVERAGE)% minimum"
+	@echo "Coverage: $(MIN_COVERAGE)% minimum (MANDATORY)"
 	@echo "Oracle: $(ORACLE_HOST):$(ORACLE_PORT)/$(ORACLE_SERVICE)"
 	@echo "Architecture: Clean Architecture + DDD + SQLAlchemy 2"
 
@@ -60,26 +60,26 @@ setup: install-dev ## Complete project setup
 	$(POETRY) run pre-commit install
 
 # =============================================================================
-# QUALITY GATES (MANDATORY)
+# QUALITY GATES (MANDATORY - ZERO TOLERANCE)
 # =============================================================================
 
 .PHONY: validate
-validate: lint type-check security test ## Run all quality gates
+validate: lint type-check security test ## Run all quality gates (MANDATORY ORDER)
 
 .PHONY: check
 check: lint type-check ## Quick health check
 
 .PHONY: lint
-lint: ## Run linting
-	$(POETRY) run ruff check $(SRC_DIR) $(TESTS_DIR)
+lint: ## Run linting (ZERO TOLERANCE)
+	$(POETRY) run ruff check .
 
 .PHONY: format
 format: ## Format code
-	$(POETRY) run ruff format $(SRC_DIR) $(TESTS_DIR)
+	$(POETRY) run ruff format .
 
 .PHONY: type-check
-type-check: ## Run type checking
-	$(POETRY) run mypy $(SRC_DIR) --strict
+type-check: ## Run type checking with Pyrefly (ZERO TOLERANCE)
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pyrefly check .
 
 .PHONY: security
 security: ## Run security scanning
@@ -88,24 +88,24 @@ security: ## Run security scanning
 
 .PHONY: fix
 fix: ## Auto-fix issues
-	$(POETRY) run ruff check $(SRC_DIR) $(TESTS_DIR) --fix
-	$(POETRY) run ruff format $(SRC_DIR) $(TESTS_DIR)
+	$(POETRY) run ruff check . --fix
+	$(POETRY) run ruff format .
 
 # =============================================================================
-# TESTING
+# TESTING (MANDATORY - 100% COVERAGE)
 # =============================================================================
 
 .PHONY: test
-test: ## Run tests with coverage
-	$(POETRY) run pytest $(TESTS_DIR) --cov=$(COV_DIR) --cov-report=term-missing --cov-fail-under=$(MIN_COVERAGE)
+test: ## Run tests with 100% coverage (MANDATORY)
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest -q --maxfail=10000 --cov=$(COV_DIR) --cov-report=term-missing:skip-covered --cov-fail-under=$(MIN_COVERAGE)
 
 .PHONY: test-unit
 test-unit: ## Run unit tests
-	$(POETRY) run pytest $(TESTS_DIR) -m "not integration" -v
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest -m "not integration" -v
 
 .PHONY: test-integration
-test-integration: ## Run integration tests
-	$(POETRY) run pytest $(TESTS_DIR) -m integration -v
+test-integration: ## Run integration tests with Docker
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest -m integration -v
 
 .PHONY: test-e2e
 test-e2e: ## Run end-to-end tests
@@ -113,11 +113,11 @@ test-e2e: ## Run end-to-end tests
 
 .PHONY: test-fast
 test-fast: ## Run tests without coverage
-	$(POETRY) run pytest $(TESTS_DIR) -v
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest -v
 
 .PHONY: coverage-html
 coverage-html: ## Generate HTML coverage report
-	$(POETRY) run pytest $(TESTS_DIR) --cov=$(COV_DIR) --cov-report=html
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest --cov=$(COV_DIR) --cov-report=html
 
 # =============================================================================
 # BUILD & DISTRIBUTION
@@ -136,19 +136,19 @@ build-clean: clean build ## Clean and build
 
 .PHONY: oracle-test
 oracle-test: ## Test Oracle connection
-	$(POETRY) run python -c "from flext_db_oracle import FlextDbOracleApi; print('Oracle test passed')"
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle import FlextDbOracleApi; print('Oracle test passed')"
 
 .PHONY: oracle-connect
 oracle-connect: ## Test Oracle connection
-	$(POETRY) run python -c "from flext_db_oracle.connection import test_connection; test_connection()"
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle.connection import test_connection; test_connection()"
 
 .PHONY: oracle-schema
 oracle-schema: ## Validate Oracle schema access
-	$(POETRY) run python -c "from flext_db_oracle.metadata import get_schema_info; print('Schema access OK')"
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle.metadata import get_schema_info; print('Schema access OK')"
 
 .PHONY: oracle-validate
 oracle-validate: ## Validate Oracle configuration
-	$(POETRY) run python -c "from flext_db_oracle.config import FlextDbOracleConfig; print('Config valid')"
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle.config import FlextDbOracleConfig; print('Config valid')"
 
 .PHONY: oracle-operations
 oracle-operations: oracle-validate oracle-connect oracle-schema ## Run all Oracle validations
@@ -187,7 +187,7 @@ deps-audit: ## Audit dependencies
 
 .PHONY: shell
 shell: ## Open Python shell
-	$(POETRY) run python
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python
 
 .PHONY: pre-commit
 pre-commit: ## Run pre-commit hooks
@@ -199,7 +199,7 @@ pre-commit: ## Run pre-commit hooks
 
 .PHONY: clean
 clean: ## Clean build artifacts
-	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ .coverage .mypy_cache/ .ruff_cache/
+	rm -rf build/ dist/ *.egg-info/ .pytest_cache/ htmlcov/ .coverage .mypy_cache/ .pyrefly_cache/ .ruff_cache/
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 
@@ -218,7 +218,7 @@ reset: clean-all setup ## Reset project
 diagnose: ## Project diagnostics
 	@echo "Python: $$(python --version)"
 	@echo "Poetry: $$($(POETRY) --version)"
-	@echo "Oracle Client: $$($(POETRY) run python -c 'import oracledb; print(oracledb.__version__)' 2>/dev/null || echo 'Not available')"
+	@echo "Oracle Client: $$(PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c 'import oracledb; print(oracledb.__version__)' 2>/dev/null || echo 'Not available')"
 	@$(POETRY) env info
 
 .PHONY: doctor

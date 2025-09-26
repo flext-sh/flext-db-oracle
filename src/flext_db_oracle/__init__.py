@@ -13,10 +13,13 @@ from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.mixins import FlextDbOracleMixins
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, FlextDbOracleModels as Models
 from flext_db_oracle.plugins import FlextDbOraclePlugins
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.utilities import FlextDbOracleUtilities
+
+# Export OracleConfig for backward compatibility
+OracleConfig = FlextDbOracleModels.OracleConfig
 
 # ZERO TOLERANCE: No aliases - use unified classes directly
 
@@ -32,4 +35,6 @@ __all__ = [
     "FlextDbOraclePlugins",
     "FlextDbOracleServices",
     "FlextDbOracleUtilities",
+    "Models",
+    "OracleConfig",
 ]
