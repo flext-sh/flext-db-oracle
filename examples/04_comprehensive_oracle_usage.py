@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 logger = FlextLogger(__name__)
@@ -79,7 +80,7 @@ def demonstrate_basic_operations() -> None:
     # Execute domain service
     result = processor.execute()
 
-    if result.success:
+    if result.is_success:
         logger.info(f"✅ Oracle operations completed: {result.value}")
     else:
         logger.error(f"❌ Oracle operations failed: {result.error}")

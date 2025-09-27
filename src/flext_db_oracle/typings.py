@@ -155,7 +155,7 @@ class FlextDbOracleTypes(FlextTypes):
     # ORACLE PROJECT TYPES - Domain-specific project types extending FlextTypes
     # =========================================================================
 
-    class Project(FlextTypes.Project):
+    class OracleProject:
         """Oracle database-specific project types extending FlextTypes.Project.
 
         Adds Oracle database-specific project types while inheriting generic types

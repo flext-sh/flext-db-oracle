@@ -17,23 +17,25 @@ from typing import ClassVar, Final, Literal
 from flext_core import FlextConstants, FlextTypes
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants:
     """Oracle database constants following Flext[Area][Module] pattern.
 
-    Single class inheriting from FlextConstants with all Oracle-specific
-    constants as internal nested classes, following SOLID principles,
-    PEP8, Python 3.13+, and FLEXT structural patterns.
+    Single class with all Oracle-specific constants as internal nested classes,
+    following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
     This class consolidates all Oracle database constants functionality
     into a single entry point with internal organization.
 
     **STANDARDIZATION NOTES**:
-    - Inherits from FlextConstants to avoid duplication
+    - Uses composition with FlextConstants to avoid inheritance conflicts
     - Uses Final for immutable constants
     - Uses StrEnum for type-safe enumerations
     - Uses Literal for type-safe string literals
     - Consolidates all Oracle-specific constants in one place
     """
+
+    # Reference to FlextConstants for inheritance-free access
+    _flext_constants = FlextConstants
 
     class Connection:
         """Oracle connection configuration constants."""
@@ -43,6 +45,8 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_PORT: Final[int] = 1521
         DEFAULT_DATABASE_NAME: Final[str] = "XE"
         DEFAULT_SID: Final[str] = "XE"
+        DEFAULT_USERNAME: Final[str] = "system"
+        DEFAULT_TIMEOUT: Final[int] = 30
 
         DEFAULT_POOL_INCREMENT: Final[int] = 1
         DEFAULT_POOL_MIN: Final[int] = 2
@@ -68,6 +72,7 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
         DEFAULT_QUERY_TIMEOUT: Final[int] = 60
         MAX_QUERY_TIMEOUT: Final[int] = 3600  # Maximum query timeout (1 hour)
+        MAX_QUERY_ROWS: Final[int] = 100000  # Maximum rows per query
 
     class DataTypes:
         """Oracle data type constants and mappings."""
@@ -281,6 +286,7 @@ class FlextDbOracleConstants(FlextConstants):
         # Connection defaults
         DEFAULT_HOST: Final[str] = "localhost"
         DEFAULT_PORT: Final[int] = 1521
+        DEFAULT_USERNAME: Final[str] = "system"
         DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
         DEFAULT_DATABASE_NAME: Final[str] = "XE"
         DEFAULT_SID: Final[str] = "XE"

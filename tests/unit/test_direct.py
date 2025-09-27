@@ -38,6 +38,7 @@ class TestDirectCoverageBoostAPI:
             username="invalid",
             password="invalid",
             service_name="INVALID",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(bad_config)
@@ -148,6 +149,7 @@ class TestDirectCoverageBoostConfig:
                     username=user,
                     password=password,
                     service_name=service_name,
+                    domain_events=[],
                 )
                 # Should create config or fail gracefully
                 assert config is not None
@@ -180,6 +182,7 @@ class TestDirectCoverageBoostConfig:
                 username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
                 password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
+                domain_events=[],
             )
 
             assert config.host == "test_host"
@@ -204,7 +207,7 @@ class TestDirectCoverageBoostConnection:
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         # Test multiple connect/disconnect cycles
         for _i in range(3):
@@ -226,9 +229,10 @@ class TestDirectCoverageBoostConnection:
             username="invalid",
             password="invalid",
             service_name="invalid",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=bad_config)
+        connection = FlextDbOracleServices(config=bad_config, domain_events=[])
 
         # Test operations on invalid connection
         operations = [
@@ -268,6 +272,7 @@ class TestDirectCoverageBoostTypes:
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
+                domain_events=[],
             )
             assert column.name == "TEST_COLUMN"
         except (TypeError, ValueError):
@@ -280,6 +285,7 @@ class TestDirectCoverageBoostTypes:
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[],  # Empty columns
+                domain_events=[],
             )
             assert table.name == "TEST_TABLE"
         except (TypeError, ValueError):
@@ -294,6 +300,7 @@ class TestDirectCoverageBoostTypes:
                 data_type="NUMBER",
                 nullable=False,
                 default_value="0",
+                domain_events=[],
             )
             assert hasattr(column2, "name")
             assert hasattr(column2, "data_type")
@@ -308,6 +315,7 @@ class TestDirectCoverageBoostTypes:
             name="ID",
             data_type="NUMBER",
             nullable=False,
+            domain_events=[],
         )
 
         # Test actual properties that exist on Column model
@@ -328,6 +336,7 @@ class TestDirectCoverageBoostTypes:
             data_type="VARCHAR2",
             nullable=True,
             default_value="DEFAULT_VALUE",
+            domain_events=[],
         )
         assert column_with_default.default_value == "DEFAULT_VALUE"
 
@@ -346,6 +355,7 @@ class TestDirectCoverageBoostObservability:
                 username="test",
                 password="test",
                 ssl_server_cert_dn=None,
+                domain_events=[],
             )
             api = FlextDbOracleApi(config)
 
@@ -400,9 +410,10 @@ class TestDirectCoverageBoostServices:
             username="coverage_user",
             password="coverage_pass",
             ssl_server_cert_dn=None,
+            domain_events=[],
         )
 
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
         assert services is not None
 
         # Test available service classes
@@ -422,8 +433,9 @@ class TestDirectCoverageBoostServices:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test identifier validation with various inputs
         test_identifiers = ["valid_table", "VALID_TABLE", "table123", "test_col"]
@@ -467,6 +479,7 @@ class TestDirectCoverageBoostServices:
                     username="user",
                     password="pass",
                     ssl_server_cert_dn=None,
+                    domain_events=[],
                 ),
             )
             .build(),
@@ -480,6 +493,7 @@ class TestDirectCoverageBoostServices:
                     username="a",  # Minimal user
                     password="b",  # Minimal password
                     ssl_server_cert_dn="test_dn",  # With SSL
+                    domain_events=[],
                 ),
             )
             .build(),
@@ -498,7 +512,7 @@ class TestDirectCoverageBoostServices:
                 result.value,
             )
 
-            services = FlextDbOracleServices(config=config)
+            services = FlextDbOracleServices(config=config, domain_events=[])
 
             # Test services initialization
             assert services is not None
@@ -525,9 +539,10 @@ class TestDirectCoverageBoostServices:
             username="user",
             password="pass",
             ssl_server_cert_dn=None,
+            domain_events=[],
         )
 
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test all SQL generation methods
         sql_test_cases = [

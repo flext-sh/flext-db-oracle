@@ -17,10 +17,7 @@ from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_core import FlextModels, FlextResult
-
-from .constants import FlextDbOracleConstants
-
-# Import for standardized configuration usage
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleModels(FlextModels):
@@ -64,19 +61,19 @@ class FlextDbOracleModels(FlextModels):
     OracleValidation = _OracleValidation
 
     # Base models from flext-core
-    Entity: ClassVar[type] = FlextModels.Entity
-    Value: ClassVar[type] = FlextModels.Value
+    Entity: ClassVar[type[FlextModels.Entity]] = FlextModels.Entity
+    Value: ClassVar[type[FlextModels.Value]] = FlextModels.Value
 
     # Database configuration from flext-core
     DatabaseConfig: ClassVar[type] = FlextModels.Entity
 
     # Oracle-specific field definitions using flext-core patterns
     host_field: ClassVar[object] = Field(
-        default="localhost",
+        default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
         description="Oracle database host",
     )
     port_field: ClassVar[object] = Field(
-        default=1521,
+        default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
         description="Oracle database port",
     )
     username_field: ClassVar[object] = Field(
@@ -88,7 +85,7 @@ class FlextDbOracleModels(FlextModels):
         description="Oracle database password",
     )
     service_name_field: ClassVar[object] = Field(
-        default="XE",
+        default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
         description="Oracle service name",
     )
 
@@ -96,9 +93,18 @@ class FlextDbOracleModels(FlextModels):
         """Oracle-specific configuration extending flext-core DatabaseConfig with pydantic-settings support."""
 
         # Oracle-specific defaults using flext-core field validation
-        host: str = Field(default="localhost", description="Oracle database host")
-        port: int = Field(default=1521, description="Oracle database port")
-        name: str = Field(default="XE", description="Oracle database name")
+        host: str = Field(
+            default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+            description="Oracle database host",
+        )
+        port: int = Field(
+            default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
+            description="Oracle database port",
+        )
+        name: str = Field(
+            default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+            description="Oracle database name",
+        )
 
         # Authentication fields
         username: str = Field(description="Oracle database username")
@@ -119,9 +125,18 @@ class FlextDbOracleModels(FlextModels):
         )
 
         # Connection pool configuration
-        pool_min: int = Field(default=2, description="Minimum pool size")
-        pool_max: int = Field(default=20, description="Maximum pool size")
-        timeout: int = Field(default=60, description="Connection timeout in seconds")
+        pool_min: int = Field(
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
+            description="Minimum pool size",
+        )
+        pool_max: int = Field(
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MAX,
+            description="Maximum pool size",
+        )
+        timeout: int = Field(
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_TIMEOUT,
+            description="Connection timeout in seconds",
+        )
 
         @classmethod
         def from_env(
@@ -131,7 +146,7 @@ class FlextDbOracleModels(FlextModels):
             """Create OracleConfig from environment variables using FlextDbOracleConfig.
 
             DEPRECATED: Use FlextDbOracleConfig directly for standardized configuration.
-            This method now uses FlextDbOracleConfig internally to maintain consistency.
+            This method now uses FlextDbOracleConfig enhanced singleton pattern internally.
 
             Args:
                 prefix: Environment variable prefix (deprecated, not used with FlextDbOracleConfig)
@@ -139,28 +154,29 @@ class FlextDbOracleModels(FlextModels):
             """
             _ = prefix  # Parameter required by API but not used in standardized config
             try:
-                # Lazy import to avoid circular imports
+                # Import at runtime to avoid circular imports
                 from .config import FlextDbOracleConfig  # noqa: PLC0415
 
-                # Use the standardized FlextDbOracleConfig instead of direct os.getenv
-                # Note: FlextDbOracleConfig uses its own standardized env prefix pattern
-                standardized_config = FlextDbOracleConfig()
+                # Use the enhanced singleton pattern from FlextDbOracleConfig
+                standardized_config = FlextDbOracleConfig.get_or_create_shared_instance(
+                    project_name="flext-db-oracle"
+                )
 
                 # Map from FlextDbOracleConfig to OracleConfig for backward compatibility
                 config = cls(
-                    host=standardized_config.oracle_host,
-                    port=standardized_config.oracle_port,
-                    name=standardized_config.oracle_database_name,
-                    username=standardized_config.oracle_username,
-                    password=standardized_config.oracle_password.get_secret_value(),
-                    service_name=standardized_config.oracle_service_name,
-                    pool_min=standardized_config.pool_min,
-                    pool_max=standardized_config.pool_max,
-                    timeout=standardized_config.pool_timeout,
+                    host=standardized_config.oracle_host,  # type: ignore[attr-defined]
+                    port=standardized_config.oracle_port,  # type: ignore[attr-defined]
+                    name=standardized_config.oracle_database_name,  # type: ignore[attr-defined]
+                    username=standardized_config.oracle_username,  # type: ignore[attr-defined]
+                    password=standardized_config.oracle_password.get_secret_value(),  # type: ignore[attr-defined]
+                    service_name=standardized_config.oracle_service_name,  # type: ignore[attr-defined]
+                    pool_min=standardized_config.pool_min,  # type: ignore[attr-defined]
+                    pool_max=standardized_config.pool_max,  # type: ignore[attr-defined]
+                    timeout=standardized_config.pool_timeout,  # type: ignore[attr-defined]
                     domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                     f"Failed to create config from env: {e}",
                 )
@@ -181,7 +197,7 @@ class FlextDbOracleModels(FlextModels):
 
                 # Parse user:password@host:port/service_name
                 if "@" in url_parts:
-                    host_port_service, user_pass = url_parts.split("@", 1)
+                    user_pass, host_port_service = url_parts.split("@", 1)
                     if ":" in user_pass:
                         user, password = user_pass.split(":", 1)
                     else:
@@ -194,7 +210,7 @@ class FlextDbOracleModels(FlextModels):
 
                 # Parse host:port/service_name
                 if "/" in host_port_service:
-                    service_name, host_port = host_port_service.split("/", 1)
+                    host_port, service_name = host_port_service.split("/", 1)
                 else:
                     host_port = host_port_service
                     service_name = None
@@ -204,19 +220,20 @@ class FlextDbOracleModels(FlextModels):
                     port = int(port_str)
                 else:
                     host = host_port
-                    port = 1521
+                    port = FlextDbOracleConstants.Connection.DEFAULT_PORT
 
                 config = cls(
                     host=host,
                     port=port,
-                    name=service_name or "XE",
+                    name=service_name
+                    or FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
                     username=user,
                     password=password,
                     service_name=service_name,
                     domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                     f"Failed to parse URL: {e}",
                 )
@@ -349,19 +366,19 @@ class FlextDbOracleModels(FlextModels):
 
         # Oracle connection settings
         oracle_host: str = Field(
-            default="localhost",
+            default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
             description="Oracle database host",
             validation_alias="ORACLE_HOST",
         )
         oracle_port: int = Field(
-            default=1521,
+            default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
             description="Oracle database port",
             ge=1,
             le=65535,
             validation_alias="ORACLE_PORT",
         )
         oracle_user: str = Field(
-            default="system",
+            default=FlextDbOracleConstants.Defaults.DEFAULT_USERNAME,
             description="Oracle database username",
             validation_alias="ORACLE_USER",
         )
@@ -371,12 +388,12 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_PASSWORD",
         )
         oracle_service_name: str = Field(
-            default="XEPDB1",
+            default=FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
             description="Oracle service name",
             validation_alias="ORACLE_SERVICE_NAME",
         )
         oracle_database_name: str = Field(
-            default="XE",
+            default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
             description="Oracle database name",
             validation_alias="ORACLE_DATABASE_NAME",
         )
@@ -400,17 +417,17 @@ class FlextDbOracleModels(FlextModels):
 
         # Connection pool settings
         oracle_pool_min_size: int = Field(
-            default=2,
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
             description="Minimum pool size",
             ge=1,
         )
         oracle_pool_max_size: int = Field(
-            default=20,
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MAX,
             description="Maximum pool size",
             ge=1,
         )
         oracle_pool_timeout: int = Field(
-            default=60,
+            default=FlextDbOracleConstants.Connection.DEFAULT_POOL_TIMEOUT,
             description="Connection timeout in seconds",
             ge=1,
         )
@@ -431,12 +448,12 @@ class FlextDbOracleModels(FlextModels):
             ge=1,
         )
         oracle_fetch_size: int = Field(
-            default=1000,
+            default=FlextDbOracleConstants.Query.DEFAULT_QUERY_LIMIT,
             description="Default fetch size",
             ge=1,
         )
         oracle_max_rows: int = Field(
-            default=100000,
+            default=FlextDbOracleConstants.Query.MAX_QUERY_ROWS,
             description="Maximum rows per query",
             ge=1,
         )
@@ -568,12 +585,12 @@ class FlextDbOracleModels(FlextModels):
                     domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                     f"Failed to convert settings to Oracle config: {e}",
                 )
 
-        def get_connection_url(self: object) -> FlextResult[str]:
+        def get_connection_url(self) -> FlextResult[str]:
             """Generate Oracle connection URL from settings."""
             try:
                 # Build Oracle connection URL
@@ -589,10 +606,10 @@ class FlextDbOracleModels(FlextModels):
                     )
 
                 return FlextResult[str].ok(url)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 return FlextResult[str].fail(f"Failed to generate connection URL: {e}")
 
-        def validate_configuration(self: object) -> FlextResult[None]:
+        def validate_configuration(self) -> FlextResult[None]:
             """Validate complete Oracle configuration using flext patterns."""
             # Check for required password in production-like settings
             if not self.oracle_password and self.oracle_host != "localhost":
@@ -636,38 +653,36 @@ class FlextDbOracleModels(FlextModels):
                 settings = cls()
 
                 # Validate the loaded settings
-                validation_result: FlextResult[object] = (
-                    settings.validate_configuration()
-                )
+                validation_result = settings.validate_configuration()
                 if validation_result.is_failure:
-                    return FlextResult["FlextDbOracleModels.OracleSettings"].fail(
+                    return FlextResult[FlextDbOracleModels.OracleSettings].fail(
                         f"Configuration validation failed: {validation_result.error}",
                     )
 
-                return FlextResult["FlextDbOracleModels.OracleSettings"].ok(settings)
-            except Exception as e:
-                return FlextResult["FlextDbOracleModels.OracleSettings"].fail(
+                return FlextResult[FlextDbOracleModels.OracleSettings].ok(settings)
+            except (ValueError, TypeError, AttributeError, FileNotFoundError) as e:
+                return FlextResult[FlextDbOracleModels.OracleSettings].fail(
                     f"Failed to load settings from {config_file}: {e}",
                 )
 
         @classmethod
         def create_development_config(
-            cls: object,
+            cls,
         ) -> FlextDbOracleModels.OracleSettings:
             """Create Oracle settings for development environment."""
             # Use model_validate to bypass mypy constructor signature issues
             return cls.model_validate(
                 {
                     "oracle_host": "localhost",
-                    "oracle_port": 1521,
-                    "oracle_user": "system",
+                    "oracle_port": FlextDbOracleConstants.Connection.DEFAULT_PORT,
+                    "oracle_user": FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
                     "oracle_password": "Oracle123",
-                    "oracle_service_name": "XEPDB1",
-                    "oracle_database_name": "XE",
-                    "oracle_pool_min_size": 2,
+                    "oracle_service_name": FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
+                    "oracle_database_name": FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+                    "oracle_pool_min_size": FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
                     "oracle_pool_max_size": 10,
-                    "oracle_pool_timeout": 30,
-                    "oracle_query_timeout": 60,
+                    "oracle_pool_timeout": FlextDbOracleConstants.Connection.DEFAULT_CONNECTION_TIMEOUT,
+                    "oracle_query_timeout": FlextDbOracleConstants.Query.DEFAULT_QUERY_TIMEOUT,
                     "oracle_echo_queries": "True",  # OK for development
                     "oracle_log_queries": "True",  # OK for development
                     "oracle_ssl_verify": "False",  # OK for local development
@@ -675,13 +690,13 @@ class FlextDbOracleModels(FlextModels):
             )
 
         @classmethod
-        def create_production_config(cls: object) -> FlextDbOracleModels.OracleSettings:
+        def create_production_config(cls) -> FlextDbOracleModels.OracleSettings:
             """Create Oracle settings template for production environment."""
             # Use model_validate to bypass mypy constructor signature issues
             return cls.model_validate(
                 {
                     "oracle_host": "${ORACLE_HOST}",
-                    "oracle_port": 1521,
+                    "oracle_port": FlextDbOracleConstants.Connection.DEFAULT_PORT,
                     "oracle_user": "${ORACLE_USER}",
                     "oracle_password": "${ORACLE_PASSWORD}",
                     "oracle_service_name": "${ORACLE_SERVICE_NAME}",

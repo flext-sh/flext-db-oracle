@@ -54,6 +54,7 @@ class TestAPIMissedLines:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
         api = FlextDbOracleApi(config)
 
@@ -167,9 +168,10 @@ class TestConnectionMissedLines:
             username="invalid",
             password="invalid",
             service_name="INVALID",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=bad_config)
+        connection = FlextDbOracleServices(config=bad_config, domain_events=[])
 
         # Try operations that should trigger error handling paths
         error_operations = [
@@ -196,9 +198,10 @@ class TestConnectionMissedLines:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=config)
+        connection = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test connection lifecycle to trigger specific paths
         # Connect
@@ -228,6 +231,7 @@ class TestTypesMissedLines:
                 name="TEST_COL",
                 data_type="VARCHAR2",
                 nullable=True,
+                domain_events=[],
             )
             assert column1.name == "TEST_COL"
             assert column1.data_type == "VARCHAR2"
@@ -242,6 +246,7 @@ class TestTypesMissedLines:
                 name="NUM_COL",
                 data_type="NUMBER",
                 nullable=False,
+                domain_events=[],
             )
             assert column2.name == "NUM_COL"
             assert column2.data_type == "NUMBER"
@@ -257,6 +262,7 @@ class TestTypesMissedLines:
                 data_type="DATE",
                 nullable=True,
                 default_value="SYSDATE",
+                domain_events=[],
             )
             assert column3.name == "EDGE_COL"
             assert column3.data_type == "DATE"
@@ -272,6 +278,7 @@ class TestTypesMissedLines:
             name="ID",
             data_type="NUMBER",
             nullable=False,
+            domain_events=[],
         )
 
         # Test property methods that might not be covered
@@ -298,6 +305,7 @@ class TestTypesMissedLines:
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[column],
+                domain_events=[],
             )
 
             # Test table methods and properties that actually exist

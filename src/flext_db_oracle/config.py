@@ -9,9 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import threading
-from typing import ClassVar
-
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -24,31 +21,21 @@ class FlextDbOracleConfig(FlextConfig):
 
     Provides comprehensive configuration for Oracle database operations including
     connection settings, pool configuration, performance tuning, and security.
-    Uses Pydantic BaseSettings for validation and environment variable support.
+    Uses enhanced singleton pattern with inverse dependency injection.
     """
-
-    # Singleton pattern attributes
-    _global_instance: ClassVar[FlextDbOracleConfig | None] = None
-    _lock: ClassVar[threading.Lock] = threading.Lock()
 
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_DB_ORACLE_",
         case_sensitive=False,
         extra="ignore",
         use_enum_values=True,
+        # Inherit enhanced Pydantic 2.11+ features from FlextConfig
         validate_assignment=True,
-        validate_default=True,
-        frozen=False,
-        # Pydantic 2.11 enhanced features
-        arbitrary_types_allowed=True,
-        validate_return=True,
-        serialize_by_alias=True,
-        populate_by_name=True,
-        ser_json_timedelta="iso8601",
-        ser_json_bytes="base64",
         str_strip_whitespace=True,
-        enable_decoding=True,
-        nested_model_default_partial_update=True,
+        json_schema_extra={
+            "title": "FLEXT DB Oracle Configuration",
+            "description": "Enterprise Oracle database configuration extending FlextConfig",
+        },
     )
 
     # Oracle Connection Configuration
@@ -320,25 +307,28 @@ class FlextDbOracleConfig(FlextConfig):
     def create_for_environment(
         cls, environment: str, **overrides: object
     ) -> FlextDbOracleConfig:
-        """Create configuration for specific environment."""
-        return cls(environment=environment, **overrides)
+        """Create configuration for specific environment using enhanced singleton pattern."""
+        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
+            project_name="flext-db-oracle", environment=environment, **overrides
+        )
 
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:
-        """Create default configuration instance."""
-        return cls()
+        """Create default configuration instance using enhanced singleton pattern."""
+        return cls.get_or_create_shared_instance(project_name="flext-db-oracle")  # type: ignore[return-value]
 
-    # Singleton pattern override for proper typing
     @classmethod
     def get_global_instance(cls) -> FlextDbOracleConfig:
-        """Get the global singleton instance of FlextDbOracleConfig."""
-        if cls._global_instance is None:
-            with cls._lock:
-                if cls._global_instance is None:
-                    cls._global_instance = cls()
-        return cls._global_instance
+        """Get the global singleton instance using enhanced FlextConfig pattern."""
+        # Create a default instance instead of using shared instance to avoid recursion
+        return cls()
 
     @classmethod
     def reset_global_instance(cls) -> None:
         """Reset the global FlextDbOracleConfig instance (mainly for testing)."""
-        cls._global_instance = None
+        # Use the enhanced FlextConfig reset mechanism
+        if hasattr(cls, "reset_shared_instance"):
+            cls.reset_shared_instance()  # type: ignore[attr-defined]
+        else:
+            # Fallback: clear any cached instances
+            pass

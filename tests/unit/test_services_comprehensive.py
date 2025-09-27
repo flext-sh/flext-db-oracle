@@ -25,8 +25,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
         assert service is not None
         assert service.config == config
 
@@ -38,8 +39,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test initial connection state
         assert not service.is_connected()
@@ -54,8 +56,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TESTDB",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test connection URL building through public interface
         # Note: Private methods are not accessible for testing
@@ -74,8 +77,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test SELECT statement building
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"])
@@ -91,11 +95,12 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test SELECT with conditions
-        conditions = {"id": 1, "name": "test"}
+        conditions: dict[str, object] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -109,11 +114,12 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test safe SELECT with parameters
-        conditions = {"id": 1, "status": "active"}
+        conditions: dict[str, object] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -130,8 +136,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test basic type conversions
         assert service.convert_singer_type("string").value == "VARCHAR2(4000)"
@@ -157,8 +164,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test schema mapping
         singer_schema: dict[str, object] = {
@@ -187,11 +195,12 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test CREATE TABLE DDL
-        columns = [
+        columns: list[dict[str, object]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -216,8 +225,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test INSERT statement
         columns = ["id", "name", "email"]
@@ -236,8 +246,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test UPDATE statement
         set_columns = ["name", "email"]
@@ -261,8 +272,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test DELETE statement
         where_columns = ["id", "status"]
@@ -280,8 +292,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Create a mock config object for merge
         merge_config = MagicMock()
@@ -303,8 +316,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Create a mock config object for index
         index_config = MagicMock()
@@ -329,8 +343,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test metric recording
         metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
@@ -349,8 +364,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test operation tracking
         track_result = service.track_operation(
@@ -374,8 +390,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test plugin registration
         test_plugin = {"name": "test_plugin", "version": "1.0"}
@@ -403,8 +420,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test health check
         health_result = service.health_check()
@@ -421,8 +439,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test query hash generation
         sql = "SELECT * FROM users WHERE id = :id"
@@ -440,8 +459,9 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Note: _build_column_definition is a private method
         # Test public methods instead
@@ -460,8 +480,9 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test with invalid table name
         invalid_table = "table'; DROP TABLE users;--"
@@ -478,8 +499,9 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test with empty column list
         select_result = service.build_select("TEST_TABLE", [])
@@ -494,8 +516,9 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test with invalid schema structure
         invalid_schema: dict[str, object] = {"properties": "not_a_dict"}

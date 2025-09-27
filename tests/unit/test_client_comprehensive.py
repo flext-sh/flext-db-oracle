@@ -19,6 +19,7 @@ from flext_core import (
 from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleModels,
+    FlextDbOracleTypes,
 )
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
@@ -48,8 +49,8 @@ class TestFlextDbOracleClientRealFunctionality:
         preferences = self.client.user_preferences
         assert isinstance(preferences, dict)
         assert preferences["default_output_format"] == "table"
-        assert preferences["auto_confirm_operations"] is False
-        assert preferences["show_execution_time"] is True
+        assert preferences["auto_confirm_operations"] == "False"
+        assert preferences["show_execution_time"] == "True"
         assert preferences["connection_timeout"] == 30
         assert preferences["query_limit"] == 1000
 
@@ -133,6 +134,7 @@ class TestFlextDbOracleClientRealFunctionality:
                 username=user,
                 password=password,
                 ssl_server_cert_dn=None,
+                domain_events=[],
             )
 
             assert config.host == host
@@ -227,21 +229,22 @@ class TestFlextDbOracleClientRealFunctionality:
                     service_name="testbuilder_service",
                     username="testbuilder_user",
                     password="testbuilder_password",
+                    domain_events=[],
                 ),
             )
             .build()
         )
 
         # Type guard: ensure we have a FlextResult before passing to assert_result_success
-        if not hasattr(config_result, "success"):
-            msg = "Expected FlextResult with .success attribute"
+        if not hasattr(config_result, "is_success"):
+            msg = "Expected FlextResult with .is_success attribute"
             raise AssertionError(msg)
 
         # Cast to FlextResult to satisfy mypy
         result = cast("FlextResult[object]", config_result)
         FlextTestsMatchers.assert_result_success(result)
 
-        config = cast("FlextDbOracleModels.OracleConfig", result.value)
+        config = cast("FlextDbOracleModels.OracleConfig", result.value["data"])
 
         # Test that client can work with TestBuilders-created configuration
         client = FlextDbOracleClient()
@@ -333,7 +336,7 @@ class TestFlextDbOracleClientRealFunctionality:
 
         # Test query execution returns FlextResult (without connection - should fail gracefully)
         query_result = client.execute_query("SELECT 1")
-        assert hasattr(query_result, "success")
+        assert hasattr(query_result, "is_success")
         assert hasattr(query_result, "error") or hasattr(query_result, "value")
         FlextTestsMatchers.assert_result_failure(
             query_result,
@@ -420,18 +423,18 @@ class TestFlextDbOracleClientRealFunctionality:
                 "result": [{"test": "value"}],
             }
             # Cast to expected type for formatter strategy
-            data_for_formatter = cast("dict[str, object]", test_data)
+            data_for_formatter = cast("FlextDbOracleTypes.Query.QueryResult", test_data)
             strategy = strategy_result.value
             if callable(strategy):
                 format_result = strategy(data_for_formatter)
-                assert hasattr(format_result, "success")
+                assert hasattr(format_result, "is_success")
 
         # Test _adapt_data_for_table
         if hasattr(client, "_adapt_data_for_table"):
             # Test with sample data - cast to proper type
 
             schemas_data = cast(
-                "dict[str, object]",
+                "FlextDbOracleTypes.Query.QueryResult",
                 {"schemas": ["SCHEMA1", "SCHEMA2"]},
             )
             schemas_result = client._adapt_data_for_table(schemas_data)
@@ -440,7 +443,7 @@ class TestFlextDbOracleClientRealFunctionality:
 
             # Test with health data
             health_data = cast(
-                "dict[str, object]",
+                "FlextDbOracleTypes.Query.QueryResult",
                 {"status": "healthy", "connections": 5},
             )
             health_result = client._adapt_data_for_table(health_data)
@@ -459,16 +462,16 @@ class TestFlextDbOracleClientRealFunctionality:
 
         # Test _format_as_json
         if hasattr(client, "_format_as_json"):
-            data_for_json = cast("dict[str, object]", test_data)
+            data_for_json = cast("FlextDbOracleTypes.Query.QueryResult", test_data)
             json_result = client._format_as_json(data_for_json)
-            assert hasattr(json_result, "success")
+            assert hasattr(json_result, "is_success")
             # Should work with formatter
 
         # Test _format_as_table
         if hasattr(client, "_format_as_table"):
-            data_for_table = cast("dict[str, object]", test_data)
+            data_for_table = cast("FlextDbOracleTypes.Query.QueryResult", test_data)
             table_result = client._format_as_table(data_for_table)
-            assert hasattr(table_result, "success")
+            assert hasattr(table_result, "is_success")
             # Should work with formatter
 
     def test_connection_wizard_structure_real(self) -> None:

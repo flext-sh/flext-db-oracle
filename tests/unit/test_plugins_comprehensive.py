@@ -351,7 +351,7 @@ class TestFlextDbOraclePluginsComprehensive:
         assert empty_result.is_success  # Should work, empty string is valid key
 
         # Test registration with complex data structures
-        complex_plugin = {
+        complex_plugin: dict[str, object] = {
             "name": "complex",
             "nested": {"data": {"deep": ["list", "of", "items"]}},
             "numbers": [1, 2, 3, 4, 5],

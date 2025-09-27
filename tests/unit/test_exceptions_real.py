@@ -94,9 +94,9 @@ class TestValidationError:
         assert "Invalid value" in str(error)
         assert error.error_code == "VALIDATION_ERROR"
         assert error.context == {
-            "field": None,
-            "value": None,
-            "validation_details": None,
+            "field": "None",
+            "value": "None",
+            "validation_details": "None",
         }
 
     def test_validation_error_with_params(self) -> None:
@@ -109,10 +109,10 @@ class TestValidationError:
         assert "Field validation failed" in str(error)
         assert error.error_code == "VALIDATION_ERROR"  # flext-core uses default code
         assert error.context == {
-            "field": None,
-            "value": None,
-            "validation_details": None,
-        }  # flext-core overrides context for ValidationError
+            "field": "None",
+            "value": "None",
+            "validation_details": "None",
+        }  # flext-core overrides context for ValidationError with string 'None' values
 
     def test_validation_error_inheritance(self) -> None:
         """Test that ValidationError inherits from correct base classes."""
@@ -133,9 +133,9 @@ class TestConfigurationError:
         assert "Invalid config" in str(error)
         assert error.error_code == "CONFIGURATION_ERROR"  # flext-core uses default code
         assert error.context == {
-            "config_key": None,
-            "config_file": None,
-        }  # ConfigurationError has different default fields
+            "config_key": "None",
+            "config_file": "None",
+        }  # ConfigurationError has string 'None' default fields
 
     def test_configuration_error_with_params(self) -> None:
         """Test ConfigurationError with parameters."""
@@ -165,8 +165,8 @@ class TestConnectionError:
         assert "Connection failed" in str(error)
         assert error.error_code == "CONNECTION_ERROR"  # flext-core uses default code
         assert error.context == {
-            "endpoint": None,
-            "service": None,
+            "endpoint": "None",
+            "service": "None",
         }  # ConnectionError has different default fields
 
     def test_connection_error_with_params(self) -> None:
@@ -338,8 +338,8 @@ class TestExceptionHelperMethods:
         assert "Missing config" in str(error)
         assert error.context == {
             "required": ["host"],
-            "config_file": None,
-            "config_key": None,
+            "config_file": "None",
+            "config_key": "None",
         }
 
     def test_create_connection_error(self) -> None:

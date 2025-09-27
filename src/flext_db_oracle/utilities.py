@@ -13,8 +13,9 @@ import hashlib
 import importlib
 import json
 import os
-from typing import Protocol, cast
+from typing import Protocol
 
+from flext_cli import FlextCliOutput
 from flext_core import (
     FlextResult,
     FlextTypes,
@@ -69,7 +70,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         normalized_sql = " ".join(normalized_sql.split())
 
         # Create content for hashing using standard JSON
-        params_json: dict[str, object] = json.dumps(params or {}, sort_keys=True)
+        params_json: str = json.dumps(params or {}, sort_keys=True)
         hash_content = f"{normalized_sql}|{params_json}"
 
         # Generate SHA-256 hash
@@ -216,57 +217,60 @@ class FlextDbOracleUtilities(FlextUtilities):
         try:
             # Handle different query result types
             if hasattr(query_result, "to_dict_list"):
-                data: dict[str, object] = getattr(query_result, "to_dict_list")()
+                data = getattr(query_result, "to_dict_list")()
             elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
                 # Build dict list from columns and rows
                 data = []
                 columns = query_result.columns
                 rows = query_result.rows
                 try:
-                    # Safe casting and iteration
-                    rows_list = (
-                        cast("FlextTypes.Core.List", rows)
-                        if hasattr(rows, "__iter__")
-                        else []
-                    )
-                    columns_list = (
-                        cast("FlextTypes.Core.List", columns)
-                        if hasattr(columns, "__iter__")
-                        else []
-                    )
+                    # Type-safe conversion to list[object]
+                    rows_list: list[object] = []
+                    if hasattr(rows, "__iter__") and not isinstance(rows, (str, bytes)):
+                        try:
+                            rows_list = list(rows)  # type: ignore[arg-type]
+                        except TypeError:
+                            rows_list = []
 
-                    for row in rows_list:
+                    columns_list: list[object] = []
+                    if hasattr(columns, "__iter__") and not isinstance(
+                        columns, (str, bytes)
+                    ):
+                        try:
+                            columns_list = list(columns)  # type: ignore[assignment]
+                        except TypeError:
+                            columns_list = []
+
+                    # Type-safe iteration with explicit type checking
+                    for row_obj in rows_list:
+                        if not isinstance(row_obj, (list, tuple)):
+                            continue
                         row_dict = {}
-                        if isinstance(columns_list, (list, tuple)) and isinstance(
-                            row,
-                            (list, tuple),
-                        ):
+                        if isinstance(columns_list, (list, tuple)):
                             for i, col in enumerate(columns_list):
-                                row_dict[str(col)] = row[i] if i < len(row) else None
+                                if i < len(row_obj):
+                                    row_dict[str(col)] = row_obj[i]
                         data.append(row_dict)
-                except (TypeError, AttributeError):
-                    # Fallback if iteration fails
-                    data: dict[str, object] = [{"result": str(query_result)}]
-            # Fallback - try to convert to dict if possible
-            elif hasattr(query_result, "model_dump"):
-                data: dict[str, object] = [getattr(query_result, "model_dump")()]
+                except Exception as e:
+                    console.print(f"Error building table data: {e}")
+                    return
             else:
-                data: dict[str, object] = [{"result": str(query_result)}]
-
-            if not data:
-                console.print("[yellow]No data to display[/yellow]")
+                console.print("Unsupported query result format")
                 return
 
+            # Display as table using flext-cli
             if data:
-                headers = list(data[0].keys())
-                console.print(" | ".join(headers))
-                console.print("-" * (len(" | ".join(headers))))
-                for row in data:
-                    console.print(" | ".join(str(row.get(h, "")) for h in headers))
+                cli_output = FlextCliOutput()
+                table_result = cli_output.create_table(data, title="Query Results")
+                if table_result.is_success:
+                    cli_output.print_message(str(table_result.data))
+                else:
+                    console.print(f"Error creating table: {table_result.error}")
+            else:
+                console.print("No data to display")
 
         except Exception as e:
-            # Fallback to simple print
-            console.print(f"Error displaying table: {e}")
+            console.print(f"Error displaying query table: {e}")
 
     @staticmethod
     def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
@@ -300,14 +304,22 @@ class FlextDbOracleUtilities(FlextUtilities):
                 else FlextDbOracleConstants.Connection.DEFAULT_PORT
             )
 
-            service_name = str(config.get("service_name", "XE"))
+            service_name = str(
+                config.get(
+                    "service_name",
+                    FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+                )
+            )
             oracle_config = FlextDbOracleModels.OracleConfig(
-                host=str(config.get("host", "localhost")),
+                host=str(
+                    config.get("host", FlextDbOracleConstants.Defaults.DEFAULT_HOST)
+                ),
                 port=port_int,
                 name=service_name,  # Required field - use service_name as database
                 username=str(config.get("username", "")),
                 password=str(config.get("password", "")),
                 service_name=service_name,
+                domain_events=[],  # Required by FlextModels.Entity
             )
 
             # Create API instance with configuration (use runtime import to avoid circular imports)
@@ -344,8 +356,8 @@ class FlextDbOracleUtilities(FlextUtilities):
                     console.print(f"Health data: {health_data}")
             # JSON or other format
             elif hasattr(health_data, "model_dump"):
-                data_dict: dict[str, object] = getattr(health_data, "model_dump")()
-                console.print(json.dumps(data_dict, indent=2))
+                json_data: dict[str, object] = getattr(health_data, "model_dump")()
+                console.print(json.dumps(json_data, indent=2))
             else:
                 console.print(str(health_data))
 

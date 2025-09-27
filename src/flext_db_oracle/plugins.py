@@ -21,7 +21,7 @@ class FlextDbOraclePlugins(FlextUtilities):
     """
 
     @override
-    def __init__(self: object) -> None:
+    def __init__(self) -> None:
         """Initialize Oracle plugins system."""
         self._plugins: FlextTypes.Core.Dict = {}
 
@@ -60,7 +60,7 @@ class FlextDbOraclePlugins(FlextUtilities):
         except Exception as e:
             return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
-    def list_plugins(self: object) -> FlextResult[FlextTypes.Core.Dict]:
+    def list_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
         """List all registered plugins.
 
         Returns:
@@ -93,7 +93,7 @@ class FlextDbOraclePlugins(FlextUtilities):
             return FlextResult[object].fail(f"Failed to get plugin '{name}': {e}")
 
     def create_performance_monitor_plugin(
-        self: object,
+        self,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Create performance monitor plugin data.
 
@@ -115,7 +115,7 @@ class FlextDbOraclePlugins(FlextUtilities):
             )
 
     def create_data_validation_plugin(
-        self: object,
+        self,
     ) -> FlextResult[FlextTypes.Core.Dict]:
         """Create data validation plugin data.
 
@@ -136,7 +136,7 @@ class FlextDbOraclePlugins(FlextUtilities):
                 f"Failed to create data validation plugin: {e}",
             )
 
-    def create_security_audit_plugin(self: object) -> FlextResult[FlextTypes.Core.Dict]:
+    def create_security_audit_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Create security audit plugin data.
 
         Returns:
@@ -156,7 +156,7 @@ class FlextDbOraclePlugins(FlextUtilities):
                 f"Failed to create security audit plugin: {e}",
             )
 
-    def register_all_oracle_plugins(self: object) -> FlextResult[FlextTypes.Core.Dict]:
+    def register_all_oracle_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
         """Register all available Oracle plugins.
 
         Returns:
@@ -168,19 +168,17 @@ class FlextDbOraclePlugins(FlextUtilities):
             plugin_count = 0
 
             # Create and register plugins using factory methods
-            perf_result: FlextResult[object] = self.create_performance_monitor_plugin()
+            perf_result = self.create_performance_monitor_plugin()
             if perf_result.is_success:
                 self.register_plugin("performance_monitor", perf_result.value)
                 plugin_count += 1
 
-            validation_result: FlextResult[object] = (
-                self.create_data_validation_plugin()
-            )
+            validation_result = self.create_data_validation_plugin()
             if validation_result.is_success:
                 self.register_plugin("data_validation", validation_result.value)
                 plugin_count += 1
 
-            security_result: FlextResult[object] = self.create_security_audit_plugin()
+            security_result = self.create_security_audit_plugin()
             if security_result.is_success:
                 self.register_plugin("security_audit", security_result.value)
                 plugin_count += 1

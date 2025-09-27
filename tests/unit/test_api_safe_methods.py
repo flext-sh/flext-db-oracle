@@ -21,6 +21,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="TEST",
             username="test",
             password="test",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -37,6 +38,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="TESTDB",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -53,6 +55,7 @@ class TestFlextDbOracleApiSafeMethods:
             username="health_user",
             password="health_pass",
             service_name="HEALTH_TEST",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -69,6 +72,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="OPT_TEST",
             username="opt_user",
             password="opt_pass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -94,6 +98,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="PLUGIN_TEST",
             username="plugin_user",
             password="plugin_pass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -149,6 +154,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="ERROR_TEST",
             username="error_user",
             password="error_pass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -171,6 +177,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="PROP_TEST",
             username="prop_user",
             password="prop_pass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -193,6 +200,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="METRICS_TEST",
             username="metrics_user",
             password="metrics_pass",
+            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -216,6 +224,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="INIT1",
             username="user1",
             password="pass1",
+            domain_events=[],
         )
         api1 = FlextDbOracleApi(config1)
         assert api1.config.host == "init1"
@@ -227,6 +236,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="INIT2",
             username="user2",
             password="pass2",
+            domain_events=[],
         )
         api2 = FlextDbOracleApi(config2, context_name="test_context")
         assert api2.config.host == "init2"
@@ -240,6 +250,7 @@ class TestFlextDbOracleApiSafeMethods:
             service_name="HELPER_TEST",
             username="helper_user",
             password="helper_pass",
+            domain_events=[],
         )
         api = FlextDbOracleApi(config)
 

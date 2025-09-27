@@ -155,7 +155,7 @@ class TestParameterContainer:
 
     def test_parameter_container_initialization_with_params(self) -> None:
         """Test parameter container initialization with parameters."""
-        params = {"key1": "value1", "key2": 123}
+        params: dict[str, object] = {"key1": "value1", "key2": 123}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.params == params
@@ -178,7 +178,7 @@ class TestParameterContainer:
 
     def test_parameter_container_get_existing_key(self) -> None:
         """Test getting existing parameter values."""
-        params = {"key1": "value1", "key2": 123, "key3": None}
+        params: dict[str, object] = {"key1": "value1", "key2": 123, "key3": None}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.get("key1") == "value1"
@@ -209,7 +209,7 @@ class TestParameterContainer:
 
     def test_parameter_container_require_existing_key(self) -> None:
         """Test requiring existing parameter values."""
-        params = {"key1": "value1", "key2": 123, "key3": None}
+        params: dict[str, object] = {"key1": "value1", "key2": 123, "key3": None}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.require("key1") == "value1"

@@ -29,8 +29,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test build_dispatcher method (covers lines 70-144)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
@@ -45,8 +46,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
         custom_bus = FlextBus()
 
         # Call with keyword argument as per method signature
@@ -64,8 +66,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         connect_cmd = FlextDbOracleDispatcher.ConnectCommand()
@@ -83,8 +86,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         disconnect_cmd = FlextDbOracleDispatcher.DisconnectCommand()
@@ -100,8 +104,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         test_cmd = FlextDbOracleDispatcher.TestConnectionCommand()
@@ -117,8 +122,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         query_cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
@@ -137,8 +143,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         fetch_cmd = FlextDbOracleDispatcher.FetchOneCommand(
@@ -157,8 +164,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         stmt_cmd = FlextDbOracleDispatcher.ExecuteStatementCommand(
@@ -177,13 +185,14 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
-            parameters_list=[{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
+            parameters_list=[{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],  # type: ignore[arg-type]
         )
 
         result = dispatcher.dispatch(many_cmd)
@@ -197,8 +206,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         schemas_cmd = FlextDbOracleDispatcher.GetSchemasCommand()
@@ -214,8 +224,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         tables_cmd = FlextDbOracleDispatcher.GetTablesCommand(schema="PUBLIC")
@@ -231,8 +242,9 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
+            domain_events=[],
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         columns_cmd = FlextDbOracleDispatcher.GetColumnsCommand(
@@ -298,7 +310,7 @@ class TestDispatcherCommandClasses:
         ]
         cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=params_list,
+            parameters_list=params_list,  # type: ignore[arg-type]
         )
         assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
         assert cmd.parameters_list == params_list

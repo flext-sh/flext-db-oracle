@@ -111,7 +111,11 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register a plugin
-        plugin_data = {"name": "test", "version": "1.0.0", "active": True}
+        plugin_data: dict[str, object] = {
+            "name": "test",
+            "version": "1.0.0",
+            "active": True,
+        }
         plugins.register_plugin("test", plugin_data)
 
         # Get the plugin
@@ -247,7 +251,11 @@ class TestFlextDbOraclePluginsReal:
         assert result1.is_success
 
         # Overwrite with new version
-        plugin_v2 = {"name": "test", "version": "2.0.0", "updated": True}
+        plugin_v2: dict[str, object] = {
+            "name": "test",
+            "version": "2.0.0",
+            "updated": True,
+        }
         result2 = plugins.register_plugin("test", plugin_v2)
         assert result2.is_success
 

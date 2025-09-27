@@ -25,7 +25,7 @@ class FlextDbOracleExceptions(FlextExceptions):
         code: str | None = None
         context: FlextTypes.Core.Dict | None = None
 
-        def __post_init__(self: object) -> None:
+        def __post_init__(self) -> None:
             """Validate exception parameters."""
             if not self.message or not self.message.strip():
                 msg = "Exception message cannot be empty"
@@ -44,7 +44,7 @@ class FlextDbOracleExceptions(FlextExceptions):
         METADATA_ERROR = "ORACLE_METADATA_ERROR"
 
     # Base error class for Oracle exceptions
-    class BaseError(Exception):
+    class OracleBaseError(Exception):
         """Base error class for Oracle exceptions."""
 
         @override
@@ -60,7 +60,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.context: FlextTypes.Core.Dict = context or {}
 
     # Oracle exception classes
-    class Error(BaseError):
+    class OracleError(OracleBaseError):
         """General Oracle error."""
 
         @override
@@ -73,7 +73,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             """Initialize Oracle error."""
             super().__init__(message, code, context)
 
-    class ValidationError(BaseError):
+    class OracleValidationError(OracleBaseError):
         """Oracle validation error."""
 
         @override
@@ -101,7 +101,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                     # Default fields keep their default values (None)
             super().__init__(message, actual_code, actual_context)
 
-    class ConfigurationError(BaseError):
+    class OracleConfigurationError(OracleBaseError):
         """Oracle configuration error."""
 
         @override
@@ -123,7 +123,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 actual_context.update(context)
             super().__init__(message, actual_code, actual_context)
 
-    class OracleConnectionError(BaseError):
+    class OracleConnectionError(OracleBaseError):
         """Oracle connection error (renamed to avoid builtin shadowing)."""
 
         @override
@@ -145,7 +145,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 actual_context.update(context)
             super().__init__(message, actual_code, actual_context)
 
-    class AuthenticationError(BaseError):
+    class OracleAuthenticationError(OracleBaseError):
         """Oracle authentication error."""
 
         @override
@@ -167,7 +167,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 actual_context.update(context)
             super().__init__(message, actual_code, actual_context)
 
-    class ProcessingError(BaseError):
+    class OracleProcessingError(OracleBaseError):
         """Oracle processing error."""
 
         @override
@@ -192,7 +192,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 actual_context.update(context)
             super().__init__(message, actual_code, actual_context)
 
-    class OracleTimeoutError(BaseError):
+    class OracleTimeoutError(OracleBaseError):
         """Oracle timeout error (renamed to avoid builtin shadowing)."""
 
         @override
@@ -217,7 +217,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 actual_context.update(context)
             super().__init__(message, actual_code, actual_context)
 
-    class QueryError(ProcessingError):
+    class OracleQueryError(OracleProcessingError):
         """Oracle query error."""
 
         @override
@@ -231,7 +231,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             actual_code = code or "PROCESSING_ERROR"
             super().__init__(message, actual_code, context)
 
-    class MetadataError(ProcessingError):
+    class OracleMetadataError(OracleProcessingError):
         """Oracle metadata error."""
 
         @override
@@ -246,14 +246,24 @@ class FlextDbOracleExceptions(FlextExceptions):
             _ = code  # Ignored - MetadataError uses fixed PROCESSING_ERROR code
             super().__init__(message, "PROCESSING_ERROR", context)
 
+    # Backward compatibility aliases
+    BaseError = OracleBaseError
+    Error = OracleError
+    ValidationError = OracleValidationError
+    ConfigurationError = OracleConfigurationError
+    AuthenticationError = OracleAuthenticationError
+    ProcessingError = OracleProcessingError
+    QueryError = OracleQueryError
+    MetadataError = OracleMetadataError
+
     @classmethod
     def create_validation_error(
         cls,
         message: str,
         context: FlextTypes.Core.Dict | None = None,
-    ) -> FlextDbOracleExceptions.ValidationError:
+    ) -> FlextDbOracleExceptions.OracleValidationError:
         """Factory method for validation errors using flext-core."""
-        return cls.ValidationError(message, context=context)
+        return cls.OracleValidationError(message, context=context)
 
     @classmethod
     def create_connection_error(
@@ -267,7 +277,7 @@ class FlextDbOracleExceptions(FlextExceptions):
     @classmethod
     def is_oracle_error(cls, error: Exception) -> bool:
         """Check if exception is an Oracle database error using flext-core."""
-        return isinstance(error, cls.BaseError)
+        return isinstance(error, cls.OracleBaseError)
 
 
 __all__: FlextTypes.Core.StringList = [

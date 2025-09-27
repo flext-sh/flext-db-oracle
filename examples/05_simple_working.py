@@ -35,7 +35,7 @@ def demonstrate_real_functionality() -> None:
 
         # 3. Test connection
         connection_result = api.test_connection()
-        if connection_result.success:
+        if connection_result.is_success:
             logger.info("✅ Connection test successful")
         else:
             logger.error(f"❌ Connection test failed: {connection_result.error}")
@@ -44,7 +44,7 @@ def demonstrate_real_functionality() -> None:
         # 4. Get schemas (if connected)
         with api as connected_api:
             schemas_result = connected_api.get_schemas()
-            if schemas_result.success:
+            if schemas_result.is_success:
                 logger.info(f"✅ Found {len(schemas_result.value)} schemas")
             else:
                 logger.warning(f"⚠️  Could not get schemas: {schemas_result.error}")

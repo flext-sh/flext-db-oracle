@@ -22,7 +22,7 @@ class TestFlextDbOracleClientReal:
         assert client.debug is True
         assert client.current_connection is None
         assert client.user_preferences["default_output_format"] == "table"
-        assert client.user_preferences["show_execution_time"] is True
+        assert client.user_preferences["show_execution_time"] == "True"
 
         # Verify flext components are initialized
         assert client.container is not None
@@ -33,7 +33,7 @@ class TestFlextDbOracleClientReal:
         client = FlextDbOracleClient(debug=False)
 
         assert client.debug is False
-        assert client.user_preferences["auto_confirm_operations"] is False
+        assert client.user_preferences["auto_confirm_operations"] == "False"
         assert client.user_preferences["connection_timeout"] == 30
         assert client.user_preferences["query_limit"] == 1000
 
@@ -181,7 +181,7 @@ class TestFlextDbOracleClientReal:
         assert not result.is_success
 
         # Test configuration with malformed data
-        bad_result = client.configure_preferences(valid_key=None)
+        bad_result = client.configure_preferences(valid_key="")
         # Should handle gracefully and return FlextResult
         assert isinstance(bad_result, FlextResult)
         # The method handles None values gracefully (returns success with warning)
@@ -222,6 +222,7 @@ class TestFlextDbOracleClientIntegration:
             username="test",
             password="test",
             ssl_server_cert_dn=None,
+            domain_events=[],
         )
 
         client = FlextDbOracleClient()

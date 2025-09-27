@@ -77,7 +77,7 @@ class FlextDbOracleMixins(FlextMixins):
 
         params: FlextTypes.Core.Dict | None = None
 
-        def __post_init__(self: object) -> None:
+        def __post_init__(self) -> None:
             """Initialize params dict if None."""
             if self.params is None:
                 object.__setattr__(self, "params", {})

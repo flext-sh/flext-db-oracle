@@ -31,9 +31,10 @@ class TestRealOracleExceptionsCore:
             service_name="XEPDB1",
             username="invalid_user_12345",
             password="invalid_password_12345",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=invalid_config)
+        connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
         result = connection.connect()
 
         # Connection should fail with authentication error - using modern pattern
@@ -68,9 +69,10 @@ class TestRealOracleExceptionsCore:
             service_name="XEPDB1",
             username="testuser",
             password="testpass",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=unreachable_config)
+        connection = FlextDbOracleServices(config=unreachable_config, domain_events=[])
         result = connection.connect()
 
         # Should fail with connection error - using modern pattern
@@ -106,8 +108,9 @@ class TestRealOracleExceptionsCore:
                 sid="",  # Empty SID
                 username="testuser",
                 password="testpass",
+                domain_events=[],
             )
-            connection = FlextDbOracleServices(config=invalid_config)
+            connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
             result = connection.connect()
 
             # Should fail configuration validation - using modern pattern
@@ -127,7 +130,7 @@ class TestRealOracleExceptionsCore:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test FlextDbOracleExceptions.QueryError with real invalid SQL."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         connect_result = connection.connect()
         assert connect_result.is_success
@@ -175,9 +178,10 @@ class TestRealOracleExceptionsCore:
             username=real_oracle_config.username,
             password=real_oracle_config.password,
             timeout=1,  # 1 second timeout
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=timeout_config)
+        connection = FlextDbOracleServices(config=timeout_config, domain_events=[])
         connect_result = connection.connect()
         assert connect_result.is_success
 
@@ -319,9 +323,7 @@ class TestRealOracleExceptionsAdvanced:
                 port_value = config_data.get("port", 1521)
                 typed_config: FlextTypes.Core.Dict = {
                     "host": str(config_data.get("host", "")),
-                    "port": int(port_value)
-                    if isinstance(port_value, (int, str))
-                    else 1521,
+                    "port": int(port_value),
                     "user": str(config_data.get("user", "")),
                     "password": SecretStr(str(config_data.get("password", ""))),
                 }
@@ -335,6 +337,7 @@ class TestRealOracleExceptionsAdvanced:
                     username=str(typed_config["user"]),
                     password=str(typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
+                    domain_events=[],
                 )
                 # Skip validate_business_rules check since method doesn't exist
                 # validation_result = (

@@ -98,8 +98,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_generate_query_hash_with_params_real(self) -> None:
         """Test query hash generation with parameters."""
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
-        params1 = {"id": 1, "name": "John"}
-        params2 = {"id": 2, "name": "Jane"}
+        params1: dict[str, object] = {"id": 1, "name": "John"}
+        params2: dict[str, object] = {"id": 2, "name": "Jane"}
 
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
@@ -158,7 +158,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_create_api_from_config_method_real(self) -> None:
         """Test create_api_from_config method."""
         # Test with valid config dictionary
-        config_dict = {
+        config_dict: dict[str, object] = {
             "host": "test_host",
             "port": 1521,
             "service_name": "TEST_SERVICE",
@@ -250,7 +250,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result1, "is_success")
         assert hasattr(result1, "error") or hasattr(result1, "value")
 
-        result2 = utilities.create_api_from_config({"test": "config"})
+        result2 = utilities.create_api_from_config({"test": "config"})  # type: ignore[arg-type]
         assert hasattr(result2, "is_success")
         assert hasattr(result2, "error") or hasattr(result2, "value")
 

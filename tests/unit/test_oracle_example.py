@@ -29,7 +29,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test real Oracle connection and disconnection."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         # Test connect - using modern .value access after failure check
         result = connection.connect()
@@ -52,7 +52,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test real Oracle query execution."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -84,7 +84,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test real Oracle fetch_one."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -117,7 +117,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -146,7 +146,7 @@ class TestRealOracleConnection:
             # Success case - table created successfully
 
             # Execute many inserts
-            params_list = [
+            params_list: list[dict[str, object]] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
@@ -174,7 +174,7 @@ class TestRealOracleConnection:
             count_data = select_result.unwrap()
             assert isinstance(count_data, list)
             assert len(count_data) > 0
-            if isinstance(count_data, list) and len(count_data) > 0:
+            if len(count_data) > 0:
                 # Use safe_get_first_value to handle various row formats
                 first_row = safe_get_first_value(count_data)
                 first_value = safe_get_first_value(first_row)
@@ -214,7 +214,7 @@ class TestRealOracleApi:
             # To get the actual string value, we need to access the first element of the tuple
             query_data = query_result.value
             # Handle query_data as list instead of assuming .rows attribute
-            if isinstance(query_data, list) and len(query_data) > 0:
+            if len(query_data) > 0:
                 row = query_data[0]
                 if (
                     hasattr(row, "__getitem__")
@@ -396,10 +396,11 @@ class TestRealOracleApi:
             # Success case - use modern .value access
             metadata = metadata_result.value
             # Handle metadata as list of tables
-            if isinstance(metadata, list) and len(metadata) > 0:
+            if len(metadata) > 0:
                 table_info = metadata[0]
                 if isinstance(table_info, dict) and "table_name" in table_info:
-                    assert str(table_info["table_name"]).upper() == table_name.upper()
+                    table_name_value = table_info["table_name"]
+                    assert str(table_name_value).upper() == table_name.upper()
 
         finally:
             # Cleanup - drop table
@@ -420,9 +421,10 @@ class TestRealOracleErrorHandling:
             service_name="XEPDB1",
             username="invalid_user",
             password="invalid_password",
+            domain_events=[],
         )
 
-        connection = FlextDbOracleServices(config=invalid_config)
+        connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
         result = connection.connect()
         assert result.is_failure
         error_msg = (result.error or "").lower()
@@ -441,7 +443,7 @@ class TestRealOracleErrorHandling:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test execution with invalid SQL."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         connect_result = connection.connect()
         if connect_result.is_failure:
