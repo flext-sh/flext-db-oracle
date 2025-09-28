@@ -356,10 +356,18 @@ class FlextDbOracleClient:
         try:
 
             def adapt_schemas(r: object) -> list[dict[str, str]]:
-                return [{"schema": str(s)} for s in r if isinstance(r, list)] if isinstance(r, list) else []
+                return (
+                    [{"schema": str(s)} for s in r if isinstance(r, list)]
+                    if isinstance(r, list)
+                    else []
+                )
 
             def adapt_tables(r: object) -> list[dict[str, str]]:
-                return [{"table": str(t)} for t in r if isinstance(r, list)] if isinstance(r, list) else []
+                return (
+                    [{"table": str(t)} for t in r if isinstance(r, list)]
+                    if isinstance(r, list)
+                    else []
+                )
 
             def adapt_health(r: object) -> list[dict[str, str]]:
                 return (
