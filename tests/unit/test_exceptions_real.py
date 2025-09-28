@@ -24,33 +24,42 @@ class TestExceptionParams:
         """Test creating ExceptionParams with all fields."""
         params = FlextDbOracleExceptions.ExceptionParams(
             message="Test error",
-            code="TEST_CODE",
+            error_code="TEST_CODE",
             context={"key": "value"},
         )
         assert params.message == "Test error"
-        assert params.code == "TEST_CODE"
+        assert params.error_code == "TEST_CODE"
         assert params.context == {"key": "value"}
 
     def test_exception_params_defaults(self) -> None:
         """Test ExceptionParams with default values."""
-        params = FlextDbOracleExceptions.ExceptionParams(message="Test error")
+        params = FlextDbOracleExceptions.ExceptionParams(
+            message="Test error",
+            error_code="DEFAULT_CODE",
+        )
         assert params.message == "Test error"
-        assert params.code is None
-        assert params.context is None
+        assert params.error_code == "DEFAULT_CODE"
+        assert params.context == {}
 
     def test_exception_params_empty_message_raises(self) -> None:
         """Test that empty message raises ValueError."""
         with pytest.raises(ValueError, match="Exception message cannot be empty"):
-            FlextDbOracleExceptions.ExceptionParams(message="")
+            FlextDbOracleExceptions.ExceptionParams(
+                message="", error_code="TEST_CODE", domain_events=[]
+            )
 
     def test_exception_params_whitespace_message_raises(self) -> None:
         """Test that whitespace-only message raises ValueError."""
         with pytest.raises(ValueError, match="Exception message cannot be empty"):
-            FlextDbOracleExceptions.ExceptionParams(message="   ")
+            FlextDbOracleExceptions.ExceptionParams(
+                message="   ", error_code="TEST_CODE", domain_events=[]
+            )
 
     def test_exception_params_frozen(self) -> None:
         """Test that ExceptionParams is frozen (immutable)."""
-        params = FlextDbOracleExceptions.ExceptionParams(message="Test")
+        params = FlextDbOracleExceptions.ExceptionParams(
+            message="Test", error_code="TEST_CODE", domain_events=[]
+        )
         with pytest.raises(AttributeError):
             setattr(params, "message", "Modified")
 
@@ -94,9 +103,9 @@ class TestValidationError:
         assert "Invalid value" in str(error)
         assert error.error_code == "VALIDATION_ERROR"
         assert error.context == {
-            "field": "None",
-            "value": "None",
-            "validation_details": "None",
+            "field": None,
+            "value": None,
+            "validation_details": None,
         }
 
     def test_validation_error_with_params(self) -> None:
@@ -198,16 +207,18 @@ class TestProcessingError:
         """Test ProcessingError with ExceptionParams."""
         params = FlextDbOracleExceptions.ExceptionParams(
             message="Failed to process query result",
-            code="PROC_PARSE_ERROR",
+            error_code="PROC_PARSE_ERROR",
             context={"row_count": 1000, "error_at": 500},
         )
         error = FlextDbOracleExceptions.ProcessingError(
             params.message,
-            code=params.code,
+            code=params.error_code,
             context=params.context,
         )
         assert "Failed to process query result" in str(error)
-        assert error.error_code == "PROC_PARSE_ERROR"  # Uses the code that was passed
+        assert (
+            error.error_code == "PROC_PARSE_ERROR"
+        )  # Uses the code that was passed  # Uses the code that was passed
 
 
 class TestAuthenticationError:
@@ -228,18 +239,18 @@ class TestAuthenticationError:
         """Test AuthenticationError with ExceptionParams."""
         params = FlextDbOracleExceptions.ExceptionParams(
             message="Invalid credentials",
-            code="AUTH_INVALID_CREDS",
+            error_code="AUTH_INVALID_CREDS",
             context={"username": "testuser", "attempts": 3},
         )
         error = FlextDbOracleExceptions.AuthenticationError(
             params.message,
-            code=params.code,
+            code=params.error_code,
             context=params.context,
         )
         assert "Invalid credentials" in str(error)
         assert (
             error.error_code == "AUTHENTICATION_ERROR"
-        )  # flext-core uses default code
+        )  # flext-core uses default code  # flext-core uses default code
 
 
 class TestTimeoutError:
@@ -270,14 +281,14 @@ class TestQueryError:
 
     def test_query_error_with_string(self) -> None:
         """Test QueryError with simple string message."""
-        error = FlextDbOracleExceptions.QueryError("Invalid SQL")
+        error = FlextDbOracleExceptions.OracleQueryError("Invalid SQL")
         assert "Invalid SQL" in str(error)
         # QueryError inherits from _OperationError which has default code
         assert hasattr(error, "error_code")
 
     def test_query_error_with_params(self) -> None:
         """Test QueryError with parameters."""
-        error = FlextDbOracleExceptions.QueryError(
+        error = FlextDbOracleExceptions.OracleQueryError(
             "SQL syntax error",
             code="SQL_SYNTAX_ERROR",
             context={"line": 5, "column": 10, "near": "FORM"},
@@ -292,14 +303,14 @@ class TestMetadataError:
 
     def test_metadata_error_with_string(self) -> None:
         """Test MetadataError with simple string message."""
-        error = FlextDbOracleExceptions.MetadataError("Metadata not found")
+        error = FlextDbOracleExceptions.OracleMetadataError("Metadata not found")
         assert "Metadata not found" in str(error)
         # MetadataError inherits from _OperationError
         assert hasattr(error, "error_code")
 
     def test_metadata_error_with_params(self) -> None:
         """Test MetadataError with parameters."""
-        error = FlextDbOracleExceptions.MetadataError(
+        error = FlextDbOracleExceptions.OracleMetadataError(
             "Table metadata unavailable",
             code="META_TABLE_NOT_FOUND",
             context={"schema": "PUBLIC", "table": "USERS"},
@@ -394,12 +405,12 @@ class TestExceptionHelperMethods:
 
     def test_create_query_error(self) -> None:
         """Test QueryError creation with parameters."""
-        error = FlextDbOracleExceptions.QueryError(
+        error = FlextDbOracleExceptions.OracleQueryError(
             "Query failed",
             code="ORACLE_QUERY_ERROR",
             context={"sql": "SELECT 1"},
         )
-        assert isinstance(error, FlextDbOracleExceptions.QueryError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleQueryError)
         assert "Query failed" in str(error)
         assert error.context["sql"] == "SELECT 1"  # Custom context is preserved
         assert (
@@ -408,12 +419,12 @@ class TestExceptionHelperMethods:
 
     def test_create_metadata_error(self) -> None:
         """Test MetadataError creation with parameters."""
-        error = FlextDbOracleExceptions.MetadataError(
+        error = FlextDbOracleExceptions.OracleMetadataError(
             "Metadata missing",
             code="ORACLE_METADATA_ERROR",
             context={"object": "INDEX"},
         )
-        assert isinstance(error, FlextDbOracleExceptions.MetadataError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleMetadataError)
         assert "Metadata missing" in str(error)
         assert error.context is not None
         assert error.context.get("object") == "INDEX"
@@ -452,19 +463,21 @@ class TestFactoryMethods:
     def test_create_validation_error_factory(self) -> None:
         """Test create_validation_error factory method."""
         error = FlextDbOracleExceptions.create_validation_error(
-            "Validation failed",
-            context={"field": "username"},
+            field="username",
+            value="invalid@",
+            message="Validation failed",
         )
         # Factory method returns FlextDbOracleExceptions.ValidationError
 
-        assert isinstance(error, FlextDbOracleExceptions.ValidationError)
+        assert isinstance(error, FlextDbOracleExceptions.OracleValidationError)
         assert "Validation failed" in str(error)
 
     def test_create_connection_error_factory(self) -> None:
         """Test create_connection_error factory method."""
         error = FlextDbOracleExceptions.create_connection_error(
-            "Connection failed",
-            context={"host": "localhost"},
+            host="localhost",
+            port=1521,
+            message="Connection failed",
         )
         # Factory method returns OracleConnectionError
 

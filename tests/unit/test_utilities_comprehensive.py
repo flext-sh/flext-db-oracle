@@ -250,7 +250,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         assert hasattr(result1, "is_success")
         assert hasattr(result1, "error") or hasattr(result1, "value")
 
-        result2 = utilities.create_api_from_config({"test": "config"})  # type: ignore[arg-type]
+        result2 = utilities.create_api_from_config({"test": "config"})
         assert hasattr(result2, "is_success")
         assert hasattr(result2, "error") or hasattr(result2, "value")
 

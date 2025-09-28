@@ -155,7 +155,7 @@ class FlextDbOracleModels(FlextModels):
             _ = prefix  # Parameter required by API but not used in standardized config
             try:
                 # Import at runtime to avoid circular imports
-                from .config import FlextDbOracleConfig  # noqa: PLC0415
+                from .config import FlextDbOracleConfig
 
                 # Use the enhanced singleton pattern from FlextDbOracleConfig
                 standardized_config = FlextDbOracleConfig.get_or_create_shared_instance(
@@ -164,16 +164,15 @@ class FlextDbOracleModels(FlextModels):
 
                 # Map from FlextDbOracleConfig to OracleConfig for backward compatibility
                 config = cls(
-                    host=standardized_config.oracle_host,  # type: ignore[attr-defined]
-                    port=standardized_config.oracle_port,  # type: ignore[attr-defined]
-                    name=standardized_config.oracle_database_name,  # type: ignore[attr-defined]
-                    username=standardized_config.oracle_username,  # type: ignore[attr-defined]
-                    password=standardized_config.oracle_password.get_secret_value(),  # type: ignore[attr-defined]
-                    service_name=standardized_config.oracle_service_name,  # type: ignore[attr-defined]
-                    pool_min=standardized_config.pool_min,  # type: ignore[attr-defined]
-                    pool_max=standardized_config.pool_max,  # type: ignore[attr-defined]
-                    timeout=standardized_config.pool_timeout,  # type: ignore[attr-defined]
-                    domain_events=[],  # Required by FlextModels.Entity
+                    host=standardized_config.oracle_host,
+                    port=standardized_config.oracle_port,
+                    name=standardized_config.oracle_database_name,
+                    username=standardized_config.oracle_username,
+                    password=standardized_config.oracle_password.get_secret_value(),
+                    service_name=standardized_config.oracle_service_name,
+                    pool_min=standardized_config.pool_min,
+                    pool_max=standardized_config.pool_max,
+                    timeout=standardized_config.pool_timeout,
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except (ValueError, TypeError, AttributeError) as e:
@@ -230,7 +229,6 @@ class FlextDbOracleModels(FlextModels):
                     username=user,
                     password=password,
                     service_name=service_name,
-                    domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except (ValueError, TypeError, AttributeError) as e:
@@ -582,7 +580,6 @@ class FlextDbOracleModels(FlextModels):
                     pool_min=self.oracle_pool_min_size,
                     pool_max=self.oracle_pool_max_size,
                     timeout=self.oracle_pool_timeout,
-                    domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except (ValueError, TypeError, AttributeError) as e:

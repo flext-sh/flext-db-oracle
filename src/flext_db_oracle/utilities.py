@@ -15,7 +15,8 @@ import json
 import os
 from typing import Protocol
 
-from flext_cli import FlextCliOutput
+from rich.table import Table
+
 from flext_core import (
     FlextResult,
     FlextTypes,
@@ -224,32 +225,38 @@ class FlextDbOracleUtilities(FlextUtilities):
                 columns = query_result.columns
                 rows = query_result.rows
                 try:
-                    # Type-safe conversion to list[object]
-                    rows_list: list[object] = []
+                    # Type-safe conversion - handle as any sequence type
+                    rows_sequence = []
                     if hasattr(rows, "__iter__") and not isinstance(rows, (str, bytes)):
                         try:
-                            rows_list = list(rows)  # type: ignore[arg-type]
-                        except TypeError:
-                            rows_list = []
+                            # Convert to list with type safety
+                            rows_iter = iter(rows)
+                            for item in rows_iter:
+                                rows_sequence.append(item)
+                        except (TypeError, AttributeError):
+                            rows_sequence = []
 
-                    columns_list: list[object] = []
+                    columns_sequence = []
                     if hasattr(columns, "__iter__") and not isinstance(
                         columns, (str, bytes)
                     ):
                         try:
-                            columns_list = list(columns)  # type: ignore[assignment]
-                        except TypeError:
-                            columns_list = []
+                            # Convert to list with type safety
+                            columns_iter = iter(columns)
+                            for item in columns_iter:
+                                columns_sequence.append(item)
+                        except (TypeError, AttributeError):
+                            columns_sequence = []
 
                     # Type-safe iteration with explicit type checking
-                    for row_obj in rows_list:
-                        if not isinstance(row_obj, (list, tuple)):
+                    for row_item in rows_sequence:
+                        if not isinstance(row_item, (list, tuple)):
                             continue
                         row_dict = {}
-                        if isinstance(columns_list, (list, tuple)):
-                            for i, col in enumerate(columns_list):
-                                if i < len(row_obj):
-                                    row_dict[str(col)] = row_obj[i]
+                        if columns_sequence:
+                            for i, col in enumerate(columns_sequence):
+                                if i < len(row_item):
+                                    row_dict[str(col)] = row_item[i]
                         data.append(row_dict)
                 except Exception as e:
                     console.print(f"Error building table data: {e}")
@@ -258,19 +265,28 @@ class FlextDbOracleUtilities(FlextUtilities):
                 console.print("Unsupported query result format")
                 return
 
-            # Display as table using flext-cli
+            # Create Rich table
             if data:
-                cli_output = FlextCliOutput()
-                table_result = cli_output.create_table(data, title="Query Results")
-                if table_result.is_success:
-                    cli_output.print_message(str(table_result.data))
-                else:
-                    console.print(f"Error creating table: {table_result.error}")
+                table = Table(show_header=True, header_style="bold blue")
+
+                # Add columns based on first row keys
+                if data and isinstance(data[0], dict):
+                    for column_name in data[0]:
+                        table.add_column(str(column_name))
+
+                    # Add rows
+                    for row_data in data:
+                        if isinstance(row_data, dict):
+                            table.add_row(*[
+                                str(row_data.get(col, "")) for col in data[0]
+                            ])
+
+                console.print(table)
             else:
                 console.print("No data to display")
 
         except Exception as e:
-            console.print(f"Error displaying query table: {e}")
+            console.print(f"Error displaying table: {e}")
 
     @staticmethod
     def create_api_from_config(config: dict[str, object]) -> FlextResult[object]:
@@ -319,7 +335,6 @@ class FlextDbOracleUtilities(FlextUtilities):
                 username=str(config.get("username", "")),
                 password=str(config.get("password", "")),
                 service_name=service_name,
-                domain_events=[],  # Required by FlextModels.Entity
             )
 
             # Create API instance with configuration (use runtime import to avoid circular imports)

@@ -29,7 +29,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -46,7 +45,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
         custom_bus = FlextBus()
@@ -66,7 +64,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -86,7 +83,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -104,7 +100,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -122,7 +117,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -143,7 +137,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -164,7 +157,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -185,14 +177,13 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
-            parameters_list=[{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],  # type: ignore[arg-type]
+            parameters_list=[{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
         )
 
         result = dispatcher.dispatch(many_cmd)
@@ -206,7 +197,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -224,7 +214,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -242,7 +231,6 @@ class TestDispatcherSurgical:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -310,7 +298,7 @@ class TestDispatcherCommandClasses:
         ]
         cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=params_list,  # type: ignore[arg-type]
+            parameters_list=params_list,
         )
         assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
         assert cmd.parameters_list == params_list

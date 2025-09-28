@@ -63,7 +63,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         assert api is not None
@@ -81,7 +80,6 @@ class TestApiModule:
                 service_name=str(config_data["service_name"]),
                 username=str(config_data["username"]),
                 password=str(config_data["password"]),
-                domain_events=[],
             )
             result = FlextDbOracleApi.from_config(config)
             assert isinstance(result, FlextDbOracleApi)
@@ -95,7 +93,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         self._TestDataHelper.create_test_oracle_config()
@@ -114,7 +111,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -132,7 +128,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
@@ -153,7 +148,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
@@ -162,7 +156,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                test_query["params"],  # type: ignore[arg-type]
+                test_query["params"],
             )
             assert isinstance(result, FlextResult)
 
@@ -175,7 +169,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         test_schema = self._TestDataHelper.create_test_schema_data()
@@ -196,7 +189,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         test_schema = self._TestDataHelper.create_test_schema_data()
@@ -215,7 +207,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         # Test table schema retrieval if method exists
@@ -232,7 +223,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         self._TestDataHelper.create_test_oracle_config()
@@ -272,7 +262,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -312,7 +301,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -348,7 +336,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -377,7 +364,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -444,7 +430,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -482,7 +467,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -510,7 +494,6 @@ class TestApiModule:
             service_name=str(config_data["service_name"]),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
         results = []

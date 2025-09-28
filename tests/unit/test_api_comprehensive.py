@@ -33,7 +33,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="TEST",
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
         self.api = FlextDbOracleApi(self.config)
 
@@ -405,7 +404,6 @@ class TestFlextDbOracleApiRealFunctionality:
                     service_name="testbuilder_service",
                     username="testbuilder_user",
                     password="testbuilder_password",
-                    domain_events=[],
                 ),
             )
             .build()
@@ -417,15 +415,19 @@ class TestFlextDbOracleApiRealFunctionality:
             raise AssertionError(msg)
 
         # Cast to FlextResult to satisfy mypy
-        result = cast("FlextResult[object]", config_result)
+        result = cast("FlextResult[FlextDbOracleModels.OracleConfig]", config_result)
         FlextTestsMatchers.assert_result_success(result)
-        config = result.value
+        config = result.value  # Direct access since value is the OracleConfig
         assert isinstance(config, FlextDbOracleModels.OracleConfig)
 
-        api = FlextDbOracleApi.from_config(config)
-        assert isinstance(api, FlextDbOracleApi)
-        assert api.config == config
+        # Test API creation with TestBuilders configuration
+        api = FlextDbOracleApi(config)
+        assert api is not None
         assert api.config.host == "testbuilder_host"
+        assert api.config.port == 1521
+        assert api.config.service_name == "testbuilder_service"
+        assert api.config.username == "testbuilder_user"
+        assert api.config.password == "testbuilder_password"
 
     def test_api_multiple_instances_isolation_real(self) -> None:
         """Test that multiple API instances are properly isolated."""
@@ -435,7 +437,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="service1",
             username="user1",
             password="password1",
-            domain_events=[],
         )
 
         config2 = FlextDbOracleModels.OracleConfig(
@@ -444,7 +445,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="service2",
             username="user2",
             password="password2",
-            domain_events=[],
         )
 
         api1 = FlextDbOracleApi(config1)
@@ -520,7 +520,7 @@ class TestFlextDbOracleApiRealFunctionality:
             result = self.api.convert_singer_type(singer_type)
 
             # Should return FlextResult
-            assert hasattr(result, "success")
+            assert hasattr(result, "is_success")
             assert hasattr(result, "error")
 
             if result.is_success:
@@ -563,7 +563,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.map_singer_schema(test_schema)
 
         # Method may not be fully implemented - test the interface
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "value")
         assert hasattr(result, "error")
 
@@ -581,7 +581,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.execute_sql(test_sql)
 
         # Should return FlextResult with proper structure
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "error")
 
         # When not connected, should fail with descriptive error
@@ -600,7 +600,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.transaction()
 
         # Should return FlextResult
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "error")
 
         # Without connection, should fail gracefully
@@ -730,7 +730,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="S",
             username="u",
             password="p",
-            domain_events=[],
         )
         minimal_api = FlextDbOracleApi(minimal_config)
         assert minimal_api.is_valid() is True
@@ -746,7 +745,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="SERVICE_WITH_UNDERSCORES",
             username="user@domain",
             password="pass!@#$%",
-            domain_events=[],
         )
         special_api = FlextDbOracleApi(special_config)
         assert special_api.is_valid() is True
@@ -756,7 +754,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.get_health_status()
 
         # Should return FlextResult
-        assert hasattr(result, "success")
+        assert hasattr(result, "is_success")
         assert hasattr(result, "value")
         assert hasattr(result, "error")
 

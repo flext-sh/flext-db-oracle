@@ -24,7 +24,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -40,7 +39,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -55,7 +53,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -73,7 +70,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -90,7 +86,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -106,7 +101,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -122,7 +116,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -138,7 +131,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 
@@ -161,7 +153,6 @@ class TestApiSurgicalSimple:
             service_name="XEPDB1",
             username="test",
             password="test",
-            domain_events=[],
         )
         api = FlextDbOracleApi(config=config)
 

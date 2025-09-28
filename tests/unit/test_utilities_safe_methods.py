@@ -86,7 +86,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=50,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should not raise exception with table format
@@ -107,7 +106,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=20,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should not raise exception with JSON format
@@ -128,7 +126,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should handle empty data gracefully
@@ -154,7 +151,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         for format_type in ["table", "json"]:
@@ -177,7 +173,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         for format_type in ["table", "json", "csv"]:
@@ -199,7 +194,6 @@ class TestFlextDbOracleUtilities:
             execution_time_ms=30,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Test via public format_query_result method with table format
@@ -255,7 +249,6 @@ class TestFlextDbOracleUtilitiesDataValidation:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         assert valid_result.row_count == 1
@@ -272,7 +265,6 @@ class TestFlextDbOracleUtilitiesDataValidation:
             password="config_pass",
             service_name="CONFIG_TEST",
             pool_max=10,
-            domain_events=[],
         )
 
         # Configuration should be valid
@@ -292,7 +284,6 @@ class TestFlextDbOracleUtilitiesDataValidation:
             execution_time_ms=500,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should handle large datasets
@@ -311,7 +302,6 @@ class TestFlextDbOracleUtilitiesDataValidation:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should handle complex data structures
@@ -341,7 +331,6 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
             execution_time_ms=int(execution_time * 1000),  # Convert to milliseconds
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         assert result.execution_time_ms > 0
@@ -360,7 +349,6 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
             ),  # Convert to int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         assert (
@@ -389,7 +377,6 @@ class TestFlextDbOracleUtilitiesErrorHandling:
             execution_time_ms=10,  # Convert to milliseconds as int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Should handle invalid formats gracefully - method is defensive and succeeds
@@ -414,7 +401,6 @@ class TestFlextDbOracleUtilitiesErrorHandling:
             execution_time_ms=0,  # Convert to int
             query_hash=None,
             explain_plan=None,
-            domain_events=[],
         )
 
         # Test all formats to ensure None handling works

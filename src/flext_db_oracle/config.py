@@ -308,14 +308,14 @@ class FlextDbOracleConfig(FlextConfig):
         cls, environment: str, **overrides: object
     ) -> FlextDbOracleConfig:
         """Create configuration for specific environment using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(  # type: ignore[return-value]
+        return cls.get_or_create_shared_instance(
             project_name="flext-db-oracle", environment=environment, **overrides
         )
 
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:
         """Create default configuration instance using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(project_name="flext-db-oracle")  # type: ignore[return-value]
+        return cls.get_or_create_shared_instance(project_name="flext-db-oracle")
 
     @classmethod
     def get_global_instance(cls) -> FlextDbOracleConfig:
@@ -328,7 +328,7 @@ class FlextDbOracleConfig(FlextConfig):
         """Reset the global FlextDbOracleConfig instance (mainly for testing)."""
         # Use the enhanced FlextConfig reset mechanism
         if hasattr(cls, "reset_shared_instance"):
-            cls.reset_shared_instance()  # type: ignore[attr-defined]
+            cls.reset_shared_instance()
         else:
             # Fallback: clear any cached instances
             pass

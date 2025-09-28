@@ -25,7 +25,6 @@ class TestFlextDbOracleConnectionSimple:
             username="test",
             password="test",
             service_name="TEST",
-            domain_events=[],
         )
         self.connection = FlextDbOracleServices(config=self.config, domain_events=[])
 
@@ -54,7 +53,6 @@ class TestFlextDbOracleConnectionSimple:
             service_name="TEST",
             username="test",
             password="test",
-            domain_events=[],
         )
         assert config.host == "localhost"
         assert config.port == 1521

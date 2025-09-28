@@ -21,7 +21,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             service_name="TEST",
             username="test",
             password="test",
-            domain_events=[],
         )
         self.services = FlextDbOracleServices(config=self.config, domain_events=[])
         self.manager = self.services  # They are the same unified class now
@@ -102,13 +101,11 @@ class TestFlextDbOracleMetadataManagerComprehensive:
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
-                domain_events=[],
             ),
             FlextDbOracleModels.Column(
                 name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
-                domain_events=[],
             ),
         ]
 
@@ -117,7 +114,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             name="TEST_TABLE",
             owner="TEST_SCHEMA",
             columns=columns,
-            domain_events=[],
         )
 
         result = self.manager.get_tables("TEST_SCHEMA")
@@ -186,25 +182,21 @@ class TestFlextDbOracleMetadataManagerComprehensive:
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
-                domain_events=[],
             ),
             FlextDbOracleModels.Column(
                 name="CODE",
                 data_type="VARCHAR2",
                 nullable=False,
-                domain_events=[],
             ),
             FlextDbOracleModels.Column(
                 name="CREATED_DATE",
                 data_type="DATE",
                 nullable=True,
-                domain_events=[],
             ),
             FlextDbOracleModels.Column(
                 name="AMOUNT",
                 data_type="NUMBER",
                 nullable=True,
-                domain_events=[],
             ),
         ]
 
@@ -212,7 +204,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             name="COMPLEX_TABLE",
             owner="APP_SCHEMA",
             columns=columns,
-            domain_events=[],
         )
 
         # Test that the models were created successfully

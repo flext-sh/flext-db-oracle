@@ -31,7 +31,6 @@ class TestRealOracleExceptionsCore:
             service_name="XEPDB1",
             username="invalid_user_12345",
             password="invalid_password_12345",
-            domain_events=[],
         )
 
         connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
@@ -69,7 +68,6 @@ class TestRealOracleExceptionsCore:
             service_name="XEPDB1",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
 
         connection = FlextDbOracleServices(config=unreachable_config, domain_events=[])
@@ -108,7 +106,6 @@ class TestRealOracleExceptionsCore:
                 sid="",  # Empty SID
                 username="testuser",
                 password="testpass",
-                domain_events=[],
             )
             connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
             result = connection.connect()
@@ -129,7 +126,7 @@ class TestRealOracleExceptionsCore:
         self,
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
-        """Test FlextDbOracleExceptions.QueryError with real invalid SQL."""
+        """Test FlextDbOracleExceptions.OracleQueryError with real invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
 
         connect_result = connection.connect()
@@ -178,7 +175,6 @@ class TestRealOracleExceptionsCore:
             username=real_oracle_config.username,
             password=real_oracle_config.password,
             timeout=1,  # 1 second timeout
-            domain_events=[],
         )
 
         connection = FlextDbOracleServices(config=timeout_config, domain_events=[])
@@ -219,7 +215,7 @@ class TestRealOracleExceptionsAdvanced:
         self,
         connected_oracle_api: FlextDbOracleApi,
     ) -> None:
-        """Test FlextDbOracleExceptions.MetadataError with real metadata operations."""
+        """Test FlextDbOracleExceptions.OracleMetadataError with real metadata operations."""
         # Try to get metadata for non-existent schema
         invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
 
@@ -337,7 +333,6 @@ class TestRealOracleExceptionsAdvanced:
                     username=str(typed_config["user"]),
                     password=str(typed_config["password"]),
                     service_name=str(typed_config.get("service_name", "XE")),
-                    domain_events=[],
                 )
                 # Skip validate_business_rules check since method doesn't exist
                 # validation_result = (
@@ -363,30 +358,30 @@ class TestRealOracleExceptionHierarchy:
         assert issubclass(FlextDbOracleExceptions.AuthenticationError, Exception)
         assert issubclass(FlextDbOracleExceptions.ConfigurationError, Exception)
         assert issubclass(FlextDbOracleExceptions.OracleConnectionError, Exception)
-        assert issubclass(FlextDbOracleExceptions.MetadataError, Exception)
+        assert issubclass(FlextDbOracleExceptions.OracleMetadataError, Exception)
         assert issubclass(FlextDbOracleExceptions.ProcessingError, Exception)
-        assert issubclass(FlextDbOracleExceptions.QueryError, Exception)
+        assert issubclass(FlextDbOracleExceptions.OracleQueryError, Exception)
         assert issubclass(FlextDbOracleExceptions.OracleTimeoutError, Exception)
         assert issubclass(FlextDbOracleExceptions.ValidationError, Exception)
 
         # Test that domain-specific exceptions inherit from local BaseError
         assert issubclass(
-            FlextDbOracleExceptions.QueryError,
+            FlextDbOracleExceptions.OracleQueryError,
             FlextDbOracleExceptions.BaseError,
         )
         assert issubclass(
-            FlextDbOracleExceptions.MetadataError,
+            FlextDbOracleExceptions.OracleMetadataError,
             FlextDbOracleExceptions.BaseError,
         )
 
     def test_real_exception_instantiation(self) -> None:
         """Test that Oracle exceptions can be instantiated with context."""
-        # Test FlextDbOracleExceptions.QueryError with simple message
-        query_error = FlextDbOracleExceptions.QueryError("Invalid SQL syntax")
+        # Test FlextDbOracleExceptions.OracleQueryError with simple message
+        query_error = FlextDbOracleExceptions.OracleQueryError("Invalid SQL syntax")
         assert "Invalid SQL syntax" in str(query_error)
 
-        # Test FlextDbOracleExceptions.MetadataError with simple message
-        metadata_error = FlextDbOracleExceptions.MetadataError("Schema not found")
+        # Test FlextDbOracleExceptions.OracleMetadataError with simple message
+        metadata_error = FlextDbOracleExceptions.OracleMetadataError("Schema not found")
         assert "Schema not found" in str(metadata_error)
 
         # Test base FlextDbOracleExceptions.Error
@@ -399,7 +394,7 @@ class TestRealOracleExceptionHierarchy:
         # that may not be supported in the current exception implementation
 
         # Test query error with simple message
-        query_error = FlextDbOracleExceptions.QueryError("Query too complex")
+        query_error = FlextDbOracleExceptions.OracleQueryError("Query too complex")
         error_str = str(query_error)
         assert "Query too complex" in error_str
 

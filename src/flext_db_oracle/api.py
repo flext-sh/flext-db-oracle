@@ -36,9 +36,6 @@ class _ConnectionHelper:
 
     @override
     @override
-    @override
-    @override
-    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api: FlextDbOracleApi = api
 
@@ -107,9 +104,6 @@ class _ConnectionHelper:
 class _QueryHelper:
     """Helper class for query operations."""
 
-    @override
-    @override
-    @override
     @override
     @override
     def __init__(self, api: FlextDbOracleApi) -> None:
@@ -254,9 +248,6 @@ class _MetadataHelper:
 
     @override
     @override
-    @override
-    @override
-    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api = api
 
@@ -349,9 +340,6 @@ class _PluginHelper:
 
     @override
     @override
-    @override
-    @override
-    @override
     def __init__(self, api: FlextDbOracleApi) -> None:
         self._api = api
 
@@ -413,9 +401,6 @@ class _PluginHelper:
 class FlextDbOracleApi(FlextModels.Entity):
     """Oracle Database API with clean delegation to services layer."""
 
-    @override
-    @override
-    @override
     @override
     @override
     def __init__(
@@ -570,7 +555,7 @@ class FlextDbOracleApi(FlextModels.Entity):
             FlextResult[Self]: Success result with connected API instance.
 
         """
-        return self._connection_helper.connect_helper()  # type: ignore[return-value]
+        return self._connection_helper.connect_helper()
 
     def disconnect(self) -> FlextResult[None]:
         """Disconnect from Oracle database.
@@ -849,7 +834,6 @@ class FlextDbOracleApi(FlextModels.Entity):
                     else 0,
                     query_hash=None,
                     explain_plan=None,
-                    domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult.ok(query_result)
             return FlextResult.fail(result.error or "SQL execution failed")

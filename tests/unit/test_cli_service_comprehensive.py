@@ -149,7 +149,6 @@ class TestOracleConnectionHelper:
             service_name="XEPDB1",
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
 
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
@@ -172,7 +171,6 @@ class TestOracleConnectionHelper:
             service_name="INVALID",
             username="invalid_user",
             password="invalid_password",
-            domain_events=[],
         )
 
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
@@ -346,7 +344,6 @@ class TestCliServiceOperations:
             service_name="XEPDB1",
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
 
         with patch.object(

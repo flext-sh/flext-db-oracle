@@ -98,7 +98,6 @@ class FlextDbOracleClient:
                 service_name=actual_service_name,
                 username=actual_username,
                 password=actual_password,
-                domain_events=[],  # Required by FlextModels.Entity
             )
 
             # Create and configure Oracle API
@@ -315,16 +314,10 @@ class FlextDbOracleClient:
             adapted_data = adapted_result.value
 
             # Simple table formatting
-            if (
-                isinstance(adapted_data, list)
-                and adapted_data
-                and isinstance(adapted_data[0], dict)
-            ):
+            if adapted_data:
                 headers: list[str] = list(adapted_data[0].keys())
                 rows: list[list[str]] = [
-                    [str(row[h]) for h in headers]
-                    for row in adapted_data
-                    if isinstance(row, dict)
+                    [str(row[h]) for h in headers] for row in adapted_data
                 ]
                 result_str = (
                     f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
@@ -363,10 +356,10 @@ class FlextDbOracleClient:
         try:
 
             def adapt_schemas(r: object) -> list[dict[str, str]]:
-                return [{"schema": str(s)} for s in r] if isinstance(r, list) else []
+                return [{"schema": str(s)} for s in r if isinstance(r, list)] if isinstance(r, list) else []
 
             def adapt_tables(r: object) -> list[dict[str, str]]:
-                return [{"table": str(t)} for t in r] if isinstance(r, list) else []
+                return [{"table": str(t)} for t in r if isinstance(r, list)] if isinstance(r, list) else []
 
             def adapt_health(r: object) -> list[dict[str, str]]:
                 return (

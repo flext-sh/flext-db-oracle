@@ -25,7 +25,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
         assert service is not None
@@ -39,7 +38,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -56,7 +54,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TESTDB",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -77,7 +74,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -95,7 +91,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -114,7 +109,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -136,7 +130,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -164,7 +157,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -195,7 +187,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -225,7 +216,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -246,7 +236,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -272,7 +261,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -292,7 +280,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -316,7 +303,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -343,7 +329,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -364,7 +349,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -390,7 +374,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -420,7 +403,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -439,7 +421,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -459,7 +440,6 @@ class TestFlextDbOracleServicesBasic:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -480,7 +460,6 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -499,7 +478,6 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -516,7 +494,6 @@ class TestServiceErrorHandling:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 

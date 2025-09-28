@@ -18,7 +18,6 @@ class TestFlextDbOracleApiWorking:
             service_name="TEST",
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
         self.api = FlextDbOracleApi(self.config)
 

@@ -8,276 +8,261 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import override
+from typing import Final, cast
 
-from flext_core import FlextExceptions, FlextTypes
+from pydantic import Field
+
+from flext_core import FlextExceptions, FlextModels, FlextTypes
 
 
 class FlextDbOracleExceptions(FlextExceptions):
-    """Unified Oracle Database Exception System using flext-core exclusively."""
+    """Oracle database exceptions following Flext[Area][Module] pattern.
 
-    @dataclass(frozen=True)
-    class ExceptionParams:
-        """Exception parameters for Oracle database exceptions."""
+    Single class inheriting from FlextExceptions with all Oracle-specific
+    exceptions as internal nested classes, following SOLID principles,
+    PEP8, Python 3.13+, and FLEXT structural patterns.
 
-        message: str
-        code: str | None = None
-        context: FlextTypes.Core.Dict | None = None
+    This class consolidates all Oracle database exceptions functionality
+    into a single entry point with internal organization.
+    """
 
-        def __post_init__(self) -> None:
-            """Validate exception parameters."""
-            if not self.message or not self.message.strip():
-                msg = "Exception message cannot be empty"
-                raise ValueError(msg)
+    class ExceptionParams(FlextModels.Entity):
+        """Parameters for Oracle exception handling."""
+
+        error_code: str = Field(description="Oracle error code")
+        message: str = Field(description="Error message")
+        context: dict[str, object] = Field(
+            default_factory=dict, description="Additional context"
+        )
+        sql_statement: str | None = Field(default=None, description="SQL statement")
+        connection_info: dict[str, str] | None = Field(
+            default=None, description="Connection information"
+        )
 
     class OracleErrorCodes:
         """Oracle-specific error codes."""
 
-        VALIDATION_ERROR = "ORACLE_VALIDATION_ERROR"
-        CONFIGURATION_ERROR = "ORACLE_CONFIGURATION_ERROR"
-        CONNECTION_ERROR = "ORACLE_CONNECTION_ERROR"
-        AUTHENTICATION_ERROR = "ORACLE_AUTHENTICATION_ERROR"
-        PROCESSING_ERROR = "ORACLE_PROCESSING_ERROR"
-        TIMEOUT_ERROR = "ORACLE_TIMEOUT_ERROR"
-        QUERY_ERROR = "ORACLE_QUERY_ERROR"
-        METADATA_ERROR = "ORACLE_METADATA_ERROR"
+        # Generic FLEXT error codes for Oracle operations
+        VALIDATION_ERROR: Final[str] = "ORACLE_VALIDATION_ERROR"
+        CONFIGURATION_ERROR: Final[str] = "ORACLE_CONFIGURATION_ERROR"
+        CONNECTION_ERROR: Final[str] = "ORACLE_CONNECTION_ERROR"
+        PROCESSING_ERROR: Final[str] = "ORACLE_PROCESSING_ERROR"
+        AUTHENTICATION_ERROR: Final[str] = "ORACLE_AUTHENTICATION_ERROR"
+        TIMEOUT_ERROR: Final[str] = "ORACLE_TIMEOUT_ERROR"
+        QUERY_ERROR: Final[str] = "ORACLE_QUERY_ERROR"
+        METADATA_ERROR: Final[str] = "ORACLE_METADATA_ERROR"
 
-    # Base error class for Oracle exceptions
-    class OracleBaseError(Exception):
-        """Base error class for Oracle exceptions."""
+        # Oracle-specific error codes
+        CONNECTION_FAILED: Final[str] = "ORA-12541"
+        INVALID_USERNAME: Final[str] = "ORA-01017"
+        TABLE_NOT_FOUND: Final[str] = "ORA-00942"
+        COLUMN_NOT_FOUND: Final[str] = "ORA-00904"
+        TIMEOUT: Final[str] = "ORA-12170"
+        NETWORK_ERROR: Final[str] = "ORA-12514"
 
-        @override
-        def __init__(
-            self,
-            message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
-        ) -> None:
-            """Initialize Oracle exception with message, code, and context."""
+    class OracleBaseError(FlextExceptions.BaseError):
+        """Base Oracle database error."""
+
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize Oracle base error with message and optional context."""
             super().__init__(message)
-            self.error_code: str | None = code
-            self.context: FlextTypes.Core.Dict = context or {}
+            self.oracle_code: str | None = cast("str | None", kwargs.get("oracle_code"))
+            self.sql_statement: str | None = cast(
+                "str | None", kwargs.get("sql_statement")
+            )
+            self.connection_info: dict[str, str] | None = cast(
+                "dict[str, str] | None", kwargs.get("connection_info")
+            )
 
-    # Oracle exception classes
     class OracleError(OracleBaseError):
-        """General Oracle error."""
+        """General Oracle database error."""
 
-        @override
-        def __init__(
-            self,
-            message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
-        ) -> None:
-            """Initialize Oracle error."""
-            super().__init__(message, code, context)
+        def __init__(self, message: str, **kwargs: object) -> None:
+            """Initialize Oracle error with message and optional context."""
+            super().__init__(message, **kwargs)
+            self.error_type = "OracleError"
 
     class OracleValidationError(OracleBaseError):
         """Oracle validation error."""
 
-        @override
         def __init__(
             self,
             message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            field: str | None = None,
+            value: object = None,
+            **kwargs: object,
         ) -> None:
-            """Initialize validation error with flext-core defaults."""
-            # Use flext-core default behavior for ValidationError (code parameter ignored)
-            _ = code  # Ignored - flext-core uses fixed code
-            actual_code = "VALIDATION_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "field": "None",
-                "value": "None",
-                "validation_details": "None",
-            }
-            if context:
-                # Add custom fields but preserve default field values
-                default_fields = {"field", "value", "validation_details"}
-                for key, value in context.items():
-                    if key not in default_fields:
-                        actual_context[key] = value
-                    # Default fields keep their default values (None)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle validation error with field details."""
+            super().__init__(message, **kwargs)
+            self.field = field
+            self.value = value
+            self.error_type = "ValidationError"
+
+        @classmethod
+        def from_field_error(
+            cls, field: str, value: object, message: str
+        ) -> FlextDbOracleExceptions.OracleValidationError:
+            """Create validation error from field details."""
+            return cls(
+                message=f"Validation failed for field '{field}': {message}",
+                field=field,
+                value=value,
+            )
 
     class OracleConfigurationError(OracleBaseError):
         """Oracle configuration error."""
 
-        @override
         def __init__(
-            self,
-            message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            self, message: str, config_key: str | None = None, **kwargs: object
         ) -> None:
-            """Initialize configuration error with flext-core defaults."""
-            # Use flext-core default behavior for ConfigurationError (code parameter ignored)
-            _ = code  # Ignored - flext-core uses fixed code
-            actual_code = "CONFIGURATION_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "config_key": "None",
-                "config_file": "None",
-            }
-            if context:
-                actual_context.update(context)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle configuration error with config key details."""
+            super().__init__(message, **kwargs)
+            self.config_key = config_key
+            self.error_type = "ConfigurationError"
+
+        @classmethod
+        def missing_config(
+            cls, key: str
+        ) -> FlextDbOracleExceptions.OracleConfigurationError:
+            """Create error for missing configuration."""
+            return cls(message=f"Missing required configuration: {key}", config_key=key)
 
     class OracleConnectionError(OracleBaseError):
-        """Oracle connection error (renamed to avoid builtin shadowing)."""
+        """Oracle connection error."""
 
-        @override
         def __init__(
             self,
             message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            host: str | None = None,
+            port: int | None = None,
+            **kwargs: object,
         ) -> None:
-            """Initialize connection error with flext-core defaults."""
-            # Use flext-core default behavior for ConnectionError (code parameter ignored)
-            _ = code  # Ignored - flext-core uses fixed code
-            actual_code = "CONNECTION_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "endpoint": "None",
-                "service": "None",
-            }
-            if context:
-                actual_context.update(context)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle connection error with host and port details."""
+            super().__init__(message, **kwargs)
+            self.host = host
+            self.port = port
+            self.error_type = "ConnectionError"
 
     class OracleAuthenticationError(OracleBaseError):
         """Oracle authentication error."""
 
-        @override
         def __init__(
             self,
             message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            username: str | None = None,
+            **kwargs: object,
         ) -> None:
-            """Initialize authentication error with flext-core defaults."""
-            # Use flext-core default behavior for AuthenticationError (code parameter ignored)
-            _ = code  # Ignored - flext-core uses fixed code
-            actual_code = "AUTHENTICATION_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "auth_method": "None",
-                "user": "None",
-            }
-            if context:
-                actual_context.update(context)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle authentication error with username details."""
+            super().__init__(message, **kwargs)
+            self.username = username
+            self.error_type = "AuthenticationError"
+
+        @classmethod
+        def invalid_credentials(
+            cls, username: str
+        ) -> FlextDbOracleExceptions.OracleAuthenticationError:
+            """Create error for invalid credentials."""
+            return cls(
+                message=f"Invalid credentials for user: {username}", username=username
+            )
 
     class OracleProcessingError(OracleBaseError):
-        """Oracle processing error."""
+        """Oracle data processing error."""
 
-        @override
         def __init__(
             self,
             message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            operation: str | None = None,
+            data_context: dict[str, object] | None = None,
+            **kwargs: object,
         ) -> None:
-            """Initialize processing error."""
-            # Use custom code only if it's not an Oracle constant
-            error_codes = FlextDbOracleExceptions.OracleErrorCodes
-            if code and code not in error_codes.__dict__.values():
-                actual_code = code
-            else:
-                actual_code = "PROCESSING_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "business_rule": "None",
-                "stage": "None",
-            }
-            if context:
-                actual_context.update(context)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle processing error with operation and data context."""
+            super().__init__(message, **kwargs)
+            self.operation = operation
+            self.data_context = data_context or {}
+            self.error_type = "ProcessingError"
+
+        @classmethod
+        def data_conversion_failed(
+            cls, operation: str, details: str
+        ) -> FlextDbOracleExceptions.OracleProcessingError:
+            """Create error for data conversion failures."""
+            return cls(
+                message=f"Data conversion failed during {operation}: {details}",
+                operation=operation,
+            )
 
     class OracleTimeoutError(OracleBaseError):
-        """Oracle timeout error (renamed to avoid builtin shadowing)."""
+        """Oracle timeout error."""
 
-        @override
         def __init__(
             self,
             message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            timeout_seconds: float | None = None,
+            operation: str | None = None,
+            **kwargs: object,
         ) -> None:
-            """Initialize timeout error."""
-            # Use custom code only if it's not an Oracle constant
-            error_codes = FlextDbOracleExceptions.OracleErrorCodes
-            if code and code not in error_codes.__dict__.values():
-                actual_code = code
-            else:
-                actual_code = "TIMEOUT_ERROR"
-            actual_context: FlextTypes.Core.Dict = {
-                "timeout_seconds": "None",
-                "operation": "None",
-            }
-            if context:
-                actual_context.update(context)
-            super().__init__(message, actual_code, actual_context)
+            """Initialize Oracle timeout error with timeout and operation details."""
+            super().__init__(message, **kwargs)
+            self.timeout_seconds = timeout_seconds
+            self.operation = operation
+            self.error_type = "TimeoutError"
 
-    class OracleQueryError(OracleProcessingError):
-        """Oracle query error."""
+        @classmethod
+        def query_timeout(
+            cls, timeout_seconds: float, query: str | None = None
+        ) -> FlextDbOracleExceptions.OracleTimeoutError:
+            """Create error for query timeouts."""
+            message = f"Query timed out after {timeout_seconds} seconds"
+            if query:
+                message += f": {query[:100]}..."
+            return cls(
+                message=message,
+                timeout_seconds=timeout_seconds,
+                operation="query_execution",
+                sql_statement=query,
+            )
 
-        @override
+    class OracleQueryError(OracleBaseError):
+        """Oracle query execution error."""
+
         def __init__(
-            self,
-            message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            self, message: str, query: str | None = None, **kwargs: object
         ) -> None:
-            """Initialize query error."""
-            actual_code = code or "PROCESSING_ERROR"
-            super().__init__(message, actual_code, context)
+            """Initialize Oracle query error with query details."""
+            super().__init__(message, **kwargs)
+            self.query = query
+            self.error_type = "QueryError"
 
-    class OracleMetadataError(OracleProcessingError):
-        """Oracle metadata error."""
+    class OracleMetadataError(OracleBaseError):
+        """Oracle metadata retrieval error."""
 
-        @override
         def __init__(
-            self,
-            message: str,
-            code: str | None = None,
-            context: FlextTypes.Core.Dict | None = None,
+            self, message: str, table_name: str | None = None, **kwargs: object
         ) -> None:
-            """Initialize metadata error."""
-            # MetadataError is alias for ProcessingError (code parameter ignored)
-            _ = code  # Ignored - MetadataError uses fixed PROCESSING_ERROR code
-            super().__init__(message, "PROCESSING_ERROR", context)
-
-    # Backward compatibility aliases
-    BaseError = OracleBaseError
-    Error = OracleError
-    ValidationError = OracleValidationError
-    ConfigurationError = OracleConfigurationError
-    AuthenticationError = OracleAuthenticationError
-    ProcessingError = OracleProcessingError
-    QueryError = OracleQueryError
-    MetadataError = OracleMetadataError
+            """Initialize Oracle metadata error with table name details."""
+            super().__init__(message, **kwargs)
+            self.table_name = table_name
+            self.error_type = "MetadataError"
 
     @classmethod
     def create_validation_error(
-        cls,
-        message: str,
-        context: FlextTypes.Core.Dict | None = None,
+        cls, field: str, value: object, message: str
     ) -> FlextDbOracleExceptions.OracleValidationError:
-        """Factory method for validation errors using flext-core."""
-        return cls.OracleValidationError(message, context=context)
+        """Factory method for validation errors."""
+        return cls.OracleValidationError.from_field_error(field, value, message)
 
     @classmethod
     def create_connection_error(
-        cls,
-        message: str,
-        context: FlextTypes.Core.Dict | None = None,
+        cls, host: str, port: int, message: str
     ) -> FlextDbOracleExceptions.OracleConnectionError:
-        """Factory method for connection errors using flext-core."""
-        return cls.OracleConnectionError(message, context=context)
+        """Factory method for connection errors."""
+        return cls.OracleConnectionError(message=message, host=host, port=port)
 
-    @classmethod
-    def is_oracle_error(cls, error: Exception) -> bool:
-        """Check if exception is an Oracle database error using flext-core."""
-        return isinstance(error, cls.OracleBaseError)
+    @staticmethod
+    def is_oracle_error(error: Exception) -> bool:
+        """Check if error is Oracle-specific."""
+        return isinstance(error, FlextDbOracleExceptions.OracleBaseError)
 
 
 __all__: FlextTypes.Core.StringList = [

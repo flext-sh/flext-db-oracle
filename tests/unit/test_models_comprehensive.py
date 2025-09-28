@@ -24,7 +24,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_success(self) -> None:
         """Test successful Oracle identifier validation."""
-        validator = FlextDbOracleModels._OracleValidation
+        validator = FlextDbOracleModels.OracleValidation
 
         # Test valid identifiers
         result = validator.validate_identifier("VALID_TABLE")
@@ -43,7 +43,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_empty(self) -> None:
         """Test Oracle identifier validation with empty input."""
-        validator = FlextDbOracleModels._OracleValidation
+        validator = FlextDbOracleModels.OracleValidation
 
         # Test empty string
         result = validator.validate_identifier("")
@@ -57,7 +57,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_too_long(self) -> None:
         """Test Oracle identifier validation with too long input."""
-        validator = FlextDbOracleModels._OracleValidation
+        validator = FlextDbOracleModels.OracleValidation
 
         # Create identifier longer than 30 characters (Oracle limit)
         long_identifier = "A" * 31
@@ -67,7 +67,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_invalid_characters(self) -> None:
         """Test Oracle identifier validation with invalid characters."""
-        validator = FlextDbOracleModels._OracleValidation
+        validator = FlextDbOracleModels.OracleValidation
 
         # Test invalid characters
         invalid_identifiers = [
@@ -94,7 +94,6 @@ class TestOracleConfig:
             name="XE",
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
 
         assert config.host == "localhost"
@@ -108,7 +107,6 @@ class TestOracleConfig:
         config = FlextDbOracleModels.OracleConfig(
             username="test_user",
             password="test_password",
-            domain_events=[],
         )
 
         assert config.host == "localhost"
@@ -127,7 +125,6 @@ class TestOracleConfig:
                 host="",
                 username="test_user",
                 password="test_password",
-                domain_events=[],
             )
 
         errors = exc_info.value.errors()
@@ -140,7 +137,6 @@ class TestOracleConfig:
                 host="   ",
                 username="test_user",
                 password="test_password",
-                domain_events=[],
             )
 
         errors = exc_info.value.errors()
@@ -160,7 +156,6 @@ class TestOracleConfig:
             pool_min=5,
             pool_max=50,
             timeout=120,
-            domain_events=[],
         )
 
         assert config.host == "prod-oracle.example.com"
@@ -228,8 +223,8 @@ class TestOracleConfigFromEnv:
         assert config.host == "localhost"  # default
         assert config.port == 1521  # default
         assert config.name == "XE"  # default
-        assert config.username == ""  # default
-        assert config.password == ""  # default
+        assert not config.username  # default
+        assert not config.password  # default
 
     def test_from_env_defaults_when_missing(self) -> None:
         """Test Oracle config uses defaults when environment variables missing."""
@@ -373,7 +368,7 @@ class TestFlextDbOracleModelsStructure:
     def test_nested_validation_class(self) -> None:
         """Test _OracleValidation nested class exists."""
         assert hasattr(FlextDbOracleModels, "_OracleValidation")
-        assert callable(FlextDbOracleModels._OracleValidation.validate_identifier)
+        assert callable(FlextDbOracleModels.OracleValidation.validate_identifier)
 
     def test_class_variables_exist(self) -> None:
         """Test required class variables exist."""
@@ -410,7 +405,6 @@ class TestOracleConfigEdgeCases:
             host="oracle-ñáéíóú.example.com",
             username="usér_name",
             password="páss_wórd_ñ",
-            domain_events=[],
         )
 
         assert config.host == "oracle-ñáéíóú.example.com"
@@ -427,7 +421,6 @@ class TestOracleConfigEdgeCases:
             pool_min=1,  # Minimum pool
             pool_max=1000,  # Large pool
             timeout=3600,  # Long timeout
-            domain_events=[],
         )
 
         assert len(config.host) == 253
@@ -444,7 +437,6 @@ class TestOracleConfigEdgeCases:
             username="test_user",
             password="test_password",
             service_name="TEST_SERVICE",
-            domain_events=[],
         )
 
         # Test model_dump (Pydantic v2)

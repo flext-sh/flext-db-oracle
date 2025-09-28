@@ -134,7 +134,6 @@ class TestFlextDbOracleClientRealFunctionality:
                 username=user,
                 password=password,
                 ssl_server_cert_dn=None,
-                domain_events=[],
             )
 
             assert config.host == host
@@ -229,7 +228,6 @@ class TestFlextDbOracleClientRealFunctionality:
                     service_name="testbuilder_service",
                     username="testbuilder_user",
                     password="testbuilder_password",
-                    domain_events=[],
                 ),
             )
             .build()
@@ -241,10 +239,10 @@ class TestFlextDbOracleClientRealFunctionality:
             raise AssertionError(msg)
 
         # Cast to FlextResult to satisfy mypy
-        result = cast("FlextResult[object]", config_result)
+        result = cast("FlextResult[FlextDbOracleModels.OracleConfig]", config_result)
         FlextTestsMatchers.assert_result_success(result)
 
-        config = cast("FlextDbOracleModels.OracleConfig", result.value["data"])
+        config = result.value  # Direct access since value is the OracleConfig
 
         # Test that client can work with TestBuilders-created configuration
         client = FlextDbOracleClient()
@@ -253,13 +251,22 @@ class TestFlextDbOracleClientRealFunctionality:
         connection_result = client.connect_to_oracle(
             host=config.host,
             port=config.port,
-            service_name=config.service_name or "default_service",  # Handle None case
+            service_name=config.service_name,
             username=config.username,
             password=config.password,
         )
 
-        # Should fail connection but validate configuration was processed
+        # Connection will fail (expected), but check that result structure is correct
         FlextTestsMatchers.assert_result_failure(connection_result)
+        assert isinstance(connection_result.error, str)
+        assert len(connection_result.error) > 0
+
+        # Test configuration values were correctly processed
+        assert config.host == "testbuilder_host"
+        assert config.port == 1521
+        assert config.service_name == "testbuilder_service"
+        assert config.username == "testbuilder_user"
+        assert config.password == "testbuilder_password"
 
     def test_client_string_representation_real(self) -> None:
         """Test client string representation methods."""

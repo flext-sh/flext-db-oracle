@@ -20,7 +20,7 @@ from flext_db_oracle import (
     FlextDbOracleModels,
 )
 
-from ..conftest import OperationTestError  # type: ignore[import-untyped]
+from ..conftest import OperationTestError
 
 
 class TestOracleE2E:
@@ -308,7 +308,6 @@ class TestOracleE2E:
             service_name="INVALID_DB",
             username="invalid_user",
             password="invalid_password",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi(invalid_config)

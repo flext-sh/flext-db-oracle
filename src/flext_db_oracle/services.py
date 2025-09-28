@@ -700,7 +700,6 @@ class FlextDbOracleServices(FlextModels.Entity):
                         default_value=str(row.get("default_value"))
                         if row.get("default_value")
                         else None,
-                        domain_events=[],  # Required by FlextModels.Entity
                     )
                     columns.append(column)
 
@@ -1120,7 +1119,6 @@ class FlextDbOracleServices(FlextModels.Entity):
                     username=self._config.username,
                     db_version=None,  # Could be populated from Oracle version query
                     error_message=None,
-                    domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.ConnectionStatus].ok(status)
 
@@ -1309,20 +1307,20 @@ class FlextDbOracleServices(FlextModels.Entity):
             )
             self._query_executor = self._QueryExecutor(
                 self._connection_manager,
-                self._logger,  # type: ignore[arg-type]
+                self._logger,
             )
-            self._sql_builder = self._SqlBuilder(self._logger)  # type: ignore[arg-type]
+            self._sql_builder = self._SqlBuilder(self._logger)
             self._schema_introspector = self._SchemaIntrospector(
                 self._query_executor,
-                self._logger,  # type: ignore[arg-type]
+                self._logger,
             )
-            self._ddl_generator = self._DdlGenerator(self._logger)  # type: ignore[arg-type]
+            self._ddl_generator = self._DdlGenerator(self._logger)
             self._metrics_collector = self._MetricsCollector(
                 self._connection_manager,
                 self.config,
-                self._logger,  # type: ignore[arg-type]
+                self._logger,
             )
-            self._plugin_registry = self._PluginRegistry(self._logger)  # type: ignore[arg-type]
+            self._plugin_registry = self._PluginRegistry(self._logger)
 
             # CLI compatibility handled through property methods instead
 

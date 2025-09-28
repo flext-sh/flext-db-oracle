@@ -421,7 +421,6 @@ class TestRealOracleErrorHandling:
             service_name="XEPDB1",
             username="invalid_user",
             password="invalid_password",
-            domain_events=[],
         )
 
         connection = FlextDbOracleServices(config=invalid_config, domain_events=[])

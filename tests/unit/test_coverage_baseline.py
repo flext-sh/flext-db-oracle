@@ -60,7 +60,6 @@ class TestBasicModelCreation:
             service_name="TEST",
             username="testuser",  # Using 'user' instead of 'username'
             password="testpass",
-            domain_events=[],
         )
         assert config.host == "localhost"
         assert config.port == 1521
@@ -78,7 +77,6 @@ class TestBasicModelCreation:
             username="secure_user",
             password="secure_pass",
             ssl_server_cert_dn="CN=secure.example.com",
-            domain_events=[],
         )
         assert config.ssl_server_cert_dn == "CN=secure.example.com"
 
@@ -89,7 +87,6 @@ class TestBasicModelCreation:
             data_type="NUMBER",
             nullable=False,
             default_value="1",
-            domain_events=[],
         )
         assert column.name == "ID"
         assert column.data_type == "NUMBER"
@@ -108,7 +105,6 @@ class TestFlextDbOracleServices:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
         assert service is not None
@@ -122,7 +118,6 @@ class TestFlextDbOracleServices:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
         assert service.is_connected() is False
@@ -135,7 +130,6 @@ class TestFlextDbOracleServices:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 
@@ -153,7 +147,6 @@ class TestFlextDbOracleServices:
             service_name="TEST",
             username="testuser",
             password="testpass",
-            domain_events=[],
         )
         service = FlextDbOracleServices(config=config, domain_events=[])
 

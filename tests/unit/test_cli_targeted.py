@@ -66,13 +66,14 @@ class TestCLIRealFunctionality:
             assert api.config.host == "localhost"  # default
             assert api.config.port == 1521  # default
             assert api.config.service_name == "XEPDB1"  # default
-            assert api.config.username == ""  # default
+            assert not api.config.username  # default (empty)
 
         finally:
             # Restore environment
             for key, original_value in original_env.items():
                 if original_value is None:
-                    os.environ.pop(key, None)
+                    if key in os.environ:
+                        del os.environ[key]
                 else:
                     os.environ[key] = original_value
 
@@ -85,7 +86,6 @@ class TestCLIRealFunctionality:
             service_name="TESTDB",
             username="test",
             password="test",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -130,7 +130,6 @@ class TestCLIRealFunctionality:
             service_name="INVALID_SERVICE",
             username="invalid_user",
             password="invalid_password",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi(invalid_config)
@@ -170,7 +169,6 @@ class TestCLIRealFunctionality:
             service_name=str(config_data.get("service_name", "XE")),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
-            domain_events=[],
         )
 
         api = FlextDbOracleApi.from_config(config)
@@ -191,7 +189,6 @@ class TestCLIRealFunctionality:
             service_name="COMP_TEST",
             username="comp_user",
             password="comp_pass",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)
@@ -227,7 +224,9 @@ class TestCLIRealFunctionality:
         api = api_result.value
         assert api.config.host == "localhost"  # Default value
         assert api.config.port == 1521  # Default value
-        assert api.config.service_name == "XEPDB1"  # Default value from FlextDbOracleConfig
+        assert (
+            api.config.service_name == "XEPDB1"
+        )  # Default value from FlextDbOracleConfig
 
         # Test from_url factory method
         url_result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
@@ -246,7 +245,6 @@ class TestCLIRealFunctionality:
             service_name="PLUGIN_TEST",
             username="plugin_user",
             password="plugin_pass",
-            domain_events=[],
         )
 
         api = FlextDbOracleApi(config)

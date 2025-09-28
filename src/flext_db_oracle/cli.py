@@ -104,7 +104,6 @@ class FlextDbOracleCliService(FlextService[str]):
                     service_name=service_name,
                     username=username,  # Fixed: Use 'username' parameter name
                     password=password,
-                    domain_events=[],  # Required by FlextModels.Entity
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except Exception as e:
@@ -257,7 +256,6 @@ class FlextDbOracleCliService(FlextService[str]):
                 username=username,
                 password=password,
                 timeout=timeout,
-                domain_events=[],  # Required by FlextModels.Entity
             )
             api = FlextDbOracleApi.from_config(config)
 

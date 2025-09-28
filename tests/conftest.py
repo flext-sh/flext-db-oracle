@@ -30,23 +30,7 @@ class OperationTestError(Exception):
         self.error = error
 
 
-def _docker_connectivity_safe(docker_manager: FlextTestDocker) -> bool:
-    """Type-safe wrapper for Docker connectivity check.
-
-    Args:
-        docker_manager: FlextTestDocker unified Docker management instance
-
-    Returns:
-        bool: True if Docker daemon is accessible, False otherwise.
-
-    """
-    try:
-        # Test Docker connectivity by trying to list containers
-        # This will fail if Docker daemon is not accessible
-        _ = docker_manager.list_containers()  # type: ignore[attr-defined]
-        return True
-    except Exception:  # Catch all docker exceptions
-        return False
+# Removed unused function _docker_connectivity_safe
 
 
 class DockerCommandExecutor:
@@ -166,14 +150,13 @@ def shared_oracle_container(docker_control: FlextTestDocker) -> Generator[str]:
 
 
 @pytest.fixture(scope="session")
-def oracle_container(shared_oracle_container: object) -> Generator[None]:
+def oracle_container(shared_oracle_container: object) -> None:
     """Ensure Oracle container is running for ORACLE tests only.
 
     This fixture uses the shared FlextTestDocker container management.
     """
     # Suppress unused parameter warning - fixture is used for side effects
     _ = shared_oracle_container
-    return
 
 
 # Shared Oracle container fixture
@@ -209,7 +192,6 @@ def real_oracle_config(
         password=os.getenv("TEST_ORACLE_PASSWORD", "FlextTest123"),
         service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
         ssl_server_cert_dn=None,
-        domain_events=[],
     )
 
 

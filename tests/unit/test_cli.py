@@ -222,7 +222,6 @@ class TestFlextDbOracleClientIntegration:
             username="test",
             password="test",
             ssl_server_cert_dn=None,
-            domain_events=[],
         )
 
         client = FlextDbOracleClient()
