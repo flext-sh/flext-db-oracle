@@ -151,7 +151,6 @@ class TestOracleConfig:
             username="prod_user",
             password="prod_password",
             service_name="PRODDB_SERVICE",
-            sid="PRODDB_SID",
             ssl_server_cert_dn="CN=oracle.example.com",
             pool_min=5,
             pool_max=50,
@@ -162,11 +161,26 @@ class TestOracleConfig:
         assert config.port == 1522
         assert config.name == "PRODDB"
         assert config.service_name == "PRODDB_SERVICE"
-        assert config.sid == "PRODDB_SID"
+        assert config.sid is None
         assert config.ssl_server_cert_dn == "CN=oracle.example.com"
         assert config.pool_min == 5
         assert config.pool_max == 50
         assert config.timeout == 120
+
+    def test_oracle_config_service_name_and_sid_mutually_exclusive(self) -> None:
+        """Test that service_name and sid are mutually exclusive."""
+        with pytest.raises(
+            ValueError, match="Cannot specify both service_name and SID"
+        ):
+            FlextDbOracleModels.OracleConfig(
+                host="prod-oracle.example.com",
+                port=1522,
+                name="PRODDB",
+                username="prod_user",
+                password="prod_password",
+                service_name="PRODDB_SERVICE",
+                sid="PRODDB_SID",
+            )
 
 
 class TestOracleConfigFromEnv:
@@ -174,38 +188,18 @@ class TestOracleConfigFromEnv:
 
     def test_from_env_default_prefix(self) -> None:
         """Test creating Oracle config from environment with default prefix."""
-        # The from_env method uses FlextDbOracleConfig defaults, not environment variables
-        env_vars = {
-            "ORACLE_HOST": "env-host",
-            "ORACLE_PORT": "1522",
-            "ORACLE_DB": "ENVDB",
-            "ORACLE_USER": "env_user",
-            "ORACLE_PASSWORD": "env_password",
-            "ORACLE_SERVICE_NAME": "ENVDB_SERVICE",
-            "ORACLE_POOL_MIN": "3",
-            "ORACLE_POOL_MAX": "30",
-            "ORACLE_TIMEOUT": "90",
-        }
+        # The from_env method uses FlextDbOracleConfig defaults, which don't include username/password
+        # So it should fail due to missing required credentials
+        result = FlextDbOracleModels.OracleConfig.from_env()
 
-        with patch.dict(os.environ, env_vars, clear=False):
-            result = FlextDbOracleModels.OracleConfig.from_env()
-
-        assert result.is_success
-        config = result.value
-        # Should use defaults from FlextDbOracleConfig, not environment variables
-        assert config.host == "localhost"  # default
-        assert config.port == 1521  # default
-        assert config.name == "XE"  # default
-        assert not config.username  # default
-        assert not config.password  # default
-        assert config.service_name == "XEPDB1"  # default
-        assert config.pool_min == 2  # default
-        assert config.pool_max == 20  # default
-        assert config.timeout == 60  # default
+        assert result.is_failure
+        assert result.error is not None
+        assert "username is required but not configured" in result.error
 
     def test_from_env_custom_prefix(self) -> None:
         """Test creating Oracle config from environment with custom prefix."""
         # The from_env method ignores the prefix parameter and uses FlextDbOracleConfig defaults
+        # which don't include username/password, so it should fail
         env_vars = {
             "CUSTOM_HOST": "custom-host",
             "CUSTOM_PORT": "1523",
@@ -217,63 +211,52 @@ class TestOracleConfigFromEnv:
         with patch.dict(os.environ, env_vars, clear=False):
             result = FlextDbOracleModels.OracleConfig.from_env("CUSTOM")
 
-        assert result.is_success
-        config = result.value
-        # Should use defaults from FlextDbOracleConfig, not environment variables
-        assert config.host == "localhost"  # default
-        assert config.port == 1521  # default
-        assert config.name == "XE"  # default
-        assert not config.username  # default
-        assert not config.password  # default
+        assert result.is_failure
+        assert result.error is not None
+        assert "username is required but not configured" in result.error
 
     def test_from_env_defaults_when_missing(self) -> None:
-        """Test Oracle config uses defaults when environment variables missing."""
-        # The from_env method uses FlextDbOracleConfig defaults, not environment variables
+        """Test Oracle config fails when required credentials are missing."""
+        # The from_env method requires username/password to be configured
         result = FlextDbOracleModels.OracleConfig.from_env()
 
-        assert result.is_success
-        config = result.value
-        assert config.host == "localhost"  # default
-        assert config.port == 1521  # default
-        assert config.name == "XE"  # default
-        assert not config.username  # default from FlextDbOracleConfig
-        assert not config.password  # default from FlextDbOracleConfig
+        assert result.is_failure
+        assert result.error is not None
+        assert "username is required but not configured" in result.error
 
     def test_from_env_invalid_port(self) -> None:
-        """Test Oracle config from env uses defaults even with invalid env vars."""
-        # The from_env method ignores environment variables and uses defaults
+        """Test Oracle config from env fails when credentials are missing."""
+        # The from_env method requires valid username/password, ignores env vars
         env_vars = {
             "ORACLE_HOST": "test-host",
             "ORACLE_PORT": "not_a_number",
-            "ORACLE_USER": "test_user",
+            "ORACLE_USER": "",  # Empty username
             "ORACLE_PASSWORD": "test_password",
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
             result = FlextDbOracleModels.OracleConfig.from_env()
 
-        # Should succeed and use defaults, not environment variables
-        assert result.is_success
-        config = result.value
-        assert config.host == "localhost"  # default, not "test-host"
-        assert config.port == 1521  # default, not "not_a_number"
+        # Should fail due to missing username
+        assert result.is_failure
+        assert result.error is not None
+        assert "username is required but not configured" in result.error
 
     def test_from_env_exception_handling(self) -> None:
         """Test Oracle config from env handles exceptions properly."""
-        # The from_env method uses defaults and doesn't validate environment variables
+        # The from_env method validates required fields
         env_vars = {
             "ORACLE_HOST": "",  # Empty host is ignored
-            "ORACLE_USER": "test_user",
+            "ORACLE_USER": "",  # Empty username
             "ORACLE_PASSWORD": "test_password",
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
             result = FlextDbOracleModels.OracleConfig.from_env()
 
-        # Should succeed and use defaults regardless of environment variables
-        assert result.is_success
-        config = result.value
-        assert config.host == "localhost"  # default, not empty string
+        assert result.is_failure
+        assert result.error is not None
+        assert "username is required but not configured" in result.error
 
 
 class TestOracleConfigFromUrl:

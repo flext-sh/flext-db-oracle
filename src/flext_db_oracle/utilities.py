@@ -13,7 +13,7 @@ import hashlib
 import importlib
 import json
 import os
-from typing import Protocol
+from typing import Protocol, cast
 
 from rich.table import Table
 
@@ -222,31 +222,29 @@ class FlextDbOracleUtilities(FlextUtilities):
             elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
                 # Build dict list from columns and rows
                 data = []
-                columns = query_result.columns
-                rows = query_result.rows
+                columns: object = query_result.columns
+                rows: object = query_result.rows
                 try:
                     # Type-safe conversion - handle as any sequence type
-                    rows_sequence = []
                     if hasattr(rows, "__iter__") and not isinstance(rows, (str, bytes)):
                         try:
                             # Convert to list with type safety
-                            rows_iter = iter(rows)
-                            for item in rows_iter:
-                                rows_sequence.append(item)
+                            rows_sequence = list(cast("list", rows))
                         except (TypeError, AttributeError):
                             rows_sequence = []
+                    else:
+                        rows_sequence = []
 
-                    columns_sequence = []
                     if hasattr(columns, "__iter__") and not isinstance(
                         columns, (str, bytes)
                     ):
                         try:
                             # Convert to list with type safety
-                            columns_iter = iter(columns)
-                            for item in columns_iter:
-                                columns_sequence.append(item)
+                            columns_sequence = list(cast("list", columns))
                         except (TypeError, AttributeError):
                             columns_sequence = []
+                    else:
+                        columns_sequence = []
 
                     # Type-safe iteration with explicit type checking
                     for row_item in rows_sequence:

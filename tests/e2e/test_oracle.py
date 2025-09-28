@@ -20,7 +20,14 @@ from flext_db_oracle import (
     FlextDbOracleModels,
 )
 
-from ..conftest import OperationTestError
+
+class OperationTestError(Exception):
+    """Custom exception for test operations."""
+
+    def __init__(self, message: str, error: str | None = None) -> None:
+        """Initialize the operation test error."""
+        super().__init__(message)
+        self.error = error
 
 
 class TestOracleE2E:
@@ -314,7 +321,7 @@ class TestOracleE2E:
 
         # Connection should return FlextResult (may succeed or fail gracefully)
         connect_result = api.connect()
-        assert hasattr(connect_result, "success")
+        assert hasattr(connect_result, "is_success")
         # Note: API might succeed if it has resilience patterns, this is acceptable behavior
 
         # Operations without connection should fail gracefully

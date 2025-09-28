@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import threading
 import time
+from typing import cast
 
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
@@ -39,7 +40,7 @@ class TestApiModule:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",
-                "params": {"id": 1},
+                "params": cast("dict[str, object]", {"id": 1}),
                 "fetch_size": 100,
             }
 
@@ -156,7 +157,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                test_query["params"],
+                cast("dict[str, object]", test_query["params"]),
             )
             assert isinstance(result, FlextResult)
 

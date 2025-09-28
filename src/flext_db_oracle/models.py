@@ -10,18 +10,39 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import ClassVar
 
-from pydantic import Field, ValidationInfo, field_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    computed_field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_core import FlextModels, FlextResult
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleModels(FlextModels):
-    """Oracle database models using flext-core exclusively."""
+    """Oracle database models using flext-core exclusively with advanced Pydantic 2.11 features."""
+
+    model_config = ConfigDict(
+        validate_assignment=True,
+        use_enum_values=True,
+        arbitrary_types_allowed=True,
+        extra="forbid",
+        frozen=False,
+        str_strip_whitespace=True,
+        validate_return=True,
+        ser_json_timedelta="iso8601",
+        ser_json_bytes="base64",
+    )
 
     # Use flext-core for ALL model functionality - NO custom implementations
 
@@ -90,7 +111,7 @@ class FlextDbOracleModels(FlextModels):
     )
 
     class OracleConfig(FlextModels.Entity):
-        """Oracle-specific configuration extending flext-core DatabaseConfig with pydantic-settings support."""
+        """Oracle-specific configuration extending flext-core DatabaseConfig with advanced Pydantic 2.11 features."""
 
         # Oracle-specific defaults using flext-core field validation
         host: str = Field(
@@ -108,7 +129,9 @@ class FlextDbOracleModels(FlextModels):
 
         # Authentication fields
         username: str = Field(description="Oracle database username")
-        password: str = Field(description="Oracle database password")
+        password: str | None = Field(
+            default=None, description="Oracle database password"
+        )
 
         # Oracle-specific fields not in base DatabaseConfig
         service_name: str | None = Field(
@@ -138,6 +161,91 @@ class FlextDbOracleModels(FlextModels):
             description="Connection timeout in seconds",
         )
 
+        @property
+        @computed_field
+        def connection_string(self) -> str:
+            """Computed field for Oracle connection string."""
+            if self.service_name:
+                return f"oracle://{self.username}@{self.host}:{self.port}/{self.service_name}"
+            if self.sid:
+                return f"oracle://{self.username}@{self.host}:{self.port}:{self.sid}"
+            return f"oracle://{self.username}@{self.host}:{self.port}/{self.name}"
+
+        @property
+        @computed_field
+        def is_ssl_enabled(self) -> bool:
+            """Computed field indicating if SSL is configured."""
+            return self.ssl_server_cert_dn is not None
+
+        @property
+        @computed_field
+        def pool_capacity(self) -> int:
+            """Computed field for total pool capacity."""
+            return self.pool_max
+
+        @property
+        @computed_field
+        def connection_identifier(self) -> str:
+            """Computed field for connection identifier (service name or SID)."""
+            if self.service_name:
+                return self.service_name
+            if self.sid:
+                return self.sid
+            return self.name
+
+        @property
+        @computed_field
+        def is_local_connection(self) -> bool:
+            """Computed field indicating if this is a local connection."""
+            local_hosts = {"localhost", "127.0.0.1", "::1"}
+            return self.host.lower() in local_hosts
+
+        @model_validator(mode="after")
+        def validate_oracle_config_consistency(
+            self,
+        ) -> FlextDbOracleModels.OracleConfig:
+            """Model validator for Oracle configuration consistency."""
+            # Ensure either service_name or SID is provided, but not both
+            if self.service_name and self.sid:
+                msg = "Cannot specify both service_name and SID"
+                raise ValueError(msg)
+
+            # Validate pool configuration
+            if self.pool_max < self.pool_min:
+                msg = (
+                    f"pool_max ({self.pool_max}) must be >= pool_min ({self.pool_min})"
+                )
+                raise ValueError(msg)
+
+            # Validate timeout configuration
+            min_timeout = 1
+            max_timeout = 3600  # 1 hour
+            if not (min_timeout <= self.timeout <= max_timeout):
+                msg = f"timeout must be between {min_timeout} and {max_timeout} seconds"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("password")
+        def serialize_password(self, value: str) -> str:
+            """Field serializer for password protection."""
+            return "[PROTECTED]" if value else ""
+
+        def serialize_connection_string(self, value: str) -> str:
+            """Field serializer for connection string with password masking."""
+            # Replace password in connection string for serialization
+            if "@" in value:
+                parts = value.split("@")
+                if ":" in parts[0]:
+                    protocol_user = parts[0].rsplit(":", 1)[0]
+                    return f"{protocol_user}:[PROTECTED]@{parts[1]}"
+            return value
+
+        @field_serializer("host")
+        def serialize_host(self, value: str) -> str:
+            """Field serializer for host normalization."""
+            return value.strip().lower()
+
         @classmethod
         def from_env(
             cls,
@@ -154,13 +262,27 @@ class FlextDbOracleModels(FlextModels):
             """
             _ = prefix  # Parameter required by API but not used in standardized config
             try:
-                # Import at runtime to avoid circular imports
-                from .config import FlextDbOracleConfig
-
                 # Use the enhanced singleton pattern from FlextDbOracleConfig
                 standardized_config = FlextDbOracleConfig.get_or_create_shared_instance(
                     project_name="flext-db-oracle"
                 )
+
+                # Validate required fields are set
+                if (
+                    not standardized_config.oracle_username
+                    or not standardized_config.oracle_username.strip()
+                ):
+                    return FlextResult[FlextDbOracleModels.OracleConfig].fail(
+                        "Oracle username is required but not configured",
+                    )
+
+                if (
+                    not standardized_config.oracle_password
+                    or not standardized_config.oracle_password.get_secret_value().strip()
+                ):
+                    return FlextResult[FlextDbOracleModels.OracleConfig].fail(
+                        "Oracle password is required but not configured",
+                    )
 
                 # Map from FlextDbOracleConfig to OracleConfig for backward compatibility
                 config = cls(
@@ -201,7 +323,7 @@ class FlextDbOracleModels(FlextModels):
                         user, password = user_pass.split(":", 1)
                     else:
                         user = user_pass
-                        password = ""
+                        password = None
                 else:
                     return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                         "Invalid URL format",
@@ -247,6 +369,15 @@ class FlextDbOracleModels(FlextModels):
                 msg = f"Host too long (max {FlextDbOracleConstants.Validation.MAX_HOSTNAME_LENGTH} chars)"
                 raise ValueError(msg)
             return v.strip()
+
+        @field_validator("password")
+        @classmethod
+        def validate_password(cls, v: str | None) -> str | None:
+            """Validate password is not empty if provided."""
+            if v is not None and not v.strip():
+                msg = "Password cannot be empty string"
+                raise ValueError(msg)
+            return v
 
         @field_validator("port")
         @classmethod
@@ -711,7 +842,7 @@ class FlextDbOracleModels(FlextModels):
             )
 
     class ConnectionStatus(FlextModels.Entity):
-        """Connection status using flext-core Value object."""
+        """Connection status using flext-core Entity with advanced Pydantic 2.11 features."""
 
         is_connected: bool = False
         last_check: datetime = Field(default_factory=datetime.now)
@@ -727,8 +858,131 @@ class FlextDbOracleModels(FlextModels):
         username: str | None = None
         db_version: str | None = None
 
+        @property
+        @computed_field
+        def status_description(self) -> str:
+            """Computed field for human-readable status description."""
+            if self.is_connected:
+                return "Connected"
+            if self.error_message:
+                return f"Disconnected: {self.error_message}"
+            return "Disconnected"
+
+        @property
+        @computed_field
+        def connection_age_seconds(self) -> float | None:
+            """Computed field for connection age in seconds."""
+            if not self.is_connected or not self.last_activity:
+                return None
+            return (datetime.now(UTC) - self.last_activity).total_seconds()
+
+        @property
+        @computed_field
+        def is_healthy(self) -> bool:
+            """Computed field indicating if connection is healthy."""
+            if not self.is_connected:
+                return False
+
+            # Consider connection unhealthy if no activity for more than 1 hour
+            max_idle_seconds = 3600  # 1 hour
+            return not (
+                self.connection_age_seconds
+                and self.connection_age_seconds > max_idle_seconds
+            )
+
+        @property
+        @computed_field
+        def connection_info(self) -> str:
+            """Computed field for connection information summary."""
+            if not self.is_connected:
+                return "Not connected"
+
+            parts = []
+            if self.host:
+                parts.append(f"host={self.host}")
+            if self.port:
+                parts.append(f"port={self.port}")
+            if self.service_name:
+                parts.append(f"service={self.service_name}")
+            if self.username:
+                parts.append(f"user={self.username}")
+
+            return ", ".join(parts) if parts else "Connected"
+
+        @property
+        @computed_field
+        def performance_info(self) -> str:
+            """Computed field for connection performance information."""
+            if not self.is_connected or self.connection_time is None:
+                return "No performance data"
+
+            # Performance thresholds
+            excellent_threshold = 0.1
+            good_threshold = 0.5
+            acceptable_threshold = 2.0
+
+            if self.connection_time < excellent_threshold:
+                return f"Excellent ({self.connection_time:.3f}s)"
+            if self.connection_time < good_threshold:
+                return f"Good ({self.connection_time:.3f}s)"
+            if self.connection_time < acceptable_threshold:
+                return f"Acceptable ({self.connection_time:.3f}s)"
+            return f"Slow ({self.connection_time:.3f}s)"
+
+        @model_validator(mode="after")
+        def validate_connection_status_consistency(
+            self,
+        ) -> FlextDbOracleModels.ConnectionStatus:
+            """Model validator for connection status consistency."""
+            # If connected, ensure we have basic connection info
+            if self.is_connected:
+                if not self.host:
+                    msg = "Connected status requires host information"
+                    raise ValueError(msg)
+
+                max_port = 65535
+                if self.port and not (1 <= self.port <= max_port):
+                    msg = f"Invalid port number: {self.port}"
+                    raise ValueError(msg)
+
+            # If not connected, error message should be provided
+            if not self.is_connected and not self.error_message:
+                self.error_message = "Connection failed"
+
+            # Validate connection time
+            if self.connection_time is not None and self.connection_time < 0:
+                msg = "Connection time cannot be negative"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("error_message")
+        def serialize_error_message(self, value: str | None) -> str | None:
+            """Field serializer for error message truncation."""
+            if value is None:
+                return None
+            # Truncate very long error messages for serialization
+            max_length = 500
+            if len(value) > max_length:
+                return f"{value[:max_length]}... (truncated)"
+            return value
+
+        @field_serializer("last_check", "last_activity")
+        def serialize_datetime(self, value: datetime | None) -> str | None:
+            """Field serializer for datetime formatting."""
+            if value is None:
+                return None
+            return value.isoformat()
+
+        @field_serializer("connection_time")
+        def serialize_connection_time(self, value: float | None) -> str | None:
+            """Field serializer for connection time formatting."""
+            if value is None:
+                return None
+            return f"{value:.3f}s"
+
     class QueryResult(FlextModels.Entity):
-        """Query result using flext-core Entity."""
+        """Query result using flext-core Entity with advanced Pydantic 2.11 features."""
 
         query: str
         result_data: list[dict[str, object]] = Field(default_factory=list)
@@ -746,6 +1000,99 @@ class FlextDbOracleModels(FlextModels):
             default=None,
             description="Query execution plan",
         )
+
+        @property
+        @computed_field
+        def execution_time_seconds(self) -> float:
+            """Computed field for execution time in seconds."""
+            return self.execution_time_ms / 1000.0
+
+        @property
+        @computed_field
+        def has_results(self) -> bool:
+            """Computed field indicating if query returned results."""
+            return self.row_count > 0
+
+        @property
+        @computed_field
+        def column_count(self) -> int:
+            """Computed field for number of columns."""
+            return len(self.columns)
+
+        @property
+        @computed_field
+        def performance_rating(self) -> str:
+            """Computed field for query performance rating."""
+            excellent_threshold_ms = 100
+            good_threshold_ms = 500
+            acceptable_threshold_ms = 2000
+
+            if self.execution_time_ms < excellent_threshold_ms:
+                return "excellent"
+            if self.execution_time_ms < good_threshold_ms:
+                return "good"
+            if self.execution_time_ms < acceptable_threshold_ms:
+                return "acceptable"
+            return "slow"
+
+        @property
+        @computed_field
+        def is_cached(self) -> bool:
+            """Computed field indicating if query result was cached."""
+            return self.query_hash is not None
+
+        @model_validator(mode="after")
+        def validate_query_result_consistency(self) -> FlextDbOracleModels.QueryResult:
+            """Model validator for query result consistency."""
+            # Ensure row count matches actual rows
+            if len(self.rows) != self.row_count:
+                msg = f"Row count ({self.row_count}) doesn't match actual rows ({len(self.rows)})"
+                raise ValueError(msg)
+
+            # Ensure each row has the correct number of columns
+            if self.rows and self.columns:
+                expected_columns = len(self.columns)
+                for i, row in enumerate(self.rows):
+                    if len(row) != expected_columns:
+                        msg = f"Row {i} has {len(row)} columns, expected {expected_columns}"
+                        raise ValueError(msg)
+
+            # Validate execution time
+            if self.execution_time_ms < 0:
+                msg = "Execution time cannot be negative"
+                raise ValueError(msg)
+
+            return self
+
+        @field_serializer("query")
+        def serialize_query(self, value: str) -> str:
+            """Field serializer for SQL query normalization."""
+            # Normalize whitespace in SQL query
+            return " ".join(value.split())
+
+        @field_serializer("result_data")
+        def serialize_result_data(
+            self, value: list[dict[str, object]]
+        ) -> list[dict[str, object]]:
+            """Field serializer for result data with None handling."""
+            # Convert None values to empty strings for JSON serialization
+            serialized = []
+            for row in value:
+                serialized_row = {}
+                for key, val in row.items():
+                    serialized_row[key] = "" if val is None else val
+                serialized.append(serialized_row)
+            return serialized
+
+        @field_serializer("explain_plan")
+        def serialize_explain_plan(self, value: str | None) -> str | None:
+            """Field serializer for explain plan formatting."""
+            if value is None:
+                return None
+            # Clean up and format explain plan
+            lines = value.split("\n")
+            cleaned_lines = [line.strip() for line in lines if line.strip()]
+            return "\n".join(cleaned_lines)
 
     class Table(FlextModels.Entity):
         """Oracle table using flext-core Entity."""

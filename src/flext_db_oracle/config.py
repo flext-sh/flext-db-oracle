@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -311,6 +313,14 @@ class FlextDbOracleConfig(FlextConfig):
         return cls.get_or_create_shared_instance(
             project_name="flext-db-oracle", environment=environment, **overrides
         )
+
+    @classmethod
+    def get_or_create_shared_instance(
+        cls, project_name: str | None = None, **overrides: object
+    ) -> FlextDbOracleConfig:
+        """Override base class method to return correct type."""
+        instance = super().get_or_create_shared_instance(project_name, **overrides)
+        return cast("FlextDbOracleConfig", instance)
 
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:

@@ -1,173 +1,205 @@
 [build-system]
-requires = ["poetry-core>=1.9.0"]
-build-backend = "poetry.core.masonry.api"
+    requires = [
+        "poetry-core>=1.9.0",
+    ]
+    build-backend = "poetry.core.masonry.api"
 
 [project]
-name = "flext-db-oracle"
-version = "0.9.0"
-description = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb"
-readme = "README.md"
-requires-python = ">=3.13,<3.14"
-keywords = ["flext", "enterprise", "async", "typed", "integration", "adapter"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3 :: Only",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Typing :: Typed",
-]
-dependencies = [
-    "flext-core @ file:///home/marlonsc/flext/flext-core",
-    "pydantic-settings (>=2.10.1)",
-    "oracledb (>=3.2.0)",
-    "pydantic (>=2.11.7)",
-    "sqlalchemy (>=2.0.0)",
-    "flext-cli @ file:///home/marlonsc/flext/flext-cli",
-    "structlog (>=25.4.0,<26.0.0)",
-    "referencing (>=0.36.2,<0.37.0)",
-    "termcolor (>=3.1.0,<4.0.0)",
-]
+    name = "flext-db-oracle"
+    version = "0.9.0"
+    description = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb"
+    readme = "README.md"
+    requires-python = ">=3.13,<3.14"
+    keywords = [
+        "flext",
+        "enterprise",
+        "async",
+        "typed",
+        "integration",
+        "adapter",
+    ]
+    classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3 :: Only",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Typing :: Typed",
+    ]
+    dependencies = [
+        "flext-core @ file:///home/marlonsc/flext/flext-core",
+        "pydantic-settings (>=2.10.1)",
+        "oracledb (>=3.2.0)",
+        "pydantic (>=2.11.7)",
+        "sqlalchemy (>=2.0.0)",
+        "flext-cli @ file:///home/marlonsc/flext/flext-cli",
+        "structlog (>=25.4.0,<26.0.0)",
+        "referencing (>=0.36.2,<0.37.0)",
+        "termcolor (>=3.1.0,<4.0.0)",
+    ]
 [[project.authors]]
-name = "FLEXT Team"
-email = "team@flext.sh"
+    name  = "FLEXT Team"
+    email = "team@flext.sh"
 
 [[project.maintainers]]
-name = "FLEXT Team"
-email = "team@flext.sh"
+    name  = "FLEXT Team"
+    email = "team@flext.sh"
 
 [project.license]
-text = "MIT"
+    text = "MIT"
 
 [project.urls]
-Homepage = "https://github.com/flext-sh/flext"
-Repository = "https://github.com/flext-sh/flext"
-Documentation = "https://github.com/flext-sh/flext/blob/main/README.md"
+    Homepage      = "https://github.com/flext-sh/flext"
+    Repository    = "https://github.com/flext-sh/flext"
+    Documentation = "https://github.com/flext-sh/flext/blob/main/README.md"
 
 [project.scripts]
-flext-db-oracle = "flext_db_oracle.cli:main"
-flext-oracle-migrate = "flext_db_oracle.migrate:main"
-flext-oracle = "flext_db_oracle.cli:main"
-
-[tool.ruff]
-extend = "../ruff-shared.toml"
+    flext-db-oracle      = "flext_db_oracle.cli:main"
+    flext-oracle-migrate = "flext_db_oracle.migrate:main"
+    flext-oracle         = "flext_db_oracle.cli:main"
 
 [tool.bandit]
-exclude_dirs = ["tests", "build", "dist"]
-skips = ["B101", "B601", "B608"]
+    exclude_dirs = [
+        "tests",
+        "build",
+        "dist",
+    ]
+    skips = [
+        "B101",
+        "B601",
+        "B608",
+    ]
 
 [tool.poetry]
 [[tool.poetry.packages]]
-include = "flext_db_oracle"
-from = "src"
+    include = "flext_db_oracle"
+    from    = "src"
 
 [tool.deptry]
-known_first_party = ["flext_db_oracle"]
-
-[tool.pyrefly]
-python_version = "3.13"
+    known_first_party = [
+        "flext_db_oracle",
+    ]
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.14"
+    python = ">=3.13,<3.14"
 
 [tool.pytest.ini_options]
-minversion = "8.0"
-asyncio_mode = "auto"
-addopts = [
-    "-ra",
-    "--strict-markers",
-    "--strict-config",
-    "--maxfail=1",
-    "--tb=short",
-]
-testpaths = ["tests"]
-markers = [
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "e2e: End-to-end tests",
-    "benchmark: Performance benchmark tests",
-    "slow: Slow tests",
-    "concurrency: Concurrency tests from flext_tests",
-    "race_condition: Race condition tests",
-    "complexity: Complexity analysis tests",
-    "memory: Memory usage tests",
-    "memory_limit: Memory limit tests",
-    "performance: Performance tests",
-    "regression: Regression tests",
-    "timeout: Timeout tests",
-    "smoke: Smoke tests",
-]
+    minversion = "8.0"
+    asyncio_mode = "auto"
+    addopts = [
+        "-ra",
+        "--strict-markers",
+        "--strict-config",
+        "--maxfail=1",
+        "--tb=short",
+    ]
+    testpaths = [
+        "tests",
+    ]
+    markers = [
+        "unit: Unit tests",
+        "integration: Integration tests",
+        "e2e: End-to-end tests",
+        "benchmark: Performance benchmark tests",
+        "slow: Slow tests",
+        "concurrency: Concurrency tests from flext_tests",
+        "race_condition: Race condition tests",
+        "complexity: Complexity analysis tests",
+        "memory: Memory usage tests",
+        "memory_limit: Memory limit tests",
+        "performance: Performance tests",
+        "regression: Regression tests",
+        "timeout: Timeout tests",
+        "smoke: Smoke tests",
+    ]
 
 [tool.coverage.run]
-source = ["src"]
-branch = true
-omit = ["*/tests/*", "*/test_*", "*/__pycache__/*", "*/venv/*", "*/.venv/*"]
+    source = [
+        "src",
+    ]
+    branch = true
+    omit = [
+        "*/tests/*",
+        "*/test_*",
+        "*/__pycache__/*",
+        "*/venv/*",
+        "*/.venv/*",
+    ]
 
 [tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
+    exclude_lines = [
+        "pragma: no cover",
+        "def __repr__",
+        "if self.debug:",
+        "if settings.DEBUG",
+        "raise AssertionError",
+        "raise NotImplementedError",
+        "if 0:",
+        "if __name__ == .__main__.:",
+        "class .*\\bProtocol\\):",
+        "@(abc\\.)?abstractmethod",
+    ]
 
-[tool.coverage.html]
-directory = "reports/coverage"
-
-[tool.coverage.xml]
-output = "reports/coverage.xml"
-
-[tool.ruff.lint.isort]
-known-first-party = ["flext_db_oracle"]
 
 [tool.poetry.group.dev.dependencies]
-ruff = ">=0.12.3"
-black = ">=25.1.0"
-isort = ">=6.0.1"
-pre-commit = ">=4.0.1"
-vulture = ">=2.13"
-radon = ">=6.0.1"
-codespell = ">=2.3.0"
-pyupgrade = ">=3.19.0"
-autoflake = ">=2.3.1"
-detect-secrets = ">=1.4.0"
-pyrefly = "^0.34.0"
+    ruff           = ">=0.12.3"
+    black          = ">=25.1.0"
+    isort          = ">=6.0.1"
+    pre-commit     = ">=4.0.1"
+    vulture        = ">=2.13"
+    radon          = ">=6.0.1"
+    codespell      = ">=2.3.0"
+    pyupgrade      = ">=3.19.0"
+    autoflake      = ">=2.3.1"
+    detect-secrets = ">=1.4.0"
+    pyrefly        = "^0.34.0"
 
 [tool.poetry.group.test.dependencies]
-pytest = ">=8.4.0"
-pytest-asyncio = ">=0.23.5.post1,<0.24.0"
-pytest-cov = ">=6.2.0"
-pytest-xdist = ">=3.8.0"
-pytest-mock = ">=3.14.0"
-pytest-timeout = ">=2.4.0"
-pytest-benchmark = ">=5.1.0"
-pytest-randomly = ">=3.16.0"
-pytest-sugar = ">=1.0.0"
-pytest-clarity = ">=1.0.1"
-pytest-deadfixtures = ">=2.2.1"
-pytest-env = ">=1.1.5"
-pytest-httpx = ">=0.35.0"
-hypothesis = ">=6.125.0"
-factory-boy = ">=3.3.1"
-faker = ">=37.4.0"
+    pytest              = ">=8.4.0"
+    pytest-asyncio      = ">=0.23.5.post1,<0.24.0"
+    pytest-cov          = ">=6.2.0"
+    pytest-xdist        = ">=3.8.0"
+    pytest-mock         = ">=3.14.0"
+    pytest-timeout      = ">=2.4.0"
+    pytest-benchmark    = ">=5.1.0"
+    pytest-randomly     = ">=3.16.0"
+    pytest-sugar        = ">=1.0.0"
+    pytest-clarity      = ">=1.0.1"
+    pytest-deadfixtures = ">=2.2.1"
+    pytest-env          = ">=1.1.5"
+    pytest-httpx        = ">=0.35.0"
+    hypothesis          = ">=6.125.0"
+    factory-boy         = ">=3.3.1"
+    faker               = ">=37.4.0"
 
 [tool.poetry.group.typings.dependencies]
-types-python-dateutil = ">=2.9.0"
-types-pyyaml = ">=6.0.12"
-types-setuptools = ">=80.9.0"
-types-toml = ">=0.10.8.20240310"
-types-requests = ">=2.32.4"
-types-redis = ">=4.6.0"
-types-psutil = ">=7.0.0"
+    types-python-dateutil = ">=2.9.0"
+    types-pyyaml          = ">=6.0.12"
+    types-setuptools      = ">=80.9.0"
+    types-toml            = ">=0.10.8.20240310"
+    types-requests        = ">=2.32.4"
+    types-redis           = ">=4.6.0"
+    types-psutil          = ">=7.0.0"
 
 [tool.poetry.group.security.dependencies]
-bandit = ">=1.8.0"
-pip-audit = ">=2.7.3"
+    bandit    = ">=1.8.0"
+    pip-audit = ">=2.7.3"
+
+[tool.pyrefly]
+    python-version = "3.13"
+    search-path = [
+        "examples",
+        "scripts",
+        "src",
+        "tests",
+    ]
+
+[tool.ruff]
+    extend = "../ruff-shared.toml"
+
+[tool.ruff.lint.isort]
+    known-first-party = [
+        "flext_db_oracle",
+    ]

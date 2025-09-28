@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-import logging
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -167,6 +166,10 @@ class FlextDbOracleServices(FlextModels.Entity):
             """Build Oracle connection URL from configuration."""
             try:
                 password = self.config.password
+                if password is None:
+                    return FlextResult[str].fail(
+                        "Password is required for database connection"
+                    )
                 encoded_password = quote_plus(password)
 
                 # Use SID if available, otherwise use service_name
@@ -193,7 +196,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         def __init__(
             self,
             connection_manager: FlextDbOracleServices._ConnectionManager,
-            logger: logging.Logger,
+            logger: FlextLogger,
         ) -> None:
             """Initialize the query executor."""
             self._connection_manager = connection_manager
@@ -308,7 +311,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         """Nested helper for SQL statement construction using SQLAlchemy 2.0 Core API."""
 
         @override
-        def __init__(self, logger: logging.Logger) -> None:
+        def __init__(self, logger: FlextLogger) -> None:
             """Initialize the SQL builder with SQLAlchemy 2.0 metadata."""
             self._logger = logger
             self._metadata: MetaData = MetaData()
@@ -588,7 +591,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         def __init__(
             self,
             query_executor: FlextDbOracleServices._QueryExecutor,
-            logger: logging.Logger,
+            logger: FlextLogger,
         ) -> None:
             """Initialize the schema introspector."""
             self._query_executor = query_executor
@@ -921,7 +924,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         """Nested helper for DDL statement generation and schema changes."""
 
         @override
-        def __init__(self, logger: logging.Logger) -> None:
+        def __init__(self, logger: FlextLogger) -> None:
             """Initialize the DDL generator."""
             self._logger = logger
 
@@ -1090,7 +1093,7 @@ class FlextDbOracleServices(FlextModels.Entity):
             self,
             connection_manager: FlextDbOracleServices._ConnectionManager,
             config: FlextDbOracleModels.OracleConfig,
-            logger: logging.Logger,
+            logger: FlextLogger,
         ) -> None:
             """Initialize the metrics collector."""
             self._connection_manager = connection_manager
@@ -1235,7 +1238,7 @@ class FlextDbOracleServices(FlextModels.Entity):
         """Nested helper for plugin registration and management."""
 
         @override
-        def __init__(self, logger: logging.Logger) -> None:
+        def __init__(self, logger: FlextLogger) -> None:
             """Initialize the plugin registry."""
             self._logger = logger
             self._plugins: dict[str, object] = {}

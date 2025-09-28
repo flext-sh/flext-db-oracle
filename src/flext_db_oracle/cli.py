@@ -84,7 +84,7 @@ class FlextDbOracleCliService(FlextService[str]):
             port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
             service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
             username: str = FlextDbOracleConstants.Defaults.DEFAULT_USERNAME,
-            password: str = "",
+            password: str | None = None,
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
             """Create Oracle configuration from parameters.
 
@@ -92,7 +92,7 @@ class FlextDbOracleCliService(FlextService[str]):
                 FlextResult[FlextDbOracleModels.OracleConfig]: Configuration or error.
 
             """
-            if not password:
+            if password is None or not password.strip():
                 return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                     "Password is required for Oracle connection",
                 )
@@ -226,7 +226,7 @@ class FlextDbOracleCliService(FlextService[str]):
         port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
         service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
-        password: str = "",
+        password: str | None = None,
         timeout: int = FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT,
     ) -> FlextResult[dict[str, object]]:
         """Execute comprehensive health check for Oracle database connection.
@@ -236,7 +236,7 @@ class FlextDbOracleCliService(FlextService[str]):
             port: Oracle database port
             service_name: Oracle service name
             username: Oracle username
-            password: Oracle password (optional for localhost)
+            password: Oracle password (required)
             timeout: Connection timeout in seconds
 
         Returns:
@@ -301,7 +301,7 @@ class FlextDbOracleCliService(FlextService[str]):
         port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
         service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
-        password: str = "",
+        password: str | None = None,
         output_format: str = "table",
     ) -> FlextResult[str]:
         """Execute Oracle schemas listing.
@@ -373,7 +373,7 @@ class FlextDbOracleCliService(FlextService[str]):
         port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
         service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
-        password: str = "",
+        password: str | None = None,
         output_format: str = "table",
     ) -> FlextResult[str]:
         """Execute Oracle tables listing for a schema.
@@ -447,7 +447,7 @@ class FlextDbOracleCliService(FlextService[str]):
         port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
         service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
-        password: str = "",
+        password: str | None = None,
         output_format: str = "table",
     ) -> FlextResult[str]:
         """Execute SQL query against Oracle database.

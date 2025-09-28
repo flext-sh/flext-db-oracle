@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import FlextBus, FlextDispatcher
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -183,7 +185,10 @@ class TestDispatcherSurgical:
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
-            parameters_list=[{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
+            parameters_list=cast(
+                "list[dict[str, object]]",
+                [{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
+            ),
         )
 
         result = dispatcher.dispatch(many_cmd)
@@ -298,7 +303,7 @@ class TestDispatcherCommandClasses:
         ]
         cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=params_list,
+            parameters_list=cast("list[dict[str, object]]", params_list),
         )
         assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
         assert cmd.parameters_list == params_list
