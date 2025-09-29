@@ -88,7 +88,7 @@ class TestOracleErrorCodes:
             for attr in dir(codes)
             if not attr.startswith("_") and isinstance(getattr(codes, attr), str)
         ]
-        assert len(error_code_attrs) == 8
+        assert len(error_code_attrs) == 14
 
 
 class TestValidationError:

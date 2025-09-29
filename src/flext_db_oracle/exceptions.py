@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Final, cast
 
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from flext_core import FlextExceptions, FlextModels, FlextTypes
 
@@ -39,6 +39,20 @@ class FlextDbOracleExceptions(FlextExceptions):
             default=None, description="Connection information"
         )
 
+        @field_validator("message")
+        @classmethod
+        def validate_message(cls, v: str) -> str:
+            """Validate that message is not empty or whitespace."""
+            if not v or not v.strip():
+                msg = "Exception message cannot be empty"
+                raise ValueError(msg)
+            return v
+
+        class Config:
+            """Pydantic config for ExceptionParams."""
+
+            frozen = True  # Make it immutable
+
     class OracleErrorCodes:
         """Oracle-specific error codes."""
 
@@ -65,7 +79,18 @@ class FlextDbOracleExceptions(FlextExceptions):
 
         def __init__(self, message: str, **kwargs: object) -> None:
             """Initialize Oracle base error with message and optional context."""
-            super().__init__(message)
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                kwargs["error_code"] = str(kwargs.pop("code"))
+
+            # Call super().__init__ with explicit parameters
+            code = cast("str | None", kwargs.get("error_code"))
+            context = cast("dict[str, object] | None", kwargs.get("context"))
+            correlation_id = cast("str | None", kwargs.get("correlation_id"))
+
+            super().__init__(
+                message, code=code, context=context, correlation_id=correlation_id
+            )
             self.oracle_code: str | None = cast("str | None", kwargs.get("oracle_code"))
             self.sql_statement: str | None = cast(
                 "str | None", kwargs.get("sql_statement")
@@ -90,13 +115,18 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             field: str | None = None,
             value: object = None,
+            validation_details: str | None = None,
             **kwargs: object,
         ) -> None:
             """Initialize Oracle validation error with field details."""
             super().__init__(message, **kwargs)
             self.field = field
             self.value = value
+            self.validation_details = validation_details
             self.error_type = "ValidationError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
         @classmethod
         def from_field_error(
@@ -113,12 +143,32 @@ class FlextDbOracleExceptions(FlextExceptions):
         """Oracle configuration error."""
 
         def __init__(
-            self, message: str, config_key: str | None = None, **kwargs: object
+            self,
+            message: str,
+            config_key: str | None = None,
+            config_file: str | None = None,
+            **kwargs: object,
         ) -> None:
             """Initialize Oracle configuration error with config key details."""
+            # Build context with configuration details (convert None to "None" string)
+            context: dict[str, object] = dict(
+                cast("dict[str, object]", kwargs.get("context", {}))
+            )
+            context["config_key"] = (
+                str(config_key) if config_key is not None else "None"
+            )
+            context["config_file"] = (
+                str(config_file) if config_file is not None else "None"
+            )
+            kwargs["context"] = context
+
             super().__init__(message, **kwargs)
             self.config_key = config_key
+            self.config_file = config_file
             self.error_type = "ConfigurationError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
         @classmethod
         def missing_config(
@@ -135,13 +185,28 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             host: str | None = None,
             port: int | None = None,
+            endpoint: str | None = None,
+            service: str | None = None,
             **kwargs: object,
         ) -> None:
             """Initialize Oracle connection error with host and port details."""
+            # Build context with connection details
+            context: dict[str, object] = dict(
+                cast("dict[str, object]", kwargs.get("context", {}))
+            )
+            context["endpoint"] = str(endpoint) if endpoint is not None else "None"
+            context["service"] = str(service) if service is not None else "None"
+            kwargs["context"] = context
+
             super().__init__(message, **kwargs)
             self.host = host
             self.port = port
+            self.endpoint = endpoint
+            self.service = service
             self.error_type = "ConnectionError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
     class OracleAuthenticationError(OracleBaseError):
         """Oracle authentication error."""
@@ -156,6 +221,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.username = username
             self.error_type = "AuthenticationError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
         @classmethod
         def invalid_credentials(
@@ -181,6 +249,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.operation = operation
             self.data_context = data_context or {}
             self.error_type = "ProcessingError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
         @classmethod
         def data_conversion_failed(
@@ -207,6 +278,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.timeout_seconds = timeout_seconds
             self.operation = operation
             self.error_type = "TimeoutError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
         @classmethod
         def query_timeout(
@@ -233,6 +307,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.query = query
             self.error_type = "QueryError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
     class OracleMetadataError(OracleBaseError):
         """Oracle metadata retrieval error."""
@@ -244,6 +321,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.table_name = table_name
             self.error_type = "MetadataError"
+            # Set error_code from code parameter if provided
+            if "code" in kwargs:
+                self.error_code = str(kwargs["code"])
 
     @classmethod
     def create_validation_error(
@@ -259,10 +339,63 @@ class FlextDbOracleExceptions(FlextExceptions):
         """Factory method for connection errors."""
         return cls.OracleConnectionError(message=message, host=host, port=port)
 
+    @classmethod
+    def create_timeout_error(
+        cls,
+        timeout_seconds: float,
+        query: str | None = None,
+        message: str | None = None,
+    ) -> FlextDbOracleExceptions.OracleTimeoutError:
+        """Factory method for timeout errors."""
+        if message is None:
+            message = f"Operation timed out after {timeout_seconds} seconds"
+        return cls.OracleTimeoutError(
+            message=message,
+            timeout_seconds=timeout_seconds,
+            operation="query_execution" if query else "operation",
+            sql_statement=query,
+            context={"duration": timeout_seconds},
+        )
+
+    @classmethod
+    def create_metadata_error(
+        cls, object_name: str, message: str = "Metadata missing"
+    ) -> FlextDbOracleExceptions.OracleMetadataError:
+        """Factory method for metadata errors."""
+        return cls.OracleMetadataError(message=message, table_name=object_name)
+
+    @classmethod
+    def create_configuration_error(
+        cls, config_key: str, config_file: str | None = None, message: str | None = None
+    ) -> FlextDbOracleExceptions.OracleConfigurationError:
+        """Factory method for configuration errors."""
+        if message is None:
+            message = f"Missing required configuration: {config_key}"
+        return cls.OracleConfigurationError(
+            message=message, config_key=config_key, config_file=config_file
+        )
+
+    @classmethod
+    def create_query_error(
+        cls, sql: str, message: str = "Query execution failed"
+    ) -> FlextDbOracleExceptions.OracleQueryError:
+        """Factory method for query errors."""
+        return cls.OracleQueryError(message=message, query=sql, context={"sql": sql})
+
     @staticmethod
     def is_oracle_error(error: Exception) -> bool:
         """Check if error is Oracle-specific."""
         return isinstance(error, FlextDbOracleExceptions.OracleBaseError)
+
+    # Aliases for backward compatibility and convenience
+    ValidationError = OracleValidationError
+    ConfigurationError = OracleConfigurationError
+    ConnectionError = OracleConnectionError
+    AuthenticationError = OracleAuthenticationError
+    ProcessingError = OracleProcessingError
+    TimeoutError = OracleTimeoutError
+    QueryError = OracleQueryError
+    MetadataError = OracleMetadataError
 
 
 __all__: FlextTypes.Core.StringList = [

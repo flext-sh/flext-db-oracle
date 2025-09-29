@@ -44,7 +44,7 @@ class TestCLIRealFunctionality:
         test_env_vars = {
             "ORACLE_HOST": "localhost",
             "ORACLE_PORT": "1521",
-            "ORACLE_USER": "testuser",
+            "ORACLE_USERNAME": "testuser",
             "ORACLE_PASSWORD": "testpass",
             "ORACLE_SERVICE_NAME": "TESTDB",
         }
@@ -57,16 +57,17 @@ class TestCLIRealFunctionality:
 
         try:
             # Test real API creation from environment
-            # Note: from_env() uses FlextDbOracleConfig defaults, not environment variables
+            # Uses FLEXT_TARGET_ORACLE_* environment variables
             api_result = FlextDbOracleApi.from_env()
             FlextTestsMatchers.assert_result_success(api_result)
 
             api = api_result.value
-            # Should use defaults from FlextDbOracleConfig, not environment variables
-            assert api.config.host == "localhost"  # default
-            assert api.config.port == 1521  # default
-            assert api.config.service_name == "XEPDB1"  # default
-            assert not api.config.username  # default (empty)
+            # Should use environment variables
+            assert api.config.host == "localhost"
+            assert api.config.port == 1521
+            assert api.config.service_name == "TESTDB"
+            assert api.config.username == "testuser"
+            assert api.config.password == "testpass"
 
         finally:
             # Restore environment
@@ -215,18 +216,36 @@ class TestCLIRealFunctionality:
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
-        # Test from_env factory method
-        api_result = FlextDbOracleApi.from_env()
-        FlextTestsMatchers.assert_result_success(
-            api_result,
-        )  # Should succeed with defaults
+        # Set required environment variables for from_env
+        original_env = {}
+        env_vars = {
+            "ORACLE_USERNAME": "testuser",
+            "ORACLE_PASSWORD": "testpass",
+            "ORACLE_HOST": "localhost",
+            "ORACLE_PORT": "1521",
+            "ORACLE_SERVICE_NAME": "XEPDB1",
+        }
+        for key, value in env_vars.items():
+            original_env[key] = os.environ.get(key)
+            os.environ[key] = value
 
-        api = api_result.value
-        assert api.config.host == "localhost"  # Default value
-        assert api.config.port == 1521  # Default value
-        assert (
-            api.config.service_name == "XEPDB1"
-        )  # Default value from FlextDbOracleConfig
+        try:
+            # Test from_env factory method
+            api_result = FlextDbOracleApi.from_env()
+            FlextTestsMatchers.assert_result_success(api_result)
+
+            api = api_result.value
+            assert api.config.host == "localhost"
+            assert api.config.port == 1521
+            assert api.config.service_name == "XEPDB1"
+            assert api.config.username == "testuser"
+        finally:
+            # Restore environment
+            for key, original_value in original_env.items():
+                if original_value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = original_value
 
         # Test from_url factory method
         url_result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")

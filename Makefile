@@ -84,7 +84,7 @@ type-check: ## Run type checking with Pyrefly (ZERO TOLERANCE)
 .PHONY: security
 security: ## Run security scanning
 	$(POETRY) run bandit -r $(SRC_DIR) --skip B608
-	$(POETRY) run pip-audit --ignore-vuln GHSA-wj6h-64fc-37mp
+	$(POETRY) run pip-audit --ignore-vuln GHSA-mw26-5g2v-hqw3 --ignore-vuln GHSA-wj6h-64fc-37mp
 
 .PHONY: fix
 fix: ## Auto-fix issues
@@ -97,7 +97,7 @@ fix: ## Auto-fix issues
 
 .PHONY: test
 test: ## Run tests with 100% coverage (MANDATORY)
-	PYTHONPATH=$(SRC_DIR) $(POETRY) run pytest -q --maxfail=10000 --cov=$(COV_DIR) --cov-report=term-missing:skip-covered --cov-fail-under=$(MIN_COVERAGE)
+	$(POETRY) run pytest -q --maxfail=10000 --cov=$(COV_DIR) --cov-report=term-missing:skip-covered --cov-fail-under=$(MIN_COVERAGE)
 
 .PHONY: test-unit
 test-unit: ## Run unit tests

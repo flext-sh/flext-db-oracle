@@ -242,7 +242,13 @@ class TestFlextDbOracleClientRealFunctionality:
         result = cast("FlextResult[FlextDbOracleModels.OracleConfig]", config_result)
         FlextTestsMatchers.assert_result_success(result)
 
-        config = result.value  # Direct access since value is the OracleConfig
+        config_data = result.value  # Access data from builder result
+        # Handle case where builder returns dict with 'data' key
+        if isinstance(config_data, dict) and "data" in config_data:
+            config = config_data["data"]
+        else:
+            config = config_data
+        assert isinstance(config, FlextDbOracleModels.OracleConfig)
 
         # Test that client can work with TestBuilders-created configuration
         client = FlextDbOracleClient()

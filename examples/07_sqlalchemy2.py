@@ -11,9 +11,9 @@ import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from flext_core import FlextLogger
 from sqlalchemy import Engine, text
 
+from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 logger = FlextLogger(__name__)

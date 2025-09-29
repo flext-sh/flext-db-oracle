@@ -14,7 +14,7 @@ from typing import cast
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
-from flext_core import FlextConfig, FlextResult
+from flext_core import FlextConfig, FlextConstants, FlextResult
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -128,7 +128,7 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     max_retries: int = Field(
-        default=3,
+        default=FlextConstants.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
         le=10,
         description="Maximum number of retry attempts",
@@ -184,14 +184,14 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     performance_threshold_warning: float = Field(
-        default=5.0,
+        default=FlextDbOracleConstants.Performance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
         ge=0.1,
         le=60.0,
         description="Performance warning threshold in seconds",
     )
 
     performance_threshold_critical: float = Field(
-        default=30.0,
+        default=float(FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT),
         ge=0.1,
         le=300.0,
         description="Performance critical threshold in seconds",

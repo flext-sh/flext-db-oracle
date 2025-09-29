@@ -16,6 +16,7 @@ from flext_db_oracle.exceptions import FlextDbOracleExceptions
 from flext_db_oracle.mixins import FlextDbOracleMixins
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.plugins import FlextDbOraclePlugins
+from flext_db_oracle.protocols import FlextDbOracleProtocols
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.typings import FlextDbOracleTypes
 from flext_db_oracle.utilities import FlextDbOracleUtilities
@@ -33,6 +34,7 @@ __all__ = [
     "FlextDbOracleMixins",
     "FlextDbOracleModels",
     "FlextDbOraclePlugins",
+    "FlextDbOracleProtocols",
     "FlextDbOracleServices",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",

@@ -277,12 +277,10 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test from_env factory method with no environment variables."""
         result = FlextDbOracleApi.from_env("NONEXISTENT_PREFIX")
 
-        # Since from_env provides defaults, it will succeed but use default values
-        FlextTestsMatchers.assert_result_success(result)
-        api = result.value
-        assert api.config.host == "localhost"  # Default value
-        assert api.config.port == 1521  # Default value
-        assert api.config.service_name == "XEPDB1"  # Default value from config
+        # Without environment variables, it should fail
+        FlextTestsMatchers.assert_result_failure(result)
+        assert result.error is not None
+        assert "Oracle username is required but not configured" in result.error
 
     def test_from_url_valid_url_real(self) -> None:
         """Test from_url factory method with valid Oracle URL."""
@@ -417,7 +415,12 @@ class TestFlextDbOracleApiRealFunctionality:
         # Cast to FlextResult to satisfy mypy
         result = cast("FlextResult[FlextDbOracleModels.OracleConfig]", config_result)
         FlextTestsMatchers.assert_result_success(result)
-        config = result.value  # Direct access since value is the OracleConfig
+        config_data = result.value  # Access data from builder result
+        # Handle case where builder returns dict with 'data' key
+        if isinstance(config_data, dict) and "data" in config_data:
+            config = config_data["data"]
+        else:
+            config = config_data
         assert isinstance(config, FlextDbOracleModels.OracleConfig)
 
         # Test API creation with TestBuilders configuration

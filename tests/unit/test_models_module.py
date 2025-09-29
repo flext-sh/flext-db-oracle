@@ -233,6 +233,9 @@ class TestModelsModule:
         test_config_data = flext_domains.create_configuration()
         test_config_data["host"] = "flext_test_host"
         test_config_data["port"] = 1521
+        test_config_data["username"] = "flext_test_user"
+        test_config_data["password"] = "flext_test_pass"
+        test_config_data["service_name"] = "FLEXT_TEST_DB"
 
         test_table_data = flext_domains.create_service()
         test_table_data["table_name"] = "flext_test_table"

@@ -14,7 +14,7 @@ from pathlib import Path
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
-from flext_tests import FlextTestDocker
+from flext_tests import FlextTestDocker, FlextTestsDomains
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
@@ -139,6 +139,9 @@ def shared_oracle_container(docker_control: FlextTestDocker) -> Generator[str]:
 
     Container auto-starts if not running and remains running after tests.
     """
+    # Remove any existing container with the same name first
+    docker_control.stop_container("flext-oracle-db-test", remove=True)
+
     result = docker_control.start_container("flext-oracle-db-test")
     if result.is_failure:
         pytest.skip(f"Failed to start Oracle container: {result.error}")
@@ -214,3 +217,9 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
             connected_api.disconnect()
     else:
         pytest.skip(f"Could not connect to Oracle: {connect_result.error}")
+
+
+@pytest.fixture
+def flext_domains() -> FlextTestsDomains:
+    """Provide FlextTestsDomains instance for domain-based testing."""
+    return FlextTestsDomains()

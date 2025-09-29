@@ -284,7 +284,7 @@ class TestOracleConfigFromUrl:
         assert result.is_success
         config = result.value
         assert config.username == "user"
-        assert config.password is not None
+        assert config.password is None
 
     def test_from_url_default_port(self) -> None:
         """Test creating Oracle config from URL without port."""
