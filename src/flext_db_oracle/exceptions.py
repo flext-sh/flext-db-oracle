@@ -124,9 +124,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.value = value
             self.validation_details = validation_details
             self.error_type = "ValidationError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
         @classmethod
         def from_field_error(
@@ -166,9 +163,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.config_key = config_key
             self.config_file = config_file
             self.error_type = "ConfigurationError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
         @classmethod
         def missing_config(
@@ -204,9 +198,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.endpoint = endpoint
             self.service = service
             self.error_type = "ConnectionError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
     class OracleAuthenticationError(OracleBaseError):
         """Oracle authentication error."""
@@ -221,9 +212,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.username = username
             self.error_type = "AuthenticationError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
         @classmethod
         def invalid_credentials(
@@ -249,9 +237,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.operation = operation
             self.data_context = data_context or {}
             self.error_type = "ProcessingError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
         @classmethod
         def data_conversion_failed(
@@ -278,9 +263,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.timeout_seconds = timeout_seconds
             self.operation = operation
             self.error_type = "TimeoutError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
         @classmethod
         def query_timeout(
@@ -307,9 +289,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.query = query
             self.error_type = "QueryError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
     class OracleMetadataError(OracleBaseError):
         """Oracle metadata retrieval error."""
@@ -321,9 +300,6 @@ class FlextDbOracleExceptions(FlextExceptions):
             super().__init__(message, **kwargs)
             self.table_name = table_name
             self.error_type = "MetadataError"
-            # Set error_code from code parameter if provided
-            if "code" in kwargs:
-                self.error_code = str(kwargs["code"])
 
     @classmethod
     def create_validation_error(
@@ -388,14 +364,14 @@ class FlextDbOracleExceptions(FlextExceptions):
         return isinstance(error, FlextDbOracleExceptions.OracleBaseError)
 
     # Aliases for backward compatibility and convenience
-    ValidationError = OracleValidationError
-    ConfigurationError = OracleConfigurationError
-    ConnectionError = OracleConnectionError
-    AuthenticationError = OracleAuthenticationError
-    ProcessingError = OracleProcessingError
-    TimeoutError = OracleTimeoutError
-    QueryError = OracleQueryError
-    MetadataError = OracleMetadataError
+    setattr(FlextDbOracleExceptions, "ValidationError", OracleValidationError)
+    setattr(FlextDbOracleExceptions, "ConfigurationError", OracleConfigurationError)
+    setattr(FlextDbOracleExceptions, "ConnectionError", OracleConnectionError)
+    setattr(FlextDbOracleExceptions, "AuthenticationError", OracleAuthenticationError)
+    setattr(FlextDbOracleExceptions, "ProcessingError", OracleProcessingError)
+    setattr(FlextDbOracleExceptions, "TimeoutError", OracleTimeoutError)
+    setattr(FlextDbOracleExceptions, "QueryError", OracleQueryError)
+    setattr(FlextDbOracleExceptions, "MetadataError", OracleMetadataError)
 
 
 __all__: FlextTypes.Core.StringList = [
