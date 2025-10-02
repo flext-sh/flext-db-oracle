@@ -11,10 +11,10 @@ from __future__ import annotations
 
 from typing import cast
 
+from flext_core import FlextConfig, FlextConstants, FlextResult
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
-from flext_core import FlextConfig, FlextConstants, FlextResult
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -72,6 +72,47 @@ class FlextDbOracleConfig(FlextConfig):
         default="",
         description="Oracle database username",
     )
+
+    # Backward compatibility properties for old attribute names
+    @property
+    def host(self) -> str:
+        """Backward compatibility property for oracle_host."""
+        return self.oracle_host
+
+    @property
+    def port(self) -> int:
+        """Backward compatibility property for oracle_port."""
+        return self.oracle_port
+
+    @property
+    def service_name(self) -> str:
+        """Backward compatibility property for oracle_service_name."""
+        return self.oracle_service_name
+
+    @property
+    def username(self) -> str:
+        """Backward compatibility property for oracle_username."""
+        return self.oracle_username
+
+    @property
+    def protocol(self) -> str:
+        """Backward compatibility property for connection protocol."""
+        return "tcps"  # Default protocol for Oracle connections
+
+    @property
+    def ssl_enabled(self) -> bool:
+        """Backward compatibility property for SSL configuration."""
+        return True  # Default SSL enabled for Oracle connections
+
+    @property
+    def pool_min(self) -> int:
+        """Backward compatibility property for minimum pool size."""
+        return self.pool_min
+
+    @property
+    def pool_max(self) -> int:
+        """Backward compatibility property for maximum pool size."""
+        return self.pool_max
 
     oracle_password: SecretStr = Field(
         default_factory=lambda: SecretStr(""),

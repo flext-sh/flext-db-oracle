@@ -21,8 +21,6 @@ from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.typings import FlextDbOracleTypes
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
-# ZERO TOLERANCE: No aliases - use unified classes directly
-
 __all__ = [
     "FlextDbOracleApi",
     "FlextDbOracleCliService",

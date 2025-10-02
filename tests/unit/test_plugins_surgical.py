@@ -194,4 +194,7 @@ class TestPluginsExceptionHandling:
             result = plugins.register_all_oracle_plugins()
             assert result.is_failure
             assert result.error is not None
-            assert "Plugin registration failed: Mock error" in result.error
+            assert (
+                result.error is not None
+                and "Plugin registration failed: Mock error" in result.error
+            )

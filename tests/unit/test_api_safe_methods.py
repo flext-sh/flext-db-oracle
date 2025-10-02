@@ -157,7 +157,7 @@ class TestFlextDbOracleApiSafeMethods:
         result = api.get_plugin("non_existent_plugin")
         assert not result.is_success
         assert result.error is not None
-        assert "not found" in result.error.lower()
+        assert result.error is not None and "not found" in result.error.lower()
 
         # Test register_plugin with None plugin data (architecture is defensive)
         register_result = api.register_plugin("test_plugin", None)

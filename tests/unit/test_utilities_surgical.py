@@ -217,7 +217,7 @@ class TestUtilitiesSurgical:
         result = FlextDbOracleUtilities.format_query_result(None)
         assert result.is_failure
         assert result.error is not None
-        assert "Query result is None" in result.error
+        assert result.error is not None and "Query result is None" in result.error
 
     def test_format_query_result_json_format(self) -> None:
         """Test format_query_result with JSON format."""

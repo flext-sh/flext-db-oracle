@@ -10,9 +10,8 @@ from __future__ import annotations
 
 from typing import Final, cast
 
-from pydantic import Field, field_validator
-
 from flext_core import FlextExceptions, FlextModels, FlextTypes
+from pydantic import Field, field_validator
 
 
 class FlextDbOracleExceptions(FlextExceptions):

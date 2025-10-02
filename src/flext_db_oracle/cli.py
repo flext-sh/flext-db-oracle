@@ -73,7 +73,6 @@ class FlextDbOracleCliService(FlextService[str]):
 
         def dump(self, data: object, *, default_flow_style: bool = True) -> str:
             """Dump data as YAML string."""
-            ...
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""

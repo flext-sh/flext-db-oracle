@@ -10,18 +10,16 @@ import inspect
 from typing import cast
 
 import pytest
-
 from flext_core import (
     FlextContainer,
     FlextLogger,
-    FlextResult,
 )
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
+
 from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleModels,
-    FlextDbOracleTypes,
 )
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 
 class TestFlextDbOracleClientRealFunctionality:

@@ -194,7 +194,10 @@ class TestOracleConfigFromEnv:
 
         assert result.is_failure
         assert result.error is not None
-        assert "username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "username is required but not configured" in result.error
+        )
 
     def test_from_env_custom_prefix(self) -> None:
         """Test creating Oracle config from environment with custom prefix."""
@@ -213,7 +216,10 @@ class TestOracleConfigFromEnv:
 
         assert result.is_failure
         assert result.error is not None
-        assert "username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "username is required but not configured" in result.error
+        )
 
     def test_from_env_defaults_when_missing(self) -> None:
         """Test Oracle config fails when required credentials are missing."""
@@ -222,7 +228,10 @@ class TestOracleConfigFromEnv:
 
         assert result.is_failure
         assert result.error is not None
-        assert "username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "username is required but not configured" in result.error
+        )
 
     def test_from_env_invalid_port(self) -> None:
         """Test Oracle config from env fails when credentials are missing."""
@@ -240,7 +249,10 @@ class TestOracleConfigFromEnv:
         # Should fail due to missing username
         assert result.is_failure
         assert result.error is not None
-        assert "username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "username is required but not configured" in result.error
+        )
 
     def test_from_env_exception_handling(self) -> None:
         """Test Oracle config from env handles exceptions properly."""
@@ -256,7 +268,10 @@ class TestOracleConfigFromEnv:
 
         assert result.is_failure
         assert result.error is not None
-        assert "username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "username is required but not configured" in result.error
+        )
 
 
 class TestOracleConfigFromUrl:

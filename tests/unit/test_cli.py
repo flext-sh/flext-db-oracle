@@ -91,7 +91,9 @@ class TestFlextDbOracleClientReal:
         result = client.execute_query("SELECT 1 FROM DUAL")
         assert not result.is_success
         assert result.error
-        assert "No active Oracle connection" in result.error
+        assert (
+            result.error is not None and "No active Oracle connection" in result.error
+        )
 
         # Test list_schemas without connection
         schemas_result = client.list_schemas()

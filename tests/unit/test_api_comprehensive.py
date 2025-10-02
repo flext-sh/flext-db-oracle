@@ -280,7 +280,10 @@ class TestFlextDbOracleApiRealFunctionality:
         # Without environment variables, it should fail
         FlextTestsMatchers.assert_result_failure(result)
         assert result.error is not None
-        assert "Oracle username is required but not configured" in result.error
+        assert (
+            result.error is not None
+            and "Oracle username is required but not configured" in result.error
+        )
 
     def test_from_url_valid_url_real(self) -> None:
         """Test from_url factory method with valid Oracle URL."""
@@ -335,7 +338,10 @@ class TestFlextDbOracleApiRealFunctionality:
 
         FlextTestsMatchers.assert_result_failure(result)
         assert result.error is not None
-        assert "plugin 'nonexistent_plugin' not found" in result.error.lower()
+        assert (
+            result.error is not None
+            and "plugin 'nonexistent_plugin' not found" in result.error.lower()
+        )
 
     def test_get_plugin_real_functionality(self) -> None:
         """Test successful plugin retrieval."""
@@ -354,7 +360,10 @@ class TestFlextDbOracleApiRealFunctionality:
 
         FlextTestsMatchers.assert_result_failure(result)
         assert result.error is not None
-        assert "plugin 'nonexistent_plugin' not found" in result.error.lower()
+        assert (
+            result.error is not None
+            and "plugin 'nonexistent_plugin' not found" in result.error.lower()
+        )
 
     def test_list_plugins_real_functionality(self) -> None:
         """Test successful plugin listing."""

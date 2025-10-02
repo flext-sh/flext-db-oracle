@@ -130,7 +130,10 @@ class TestFlextDbOraclePluginsReal:
         result = plugins.get_plugin("nonexistent")
         assert not result.is_success
         assert result.error is not None
-        assert "Plugin 'nonexistent' not found" in result.error
+        assert (
+            result.error is not None
+            and "Plugin 'nonexistent' not found" in result.error
+        )
 
     def test_create_performance_monitor_plugin(self) -> None:
         """Test creating performance monitor plugin data."""
