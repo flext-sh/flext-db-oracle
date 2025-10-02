@@ -1,20 +1,36 @@
 # FLEXT-DB-ORACLE CLAUDE.MD
 
-**Enterprise Oracle Database Foundation for FLEXT Ecosystem**  
-**Version**: 1.0.0 | **Authority**: ORACLE DATABASE FOUNDATION | **Updated**: 2025-01-08  
+**Enterprise Oracle Database Foundation for FLEXT Ecosystem**
+**Version**: 1.0.0 | **Authority**: ORACLE DATABASE FOUNDATION | **Updated**: 2025-01-08
 **Status**: Production-ready Oracle integration with zero errors across all quality gates · 1.0.0 Release Preparation
 
 **References**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and [README.md](README.md) for project overview.
 
 **Hierarchy**: This document provides project-specific standards based on workspace-level patterns defined in [../CLAUDE.md](../CLAUDE.md). For architectural principles, quality gates, and MCP server usage, reference the main workspace standards.
 
-## 🔗 MCP SERVER INTEGRATION
+## 📋 DOCUMENT STRUCTURE & REFERENCES
 
-| MCP Server              | Purpose                                      | Status     |
-| ----------------------- | -------------------------------------------- | ---------- |
-| **serena**              | Oracle codebase analysis and code navigation | **ACTIVE** |
-| **sequential-thinking** | Oracle architecture problem solving          | **ACTIVE** |
-| **github**              | Oracle ecosystem integration and PRs         | **ACTIVE** |
+**Quick Links**:
+- **[~/.claude/commands/flext.md](~/.claude/commands/flext.md)**: Optimization command for module refactoring (USE with `/flext` command)
+- **[../CLAUDE.md](../CLAUDE.md)**: FLEXT ecosystem standards and domain library rules
+
+**Document Purpose**:
+- **This file (CLAUDE.md)**: Project-specific flext-db-oracle standards, ORACLE DATABASE FOUNDATION patterns, and SQLAlchemy 2 + oracledb authority
+- **flext.md command**: Practical refactoring workflows and MCP tool usage patterns (HOW-TO)
+- **Workspace CLAUDE.md**: Domain library standards and ecosystem architectural principles (WHAT and WHY)
+
+**DO NOT DUPLICATE**: This file focuses on flext-db-oracle Oracle database authority specifics with ZERO TOLERANCE for custom Oracle implementations.
+
+**Usage**: Reference [~/.claude/commands/flext.md](~/.claude/commands/flext.md) for MCP workflows. Use `/flext` command for Oracle database module optimization and Clean Architecture refactoring.
+
+## 🔗 MCP SERVER INTEGRATION (MANDATORY)
+
+| MCP Server              | Purpose                                                  | Status          |
+| ----------------------- | -------------------------------------------------------- | --------------- |
+| **serena-flext**        | Semantic code analysis, symbol manipulation, refactoring | **MANDATORY**   |
+| **sequential-thinking** | Oracle architecture and database problem solving         | **RECOMMENDED** |
+| **context7**            | Third-party library documentation (SQLAlchemy, oracledb) | **RECOMMENDED** |
+| **github**              | Repository operations and Oracle ecosystem PRs           | **ACTIVE**      |
 
 **Usage**: `claude mcp list` for available servers, leverage for Oracle-specific development patterns and analysis.
 

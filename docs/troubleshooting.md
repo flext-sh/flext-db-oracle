@@ -68,14 +68,14 @@ poetry install
 
 - flext-db-oracle uses SQLAlchemy abstraction only
 - No direct Python-oracledb optimization
-- No async support for concurrent operations
+- No support for concurrent operations
 - No DataFrame operations for bulk data
 
 ## Missing Features
 
-### No async support
+### No support
 
-flext-db-oracle has 0 async methods. For async operations, consider direct Python-oracledb.
+flext-db-oracle has 0 methods. For operations, consider direct Python-oracledb.
 
 ### No DataFrame support
 

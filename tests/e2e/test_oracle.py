@@ -343,7 +343,7 @@ class TestOracleE2E:
         real_oracle_config: FlextDbOracleModels.OracleConfig,
     ) -> None:
         """Test concurrent database operations."""
-        # This test would be expanded with actual threading/asyncio in a real scenario
+        # This test would be expanded with actual threading/in a real scenario
         # For now, test sequential operations that simulate concurrent patterns
 
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")

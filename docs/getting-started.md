@@ -157,7 +157,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 **Known Limitations**:
 
 - CLI formatters incomplete (SimpleNamespace placeholders in client.py:60-67)
-- No async support (required for modern Python applications)
+- No support (required for modern Python applications)
 - No DataFrame integration (Python-oracledb 3.4+ supports DataFrames)
 - No Oracle 23ai features (Vector types, statement pipelining)
 

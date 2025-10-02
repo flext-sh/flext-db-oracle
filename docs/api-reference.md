@@ -123,7 +123,7 @@ else:
 
 ## Limitations
 
-- No async methods (0 async/await keywords found)
+- No methods (0 /keywords found)
 - No DataFrame support
 - CLI uses SimpleNamespace placeholders (client.py:60-67)
 - Only SQLAlchemy abstraction (no direct Python-oracledb)

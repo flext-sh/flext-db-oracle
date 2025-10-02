@@ -160,7 +160,7 @@ FlextDbOracleException (base)
 
 **Missing Modern Features**:
 
-- **Async Support**: No async/await patterns (0 async methods found)
+- **Support**: No /patterns (0 methods found)
 - **DataFrame Integration**: Python-oracledb 3.4+ supports pandas/polars
 - **Oracle 23ai Features**: Vector types, statement pipelining
 - **Zero-Copy Data**: Apache Arrow PyCapsule Interface
@@ -253,10 +253,10 @@ class OraclePlugin(ABC):
 
 ### Planned Improvements
 
-**Async Support** (v0.10.0):
+**Support** (v0.10.0):
 
-- Async API methods using Python-oracledb async support
-- AsyncFlextDbOracleApi parallel implementation
+- API methods using Python-oracledb support
+- FlextDbOracleApi parallel implementation
 - Backward compatibility maintained
 
 **DataFrame Integration** (v0.10.0):

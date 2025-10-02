@@ -32,7 +32,7 @@ Demonstrates comprehensive Oracle database operations including:
 
 Shows modern SQLAlchemy 2 usage patterns with FLEXT DB Oracle:
 
-- Modern async/await patterns for database operations
+- Modern /patterns for database operations
 - Connection session management and transaction handling
 - ORM integration with Oracle-specific optimizations
 - Advanced query building and execution patterns
@@ -241,9 +241,9 @@ def demonstrate_cli_patterns():
         'FLEXT_TARGET_ORACLE_PASSWORD': 'flext_password'
     })
 
-    # Test connection (pseudo-code; prefer in-process or asyncio wrappers)
+    # Test connection (pseudo-code; prefer in-process or wrappers)
     print("Testing connection...")
-    # rc, out, err = await run_async([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
+    # rc, out, err = run([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
     # Simulated result object below for documentation purposes:
     class Result:
         """Lightweight result for documentation."""
@@ -258,7 +258,7 @@ def demonstrate_cli_patterns():
 
         # Execute sample query
         print("\nExecuting query...")
-        # rc2, out2, err2 = await run_async([sys.executable, '-m', 'flext_db_oracle.cli', 'query', '--sql', 'SELECT table_name FROM user_tables'], env=env)
+        # rc2, out2, err2 = run([sys.executable, '-m', 'flext_db_oracle.cli', 'query', '--sql', 'SELECT table_name FROM user_tables'], env=env)
         out2 = "TABLE_NAME\nUSERS\nORDERS\n"  # simulated
         print(out2)
     else:

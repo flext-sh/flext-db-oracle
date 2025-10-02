@@ -37,7 +37,7 @@ make validate
 ### Known Issues
 
 - CLI has SimpleNamespace placeholders (client.py:60-67)
-- No async support (0 async methods)
+- No support (0 methods)
 - No DataFrame integration
 - Only SQLAlchemy abstraction
 

@@ -9,9 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import asyncio
-import contextlib
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -140,26 +139,21 @@ def run_cli_command(cmd: FlextTypes.Core.StringList) -> tuple[int, str, str]:
 
     """
 
-    async def _run() -> tuple[int, str, str]:
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
+    def _run() -> tuple[int, str, str]:
         try:
-            stdout_b, stderr_b = await asyncio.wait_for(proc.communicate(), timeout=30)
-        except TimeoutError:
-            with contextlib.suppress(ProcessLookupError):
-                proc.kill()
-            await proc.wait()
+            result = subprocess.run(
+                cmd,
+                check=False, capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            return result.returncode, result.stdout, result.stderr
+        except subprocess.TimeoutExpired:
             return 1, "", "Command timed out"
-        return (
-            int(proc.returncode or 0),
-            stdout_b.decode("utf-8", errors="replace") if stdout_b else "",
-            stderr_b.decode("utf-8", errors="replace") if stderr_b else "",
-        )
+        except Exception as e:
+            return 1, "", f"Command failed: {e}"
 
-    return asyncio.run(_run())
+    return _run()
 
 
 def demo_cli_commands() -> None:
