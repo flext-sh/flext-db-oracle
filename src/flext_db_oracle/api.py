@@ -65,7 +65,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         """Check if API configuration is valid."""
         try:
             return (
-                self._config.port > FlextDbOracleConstants.Network.MIN_PORT
+                self._config.port > FlextDbOracleConstants.OracleNetwork.MIN_PORT
                 and self._config.service_name is not None
             )
         except AttributeError:
@@ -179,11 +179,11 @@ class FlextDbOracleApi(FlextModels.Entity):
         return self.dispatch_or(command, fallback)
 
     # Connection Management
-    def connect(self) -> FlextResult[Self]:
+    def connect(self) -> FlextResult[FlextDbOracleApi]:
         """Connect to Oracle database.
 
         Returns:
-            FlextResult[Self]: Success result with connected API instance.
+            FlextResult[FlextDbOracleApi]: Success result with connected API instance.
 
         """
         # Use dispatcher if available, otherwise delegate to services
@@ -193,12 +193,12 @@ class FlextDbOracleApi(FlextModels.Entity):
                 oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand(),
             )
             if dispatch_result is not None:
-                return cast("FlextResult[Self]", dispatch_result)
+                return cast("FlextResult[FlextDbOracleApi]", dispatch_result)
 
         result = self._services.connect()
         if result.is_success:
-            return FlextResult[Self].ok(self)
-        return cast("FlextResult[Self]", result)
+            return FlextResult[FlextDbOracleApi].ok(self)
+        return cast("FlextResult[FlextDbOracleApi]", result)
 
     def disconnect(self) -> FlextResult[None]:
         """Disconnect from Oracle database.
@@ -546,7 +546,9 @@ class FlextDbOracleApi(FlextModels.Entity):
     # Configuration
 
     @classmethod
-    def from_env(cls, prefix: str = "FLEXT_TARGET_ORACLE") -> FlextResult[Self]:
+    def from_env(
+        cls, prefix: str = "FLEXT_TARGET_ORACLE"
+    ) -> FlextResult[FlextDbOracleApi]:
         """Create API instance from environment variables."""
         config_result = FlextDbOracleModels.OracleConfig.from_env(
             prefix.replace("FLEXT_TARGET_", ""),
@@ -559,7 +561,7 @@ class FlextDbOracleApi(FlextModels.Entity):
         )
 
     @classmethod
-    def from_url(cls, database_url: str) -> FlextResult[Self]:
+    def from_url(cls, database_url: str) -> FlextResult[FlextDbOracleApi]:
         """Create API instance from database URL."""
         config_result = FlextDbOracleModels.OracleConfig.from_url(database_url)
         if config_result.is_success:

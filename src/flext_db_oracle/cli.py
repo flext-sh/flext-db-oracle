@@ -81,10 +81,10 @@ class FlextDbOracleCliService(FlextService[str]):
 
         @staticmethod
         def create_config_from_params(
-            host: str = FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+            host: str = FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
             port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
             service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
-            username: str = FlextDbOracleConstants.Defaults.DEFAULT_USERNAME,
+            username: str = FlextDbOracleConstants.OracleDefaults.DEFAULT_USERNAME,
             password: str | None = None,
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
             """Create Oracle configuration from parameters.
@@ -223,7 +223,7 @@ class FlextDbOracleCliService(FlextService[str]):
 
     def execute_health_check(
         self,
-        host: str = FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+        host: str = FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
         port: int = FlextDbOracleConstants.Connection.DEFAULT_PORT,
         service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,

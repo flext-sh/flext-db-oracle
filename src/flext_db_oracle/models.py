@@ -63,14 +63,14 @@ class FlextDbOracleModels(FlextModels):
             # Length validation
             if (
                 len(upper_identifier)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                error_msg = f"Oracle identifier too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                error_msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 return FlextResult[str].fail(error_msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_identifier,
             ):
                 error_msg = "Oracle identifier contains invalid characters"
@@ -90,7 +90,7 @@ class FlextDbOracleModels(FlextModels):
 
     # Oracle-specific field definitions using flext-core patterns
     host_field: ClassVar[object] = Field(
-        default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
         description="Oracle database host",
     )
     port_field: ClassVar[object] = Field(
@@ -106,7 +106,7 @@ class FlextDbOracleModels(FlextModels):
         description="Oracle database password",
     )
     service_name_field: ClassVar[object] = Field(
-        default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
         description="Oracle service name",
     )
 
@@ -115,7 +115,7 @@ class FlextDbOracleModels(FlextModels):
 
         # Oracle-specific defaults using flext-core field validation
         host: str = Field(
-            default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+            default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
             description="Oracle database host",
         )
         port: int = Field(
@@ -123,7 +123,7 @@ class FlextDbOracleModels(FlextModels):
             description="Oracle database port",
         )
         name: str = Field(
-            default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+            default=FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
             description="Oracle database name",
         )
 
@@ -251,21 +251,27 @@ class FlextDbOracleModels(FlextModels):
             cls,
             prefix: str = "ORACLE",
         ) -> FlextResult[FlextDbOracleModels.OracleConfig]:
-            """Create OracleConfig from environment variables using FlextDbOracleConfig.
+            """Create OracleConfig from environment variables using specified prefix.
 
             DEPRECATED: Use FlextDbOracleConfig directly for standardized configuration.
-            This method now uses FlextDbOracleConfig enhanced singleton pattern internally.
+            This method loads environment variables with the specified prefix.
 
             Args:
-                prefix: Environment variable prefix (deprecated, not used with FlextDbOracleConfig)
+                prefix: Environment variable prefix (e.g., "ORACLE")
 
             """
-            _ = prefix  # Parameter required by API but not used in standardized config
             try:
-                # Use the enhanced singleton pattern from FlextDbOracleConfig
-                standardized_config = FlextDbOracleConfig.get_or_create_shared_instance(
-                    project_name="flext-db-oracle"
-                )
+                # Load environment variables with the specified prefix
+                import os
+                env_vars = {}
+                for key in ["HOST", "PORT", "USERNAME", "PASSWORD", "SERVICE_NAME", "DATABASE_NAME"]:
+                    env_key = f"{prefix}_{key}"
+                    value = os.environ.get(env_key)
+                    if value is not None:
+                        env_vars[f"oracle_{key.lower()}"] = value
+
+                # Create config instance with environment-loaded values
+                standardized_config = FlextDbOracleConfig(**env_vars)
 
                 # Validate required fields are set
                 if (
@@ -347,7 +353,7 @@ class FlextDbOracleModels(FlextModels):
                     host=host,
                     port=port,
                     name=service_name
-                    or FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+                    or FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
                     username=user,
                     password=password,
                     service_name=service_name,
@@ -365,8 +371,8 @@ class FlextDbOracleModels(FlextModels):
             if not isinstance(v, str) or not v.strip():
                 msg = "Host cannot be empty"
                 raise ValueError(msg)
-            if len(v) > FlextDbOracleConstants.Validation.MAX_HOSTNAME_LENGTH:
-                msg = f"Host too long (max {FlextDbOracleConstants.Validation.MAX_HOSTNAME_LENGTH} chars)"
+            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH:
+                msg = f"Host too long (max {FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH} chars)"
                 raise ValueError(msg)
             return v.strip()
 
@@ -388,11 +394,11 @@ class FlextDbOracleModels(FlextModels):
                 raise TypeError(msg)
 
             if not (
-                FlextDbOracleConstants.Network.MIN_PORT
+                FlextDbOracleConstants.OracleNetwork.MIN_PORT
                 <= v
-                <= FlextDbOracleConstants.Network.MAX_PORT
+                <= FlextDbOracleConstants.OracleNetwork.MAX_PORT
             ):
-                error_msg = f"Port must be between {FlextDbOracleConstants.Network.MIN_PORT}-{FlextDbOracleConstants.Network.MAX_PORT}, got {v}"
+                error_msg = f"Port must be between {FlextDbOracleConstants.OracleNetwork.MIN_PORT}-{FlextDbOracleConstants.OracleNetwork.MAX_PORT}, got {v}"
                 raise ValueError(error_msg)
             return v
 
@@ -411,14 +417,14 @@ class FlextDbOracleModels(FlextModels):
             # Length validation
             if (
                 len(upper_name)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Database name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"Database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_name,
             ):
                 msg = "Database name contains invalid characters"
@@ -442,13 +448,13 @@ class FlextDbOracleModels(FlextModels):
             upper_name = v.upper()
             if (
                 len(upper_name)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Service name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"Service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_name,
             ):
                 msg = "Service name contains invalid characters"
@@ -472,13 +478,13 @@ class FlextDbOracleModels(FlextModels):
             upper_name = v.upper()
             if (
                 len(upper_name)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"SID too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"SID too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_name,
             ):
                 msg = "SID contains invalid characters"
@@ -495,7 +501,7 @@ class FlextDbOracleModels(FlextModels):
 
         # Oracle connection settings
         oracle_host: str = Field(
-            default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+            default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
             description="Oracle database host",
             validation_alias="ORACLE_HOST",
         )
@@ -507,7 +513,7 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_PORT",
         )
         oracle_user: str = Field(
-            default=FlextDbOracleConstants.Defaults.DEFAULT_USERNAME,
+            default=FlextDbOracleConstants.OracleDefaults.DEFAULT_USERNAME,
             description="Oracle database username",
             validation_alias="ORACLE_USER",
         )
@@ -522,7 +528,7 @@ class FlextDbOracleModels(FlextModels):
             validation_alias="ORACLE_SERVICE_NAME",
         )
         oracle_database_name: str = Field(
-            default=FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+            default=FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
             description="Oracle database name",
             validation_alias="ORACLE_DATABASE_NAME",
         )
@@ -631,8 +637,8 @@ class FlextDbOracleModels(FlextModels):
             if not isinstance(v, str) or not v.strip():
                 msg = "Oracle host cannot be empty"
                 raise ValueError(msg)
-            if len(v) > FlextDbOracleConstants.Validation.MAX_HOSTNAME_LENGTH:
-                msg = f"Oracle host too long (max {FlextDbOracleConstants.Validation.MAX_HOSTNAME_LENGTH} chars)"
+            if len(v) > FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH:
+                msg = f"Oracle host too long (max {FlextDbOracleConstants.OracleValidation.MAX_HOSTNAME_LENGTH} chars)"
                 raise ValueError(msg)
             return v.strip()
 
@@ -651,14 +657,14 @@ class FlextDbOracleModels(FlextModels):
             # Length validation
             if (
                 len(upper_v)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_v,
             ):
                 msg = "Oracle identifier contains invalid characters"
@@ -806,7 +812,7 @@ class FlextDbOracleModels(FlextModels):
                     "oracle_user": FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
                     "oracle_password": "Oracle123",
                     "oracle_service_name": FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
-                    "oracle_database_name": FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+                    "oracle_database_name": FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
                     "oracle_pool_min_size": FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
                     "oracle_pool_max_size": 10,
                     "oracle_pool_timeout": FlextDbOracleConstants.Connection.DEFAULT_CONNECTION_TIMEOUT,
@@ -1125,14 +1131,14 @@ class FlextDbOracleModels(FlextModels):
             # Length validation
             if (
                 len(upper_v)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_v,
             ):
                 msg = "Oracle identifier contains invalid characters"
@@ -1168,14 +1174,14 @@ class FlextDbOracleModels(FlextModels):
             # Length validation
             if (
                 len(upper_v)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Column name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                msg = f"Column name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
                 raise ValueError(msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 upper_v,
             ):
                 msg = "Column name contains invalid characters"
@@ -1207,14 +1213,14 @@ class FlextDbOracleModels(FlextModels):
                 raise ValueError(msg)
             if (
                 len(schema_name)
-                > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
             ):
-                msg = f"Schema name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} characters)"
+                msg = f"Schema name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} characters)"
                 raise ValueError(msg)
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.ORACLE_IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
                 schema_name,
             ):
                 msg = f"Invalid schema name format: {schema_name}"

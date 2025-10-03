@@ -41,15 +41,15 @@ class FlextDbOracleMixins(FlextMixins):
             # Length validation
             if (
                 len(upper_identifier)
-                > FlextDbOracleConstants.Validation.MAX_IDENTIFIER_LENGTH
+                > FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
             ):
                 return FlextResult[str].fail(
-                    f"Oracle identifier too long (max {FlextDbOracleConstants.Validation.MAX_IDENTIFIER_LENGTH} chars)",
+                    f"Oracle identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH} chars)",
                 )
 
             # Pattern validation
             if not re.match(
-                FlextDbOracleConstants.Validation.IDENTIFIER_PATTERN,
+                FlextDbOracleConstants.OracleValidation.IDENTIFIER_PATTERN,
                 upper_identifier,
             ):
                 return FlextResult[str].fail(
@@ -63,7 +63,7 @@ class FlextDbOracleMixins(FlextMixins):
             # Oracle-specific business rule: check reserved words
             if (
                 validated_identifier
-                in FlextDbOracleConstants.Validation.ORACLE_RESERVED
+                in FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED
             ):
                 return FlextResult[str].fail(
                     f"Identifier '{validated_identifier}' is a reserved word",

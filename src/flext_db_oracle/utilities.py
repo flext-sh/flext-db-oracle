@@ -173,7 +173,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
             # Oracle connection environment variables
             env_mappings = {
-                **FlextDbOracleConstants.Environment.ENV_MAPPING,
+                **FlextDbOracleConstants.OracleEnvironment.ENV_MAPPING,
             }
 
             for env_key, config_key in env_mappings.items():
@@ -301,12 +301,14 @@ class FlextDbOracleUtilities(FlextUtilities):
             service_name = str(
                 config.get(
                     "service_name",
-                    FlextDbOracleConstants.Defaults.DEFAULT_DATABASE_NAME,
+                    FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
                 )
             )
             oracle_config = FlextDbOracleModels.OracleConfig(
                 host=str(
-                    config.get("host", FlextDbOracleConstants.Defaults.DEFAULT_HOST)
+                    config.get(
+                        "host", FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST
+                    )
                 ),
                 port=port_int,
                 name=service_name,  # Required field - use service_name as database

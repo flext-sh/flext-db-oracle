@@ -437,7 +437,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert api is not None
         assert api.config.host == "testbuilder_host"
         assert api.config.port == 1521
-        assert api.config.service_name == "testbuilder_service"
+        assert api.config.service_name == "TESTBUILDER_SERVICE"
         assert api.config.username == "testbuilder_user"
         assert api.config.password == "testbuilder_password"
 

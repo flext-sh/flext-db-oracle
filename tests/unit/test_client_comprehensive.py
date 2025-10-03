@@ -270,7 +270,7 @@ class TestFlextDbOracleClientRealFunctionality:
         # Test configuration values were correctly processed
         assert config.host == "testbuilder_host"
         assert config.port == 1521
-        assert config.service_name == "testbuilder_service"
+        assert config.service_name == "TESTBUILDER_SERVICE"
         assert config.username == "testbuilder_user"
         assert config.password == "testbuilder_password"
 

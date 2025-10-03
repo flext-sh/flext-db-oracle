@@ -51,8 +51,8 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
         DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
 
-    class Network:
-        """Oracle network configuration constants."""
+    class OracleNetwork:
+        """Oracle-specific network configuration constants."""
 
         MIN_PORT: Final[int] = 1
         MAX_PORT: Final[int] = 65535
@@ -97,7 +97,7 @@ class FlextDbOracleConstants(FlextConstants):
             "time": "TIMESTAMP",
         }
 
-    class Validation:
+    class OracleValidation:
         """Oracle-specific validation limits and patterns."""
 
         # Oracle identifier limits
@@ -213,7 +213,7 @@ class FlextDbOracleConstants(FlextConstants):
             "Query timeout too high (max {max_timeout} seconds)"
         )
 
-    class Performance:
+    class OraclePerformance:
         """Oracle-specific performance tuning constants."""
 
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
@@ -247,8 +247,8 @@ class FlextDbOracleConstants(FlextConstants):
             SERIALIZABLE,
         ]
 
-    class Environment:
-        """Environment variable names and defaults."""
+    class OracleEnvironment:
+        """Oracle-specific environment variable names and defaults."""
 
         # Environment variable prefixes
         PREFIX_ORACLE: Final[str] = "ORACLE_"
@@ -277,8 +277,8 @@ class FlextDbOracleConstants(FlextConstants):
             "ORACLE_PASSWORD": "password",
         }
 
-    class Defaults:
-        """Default configuration values."""
+    class OracleDefaults:
+        """Oracle-specific default configuration values."""
 
         # Connection defaults
         DEFAULT_HOST: Final[str] = "localhost"
@@ -322,7 +322,7 @@ class FlextDbOracleConstants(FlextConstants):
             """Return True when dispatcher integration should be used."""
             return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
-    class Enums:
+    class OracleEnums:
         """Oracle-specific enumerations."""
 
         class ConnectionType(StrEnum):

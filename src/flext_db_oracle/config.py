@@ -9,8 +9,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
@@ -47,7 +45,7 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Oracle Connection Configuration
     oracle_host: str = Field(
-        default=FlextDbOracleConstants.Defaults.DEFAULT_HOST,
+        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
         description="Oracle database hostname or IP address",
     )
 
@@ -150,7 +148,7 @@ class FlextDbOracleConfig(FlextConfig):
 
     # Performance Configuration
     query_timeout: int = Field(
-        default=FlextDbOracleConstants.Defaults.DEFAULT_QUERY_TIMEOUT,
+        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_QUERY_TIMEOUT,
         ge=1,
         le=3600,
         description="Query timeout in seconds",
@@ -220,7 +218,7 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     performance_threshold_warning: float = Field(
-        default=FlextDbOracleConstants.Performance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
+        default=FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
         ge=0.1,
         le=60.0,
         description="Performance warning threshold in seconds",
@@ -243,8 +241,11 @@ class FlextDbOracleConfig(FlextConfig):
             raise ValueError(msg)
 
         # Check length
-        if len(v) > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle service name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if (
+            len(v)
+            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+        ):
+            msg = f"Oracle service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()
@@ -258,8 +259,11 @@ class FlextDbOracleConfig(FlextConfig):
             raise ValueError(msg)
 
         # Check length
-        if len(v) > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle database name too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if (
+            len(v)
+            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+        ):
+            msg = f"Oracle database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()
@@ -273,8 +277,11 @@ class FlextDbOracleConfig(FlextConfig):
             raise ValueError(msg)
 
         # Check length
-        if len(v) > FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle SID too long (max {FlextDbOracleConstants.Validation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if (
+            len(v)
+            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+        ):
+            msg = f"Oracle SID too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()
@@ -354,9 +361,13 @@ class FlextDbOracleConfig(FlextConfig):
     def get_or_create_shared_instance(
         cls, project_name: str | None = None, **overrides: object
     ) -> FlextDbOracleConfig:
-        """Override base class method to return correct type."""
-        instance = super().get_or_create_shared_instance(project_name, **overrides)
-        return cast("FlextDbOracleConfig", instance)
+        """Create a new configuration instance with environment loading and overrides."""
+        # Create instance to load from environment variables, then apply overrides
+        instance = cls()
+        for key, value in overrides.items():
+            if hasattr(instance, key):
+                setattr(instance, key, value)
+        return instance
 
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:

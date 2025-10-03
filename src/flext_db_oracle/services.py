@@ -83,7 +83,7 @@ class FlextDbOracleServices(FlextModels.Entity):
                 self._engine = create_engine(
                     connection_result.unwrap(),
                     pool_pre_ping=True,
-                    pool_recycle=FlextDbOracleConstants.Performance.DEFAULT_POOL_RECYCLE,
+                    pool_recycle=FlextDbOracleConstants.OraclePerformance.DEFAULT_POOL_RECYCLE,
                     echo=False,
                 )
 
