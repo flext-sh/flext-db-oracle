@@ -17,7 +17,6 @@ from pydantic_settings import SettingsConfigDict
 from flext_core import (
     FlextConfig,
     FlextConstants,
-    FlextContainer,
     FlextResult,
     FlextTypes,
 )
@@ -379,4 +378,3 @@ class FlextDbOracleConfig(FlextConfig):
         else:
             # Fallback: clear any cached instances
             pass
-
