@@ -317,7 +317,7 @@ class TestRealOracleExceptionsAdvanced:
             try:
                 # Convert config_data to proper types
                 port_value = config_data.get("port", 1521)
-                typed_config: FlextTypes.Core.Dict = {
+                typed_config: FlextTypes.Dict = {
                     "host": str(config_data.get("host", "")),
                     "port": int(port_value),
                     "user": str(config_data.get("user", "")),

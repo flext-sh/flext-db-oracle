@@ -24,7 +24,7 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_core import FlextModels, FlextResult
+from flext_core import FlextModels, FlextResult, FlextTypes
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 
@@ -985,13 +985,17 @@ class FlextDbOracleModels(FlextModels):
         """Query result using flext-core Entity with advanced Pydantic 2.11 features."""
 
         query: str
-        result_data: list[dict[str, object]] = Field(default_factory=list)
+        result_data: list[FlextTypes.Dict] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
-        columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[object]] = Field(default_factory=list, description="Row data")
+        columns: FlextTypes.StringList = Field(
+            default_factory=list, description="Column names"
+        )
+        rows: list[FlextTypes.List] = Field(
+            default_factory=list, description="Row data"
+        )
         query_hash: str | None = Field(
             default=None,
             description="Query hash for caching",
@@ -1072,8 +1076,8 @@ class FlextDbOracleModels(FlextModels):
 
         @field_serializer("result_data")
         def serialize_result_data(
-            self, value: list[dict[str, object]]
-        ) -> list[dict[str, object]]:
+            self, value: list[FlextTypes.Dict]
+        ) -> list[FlextTypes.Dict]:
             """Field serializer for result data with None handling."""
             # Convert None values to empty strings for JSON serialization
             serialized = []
@@ -1223,7 +1227,7 @@ class FlextDbOracleModels(FlextModels):
 
         index_name: str
         table_name: str
-        columns: list[str]
+        columns: FlextTypes.StringList
         schema_name: str | None = None
         unique: bool = False
         tablespace: str | None = None
@@ -1234,14 +1238,14 @@ class FlextDbOracleModels(FlextModels):
 
         target_table: str
         source_query: str
-        merge_conditions: list[str]
-        update_columns: list[str] = Field(default_factory=list)
-        insert_columns: list[str] = Field(default_factory=list)
+        merge_conditions: FlextTypes.StringList
+        update_columns: FlextTypes.StringList = Field(default_factory=list)
+        insert_columns: FlextTypes.StringList = Field(default_factory=list)
 
 
 # ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
-__all__: list[str] = [
+__all__: FlextTypes.StringList = [
     "FlextDbOracleModels",
 ]
 

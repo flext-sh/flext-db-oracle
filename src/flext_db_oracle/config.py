@@ -11,10 +11,16 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextConfig, FlextConstants, FlextResult
 from pydantic import Field, SecretStr, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 
+from flext_core import (
+    FlextConfig,
+    FlextConstants,
+    FlextContainer,
+    FlextResult,
+    FlextTypes,
+)
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -103,16 +109,6 @@ class FlextDbOracleConfig(FlextConfig):
     def ssl_enabled(self) -> bool:
         """Backward compatibility property for SSL configuration."""
         return True  # Default SSL enabled for Oracle connections
-
-    @property
-    def pool_min(self) -> int:
-        """Backward compatibility property for minimum pool size."""
-        return self.pool_min
-
-    @property
-    def pool_max(self) -> int:
-        """Backward compatibility property for maximum pool size."""
-        return self.pool_max
 
     oracle_password: SecretStr = Field(
         default_factory=lambda: SecretStr(""),
@@ -333,7 +329,7 @@ class FlextDbOracleConfig(FlextConfig):
             return f"{self.oracle_host}:{self.oracle_port}:{self.oracle_sid}"
         return f"{self.oracle_host}:{self.oracle_port}"
 
-    def get_connection_config(self) -> dict[str, object]:
+    def get_connection_config(self) -> FlextTypes.Dict:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.oracle_host,
@@ -383,3 +379,62 @@ class FlextDbOracleConfig(FlextConfig):
         else:
             # Fallback: clear any cached instances
             pass
+
+    # ============================================================================
+    # FLEXT-CT-CONFIG FEATURES (DIRECT CONTAINER INTEGRATION)
+    # ============================================================================
+
+    @classmethod
+    def create_container_config(
+        cls,
+        container: FlextContainer | None = None,
+        name: str = "oracle_config",
+        **overrides: object,
+    ) -> FlextResult[FlextDbOracleConfig]:
+        """Create configuration with container integration."""
+        container = container or FlextContainer.get_global()
+
+        try:
+            config = cls(**overrides)
+            container.register_singleton(name, config)
+            container.register_singleton(cls.__name__, config)
+            return FlextResult[FlextDbOracleConfig].ok(config)
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(f"Container config failed: {e}")
+
+    @classmethod
+    def from_container(
+        cls,
+        container: FlextContainer | None = None,
+        name: str = "oracle_config",
+    ) -> FlextResult[FlextDbOracleConfig]:
+        """Get configuration from container."""
+        container = container or FlextContainer.get_global()
+
+        try:
+            config = container.resolve(name)
+            if config and isinstance(config, cls):
+                return FlextResult[FlextDbOracleConfig].ok(config)
+
+            config = container.resolve(cls.__name__)
+            if config and isinstance(config, cls):
+                return FlextResult[FlextDbOracleConfig].ok(config)
+
+            return FlextResult[FlextDbOracleConfig].fail(f"Config '{name}' not found")
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(f"Container retrieval failed: {e}")
+
+    def inject_into_container(
+        self,
+        container: FlextContainer | None = None,
+        name: str = "oracle_config",
+    ) -> FlextResult[None]:
+        """Inject configuration into container."""
+        container = container or FlextContainer.get_global()
+
+        try:
+            container.register_singleton(name, self)
+            container.register_singleton(self.__class__.__name__, self)
+            return FlextResult[None].ok(None)
+        except Exception as e:
+            return FlextResult[None].fail(f"Container injection failed: {e}")

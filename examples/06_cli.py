@@ -20,11 +20,11 @@ from flext_core import FlextTypes
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[FlextTypes.Core.Dict]:
+def _get_cli_examples() -> list[FlextTypes.Dict]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[FlextTypes.Core.Dict]: List of CLI command examples with metadata.
+        list[FlextTypes.Dict]: List of CLI command examples with metadata.
 
     """
     return [
@@ -88,7 +88,7 @@ def _get_cli_examples() -> list[FlextTypes.Core.Dict]:
     ]
 
 
-def _run_example_command(example: FlextTypes.Core.Dict) -> None:
+def _run_example_command(example: FlextTypes.Dict) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return
@@ -131,7 +131,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: FlextTypes.Core.StringList) -> tuple[int, str, str]:
+def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:

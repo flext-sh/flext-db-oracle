@@ -23,7 +23,7 @@ class FlextDbOraclePlugins(FlextUtilities):
     @override
     def __init__(self) -> None:
         """Initialize Oracle plugins system."""
-        self._plugins: FlextTypes.Core.Dict = {}
+        self._plugins: FlextTypes.Dict = {}
 
     # Factory methods ELIMINATED - create plugin data directly as dicts:
     # {"name": "performance_monitor", "version": 1.0.0, "type": "monitoring",
@@ -32,7 +32,7 @@ class FlextDbOraclePlugins(FlextUtilities):
     def register_plugin(
         self,
         name: str,
-        plugin_data: FlextTypes.Core.Dict,
+        plugin_data: FlextTypes.Dict,
     ) -> FlextResult[None]:
         """Register a plugin.
 
@@ -60,21 +60,21 @@ class FlextDbOraclePlugins(FlextUtilities):
         except Exception as e:
             return FlextResult[None].fail(f"Failed to unregister plugin '{name}': {e}")
 
-    def list_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def list_plugins(self) -> FlextResult[FlextTypes.Dict]:
         """List all registered plugins.
 
         Returns:
-            FlextResult[FlextTypes.Core.Dict]: Plugin dictionary or error.
+            FlextResult[FlextTypes.Dict]: Plugin dictionary or error.
 
         """
         try:
             if not self._plugins:
-                return FlextResult[FlextTypes.Core.Dict].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     "plugin listing returned empty",
                 )
-            return FlextResult[FlextTypes.Core.Dict].ok(self._plugins.copy())
+            return FlextResult[FlextTypes.Dict].ok(self._plugins.copy())
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Failed to list plugins: {e}",
             )
 
@@ -94,69 +94,69 @@ class FlextDbOraclePlugins(FlextUtilities):
 
     def create_performance_monitor_plugin(
         self,
-    ) -> FlextResult[FlextTypes.Core.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Create performance monitor plugin data.
 
         Returns:
-            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+            FlextResult[FlextTypes.Dict]: Plugin data or error.
 
         """
         try:
-            plugin_data: FlextTypes.Core.Dict = {
+            plugin_data: FlextTypes.Dict = {
                 "name": "performance_monitor",
                 "version": "1.0.0",
                 "type": "monitoring",
                 "capabilities": ["query_tracking", "performance_metrics", "alerting"],
             }
-            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
+            return FlextResult[FlextTypes.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Failed to create performance monitor plugin: {e}",
             )
 
     def create_data_validation_plugin(
         self,
-    ) -> FlextResult[FlextTypes.Core.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Create data validation plugin data.
 
         Returns:
-            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+            FlextResult[FlextTypes.Dict]: Plugin data or error.
 
         """
         try:
-            plugin_data: FlextTypes.Core.Dict = {
+            plugin_data: FlextTypes.Dict = {
                 "name": "data_validation",
                 "version": "1.0.0",
                 "type": "validation",
                 "capabilities": ["schema_validation", "data_integrity", "constraints"],
             }
-            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
+            return FlextResult[FlextTypes.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Failed to create data validation plugin: {e}",
             )
 
-    def create_security_audit_plugin(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def create_security_audit_plugin(self) -> FlextResult[FlextTypes.Dict]:
         """Create security audit plugin data.
 
         Returns:
-            FlextResult[FlextTypes.Core.Dict]: Plugin data or error.
+            FlextResult[FlextTypes.Dict]: Plugin data or error.
 
         """
         try:
-            plugin_data: FlextTypes.Core.Dict = {
+            plugin_data: FlextTypes.Dict = {
                 "name": "security_audit",
                 "version": "1.0.0",
                 "type": "security",
                 "capabilities": ["access_logging", "privilege_audit", "compliance"],
             }
-            return FlextResult[FlextTypes.Core.Dict].ok(plugin_data)
+            return FlextResult[FlextTypes.Dict].ok(plugin_data)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Failed to create security audit plugin: {e}",
             )
 
-    def register_all_oracle_plugins(self) -> FlextResult[FlextTypes.Core.Dict]:
+    def register_all_oracle_plugins(self) -> FlextResult[FlextTypes.Dict]:
         """Register all available Oracle plugins.
 
         Returns:
@@ -164,7 +164,7 @@ class FlextDbOraclePlugins(FlextUtilities):
 
         """
         try:
-            plugins_info: FlextTypes.Core.Dict = {}
+            plugins_info: FlextTypes.Dict = {}
             plugin_count = 0
 
             # Create and register plugins using factory methods
@@ -188,9 +188,9 @@ class FlextDbOraclePlugins(FlextUtilities):
             plugins_info["registration_status"] = "completed"
             plugins_info["available_plugins"] = list(self._plugins.keys())
 
-            return FlextResult[FlextTypes.Core.Dict].ok(plugins_info)
+            return FlextResult[FlextTypes.Dict].ok(plugins_info)
         except Exception as e:
-            return FlextResult[FlextTypes.Core.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Plugin registration failed: {e}",
             )
 

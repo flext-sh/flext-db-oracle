@@ -14,6 +14,7 @@ from typing import cast
 
 import pytest
 
+from flext_core import FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
@@ -242,7 +243,7 @@ class TestOracleE2E:
                 },
             }
 
-            typed_schema = cast("FlextTypes.Core.Dict", singer_schema)
+            typed_schema = cast("FlextTypes.Dict", singer_schema)
             schema_result = api.map_singer_schema(typed_schema)
             if schema_result.is_failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")

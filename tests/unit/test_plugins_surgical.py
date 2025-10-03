@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import unittest.mock
 
+from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOraclePlugins
 
 
@@ -17,7 +18,7 @@ class TestPluginsSurgical:
     def test_register_plugin_basic(self) -> None:
         """Test register_plugin with valid data."""
         plugins = FlextDbOraclePlugins()
-        plugin_data: dict[str, object] = {
+        plugin_data: FlextTypes.Dict = {
             "type": "monitor",
             "config": {"enabled": True},
         }
@@ -34,8 +35,8 @@ class TestPluginsSurgical:
     def test_register_plugin_overwrites_existing(self) -> None:
         """Test register_plugin overwrites existing plugin."""
         plugins = FlextDbOraclePlugins()
-        plugin_data1: dict[str, object] = {"version": "1.0"}
-        plugin_data2: dict[str, object] = {"version": "2.0"}
+        plugin_data1: FlextTypes.Dict = {"version": "1.0"}
+        plugin_data2: FlextTypes.Dict = {"version": "2.0"}
 
         # Register first version
         result1 = plugins.register_plugin("test_plugin", plugin_data1)
@@ -55,7 +56,7 @@ class TestPluginsSurgical:
     def test_unregister_plugin_existing(self) -> None:
         """Test unregister_plugin removes existing plugin."""
         plugins = FlextDbOraclePlugins()
-        plugin_data: dict[str, object] = {"type": "test"}
+        plugin_data: FlextTypes.Dict = {"type": "test"}
 
         # Register plugin first
         register_result = plugins.register_plugin("test_plugin", plugin_data)
@@ -106,7 +107,7 @@ class TestPluginsSurgical:
     def test_get_plugin_existing(self) -> None:
         """Test get_plugin returns existing plugin data."""
         plugins = FlextDbOraclePlugins()
-        plugin_data: dict[str, object] = {"type": "monitor", "config": {"timeout": 30}}
+        plugin_data: FlextTypes.Dict = {"type": "monitor", "config": {"timeout": 30}}
 
         # Register plugin
         plugins.register_plugin("test_plugin", plugin_data)

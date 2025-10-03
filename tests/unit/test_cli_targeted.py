@@ -8,13 +8,14 @@ from __future__ import annotations
 
 import os
 
+from flext_tests import FlextTestsMatchers
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleClient,
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
-from flext_tests import FlextTestsMatchers
 
 
 class TestCLIRealFunctionality:

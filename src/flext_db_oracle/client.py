@@ -17,6 +17,7 @@ from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
+    FlextTypes,
 )
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -119,16 +120,16 @@ class FlextDbOracleClient:
         self,
         operation: str,
         **params: object,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute operation with validation chain.
 
         Returns:
-            FlextResult[dict[str, object]]: Operation result or error.
+            FlextResult[FlextTypes.Dict]: Operation result or error.
 
         """
         validation_result: FlextResult[None] = self._validate_connection()
         if validation_result.is_failure:
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 validation_result.error or "Validation failed",
             )
 
@@ -153,85 +154,85 @@ class FlextDbOracleClient:
         self,
         operation: str,
         **params: object,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute Oracle operation with error handling.
 
         Returns:
-            FlextResult[dict[str, object]]: Operation result or error.
+            FlextResult[FlextTypes.Dict]: Operation result or error.
 
         """
         if not self.current_connection:
-            return FlextResult[dict[str, object]].fail("No active connection")
+            return FlextResult[FlextTypes.Dict].fail("No active connection")
 
         try:
             if operation == "list_schemas":
-                schemas_result: FlextResult[list[str]] = (
+                schemas_result: FlextResult[FlextTypes.StringList] = (
                     self.current_connection.get_schemas()
                 )
                 if schemas_result.is_success:
-                    return FlextResult[dict[str, object]].ok(
+                    return FlextResult[FlextTypes.Dict].ok(
                         {"schemas": list(schemas_result.value)},
                     )
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     schemas_result.error or "Schema listing failed",
                 )
 
             if operation == "list_tables":
                 schema = str(params.get("schema", ""))
-                tables_result: FlextResult[list[str]] = (
+                tables_result: FlextResult[FlextTypes.StringList] = (
                     self.current_connection.get_tables(schema or None)
                 )
                 if tables_result.is_success:
-                    return FlextResult[dict[str, object]].ok(
+                    return FlextResult[FlextTypes.Dict].ok(
                         {"tables": list(tables_result.value)},
                     )
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     tables_result.error or "Table listing failed",
                 )
 
             if operation == "query":
                 sql = str(params.get("sql", ""))
                 if not sql:
-                    return FlextResult[dict[str, object]].fail("SQL query required")
+                    return FlextResult[FlextTypes.Dict].fail("SQL query required")
 
                 params_dict_raw = params.get("params", {})
-                params_dict: dict[str, object] = (
+                params_dict: FlextTypes.Dict = (
                     params_dict_raw if isinstance(params_dict_raw, dict) else {}
                 )
-                query_result: FlextResult[list[dict[str, object]]] = (
+                query_result: FlextResult[list[FlextTypes.Dict]] = (
                     self.current_connection.query(sql, params_dict)
                 )
                 if query_result.is_success:
-                    return FlextResult[dict[str, object]].ok({
+                    return FlextResult[FlextTypes.Dict].ok({
                         "rows": list(query_result.value),
                         "row_count": len(query_result.value)
                         if query_result.value
                         else 0,
                     })
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     query_result.error or "Query execution failed",
                 )
 
             if operation == "health_check":
-                health_result: FlextResult[dict[str, object]] = (
+                health_result: FlextResult[FlextTypes.Dict] = (
                     self.current_connection.get_health_status()
                 )
                 if health_result.is_success:
-                    return FlextResult[dict[str, object]].ok(health_result.value)
-                return FlextResult[dict[str, object]].fail(
+                    return FlextResult[FlextTypes.Dict].ok(health_result.value)
+                return FlextResult[FlextTypes.Dict].fail(
                     health_result.error or "Health check failed",
                 )
 
-            return FlextResult[dict[str, object]].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Unknown operation: {operation}",
             )
 
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Operation failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Operation failed: {e}")
 
     def _format_and_display_result(
         self,
-        operation_result: FlextResult[dict[str, object]],
+        operation_result: FlextResult[FlextTypes.Dict],
         format_type: str = "table",
     ) -> FlextResult[str]:
         """Format and display operation result.
@@ -303,7 +304,7 @@ class FlextDbOracleClient:
         """
         try:
             # Adapt data for table display
-            adapted_result: FlextResult[list[dict[str, str]]] = (
+            adapted_result: FlextResult[list[FlextTypes.StringDict]] = (
                 self._adapt_data_for_table(data)
             )
             if adapted_result.is_failure:
@@ -315,8 +316,8 @@ class FlextDbOracleClient:
 
             # Simple table formatting
             if adapted_data:
-                headers: list[str] = list(adapted_data[0].keys())
-                rows: list[list[str]] = [
+                headers: FlextTypes.StringList = list(adapted_data[0].keys())
+                rows: list[FlextTypes.StringList] = [
                     [str(row[h]) for h in headers] for row in adapted_data
                 ]
                 result_str = (
@@ -346,30 +347,30 @@ class FlextDbOracleClient:
     def _adapt_data_for_table(
         self,
         data: FlextDbOracleTypes.Query.QueryResult,
-    ) -> FlextResult[list[dict[str, str]]]:
+    ) -> FlextResult[list[FlextTypes.StringDict]]:
         """Adapt data for table display.
 
         Returns:
-            FlextResult[list[dict[str, str]]]: Adapted data or error.
+            FlextResult[list[FlextTypes.StringDict]]: Adapted data or error.
 
         """
         try:
 
-            def adapt_schemas(r: object) -> list[dict[str, str]]:
+            def adapt_schemas(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"schema": str(s)} for s in r if isinstance(r, list)]
                     if isinstance(r, list)
                     else []
                 )
 
-            def adapt_tables(r: object) -> list[dict[str, str]]:
+            def adapt_tables(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"table": str(t)} for t in r if isinstance(r, list)]
                     if isinstance(r, list)
                     else []
                 )
 
-            def adapt_health(r: object) -> list[dict[str, str]]:
+            def adapt_health(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"key": str(k), "value": str(v)} for k, v in r.items()]
                     if isinstance(r, dict)
@@ -378,7 +379,7 @@ class FlextDbOracleClient:
 
             adaptation_strategies: dict[
                 str,
-                Callable[[object], list[dict[str, str]]],
+                Callable[[object], list[FlextTypes.StringDict]],
             ] = {
                 "schemas": adapt_schemas,
                 "tables": adapt_tables,
@@ -387,39 +388,39 @@ class FlextDbOracleClient:
 
             for key, strategy in adaptation_strategies.items():
                 if key in data:
-                    adapted_data: list[dict[str, str]] = strategy(data[key])
-                    return FlextResult[list[dict[str, str]]].ok(adapted_data)
+                    adapted_data: list[FlextTypes.StringDict] = strategy(data[key])
+                    return FlextResult[list[FlextTypes.StringDict]].ok(adapted_data)
 
             # Default: convert to list of key-value pairs
-            result: list[dict[str, str]] = [
+            result: list[FlextTypes.StringDict] = [
                 {"key": str(k), "value": str(v)} for k, v in data.items()
             ]
-            return FlextResult[list[dict[str, str]]].ok(result)
+            return FlextResult[list[FlextTypes.StringDict]].ok(result)
         except Exception as e:
-            return FlextResult[list[dict[str, str]]].fail(
+            return FlextResult[list[FlextTypes.StringDict]].fail(
                 f"Data adaptation failed: {e}",
             )
 
     def _execute_health_check(
         self,
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute Oracle health check.
 
         Returns:
-            FlextResult[dict[str, object]]: Health check result or error.
+            FlextResult[FlextTypes.Dict]: Health check result or error.
 
         """
         try:
             validation_result: FlextResult[None] = self._validate_connection()
             if validation_result.is_failure:
-                return FlextResult[dict[str, object]].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     validation_result.error or "Connection validation failed",
                 )
 
             if not self.current_connection:
-                return FlextResult[dict[str, object]].fail("No connection available")
+                return FlextResult[FlextTypes.Dict].fail("No connection available")
 
-            health_data: dict[str, object] = {
+            health_data: FlextTypes.Dict = {
                 "connection_status": "active"
                 if self.current_connection.is_connected
                 else "inactive",
@@ -429,9 +430,9 @@ class FlextDbOracleClient:
                 "timestamp": "now",  # Could use actual timestamp
             }
 
-            return FlextResult[dict[str, object]].ok(health_data)
+            return FlextResult[FlextTypes.Dict].ok(health_data)
         except Exception as e:
-            return FlextResult[dict[str, object]].fail(f"Health check failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Health check failed: {e}")
 
     def list_schemas(self) -> FlextResult[str]:
         """List Oracle schemas with formatted output.
@@ -440,7 +441,7 @@ class FlextDbOracleClient:
             FlextResult[str]: Formatted schemas list or error.
 
         """
-        operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
+        operation_result: FlextResult[FlextTypes.Dict] = self._execute_with_chain(
             "list_schemas"
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
@@ -453,7 +454,7 @@ class FlextDbOracleClient:
             FlextResult[str]: Formatted tables list or error.
 
         """
-        operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
+        operation_result: FlextResult[FlextTypes.Dict] = self._execute_with_chain(
             "list_tables", schema=schema or ""
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
@@ -478,11 +479,11 @@ class FlextDbOracleClient:
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def health_check(self) -> FlextResult[dict[str, object]]:
+    def health_check(self) -> FlextResult[FlextTypes.Dict]:
         """Perform Oracle health check.
 
         Returns:
-            FlextResult[dict[str, object]]: Health check result or error.
+            FlextResult[FlextTypes.Dict]: Health check result or error.
 
         """
         return self._execute_health_check()
@@ -534,10 +535,10 @@ class FlextDbOracleClient:
 
             if operation == "health":
 
-                def health_cmd() -> FlextResult[dict[str, object]]:
+                def health_cmd() -> FlextResult[FlextTypes.Dict]:
                     return client.health_check()
 
-                health_result: FlextResult[dict[str, object]] = health_cmd()
+                health_result: FlextResult[FlextTypes.Dict] = health_cmd()
                 if health_result.is_success:
                     return FlextResult[str].ok(f"Health check: {health_result.value}")
                 return FlextResult[str].fail(
@@ -557,6 +558,6 @@ class FlextDbOracleClient:
 
 # ZERO TOLERANCE: No wrapper functions or global instances - use FlextDbOracleClient.get_client() directly
 
-__all__: list[str] = [
+__all__: FlextTypes.StringList = [
     "FlextDbOracleClient",
 ]

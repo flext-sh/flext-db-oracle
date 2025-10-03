@@ -13,9 +13,10 @@ import threading
 import time
 from typing import cast
 
+from flext_tests import FlextTestsDomains
+
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
-from flext_tests import FlextTestsDomains
 
 
 class TestApiModule:
@@ -25,7 +26,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> FlextTypes.Core.Dict:
+        def create_test_oracle_config() -> FlextTypes.Dict:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -36,16 +37,16 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_query_data() -> dict[str, str | dict[str, object] | int]:
+        def create_test_query_data() -> dict[str, str | FlextTypes.Dict | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",
-                "params": cast("dict[str, object]", {"id": 1}),
+                "params": cast("FlextTypes.Dict", {"id": 1}),
                 "fetch_size": 100,
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[dict[str, object]]]:
+        def create_test_schema_data() -> dict[str, str | list[FlextTypes.Dict]]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -135,7 +136,7 @@ class TestApiModule:
 
         # Test query execution if method exists
         if hasattr(api, "execute_query"):
-            result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
                 str(test_query["query"]), test_query["params"]
             )
             assert isinstance(result, FlextResult)
@@ -157,7 +158,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                cast("dict[str, object]", test_query["params"]),
+                cast("FlextTypes.Dict", test_query["params"]),
             )
             assert isinstance(result, FlextResult)
 
@@ -176,7 +177,7 @@ class TestApiModule:
 
         # Test metadata retrieval if method exists
         if hasattr(api, "get_table_metadata"):
-            result: FlextResult[dict[str, object]] = api.get_table_metadata(
+            result: FlextResult[FlextTypes.Dict] = api.get_table_metadata(
                 str(test_schema["table_name"])
             )
             assert isinstance(result, FlextResult)
@@ -212,7 +213,7 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         # Test table schema retrieval if method exists
         if hasattr(api, "get_tables"):
-            result: FlextResult[list[str]] = api.get_tables()
+            result: FlextResult[FlextTypes.StringList] = api.get_tables()
             assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
@@ -239,14 +240,14 @@ class TestApiModule:
 
         # Test query operations
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
                 str(test_query["query"]), test_query["params"]
             )
             assert isinstance(query_result, FlextResult)
 
         # Test schema operations
         if hasattr(api, "get_tables"):
-            schema_result: FlextResult[list[str]] = api.get_tables()
+            schema_result: FlextResult[FlextTypes.StringList] = api.get_tables()
             assert isinstance(schema_result, FlextResult)
 
         # Test disconnection
@@ -277,7 +278,7 @@ class TestApiModule:
 
         # Test query execution error handling
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
                 invalid_query, {}
             )
             assert isinstance(query_result, FlextResult)
@@ -285,7 +286,7 @@ class TestApiModule:
 
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
-            metadata_result: FlextResult[dict[str, object]] = api.get_table_metadata(
+            metadata_result: FlextResult[FlextTypes.Dict] = api.get_table_metadata(
                 "non_existent_table"
             )
             assert isinstance(metadata_result, FlextResult)
@@ -417,7 +418,7 @@ class TestApiModule:
         # Test query execution with realistic queries
         if hasattr(api, "execute_query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+                query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
                     str(query_data["query"]), query_data["params"]
                 )
                 assert isinstance(query_result, FlextResult)
@@ -507,7 +508,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             query = f"SELECT {index} FROM dual"
             if hasattr(api, "execute_query"):
-                result: FlextResult[list[dict[str, object]]] = api.execute_query(
+                result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
                     query, {}
                 )
                 results.append(result)

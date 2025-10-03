@@ -27,7 +27,7 @@ PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
 class TestModelDump:
     """Test class that supports model_dump methods."""
 
-    def model_dump(self) -> FlextTypes.Core.Dict:
+    def model_dump(self) -> FlextTypes.Dict:
         """Dump model to dictionary."""
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
 
@@ -63,7 +63,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_create_api_from_config_method(self) -> None:
         """Test create_api_from_config utility method."""
-        config_dict: FlextTypes.Core.Dict = {
+        config_dict: FlextTypes.Dict = {
             "host": "util_api_test",
             "port": 1521,
             "service_name": "UTIL_API_TEST",

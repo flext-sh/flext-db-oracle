@@ -12,9 +12,10 @@ from __future__ import annotations
 import threading
 import time
 
+from flext_tests import FlextTestsDomains
+
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleModels
-from flext_tests import FlextTestsDomains
 
 
 class TestModelsModule:
@@ -24,7 +25,7 @@ class TestModelsModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config_data() -> FlextTypes.Core.Dict:
+        def create_test_oracle_config_data() -> FlextTypes.Dict:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -36,7 +37,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_table_model_data() -> FlextTypes.Core.Dict:
+        def create_test_table_model_data() -> FlextTypes.Dict:
             """Create test table model data."""
             return {
                 "table_name": "test_table",
@@ -48,7 +49,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_query_model_data() -> FlextTypes.Core.Dict:
+        def create_test_query_model_data() -> FlextTypes.Dict:
             """Create test query model data."""
             return {
                 "query_id": "query_123",

@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
+from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import (
@@ -19,7 +20,6 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     dispatcher as oracle_dispatcher,
 )
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 
 class TestFlextDbOracleApiRealFunctionality:
@@ -84,7 +84,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
         # Cast to proper dict type for PyRight
-        config_dict: dict[str, object] = config_obj
+        config_dict: FlextTypes.Dict = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -154,7 +154,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         class StubDispatcher:
             def __init__(self) -> None:
-                self.commands: list[object] = []
+                self.commands: FlextTypes.List = []
 
             def dispatch(self, command: object) -> FlextResult[object]:
                 self.commands.append(command)
@@ -561,7 +561,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         # Create test Singer schema
-        test_schema: FlextTypes.Core.Dict = {
+        test_schema: FlextTypes.Dict = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},

@@ -14,7 +14,7 @@ from unittest.mock import Mock, patch
 
 import yaml
 
-from flext_core import FlextResult
+from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCliService,
@@ -278,7 +278,7 @@ class TestOutputFormatter:
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with dict items."""
         formatter = FlextDbOracleCliService._OutputFormatter()
-        items: list[dict[str, object]] = [
+        items: list[FlextTypes.Dict] = [
             {"name": "table1", "type": "TABLE"},
             {"name": "table2", "type": "VIEW"},
             {"other": "value"},  # Test item without name
@@ -390,7 +390,7 @@ class TestCliServiceOperations:
             FlextDbOracleApi,
             "get_health_status",
         ) as mock_health:
-            mock_health.return_value = FlextResult[dict[str, object]].fail(
+            mock_health.return_value = FlextResult[FlextTypes.Dict].fail(
                 "Database unreachable"
             )
 
@@ -412,7 +412,7 @@ class TestCliServiceOperations:
         cli_service = FlextDbOracleCliService()
 
         mock_api = Mock()
-        mock_api.get_schemas.return_value = FlextResult[list[str]].ok(
+        mock_api.get_schemas.return_value = FlextResult[FlextTypes.StringList].ok(
             ["SCHEMA1", "SCHEMA2", "SCHEMA3"],
         )
 
@@ -422,7 +422,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = FlextResult[list[str]].ok(
+            mock_get_schemas.return_value = FlextResult[FlextTypes.StringList].ok(
                 ["SCHEMA1", "SCHEMA2"],
             )
 
@@ -474,7 +474,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = FlextResult[list[str]].fail(
+            mock_get_schemas.return_value = FlextResult[FlextTypes.StringList].fail(
                 "Schema query failed",
             )
 
@@ -499,7 +499,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = FlextResult[list[str]].ok(
+            mock_get_tables.return_value = FlextResult[FlextTypes.StringList].ok(
                 ["TABLE1", "TABLE2"],
             )
 
@@ -527,7 +527,9 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = FlextResult[list[str]].ok(["TABLE1"])
+            mock_get_tables.return_value = FlextResult[FlextTypes.StringList].ok([
+                "TABLE1"
+            ])
 
             result = cli_service.execute_list_tables(
                 host="localhost",
@@ -545,7 +547,7 @@ class TestCliServiceOperations:
         """Test successful query execution."""
         cli_service = FlextDbOracleCliService()
 
-        mock_result: list[dict[str, object]] = [
+        mock_result: list[FlextTypes.Dict] = [
             {"id": 1, "name": "test"},
             {"id": 2, "name": "test2"},
         ]
@@ -556,7 +558,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = FlextResult[list[dict[str, object]]].ok(
+            mock_query.return_value = FlextResult[list[FlextTypes.Dict]].ok(
                 mock_result,
             )
 

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextTypes  # Import FlextTypes for type safety
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.cli import FlextDbOracleCliService
 from flext_db_oracle.client import FlextDbOracleClient
@@ -36,4 +37,5 @@ __all__ = [
     "FlextDbOracleServices",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
+    "FlextTypes",  # Re-export for convenience
 ]

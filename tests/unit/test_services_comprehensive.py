@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServices
 
 
@@ -95,7 +96,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test SELECT with conditions
-        conditions: dict[str, object] = {"id": 1, "name": "test"}
+        conditions: FlextTypes.Dict = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -113,7 +114,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test safe SELECT with parameters
-        conditions: dict[str, object] = {"id": 1, "status": "active"}
+        conditions: FlextTypes.Dict = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -161,7 +162,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test schema mapping
-        singer_schema: dict[str, object] = {
+        singer_schema: FlextTypes.Dict = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -191,7 +192,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test CREATE TABLE DDL
-        columns: list[dict[str, object]] = [
+        columns: list[FlextTypes.Dict] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -426,7 +427,7 @@ class TestFlextDbOracleServicesBasic:
 
         # Test query hash generation
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, object] = {"id": 123}
+        params: FlextTypes.Dict = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         assert hash_result.is_success
         assert isinstance(hash_result.value, str)
@@ -498,11 +499,11 @@ class TestServiceErrorHandling:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test with invalid schema structure
-        invalid_schema: dict[str, object] = {"properties": "not_a_dict"}
+        invalid_schema: FlextTypes.Dict = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         assert mapping_result.is_failure
 
         # Test with missing properties
-        missing_props_schema: dict[str, object] = {}
+        missing_props_schema: FlextTypes.Dict = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         assert mapping_result.is_failure or len(mapping_result.value) == 0

@@ -12,9 +12,9 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
+from flext_tests import FlextTestDocker, FlextTestsDomains
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
-from flext_tests import FlextTestDocker, FlextTestsDomains
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
@@ -140,7 +140,7 @@ def shared_oracle_container(docker_control: FlextTestDocker) -> Generator[str]:
     Container auto-starts if not running and remains running after tests.
     """
     # Remove any existing container with the same name first
-    docker_control.stop_container("flext-oracle-db-test", remove=True)
+    docker_control.stop_container("flext-oracle-db-test")
 
     result = docker_control.start_container("flext-oracle-db-test")
     if result.is_failure:
@@ -149,7 +149,7 @@ def shared_oracle_container(docker_control: FlextTestDocker) -> Generator[str]:
     yield "flext-oracle-db-test"
 
     # Keep container running after tests
-    docker_control.stop_container("flext-oracle-db-test", remove=False)
+    docker_control.stop_container("flext-oracle-db-test")
 
 
 @pytest.fixture(scope="session")

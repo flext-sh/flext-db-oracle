@@ -112,7 +112,7 @@ class TestFlextDbOracleApiSafeMethods:
             )
 
         # Create a test plugin directly
-        plugin: FlextTypes.Core.Dict = {
+        plugin: FlextTypes.Dict = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -244,7 +244,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         # Create a plugin for testing directly
-        plugin: FlextTypes.Core.Dict = {
+        plugin: FlextTypes.Dict = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",

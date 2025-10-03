@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextBus, FlextDispatcher
+from flext_core import FlextBus, FlextDispatcher, FlextTypes
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleModels,
@@ -186,7 +186,7 @@ class TestDispatcherSurgical:
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
             parameters_list=cast(
-                "list[dict[str, object]]",
+                "list[FlextTypes.Dict]",
                 [{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
             ),
         )
@@ -303,7 +303,7 @@ class TestDispatcherCommandClasses:
         ]
         cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=cast("list[dict[str, object]]", params_list),
+            parameters_list=cast("list[FlextTypes.Dict]", params_list),
         )
         assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
         assert cmd.parameters_list == params_list

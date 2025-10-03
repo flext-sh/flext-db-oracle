@@ -54,7 +54,7 @@ result = api.execute_many(sql, parameters_list) -> FlextResult[int]
 
 ```python
 # Get available schemas
-result = api.get_schemas() -> FlextResult[list[str]]
+result = api.get_schemas() -> FlextResult[FlextTypes.StringList]
 
 # Get tables in schema
 result = api.get_tables(schema=None) -> FlextResult[list[dict]]

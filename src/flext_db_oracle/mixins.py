@@ -75,7 +75,7 @@ class FlextDbOracleMixins(FlextMixins):
     class ParameterContainer:
         """Simple parameter container using dataclass."""
 
-        params: FlextTypes.Core.Dict | None = None
+        params: FlextTypes.Dict | None = None
 
         def __post_init__(self) -> None:
             """Initialize params dict if None."""

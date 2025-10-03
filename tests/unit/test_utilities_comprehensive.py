@@ -9,11 +9,11 @@ from __future__ import annotations
 import time
 from unittest.mock import Mock
 
+from flext_tests import FlextTestsMatchers
 from pydantic import BaseModel
 
 from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOracleUtilities
-from flext_tests import FlextTestsMatchers
 
 # Add flext_tests to path
 
@@ -98,8 +98,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_generate_query_hash_with_params_real(self) -> None:
         """Test query hash generation with parameters."""
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
-        params1: dict[str, object] = {"id": 1, "name": "John"}
-        params2: dict[str, object] = {"id": 2, "name": "Jane"}
+        params1: FlextTypes.Dict = {"id": 1, "name": "John"}
+        params2: FlextTypes.Dict = {"id": 2, "name": "Jane"}
 
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
@@ -158,7 +158,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_create_api_from_config_method_real(self) -> None:
         """Test create_api_from_config method."""
         # Test with valid config dictionary
-        config_dict: dict[str, object] = {
+        config_dict: FlextTypes.Dict = {
             "host": "test_host",
             "port": 1521,
             "service_name": "TEST_SERVICE",
@@ -174,7 +174,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
     def test_create_api_from_config_invalid_real(self) -> None:
         """Test create_api_from_config with invalid config."""
-        invalid_configs: list[FlextTypes.Core.Dict] = [
+        invalid_configs: list[FlextTypes.Dict] = [
             {},  # Empty config
             {"host": "test"},  # Missing required fields
             {"invalid": "config"},  # Invalid field names

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOracleUtilities
 
 
@@ -25,7 +26,7 @@ class TestUtilitiesSurgical:
     def test_generate_query_hash_with_params(self) -> None:
         """Test generate_query_hash with parameters."""
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, object] = {"id": 123}
+        params: FlextTypes.Dict = {"id": 123}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success
@@ -36,7 +37,7 @@ class TestUtilitiesSurgical:
     def test_generate_query_hash_empty_params(self) -> None:
         """Test generate_query_hash with empty params dict."""
         sql = "SELECT 1 FROM DUAL"
-        params: dict[str, object] = {}
+        params: FlextTypes.Dict = {}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success

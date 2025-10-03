@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOraclePlugins
 
 
@@ -23,7 +24,7 @@ class TestFlextDbOraclePluginsReal:
         """Test successful plugin registration."""
         plugins = FlextDbOraclePlugins()
 
-        plugin_data: dict[str, object] = {
+        plugin_data: FlextTypes.Dict = {
             "name": "test_plugin",
             "version": "1.0.0",
             "type": "testing",
@@ -41,12 +42,12 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register first plugin
-        plugin1: dict[str, object] = {"name": "plugin1", "version": "1.0.0"}
+        plugin1: FlextTypes.Dict = {"name": "plugin1", "version": "1.0.0"}
         result1 = plugins.register_plugin("plugin1", plugin1)
         assert result1.is_success
 
         # Register second plugin
-        plugin2: dict[str, object] = {"name": "plugin2", "version": "2.0.0"}
+        plugin2: FlextTypes.Dict = {"name": "plugin2", "version": "2.0.0"}
         result2 = plugins.register_plugin("plugin2", plugin2)
         assert result2.is_success
 
@@ -60,7 +61,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # First register a plugin
-        plugin_data: dict[str, object] = {"name": "test", "version": "1.0.0"}
+        plugin_data: FlextTypes.Dict = {"name": "test", "version": "1.0.0"}
         plugins.register_plugin("test", plugin_data)
         assert "test" in plugins._plugins
 
@@ -91,8 +92,8 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register some plugins
-        plugin1: dict[str, object] = {"name": "plugin1", "version": "1.0.0"}
-        plugin2: dict[str, object] = {"name": "plugin2", "version": "2.0.0"}
+        plugin1: FlextTypes.Dict = {"name": "plugin1", "version": "1.0.0"}
+        plugin2: FlextTypes.Dict = {"name": "plugin2", "version": "2.0.0"}
         plugins.register_plugin("plugin1", plugin1)
         plugins.register_plugin("plugin2", plugin2)
 
@@ -111,7 +112,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register a plugin
-        plugin_data: dict[str, object] = {
+        plugin_data: FlextTypes.Dict = {
             "name": "test",
             "version": "1.0.0",
             "active": True,
@@ -249,12 +250,12 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register initial plugin
-        plugin_v1: dict[str, object] = {"name": "test", "version": "1.0.0"}
+        plugin_v1: FlextTypes.Dict = {"name": "test", "version": "1.0.0"}
         result1 = plugins.register_plugin("test", plugin_v1)
         assert result1.is_success
 
         # Overwrite with new version
-        plugin_v2: dict[str, object] = {
+        plugin_v2: FlextTypes.Dict = {
             "name": "test",
             "version": "2.0.0",
             "updated": True,
@@ -275,7 +276,7 @@ class TestFlextDbOraclePluginsReal:
         plugins = FlextDbOraclePlugins()
 
         # Register plugin
-        original_data: dict[str, object] = {
+        original_data: FlextTypes.Dict = {
             "name": "test",
             "version": "1.0.0",
             "mutable": [1, 2, 3],

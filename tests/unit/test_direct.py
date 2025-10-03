@@ -16,9 +16,9 @@ import os
 from typing import cast
 
 import pytest
-from flext_core import FlextConstants
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
+from flext_core import FlextConstants, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,

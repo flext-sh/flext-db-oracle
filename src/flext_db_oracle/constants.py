@@ -17,7 +17,7 @@ from typing import ClassVar, Final, Literal
 from flext_core import FlextConstants, FlextTypes
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants:
     """Oracle database constants following Flext[Area][Module] pattern.
 
     Single class with all Oracle-specific constants as internal nested classes,
@@ -85,7 +85,7 @@ class FlextDbOracleConstants(FlextConstants):
         BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
         # Singer to Oracle type mapping
-        SINGER_TYPE_MAP: ClassVar[FlextTypes.Core.Headers] = {
+        SINGER_TYPE_MAP: ClassVar[FlextTypes.StringDict] = {
             "string": "VARCHAR2(4000)",
             "integer": "NUMBER(38)",
             "number": "NUMBER",
@@ -240,7 +240,7 @@ class FlextDbOracleConstants(FlextConstants):
         REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
         SERIALIZABLE: Final[str] = "SERIALIZABLE"
 
-        VALID_LEVELS: Final[list[str]] = [
+        VALID_LEVELS: Final[FlextTypes.StringList] = [
             READ_UNCOMMITTED,
             READ_COMMITTED,
             REPEATABLE_READ,
@@ -264,7 +264,7 @@ class FlextDbOracleConstants(FlextConstants):
         ENV_SID: Final[str] = "ORACLE_SID"
 
         # Environment variable mapping
-        ENV_MAPPING: ClassVar[dict[str, str]] = {
+        ENV_MAPPING: ClassVar[FlextTypes.StringDict] = {
             "FLEXT_TARGET_ORACLE_HOST": "host",
             "ORACLE_HOST": "host",
             "FLEXT_TARGET_ORACLE_PORT": "port",
@@ -375,7 +375,7 @@ class FlextDbOracleConstants(FlextConstants):
         """Lists of constants for validation and iteration."""
 
         # Valid Oracle data types
-        VALID_DATA_TYPES: Final[list[str]] = [
+        VALID_DATA_TYPES: Final[FlextTypes.StringList] = [
             "VARCHAR2",
             "NUMBER",
             "DATE",
@@ -387,10 +387,14 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Valid connection types
-        VALID_CONNECTION_TYPES: Final[list[str]] = ["service_name", "sid", "tns"]
+        VALID_CONNECTION_TYPES: Final[FlextTypes.StringList] = [
+            "service_name",
+            "sid",
+            "tns",
+        ]
 
         # Valid query types
-        VALID_QUERY_TYPES: Final[list[str]] = [
+        VALID_QUERY_TYPES: Final[FlextTypes.StringList] = [
             "SELECT",
             "INSERT",
             "UPDATE",
@@ -401,7 +405,7 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Valid isolation levels
-        VALID_ISOLATION_LEVELS: Final[list[str]] = [
+        VALID_ISOLATION_LEVELS: Final[FlextTypes.StringList] = [
             "READ_UNCOMMITTED",
             "READ_COMMITTED",
             "REPEATABLE_READ",
@@ -409,7 +413,7 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Oracle system users to exclude
-        SYSTEM_USERS: Final[list[str]] = [
+        SYSTEM_USERS: Final[FlextTypes.StringList] = [
             "SYS",
             "SYSTEM",
             "ANONYMOUS",
@@ -420,12 +424,17 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Default schema names
-        DEFAULT_SCHEMAS: Final[list[str]] = ["SYSTEM", "SYS", "PUBLIC", "USER"]
+        DEFAULT_SCHEMAS: Final[FlextTypes.StringList] = [
+            "SYSTEM",
+            "SYS",
+            "PUBLIC",
+            "USER",
+        ]
 
 
 # No compatibility aliases - use direct imports only
 
 
-__all__: FlextTypes.Core.StringList = [
+__all__: FlextTypes.StringList = [
     "FlextDbOracleConstants",
 ]

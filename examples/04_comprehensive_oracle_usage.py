@@ -59,11 +59,11 @@ class OracleExampleProcessor(FlextService[str]):
         api: FlextDbOracleApi,
         *,
         correlation_id: str,
-    ) -> FlextTypes.Core.Dict:
+    ) -> FlextTypes.Dict:
         """Build simple result dictionary.
 
         Returns:
-            FlextTypes.Core.Dict: Dictionary with status and connection info.
+            FlextTypes.Dict: Dictionary with status and connection info.
 
         """
         return {

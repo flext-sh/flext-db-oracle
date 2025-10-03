@@ -12,9 +12,10 @@ from __future__ import annotations
 import threading
 import time
 
+from flext_tests import FlextTestsDomains
+
 from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleClient
-from flext_tests import FlextTestsDomains
 
 
 class TestClientModule:
@@ -24,7 +25,7 @@ class TestClientModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_client_config() -> FlextTypes.Core.Dict:
+        def create_test_client_config() -> FlextTypes.Dict:
             """Create test client configuration data."""
             return {
                 "host": "localhost",
@@ -36,7 +37,7 @@ class TestClientModule:
             }
 
         @staticmethod
-        def create_test_connection_data() -> FlextTypes.Core.Dict:
+        def create_test_connection_data() -> FlextTypes.Dict:
             """Create test connection data."""
             return {
                 "connection_id": "conn_123",
@@ -46,7 +47,7 @@ class TestClientModule:
             }
 
         @staticmethod
-        def create_test_pool_data() -> FlextTypes.Core.Dict:
+        def create_test_pool_data() -> FlextTypes.Dict:
             """Create test pool data."""
             return {
                 "pool_name": "test_pool",

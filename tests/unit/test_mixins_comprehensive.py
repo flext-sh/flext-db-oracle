@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_core import FlextMixins, FlextResult
+from flext_core import FlextMixins, FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleMixins
 from flext_db_oracle.mixins import __all__
 
@@ -155,7 +155,7 @@ class TestParameterContainer:
 
     def test_parameter_container_initialization_with_params(self) -> None:
         """Test parameter container initialization with parameters."""
-        params: dict[str, object] = {"key1": "value1", "key2": 123}
+        params: FlextTypes.Dict = {"key1": "value1", "key2": 123}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.params == params
@@ -178,7 +178,7 @@ class TestParameterContainer:
 
     def test_parameter_container_get_existing_key(self) -> None:
         """Test getting existing parameter values."""
-        params: dict[str, object] = {"key1": "value1", "key2": 123, "key3": None}
+        params: FlextTypes.Dict = {"key1": "value1", "key2": 123, "key3": None}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.get("key1") == "value1"
@@ -187,7 +187,7 @@ class TestParameterContainer:
 
     def test_parameter_container_get_missing_key(self) -> None:
         """Test getting missing parameter values with defaults."""
-        params: dict[str, object] = {"key1": "value1"}
+        params: FlextTypes.Dict = {"key1": "value1"}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         # Test default None
@@ -209,7 +209,7 @@ class TestParameterContainer:
 
     def test_parameter_container_require_existing_key(self) -> None:
         """Test requiring existing parameter values."""
-        params: dict[str, object] = {"key1": "value1", "key2": 123, "key3": None}
+        params: FlextTypes.Dict = {"key1": "value1", "key2": 123, "key3": None}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         assert container.require("key1") == "value1"
@@ -218,7 +218,7 @@ class TestParameterContainer:
 
     def test_parameter_container_require_missing_key(self) -> None:
         """Test requiring missing parameter values."""
-        params: dict[str, object] = {"key1": "value1"}
+        params: FlextTypes.Dict = {"key1": "value1"}
         container = FlextDbOracleMixins.ParameterContainer(params=params)
 
         with pytest.raises(KeyError) as exc_info:
@@ -415,8 +415,8 @@ class TestErrorTransformer:
 
         # Test with different types
         int_result = FlextResult[int].fail("int error")
-        dict_result = FlextResult[dict[str, object]].fail("dict error")
-        list_result = FlextResult[list[str]].fail("list error")
+        dict_result = FlextResult[FlextTypes.Dict].fail("dict error")
+        list_result = FlextResult[FlextTypes.StringList].fail("list error")
 
         int_transformed = transformer.transform(int_result)
         dict_transformed = transformer.transform(dict_result)
