@@ -17,17 +17,17 @@ from typing import ClassVar, Final, Literal
 from flext_core import FlextConstants, FlextTypes
 
 
-class FlextDbOracleConstants:
-    """Oracle database constants following Flext[Area][Module] pattern.
+class FlextDbOracleConstants(FlextConstants):
+    """Oracle database constants extending FlextConstants foundation.
 
     Single class with all Oracle-specific constants as internal nested classes,
     following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
-    Inherits from FlextConstants for universal constants, defines only
+    Extends FlextConstants for universal constants, defines only
     Oracle-specific constants using nested namespace classes.
 
     **STANDARDIZATION NOTES**:
-    - Inherits from FlextConstants for foundation constants
+    - Extends FlextConstants for foundation constants (Network, Platform, etc.)
     - Uses Final for immutable constants
     - Uses StrEnum for type-safe enumerations
     - Uses Literal for type-safe string literals

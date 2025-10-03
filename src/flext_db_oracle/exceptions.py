@@ -107,7 +107,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             if "connection_info" in kwargs:
                 conn_info = kwargs.pop("connection_info")
                 self.connection_info = (
-                    dict(conn_info) if conn_info is not None else None
+                    dict(conn_info) if conn_info is not None else None  # type: ignore[arg-type]
                 )
 
             # Extract common parameters using helper
