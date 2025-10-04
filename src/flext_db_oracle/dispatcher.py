@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from flext_core import FlextBus, FlextDispatcher, FlextRegistry, FlextTypes
+
 from flext_db_oracle.services import FlextDbOracleServices
 
 

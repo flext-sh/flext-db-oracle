@@ -11,9 +11,8 @@ from __future__ import annotations
 
 from typing import Final, override
 
-from pydantic import Field, field_validator
-
 from flext_core import FlextExceptions, FlextModels, FlextTypes
+from pydantic import Field, field_validator
 
 
 class FlextDbOracleExceptions(FlextExceptions):
@@ -107,7 +106,9 @@ class FlextDbOracleExceptions(FlextExceptions):
             if "connection_info" in kwargs:
                 conn_info = kwargs.pop("connection_info")
                 self.connection_info = (
-                    dict(conn_info) if conn_info is not None else None  # type: ignore[arg-type]
+                    dict(conn_info)
+                    if conn_info is not None and hasattr(conn_info, "items")
+                    else None
                 )
 
             # Extract common parameters using helper

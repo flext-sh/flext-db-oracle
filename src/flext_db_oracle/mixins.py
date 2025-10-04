@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import override
 
 from flext_core import FlextMixins, FlextResult, FlextTypes
+
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 

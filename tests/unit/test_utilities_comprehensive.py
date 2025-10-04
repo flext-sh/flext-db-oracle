@@ -9,10 +9,10 @@ from __future__ import annotations
 import time
 from unittest.mock import Mock
 
+from flext_core import FlextTypes
 from flext_tests import FlextTestsMatchers
 from pydantic import BaseModel
 
-from flext_core import FlextTypes
 from flext_db_oracle import FlextDbOracleUtilities
 
 # Add flext_tests to path

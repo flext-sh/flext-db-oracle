@@ -13,9 +13,9 @@ import os
 from unittest.mock import patch
 
 import pytest
+from flext_core import FlextModels
 from pydantic import ValidationError
 
-from flext_core import FlextModels
 from flext_db_oracle import FlextDbOracleModels
 
 

@@ -13,8 +13,8 @@ import json
 from unittest.mock import Mock, patch
 
 import yaml
-
 from flext_core import FlextResult, FlextTypes
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCliService,

@@ -10,8 +10,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-
 from flext_core import FlextMixins, FlextResult, FlextTypes
+
 from flext_db_oracle import FlextDbOracleMixins
 from flext_db_oracle.mixins import __all__
 

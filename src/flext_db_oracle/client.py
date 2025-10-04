@@ -17,8 +17,10 @@ from flext_core import (
     FlextContainer,
     FlextLogger,
     FlextResult,
+    FlextService,
     FlextTypes,
 )
+
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.models import FlextDbOracleModels
@@ -27,23 +29,26 @@ from flext_db_oracle.typings import FlextDbOracleTypes
 from .constants import FlextDbOracleConstants
 
 
-class FlextDbOracleClient:
-    """Oracle Database CLI client with proper FLEXT ecosystem integration.
+class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
+    """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
-    management using the flext-db-oracle foundation API.
+    management using the flext-db-oracle foundation API with full flext-core integration.
     """
 
     def __init__(
         self, *, debug: bool = False, config: FlextDbOracleConfig | None = None
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
-        # Core dependencies injected via composition
-        self.container = FlextContainer.get_global()
-        self.logger = FlextLogger(__name__)
+        # Initialize FlextService with config
+        super().__init__()
 
-        # Configuration - use provided or get from container/global instance
-        self.config = config or FlextDbOracleConfig.get_global_instance()
+        # Core dependencies injected via composition
+        self._container = FlextContainer.get_global()
+        self._logger = FlextLogger(__name__)
+
+        # Configuration - store locally
+        self._config = config or FlextDbOracleConfig()
 
         # Application state
         self.debug = debug

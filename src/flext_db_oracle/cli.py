@@ -17,7 +17,6 @@ from typing import Protocol, override
 
 import yaml
 from flext_cli import FlextCliCommands
-
 from flext_core import (
     FlextContainer,
     FlextLogger,
@@ -25,6 +24,7 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
+
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
@@ -241,7 +241,7 @@ class FlextDbOracleCliService(FlextService[str]):
             timeout: Connection timeout in seconds
 
         Returns:
-            FlextResult[dict]: Health check results with status and timing
+            FlextResult[FlextTypes.Dict]: Health check results with status and timing
 
         """
         start_time = time.time()
@@ -532,7 +532,8 @@ class FlextDbOracleCliService(FlextService[str]):
             FlextResult[str]: Service status.
 
         """
-        self._logger.info("Oracle CLI service initialized")
+        if self._logger:
+            self._logger.info("Oracle CLI service initialized")
         return FlextResult[str].ok("Oracle CLI service ready")
 
     def run_cli(self, args: FlextTypes.StringList | None = None) -> FlextResult[str]:

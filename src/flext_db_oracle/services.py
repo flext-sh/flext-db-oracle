@@ -13,6 +13,14 @@ from datetime import UTC, datetime
 from typing import cast, override
 from urllib.parse import quote_plus
 
+# Use complete flext-core integration
+from flext_core import (
+    FlextContainer,
+    FlextLogger,
+    FlextResult,
+    FlextService,
+    FlextTypes,
+)
 from pydantic import Field
 from sqlalchemy import (
     Column,
@@ -29,21 +37,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 
-# Use FlextLogger from flext_core instead
-from flext_core import (
-    FlextContainer,
-    FlextLogger,
-    FlextModels,
-    FlextResult,
-    FlextTypes,
-)
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
-class FlextDbOracleServices(FlextModels.Entity):
-    """SOLID-compliant Oracle database services with unified class pattern."""
+class FlextDbOracleServices(FlextService[FlextDbOracleModels.OracleConfig]):
+    """SOLID-compliant Oracle database services with complete flext-core integration."""
 
     # Pydantic model fields
     config: FlextDbOracleModels.OracleConfig = Field(
@@ -1338,7 +1338,8 @@ class FlextDbOracleServices(FlextModels.Entity):
             # CLI compatibility handled through property methods instead
 
         except Exception:
-            self._logger.exception("Failed to initialize nested helpers")
+            if self._logger:
+                self._logger.exception("Failed to initialize nested helpers")
             raise
 
     def execute(self) -> FlextResult[FlextTypes.Dict]:

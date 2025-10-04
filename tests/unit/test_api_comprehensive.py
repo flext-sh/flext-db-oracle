@@ -12,9 +12,9 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
-from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,

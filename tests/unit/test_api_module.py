@@ -13,9 +13,9 @@ import threading
 import time
 from typing import cast
 
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsDomains
 
-from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
 
 

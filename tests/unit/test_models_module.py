@@ -12,9 +12,9 @@ from __future__ import annotations
 import threading
 import time
 
+from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsDomains
 
-from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import FlextDbOracleModels
 
 

@@ -9,15 +9,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import Field, SecretStr, ValidationInfo, field_validator
-from pydantic_settings import SettingsConfigDict
-
 from flext_core import (
     FlextConfig,
     FlextConstants,
     FlextResult,
     FlextTypes,
 )
+from pydantic import Field, SecretStr, ValidationInfo, computed_field, field_validator
+from pydantic_settings import SettingsConfigDict
+
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -96,6 +96,21 @@ class FlextDbOracleConfig(FlextConfig):
     def username(self) -> str:
         """Backward compatibility property for oracle_username."""
         return self.oracle_username
+
+    @computed_field
+    @property
+    def connection_string(self) -> str:
+        """Computed Oracle connection string for SQLAlchemy."""
+        # Build connection string using Oracle format
+        user = self.oracle_username
+        password = (
+            self.oracle_password.get_secret_value() if self.oracle_password else ""
+        )
+        host = self.oracle_host
+        port = self.oracle_port
+        service = self.oracle_service_name
+
+        return f"oracle+oracledb://{user}:{password}@{host}:{port}/{service}"
 
     @property
     def protocol(self) -> str:
@@ -354,14 +369,19 @@ class FlextDbOracleConfig(FlextConfig):
     ) -> FlextDbOracleConfig:
         """Create configuration for specific environment using enhanced singleton pattern."""
         return cls.get_or_create_shared_instance(
-            project_name="flext-db-oracle", environment=environment, **overrides
+            "flext-db-oracle", environment=environment, **overrides
         )
 
     @classmethod
     def get_or_create_shared_instance(
         cls, project_name: str | None = None, **overrides: object
     ) -> FlextDbOracleConfig:
-        """Create a new configuration instance with environment loading and overrides."""
+        """Create a new configuration instance with environment loading and overrides.
+
+        Note: project_name parameter is required for parent class compatibility but not used.
+        """
+        # project_name is unused but required for parent class interface compatibility
+        _ = project_name
         # Create instance to load from environment variables, then apply overrides
         instance = cls()
         for key, value in overrides.items():
@@ -372,7 +392,7 @@ class FlextDbOracleConfig(FlextConfig):
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:
         """Create default configuration instance using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(project_name="flext-db-oracle")
+        return cls.get_or_create_shared_instance("flext-db-oracle")
 
     @classmethod
     def get_global_instance(cls) -> FlextDbOracleConfig:

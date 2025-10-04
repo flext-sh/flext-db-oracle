@@ -5,23 +5,18 @@ from typing import Protocol, runtime_checkable
 from flext_core import FlextProtocols, FlextResult, FlextTypes
 
 
-class FlextDbOracleProtocols:
-    """Single unified Oracle database protocols class following FLEXT standards.
+class FlextDbOracleProtocols(FlextProtocols):
+    """Oracle database protocols extending FlextProtocols foundation.
 
-    Contains all protocol definitions for Oracle database domain operations.
-    Follows FLEXT pattern: one class per module with nested subclasses.
+    Extends FlextProtocols with Oracle-specific protocol definitions
+    while inheriting all foundation protocols. Follows FLEXT namespace pattern.
     """
 
     # =========================================================================
-    # RE-EXPORT FOUNDATION PROTOCOLS - Use FlextProtocols from flext-core
+    # INHERITED FOUNDATION PROTOCOLS - Available from FlextProtocols
     # =========================================================================
-
-    Foundation = FlextProtocols.Foundation
-    Domain = FlextProtocols.Domain
-    Application = FlextProtocols.Application
-    Infrastructure = FlextProtocols.Infrastructure
-    Extensions = FlextProtocols.Extensions
-    Commands = FlextProtocols.Commands
+    # Foundation, Domain, Application, Infrastructure, Extensions, Commands
+    # are all inherited from FlextProtocols parent class
 
     # =========================================================================
     # ORACLE DATABASE-SPECIFIC PROTOCOLS - Domain extension for database operations

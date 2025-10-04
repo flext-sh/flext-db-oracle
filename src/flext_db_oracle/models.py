@@ -13,6 +13,7 @@ import re
 from datetime import UTC, datetime
 from typing import ClassVar
 
+from flext_core import FlextModels, FlextResult, FlextTypes
 from pydantic import (
     ConfigDict,
     Field,
@@ -24,8 +25,6 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from flext_core import FlextModels, FlextResult, FlextTypes
-from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -263,44 +262,50 @@ class FlextDbOracleModels(FlextModels):
             try:
                 # Load environment variables with the specified prefix
                 import os
-                env_vars = {}
-                for key in ["HOST", "PORT", "USERNAME", "PASSWORD", "SERVICE_NAME", "DATABASE_NAME"]:
-                    env_key = f"{prefix}_{key}"
-                    value = os.environ.get(env_key)
-                    if value is not None:
-                        env_vars[f"oracle_{key.lower()}"] = value
 
-                # Create config instance with environment-loaded values
-                standardized_config = FlextDbOracleConfig(**env_vars)
+                # Create config directly from environment variables to avoid singleton issues
+                host = os.environ.get(
+                    f"{prefix}_HOST", FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST
+                )
+                port_str = os.environ.get(
+                    f"{prefix}_PORT",
+                    str(FlextDbOracleConstants.Connection.DEFAULT_PORT),
+                )
+                port = (
+                    int(port_str)
+                    if port_str.isdigit()
+                    else FlextDbOracleConstants.Connection.DEFAULT_PORT
+                )
+                username = os.environ.get(f"{prefix}_USERNAME", "")
+                password = os.environ.get(f"{prefix}_PASSWORD", "")
+                service_name = os.environ.get(f"{prefix}_SERVICE_NAME")
+                database_name = os.environ.get(
+                    f"{prefix}_DATABASE_NAME",
+                    FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
+                )
 
                 # Validate required fields are set
-                if (
-                    not standardized_config.oracle_username
-                    or not standardized_config.oracle_username.strip()
-                ):
+                if not username or not username.strip():
                     return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                         "Oracle username is required but not configured",
                     )
 
-                if (
-                    not standardized_config.oracle_password
-                    or not standardized_config.oracle_password.get_secret_value().strip()
-                ):
+                if not password or not password.strip():
                     return FlextResult[FlextDbOracleModels.OracleConfig].fail(
                         "Oracle password is required but not configured",
                     )
 
-                # Map from FlextDbOracleConfig to OracleConfig for backward compatibility
+                # Create OracleConfig directly
                 config = cls(
-                    host=standardized_config.oracle_host,
-                    port=standardized_config.oracle_port,
-                    name=standardized_config.oracle_database_name,
-                    username=standardized_config.oracle_username,
-                    password=standardized_config.oracle_password.get_secret_value(),
-                    service_name=standardized_config.oracle_service_name,
-                    pool_min=standardized_config.pool_min,
-                    pool_max=standardized_config.pool_max,
-                    timeout=standardized_config.pool_timeout,
+                    host=host,
+                    port=port,
+                    name=database_name,
+                    username=username,
+                    password=password,
+                    service_name=service_name,
+                    pool_min=FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
+                    pool_max=FlextDbOracleConstants.Connection.DEFAULT_POOL_MAX,
+                    timeout=FlextDbOracleConstants.Connection.DEFAULT_POOL_TIMEOUT,
                 )
                 return FlextResult[FlextDbOracleModels.OracleConfig].ok(config)
             except (ValueError, TypeError, AttributeError) as e:

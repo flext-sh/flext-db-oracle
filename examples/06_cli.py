@@ -143,6 +143,7 @@ def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
         try:
             result = subprocess.run(
                 cmd,
+                shell=False,  # Explicitly disable shell for security
                 check=False,
                 capture_output=True,
                 text=True,

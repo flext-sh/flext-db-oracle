@@ -9,8 +9,8 @@ import time
 from io import StringIO
 
 import pytest
-
 from flext_core import FlextTypes
+
 from flext_db_oracle import (
     FlextDbOracleConstants,
     FlextDbOracleModels,

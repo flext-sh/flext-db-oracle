@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 """
 
 from flext_core import FlextResult
+
 from flext_db_oracle import FlextDbOracleClient, FlextDbOracleModels
 
 
