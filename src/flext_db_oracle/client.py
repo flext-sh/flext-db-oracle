@@ -61,7 +61,12 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
             "query_limit": FlextDbOracleConstants.Query.DEFAULT_QUERY_LIMIT,
         }
 
-        self.logger.info("Oracle CLI client initialized")
+        self._logger.info("Oracle CLI client initialized")
+
+    @property
+    def config(self) -> FlextDbOracleConfig:
+        """Get the Oracle configuration."""
+        return self._config
 
     def connect_to_oracle(
         self,

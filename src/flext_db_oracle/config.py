@@ -9,6 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from flext_core import (
     FlextConfig,
     FlextConstants,
@@ -392,13 +394,15 @@ class FlextDbOracleConfig(FlextConfig):
     @classmethod
     def create_default(cls) -> FlextDbOracleConfig:
         """Create default configuration instance using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance("flext-db-oracle")
+        return cast(
+            "FlextDbOracleConfig", cls.get_or_create_shared_instance("flext-db-oracle")
+        )
 
     @classmethod
     def get_global_instance(cls) -> FlextDbOracleConfig:
         """Get the global singleton instance using enhanced FlextConfig pattern."""
         # Create a default instance instead of using shared instance to avoid recursion
-        return cls()
+        return cast("FlextDbOracleConfig", cls())
 
     @classmethod
     def reset_global_instance(cls) -> None:

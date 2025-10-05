@@ -37,16 +37,17 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
-class FlextDbOracleServices(FlextService[FlextDbOracleModels.OracleConfig]):
+class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
     """SOLID-compliant Oracle database services with complete flext-core integration."""
 
     # Pydantic model fields
-    config: FlextDbOracleModels.OracleConfig = Field(
+    config: FlextDbOracleConfig = Field(
         ...,
         description="Oracle database configuration",
     )
@@ -61,11 +62,11 @@ class FlextDbOracleServices(FlextService[FlextDbOracleModels.OracleConfig]):
         @override
         def __init__(
             self,
-            config: FlextDbOracleModels.OracleConfig,
+            config: FlextDbOracleConfig,
             logger: FlextLogger,
         ) -> None:
             """Initialize the connection manager."""
-            self.config: FlextDbOracleModels.OracleConfig = config
+            self.config: FlextDbOracleConfig = config
             self._logger = logger
             self._engine: Engine | None = None
             # SQLAlchemy 2.0 Core API - removed session factory
@@ -1104,12 +1105,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleModels.OracleConfig]):
         def __init__(
             self,
             connection_manager: FlextDbOracleServices._ConnectionManager,
-            config: FlextDbOracleModels.OracleConfig,
+            config: FlextDbOracleConfig,
             logger: FlextLogger,
         ) -> None:
             """Initialize the metrics collector."""
             self._connection_manager = connection_manager
-            self._config: FlextDbOracleModels.OracleConfig = config
+            self._config: FlextDbOracleConfig = config
             self._logger = logger
             self._metrics: FlextTypes.Dict = {}
             self._operations: list[FlextTypes.Dict] = []

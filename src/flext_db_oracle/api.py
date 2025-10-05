@@ -25,8 +25,9 @@ from flext_core import (
     T,
 )
 
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, FlextDbOracleModels as Models
 from flext_db_oracle.services import FlextDbOracleServices
 
 from . import dispatcher as oracle_dispatcher
@@ -34,7 +35,7 @@ from . import dispatcher as oracle_dispatcher
 logger = FlextLogger(__name__)
 
 
-class FlextDbOracleApi(FlextService[FlextDbOracleModels.OracleConfig]):
+class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
     """Oracle Database API with complete flext-core integration.
 
     This API provides a unified interface to Oracle database operations,
@@ -45,12 +46,13 @@ class FlextDbOracleApi(FlextService[FlextDbOracleModels.OracleConfig]):
     @override
     def __init__(
         self,
-        config: FlextDbOracleModels.OracleConfig,
+        config: Models.OracleConfig,
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration."""
         super().__init__()  # Initialize FlextService
-        self._config: FlextDbOracleModels.OracleConfig = config
+        # Convert OracleConfig model to FlextDbOracleConfig settings
+        self._oracle_config: FlextDbOracleConfig = self._convert_to_config(config)
         self._services: FlextDbOracleServices = FlextDbOracleServices(
             config=config, domain_events=[]
         )
@@ -64,23 +66,42 @@ class FlextDbOracleApi(FlextService[FlextDbOracleModels.OracleConfig]):
         self._dispatcher: FlextDispatcher | None = None
 
     @property
-    def config(self) -> FlextDbOracleModels.OracleConfig:
+    def config(self) -> FlextDbOracleConfig:
         """Get the Oracle configuration."""
-        return self._config
+        return self._oracle_config
+
+    def _convert_to_config(
+        self, oracle_config: Models.OracleConfig
+    ) -> FlextDbOracleConfig:
+        """Convert OracleConfig model to FlextDbOracleConfig settings."""
+        # Create a FlextDbOracleConfig from the OracleConfig model
+        config = FlextDbOracleConfig()
+        # Set the Oracle-specific attributes
+        config.oracle_host = oracle_config.host
+        config.oracle_port = oracle_config.port
+        config.oracle_service_name = getattr(
+            oracle_config, "service_name", oracle_config.name
+        )
+        config.oracle_username = oracle_config.username
+        config.oracle_password = oracle_config.password
+        config.oracle_database_name = oracle_config.name
+        config.oracle_sid = getattr(oracle_config, "sid", "")
+        return config
 
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
             return (
-                self._config.port >= FlextDbOracleConstants.OracleNetwork.MIN_PORT
-                and self._config.service_name is not None
+                self._oracle_config.oracle_port
+                >= FlextDbOracleConstants.OracleNetwork.MIN_PORT
+                and self._oracle_config.oracle_service_name is not None
             )
         except AttributeError:
             # Config object may be None or missing attributes
             return False
 
     @classmethod
-    def from_config(cls, config: FlextDbOracleModels.OracleConfig) -> Self:
+    def from_config(cls, config: Models.OracleConfig) -> Self:
         """Create API instance from configuration."""
         return cls(config)
 
@@ -93,10 +114,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleModels.OracleConfig]):
         """
         return {
             "config": {
-                "host": self._config.host,
-                "port": self._config.port,
-                "service_name": self._config.service_name,
-                "username": self._config.username,
+                "host": self._oracle_config.oracle_host,
+                "port": self._oracle_config.oracle_port,
+                "service_name": self._oracle_config.oracle_service_name,
+                "username": self._oracle_config.oracle_username,
                 # Note: not exposing password for security
             },
             "connected": "False",  # Would require connection check

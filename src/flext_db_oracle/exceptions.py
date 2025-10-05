@@ -124,6 +124,19 @@ class FlextDbOracleExceptions(FlextExceptions):
                 connection_info=self.connection_info,
             )
 
+    def _extract_common_kwargs(self, kwargs: dict) -> tuple[dict, str | None, str | None]:
+        """Extract common kwargs for error initialization."""
+        context = kwargs.pop("context", {})
+        correlation_id = kwargs.pop("correlation_id", None)
+        error_code = kwargs.pop("error_code", None)
+        return context, correlation_id, error_code
+
+    def _build_context(self, base_context: dict, **oracle_fields) -> dict:
+        """Build complete context with Oracle-specific fields."""
+        context = dict(base_context)
+        context.update(oracle_fields)
+        return context
+
             # Call parent with complete error information
             super().__init__(
                 message,
@@ -553,6 +566,9 @@ class FlextDbOracleExceptions(FlextExceptions):
                 **kwargs,
             )
             self.error_type = "MetadataError"
+
+    # Alias for backward compatibility
+    ProcessingError = OracleProcessingError
 
     @classmethod
     def create_validation_error(
