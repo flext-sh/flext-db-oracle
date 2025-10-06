@@ -16,7 +16,7 @@ from unittest.mock import Mock, patch
 
 import yaml
 from flext_core import FlextResult, FlextTypes
-from flext_tests import FlextTestsMatchers
+from flext_tests.matchers import FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -267,7 +267,7 @@ class TestFlextDbOracleCli:
 
         assert cli_service is not None
         assert cli_service._container is not None
-        assert cli_service._logger is not None
+        assert cli_service.logger is not None
         # _cli_main may be None if FlextCliCommands fails to initialize
 
     def test_cli_service_initialization_with_cli_failure(self) -> None:

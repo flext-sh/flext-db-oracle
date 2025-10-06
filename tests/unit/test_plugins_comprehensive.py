@@ -10,7 +10,7 @@ from typing import cast
 
 import pytest
 from flext_core import FlextTypes
-from flext_tests import FlextTestsMatchers
+from flext_tests.matchers import FlextTestsMatchers
 
 from flext_db_oracle import FlextDbOraclePlugins
 

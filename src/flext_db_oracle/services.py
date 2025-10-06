@@ -68,7 +68,7 @@ class FlextDbOracleServices(FlextService):
         ) -> None:
             """Initialize the connection manager."""
             self.config: FlextDbOracleConfig = config
-            self._logger = logger
+            self.logger = logger
             self._engine: Engine | None = None
             # SQLAlchemy 2.0 Core API - removed session factory
             self._connected: bool = False
@@ -97,11 +97,11 @@ class FlextDbOracleServices(FlextService):
                     )
 
                 self._connected = True
-                self._logger.info("Connected to Oracle database: %s", self.config.host)
+                self.logger.info("Connected to Oracle database: %s", self.config.host)
                 return FlextResult[bool].ok(data=True)
 
             except Exception as e:
-                self._logger.exception("Oracle connection failed")
+                self.logger.exception("Oracle connection failed")
                 return FlextResult[bool].fail(f"Connection failed: {e}")
 
         def disconnect(self) -> FlextResult[bool]:
@@ -112,7 +112,7 @@ class FlextDbOracleServices(FlextService):
                     self._engine = None
                     # SQLAlchemy 2.0 Core API - removed session factory cleanup
                     self._connected = False
-                    self._logger.info("Disconnected from Oracle database")
+                    self.logger.info("Disconnected from Oracle database")
                 return FlextResult[bool].ok(data=True)
             except Exception as e:
                 return FlextResult[bool].fail(f"Disconnect failed: {e}")
@@ -198,7 +198,7 @@ class FlextDbOracleServices(FlextService):
         ) -> None:
             """Initialize the query executor."""
             self._connection_manager = connection_manager
-            self._logger = logger
+            self.logger = logger
 
         def execute_query(
             self,
@@ -311,7 +311,7 @@ class FlextDbOracleServices(FlextService):
         @override
         def __init__(self, logger: FlextLogger) -> None:
             """Initialize the SQL builder with SQLAlchemy 2.0 metadata."""
-            self._logger = logger
+            self.logger = logger
             self._metadata: MetaData = MetaData()
 
         def _create_table_object(
@@ -595,7 +595,7 @@ class FlextDbOracleServices(FlextService):
         ) -> None:
             """Initialize the schema introspector."""
             self._query_executor = query_executor
-            self._logger = logger
+            self.logger = logger
 
         def get_schemas(self) -> FlextResult[FlextTypes.StringList]:
             """Get list of Oracle schemas."""
@@ -931,7 +931,7 @@ class FlextDbOracleServices(FlextService):
         @override
         def __init__(self, logger: FlextLogger) -> None:
             """Initialize the DDL generator."""
-            self._logger = logger
+            self.logger = logger
 
         def create_table_ddl(
             self,
@@ -1107,7 +1107,7 @@ class FlextDbOracleServices(FlextService):
             """Initialize the metrics collector."""
             self._connection_manager = connection_manager
             self._config: FlextDbOracleConfig = config
-            self._logger = logger
+            self.logger = logger
             self._metrics: FlextTypes.Dict = {}
             self._operations: list[FlextTypes.Dict] = []
 
@@ -1247,14 +1247,14 @@ class FlextDbOracleServices(FlextService):
         @override
         def __init__(self, logger: FlextLogger) -> None:
             """Initialize the plugin registry."""
-            self._logger = logger
+            self.logger = logger
             self._plugins: FlextTypes.Dict = {}
 
         def register_plugin(self, name: str, plugin: object) -> FlextResult[bool]:
             """Register a plugin."""
             try:
                 self._plugins[name] = plugin
-                self._logger.info(f"Plugin '{name}' registered successfully")
+                self.logger.info(f"Plugin '{name}' registered successfully")
                 return FlextResult[bool].ok(data=True)
 
             except Exception as e:
@@ -1267,7 +1267,7 @@ class FlextDbOracleServices(FlextService):
             try:
                 if name in self._plugins:
                     del self._plugins[name]
-                    self._logger.info(f"Plugin '{name}' unregistered successfully")
+                    self.logger.info(f"Plugin '{name}' unregistered successfully")
                 return FlextResult[bool].ok(data=True)
 
             except Exception as e:
@@ -1308,35 +1308,35 @@ class FlextDbOracleServices(FlextService):
         try:
             # Initialize core dependencies
             self._container = FlextContainer.get_global()
-            self._logger = FlextLogger(__name__)
+            self.logger = FlextLogger(__name__)
 
             # Initialize nested helpers with proper dependency injection
             self._connection_manager = self._ConnectionManager(
                 self._config,
-                self._logger,
+                self.logger,
             )
             self._query_executor = self._QueryExecutor(
                 self._connection_manager,
-                self._logger,
+                self.logger,
             )
-            self._sql_builder = self._SqlBuilder(self._logger)
+            self._sql_builder = self._SqlBuilder(self.logger)
             self._schema_introspector = self._SchemaIntrospector(
                 self._query_executor,
-                self._logger,
+                self.logger,
             )
-            self._ddl_generator = self._DdlGenerator(self._logger)
+            self._ddl_generator = self._DdlGenerator(self.logger)
             self._metrics_collector = self._MetricsCollector(
                 self._connection_manager,
                 self._config,
-                self._logger,
+                self.logger,
             )
-            self._plugin_registry = self._PluginRegistry(self._logger)
+            self._plugin_registry = self._PluginRegistry(self.logger)
 
             # CLI compatibility handled through property methods instead
 
         except Exception:
-            if self._logger:
-                self._logger.exception("Failed to initialize nested helpers")
+            if self.logger:
+                self.logger.exception("Failed to initialize nested helpers")
             raise
 
     def execute(self) -> FlextResult[FlextDbOracleConfig]:

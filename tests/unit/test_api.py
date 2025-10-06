@@ -13,7 +13,7 @@ from typing import cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes
-from flext_tests import FlextTestsBuilders, FlextTestsMatchers
+from flext_tests.matchers import FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -42,7 +42,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert self.api.config == self.config
         assert hasattr(self.api, "_config")
         assert hasattr(self.api, "_services")
-        assert hasattr(self.api, "_logger")
+        assert hasattr(self.api, "logger")
         assert hasattr(self.api, "plugins")
         assert isinstance(self.api.plugins, dict)
         assert len(self.api.plugins) == 0
@@ -1753,7 +1753,7 @@ class TestApiSurgicalSimple:
         assert hasattr(api, "_config")
         assert hasattr(api, "_services")
         assert hasattr(api, "_context_name")
-        assert hasattr(api, "_logger")
+        assert hasattr(api, "logger")
         assert hasattr(api, "_plugins")
         assert hasattr(api, "_dispatcher")
 

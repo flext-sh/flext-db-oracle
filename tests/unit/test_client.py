@@ -18,7 +18,8 @@ from flext_core import (
     FlextResult,
     FlextTypes,
 )
-from flext_tests import FlextTestsDomains, FlextTestsMatchers
+from flext_tests.domains import FlextTestsDomains
+from flext_tests.matchers import FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleClient,

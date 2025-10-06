@@ -25,7 +25,7 @@ class TestFlextDbOracleCliService:
         """Test CLI service has required attributes."""
         cli_service = FlextDbOracleCliService()
         assert hasattr(cli_service, "run_cli")
-        assert hasattr(cli_service, "_logger")
+        assert hasattr(cli_service, "logger")
         assert hasattr(cli_service, "_container")
 
     def test_cli_service_run_method_exists(self) -> None:
@@ -75,7 +75,7 @@ class TestCliServiceIntegration:
 
         # Verify FLEXT component integration
         assert cli_service._container is not None
-        assert cli_service._logger is not None
+        assert cli_service.logger is not None
 
     def test_cli_service_domain_service_inheritance(self) -> None:
         """Test CLI service inherits from FlextService."""
@@ -113,7 +113,7 @@ class TestCliServiceCoverage:
         cli_service = FlextDbOracleCliService()
 
         # Verify logger is properly initialized
-        logger = cli_service._logger
+        logger = cli_service.logger
         assert logger is not None
         assert hasattr(logger, "info")
         assert hasattr(logger, "error")
