@@ -19,16 +19,32 @@ from typing import cast
 from flext_cli import FlextCliOutput
 from flext_core import (
     FlextResult,
+    FlextService,
     FlextTypes,
-    FlextUtilities,
 )
 
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleUtilities(FlextUtilities):
+class FlextDbOracleUtilities(FlextService):
     """Oracle Database utilities using flext-core modern API."""
+
+    def __init__(self) -> None:
+        """Initialize Oracle utilities service."""
+        super().__init__(config=None)  # Utilities don't need specific config
+
+    def execute(self) -> FlextResult[object]:
+        """Execute the main domain operation for Oracle utilities.
+
+        Returns:
+            FlextResult[object]: Success with operation result or failure with error
+
+        """
+        # Default implementation - subclasses should override with specific logic
+        return FlextResult[object].fail(
+            "Execute method not implemented for Oracle utilities"
+        )
 
     # =============================================================================
     # ORACLE-SPECIFIC UTILITY METHODS

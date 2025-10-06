@@ -321,9 +321,11 @@ class FlextDbOracleServices(FlextService):
         ) -> Table:
             """Create SQLAlchemy Table object for modern query building."""
             # Validate identifiers first
-            validated_table = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-                table_name,
-            ).unwrap()
+            validated_table = (
+                FlextDbOracleUtilities.OracleValidation.validate_identifier(
+                    table_name,
+                ).unwrap()
+            )
             validated_schema = None
             if schema_name:
                 validated_schema = (
@@ -1310,7 +1312,7 @@ class FlextDbOracleServices(FlextService):
 
             # Initialize nested helpers with proper dependency injection
             self._connection_manager = self._ConnectionManager(
-                self._config,  # type: ignore[arg-type]
+                self._config,
                 self._logger,
             )
             self._query_executor = self._QueryExecutor(
@@ -1325,7 +1327,7 @@ class FlextDbOracleServices(FlextService):
             self._ddl_generator = self._DdlGenerator(self._logger)
             self._metrics_collector = self._MetricsCollector(
                 self._connection_manager,
-                self._config,  # type: ignore[arg-type]
+                self._config,
                 self._logger,
             )
             self._plugin_registry = self._PluginRegistry(self._logger)
@@ -1341,7 +1343,7 @@ class FlextDbOracleServices(FlextService):
         """Execute main domain service operation - return config."""
         test_result = self._connection_manager.test_connection()
         if test_result.is_success:
-            return FlextResult[FlextDbOracleConfig].ok(self._config)  # type: ignore[arg-type]
+            return FlextResult[FlextDbOracleConfig].ok(self._config)
         return FlextResult[FlextDbOracleConfig].fail(
             test_result.error or "Connection test failed",
         )

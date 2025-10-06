@@ -30,7 +30,7 @@ from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleCliService(FlextService[str]):
+class FlextDbOracleCli(FlextService[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
     ZERO TOLERANCE COMPLIANCE:
@@ -601,4 +601,4 @@ Use --help with any command for detailed options.
 
 
 if __name__ == "__main__":
-    FlextDbOracleCliService.run_main()
+    FlextDbOracleCli.run_main()

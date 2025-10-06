@@ -17,6 +17,7 @@ from flext_core import FlextTypes
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOracleConfig,
 )
 
 

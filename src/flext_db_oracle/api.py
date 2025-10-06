@@ -82,6 +82,11 @@ class FlextDbOracleApi(FlextService):
         """Get the Oracle configuration."""
         return self._oracle_config
 
+    @property
+    def config(self) -> FlextDbOracleConfig:
+        """Get the Oracle configuration (overrides base class)."""
+        return self._oracle_config
+
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:

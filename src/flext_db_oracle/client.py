@@ -59,7 +59,13 @@ class FlextDbOracleClient(FlextService):
             "query_limit": FlextDbOracleConstants.Query.DEFAULT_QUERY_LIMIT,
         }
 
+    @property
+    def config(self) -> FlextDbOracleConfig:
+        """Get the Oracle configuration (overrides base class)."""
+        return self._oracle_config
+
         self.logger.info("Oracle CLI client initialized")
+        return None
 
     @property
     def oracle_config(self) -> FlextDbOracleConfig:
@@ -467,6 +473,18 @@ class FlextDbOracleClient(FlextService):
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
+
+    def execute(self) -> FlextResult[object]:
+        """Execute the main domain operation for Oracle client.
+
+        Returns:
+            FlextResult[object]: Success with operation result or failure with error
+
+        """
+        # Default implementation - subclasses should override with specific logic
+        return FlextResult[object].fail(
+            "Execute method not implemented for Oracle client"
+        )
 
     def execute_query(
         self,

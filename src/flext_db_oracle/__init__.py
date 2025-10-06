@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.cli import FlextDbOracleCliService
+from flext_db_oracle.cli import FlextDbOracleCli
 from flext_db_oracle.client import FlextDbOracleClient
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -25,7 +25,7 @@ from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 __all__ = [
     "FlextDbOracleApi",
-    "FlextDbOracleCliService",
+    "FlextDbOracleCli",
     "FlextDbOracleClient",
     "FlextDbOracleConfig",
     "FlextDbOracleConstants",
