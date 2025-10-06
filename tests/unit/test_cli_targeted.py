@@ -13,7 +13,6 @@ from flext_tests import FlextTestsMatchers
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleClient,
-    FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
 
@@ -82,7 +81,7 @@ class TestCLIRealFunctionality:
     def test_api_observability_and_connection_real(self) -> None:
         """Test API observability and connection functionality - REAL IMPLEMENTATION."""
         # Create real API configuration
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TESTDB",
@@ -126,7 +125,7 @@ class TestCLIRealFunctionality:
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""
         # Create API with invalid configuration to test error handling
-        invalid_config = FlextDbOracleModels.OracleConfig(
+        invalid_config = FlextDbOracleConfig(
             host="invalid.host",
             port=9999,
             service_name="INVALID_SERVICE",
@@ -165,7 +164,7 @@ class TestCLIRealFunctionality:
         }
 
         # Test from_config with parameters
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
@@ -184,7 +183,7 @@ class TestCLIRealFunctionality:
     def test_comprehensive_api_coverage_real(self) -> None:
         """Comprehensive API coverage test using real functionality - NO MOCKS."""
         # Create comprehensive test configuration
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="comprehensive_test",
             port=1521,
             name="COMP_TEST",  # Required field
@@ -259,7 +258,7 @@ class TestCLIRealFunctionality:
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",

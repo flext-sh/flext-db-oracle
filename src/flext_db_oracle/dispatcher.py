@@ -9,12 +9,18 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from flext_core import FlextBus, FlextDispatcher, FlextRegistry, FlextTypes
+from flext_core import (
+    FlextBus,
+    FlextDispatcher,
+    FlextRegistry,
+    FlextService,
+    FlextTypes,
+)
 
-from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle.protocols import FlextDbOracleProtocols
 
 
-class FlextDbOracleDispatcher:
+class FlextDbOracleDispatcher(FlextService):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @dataclass(slots=True)
@@ -77,7 +83,7 @@ class FlextDbOracleDispatcher:
     @classmethod
     def build_dispatcher(
         cls,
-        services: FlextDbOracleServices,
+        services: FlextDbOracleProtocols.Database.QueryExecutorProtocol,
         *,
         bus: FlextBus | None = None,
     ) -> FlextDispatcher:

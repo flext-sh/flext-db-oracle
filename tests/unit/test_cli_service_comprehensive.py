@@ -18,7 +18,6 @@ from flext_core import FlextResult, FlextTypes
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCliService,
-    FlextDbOracleModels,
 )
 
 
@@ -143,7 +142,7 @@ class TestOracleConnectionHelper:
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -165,7 +164,7 @@ class TestOracleConnectionHelper:
 
     def test_validate_connection_failure(self) -> None:
         """Test connection validation failure handling."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="invalid-host",
             port=1521,
             service_name="INVALID",
@@ -338,7 +337,7 @@ class TestCliServiceOperations:
         """Test successful health check execution."""
         cli_service = FlextDbOracleCliService()
 
-        FlextDbOracleModels.OracleConfig(
+        FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",

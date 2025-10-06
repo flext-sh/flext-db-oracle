@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 from flext_core import FlextTypes
 
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServices
+from flext_db_oracle import FlextDbOracleServices
 
 
 class TestFlextDbOracleServicesBasic:
@@ -21,7 +21,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_creation(self) -> None:
         """Test service can be created with configuration."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -34,7 +34,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_initial_state(self) -> None:
         """Test service initial state is correct."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -50,7 +50,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_connection_building(self) -> None:
         """Test connection URL building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="testhost",
             port=1521,
             service_name="TESTDB",
@@ -70,7 +70,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_sql_builder_integration(self) -> None:
         """Test service integrates with SQL builder correctly."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -87,7 +87,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_query_building_with_conditions(self) -> None:
         """Test query building with WHERE conditions."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -105,7 +105,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_safe_query_building(self) -> None:
         """Test safe parameterized query building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -126,7 +126,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_singer_type_conversion(self) -> None:
         """Test Singer JSON Schema type conversion."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -153,7 +153,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_schema_mapping(self) -> None:
         """Test Singer schema to Oracle mapping."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -183,7 +183,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_ddl_generation(self) -> None:
         """Test DDL statement generation."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -212,7 +212,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_insert_statement_building(self) -> None:
         """Test INSERT statement building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -232,7 +232,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_update_statement_building(self) -> None:
         """Test UPDATE statement building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -257,7 +257,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_delete_statement_building(self) -> None:
         """Test DELETE statement building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -276,7 +276,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_merge_statement_building(self) -> None:
         """Test MERGE statement building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -299,7 +299,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_index_statement_building(self) -> None:
         """Test CREATE INDEX statement building."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -325,7 +325,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_metrics_tracking(self) -> None:
         """Test metrics recording functionality."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -345,7 +345,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_operation_tracking(self) -> None:
         """Test operation tracking functionality."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -370,7 +370,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -399,7 +399,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_health_check(self) -> None:
         """Test health check functionality."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -417,7 +417,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_query_hash_generation(self) -> None:
         """Test query hash generation."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -436,7 +436,7 @@ class TestFlextDbOracleServicesBasic:
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -456,7 +456,7 @@ class TestServiceErrorHandling:
 
     def test_invalid_sql_identifier_rejection(self) -> None:
         """Test that invalid SQL identifiers are rejected."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -474,7 +474,7 @@ class TestServiceErrorHandling:
 
     def test_empty_parameters_handling(self) -> None:
         """Test handling of empty parameters."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -490,7 +490,7 @@ class TestServiceErrorHandling:
 
     def test_invalid_singer_schema_handling(self) -> None:
         """Test handling of invalid Singer schemas."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",

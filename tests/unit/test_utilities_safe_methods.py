@@ -257,7 +257,7 @@ class TestFlextDbOracleUtilitiesDataValidation:
 
     def test_utilities_configuration_processing(self) -> None:
         """Test configuration processing utilities."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="config_test",
             port=1521,
             name="CONFIG_TEST",

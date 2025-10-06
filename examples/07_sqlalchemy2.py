@@ -14,22 +14,22 @@ from contextlib import contextmanager
 from flext_core import FlextLogger
 from sqlalchemy import Engine, text
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
 
 
-def create_oracle_config() -> FlextDbOracleModels.OracleConfig:
+def create_oracle_config() -> FlextDbOracleConfig:
     """Create Oracle configuration from environment variables.
 
     Returns:
-        FlextDbOracleModels.OracleConfig: Validated Oracle configuration.
+        FlextDbOracleConfig: Validated Oracle configuration.
 
     Raises:
         ValueError: If configuration loading fails.
 
     """
-    config_result = FlextDbOracleModels.OracleConfig.from_env()
+    config_result = FlextDbOracleConfig.from_env()
     if not config_result.is_success:
         msg = f"Failed to load configuration: {config_result.error}"
         raise ValueError(msg)

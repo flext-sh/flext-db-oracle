@@ -69,7 +69,7 @@ class TestModelsModule:
 
         # Test OracleConfig creation if class exists
         if hasattr(FlextDbOracleModels, "OracleConfig"):
-            config = FlextDbOracleModels.OracleConfig(**test_data)
+            config = FlextDbOracleConfig(**test_data)
             assert config is not None
             assert config.host == test_data["host"]
             assert config.port == test_data["port"]
@@ -181,7 +181,7 @@ class TestModelsModule:
 
         # Test OracleConfig creation
         if hasattr(FlextDbOracleModels, "OracleConfig"):
-            config = FlextDbOracleModels.OracleConfig(**test_config_data)
+            config = FlextDbOracleConfig(**test_config_data)
             assert config is not None
 
         # Test TableModel creation
@@ -243,7 +243,7 @@ class TestModelsModule:
 
         # Test OracleConfig creation with flext_tests data
         if hasattr(FlextDbOracleModels, "OracleConfig"):
-            config = FlextDbOracleModels.OracleConfig(**test_config_data)
+            config = FlextDbOracleConfig(**test_config_data)
             assert config is not None
 
         # Test TableModel creation with flext_tests data
@@ -334,7 +334,7 @@ class TestModelsModule:
         # Test OracleConfig creation with realistic configs
         if hasattr(FlextDbOracleModels, "OracleConfig"):
             for config_data in realistic_configs:
-                config = FlextDbOracleModels.OracleConfig(**config_data)
+                config = FlextDbOracleConfig(**config_data)
                 assert config is not None
 
         # Test TableModel creation with realistic tables

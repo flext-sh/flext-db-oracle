@@ -48,7 +48,7 @@ class TestAPIMissedLines:
     ) -> None:
         """Test connection manager specific paths (lines 117-133)."""
         # Create API without connecting
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -161,7 +161,7 @@ class TestConnectionMissedLines:
     ) -> None:
         """Test connection error handling (EXACT lines 73-77)."""
         # Create connection with invalid config to trigger error paths
-        bad_config = FlextDbOracleModels.OracleConfig(
+        bad_config = FlextDbOracleConfig(
             host="127.0.0.1",  # Invalid but quick to fail
             port=9999,
             username="invalid",
@@ -190,7 +190,7 @@ class TestConnectionMissedLines:
         self,
     ) -> None:
         """Test connection lifecycle paths (EXACT lines 140-147)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",

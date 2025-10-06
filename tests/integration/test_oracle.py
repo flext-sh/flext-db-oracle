@@ -13,7 +13,6 @@ import pytest
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleModels,
 )
 
 
@@ -23,7 +22,7 @@ class TestOracleIntegration:
     @pytest.mark.integration
     def test_api_full_workflow(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test complete API workflow with real Oracle connection."""
         # Create API instance
@@ -68,7 +67,7 @@ class TestOracleIntegration:
     @pytest.mark.integration
     def test_api_error_handling(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test error handling with real Oracle connection."""
         api = FlextDbOracleApi(real_oracle_config)
@@ -97,7 +96,7 @@ class TestOracleIntegration:
     @pytest.mark.integration
     def test_api_context_manager(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test API context manager functionality with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
@@ -120,7 +119,7 @@ class TestOracleIntegration:
     @pytest.mark.integration
     def test_api_metadata_operations(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test metadata operations with real Oracle."""
         api = FlextDbOracleApi(real_oracle_config)
@@ -167,7 +166,7 @@ class TestOracleIntegration:
     @pytest.mark.integration
     def test_api_performance_operations(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test performance-related operations with real Oracle."""
         # Use the config parameter to avoid unused argument warning

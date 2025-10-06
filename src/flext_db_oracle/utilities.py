@@ -13,6 +13,7 @@ import hashlib
 import importlib
 import json
 import os
+import re
 from typing import cast
 
 from flext_cli import FlextCliOutput
@@ -22,8 +23,8 @@ from flext_core import (
     FlextUtilities,
 )
 
+from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.models import FlextDbOracleModels
 
 
 class FlextDbOracleUtilities(FlextUtilities):
@@ -115,7 +116,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             return FlextResult.fail(f"Failed to escape Oracle identifier: {e}")
 
     # Factory methods ELIMINATED - use direct class instantiation:
-    # FlextDbOracleModels.OracleConfig.from_env()
+    # FlextDbOracleConfig.from_env()
     # FlextDbOracleApi(config)
 
     @classmethod
@@ -304,7 +305,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                     FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
                 )
             )
-            oracle_config = FlextDbOracleModels.OracleConfig(
+            oracle_config = FlextDbOracleConfig(
                 host=str(
                     config.get(
                         "host", FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST
@@ -361,6 +362,35 @@ class FlextDbOracleUtilities(FlextUtilities):
         except Exception as e:
             if hasattr(console, "print"):
                 getattr(console, "print")(f"Error displaying health data: {e}")
+
+    class OracleValidation:
+        """Oracle validation utilities using flext-core patterns."""
+
+        @staticmethod
+        def validate_identifier(identifier: str) -> FlextResult[str]:
+            """Validate Oracle identifier."""
+            if not identifier or not identifier.strip():
+                return FlextResult[str].fail("Identifier cannot be empty")
+
+            # Check length
+            if (
+                len(identifier)
+                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            ):
+                return FlextResult[str].fail(
+                    f"Identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+                )
+
+            # Check pattern
+            if not re.match(
+                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
+                identifier.upper(),
+            ):
+                return FlextResult[str].fail(
+                    "Identifier does not match Oracle naming pattern"
+                )
+
+            return FlextResult[str].ok(identifier.upper())
 
 
 __all__ = ["FlextDbOracleUtilities"]

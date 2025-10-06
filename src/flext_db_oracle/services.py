@@ -21,7 +21,6 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
-from pydantic import Field
 from sqlalchemy import (
     Column,
     Integer,
@@ -43,14 +42,16 @@ from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 
-class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
+class FlextDbOracleServices(FlextService):
     """SOLID-compliant Oracle database services with complete flext-core integration."""
 
-    # Pydantic model fields
-    config: FlextDbOracleConfig = Field(
-        ...,
-        description="Oracle database configuration",
-    )
+    def __init__(
+        self, config: FlextDbOracleConfig, domain_events: list | None = None
+    ) -> None:
+        """Initialize Oracle services with configuration."""
+        self._config = config
+        self._domain_events = domain_events or []
+        super().__init__(config=self._config)
 
     # =============================================================================
     # NESTED HELPER CLASSES - SINGLE RESPONSIBILITY PRINCIPLE
@@ -166,19 +167,15 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         def _build_connection_url(self) -> FlextResult[str]:
             """Build Oracle connection URL from configuration."""
             try:
-                password = self.config.password
-                if password is None:
+                password = self.config.password.get_secret_value()
+                if not password:
                     return FlextResult[str].fail(
                         "Password is required for database connection"
                     )
                 encoded_password = quote_plus(password)
 
                 # Use SID if available, otherwise use service_name
-                database_identifier = getattr(self.config, "sid", None) or getattr(
-                    self.config,
-                    "service_name",
-                    self.config.name,
-                )
+                database_identifier = self.config.sid or self.config.service_name
 
                 connection_string = (
                     f"oracle+oracledb://{self.config.username}:"
@@ -324,13 +321,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         ) -> Table:
             """Create SQLAlchemy Table object for modern query building."""
             # Validate identifiers first
-            validated_table = FlextDbOracleModels.OracleValidation.validate_identifier(
+            validated_table = FlextDbOracleUtilities.OracleValidation.validate_identifier(
                 table_name,
             ).unwrap()
             validated_schema = None
             if schema_name:
                 validated_schema = (
-                    FlextDbOracleModels.OracleValidation.validate_identifier(
+                    FlextDbOracleUtilities.OracleValidation.validate_identifier(
                         schema_name,
                     ).unwrap()
                 )
@@ -553,7 +550,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
         def _is_safe_identifier(self, identifier: str) -> bool:
             """Check if identifier is safe for SQL using Oracle validation."""
-            result = FlextDbOracleModels.OracleValidation.validate_identifier(
+            result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
                 identifier,
             )
             return bool(result.is_success)
@@ -564,7 +561,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             schema_name: str | None = None,
         ) -> str:
             """Build validated table reference with optional schema."""
-            table_result = FlextDbOracleModels.OracleValidation.validate_identifier(
+            table_result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
                 table_name,
             )
             if table_result.is_failure:
@@ -574,7 +571,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
             if schema_name:
                 schema_result = (
-                    FlextDbOracleModels.OracleValidation.validate_identifier(
+                    FlextDbOracleUtilities.OracleValidation.validate_identifier(
                         schema_name,
                     )
                 )
@@ -782,12 +779,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                 if schema_name:
                     # Validate both schema and table names
                     schema_validation = (
-                        FlextDbOracleModels.OracleValidation.validate_identifier(
+                        FlextDbOracleUtilities.OracleValidation.validate_identifier(
                             schema_name,
                         )
                     )
                     table_validation = (
-                        FlextDbOracleModels.OracleValidation.validate_identifier(
+                        FlextDbOracleUtilities.OracleValidation.validate_identifier(
                             table_name,
                         )
                     )
@@ -796,7 +793,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                 else:
                     # Validate just table name
                     table_validation = (
-                        FlextDbOracleModels.OracleValidation.validate_identifier(
+                        FlextDbOracleUtilities.OracleValidation.validate_identifier(
                             table_name,
                         )
                     )
@@ -807,14 +804,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                 # Create a Table object for the count query
                 metadata: MetaData = MetaData()
                 validated_table = (
-                    FlextDbOracleModels.OracleValidation.validate_identifier(
+                    FlextDbOracleUtilities.OracleValidation.validate_identifier(
                         table_name,
                     ).unwrap()
                 )
                 validated_schema = None
                 if schema_name:
                     validated_schema = (
-                        FlextDbOracleModels.OracleValidation.validate_identifier(
+                        FlextDbOracleUtilities.OracleValidation.validate_identifier(
                             schema_name,
                         ).unwrap()
                     )
@@ -896,7 +893,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                     AND c.owner = :schema
                     ORDER BY cc.position
                     """
-                    params_schema: FlextTypes.Dict = {
+                    params: FlextTypes.Dict = {
                         "table_name": table_name,
                         "schema": schema,
                     }
@@ -911,10 +908,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                     """
                     params: FlextTypes.Dict = {"table_name": table_name}
 
-                if schema:
-                    result = self._query_executor.execute_query(sql, params_schema)
-                else:
-                    result = self._query_executor.execute_query(sql, params)
+                result = self._query_executor.execute_query(sql, params)
                 if result.is_failure:
                     return FlextResult[FlextTypes.StringList].fail(
                         result.error or "Failed to get primary keys"
@@ -1316,7 +1310,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
             # Initialize nested helpers with proper dependency injection
             self._connection_manager = self._ConnectionManager(
-                self.config,
+                self._config,  # type: ignore[arg-type]
                 self._logger,
             )
             self._query_executor = self._QueryExecutor(
@@ -1331,7 +1325,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             self._ddl_generator = self._DdlGenerator(self._logger)
             self._metrics_collector = self._MetricsCollector(
                 self._connection_manager,
-                self.config,
+                self._config,  # type: ignore[arg-type]
                 self._logger,
             )
             self._plugin_registry = self._PluginRegistry(self._logger)
@@ -1343,18 +1337,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                 self._logger.exception("Failed to initialize nested helpers")
             raise
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
-        """Execute main domain service operation - delegate to connection test."""
+    def execute(self) -> FlextResult[FlextDbOracleConfig]:
+        """Execute main domain service operation - return config."""
         test_result = self._connection_manager.test_connection()
         if test_result.is_success:
-            return FlextResult[FlextTypes.Dict].ok(
-                {
-                    "status": "connected",
-                    "host": self.config.host,
-                    "service_name": self.config.service_name,
-                },
-            )
-        return FlextResult[FlextTypes.Dict].fail(
+            return FlextResult[FlextDbOracleConfig].ok(self._config)  # type: ignore[arg-type]
+        return FlextResult[FlextDbOracleConfig].fail(
             test_result.error or "Connection test failed",
         )
 

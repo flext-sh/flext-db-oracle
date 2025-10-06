@@ -1,8 +1,7 @@
-"""Oracle Database API with clean delegation to services layer.
+"""Oracle Database API with complete FLEXT ecosystem integration.
 
-This API provides a clean interface to Oracle database operations
-by delegating all work to the services layer while maintaining
-type safety and proper error handling.
+This API provides a unified interface to Oracle database operations
+following FLEXT patterns with complete flext-core integration.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -11,134 +10,130 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Callable, Sequence
-from typing import Self, cast, override
+from collections.abc import Sequence
+from typing import Self, override
 
 from flext_core import (
+    FlextBus,
     FlextContainer,
     FlextContext,
-    FlextDispatcher,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
-    T,
 )
 
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.models import FlextDbOracleModels, FlextDbOracleModels as Models
+from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 
-from . import dispatcher as oracle_dispatcher
 
-logger = FlextLogger(__name__)
-
-
-class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
+class FlextDbOracleApi(FlextService):
     """Oracle Database API with complete flext-core integration.
 
     This API provides a unified interface to Oracle database operations,
     integrating with flext-core components for proper error handling,
     logging, service orchestration, and enterprise patterns.
+
+    Architecture:
+    - Extends FlextService for domain service patterns
+    - Uses FlextResult railway pattern for error handling
+    - Integrates FlextContainer, FlextContext, FlextBus for enterprise features
+    - Delegates to FlextDbOracleServices for Oracle operations
+    - Optional FlextDispatcher integration for CQRS patterns
     """
 
     @override
     def __init__(
         self,
-        config: Models.OracleConfig,
+        config: FlextDbOracleConfig,
         context_name: str | None = None,
     ) -> None:
-        """Initialize API with Oracle configuration."""
-        super().__init__()  # Initialize FlextService
-        # Convert OracleConfig model to FlextDbOracleConfig settings
-        self._oracle_config: FlextDbOracleConfig = self._convert_to_config(config)
-        self._services: FlextDbOracleServices = FlextDbOracleServices(
-            config=config, domain_events=[]
-        )
+        """Initialize API with Oracle configuration and complete flext-core integration."""
+        # Configuration management - use FlextDbOracleConfig directly
+        self._oracle_config = config
+
+        # Initialize FlextService with config
+        super().__init__(config=self._oracle_config)
+
+        # Core services initialization
+        self._services = FlextDbOracleServices(config=self._oracle_config)
+
+        # Context and naming
         self._context_name = context_name or "oracle-api"
-        self._logger = logger
 
         # Complete flext-core ecosystem integration
         self._container = FlextContainer.get_global()
         self._context = FlextContext()
+        self._bus = FlextBus()
+        # Logger will be initialized lazily via the parent class property
+
+        # Optional dispatcher for CQRS patterns
+        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(
+            self._services, bus=self._bus
+        )
+
+        # Plugin system
         self._plugins: FlextTypes.Dict = {}
-        self._dispatcher: FlextDispatcher | None = None
 
     @property
-    def config(self) -> FlextDbOracleConfig:
+    def oracle_config(self) -> FlextDbOracleConfig:
         """Get the Oracle configuration."""
         return self._oracle_config
-
-    def _convert_to_config(
-        self, oracle_config: Models.OracleConfig
-    ) -> FlextDbOracleConfig:
-        """Convert OracleConfig model to FlextDbOracleConfig settings."""
-        # Create a FlextDbOracleConfig from the OracleConfig model
-        config = FlextDbOracleConfig()
-        # Set the Oracle-specific attributes
-        config.oracle_host = oracle_config.host
-        config.oracle_port = oracle_config.port
-        config.oracle_service_name = getattr(
-            oracle_config, "service_name", oracle_config.name
-        )
-        config.oracle_username = oracle_config.username
-        config.oracle_password = oracle_config.password
-        config.oracle_database_name = oracle_config.name
-        config.oracle_sid = getattr(oracle_config, "sid", "")
-        return config
 
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
             return (
-                self._oracle_config.oracle_port
+                self._oracle_config.port
                 >= FlextDbOracleConstants.OracleNetwork.MIN_PORT
-                and self._oracle_config.oracle_service_name is not None
+                and self._oracle_config.service_name is not None
             )
         except AttributeError:
-            # Config object may be None or missing attributes
             return False
 
     @classmethod
-    def from_config(cls, config: Models.OracleConfig) -> Self:
+    def from_config(cls, config: FlextDbOracleConfig) -> Self:
         """Create API instance from configuration."""
         return cls(config)
 
-    def to_dict(self) -> FlextTypes.Dict:
-        """Convert API instance to dictionary representation.
+    @classmethod
+    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[Self]:
+        """Create API instance from environment variables.
+
+        Args:
+            prefix: Environment variable prefix (default: "ORACLE_")
 
         Returns:
-            dict["str", "object"]: Dictionary containing API state information.
+            FlextResult[Self]: API instance or error.
 
         """
+        try:
+            config_result = FlextDbOracleConfig.from_env(prefix)
+            if config_result.is_failure:
+                return FlextResult[Self].fail(
+                    f"Config creation failed: {config_result.error}"
+                )
+
+            config = config_result.unwrap()
+            return FlextResult[Self].ok(cls(config))
+        except Exception as e:
+            return FlextResult[Self].fail(f"API creation from environment failed: {e}")
+
+    def to_dict(self) -> FlextTypes.Dict:
+        """Convert API instance to dictionary representation."""
         return {
             "config": {
-                "host": self._oracle_config.oracle_host,
-                "port": self._oracle_config.oracle_port,
-                "service_name": self._oracle_config.oracle_service_name,
-                "username": self._oracle_config.oracle_username,
-                # Note: not exposing password for security
+                "host": self._oracle_config.host,
+                "port": self._oracle_config.port,
+                "service_name": self._oracle_config.service_name,
+                "username": self._oracle_config.username,
             },
-            "connected": "False",  # Would require connection check
-            "plugin_count": len(self.plugins),
+            "connected": self.is_connected,
+            "plugin_count": len(self._plugins),
+            "dispatcher_enabled": self._dispatcher is not None,
         }
-
-    def _dispatch_enabled(self) -> bool:
-        """Return True when dispatcher feature flag is active."""
-        return FlextDbOracleConstants.FeatureFlags.dispatcher_enabled()
-
-    def _ensure_dispatcher(self) -> FlextDispatcher | None:
-        """Create dispatcher on-demand when the feature flag is enabled."""
-        if not self._dispatch_enabled():
-            return None
-        if self._dispatcher is None:
-            self._dispatcher = (
-                oracle_dispatcher.FlextDbOracleDispatcher.build_dispatcher(
-                    self._services,
-                )
-            )
-        return self._dispatcher
 
     @property
     def services(self) -> FlextDbOracleServices:
@@ -150,94 +145,24 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
         """Get the plugins dictionary."""
         return self._plugins
 
-    def get_dispatcher(self) -> FlextDispatcher | None:
-        """Get the dispatcher instance."""
-        return self._ensure_dispatcher()
-
-    def get_services(self) -> FlextDbOracleServices:
-        """Get the services instance."""
-        return self._services
-
-    def get_plugins(self) -> FlextTypes.Dict:
-        """Get the plugins dictionary."""
-        return self.plugins
-
-    def dispatch_command(self, command: object) -> FlextResult[object] | None:
-        """Dispatch a command through the shared dispatcher when available."""
-        dispatcher = self._ensure_dispatcher()
-        if dispatcher is None:
-            return None
-
-        dispatch_result: FlextResult[object] = dispatcher.dispatch(command)
-        if dispatch_result.is_failure:
-            return FlextResult[object].fail(
-                dispatch_result.error or "Dispatcher execution failed",
-            )
-
-        payload = dispatch_result.unwrap()
-        if isinstance(payload, FlextResult):
-            return payload
-        return FlextResult[object].ok(payload)
-
-    def dispatch_or(
-        self,
-        command: object,
-        fallback: Callable[[], FlextResult[T]],
-    ) -> FlextResult[T]:
-        """Dispatch command or execute fallback when dispatcher disabled."""
-        dispatched = self.dispatch_command(command)
-        if dispatched is not None:
-            return cast("FlextResult[T]", dispatched)
-        return fallback()
-
     # Connection Management
     def connect(self) -> FlextResult[FlextDbOracleApi]:
-        """Connect to Oracle database.
+        """Connect to Oracle database."""
+        self.logger.info(
+            "Connecting to Oracle database",
+            extra={"host": self._oracle_config.host},
+        )
 
-        Returns:
-            FlextResult[FlextDbOracleApi]: Success result with connected API instance.
-
-        """
-        # Use dispatcher if available, otherwise delegate to services
-        dispatcher = self.get_dispatcher()
-        if dispatcher is not None:
-            dispatch_result = dispatcher.dispatch(
-                oracle_dispatcher.FlextDbOracleDispatcher.ConnectCommand(),
-            )
-            if dispatch_result is not None:
-                return cast("FlextResult[FlextDbOracleApi]", dispatch_result)
-
-        result = self._services.connect()
-        if result.is_success:
-            return FlextResult[FlextDbOracleApi].ok(self)
-        return cast("FlextResult[FlextDbOracleApi]", result)
+        return self._services.connect().map(lambda _: self)
 
     def disconnect(self) -> FlextResult[None]:
-        """Disconnect from Oracle database.
-
-        Returns:
-            FlextResult[None]: Success result when disconnected.
-
-        """
-        dispatch_result = self.dispatch_command(
-            oracle_dispatcher.FlextDbOracleDispatcher.DisconnectCommand(),
-        )
-        if dispatch_result is not None:
-            return cast("FlextResult[None]", dispatch_result)
-
+        """Disconnect from Oracle database."""
+        self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
 
     def test_connection(self) -> FlextResult[bool]:
-        """Test Oracle database connection.
-
-        Returns:
-            FlextResult[bool]: Success result with connection test status.
-
-        """
-        return self.dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.TestConnectionCommand(),
-            self._services.test_connection,
-        )
+        """Test Oracle database connection."""
+        return self._services.test_connection()
 
     @property
     def is_connected(self) -> bool:
@@ -250,21 +175,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
         sql: str,
         parameters: FlextTypes.Dict | None = None,
     ) -> FlextResult[list[FlextTypes.Dict]]:
-        """Execute a SELECT query and return all results.
-
-        Args:
-            sql: The SQL query to execute.
-            parameters: Optional parameters for the query.
-
-        Returns:
-            FlextResult[list[FlextTypes.Dict]]: Success result with query results.
-
-        """
+        """Execute a SELECT query and return all results."""
         params = parameters or {}
-        return self.dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteQueryCommand(sql, params),
-            lambda: self._services.execute_query(sql, params),
-        )
+        self.logger.debug("Executing query", extra={"query_length": len(sql)})
+
+        return self._services.execute_query(sql, params)
 
     def query_one(
         self,
@@ -282,116 +197,58 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
 
         """
         params = parameters or {}
-        return self.dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.FetchOneCommand(sql, params),
-            lambda: self._services.fetch_one(sql, params),
-        )
+        return self._services.fetch_one(sql, params)
 
     def execute_sql(
         self,
         sql: str,
         parameters: FlextTypes.Dict | None = None,
     ) -> FlextResult[int]:
-        """Execute an INSERT/UPDATE/DELETE statement and return rows affected.
-
-        Args:
-            sql: The SQL statement to execute.
-            parameters: Optional parameters for the statement.
-
-        Returns:
-            FlextResult[int]: Success result with number of affected rows.
-
-        """
+        """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         params = parameters or {}
-        return self.dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                sql, params
-            ),
-            lambda: self._services.execute_statement(sql, params),
+        self.logger.debug(
+            "Executing SQL statement", extra={"statement_length": len(sql)}
         )
+
+        return self._services.execute_statement(sql, params)
 
     def execute_many(
         self,
         sql: str,
         parameters_list: Sequence[FlextTypes.Dict],
     ) -> FlextResult[int]:
-        """Execute a statement multiple times with different parameters.
-
-        Args:
-            sql: The SQL statement to execute.
-            parameters_list: List of parameter dictionaries.
-
-        Returns:
-            FlextResult[int]: Success result with total number of affected rows.
-
-        """
+        """Execute a statement multiple times with different parameters."""
         params_list: list[FlextTypes.Dict] = list(parameters_list)
-        return self.dispatch_or(
-            oracle_dispatcher.FlextDbOracleDispatcher.ExecuteManyCommand(
-                sql, params_list
-            ),
-            lambda: self._services.execute_many(sql, params_list),
+        self.logger.debug(
+            "Executing bulk statement", extra={"batch_size": len(params_list)}
         )
+
+        return self._services.execute_many(sql, params_list)
 
     def execute_statement(
         self,
-        sql: str | object,  # Accept both string and SQLAlchemy objects
+        sql: str | object,
         parameters: FlextTypes.Dict | None = None,
     ) -> FlextResult[int]:
-        """Execute SQL statement directly and return affected rows.
-
-        Args:
-            sql: The SQL statement (string or SQLAlchemy object).
-            parameters: Optional parameters for the statement.
-
-        Returns:
-            FlextResult[int]: Success result with number of affected rows.
-
-        """
+        """Execute SQL statement directly and return affected rows."""
         try:
-            # Handle SQLAlchemy objects by converting to string
-            if hasattr(sql, "__str__") and not isinstance(sql, str):
-                sql_text = str(sql)
-            else:
-                sql_text = str(sql)
-
+            sql_text = str(sql) if not isinstance(sql, str) else sql
             params = parameters or {}
-            return self.dispatch_or(
-                oracle_dispatcher.FlextDbOracleDispatcher.ExecuteStatementCommand(
-                    sql_text, params
-                ),
-                lambda: self._services.execute_statement(sql_text, params),
-            )
-        except (AttributeError, TypeError, ValueError) as e:
+
+            return self._services.execute_statement(sql_text, params)
+        except Exception as e:
             return FlextResult.fail(f"Statement execution failed: {e}")
 
     # Schema Introspection
     def get_schemas(self) -> FlextResult[FlextTypes.StringList]:
-        """Get list of available schemas.
-
-        Returns:
-            FlextResult[list[str]]: Success result with list of schema names.
-
-        """
+        """Get list of available schemas."""
         return self._services.get_schemas()
 
     def get_tables(
-        self,
-        schema: str | None = None,
+        self, schema: str | None = None
     ) -> FlextResult[FlextTypes.StringList]:
-        """Get list of tables in specified schema.
-
-        Args:
-            schema: Optional schema name to filter tables.
-
-        Returns:
-            FlextResult[list[str]]: Success result with list of table names.
-
-        """
-        result = self._services.get_tables(schema)
-        if result.is_success:
-            return FlextResult[FlextTypes.StringList].ok(result.value)
-        return FlextResult[FlextTypes.StringList].fail(result.error or "Unknown error")
+        """Get list of tables in specified schema."""
+        return self._services.get_tables(schema)
 
     def get_columns(
         self,
@@ -528,32 +385,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
         """
         return self._services.get_metrics()
 
-    # Configuration
-
-    @classmethod
-    def from_env(
-        cls, prefix: str = "FLEXT_TARGET_ORACLE"
-    ) -> FlextResult[FlextDbOracleApi]:
-        """Create API instance from environment variables."""
-        config_result = FlextDbOracleModels.OracleConfig.from_env(
-            prefix.replace("FLEXT_TARGET_", ""),
-        )
-        if config_result.is_success:
-            instance = cls.from_config(config_result.value)
-            return FlextResult.ok(instance)
-        return FlextResult.fail(
-            f"Failed to load config from environment: {config_result.error}",
-        )
-
-    @classmethod
-    def from_url(cls, database_url: str) -> FlextResult[FlextDbOracleApi]:
-        """Create API instance from database URL."""
-        config_result = FlextDbOracleModels.OracleConfig.from_url(database_url)
-        if config_result.is_success:
-            instance = cls.from_config(config_result.value)
-            return FlextResult.ok(instance)
-        return FlextResult.fail(f"Failed to parse database URL: {config_result.error}")
-
     # Plugin System
     def register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
         """Register a plugin with the services layer.
@@ -626,10 +457,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
     ) -> FlextResult[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:
-            result = self.dispatch_or(
-                oracle_dispatcher.FlextDbOracleDispatcher.ExecuteQueryCommand(sql, {}),
-                lambda: self._services.execute_query(sql),
-            )
+            result = self._services.execute_query(sql)
             if result.is_success:
                 # Convert result data to proper format for QueryResult
                 # If it's raw data, wrap it in QueryResult
@@ -674,9 +502,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
             status = {
                 "connected": hasattr(self._services, "_connected")
                 and getattr(self._services, "_connected", False),
-                "host": self._config.host,
-                "port": self._config.port,
-                "service_name": self._config.service_name,
+                "host": self._oracle_config.host,
+                "port": self._oracle_config.port,
+                "service_name": self._oracle_config.service_name,
             }
             return FlextResult.ok(status)
         except Exception as e:
@@ -694,6 +522,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
         """Get connection object - public interface."""
         return self._connection
 
+    def _dispatch_enabled(self) -> bool:
+        """Check if dispatcher is enabled."""
+        return self._dispatcher is not None
+
     def __enter__(self) -> Self:
         """Context manager entry."""
         return self
@@ -703,18 +535,18 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
         if hasattr(self._services, "disconnect"):
             with contextlib.suppress(Exception):
                 # Log cleanup attempt but suppress errors during context exit
-                logger.debug("Attempting disconnect during context manager exit")
+                self.logger.debug("Attempting disconnect during context manager exit")
                 self._services.disconnect()
 
-    def execute(self) -> FlextResult[FlextTypes.Dict]:
-        """Execute default domain service operation - return API status.
+    def execute(self) -> FlextResult[FlextDbOracleConfig]:
+        """Execute default domain service operation - return config.
 
         Returns:
-            FlextResult[dict["str", "object"]]: API status information or error.
+            FlextResult[FlextDbOracleConfig]: Configuration instance or error.
 
         """
         try:
-            return FlextResult.ok(self.to_dict())
+            return FlextResult.ok(self._oracle_config)
         except Exception as e:
             return FlextResult.fail(f"API execution failed: {e}")
 
@@ -722,4 +554,4 @@ class FlextDbOracleApi(FlextService[FlextDbOracleConfig]):
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
         connection_status = "connected" if self.is_connected else "disconnected"
-        return f"FlextDbOracleApi(host={self._config.host}, status={connection_status})"
+        return f"FlextDbOracleApi(host={self._oracle_config.host}, status={connection_status})"

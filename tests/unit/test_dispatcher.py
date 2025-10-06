@@ -14,6 +14,7 @@ from typing import cast
 from flext_core import FlextBus, FlextDispatcher, FlextTypes
 
 from flext_db_oracle import (
+    FlextDbOracleConfig,
     FlextDbOracleDispatcher,
     FlextDbOracleServices,
 )
@@ -32,7 +33,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test build_dispatcher method (covers lines 70-144)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
@@ -48,7 +49,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
         custom_bus = FlextBus()
 
         # Call with keyword argument as per method signature
@@ -67,7 +68,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         connect_cmd = FlextDbOracleDispatcher.ConnectCommand()
@@ -86,7 +87,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         disconnect_cmd = FlextDbOracleDispatcher.DisconnectCommand()
@@ -103,7 +104,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         test_cmd = FlextDbOracleDispatcher.TestConnectionCommand()
@@ -120,7 +121,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         query_cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
@@ -140,7 +141,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         fetch_cmd = FlextDbOracleDispatcher.FetchOneCommand(
@@ -160,7 +161,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         stmt_cmd = FlextDbOracleDispatcher.ExecuteStatementCommand(
@@ -180,7 +181,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
@@ -203,7 +204,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         schemas_cmd = FlextDbOracleDispatcher.GetSchemasCommand()
@@ -220,7 +221,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         tables_cmd = FlextDbOracleDispatcher.GetTablesCommand(schema="PUBLIC")
@@ -237,7 +238,7 @@ class TestDispatcherSurgical:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         columns_cmd = FlextDbOracleDispatcher.GetColumnsCommand(

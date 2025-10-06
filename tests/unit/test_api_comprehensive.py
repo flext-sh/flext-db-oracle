@@ -17,7 +17,6 @@ from flext_tests import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleModels,
     dispatcher as oracle_dispatcher,
 )
 
@@ -27,7 +26,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
-        self.config = FlextDbOracleModels.OracleConfig(
+        self.config = FlextDbOracleConfig(
             host="test_host",
             port=1521,
             service_name="TEST",
@@ -405,7 +404,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_result = (
             FlextTestsBuilders.result()
             .with_success_data(
-                FlextDbOracleModels.OracleConfig(
+                FlextDbOracleConfig(
                     host="testbuilder_host",
                     port=1521,
                     service_name="testbuilder_service",
@@ -422,7 +421,7 @@ class TestFlextDbOracleApiRealFunctionality:
             raise AssertionError(msg)
 
         # Cast to FlextResult to satisfy mypy
-        result = cast("FlextResult[FlextDbOracleModels.OracleConfig]", config_result)
+        result = cast("FlextResult[FlextDbOracleConfig]", config_result)
         FlextTestsMatchers.assert_result_success(result)
         config_data = result.value  # Access data from builder result
         # Handle case where builder returns dict with 'data' key
@@ -430,7 +429,7 @@ class TestFlextDbOracleApiRealFunctionality:
             config = config_data["data"]
         else:
             config = config_data
-        assert isinstance(config, FlextDbOracleModels.OracleConfig)
+        assert isinstance(config, FlextDbOracleConfig)
 
         # Test API creation with TestBuilders configuration
         api = FlextDbOracleApi(config)
@@ -443,7 +442,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_api_multiple_instances_isolation_real(self) -> None:
         """Test that multiple API instances are properly isolated."""
-        config1 = FlextDbOracleModels.OracleConfig(
+        config1 = FlextDbOracleConfig(
             host="instance1",
             port=1521,
             service_name="service1",
@@ -451,7 +450,7 @@ class TestFlextDbOracleApiRealFunctionality:
             password="password1",
         )
 
-        config2 = FlextDbOracleModels.OracleConfig(
+        config2 = FlextDbOracleConfig(
             host="instance2",
             port=1522,
             service_name="service2",
@@ -736,7 +735,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_api_configuration_variations_real(self) -> None:
         """Test API with various configuration scenarios."""
         # Test with minimal config
-        minimal_config = FlextDbOracleModels.OracleConfig(
+        minimal_config = FlextDbOracleConfig(
             host="m",
             port=1,
             service_name="S",
@@ -751,7 +750,7 @@ class TestFlextDbOracleApiRealFunctionality:
         FlextTestsMatchers.assert_result_success(plugins)
 
         # Test with config containing special characters
-        special_config = FlextDbOracleModels.OracleConfig(
+        special_config = FlextDbOracleConfig(
             host="host-with.dots",
             port=65535,
             service_name="SERVICE_WITH_UNDERSCORES",

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from flext_core import FlextResult
 
-from flext_db_oracle import FlextDbOracleClient, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleClient
 
 
 class TestFlextDbOracleClientReal:
@@ -217,7 +217,7 @@ class TestFlextDbOracleClientIntegration:
     def test_client_with_real_config_creation(self) -> None:
         """Test client operations with real configuration objects."""
         # Create real configuration
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             name="XE",  # Required field

@@ -76,6 +76,25 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleBaseError(FlextExceptions.BaseError):
         """Base Oracle database error with standard helper methods."""
 
+        def _extract_common_kwargs(
+            self, kwargs: dict
+        ) -> tuple[dict, str | None, str | None]:
+            """Extract common kwargs for error initialization."""
+            context = kwargs.pop("context", {})
+            correlation_id = kwargs.pop("correlation_id", None)
+            error_code = kwargs.pop("error_code", None)
+            return (
+                context,
+                str(correlation_id) if correlation_id is not None else None,
+                str(error_code) if error_code is not None else None,
+            )
+
+        def _build_context(self, base_context: dict, **oracle_fields: object) -> dict:
+            """Build complete context with Oracle-specific fields."""
+            context = dict(base_context)
+            context.update(oracle_fields)
+            return context
+
         @override
         def __init__(self, message: str, **kwargs: object) -> None:
             """Initialize Oracle base error with message and context using helpers.
@@ -106,44 +125,36 @@ class FlextDbOracleExceptions(FlextExceptions):
             if "connection_info" in kwargs:
                 conn_info = kwargs.pop("connection_info")
                 self.connection_info = (
-                    dict(conn_info)
-                    if conn_info is not None and hasattr(conn_info, "items")
-                    else None
+                    dict(conn_info) if isinstance(conn_info, dict) else None
                 )
 
             # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
+            base_context, correlation_id, _error_code = self._extract_common_kwargs(
                 kwargs
             )
 
+            # Allow subclasses to add their own context fields
+            extra_context = self._get_extra_context()
+
             # Build context with Oracle-specific fields
-            context = self._build_context(
+            full_context = self._build_context(
                 base_context,
                 oracle_code=self.oracle_code,
                 sql_statement=self.sql_statement,
                 connection_info=self.connection_info,
+                **extra_context,
             )
-
-    def _extract_common_kwargs(self, kwargs: dict) -> tuple[dict, str | None, str | None]:
-        """Extract common kwargs for error initialization."""
-        context = kwargs.pop("context", {})
-        correlation_id = kwargs.pop("correlation_id", None)
-        error_code = kwargs.pop("error_code", None)
-        return context, correlation_id, error_code
-
-    def _build_context(self, base_context: dict, **oracle_fields) -> dict:
-        """Build complete context with Oracle-specific fields."""
-        context = dict(base_context)
-        context.update(oracle_fields)
-        return context
 
             # Call parent with complete error information
             super().__init__(
                 message,
-                code=error_code or "ORACLE_ERROR",
-                context=context,
+                **full_context,
                 correlation_id=correlation_id,
             )
+
+        def _get_extra_context(self) -> dict:
+            """Allow subclasses to add their own context fields."""
+            return {}
 
     class OracleError(OracleBaseError):
         """General Oracle database error."""
@@ -157,7 +168,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleValidationError(OracleBaseError):
         """Oracle validation error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -181,28 +191,21 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.value = value
             self.validation_details = validation_details
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with validation-specific fields
-            context = self._build_context(
-                base_context,
-                field=field,
-                value=value,
-                validation_details=validation_details,
-            )
-
-            # Call parent with complete error information
+            # Call parent with validation-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_VALIDATION_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_VALIDATION_ERROR",
                 **kwargs,
             )
             self.error_type = "ValidationError"
+
+        def _get_extra_context(self) -> dict:
+            """Add validation-specific context fields."""
+            return {
+                "field": self.field,
+                "value": self.value,
+                "validation_details": self.validation_details,
+            }
 
         @classmethod
         def from_field_error(
@@ -218,7 +221,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleConfigurationError(OracleBaseError):
         """Oracle configuration error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -239,27 +241,20 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.config_key = config_key
             self.config_file = config_file
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with configuration-specific fields
-            context = self._build_context(
-                base_context,
-                config_key=config_key,
-                config_file=config_file,
-            )
-
-            # Call parent with complete error information
+            # Call parent with configuration-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_CONFIGURATION_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_CONFIGURATION_ERROR",
                 **kwargs,
             )
             self.error_type = "ConfigurationError"
+
+        def _get_extra_context(self) -> dict:
+            """Add configuration-specific context fields."""
+            return {
+                "config_key": self.config_key,
+                "config_file": self.config_file,
+            }
 
         @classmethod
         def missing_config(
@@ -271,7 +266,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleConnectionError(OracleBaseError):
         """Oracle connection error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -298,34 +292,26 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.endpoint = endpoint
             self.service = service
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with connection-specific fields
-            context = self._build_context(
-                base_context,
-                host=host,
-                port=port,
-                endpoint=endpoint,
-                service=service,
-            )
-
-            # Call parent with complete error information
+            # Call parent with connection-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_CONNECTION_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_CONNECTION_ERROR",
                 **kwargs,
             )
             self.error_type = "ConnectionError"
 
+        def _get_extra_context(self) -> dict:
+            """Add connection-specific context fields."""
+            return {
+                "host": self.host,
+                "port": self.port,
+                "endpoint": self.endpoint,
+                "service": self.service,
+            }
+
     class OracleAuthenticationError(OracleBaseError):
         """Oracle authentication error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -343,26 +329,19 @@ class FlextDbOracleExceptions(FlextExceptions):
             """
             self.username = username
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with authentication-specific fields
-            context = self._build_context(
-                base_context,
-                username=username,
-            )
-
-            # Call parent with complete error information
+            # Call parent with authentication-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_AUTHENTICATION_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_AUTHENTICATION_ERROR",
                 **kwargs,
             )
             self.error_type = "AuthenticationError"
+
+        def _get_extra_context(self) -> dict:
+            """Add authentication-specific context fields."""
+            return {
+                "username": self.username,
+            }
 
         @classmethod
         def invalid_credentials(
@@ -376,7 +355,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleProcessingError(OracleBaseError):
         """Oracle data processing error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -397,27 +375,20 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.operation = operation
             self.data_context = data_context or {}
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with processing-specific fields
-            context = self._build_context(
-                base_context,
-                operation=operation,
-                data_context=data_context,
-            )
-
-            # Call parent with complete error information
+            # Call parent with processing-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_PROCESSING_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_PROCESSING_ERROR",
                 **kwargs,
             )
             self.error_type = "ProcessingError"
+
+        def _get_extra_context(self) -> dict:
+            """Add processing-specific context fields."""
+            return {
+                "operation": self.operation,
+                "data_context": self.data_context,
+            }
 
         @classmethod
         def data_conversion_failed(
@@ -432,7 +403,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleTimeoutError(OracleBaseError):
         """Oracle timeout error."""
 
-        @override
         def __init__(
             self,
             message: str,
@@ -453,27 +423,20 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.timeout_seconds = timeout_seconds
             self.operation = operation
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with timeout-specific fields
-            context = self._build_context(
-                base_context,
-                timeout_seconds=timeout_seconds,
-                operation=operation,
-            )
-
-            # Call parent with complete error information
+            # Call parent with timeout-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_TIMEOUT_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_TIMEOUT_ERROR",
                 **kwargs,
             )
             self.error_type = "TimeoutError"
+
+        def _get_extra_context(self) -> dict:
+            """Add timeout-specific context fields."""
+            return {
+                "timeout_seconds": self.timeout_seconds,
+                "operation": self.operation,
+            }
 
         @classmethod
         def query_timeout(
@@ -493,7 +456,6 @@ class FlextDbOracleExceptions(FlextExceptions):
     class OracleQueryError(OracleBaseError):
         """Oracle query execution error."""
 
-        @override
         def __init__(
             self, message: str, *, query: str | None = None, **kwargs: object
         ) -> None:
@@ -507,32 +469,24 @@ class FlextDbOracleExceptions(FlextExceptions):
             """
             self.query = query
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with query-specific fields
-            context = self._build_context(
-                base_context,
-                query=query,
-            )
-
-            # Call parent with complete error information
+            # Call parent with query-specific error code and sql_statement
             super().__init__(
                 message,
-                code=error_code or "ORACLE_QUERY_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_QUERY_ERROR",
                 sql_statement=query,
                 **kwargs,
             )
             self.error_type = "QueryError"
 
+        def _get_extra_context(self) -> dict:
+            """Add query-specific context fields."""
+            return {
+                "query": self.query,
+            }
+
     class OracleMetadataError(OracleBaseError):
         """Oracle metadata retrieval error."""
 
-        @override
         def __init__(
             self, message: str, *, table_name: str | None = None, **kwargs: object
         ) -> None:
@@ -546,26 +500,19 @@ class FlextDbOracleExceptions(FlextExceptions):
             """
             self.table_name = table_name
 
-            # Extract common parameters using helper
-            base_context, correlation_id, error_code = self._extract_common_kwargs(
-                kwargs
-            )
-
-            # Build context with metadata-specific fields
-            context = self._build_context(
-                base_context,
-                table_name=table_name,
-            )
-
-            # Call parent with complete error information
+            # Call parent with metadata-specific error code
             super().__init__(
                 message,
-                code=error_code or "ORACLE_METADATA_ERROR",
-                context=context,
-                correlation_id=correlation_id,
+                code="ORACLE_METADATA_ERROR",
                 **kwargs,
             )
             self.error_type = "MetadataError"
+
+        def _get_extra_context(self) -> dict:
+            """Add metadata-specific context fields."""
+            return {
+                "table_name": self.table_name,
+            }
 
     # Alias for backward compatibility
     ProcessingError = OracleProcessingError
@@ -635,39 +582,3 @@ class FlextDbOracleExceptions(FlextExceptions):
 __all__: FlextTypes.StringList = [
     "FlextDbOracleExceptions",
 ]
-
-# Aliases for backward compatibility and convenience
-setattr(
-    FlextDbOracleExceptions,
-    "ValidationError",
-    FlextDbOracleExceptions.OracleValidationError,
-)
-setattr(
-    FlextDbOracleExceptions,
-    "ConfigurationError",
-    FlextDbOracleExceptions.OracleConfigurationError,
-)
-setattr(
-    FlextDbOracleExceptions,
-    "ConnectionError",
-    FlextDbOracleExceptions.OracleConnectionError,
-)
-setattr(
-    FlextDbOracleExceptions,
-    "AuthenticationError",
-    FlextDbOracleExceptions.OracleAuthenticationError,
-)
-setattr(
-    FlextDbOracleExceptions,
-    "ProcessingError",
-    FlextDbOracleExceptions.OracleProcessingError,
-)
-setattr(
-    FlextDbOracleExceptions, "TimeoutError", FlextDbOracleExceptions.OracleTimeoutError
-)
-setattr(FlextDbOracleExceptions, "QueryError", FlextDbOracleExceptions.OracleQueryError)
-setattr(
-    FlextDbOracleExceptions,
-    "MetadataError",
-    FlextDbOracleExceptions.OracleMetadataError,
-)

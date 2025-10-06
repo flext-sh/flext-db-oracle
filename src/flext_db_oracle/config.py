@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
+from typing import ClassVar
 
 from flext_core import (
     FlextConfig,
@@ -17,8 +17,13 @@ from flext_core import (
     FlextResult,
     FlextTypes,
 )
-from pydantic import Field, SecretStr, ValidationInfo, computed_field, field_validator
-from pydantic_settings import SettingsConfigDict
+from pydantic import (
+    Field,
+    SecretStr,
+    ValidationInfo,
+    computed_field,
+    field_validator,
+)
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 
@@ -31,105 +36,237 @@ class FlextDbOracleConfig(FlextConfig):
     Uses enhanced singleton pattern with inverse dependency injection.
     """
 
-    model_config = SettingsConfigDict(
-        env_prefix="FLEXT_DB_ORACLE_",
-        case_sensitive=False,
-        extra="ignore",
-        use_enum_values=True,
-        # Inherit enhanced Pydantic 2.11+ features from FlextConfig
-        validate_assignment=True,
-        str_strip_whitespace=True,
-        json_schema_extra={
+    # Configuration inherited from FlextConfig with Oracle-specific env prefix
+    model_config: ClassVar[dict] = {
+        **FlextConfig.model_config,
+        "env_prefix": "FLEXT_DB_ORACLE_",
+        "json_schema_extra": {
             "title": "FLEXT DB Oracle Configuration",
             "description": "Enterprise Oracle database configuration extending FlextConfig",
         },
-    )
+    }
 
-    # Oracle Connection Configuration
-    oracle_host: str = Field(
+    def __init__(self, **data: object) -> None:
+        """Initialize Oracle configuration with keyword arguments."""
+        # Extract required parameters for FlextConfig
+        app_name = str(data.pop("app_name", "flext-db-oracle"))
+        version = str(data.pop("version", "1.0.0"))
+        environment = str(data.pop("environment", "development"))
+        debug = bool(data.pop("debug", False))
+        trace = bool(data.pop("trace", False))
+        log_level = str(data.pop("log_level", "INFO"))
+        json_output = data.pop("json_output", None)
+        if json_output is not None:
+            json_output = bool(json_output)
+        include_source = bool(data.pop("include_source", True))
+        structured_output = bool(data.pop("structured_output", False))
+        log_verbosity = str(data.pop("log_verbosity", "normal"))
+        log_format = str(
+            data.pop(
+                "log_format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+        )
+        log_file = data.pop("log_file", None)
+        if log_file is not None:
+            log_file = str(log_file)
+        log_file_max_size = int(
+            str(data.pop("log_file_max_size", "10485760"))
+        )  # 10MB default
+        log_file_backup_count = int(
+            str(data.pop("log_file_backup_count", "5"))
+        )  # 5 backups default
+        console_enabled = bool(data.pop("console_enabled", True))
+        console_color_enabled = bool(data.pop("console_color_enabled", True))
+        track_performance = bool(data.pop("track_performance", False))
+        track_timing = bool(data.pop("track_timing", False))
+        include_context = bool(data.pop("include_context", True))
+        include_correlation_id = bool(data.pop("include_correlation_id", True))
+        mask_sensitive_data = bool(data.pop("mask_sensitive_data", True))
+        database_url = data.pop("database_url", None)
+        if database_url is not None:
+            database_url = str(database_url)
+        database_pool_size = int(
+            str(data.pop("database_pool_size", "10"))
+        )  # 10 connections default
+        cache_ttl = int(str(data.pop("cache_ttl", "300")))  # 5 minutes default
+        cache_max_size = int(
+            str(data.pop("cache_max_size", "1000"))
+        )  # 1000 items default
+        secret_key = data.pop("secret_key", None)
+        if secret_key is not None:
+            from pydantic import SecretStr
+
+            secret_key = SecretStr(str(secret_key))
+        api_key = data.pop("api_key", None)
+        if api_key is not None:
+            from pydantic import SecretStr
+
+            api_key = SecretStr(str(api_key))
+        max_retry_attempts = int(
+            str(data.pop("max_retry_attempts", "3"))
+        )  # 3 retries default
+        timeout_seconds = int(
+            str(data.pop("timeout_seconds", "30"))
+        )  # 30 seconds default
+        enable_caching = bool(data.pop("enable_caching", True))
+        enable_metrics = bool(data.pop("enable_metrics", True))
+        enable_tracing = bool(data.pop("enable_tracing", False))
+        jwt_expiry_minutes = int(
+            str(data.pop("jwt_expiry_minutes", "60"))
+        )  # 60 minutes default
+        bcrypt_rounds = int(str(data.pop("bcrypt_rounds", "12")))  # 12 rounds default
+        jwt_secret = str(data.pop("jwt_secret", "change-me-in-production"))
+        max_workers = int(str(data.pop("max_workers", "10")))  # 10 workers default
+        enable_circuit_breaker = bool(data.pop("enable_circuit_breaker", False))
+        circuit_breaker_threshold = int(
+            str(data.pop("circuit_breaker_threshold", "5"))
+        )  # 5 failures default
+        rate_limit_max_requests = int(
+            str(data.pop("rate_limit_max_requests", "100"))
+        )  # 100 requests default
+        rate_limit_window_seconds = int(
+            str(data.pop("rate_limit_window_seconds", "60"))
+        )  # 60 seconds default
+        batch_size = int(str(data.pop("batch_size", "100")))  # 100 items default
+        cache_size = int(str(data.pop("cache_size", "1000")))  # 1000 items default
+        retry_delay_seconds = float(
+            str(data.pop("retry_delay_seconds", "1.0"))
+        )  # 1.0 seconds default
+        validation_timeout_ms = int(
+            str(data.pop("validation_timeout_ms", "100"))
+        )  # 100ms default
+        validation_strict_mode = bool(data.pop("validation_strict_mode", False))
+        serialization_encoding = str(data.pop("serialization_encoding", "utf-8"))
+        dispatcher_auto_context = bool(data.pop("dispatcher_auto_context", True))
+        dispatcher_timeout_seconds = int(
+            str(data.pop("dispatcher_timeout_seconds", "30"))
+        )  # 30 seconds default
+        dispatcher_enable_metrics = bool(data.pop("dispatcher_enable_metrics", True))
+        dispatcher_enable_logging = bool(data.pop("dispatcher_enable_logging", True))
+        json_indent = int(str(data.pop("json_indent", "2")))  # 2 spaces default
+        json_sort_keys = bool(data.pop("json_sort_keys", False))
+        ensure_json_serializable = bool(data.pop("ensure_json_serializable", True))
+        use_utc_timestamps = bool(data.pop("use_utc_timestamps", True))
+        timestamp_auto_update = bool(data.pop("timestamp_auto_update", True))
+        max_name_length = int(
+            str(data.pop("max_name_length", "100"))
+        )  # 100 chars default
+        min_phone_digits = int(
+            str(data.pop("min_phone_digits", "10"))
+        )  # 10 digits default
+        super().__init__(
+            app_name=app_name,
+            version=version,
+            environment=environment,
+            debug=debug,
+            trace=trace,
+            log_level=log_level,
+            json_output=json_output,
+            include_source=include_source,
+            structured_output=structured_output,
+            log_verbosity=log_verbosity,
+            log_format=log_format,
+            log_file=log_file,
+            log_file_max_size=log_file_max_size,
+            log_file_backup_count=log_file_backup_count,
+            console_enabled=console_enabled,
+            console_color_enabled=console_color_enabled,
+            track_performance=track_performance,
+            track_timing=track_timing,
+            include_context=include_context,
+            include_correlation_id=include_correlation_id,
+            mask_sensitive_data=mask_sensitive_data,
+            database_url=database_url,
+            database_pool_size=database_pool_size,
+            cache_ttl=cache_ttl,
+            cache_max_size=cache_max_size,
+            secret_key=secret_key,
+            api_key=api_key,
+            max_retry_attempts=max_retry_attempts,
+            timeout_seconds=timeout_seconds,
+            enable_caching=enable_caching,
+            enable_metrics=enable_metrics,
+            enable_tracing=enable_tracing,
+            jwt_expiry_minutes=jwt_expiry_minutes,
+            bcrypt_rounds=bcrypt_rounds,
+            jwt_secret=jwt_secret,
+            max_workers=max_workers,
+            enable_circuit_breaker=enable_circuit_breaker,
+            circuit_breaker_threshold=circuit_breaker_threshold,
+            rate_limit_max_requests=rate_limit_max_requests,
+            rate_limit_window_seconds=rate_limit_window_seconds,
+            batch_size=batch_size,
+            cache_size=cache_size,
+            retry_delay_seconds=retry_delay_seconds,
+            validation_timeout_ms=validation_timeout_ms,
+            validation_strict_mode=validation_strict_mode,
+            serialization_encoding=serialization_encoding,
+            dispatcher_auto_context=dispatcher_auto_context,
+            dispatcher_timeout_seconds=dispatcher_timeout_seconds,
+            dispatcher_enable_metrics=dispatcher_enable_metrics,
+            dispatcher_enable_logging=dispatcher_enable_logging,
+            json_indent=json_indent,
+            json_sort_keys=json_sort_keys,
+            ensure_json_serializable=ensure_json_serializable,
+            use_utc_timestamps=use_utc_timestamps,
+            timestamp_auto_update=timestamp_auto_update,
+            max_name_length=max_name_length,
+            min_phone_digits=min_phone_digits,
+            **data,
+        )
+
+    # Oracle Connection Configuration - matching model field names
+    host: str = Field(
         default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
         description="Oracle database hostname or IP address",
     )
 
-    oracle_port: int = Field(
+    port: int = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
         ge=1,
         le=65535,
         description="Oracle database port number",
     )
 
-    oracle_service_name: str = Field(
+    service_name: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
         description="Oracle service name",
     )
 
-    oracle_database_name: str = Field(
+    name: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_DATABASE_NAME,
         description="Oracle database name",
     )
 
-    oracle_sid: str = Field(
+    sid: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_SID,
         description="Oracle SID (System Identifier)",
     )
 
-    oracle_username: str = Field(
+    username: str = Field(
         default="",
         description="Oracle database username",
     )
 
-    # Backward compatibility properties for old attribute names
-    @property
-    def host(self) -> str:
-        """Backward compatibility property for oracle_host."""
-        return self.oracle_host
-
-    @property
-    def port(self) -> int:
-        """Backward compatibility property for oracle_port."""
-        return self.oracle_port
-
-    @property
-    def service_name(self) -> str:
-        """Backward compatibility property for oracle_service_name."""
-        return self.oracle_service_name
-
-    @property
-    def username(self) -> str:
-        """Backward compatibility property for oracle_username."""
-        return self.oracle_username
+    password: SecretStr = Field(
+        default_factory=lambda: SecretStr(""),
+        description="Oracle database password (sensitive)",
+    )
 
     @computed_field
     @property
     def connection_string(self) -> str:
         """Computed Oracle connection string for SQLAlchemy."""
         # Build connection string using Oracle format
-        user = self.oracle_username
-        password = (
-            self.oracle_password.get_secret_value() if self.oracle_password else ""
-        )
-        host = self.oracle_host
-        port = self.oracle_port
-        service = self.oracle_service_name
+        user = self.username
+        password = self.password.get_secret_value() if self.password else ""
+        host = self.host
+        port = self.port
+        service = self.service_name
 
         return f"oracle+oracledb://{user}:{password}@{host}:{port}/{service}"
 
-    @property
-    def protocol(self) -> str:
-        """Backward compatibility property for connection protocol."""
-        return "tcps"  # Default protocol for Oracle connections
-
-    @property
-    def ssl_enabled(self) -> bool:
-        """Backward compatibility property for SSL configuration."""
-        return True  # Default SSL enabled for Oracle connections
-
-    oracle_password: SecretStr = Field(
-        default_factory=lambda: SecretStr(""),
-        description="Oracle database password (sensitive)",
-    )
-
-    oracle_charset: str = Field(
+    charset: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_CHARSET,
         description="Oracle database character set",
     )
@@ -249,7 +386,7 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     # Validation methods
-    @field_validator("oracle_service_name")
+    @field_validator("service_name")
     @classmethod
     def validate_service_name(cls, v: str) -> str:
         """Validate Oracle service name."""
@@ -267,7 +404,7 @@ class FlextDbOracleConfig(FlextConfig):
 
         return v.strip().upper()
 
-    @field_validator("oracle_database_name")
+    @field_validator("name")
     @classmethod
     def validate_database_name(cls, v: str) -> str:
         """Validate Oracle database name."""
@@ -285,7 +422,7 @@ class FlextDbOracleConfig(FlextConfig):
 
         return v.strip().upper()
 
-    @field_validator("oracle_sid")
+    @field_validator("sid")
     @classmethod
     def validate_sid(cls, v: str) -> str:
         """Validate Oracle SID."""
@@ -315,13 +452,13 @@ class FlextDbOracleConfig(FlextConfig):
     def validate_connection_config(self) -> FlextResult[None]:
         """Validate the complete connection configuration."""
         # Validate required fields
-        if not self.oracle_host:
+        if not self.host:
             return FlextResult[None].fail("Oracle host is required")
 
-        if not self.oracle_username:
+        if not self.username:
             return FlextResult[None].fail("Oracle username is required")
 
-        if not self.oracle_password.get_secret_value():
+        if not self.password.get_secret_value():
             return FlextResult[None].fail("Oracle password is required")
 
         # Validate pool configuration
@@ -346,70 +483,74 @@ class FlextDbOracleConfig(FlextConfig):
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""
-        if self.oracle_service_name:
-            return f"{self.oracle_host}:{self.oracle_port}/{self.oracle_service_name}"
-        if self.oracle_sid:
-            return f"{self.oracle_host}:{self.oracle_port}:{self.oracle_sid}"
-        return f"{self.oracle_host}:{self.oracle_port}"
+        if self.service_name:
+            return f"{self.host}:{self.port}/{self.service_name}"
+        if self.sid:
+            return f"{self.host}:{self.port}:{self.sid}"
+        return f"{self.host}:{self.port}"
 
     def get_connection_config(self) -> FlextTypes.Dict:
         """Get connection configuration (without exposing secrets)."""
         return {
-            "host": self.oracle_host,
-            "port": self.oracle_port,
-            "service_name": self.oracle_service_name,
-            "database_name": self.oracle_database_name,
-            "sid": self.oracle_sid,
-            "username": self.oracle_username,
-            "charset": self.oracle_charset,
-            "password_configured": bool(self.oracle_password.get_secret_value()),
+            "host": self.host,
+            "port": self.port,
+            "service_name": self.service_name,
+            "database_name": self.name,
+            "sid": self.sid,
+            "username": self.username,
+            "charset": self.charset,
+            "password_configured": bool(self.password.get_secret_value()),
         }
 
     @classmethod
-    def create_for_environment(
-        cls, environment: str, **overrides: object
-    ) -> FlextDbOracleConfig:
-        """Create configuration for specific environment using enhanced singleton pattern."""
-        return cls.get_or_create_shared_instance(
-            "flext-db-oracle", environment=environment, **overrides
-        )
+    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+        """Create OracleConfig from environment variables.
 
-    @classmethod
-    def get_or_create_shared_instance(
-        cls, project_name: str | None = None, **overrides: object
-    ) -> FlextDbOracleConfig:
-        """Create a new configuration instance with environment loading and overrides.
+        Args:
+            prefix: Environment variable prefix (default: "ORACLE_")
 
-        Note: project_name parameter is required for parent class compatibility but not used.
+        Returns:
+            FlextResult[FlextDbOracleConfig]: Configuration or error.
+
         """
-        # project_name is unused but required for parent class interface compatibility
-        _ = project_name
-        # Create instance to load from environment variables, then apply overrides
-        instance = cls()
-        for key, value in overrides.items():
-            if hasattr(instance, key):
-                setattr(instance, key, value)
-        return instance
+        try:
+            import os
 
-    @classmethod
-    def create_default(cls) -> FlextDbOracleConfig:
-        """Create default configuration instance using enhanced singleton pattern."""
-        return cast(
-            "FlextDbOracleConfig", cls.get_or_create_shared_instance("flext-db-oracle")
-        )
+            # Extract environment variables
+            host = os.getenv(f"{prefix}HOST", "localhost")
+            port_str = os.getenv(f"{prefix}PORT", "1521")
+            name = os.getenv(f"{prefix}NAME", "XE")
+            username = os.getenv(f"{prefix}USERNAME", "")
+            password = os.getenv(f"{prefix}PASSWORD")
+            service_name = os.getenv(f"{prefix}SERVICE_NAME")
+            sid = os.getenv(f"{prefix}SID")
 
-    @classmethod
-    def get_global_instance(cls) -> FlextDbOracleConfig:
-        """Get the global singleton instance using enhanced FlextConfig pattern."""
-        # Create a default instance instead of using shared instance to avoid recursion
-        return cast("FlextDbOracleConfig", cls())
+            # Validate port
+            try:
+                port = int(port_str)
+            except ValueError:
+                return FlextResult[FlextDbOracleConfig].fail(
+                    f"Invalid port: {port_str}"
+                )
+
+            # Create config
+            config = FlextDbOracleConfig(
+                host=host,
+                port=port,
+                name=name,
+                username=username,
+                password=password,
+                service_name=service_name,
+                sid=sid,
+            )
+
+            return FlextResult[FlextDbOracleConfig].ok(config)
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(
+                f"Failed to create config from environment: {e}"
+            )
 
     @classmethod
     def reset_global_instance(cls) -> None:
         """Reset the global FlextDbOracleConfig instance (mainly for testing)."""
-        # Use the enhanced FlextConfig reset mechanism
-        if hasattr(cls, "reset_shared_instance"):
-            cls.reset_shared_instance()
-        else:
-            # Fallback: clear any cached instances
-            pass
+        # Clear any cached instances

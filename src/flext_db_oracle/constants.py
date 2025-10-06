@@ -219,6 +219,7 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
         PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
         MAX_DISPLAY_ROWS: Final[int] = 1000
+        MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
             FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
         )  # Reference FlextConstants

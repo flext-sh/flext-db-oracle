@@ -4,7 +4,7 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi
 
 
 class TestFlextDbOracleApiWorking:
@@ -12,7 +12,7 @@ class TestFlextDbOracleApiWorking:
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleModels.OracleConfig(
+        self.config = FlextDbOracleConfig(
             host="test_host",
             port=1521,
             service_name="TEST",

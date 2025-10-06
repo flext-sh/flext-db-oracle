@@ -184,14 +184,14 @@ Demonstrates:
 5. Performance optimization techniques
 """
 
-from flext_db_oracle import FlextDbOracleConnection
+from flext_db_oracle.typings import FlextDbOracleTypes
 from sqlalchemy import text, select
 from sqlalchemy.orm import Session
 
 def demonstrate_sqlalchemy2_patterns():
     """Demonstrate SQLAlchemy 2 integration patterns."""
 
-    connection = FlextDbOracleConnection.from_env()
+    connection = FlextDbOracleTypes.Connection.from_env()
 
     with connection:
         # Session-based operations

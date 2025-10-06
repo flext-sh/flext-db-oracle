@@ -15,7 +15,6 @@ from typing import cast
 
 from flext_core import (
     FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
     FlextTypes,
@@ -23,13 +22,12 @@ from flext_core import (
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.typings import FlextDbOracleTypes
 
 from .constants import FlextDbOracleConstants
 
 
-class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
+class FlextDbOracleClient(FlextService):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
@@ -40,15 +38,15 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
         self, *, debug: bool = False, config: FlextDbOracleConfig | None = None
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
+        # Configuration - store locally
+        self._oracle_config = config or FlextDbOracleConfig()
+
         # Initialize FlextService with config
-        super().__init__()
+        super().__init__(config=self._oracle_config)
 
         # Core dependencies injected via composition
         self._container = FlextContainer.get_global()
-        self._logger = FlextLogger(__name__)
-
-        # Configuration - store locally
-        self._config = config or FlextDbOracleConfig()
+        # Logger will be initialized lazily via the parent class property
 
         # Application state
         self.debug = debug
@@ -61,12 +59,12 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
             "query_limit": FlextDbOracleConstants.Query.DEFAULT_QUERY_LIMIT,
         }
 
-        self._logger.info("Oracle CLI client initialized")
+        self.logger.info("Oracle CLI client initialized")
 
     @property
-    def config(self) -> FlextDbOracleConfig:
+    def oracle_config(self) -> FlextDbOracleConfig:
         """Get the Oracle configuration."""
-        return self._config
+        return self._oracle_config
 
     def connect_to_oracle(
         self,
@@ -84,11 +82,11 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
         """
         try:
             # Use provided parameters or fall back to config defaults
-            actual_host = host or self.config.oracle_host
-            actual_port = port or self.config.oracle_port
-            actual_service_name = service_name or self.config.oracle_service_name
-            actual_username = username or self.config.oracle_username
-            actual_password = password or self.config.oracle_password.get_secret_value()
+            actual_host = host or self.oracle_config.host
+            actual_port = port or self.oracle_config.port
+            actual_service_name = service_name or self.oracle_config.service_name
+            actual_username = username or self.oracle_config.username
+            actual_password = password or self.oracle_config.password.get_secret_value()
 
             # Validate required parameters
             if not actual_host:
@@ -103,7 +101,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
             )
 
             # Create Oracle configuration
-            config: FlextDbOracleModels.OracleConfig = FlextDbOracleModels.OracleConfig(
+            config: FlextDbOracleConfig = FlextDbOracleConfig(
                 host=actual_host,
                 port=actual_port,
                 service_name=actual_service_name,
@@ -434,9 +432,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
                 "connection_status": "active"
                 if self.current_connection.is_connected
                 else "inactive",
-                "host": self.current_connection.config.host,
-                "port": self.current_connection.config.port,
-                "service_name": self.current_connection.config.service_name,
+                "host": self.current_connection.oracle_config.host,
+                "port": self.current_connection.oracle_config.port,
+                "service_name": self.current_connection.oracle_config.service_name,
                 "timestamp": "now",  # Could use actual timestamp
             }
 
@@ -557,7 +555,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleConfig]):
 
             # Log unused params for debugging but don't remove them as they may be used for future operations
             if params:
-                FlextLogger(__name__).debug(
+                client.logger.debug(
                     f"Unused CLI parameters for operation '{operation}': {params}",
                 )
 

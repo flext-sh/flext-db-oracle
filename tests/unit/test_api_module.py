@@ -16,7 +16,7 @@ from typing import cast
 from flext_core import FlextResult, FlextTypes
 from flext_tests import FlextTestsDomains
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi
 
 
 class TestApiModule:
@@ -59,7 +59,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_initialization(self) -> None:
         """Test FlextDbOracleApi initializes correctly."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -76,7 +76,7 @@ class TestApiModule:
         # Test API creation from config if method exists
         if hasattr(FlextDbOracleApi, "from_config"):
             config_data = self._TestDataHelper.create_test_oracle_config()
-            config = FlextDbOracleModels.OracleConfig(
+            config = FlextDbOracleConfig(
                 host=str(config_data["host"]),
                 port=int(str(config_data["port"])),
                 service_name=str(config_data["service_name"]),
@@ -89,7 +89,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_connect(self) -> None:
         """Test FlextDbOracleApi connect functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -107,7 +107,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_disconnect(self) -> None:
         """Test FlextDbOracleApi disconnect functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -124,7 +124,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_execute_query(self) -> None:
         """Test FlextDbOracleApi execute_query functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -144,7 +144,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_execute_update(self) -> None:
         """Test FlextDbOracleApi execute_update functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -165,7 +165,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_get_metadata(self) -> None:
         """Test FlextDbOracleApi get_metadata functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -185,7 +185,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_map_singer_schema(self) -> None:
         """Test FlextDbOracleApi map_singer_schema functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -203,7 +203,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_get_table_schema(self) -> None:
         """Test FlextDbOracleApi get_table_schema functionality."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -219,7 +219,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
         """Test comprehensive api module scenario."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -258,7 +258,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_error_handling(self) -> None:
         """Test api module error handling patterns."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -297,7 +297,7 @@ class TestApiModule:
     ) -> None:
         """Test api functionality with flext_tests infrastructure."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -332,7 +332,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_method_signatures(self) -> None:
         """Test that api methods have proper signatures."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -360,7 +360,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_with_real_data(self) -> None:
         """Test api functionality with realistic data scenarios."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -426,7 +426,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
         """Test api integration patterns between different components."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -463,7 +463,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_performance_patterns(self) -> None:
         """Test api performance patterns."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),
@@ -490,7 +490,7 @@ class TestApiModule:
     def test_flext_db_oracle_api_concurrent_operations(self) -> None:
         """Test api concurrent operations."""
         config_data = self._TestDataHelper.create_test_oracle_config()
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])),
             service_name=str(config_data["service_name"]),

@@ -32,7 +32,7 @@ class TestDirectCoverageBoostAPI:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
-        bad_config = FlextDbOracleModels.OracleConfig(
+        bad_config = FlextDbOracleConfig(
             host=FlextConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
             port=9999,
             username="invalid",
@@ -142,7 +142,7 @@ class TestDirectCoverageBoostConfig:
 
         for host, port, user, password, service_name in test_configs:
             try:
-                config = FlextDbOracleModels.OracleConfig(
+                config = FlextDbOracleConfig(
                     host=host,
                     port=port,
                     username=user,
@@ -174,7 +174,7 @@ class TestDirectCoverageBoostConfig:
 
         try:
             # Test config creation from environment (if supported)
-            config = FlextDbOracleModels.OracleConfig(
+            config = FlextDbOracleConfig(
                 host=os.getenv("FLEXT_TARGET_ORACLE_HOST", "default"),
                 port=int(os.getenv("FLEXT_TARGET_ORACLE_PORT", "1521")),
                 username=os.getenv("FLEXT_TARGET_ORACLE_USERNAME", "default"),
@@ -200,7 +200,7 @@ class TestDirectCoverageBoostConnection:
 
     def test_connection_edge_cases(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
@@ -220,7 +220,7 @@ class TestDirectCoverageBoostConnection:
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
         # Create connection with invalid config
-        bad_config = FlextDbOracleModels.OracleConfig(
+        bad_config = FlextDbOracleConfig(
             host="invalid_host",
             port=9999,
             username="invalid",
@@ -339,7 +339,7 @@ class TestDirectCoverageBoostObservability:
         """Test observability initialization paths."""
         # Test observability functionality through API
         try:
-            config = FlextDbOracleModels.OracleConfig(
+            config = FlextDbOracleConfig(
                 host="localhost",
                 port=1521,
                 service_name="XE",
@@ -393,7 +393,7 @@ class TestDirectCoverageBoostServices:
         # Import services module directly to ensure coverage tracking
 
         # Test FlextDbOracleServices class
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="coverage_test",
             port=1521,
             service_name="COVERAGE",
@@ -416,7 +416,7 @@ class TestDirectCoverageBoostServices:
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
         # Test SQL builder with various scenarios through services
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -460,7 +460,7 @@ class TestDirectCoverageBoostServices:
             # Valid config
             FlextTestsBuilders.result()
             .with_success_data(
-                FlextDbOracleModels.OracleConfig(
+                FlextDbOracleConfig(
                     host="test_host",
                     port=1521,
                     service_name="TEST",
@@ -473,7 +473,7 @@ class TestDirectCoverageBoostServices:
             # Edge case config
             FlextTestsBuilders.result()
             .with_success_data(
-                FlextDbOracleModels.OracleConfig(
+                FlextDbOracleConfig(
                     host="localhost",
                     port=1,  # Edge case port
                     service_name="X",  # Minimal service name
@@ -494,7 +494,7 @@ class TestDirectCoverageBoostServices:
             FlextTestsMatchers.assert_result_success(result)
             # Use the cast result for accessing value
             config = cast(
-                "FlextDbOracleModels.OracleConfig",
+                "FlextDbOracleConfig",
                 result.value,
             )
 
@@ -518,7 +518,7 @@ class TestDirectCoverageBoostServices:
 
     def test_services_sql_generation_comprehensive(self) -> None:
         """Test SQL generation methods comprehensively for 100% coverage."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="test",
             port=1521,
             service_name="TEST",

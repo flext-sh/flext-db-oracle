@@ -15,7 +15,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleModels.OracleConfig(
+        self.config = FlextDbOracleConfig(
             host="test",
             port=1521,
             service_name="TEST",

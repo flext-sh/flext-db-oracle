@@ -468,15 +468,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-    # Convenience aliases for easier downstream usage
-    OracleConnectionProtocol = Database.ConnectionProtocol
-    OracleQueryProtocol = Database.QueryExecutorProtocol
-    OracleSchemaProtocol = Database.SchemaIntrospectorProtocol
-    OracleSqlProtocol = Database.SqlBuilderProtocol
-    OracleDdlProtocol = Database.DdlGeneratorProtocol
-    OracleMetricsProtocol = Database.MetricsCollectorProtocol
-    OraclePluginProtocol = Database.PluginRegistryProtocol
-    OracleHealthProtocol = Database.HealthCheckProtocol
+
+# NO ALIASES - STRICT RULE: only use direct imports from protocols module
+# All usage must be: FlextDbOracleProtocols.Database.ConnectionProtocol
+# NOT: FlextDbOracleProtocols.OracleConnectionProtocol
 
 
 __all__ = [

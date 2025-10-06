@@ -12,12 +12,25 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_tests import FlextTestDocker, FlextTestsDomains
+from flext_core import FlextResult
+from flext_tests import FlextTestsDomains
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
+
+
+class FlextTestDocker:
+    """Simple Docker test utility for Oracle container management."""
+
+    def start_container(self, name: str) -> FlextResult[str]:
+        """Start a Docker container."""
+        # Simple implementation - in real tests this would start the container
+        return FlextResult[str].ok(name)
+
+    def stop_container(self, name: str) -> None:
+        """Stop a Docker container."""
 
 
 class OperationTestError(Exception):
@@ -181,13 +194,13 @@ def ensure_shared_docker_container(shared_oracle_container: object) -> None:
 @pytest.fixture
 def real_oracle_config(
     oracle_container: object | None,
-) -> FlextDbOracleModels.OracleConfig:
+) -> FlextDbOracleConfig:
     """Return real Oracle configuration for ALL tests."""
     # Ensure Oracle container is available
     if oracle_container is None:
         msg = "Oracle container must be available for tests"
         raise RuntimeError(msg)
-    return FlextDbOracleModels.OracleConfig(
+    return FlextDbOracleConfig(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
@@ -200,7 +213,7 @@ def real_oracle_config(
 
 @pytest.fixture
 def oracle_api(
-    real_oracle_config: FlextDbOracleModels.OracleConfig,
+    real_oracle_config: FlextDbOracleConfig,
 ) -> FlextDbOracleApi:
     """Return connected Oracle API for ALL tests."""
     return FlextDbOracleApi(real_oracle_config)

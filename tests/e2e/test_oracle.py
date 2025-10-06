@@ -17,7 +17,6 @@ from flext_core import FlextTypes
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleModels,
 )
 
 
@@ -41,7 +40,7 @@ class TestOracleE2E:
     )
     def test_complete_oracle_workflow(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test complete Oracle workflow end-to-end.
 
@@ -206,7 +205,7 @@ class TestOracleE2E:
     )
     def test_singer_type_conversion_e2e(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
         with FlextDbOracleApi(real_oracle_config) as api:
@@ -277,7 +276,7 @@ class TestOracleE2E:
         os.environ.update(test_env)
         try:
             # Test configuration creation
-            config_result = FlextDbOracleModels.OracleConfig.from_env()
+            config_result = FlextDbOracleConfig.from_env()
             assert config_result.is_success, (
                 f"Config creation failed: {config_result.error}"
             )
@@ -309,7 +308,7 @@ class TestOracleE2E:
     def test_error_handling_e2e(self) -> None:
         """Test error handling in end-to-end scenarios."""
         # Test with invalid configuration
-        invalid_config = FlextDbOracleModels.OracleConfig(
+        invalid_config = FlextDbOracleConfig(
             host="nonexistent-host.invalid",
             port=9999,
             service_name="INVALID_DB",
@@ -340,7 +339,7 @@ class TestOracleE2E:
     @pytest.mark.e2e
     def test_concurrent_operations_e2e(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test concurrent database operations."""
         # This test would be expanded with actual threading/in a real scenario
@@ -377,7 +376,7 @@ class TestOracleE2E:
     @pytest.mark.benchmark
     def test_performance_benchmark_e2e(
         self,
-        real_oracle_config: FlextDbOracleModels.OracleConfig,
+        real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         try:

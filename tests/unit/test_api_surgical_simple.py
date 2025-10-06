@@ -9,7 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi
 
 
 class TestApiSurgicalSimple:
@@ -18,7 +18,7 @@ class TestApiSurgicalSimple:
     def test_is_valid_with_valid_config(self) -> None:
         """Test is_valid method with valid config values."""
         # Test with valid config
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -33,7 +33,7 @@ class TestApiSurgicalSimple:
 
     def test_from_config_method(self) -> None:
         """Test from_config class method (covers lines 61-64)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -47,7 +47,7 @@ class TestApiSurgicalSimple:
 
     def test_to_dict_method(self) -> None:
         """Test to_dict method (covers lines 66-78)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -64,7 +64,7 @@ class TestApiSurgicalSimple:
 
     def test_connection_property(self) -> None:
         """Test connection property (covers lines 527-532)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -80,7 +80,7 @@ class TestApiSurgicalSimple:
 
     def test_repr_method(self) -> None:
         """Test __repr__ method (covers lines 553-556)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -95,7 +95,7 @@ class TestApiSurgicalSimple:
 
     def test_context_manager_enter(self) -> None:
         """Test context manager __enter__ method (covers lines 534-536)."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -110,7 +110,7 @@ class TestApiSurgicalSimple:
 
     def test_context_manager_exit_graceful(self) -> None:
         """Test context manager __exit__ method graceful handling."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -125,7 +125,7 @@ class TestApiSurgicalSimple:
 
     def test_basic_api_structure(self) -> None:
         """Test basic API structure and initialization."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -147,7 +147,7 @@ class TestApiSurgicalSimple:
 
     def test_dispatch_enabled_property(self) -> None:
         """Test _dispatch_enabled property."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="XEPDB1",

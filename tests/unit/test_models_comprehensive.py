@@ -88,7 +88,7 @@ class TestOracleConfig:
 
     def test_oracle_config_creation_success(self) -> None:
         """Test successful Oracle configuration creation."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             name="XE",
@@ -104,7 +104,7 @@ class TestOracleConfig:
 
     def test_oracle_config_defaults(self) -> None:
         """Test Oracle configuration default values."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             username="test_user",
             password="test_password",
         )
@@ -121,7 +121,7 @@ class TestOracleConfig:
     def test_oracle_config_validation_empty_host(self) -> None:
         """Test Oracle config validation fails with empty host."""
         with pytest.raises(ValidationError) as exc_info:
-            FlextDbOracleModels.OracleConfig(
+            FlextDbOracleConfig(
                 host="",
                 username="test_user",
                 password="test_password",
@@ -133,7 +133,7 @@ class TestOracleConfig:
     def test_oracle_config_validation_whitespace_host(self) -> None:
         """Test Oracle config validation fails with whitespace-only host."""
         with pytest.raises(ValidationError) as exc_info:
-            FlextDbOracleModels.OracleConfig(
+            FlextDbOracleConfig(
                 host="   ",
                 username="test_user",
                 password="test_password",
@@ -144,7 +144,7 @@ class TestOracleConfig:
 
     def test_oracle_config_optional_fields(self) -> None:
         """Test Oracle configuration with optional fields."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="prod-oracle.example.com",
             port=1522,
             name="PRODDB",
@@ -172,7 +172,7 @@ class TestOracleConfig:
         with pytest.raises(
             ValueError, match="Cannot specify both service_name and SID"
         ):
-            FlextDbOracleModels.OracleConfig(
+            FlextDbOracleConfig(
                 host="prod-oracle.example.com",
                 port=1522,
                 name="PRODDB",
@@ -190,7 +190,7 @@ class TestOracleConfigFromEnv:
         """Test creating Oracle config from environment with default prefix."""
         # The from_env method uses FlextDbOracleConfig defaults, which don't include username/password
         # So it should fail due to missing required credentials
-        result = FlextDbOracleModels.OracleConfig.from_env()
+        result = FlextDbOracleConfig.from_env()
 
         assert result.is_failure
         assert result.error is not None
@@ -212,7 +212,7 @@ class TestOracleConfigFromEnv:
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
-            result = FlextDbOracleModels.OracleConfig.from_env("CUSTOM")
+            result = FlextDbOracleConfig.from_env("CUSTOM")
 
         assert result.is_failure
         assert result.error is not None
@@ -224,7 +224,7 @@ class TestOracleConfigFromEnv:
     def test_from_env_defaults_when_missing(self) -> None:
         """Test Oracle config fails when required credentials are missing."""
         # The from_env method requires username/password to be configured
-        result = FlextDbOracleModels.OracleConfig.from_env()
+        result = FlextDbOracleConfig.from_env()
 
         assert result.is_failure
         assert result.error is not None
@@ -244,7 +244,7 @@ class TestOracleConfigFromEnv:
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
-            result = FlextDbOracleModels.OracleConfig.from_env()
+            result = FlextDbOracleConfig.from_env()
 
         # Should fail due to missing username
         assert result.is_failure
@@ -264,7 +264,7 @@ class TestOracleConfigFromEnv:
         }
 
         with patch.dict(os.environ, env_vars, clear=False):
-            result = FlextDbOracleModels.OracleConfig.from_env()
+            result = FlextDbOracleConfig.from_env()
 
         assert result.is_failure
         assert result.error is not None
@@ -280,7 +280,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_complete_success(self) -> None:
         """Test creating Oracle config from complete URL."""
         url = "oracle://user:password@host:1521/service_name"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_success
         config = result.value
@@ -294,7 +294,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_no_password(self) -> None:
         """Test creating Oracle config from URL without password."""
         url = "oracle://user@host:1521/service_name"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_success
         config = result.value
@@ -304,7 +304,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_default_port(self) -> None:
         """Test creating Oracle config from URL without port."""
         url = "oracle://user:password@host/service_name"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_success
         config = result.value
@@ -313,7 +313,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_no_service_name(self) -> None:
         """Test creating Oracle config from URL without service name."""
         url = "oracle://user:password@host:1521"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_success
         config = result.value
@@ -323,7 +323,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_invalid_protocol(self) -> None:
         """Test Oracle config from URL fails with invalid protocol."""
         url = "mysql://user:password@host:3306/database"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_failure
         assert "must start with oracle://" in str(result.error)
@@ -331,7 +331,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_missing_at_symbol(self) -> None:
         """Test Oracle config from URL fails without @ symbol."""
         url = "oracle://user:password_host:1521/service"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_failure
         assert "Invalid URL format" in str(result.error)
@@ -339,7 +339,7 @@ class TestOracleConfigFromUrl:
     def test_from_url_complex_password(self) -> None:
         """Test Oracle config from URL with complex password containing special chars."""
         url = "oracle://user:p_ssw0rd!@host:1521/service"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_success
         config = result.value
@@ -350,7 +350,7 @@ class TestOracleConfigFromUrl:
         """Test Oracle config from URL handles parsing exceptions."""
         # URL that would cause integer parsing error
         url = "oracle://user:password@host:not_a_port/service"
-        result = FlextDbOracleModels.OracleConfig.from_url(url)
+        result = FlextDbOracleConfig.from_url(url)
 
         assert result.is_failure
         assert "Failed to parse URL" in str(result.error)
@@ -385,12 +385,10 @@ class TestFlextDbOracleModelsStructure:
     def test_oracle_config_class_exists(self) -> None:
         """Test OracleConfig nested class exists and is accessible."""
         assert hasattr(FlextDbOracleModels, "OracleConfig")
-        assert callable(FlextDbOracleModels.OracleConfig)
+        assert callable(FlextDbOracleConfig)
 
         # Test it can be instantiated
-        config = FlextDbOracleModels.OracleConfig(
-            username="test", password="test", domain_events=[]
-        )
+        config = FlextDbOracleConfig(username="test", password="test", domain_events=[])
         assert config is not None
 
 
@@ -399,7 +397,7 @@ class TestOracleConfigEdgeCases:
 
     def test_config_with_unicode_characters(self) -> None:
         """Test Oracle config handles unicode characters properly."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="oracle-ñáéíóú.example.com",
             username="usér_name",
             password="páss_wórd_ñ",
@@ -411,7 +409,7 @@ class TestOracleConfigEdgeCases:
 
     def test_config_extreme_values(self) -> None:
         """Test Oracle config with extreme but valid values."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="a" * 253,  # Maximum hostname length (253 chars)
             port=65535,  # Maximum port number
             username="u",  # Minimum username
@@ -428,7 +426,7 @@ class TestOracleConfigEdgeCases:
 
     def test_config_serialization(self) -> None:
         """Test Oracle config can be serialized and deserialized."""
-        original_config = FlextDbOracleModels.OracleConfig(
+        original_config = FlextDbOracleConfig(
             host="test-host",
             port=1521,
             name="TESTDB",
@@ -444,6 +442,6 @@ class TestOracleConfigEdgeCases:
         assert config_dict["service_name"] == "TEST_SERVICE"
 
         # Test reconstruction from dict
-        reconstructed_config = FlextDbOracleModels.OracleConfig(**config_dict)
+        reconstructed_config = FlextDbOracleConfig(**config_dict)
         assert reconstructed_config.host == original_config.host
         assert reconstructed_config.service_name == original_config.service_name

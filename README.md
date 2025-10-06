@@ -86,10 +86,11 @@ make setup
 ### Basic Usage
 
 ```python
-from flext_db_oracle import FlextDbOracleApi, OracleConfig
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.models import FlextDbOracleModels
 
 # Configuration
-config = OracleConfig(
+config = FlextDbOracleModels.OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",

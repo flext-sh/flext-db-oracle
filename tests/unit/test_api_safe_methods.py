@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_core import FlextTypes
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi
 
 
 class TestFlextDbOracleApiSafeMethods:
@@ -16,7 +16,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_class_methods_from_config(self) -> None:
         """Test API creation via from_config class method."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="test",
             port=1521,
             service_name="TEST",
@@ -31,7 +31,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_class_methods_with_config(self) -> None:
         """Test API creation via with_config class method."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             name="TESTDB",  # Required field
@@ -47,7 +47,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_health_status_method(self) -> None:
         """Test get_health_status method returns API health information."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="health_test",
             port=1521,
             name="HEALTH_TEST",
@@ -64,7 +64,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_optimize_query_method(self) -> None:
         """Test optimize_query method provides query optimization suggestions."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="optimize_test",
             port=1521,
             service_name="OPT_TEST",
@@ -89,7 +89,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_plugin_management_methods(self) -> None:
         """Test plugin management methods work without connection."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
@@ -143,7 +143,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_plugin_error_handling(self) -> None:
         """Test plugin management error handling."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="error_test",
             port=1521,
             name="ERROR_TEST",  # Required field
@@ -166,7 +166,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_connection_properties_without_connection(self) -> None:
         """Test connection-related properties when not connected."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="prop_test",
             port=1521,
             service_name="PROP_TEST",
@@ -188,7 +188,7 @@ class TestFlextDbOracleApiSafeMethods:
 
     def test_api_observability_metrics_method(self) -> None:
         """Test get_observability_metrics method."""
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="metrics_test",
             port=1521,
             service_name="METRICS_TEST",
@@ -211,7 +211,7 @@ class TestFlextDbOracleApiSafeMethods:
     def test_api_initialization_variations(self) -> None:
         """Test different API initialization patterns."""
         # Basic initialization
-        config1 = FlextDbOracleModels.OracleConfig(
+        config1 = FlextDbOracleConfig(
             host="init1",
             port=1521,
             service_name="INIT1",
@@ -222,7 +222,7 @@ class TestFlextDbOracleApiSafeMethods:
         assert api1.config.host == "init1"
 
         # With context name
-        config2 = FlextDbOracleModels.OracleConfig(
+        config2 = FlextDbOracleConfig(
             host="init2",
             port=1521,
             service_name="INIT2",
@@ -235,7 +235,7 @@ class TestFlextDbOracleApiSafeMethods:
     def test_api_helper_functions(self) -> None:
         """Test module-level helper functions."""
         # Test plugin functionality without private methods
-        config = FlextDbOracleModels.OracleConfig(
+        config = FlextDbOracleConfig(
             host="test_helper",
             port=1521,
             service_name="HELPER_TEST",
