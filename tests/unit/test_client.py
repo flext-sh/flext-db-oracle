@@ -9,7 +9,7 @@ from __future__ import annotations
 import inspect
 import threading
 import time
-from typing import Any, cast
+from typing import cast
 
 import pytest
 from flext_core import (
@@ -28,7 +28,9 @@ from flext_db_oracle import (
 )
 
 
-def cast_to_json_value(result: FlextResult[Any]) -> FlextResult[FlextTypes.JsonValue]:
+def cast_to_json_value(
+    result: FlextResult[object],
+) -> FlextResult[FlextTypes.JsonValue]:
     """Cast a FlextResult to JsonValue type for test matchers."""
     if result.is_success:
         # Convert the value to a JSON-serializable type
