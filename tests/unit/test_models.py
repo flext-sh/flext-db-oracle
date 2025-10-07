@@ -893,22 +893,6 @@ class TestFlextDbOracleModels:
         assert hasattr(FlextDbOracleModels, "service_name_field")
         assert FlextDbOracleModels.service_name_field is not None
 
-
-"""Comprehensive tests for Oracle database models.
-
-Tests all Oracle model functionality including configuration creation,
-validation, parsing, and business logic to achieve high coverage.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-
-class TestOracleValidation:
-    """Test Oracle validation functionality."""
-
     def test_validate_identifier_success(self) -> None:
         """Test successful Oracle identifier validation."""
         validator = FlextDbOracleModels.OracleValidation
@@ -968,10 +952,6 @@ class TestOracleValidation:
             result = validator.validate_identifier(invalid_id)
             assert result.is_failure
             assert "invalid characters" in str(result.error)
-
-
-class TestOracleConfig:
-    """Test Oracle configuration model."""
 
     def test_oracle_config_creation_success(self) -> None:
         """Test successful Oracle configuration creation."""
@@ -1069,10 +1049,6 @@ class TestOracleConfig:
                 sid="PRODDB_SID",
             )
 
-
-class TestOracleConfigFromEnv:
-    """Test Oracle configuration creation from environment variables."""
-
     def test_from_env_default_prefix(self) -> None:
         """Test creating Oracle config from environment with default prefix."""
         # The from_env method uses FlextDbOracleConfig defaults, which don't include username/password
@@ -1160,10 +1136,6 @@ class TestOracleConfigFromEnv:
             and "username is required but not configured" in result.error
         )
 
-
-class TestOracleConfigFromUrl:
-    """Test Oracle configuration creation from database URLs."""
-
     def test_from_url_complete_success(self) -> None:
         """Test creating Oracle config from complete URL."""
         url = "oracle://user:password@host:1521/service_name"
@@ -1242,10 +1214,6 @@ class TestOracleConfigFromUrl:
         assert result.is_failure
         assert "Failed to parse URL" in str(result.error)
 
-
-class TestFlextDbOracleModelsStructure:
-    """Test FlextDbOracleModels class structure and inheritance."""
-
     def test_models_inheritance(self) -> None:
         """Test FlextDbOracleModels inherits from FlextModels."""
         assert issubclass(FlextDbOracleModels, FlextModels)
@@ -1277,10 +1245,6 @@ class TestFlextDbOracleModelsStructure:
         # Test it can be instantiated
         config = FlextDbOracleConfig(username="test", password="test", domain_events=[])
         assert config is not None
-
-
-class TestOracleConfigEdgeCases:
-    """Test Oracle configuration edge cases and error conditions."""
 
     def test_config_with_unicode_characters(self) -> None:
         """Test Oracle config handles unicode characters properly."""
@@ -1332,22 +1296,6 @@ class TestOracleConfigEdgeCases:
         reconstructed_config = FlextDbOracleConfig(**config_dict)
         assert reconstructed_config.host == original_config.host
         assert reconstructed_config.service_name == original_config.service_name
-
-
-"""Unit tests for flext_db_oracle.models module.
-
-Tests FlextDbOracleModels functionality with real implementations,
-no mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-
-class TestModelsModule:
-    """Unified test class for models module functionality."""
 
     class _TestDataHelper:
         """Nested helper class for test data creation."""
@@ -1752,39 +1700,3 @@ class TestModelsModule:
         # All results should be FlextResult instances
         for result in results:
             assert isinstance(result, FlextResult)
-
-
-"""Test field definitions and validation.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-
-class TestFlextDbOracleModels:
-    """Test FlextDbOracleModels fields."""
-
-    def test_host_field_exists(self) -> None:
-        """Test host field exists."""
-        assert hasattr(FlextDbOracleModels, "host_field")
-        assert FlextDbOracleModels.host_field is not None
-
-    def test_port_field_exists(self) -> None:
-        """Test port field exists."""
-        assert hasattr(FlextDbOracleModels, "port_field")
-        assert FlextDbOracleModels.port_field is not None
-
-    def test_username_field_exists(self) -> None:
-        """Test username field exists."""
-        assert hasattr(FlextDbOracleModels, "username_field")
-        assert FlextDbOracleModels.username_field is not None
-
-    def test_password_field_exists(self) -> None:
-        """Test password field exists."""
-        assert hasattr(FlextDbOracleModels, "password_field")
-        assert FlextDbOracleModels.password_field is not None
-
-    def test_service_name_field_exists(self) -> None:
-        """Test service_name field exists."""
-        assert hasattr(FlextDbOracleModels, "service_name_field")
-        assert FlextDbOracleModels.service_name_field is not None

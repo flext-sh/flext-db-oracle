@@ -9,6 +9,7 @@ from __future__ import annotations
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleClient,
+    FlextDbOracleConfig,
     FlextDbOracleModels,
     FlextDbOraclePlugins,
     FlextDbOracleServices,

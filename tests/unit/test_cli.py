@@ -16,7 +16,6 @@ from unittest.mock import Mock, patch
 
 import yaml
 from flext_core import FlextResult, FlextTypes
-from flext_tests.matchers import FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -91,7 +90,7 @@ class TestFlextDbOracleClientReal:
         # Should succeed and add the new preferences (no validation in current implementation)
         assert result.is_success is True
         # New preferences are added to the original ones
-        expected_prefs = {
+        expected_prefs: dict[str, str | int | bool | FlextTypes.Dict] = {
             **original_prefs,
             "invalid_key": "value",
             "another_invalid": "test",
@@ -892,7 +891,8 @@ class TestCLIRealFunctionality:
             # Test real API creation from environment
             # Uses FLEXT_TARGET_ORACLE_* environment variables
             api_result = FlextDbOracleApi.from_env()
-            FlextTestsMatchers.assert_result_success(api_result)
+            # Assert result is successful
+            assert api_result.is_success
 
             api = api_result.value
             # Should use environment variables
@@ -926,7 +926,8 @@ class TestCLIRealFunctionality:
 
         # Test real observability metrics
         metrics_result = api.get_observability_metrics()
-        FlextTestsMatchers.assert_result_success(metrics_result)
+        # Assert metrics_result is successful
+        assert metrics_result.is_success
         assert isinstance(metrics_result.value, dict)
 
         # Test real connection testing (will fail but should handle gracefully)
@@ -951,7 +952,8 @@ class TestCLIRealFunctionality:
                 test_result,
                 format_type=format_type,
             )
-            FlextTestsMatchers.assert_result_success(format_result)
+            # Assert format_result is successful
+            assert format_result.is_success
             assert isinstance(format_result.value, str)
             assert len(format_result.value) > 0
 
@@ -1065,7 +1067,8 @@ class TestCLIRealFunctionality:
         try:
             # Test from_env factory method
             api_result = FlextDbOracleApi.from_env()
-            FlextTestsMatchers.assert_result_success(api_result)
+            # Assert api_result is successful
+            assert api_result.is_success
 
             api = api_result.value
             assert api.config.host == "localhost"
@@ -1108,25 +1111,30 @@ class TestCLIRealFunctionality:
         # Test plugin registration - real functionality
         test_plugin = {"name": "test_plugin", "version": "1.0.0"}
         register_result = api.register_plugin("test_plugin", test_plugin)
-        FlextTestsMatchers.assert_result_success(register_result)
+        # Assert plugin registration succeeded
+        assert register_result.is_success
 
         # Test plugin listing - real functionality
         list_result = api.list_plugins()
-        FlextTestsMatchers.assert_result_success(list_result)
+        # Assert plugin listing succeeded
+        assert list_result.is_success
         plugin_list = list_result.value
         assert "test_plugin" in plugin_list
 
         # Test plugin retrieval - real functionality
         get_result = api.get_plugin("test_plugin")
-        FlextTestsMatchers.assert_result_success(get_result)
+        # Assert plugin retrieval succeeded
+        assert get_result.is_success
         retrieved_plugin = get_result.value
         assert retrieved_plugin == test_plugin
 
         # Test plugin unregistration - real functionality
         unregister_result = api.unregister_plugin("test_plugin")
-        FlextTestsMatchers.assert_result_success(unregister_result)
+        # Assert plugin unregistration succeeded
+        assert unregister_result.is_success
 
         # Verify plugin was removed
         final_list = api.list_plugins()
-        FlextTestsMatchers.assert_result_success(final_list)
+        # Assert final plugin list retrieval succeeded
+        assert final_list.is_success
         assert "test_plugin" not in final_list.value

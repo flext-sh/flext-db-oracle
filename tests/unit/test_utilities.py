@@ -1,5 +1,3 @@
-from flext_db_oracle import FlextDbOracleConfig
-
 """Test utilities functionality with comprehensive coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -19,12 +17,17 @@ from flext_tests.matchers import FlextTestsMatchers
 from pydantic import BaseModel
 
 from flext_db_oracle import (
+    FlextDbOracleConfig,
     FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
 
-# Add flext_tests to path
+# Access constants through the FlextDbOracleConstants class
+MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS
+PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
+    FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS
+)
 
 
 class TestFlextDbOracleUtilitiesRealFunctionality:
@@ -294,17 +297,6 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         # But instances should be independent objects
         assert id(utilities1) != id(utilities2)
-
-
-"""Surgical tests for FlextDbOracleUtilities - targeting specific uncovered lines.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-
-class TestUtilitiesSurgical:
-    """Surgical tests for specific uncovered utility functions."""
 
     def test_generate_query_hash_basic(self) -> None:
         """Test generate_query_hash with basic SQL."""
@@ -983,21 +975,6 @@ class TestFlextDbOracleUtilitiesErrorHandling:
                 len(formatted_output) >= 0
             )  # Should return empty string or minimal format
 
-
-"""Test utilities functionality with comprehensive coverage.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-# Add flext_tests to path
-
-
-class TestFlextDbOracleUtilitiesRealFunctionality:
-    """Comprehensive tests for Oracle Utilities using ONLY real functionality - NO MOCKS."""
-
     def setup_method(self) -> None:
         """Setup test utilities with real configuration."""
         self.utilities = FlextDbOracleUtilities()
@@ -1263,24 +1240,6 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         # But instances should be independent objects
         assert id(utilities1) != id(utilities2)
 
-
-"""Test utilities safe methods for Oracle database operations.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-
-# Access constants through the FlextDbOracleConstants class
-MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS
-PERFORMANCE_WARNING_THRESHOLD_SECONDS = (
-    FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS
-)
-
-
-class TestModelDump:
-    """Test class that supports model_dump methods."""
-
     def model_dump(self) -> FlextTypes.Dict:
         """Dump model to dictionary."""
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
@@ -1289,10 +1248,6 @@ class TestModelDump:
         """Dump model to JSON string."""
         data = self.model_dump()
         return json.dumps(data, indent=indent)
-
-
-class MockConsole:
-    """Real console implementation for testing."""
 
     def __init__(self) -> None:
         """Initialize test console."""
@@ -1305,10 +1260,6 @@ class MockConsole:
     def get_output(self) -> str:
         """Get captured output."""
         return self.output.getvalue()
-
-
-class TestFlextDbOracleUtilities:
-    """Test FlextDbOracle utilities methods."""
 
     def test_utilities_create_config_from_env_method_exists(self) -> None:
         """Test create_config_from_env method exists and is callable."""
@@ -1488,10 +1439,6 @@ class TestFlextDbOracleUtilities:
         assert isinstance(json_data, str)
         assert "status" in json_data
 
-
-class TestFlextDbOracleUtilitiesDataValidation:
-    """Test utilities data validation and processing methods."""
-
     def test_utilities_query_result_validation(self) -> None:
         """Test query result validation and processing."""
         # Valid query result
@@ -1565,10 +1512,6 @@ class TestFlextDbOracleUtilitiesDataValidation:
         except Exception as e:
             pytest.fail(f"format_query_result failed with complex data: {e}")
 
-
-class TestFlextDbOracleUtilitiesPerformanceMonitoring:
-    """Test utilities performance monitoring functionality."""
-
     def test_utilities_performance_tracking(self) -> None:
         """Test performance tracking utilities."""
         start_time = time.time()
@@ -1616,76 +1559,6 @@ class TestFlextDbOracleUtilitiesPerformanceMonitoring:
             assert result.is_success
         except Exception as e:
             pytest.fail(f"format_query_result failed with slow query: {e}")
-
-
-class TestFlextDbOracleUtilitiesErrorHandling:
-    """Test utilities error handling scenarios."""
-
-    def test_utilities_invalid_format_handling(self) -> None:
-        """Test handling of invalid output formats."""
-        query_result = FlextDbOracleModels.QueryResult(
-            query="SELECT test FROM error_table",
-            columns=["test"],
-            rows=[["data"]],
-            row_count=1,
-            execution_time_ms=10,  # Convert to milliseconds as int
-            query_hash=None,
-            explain_plan=None,
-        )
-
-        # Should handle invalid formats gracefully - method is defensive and succeeds
-        result = FlextDbOracleUtilities.format_query_result(
-            query_result,
-            "invalid_format",
-        )
-        # Method handles invalid formats defensively, should still succeed
-        assert result.is_success, "Method should handle invalid format defensively"
-        # Should still return some output (default formatting)
-        assert isinstance(result.value, str)
-        assert len(result.value) > 0
-
-    def test_utilities_none_handling(self) -> None:
-        """Test handling of None values in utilities via public interface."""
-        # Test via public format_query_result method with None data
-        empty_result = FlextDbOracleModels.QueryResult(
-            query="SELECT * FROM empty_table",
-            columns=[],
-            rows=[],
-            row_count=0,
-            execution_time_ms=0,  # Convert to int
-            query_hash=None,
-            explain_plan=None,
-        )
-
-        # Test all formats to ensure None handling works
-        for format_type in ["table", "json", "csv"]:
-            result = FlextDbOracleUtilities.format_query_result(
-                empty_result,
-                format_type,
-            )
-            assert result.is_success, (
-                f"format_query_result should handle empty data for {format_type}"
-            )
-
-            # Verify output is meaningful even with empty data
-            formatted_output = result.value
-            assert isinstance(formatted_output, str)
-            assert (
-                len(formatted_output) >= 0
-            )  # Should return empty string or minimal format
-
-
-"""Surgical tests for FlextDbOracleUtilities - targeting specific uncovered lines.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-
-class TestUtilitiesSurgical:
-    """Surgical tests for specific uncovered utility functions."""
 
     def test_generate_query_hash_basic(self) -> None:
         """Test generate_query_hash with basic SQL."""

@@ -882,23 +882,6 @@ class TestRealOracleExceptionHierarchy:
         assert isinstance(error_str, str)
         assert len(error_str) > 0
 
-
-"""Real comprehensive tests for exceptions module without mocks.
-
-Tests all exception functionality with real objects and validations.
-Coverage target: 31% → 90%+
-
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-
-class TestExceptionParams:
-    """Test ExceptionParams dataclass."""
-
     def test_exception_params_creation(self) -> None:
         """Test creating ExceptionParams with all fields."""
         params = FlextDbOracleExceptions.ExceptionParams(
@@ -942,10 +925,6 @@ class TestExceptionParams:
         with pytest.raises(AttributeError):
             setattr(params, "message", "Modified")
 
-
-class TestOracleErrorCodes:
-    """Test OracleErrorCodes enum."""
-
     def test_error_codes_exist(self) -> None:
         """Test that all error codes are defined."""
         codes = FlextDbOracleExceptions.OracleErrorCodes
@@ -968,10 +947,6 @@ class TestOracleErrorCodes:
             if not attr.startswith("_") and isinstance(getattr(codes, attr), str)
         ]
         assert len(error_code_attrs) == 14
-
-
-class TestValidationError:
-    """Test ValidationError exception."""
 
     def test_validation_error_with_string(self) -> None:
         """Test ValidationError with simple string message."""
@@ -1008,10 +983,6 @@ class TestValidationError:
         assert isinstance(error, Exception)
         assert isinstance(error, FlextDbOracleExceptions.BaseError)
 
-
-class TestConfigurationError:
-    """Test ConfigurationError exception."""
-
     def test_configuration_error_with_string(self) -> None:
         """Test ConfigurationError with simple string message."""
         error = FlextDbOracleExceptions.ConfigurationError(
@@ -1040,10 +1011,6 @@ class TestConfigurationError:
         ]  # Check custom context is preserved
         assert "config_key" in error.context  # Default fields are added by flext-core
 
-
-class TestConnectionError:
-    """Test ConnectionError exception."""
-
     def test_connection_error_with_string(self) -> None:
         """Test ConnectionError with simple string message."""
         error = FlextDbOracleExceptions.OracleConnectionError(
@@ -1068,10 +1035,6 @@ class TestConnectionError:
         assert error.error_code == "CONNECTION_ERROR"  # flext-core uses default code
         assert error.context["host"] == "localhost"
         assert error.context["port"] == 1521
-
-
-class TestProcessingError:
-    """Test ProcessingError exception."""
 
     def test_processing_error_with_string(self) -> None:
         """Test ProcessingError with simple string message."""
@@ -1098,10 +1061,6 @@ class TestProcessingError:
         assert (
             error.error_code == "PROC_PARSE_ERROR"
         )  # Uses the code that was passed  # Uses the code that was passed
-
-
-class TestAuthenticationError:
-    """Test AuthenticationError exception."""
 
     def test_authentication_error_with_string(self) -> None:
         """Test AuthenticationError with simple string message."""
@@ -1131,10 +1090,6 @@ class TestAuthenticationError:
             error.error_code == "AUTHENTICATION_ERROR"
         )  # flext-core uses default code  # flext-core uses default code
 
-
-class TestTimeoutError:
-    """Test TimeoutError exception."""
-
     def test_timeout_error_with_string(self) -> None:
         """Test TimeoutError with simple string message."""
         error = FlextDbOracleExceptions.OracleTimeoutError(
@@ -1154,10 +1109,6 @@ class TestTimeoutError:
         assert "Query execution timeout" in str(error)
         assert error.error_code == "QUERY_TIMEOUT"  # Uses the code that was passed
 
-
-class TestQueryError:
-    """Test QueryError exception."""
-
     def test_query_error_with_string(self) -> None:
         """Test QueryError with simple string message."""
         error = FlextDbOracleExceptions.OracleQueryError("Invalid SQL")
@@ -1175,10 +1126,6 @@ class TestQueryError:
         assert "SQL syntax error" in str(error)
         # Code from params is used
         assert error.error_code == "SQL_SYNTAX_ERROR"  # Uses the code that was passed
-
-
-class TestMetadataError:
-    """Test MetadataError exception."""
 
     def test_metadata_error_with_string(self) -> None:
         """Test MetadataError with simple string message."""
@@ -1199,10 +1146,6 @@ class TestMetadataError:
         assert (
             error.error_code == "PROCESSING_ERROR"
         )  # flext-core uses default code (MetadataError is alias for ProcessingError)
-
-
-class TestExceptionHelperMethods:
-    """Test helper methods in FlextDbOracleExceptions."""
 
     def test_create_validation_error(self) -> None:
         """Test ValidationError creation with parameters."""
@@ -1308,10 +1251,6 @@ class TestExceptionHelperMethods:
         assert error.context is not None
         assert error.context.get("object") == "INDEX"
 
-
-class TestExceptionRaising:
-    """Test that exceptions can be properly raised and caught."""
-
     def test_raise_validation_error(self) -> None:
         """Test raising and catching ValidationError."""
         error_msg = "Test validation error"
@@ -1334,10 +1273,6 @@ class TestExceptionRaising:
 
         config_error = FlextDbOracleExceptions.ConfigurationError("Test")
         assert isinstance(config_error, Exception)
-
-
-class TestFactoryMethods:
-    """Test factory methods for creating specific exception types."""
 
     def test_create_validation_error_factory(self) -> None:
         """Test create_validation_error factory method."""

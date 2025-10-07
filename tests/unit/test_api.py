@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Comprehensive Oracle API Tests - Real Implementation Without Mocks.
 
 Tests the FlextDbOracleApi class completely without mocks,
@@ -7,13 +9,11 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations
-
 from typing import cast
 
 import pytest
 from flext_core import FlextResult, FlextTypes
-from flext_tests.matchers import FlextTestsMatchers
+from flext_tests.matchers import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -1361,8 +1361,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations
-
 
 class TestFlextDbOracleApiSafeMethods:
     """Test API methods that work without Oracle connection."""
@@ -1624,8 +1622,6 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
-from __future__ import annotations
-
 
 class TestApiSurgicalSimple:
     """Simple surgical tests targeting key uncovered lines in FlextDbOracleApi."""
@@ -1838,8 +1834,6 @@ Focus on API (40%), CLI (21%), and other modules with lowest coverage.
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
-
-from __future__ import annotations
 
 import os
 

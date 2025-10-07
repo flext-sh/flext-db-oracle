@@ -13,6 +13,7 @@ from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOracleConfig,
     FlextDbOracleExceptions,
     FlextDbOracleServices,
 )

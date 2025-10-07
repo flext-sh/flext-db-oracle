@@ -320,22 +320,6 @@ class TestDispatcherCommandClasses:
         assert cmd.table == "EMPLOYEES"
         assert cmd.schema == "HR"
 
-
-"""Surgical tests for FlextDbOracleDispatcher - targeting specific uncovered lines.
-
-Tests the command dispatcher pattern with real Oracle service integration.
-Coverage target: dispatcher.py lines 70-144 (build_dispatcher method).
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
-
-from __future__ import annotations
-
-
-class TestDispatcherSurgical:
-    """Surgical tests for dispatcher functionality targeting uncovered lines."""
-
     def test_build_dispatcher_creates_dispatcher(self) -> None:
         """Test build_dispatcher creates FlextDispatcher instance."""
         # Create Oracle config for services
@@ -561,74 +545,3 @@ class TestDispatcherSurgical:
 
         result = dispatcher.dispatch(columns_cmd)
         assert result is not None
-
-
-class TestDispatcherCommandClasses:
-    """Test the command classes for proper structure."""
-
-    def test_connect_command_creation(self) -> None:
-        """Test ConnectCommand can be created."""
-        cmd = FlextDbOracleDispatcher.ConnectCommand()
-        assert cmd is not None
-
-    def test_disconnect_command_creation(self) -> None:
-        """Test DisconnectCommand can be created."""
-        cmd = FlextDbOracleDispatcher.DisconnectCommand()
-        assert cmd is not None
-
-    def test_test_connection_command_creation(self) -> None:
-        """Test TestConnectionCommand can be created."""
-        cmd = FlextDbOracleDispatcher.TestConnectionCommand()
-        assert cmd is not None
-
-    def test_execute_query_command_with_parameters(self) -> None:
-        """Test ExecuteQueryCommand with SQL and parameters."""
-        cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
-            sql="SELECT * FROM users WHERE id = :id",
-            parameters={"id": 123},
-        )
-        assert cmd.sql == "SELECT * FROM users WHERE id = :id"
-        assert cmd.parameters == {"id": 123}
-
-    def test_fetch_one_command_with_parameters(self) -> None:
-        """Test FetchOneCommand with SQL and parameters."""
-        cmd = FlextDbOracleDispatcher.FetchOneCommand(
-            sql="SELECT * FROM users WHERE id = :id",
-            parameters={"id": 456},
-        )
-        assert cmd.sql == "SELECT * FROM users WHERE id = :id"
-        assert cmd.parameters == {"id": 456}
-
-    def test_execute_statement_command_with_parameters(self) -> None:
-        """Test ExecuteStatementCommand with SQL and parameters."""
-        cmd = FlextDbOracleDispatcher.ExecuteStatementCommand(
-            sql="UPDATE users SET name = :name WHERE id = :id",
-            parameters={"id": 789, "name": "updated"},
-        )
-        assert cmd.sql == "UPDATE users SET name = :name WHERE id = :id"
-        assert cmd.parameters == {"id": 789, "name": "updated"}
-
-    def test_execute_many_command_with_parameters_list(self) -> None:
-        """Test ExecuteManyCommand with SQL and parameters list."""
-        params_list = [
-            {"id": 1, "name": "user1"},
-            {"id": 2, "name": "user2"},
-            {"id": 3, "name": "user3"},
-        ]
-        cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
-            sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=cast("list[FlextTypes.Dict]", params_list),
-        )
-        assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
-        assert cmd.parameters_list == params_list
-
-    def test_get_tables_command_with_schema(self) -> None:
-        """Test GetTablesCommand with schema parameter."""
-        cmd = FlextDbOracleDispatcher.GetTablesCommand(schema="HR")
-        assert cmd.schema == "HR"
-
-    def test_get_columns_command_with_table_and_schema(self) -> None:
-        """Test GetColumnsCommand with table and schema parameters."""
-        cmd = FlextDbOracleDispatcher.GetColumnsCommand(table="EMPLOYEES", schema="HR")
-        assert cmd.table == "EMPLOYEES"
-        assert cmd.schema == "HR"

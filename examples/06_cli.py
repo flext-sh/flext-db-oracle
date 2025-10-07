@@ -141,7 +141,7 @@ def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            result = subprocess.run(
+            result = FlextUtilities.run_external_command(
                 cmd,
                 shell=False,  # Explicitly disable shell for security
                 check=False,

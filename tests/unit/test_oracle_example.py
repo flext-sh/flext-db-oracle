@@ -10,7 +10,7 @@ import contextlib
 
 from flext_core import FlextResult, FlextTypes
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleServices
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig, FlextDbOracleServices
 
 
 def safe_get_first_value(data: object) -> object:
