@@ -262,20 +262,15 @@ class FlextDbOracleUtilities(FlextService):
 
             # Use flext-cli for table display instead of direct Rich
             if data:
-                try:
-                    output_service = FlextCliOutput()
-                    table_result = output_service.format_table(data)
+                output_service = FlextCliOutput()
+                table_result = output_service.format_table(data)
 
-                    if table_result.is_success:
-                        if hasattr(console, "print"):
-                            getattr(console, "print")(table_result.unwrap())
-                    # Fallback to simple data display
-                    elif hasattr(console, "print"):
-                        getattr(console, "print")(f"Data: {data}")
-                except ImportError:
-                    # Fallback if flext-cli is not available
+                if table_result.is_success:
                     if hasattr(console, "print"):
-                        getattr(console, "print")(f"Data: {data}")
+                        getattr(console, "print")(table_result.unwrap())
+                # Fallback to simple data display if table formatting fails
+                elif hasattr(console, "print"):
+                    getattr(console, "print")(f"Data: {data}")
             elif hasattr(console, "print"):
                 getattr(console, "print")("No data to display")
 
