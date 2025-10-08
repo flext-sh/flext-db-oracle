@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Comprehensive Oracle API Tests - Real Implementation Without Mocks.
 
 Tests the FlextDbOracleApi class completely without mocks,
@@ -9,15 +7,23 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
 
+from __future__ import annotations
+
+import os
+import threading
+import time
 from typing import cast
 
 import pytest
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextConstants, FlextResult, FlextTypes
+from flext_tests import FlextTestsDomains
 from flext_tests.matchers import FlextTestsBuilders, FlextTestsMatchers
 
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleModels,
+    FlextDbOracleServices,
     dispatcher as oracle_dispatcher,
 )
 
@@ -835,11 +841,6 @@ no mocks or legacy patterns. Achieves near 100% coverage following FLEXT standar
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
-
-import threading
-import time
-
-from flext_tests import FlextTestsDomains
 
 
 class TestApiModule:
@@ -1834,15 +1835,6 @@ Focus on API (40%), CLI (21%), and other modules with lowest coverage.
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
-
-import os
-
-from flext_core import FlextConstants
-
-from flext_db_oracle import (
-    FlextDbOracleModels,
-    FlextDbOracleServices,
-)
 
 
 class TestDirectCoverageBoostAPI:

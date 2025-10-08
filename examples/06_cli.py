@@ -10,11 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess
+import subprocess  # noqa: S404 - Used for CLI examples and demonstrations
 import sys
 from pathlib import Path
 
-from flext_core import FlextTypes
+from flext_core import FlextTypes, FlextUtilities
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3

@@ -323,7 +323,7 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     retry_delay: float = Field(
-        default=1.0,
+        default=FlextConstants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=0.1,
         le=60.0,
         description="Delay between retry attempts in seconds",
