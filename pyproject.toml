@@ -16,8 +16,8 @@
         "Typing :: Typed",
     ]
     dependencies = [
-        "flext-cli @ file:///home/marlonsc/flext/flext-cli",
-        "flext-core @ file:///home/marlonsc/flext/flext-core",
+        "flext-cli @ file:../flext-cli",
+        "flext-core @ file:../flext-core",
         "oracledb (>=3.2.0)",
         "pydantic (>=2.11.7)",
         "pydantic-settings (>=2.10.1)",
@@ -28,7 +28,6 @@
     ]
     description = "Modern Oracle Database Integration using SQLAlchemy 2 + oracledb"
     keywords = [
-        "",
         "adapter",
         "enterprise",
         "flext",
