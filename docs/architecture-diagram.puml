@@ -1,0 +1,164 @@
+@startuml flext-db-oracle-architecture
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam sequenceParticipant underline
+
+title FLEXT Database Oracle - Clean Architecture
+
+' === EXTERNAL SYSTEMS ===
+package "External Systems" as external #LightBlue {
+    database "Oracle Database\nXE 21c/19c/18c" as oracle
+    rectangle "Oracle Integration Cloud" as oic
+    rectangle "Directory Services\nLDAP/Active Directory" as directory
+}
+
+package "Development Tools" as dev #LightGreen {
+    rectangle "Poetry\nDependency Management" as poetry
+    rectangle "pytest\nTesting Framework" as pytest
+    rectangle "Docker\nTest Environment" as docker
+}
+
+' === FLEXT ECOSYSTEM ===
+package "FLEXT Ecosystem Applications" as ecosystem #LightYellow {
+    rectangle "flext-tap-oracle\nData Extraction" as tap
+    rectangle "flext-target-oracle\nData Loading" as target
+    rectangle "flext-dbt-oracle\nData Transformation" as dbt
+    rectangle "client-a-oud-mig\nMigration Tools" as client-a
+}
+
+' === CORE LIBRARY ===
+package "flext-db-oracle Library" as library #White {
+    ' === PRESENTATION LAYER ===
+    package "Presentation Layer" as presentation #LightCyan {
+        rectangle "FlextDbOracleApi\nMain API Facade" as api
+        rectangle "FlextDbOracleCli\nCLI Interface" as cli
+        rectangle "FlextDbOracleClient\nRich UI Components" as client
+    }
+
+    ' === APPLICATION LAYER ===
+    package "Application Layer" as application #LightPink {
+        rectangle "FlextDbOracleServices\nBusiness Logic\nQuery Building" as services
+    }
+
+    ' === DOMAIN LAYER ===
+    package "Domain Layer" as domain #LightGreen {
+        rectangle "FlextDbOracleModels\nPydantic v2 Models\nData Validation" as models
+        rectangle "FlextDbOracleExceptions\nError Hierarchy\nDomain Exceptions" as exceptions
+        rectangle "FlextDbOracleConstants\nSystem Constants\nConfiguration" as constants
+    }
+
+    ' === INFRASTRUCTURE LAYER ===
+    package "Infrastructure Layer" as infrastructure #LightGray {
+        rectangle "FlextDbOracleConnection\nSQLAlchemy Engine\nConnection Pool" as connection
+        rectangle "FlextDbOracleUtilities\nHelper Functions\nCommon Operations" as utilities
+        rectangle "FlextDbOracleConfig\nConfiguration\nPydantic Settings" as config
+    }
+
+    ' === CROSS-CUTTING CONCERNS ===
+    package "Cross-Cutting Concerns" as crosscutting #LightOrange {
+        rectangle "FlextLogger\nStructured Logging\nJSON Format" as logger
+        rectangle "FlextContainer\nDependency Injection\nService Locator" as container
+    }
+}
+
+' === DEPENDENCY RELATIONSHIPS ===
+
+' Ecosystem Applications → Library
+tap --> api : imports
+target --> api : imports
+dbt --> api : imports
+client-a --> api : imports
+
+' Library Internal Dependencies (Clean Architecture)
+api --> services : orchestrates
+api --> models : validates
+api --> connection : manages
+api --> exceptions : handles
+api --> logger : logs
+api --> container : injects
+
+cli --> client : delegates
+cli --> api : uses
+
+client --> config : configures
+client --> logger : logs
+
+services --> models : processes
+services --> utilities : uses
+services --> constants : references
+services --> exceptions : raises
+
+connection --> utilities : helpers
+connection --> exceptions : errors
+connection --> config : settings
+
+models --> exceptions : validation
+models --> constants : references
+
+' Infrastructure → External Systems
+connection --> oracle : SQL*Net
+api --> oic : REST APIs
+api --> directory : LDAP
+
+' Development Dependencies
+pytest --> library : tests
+poetry --> library : manages
+docker --> oracle : provides
+
+' === STYLING ===
+skinparam package {
+    BackgroundColor White
+    BorderColor Black
+    BorderThickness 2
+}
+
+skinparam rectangle {
+    BackgroundColor White
+    BorderColor Black
+    BorderThickness 1
+    FontSize 11
+}
+
+' Layer colors
+!define PRES #ADD8E6
+!define APP #FFB6C1
+!define DOMAIN #90EE90
+!define INFRA #D3D3D3
+!define CROSS #FFA500
+
+skinparam package<<Presentation>> {
+    BackgroundColor PRES
+    BorderColor #000080
+}
+
+skinparam package<<Application>> {
+    BackgroundColor APP
+    BorderColor #8B0000
+}
+
+skinparam package<<Domain>> {
+    BackgroundColor DOMAIN
+    BorderColor #006400
+}
+
+skinparam package<<Infrastructure>> {
+    BackgroundColor INFRA
+    BorderColor #696969
+}
+
+skinparam package<<CrossCutting>> {
+    BackgroundColor CROSS
+    BorderColor #FF8C00
+}
+
+' === LEGEND ===
+legend right
+    |= Layer |= Responsibility |
+    | Presentation | User Interfaces & APIs |
+    | Application | Business Logic Orchestration |
+    | Domain | Business Rules & Data Models |
+    | Infrastructure | External Concerns & Frameworks |
+    | Cross-Cutting | Logging, DI, Configuration |
+endlegend
+
+@enduml

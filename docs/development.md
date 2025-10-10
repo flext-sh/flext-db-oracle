@@ -37,7 +37,7 @@ make validate
 - ✅ **FLEXT Ecosystem Integration**: Complete flext-core, flext-cli integration
 - ✅ **Type Safety**: Pyrefly strict mode compliant (ZERO errors)
 - ✅ **Code Quality**: Ruff linting compliant (ZERO violations)
-- ✅ **Test Coverage**: 100% coverage achieved (287 tests passing)
+- ⚠️ **Test Coverage**: ~95% (test failures prevent full validation)
 
 #### Production-Ready Features
 - ✅ **Connection Pooling**: Enterprise-grade connection management
@@ -45,6 +45,20 @@ make validate
 - ✅ **Schema Introspection**: Complete metadata extraction capabilities
 - ✅ **Query Optimization**: Parameter binding and result processing
 - ✅ **Error Recovery**: Comprehensive error hierarchy and handling
+
+### 🚨 BLOCKED - Testing & Quality Assurance (85%)
+
+#### Current Issues
+- ❌ **Import Failures**: Major test files failing due to flext-core test utility issues
+- ❌ **Pydantic Deprecations**: Deprecated class-based config in production code
+- ❌ **Constants Validation**: Test failures indicating potential constant misconfigurations
+- ❌ **CI/CD Pipeline**: Automated testing blocked by import failures
+
+#### Immediate Priorities
+- 🔧 **Fix Test Imports**: Resolve flext-core test utility import errors
+- 🔧 **Update Pydantic**: Migrate to ConfigDict pattern for v3 compatibility
+- 🔧 **Validate Constants**: Ensure test expectations match actual values
+- 🔧 **Test Framework Audit**: Verify all test dependencies work correctly
 
 ### ⚠️ PARTIAL - CLI Layer (60%)
 
@@ -344,6 +358,58 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 - Test changes against dependent projects
 - Maintain backward compatibility
 - Use deprecation warnings for API changes
+
+### Current Test Issues Troubleshooting
+
+#### Import Failures in Test Files
+**Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
+```bash
+# Check what's available in flext-core test utilities
+PYTHONPATH=src python -c "from flext_tests.matchers import *; print(dir())"
+
+# Fix: Update test imports to use correct flext-core utilities
+# Replace: from flext_tests.matchers import FlextTestsBuilders
+# With: from flext_tests.matchers import FlextTestsMatchers  # or correct import
+```
+
+#### Pydantic Deprecation Warnings
+**Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
+```bash
+# Current problematic code in src/flext_db_oracle/exceptions.py:28
+class ExceptionParams(FlextModels.Entity):
+    class Config:  # DEPRECATED
+        pass
+
+# Fix: Migrate to ConfigDict
+from pydantic import ConfigDict
+
+class ExceptionParams(FlextModels.Entity):
+    model_config = ConfigDict()  # MODERN APPROACH
+```
+
+#### Constants Test Failures
+**Issue**: Network constants test failing (expecting 1024, getting 1)
+```bash
+# Check actual constant values
+PYTHONPATH=src python -c "from flext_db_oracle.constants import FlextDbOracleConstants; print(FlextDbOracleConstants.Network.MIN_PORT)"
+
+# Fix: Either update constants or correct test expectations
+# Option 1: Update constant to match test expectation
+# Option 2: Update test to match actual constant value
+```
+
+#### Test Collection Issues
+**Issue**: `collected 11 items / 1 error` - Major test files not loading
+```bash
+# Run specific working tests first
+PYTHONPATH=src poetry run pytest tests/unit/test_constants.py -v
+
+# Debug import issues
+PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
+
+# Check flext-core compatibility
+PYTHONPATH=src python -c "import flext_core; print(flext_core.__version__)"
+```
 
 ---
 

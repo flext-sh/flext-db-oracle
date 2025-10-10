@@ -238,6 +238,35 @@ clean-all: clean ## Deep clean including venv
 reset: clean-all setup ## Reset project
 
 # =============================================================================
+# DOCUMENTATION MAINTENANCE
+# =============================================================================
+
+.PHONY: docs-audit
+docs-audit: ## Run comprehensive documentation audit
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python scripts/docs_maintenance.py --audit
+
+.PHONY: docs-validate
+docs-validate: ## Run documentation validation checks
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python scripts/docs_maintenance.py --validate
+
+.PHONY: docs-optimize
+docs-optimize: ## Run documentation content optimization
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python scripts/docs_maintenance.py --optimize
+
+.PHONY: docs-maintenance
+docs-maintenance: ## Run complete documentation maintenance suite
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python scripts/docs_maintenance.py --comprehensive
+
+.PHONY: docs-health
+docs-health: ## Quick documentation health check
+	@echo "Documentation Health Check:"
+	@echo "=========================="
+	@echo "Files: $$(find . -name "*.md" | wc -l) markdown files"
+	@echo "Status indicators: $$(grep -r "✅\|❌\|⚠️" docs/ 2>/dev/null | wc -l) found"
+	@echo "External links: $$(grep -r "http" --include="*.md" . | wc -l) to validate"
+	@echo "Reports directory: $$(ls docs/reports/ 2>/dev/null | wc -l || echo 0) reports generated"
+
+# =============================================================================
 # DIAGNOSTICS
 # =============================================================================
 
@@ -249,7 +278,7 @@ diagnose: ## Project diagnostics
 	@$(POETRY) env info
 
 .PHONY: doctor
-doctor: diagnose check ## Health check
+doctor: diagnose check docs-health ## Comprehensive health check
 
 # =============================================================================
 

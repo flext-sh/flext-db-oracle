@@ -2,7 +2,7 @@
 
 **Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **Python-oracledb** with FLEXT patterns.
 
-> **✅ STATUS**: Production-ready foundation with enterprise Oracle integration. Phase 2 CLI enhancement in progress.
+> **⚠️ STATUS**: Functional foundation with enterprise Oracle integration. Test issues need resolution before Phase 2 CLI enhancement.
 
 ---
 
