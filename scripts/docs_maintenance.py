@@ -164,12 +164,12 @@ class DocumentationAuditor:
             result.statistics = self._analyze_content(content)
             result.issues = await self._validate_content(file_path, content)
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Error auditing {file_path}")
             result.issues.append({
                 "type": "file_error",
                 "severity": "critical",
-                "message": f"Failed to read file: {e}",
+                "message": "Failed to read file",
                 "line": 0,
             })
 
@@ -481,7 +481,7 @@ class ContentOptimizer:
 
             return optimizations
 
-        # TODO: Implement automatic corrections
+        # TODO(@flext-team): Implement automatic corrections - #123
         # This would modify files directly based on issue types
 
         return optimizations
@@ -491,6 +491,7 @@ class ReportGenerator:
     """Generate comprehensive maintenance reports."""
 
     def __init__(self, config: MaintenanceConfig) -> None:
+        """Initialize report generator with configuration."""
         self.config = config
         self.reports_dir = Path("docs/reports")
         self.reports_dir.mkdir(exist_ok=True)
