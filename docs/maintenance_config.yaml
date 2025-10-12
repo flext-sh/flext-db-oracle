@@ -8,7 +8,7 @@ last_updated: "2025-10-10"
 # Audit Configuration
 audit:
   enabled: true
-  frequency: "daily"  # daily, weekly, monthly
+  frequency: "daily" # daily, weekly, monthly
   thresholds:
     max_age_days: 90
     min_word_count: 100
@@ -17,7 +17,7 @@ audit:
 
   # Quality thresholds
   quality:
-    critical_severity: 0  # Must be zero
+    critical_severity: 0 # Must be zero
     high_severity: 2
     medium_severity: 10
     low_severity: 50
@@ -32,15 +32,15 @@ validation:
 
   # Style Guide
   style:
-    heading_case: "title"  # title, sentence, all_caps
-    list_style: "dashes"   # dashes, asterisks, pluses
+    heading_case: "title" # title, sentence, all_caps
+    list_style: "dashes" # dashes, asterisks, pluses
     code_block_language: true
     emphasis_consistency: true
 
 # Content Optimization
 optimization:
   enabled: true
-  auto_correct: false  # Set to true for automatic fixes
+  auto_correct: false # Set to true for automatic fixes
   suggestions_only: true
 
   # Enhancement Rules
@@ -54,7 +54,7 @@ optimization:
 sync:
   enabled: true
   git_integration: true
-  auto_commit: false  # Manual review required
+  auto_commit: false # Manual review required
   branch_protection: true
 
   # Version Control
@@ -66,7 +66,7 @@ sync:
 # Reporting
 reporting:
   enabled: true
-  format: "markdown"  # markdown, json, html
+  format: "markdown" # markdown, json, html
   output_directory: "docs/reports/"
   retention_days: 90
 
@@ -110,9 +110,9 @@ platforms:
 
 # Scheduling
 schedule:
-  daily_audit: "02:00"      # 2 AM daily
-  weekly_report: "sunday 03:00"  # Sunday 3 AM
-  monthly_cleanup: "1st 04:00"   # 1st of month 4 AM
+  daily_audit: "02:00" # 2 AM daily
+  weekly_report: "sunday 03:00" # Sunday 3 AM
+  monthly_cleanup: "1st 04:00" # 1st of month 4 AM
 
 # Emergency Procedures
 emergency:

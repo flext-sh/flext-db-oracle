@@ -139,6 +139,7 @@ graph TB
 ### Entry Points
 
 #### `__init__.py` (Public API)
+
 **Lines**: 43
 **Purpose**: Public API exports and ecosystem integration
 **Exports**: 14 main classes and version information
@@ -159,6 +160,7 @@ __all__ = [
 ```
 
 #### `cli.py` (CLI Entry Point)
+
 **Lines**: ~2,200 (Click abstraction)
 **Purpose**: Command-line interface entry point
 **Framework**: Click command group with FLEXT patterns
@@ -167,16 +169,19 @@ __all__ = [
 ### Core API Layer
 
 #### `api.py` (FlextDbOracleApi)
+
 **Lines**: 4,512
 **Methods**: 36 public methods
 **Complexity**: High (orchestration layer)
 **Responsibilities**:
+
 - Unified entry point for all Oracle operations
 - Service orchestration and coordination
 - Error handling and result transformation
 - Connection lifecycle management
 
 **Key Methods**:
+
 ```python
 def connect(self, config: OracleConfig) -> FlextCore.Result[Connection]
 def execute_query(self, sql: str, params: dict = None) -> FlextCore.Result[QueryResult]
@@ -189,16 +194,19 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 ### Service Layer
 
 #### `services.py` (FlextDbOracleServices)
+
 **Lines**: ~800
 **Classes**: 8 nested service classes
 **Purpose**: Business logic and query orchestration
 **Features**:
+
 - SQL query building and validation
 - Result set processing and transformation
 - Schema introspection logic
 - Data type conversion and formatting
 
 #### `client.py` (FlextDbOracleClient)
+
 **Lines**: ~2,600
 **Status**: ⚠️ Partial (60% complete)
 **Purpose**: Rich CLI client operations
@@ -206,9 +214,11 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 **Target**: Complete Rich integration with tables, progress bars, status displays
 
 #### `cli.py` (FlextDbOracleCli)
+
 **Lines**: ~2,200
 **Purpose**: CLI command interface and Click integration
 **Features**:
+
 - Command registration and dispatching
 - Option parsing and validation
 - Help system and command discovery
@@ -217,28 +227,34 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 ### Domain Model Layer
 
 #### `models.py` (FlextDbOracleModels)
+
 **Lines**: ~1,200
 **Models**: 15+ Pydantic classes
 **Purpose**: Domain models and data validation
 **Features**:
+
 - OracleConfig, QueryResult, SchemaInfo models
 - Pydantic v2 validation and serialization
 - Type-safe data structures with custom validators
 
 #### `exceptions.py` (FlextDbOracleExceptions)
+
 **Lines**: ~600
 **Classes**: 8 exception types
 **Purpose**: Domain-specific error hierarchy
 **Features**:
+
 - ConnectionException, QueryException, SchemaException
 - Error context preservation and chaining
 - User-friendly error messages
 
 #### `constants.py` (FlextDbOracleConstants)
+
 **Lines**: ~400
 **Constants**: 50+ system constants
 **Purpose**: Configuration constants and defaults
 **Features**:
+
 - Database connection limits and timeouts
 - Query execution parameters
 - Error codes and status values
@@ -246,27 +262,33 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 ### Infrastructure Layer
 
 #### `connection.py` (Connection Management)
+
 **Lines**: ~900
 **Purpose**: SQLAlchemy engine and connection pool management
 **Features**:
+
 - Connection pool lifecycle (create, configure, destroy)
 - Health checks and connection validation
 - Transaction management integration
 - Connection leak prevention and monitoring
 
 #### `utilities.py` (Helper Functions)
+
 **Lines**: ~500
 **Functions**: 25+ utility functions
 **Purpose**: Common operations and data transformations
 **Features**:
+
 - SQL parameter binding and sanitization
 - Result set formatting and type conversion
 - String processing and validation helpers
 
 #### `config.py` (Configuration Management)
+
 **Lines**: ~700
 **Purpose**: Application configuration with Pydantic Settings
 **Features**:
+
 - Environment variable integration
 - Configuration validation and defaults
 - Runtime configuration updates
@@ -275,41 +297,51 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 ### Supporting Modules
 
 #### `mixins.py` (Shared Behaviors)
+
 **Lines**: ~300
 **Classes**: 5 mixin classes
 **Purpose**: Reusable behaviors and composition helpers
 **Features**:
+
 - LoggingMixin, ValidationMixin, SerializationMixin
 - Cross-cutting concerns implementation
 
 #### `plugins.py` (Extension System)
+
 **Lines**: ~400
 **Purpose**: Plugin architecture for extensibility
 **Features**:
+
 - Plugin registration and discovery
 - Hook system for custom operations
 - Extension points for third-party integrations
 
 #### `protocols.py` (Type Protocols)
+
 **Lines**: ~150
 **Protocols**: 8 structural typing protocols
 **Purpose**: Type-safe interfaces without inheritance
 **Features**:
+
 - ConnectionProtocol, QueryProtocol, ResultProtocol
 - Structural subtyping for clean interfaces
 
 #### `typings.py` (Type Aliases)
+
 **Lines**: ~200
 **Aliases**: 15+ type definitions
 **Purpose**: Complex type definitions and generics
 **Features**:
+
 - ParamsDict, ResultSet, ConnectionPool types
 - Generic type aliases for better type hints
 
 #### `dispatcher.py` (Command Dispatching)
+
 **Lines**: ~350
 **Purpose**: Command pattern implementation for CLI
 **Features**:
+
 - Command registration and resolution
 - Parameter validation and transformation
 - Result handling and error propagation
@@ -318,15 +350,15 @@ def rollback_transaction(self) -> FlextCore.Result[None]
 
 ### Size and Complexity
 
-| Module | Lines | Complexity | Test Coverage |
-|--------|-------|------------|---------------|
-| `api.py` | 4,512 | High | 100% |
-| `client.py` | 2,600 | Medium | 60% |
-| `cli.py` | 2,200 | Medium | 85% |
-| `models.py` | 1,200 | Medium | 100% |
-| `services.py` | 800 | Medium | 100% |
-| `connection.py` | 900 | Medium | 100% |
-| **Total** | **12,412** | - | **95%** |
+| Module          | Lines      | Complexity | Test Coverage |
+| --------------- | ---------- | ---------- | ------------- |
+| `api.py`        | 4,512      | High       | 100%          |
+| `client.py`     | 2,600      | Medium     | 60%           |
+| `cli.py`        | 2,200      | Medium     | 85%           |
+| `models.py`     | 1,200      | Medium     | 100%          |
+| `services.py`   | 800        | Medium     | 100%          |
+| `connection.py` | 900        | Medium     | 100%          |
+| **Total**       | **12,412** | -          | **95%**       |
 
 ### Type Safety Coverage
 
@@ -382,18 +414,21 @@ tests/
 ### Current Development Phase
 
 #### Phase 1: Foundation (✅ Complete)
+
 - Clean Architecture implementation
 - FLEXT ecosystem integration
 - Core Oracle operations
 - Comprehensive testing infrastructure
 
 #### Phase 2: CLI Enhancement (⚠️ In Progress - 60%)
+
 - Rich integration for professional output
 - Interactive prompts and progress indicators
 - Enhanced error messages and user feedback
 - Table formatting and status displays
 
 #### Phase 3: Advanced Features (❌ Planned)
+
 - Async support for concurrent operations
 - DataFrame integration (pandas/polars)
 - Oracle 23ai features and AI capabilities
@@ -402,18 +437,21 @@ tests/
 ### Code Maintenance Practices
 
 #### Automated Quality Assurance
+
 - **Pre-commit Hooks**: Documentation and code quality validation
 - **CI/CD Integration**: Automated testing and quality gates
 - **Maintenance Scripts**: `scripts/docs_maintenance.py` for documentation
 - **Type Checking**: Pyrefly strict mode enforcement
 
 #### Code Review Standards
+
 - **Architecture Compliance**: Clean Architecture pattern adherence
 - **Type Safety**: 100% type annotation coverage
 - **Test Coverage**: 100% requirement for new code
 - **Documentation**: Updated docs for API changes
 
 #### Refactoring Guidelines
+
 - **Incremental Changes**: Small, testable modifications
 - **Backward Compatibility**: Maintain existing APIs during transitions
 - **Performance Impact**: Profile and optimize performance-critical paths
@@ -423,13 +461,13 @@ tests/
 
 ### Memory and CPU Usage
 
-| Component | Memory Usage | CPU Impact | Notes |
-|-----------|--------------|------------|-------|
-| API Layer | ~50MB | Low | Orchestration overhead |
-| Connection Pool | ~10MB per 10 connections | Low | SQLAlchemy engine |
-| Model Validation | ~5MB | Low | Pydantic v2 efficiency |
-| CLI Operations | ~30MB | Medium | Rich library overhead |
-| Test Suite | ~100MB | High | Parallel test execution |
+| Component        | Memory Usage             | CPU Impact | Notes                   |
+| ---------------- | ------------------------ | ---------- | ----------------------- |
+| API Layer        | ~50MB                    | Low        | Orchestration overhead  |
+| Connection Pool  | ~10MB per 10 connections | Low        | SQLAlchemy engine       |
+| Model Validation | ~5MB                     | Low        | Pydantic v2 efficiency  |
+| CLI Operations   | ~30MB                    | Medium     | Rich library overhead   |
+| Test Suite       | ~100MB                   | High       | Parallel test execution |
 
 ### Scalability Metrics
 
@@ -441,12 +479,14 @@ tests/
 ### Optimization Opportunities
 
 #### Identified Improvements
+
 - **Async Support**: Reduce blocking I/O overhead
 - **Connection Pool Tuning**: Optimize pool size and recycling
 - **Query Result Streaming**: Handle large result sets efficiently
 - **Caching Layer**: Implement query plan and metadata caching
 
 #### Performance Monitoring
+
 - **Query Execution Times**: Tracked in QueryResult objects
 - **Connection Pool Utilization**: Pool size and overflow metrics
 - **Memory Usage**: Per-operation memory profiling

@@ -117,14 +117,17 @@ graph TB
 ### Application Layer Components
 
 #### FlextDbOracleApi (Main API)
+
 **Pattern**: Facade Pattern
 **Responsibilities**:
+
 - Unified entry point for all Oracle operations
 - Orchestrates service calls and error handling
 - Implements railway-oriented programming with FlextCore.Result[T]
 - Provides both sync and async operation support
 
 **Key Interfaces**:
+
 ```python
 class FlextDbOracleApi(FlextCore.Service):
     def connect(self, config: OracleConfig) -> FlextCore.Result[Connection]
@@ -136,22 +139,27 @@ class FlextDbOracleApi(FlextCore.Service):
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
 
 #### FlextDbOracleCli (CLI Interface)
+
 **Pattern**: Command Pattern
 **Responsibilities**:
+
 - Command-line interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
 - Command registration and dispatching
 - User interaction and feedback
 - Integration with Click framework
 
 **Key Features**:
+
 - Connection testing commands
 - Schema inspection commands
 - Query execution commands
 - Configuration management commands
 
 #### FlextDbOracleClient (Client Operations)
+
 **Pattern**: Strategy Pattern
 **Responsibilities**:
+
 - Rich terminal UI components
 - Output formatting and display
 - User interaction handling
@@ -162,14 +170,17 @@ class FlextDbOracleApi(FlextCore.Service):
 ### Domain Layer Components
 
 #### FlextDbOracleModels (Domain Models)
+
 **Pattern**: Entity Pattern
 **Responsibilities**:
+
 - Pydantic v2 models for data validation
 - Domain entity definitions (OracleConfig, QueryResult, etc.)
 - Type-safe data structures
 - Serialization and deserialization
 
 **Key Models**:
+
 ```python
 class OracleConfig(BaseModel):
     host: str
@@ -186,28 +197,34 @@ class QueryResult(BaseModel):
 ```
 
 #### FlextDbOracleServices (Business Logic)
+
 **Pattern**: Service Pattern
 **Responsibilities**:
+
 - Query building and optimization
 - Business rule validation
 - Data transformation and processing
 - Domain logic orchestration
 
 **Key Services**:
+
 - SQL query construction and validation
 - Result set processing and formatting
 - Schema introspection logic
 - Transaction management coordination
 
 #### FlextDbOracleExceptions (Domain Exceptions)
+
 **Pattern**: Exception Pattern
 **Responsibilities**:
+
 - Domain-specific error hierarchy
 - Error classification and handling
 - User-friendly error messages
 - Exception chaining and context preservation
 
 **Exception Hierarchy**:
+
 ```
 FlextDbOracleException (base)
 ├── ConnectionException
@@ -220,30 +237,37 @@ FlextDbOracleException (base)
 ### Infrastructure Layer Components
 
 #### FlextDbOracleConnection (Connection Management)
+
 **Pattern**: Pool Pattern
 **Responsibilities**:
+
 - SQLAlchemy engine management
 - Connection pool lifecycle
 - Database connectivity handling
 - Connection health monitoring
 
 **Features**:
+
 - Configurable connection pools (size, overflow, timeout)
 - Automatic connection recycling and health checks
 - Transaction management integration
 - Connection leak prevention
 
 #### FlextDbOracleUtilities (Helper Functions)
+
 **Pattern**: Utility Pattern
 **Responsibilities**:
+
 - Common utility functions
 - Data type conversions
 - String processing and sanitization
 - Helper methods for common operations
 
 #### FlextDbOracleConstants (System Constants)
+
 **Pattern**: Constant Pattern
 **Responsibilities**:
+
 - System-wide constants and configuration
 - Default values and limits
 - Enumeration definitions
@@ -252,24 +276,30 @@ FlextDbOracleException (base)
 ### Cross-Cutting Components
 
 #### FlextDbOracleConfig (Configuration)
+
 **Pattern**: Configuration Pattern
 **Responsibilities**:
+
 - Application configuration management
 - Environment variable handling
 - Configuration validation and defaults
 - Runtime configuration updates
 
 #### FlextCore.Logger (Logging)
+
 **Pattern**: Logging Pattern
 **Responsibilities**:
+
 - Structured JSON logging
 - Configurable log levels
 - Context propagation
 - Performance-aware logging
 
 #### FlextCore.Container (Dependency Injection)
+
 **Pattern**: Container Pattern
 **Responsibilities**:
+
 - Service registration and resolution
 - Dependency injection management
 - Singleton and factory patterns
@@ -344,24 +374,28 @@ stateDiagram-v2
 ## Component Quality Attributes
 
 ### Reliability
+
 - **Error Handling**: Comprehensive exception handling with FlextCore.Result[T]
 - **Connection Resilience**: Automatic retry and recovery mechanisms
 - **Data Integrity**: Transaction management with rollback capabilities
 - **Resource Management**: Proper cleanup and leak prevention
 
 ### Performance
+
 - **Connection Pooling**: Efficient connection reuse and management
 - **Query Optimization**: Prepared statements and parameter binding
 - **Memory Management**: Streaming results for large datasets
 - **Caching**: Query plan and metadata caching
 
 ### Maintainability
+
 - **Clean Architecture**: Clear separation of concerns and dependencies
 - **Type Safety**: 100% type coverage with modern Python features
 - **Testability**: Comprehensive test coverage with isolated components
 - **Documentation**: Automated documentation maintenance
 
 ### Security
+
 - **Input Validation**: Pydantic models for data validation
 - **SQL Injection Prevention**: Parameterized queries and prepared statements
 - **Credential Management**: Secure password handling with SecretStr
@@ -370,12 +404,14 @@ stateDiagram-v2
 ## Component Evolution
 
 ### Current State (v0.9.0)
+
 - ✅ **Foundation Components**: API, Models, Services, Connection fully implemented
 - ✅ **Domain Layer**: Complete with proper separation of concerns
 - ✅ **Infrastructure**: SQLAlchemy integration with connection pooling
 - ⚠️ **CLI Components**: Basic structure, Rich integration in progress
 
 ### Future Enhancements
+
 - **Async Components**: asyncio support for concurrent operations
 - **DataFrame Components**: pandas/polars integration for analytics
 - **Monitoring Components**: Advanced observability and metrics

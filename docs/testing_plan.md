@@ -7,12 +7,14 @@
 ### Test Infrastructure Status
 
 #### ⚠️ **PARTIAL - Test Framework (85%)**
+
 - **30 Test Files**: Comprehensive test suite with 8,633+ lines of test code
 - **~95% Coverage**: Target 100%, but test failures prevent full validation
 - **Pytest Integration**: Full pytest ecosystem (markers, fixtures, parametrization)
 - **CI/CD Integration**: Automated testing in build pipeline (currently blocked by failures)
 
 #### Test Categories Implemented
+
 - ✅ **Unit Tests**: Individual component testing (`tests/unit/`)
 - ⚠️ **Integration Tests**: Oracle container testing (`tests/integration/`) - blocked by import issues
 - ⚠️ **E2E Tests**: Complete workflow validation (`tests/e2e/`) - blocked by import issues
@@ -25,18 +27,21 @@
 ### Critical Test Failures
 
 #### 1. **Import Errors in Test Files**
+
 **Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
 **Impact**: Major test files failing to import, blocking test execution
 **Files Affected**: `tests/unit/test_api.py` and potentially others
 **Root Cause**: Missing or renamed exports in flext-core test utilities
 
 #### 2. **Pydantic Deprecation Warnings**
+
 **Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
 **Impact**: Warnings in production code, potential future breaking changes
 **Files Affected**: `src/flext_db_oracle/exceptions.py:28`
 **Root Cause**: Using deprecated Pydantic v1 style configuration
 
 #### 3. **Constants Test Failures**
+
 **Issue**: `AssertionError: assert 1 == 1024` in network constants test
 **Impact**: Basic functionality tests failing
 **Files Affected**: `tests/unit/test_constants.py`
@@ -45,12 +50,14 @@
 ### Resolution Strategy
 
 #### Immediate Actions Required
+
 1. **Fix flext-core Test Imports**: Update test files to use correct flext-core test utilities
 2. **Update Pydantic Configuration**: Migrate from deprecated class-based config to ConfigDict
 3. **Validate Constants**: Ensure test expectations match actual constant values
 4. **Test Framework Audit**: Verify all test dependencies and imports
 
 #### Medium-term Goals
+
 1. **Achieve 100% Test Pass Rate**: All tests passing without errors
 2. **Resolve Deprecation Warnings**: Update to modern Pydantic patterns
 3. **CI/CD Pipeline Stability**: Automated testing working reliably
@@ -63,6 +70,7 @@
 ### Test Execution Status (2025-10-10)
 
 #### Current Test Run Results
+
 ```
 ======================== test session starts ==============================
 collected 11 items / 1 error
@@ -70,6 +78,7 @@ collected 11 items / 1 error
 ```
 
 #### Test Breakdown by Category
+
 - **Unit Tests**: ~50% working (import issues in major test files)
 - **Integration Tests**: ❌ Blocked (import failures)
 - **E2E Tests**: ❌ Blocked (import failures)
@@ -78,18 +87,21 @@ collected 11 items / 1 error
 ### Known Test Issues
 
 #### 🚨 Critical: Import Failures in Core Test Files
+
 **Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
 **Impact**: Major test files (`test_api.py`) failing to load, blocking 80%+ of test suite
 **Root Cause**: Missing or renamed exports in flext-core test utilities
 **Severity**: **CRITICAL** - Prevents validation of core functionality
 
 #### ⚠️ Pydantic Deprecation Warnings
+
 **Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
 **Impact**: Production code warnings, potential future compatibility issues
 **Files**: `src/flext_db_oracle/exceptions.py:28`
 **Severity**: **HIGH** - Needs immediate resolution for Pydantic v3 compatibility
 
 #### ⚠️ Constants Test Failures
+
 **Issue**: `AssertionError: assert 1 == 1024` in network constants test
 **Impact**: Basic functionality validation failing
 **Files**: `tests/unit/test_constants.py`
@@ -102,6 +114,7 @@ collected 11 items / 1 error
 ### Core API Layer (`api.py`)
 
 #### Coverage Status: ✅ **100%**
+
 ```bash
 # Test file: tests/unit/test_api.py
 # Methods tested: 36+ FlextDbOracleApi methods
@@ -109,6 +122,7 @@ collected 11 items / 1 error
 ```
 
 #### Test Categories
+
 - **Connection Management**: Pool creation, lifecycle, failover
 - **Query Execution**: Parameter binding, result processing, error handling
 - **Schema Operations**: Introspection, metadata extraction
@@ -116,6 +130,7 @@ collected 11 items / 1 error
 - **Error Handling**: All FlextCore.Result error paths
 
 #### Key Test Fixtures
+
 ```python
 @pytest.fixture
 def flext_db_oracle_api() -> FlextDbOracleApi:
@@ -138,6 +153,7 @@ def oracle_config_data() -> dict:
 ### Models Layer (`models.py`)
 
 #### Coverage Status: ✅ **100%**
+
 ```bash
 # Test file: tests/unit/test_models.py
 # Classes tested: All Pydantic models
@@ -145,6 +161,7 @@ def oracle_config_data() -> dict:
 ```
 
 #### Test Categories
+
 - **OracleConfig**: Connection parameters, validation, defaults
 - **QueryResult**: Result processing, column mapping, data types
 - **Schema Models**: Table metadata, column information, constraints
@@ -153,6 +170,7 @@ def oracle_config_data() -> dict:
 ### Services Layer (`services.py`)
 
 #### Coverage Status: ✅ **100%**
+
 ```bash
 # Test file: tests/unit/test_services.py
 # Classes tested: 8 helper service classes
@@ -160,6 +178,7 @@ def oracle_config_data() -> dict:
 ```
 
 #### Test Categories
+
 - **Query Building**: SQL construction, parameter binding, optimization
 - **Result Processing**: Data transformation, type conversion, formatting
 - **Schema Services**: Metadata extraction, relationship mapping
@@ -168,6 +187,7 @@ def oracle_config_data() -> dict:
 ### CLI Layer (Incomplete - 60%)
 
 #### Coverage Status: ⚠️ **60%**
+
 ```bash
 # Test files: tests/unit/test_cli.py, tests/unit/test_client.py
 # Current coverage: 60% (structure tests, placeholder validation)
@@ -175,12 +195,14 @@ def oracle_config_data() -> dict:
 ```
 
 #### Current Test Gaps
+
 - ❌ **Formatter Tests**: Placeholder `SimpleNamespace` testing only
 - ❌ **Rich Integration**: No actual Rich component testing
 - ❌ **Interactive Features**: Prompt and dialog testing missing
 - ❌ **Output Management**: Advanced formatting not tested
 
 #### Test Plan for Completion
+
 ```python
 # Planned Rich formatter tests
 def test_rich_table_formatter(flext_cli_formatters):
@@ -199,6 +221,7 @@ def test_rich_progress_formatter(flext_cli_formatters):
 ### Integration Testing (Oracle Container)
 
 #### Coverage Status: ✅ **90%**
+
 ```bash
 # Test files: tests/integration/
 # Oracle XE 21c container required
@@ -206,6 +229,7 @@ def test_rich_progress_formatter(flext_cli_formatters):
 ```
 
 #### Test Environment Setup
+
 ```bash
 # Docker-based Oracle testing
 make oracle-start          # Start Oracle XE 21c container
@@ -215,6 +239,7 @@ make oracle-stop          # Clean up container
 ```
 
 #### Integration Test Categories
+
 - **Real Database Operations**: Actual Oracle connectivity and queries
 - **Transaction Testing**: Multi-statement transactions with rollback
 - **Performance Testing**: Query performance under load
@@ -227,11 +252,13 @@ make oracle-stop          # Clean up container
 ### Code Coverage Requirements
 
 #### Mandatory Coverage Targets
+
 - **Unit Tests**: 100% coverage for all modules
 - **Integration Tests**: 90% coverage for Oracle operations
 - **E2E Tests**: 80% coverage for complete workflows
 
 #### Coverage Exclusions
+
 ```python
 # pytest.ini_options coverage exclusions
 exclude_lines = [
@@ -247,12 +274,14 @@ exclude_lines = [
 ### Test Quality Metrics
 
 #### Performance Benchmarks
+
 - **Test Execution**: < 30 seconds for unit test suite
 - **Import Time**: < 2 seconds for main modules
 - **Memory Usage**: < 50MB for test execution
 - **Parallel Execution**: Support for pytest-xdist
 
 #### Code Quality in Tests
+
 - **Type Hints**: 100% type annotation coverage in test files
 - **Docstrings**: All test functions documented
 - **Fixture Reuse**: Common fixtures for consistent testing
@@ -265,6 +294,7 @@ exclude_lines = [
 ### 1. Railway Pattern Testing
 
 #### Test FlextCore.Result Operations
+
 ```python
 def test_flext_result_success_path(flext_db_oracle_api):
     """Test successful operation returns FlextCore.Result.ok()."""
@@ -283,6 +313,7 @@ def test_flext_result_error_path(flext_db_oracle_api):
 ### 2. Fixture-Based Testing
 
 #### Comprehensive Test Fixtures
+
 ```python
 @pytest.fixture(scope="session")
 def oracle_container():
@@ -305,6 +336,7 @@ def flext_db_oracle_api(oracle_config) -> FlextDbOracleApi:
 ### 3. Parametrized Testing
 
 #### Test Multiple Scenarios
+
 ```python
 @pytest.mark.parametrize("sql_query,expected_result", [
     ("SELECT 1 FROM DUAL", True),
@@ -321,6 +353,7 @@ def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
 ### 4. Mock Strategy
 
 #### Minimal Mocking Approach
+
 ```python
 # Prefer real implementations over mocks
 def test_real_connection_pool():
@@ -343,6 +376,7 @@ def test_connection_timeout(mock_oracle_connection):
 ### Test Execution Status
 
 #### Recent Test Run (2025-10-10)
+
 ```
 ======================== test session starts ========================
 collected 287 tests
@@ -350,6 +384,7 @@ collected 287 tests
 ```
 
 #### Test Breakdown by Category
+
 - **Unit Tests**: 243 passed ✅
 - **Integration Tests**: 32 passed ✅
 - **E2E Tests**: 11 passed ✅
@@ -358,11 +393,13 @@ collected 287 tests
 ### Known Test Issues
 
 #### 1. CLI Formatter Tests Failing
+
 **Issue**: `SimpleNamespace` placeholders cause test failures
 **Impact**: 1 test error in CLI test suite
 **Resolution**: Replace placeholders with Rich implementations (Phase 2)
 
 #### 2. Oracle Container Dependency
+
 **Issue**: Integration tests require Docker and Oracle container
 **Impact**: Tests skipped if container not available
 **Resolution**: Automated container management in CI/CD
@@ -370,12 +407,14 @@ collected 287 tests
 ### Test Performance Metrics
 
 #### Execution Times
+
 - **Unit Tests**: 25.3 seconds (243 tests)
 - **Integration Tests**: 15.2 seconds (32 tests)
 - **E2E Tests**: 4.7 seconds (11 tests)
 - **Total**: 45.23 seconds for 287 tests
 
 #### Coverage Report
+
 ```
 Name                          Stmts   Miss   Cover   Missing
 -------------------------------------------------------------
@@ -394,6 +433,7 @@ TOTAL                          4517     45     99%
 ### Testing Tools Configuration
 
 #### pytest.ini Configuration
+
 ```ini
 [tool:pytest]
 addopts =
@@ -422,6 +462,7 @@ markers = [
 ```
 
 #### Coverage Configuration
+
 ```ini
 [tool:coverage:run]
 branch = true
@@ -438,6 +479,7 @@ source = [src]
 ### CI/CD Integration
 
 #### Automated Testing Pipeline
+
 ```yaml
 # .github/workflows/test.yml
 - name: Run Tests
@@ -460,17 +502,20 @@ source = [src]
 ### Phase 2 Testing Priorities
 
 #### 1. CLI Formatter Testing
+
 - ✅ **Complete Rich Integration**: Replace SimpleNamespace placeholders
 - ✅ **Formatter Unit Tests**: Test each Rich formatter component
 - ✅ **CLI Integration Tests**: Test complete CLI workflows
 - ✅ **Interactive Feature Tests**: Test prompts and user interactions
 
 #### 2. Performance Testing
+
 - ✅ **Benchmark Suite**: Query performance under load
 - ✅ **Memory Profiling**: Memory usage analysis
 - ✅ **Concurrency Testing**: Multi-threaded operation validation
 
 #### 3. Advanced Oracle Testing
+
 - ✅ **Oracle 23ai Features**: Vector types, pipelining (future)
 - ✅ **Bulk Operations**: Large dataset handling
 - ✅ **Long-Running Queries**: Timeout and cancellation testing
@@ -478,6 +523,7 @@ source = [src]
 ### Testing Best Practices Established
 
 #### 1. **Railway Pattern Validation**
+
 ```python
 # Always test both success and failure paths
 def test_operation_success_and_failure():
@@ -489,6 +535,7 @@ def test_operation_success_and_failure():
 ```
 
 #### 2. **Fixture Reuse Strategy**
+
 ```python
 # Common fixtures for consistent testing
 @pytest.fixture(scope="module")
@@ -502,6 +549,7 @@ def oracle_test_data():
 ```
 
 #### 3. **Mock vs Real Implementation Balance**
+
 ```python
 # Prefer real implementations, use mocks sparingly
 def test_with_real_oracle_connection(oracle_container):
@@ -524,11 +572,13 @@ def test_with_mocked_connection(mock_connection):
 ### Coverage Quality Indicators
 
 #### Branch Coverage
+
 - **Target**: > 90% branch coverage
 - **Current**: 85% (improving with Phase 2)
 - **Focus Areas**: Error handling paths, edge cases
 
 #### Mutation Testing (Future)
+
 - **Target**: > 80% mutation score
 - **Tools**: mutmut integration planned
 - **Benefits**: Validate test effectiveness
@@ -536,11 +586,13 @@ def test_with_mocked_connection(mock_connection):
 ### Performance Benchmarks
 
 #### Test Execution Performance
+
 - **Unit Tests**: < 30 seconds (current: 25.3s ✅)
 - **Integration Tests**: < 60 seconds (current: 15.2s ✅)
 - **Full Suite**: < 120 seconds (current: 45.23s ✅)
 
 #### Resource Usage
+
 - **Memory**: < 100MB during test execution
 - **CPU**: Minimal impact on CI/CD resources
 - **Disk**: < 50MB for test artifacts
@@ -552,12 +604,14 @@ def test_with_mocked_connection(mock_connection):
 ### Test Refactoring Guidelines
 
 #### When to Refactor Tests
+
 1. **Code Changes**: Update tests when implementation changes
 2. **New Features**: Add tests for new functionality
 3. **Bug Fixes**: Add regression tests for fixed bugs
 4. **Performance**: Update benchmarks when optimizations implemented
 
 #### Test Organization Principles
+
 1. **Single Responsibility**: One test, one assertion focus
 2. **Descriptive Names**: `test_query_execution_returns_correct_results`
 3. **Fixture Usage**: Reuse fixtures for common setup
@@ -566,11 +620,13 @@ def test_with_mocked_connection(mock_connection):
 ### Continuous Improvement
 
 #### Regular Test Reviews
+
 - **Monthly**: Review test coverage and effectiveness
 - **Quarterly**: Update test strategy based on project evolution
 - **Annually**: Comprehensive test suite audit
 
 #### Test Quality Gates
+
 - ✅ **Coverage Gate**: 100% requirement (blocking)
 - ✅ **Performance Gate**: < 60 seconds execution time
 - ✅ **Quality Gate**: No linting violations in test code

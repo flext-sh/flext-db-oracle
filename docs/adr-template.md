@@ -8,6 +8,7 @@
 ## Context
 
 [Describe the context and forces at play, including:
+
 - Business requirements
 - Technical constraints
 - Quality attributes (performance, security, maintainability, etc.)
@@ -18,6 +19,7 @@
 
 [Clearly state the decision made. Use present tense.
 Include:
+
 - Chosen approach or technology
 - Implementation details
 - Scope and boundaries]
@@ -25,6 +27,7 @@ Include:
 ## Rationale
 
 [Explain the reasoning behind the decision:
+
 - Why this approach was chosen
 - Trade-offs considered
 - Benefits and drawbacks
@@ -34,6 +37,7 @@ Include:
 ## Alternatives Considered
 
 [List alternative approaches that were considered:
+
 - Option 1: [Description, Pros, Cons]
 - Option 2: [Description, Pros, Cons]
 - Option N: [Description, Pros, Cons]]
@@ -43,6 +47,7 @@ Include:
 ### Positive Consequences
 
 [List the positive outcomes:
+
 - Benefits achieved
 - Quality attributes improved
 - Technical debt reduced
@@ -51,6 +56,7 @@ Include:
 ### Negative Consequences
 
 [List the drawbacks and costs:
+
 - Trade-offs accepted
 - Complexity introduced
 - Maintenance burden added
@@ -60,6 +66,7 @@ Include:
 ## Implementation Plan
 
 [Describe how the decision will be implemented:
+
 - Technical approach
 - Timeline and milestones
 - Required resources
@@ -69,6 +76,7 @@ Include:
 ## Validation Criteria
 
 [Define how success will be measured:
+
 - Functional requirements
 - Non-functional requirements
 - Quality gates
@@ -77,6 +85,7 @@ Include:
 ## References
 
 [Links to relevant documentation, issues, discussions:
+
 - Related ADRs
 - RFCs or design documents
 - External references
@@ -85,6 +94,7 @@ Include:
 ## Notes
 
 [Any additional notes, considerations, or follow-up items:
+
 - Open questions
 - Future considerations
 - Related decisions]

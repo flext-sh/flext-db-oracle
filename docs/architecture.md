@@ -20,8 +20,8 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 ### FLEXT Pattern Integration
 
-| Pattern            | Implementation         | Status         |
-| ------------------ | ---------------------- | -------------- |
+| Pattern                 | Implementation         | Status         |
+| ----------------------- | ---------------------- | -------------- |
 | **FlextCore.Result<T>** | Monadic error handling | 🟢 Complete    |
 | **FlextCore.Service**   | Base service patterns  | 🟢 Implemented |
 | **FlextCore.Container** | Dependency injection   | 🟡 Partial     |

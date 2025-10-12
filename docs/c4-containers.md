@@ -98,12 +98,14 @@ graph TB
 **Technology**: Python 3.13+ Library (Poetry package)
 **Purpose**: Enterprise Oracle database integration with FLEXT patterns
 **Responsibilities**:
+
 - Provide type-safe Oracle database operations
 - Implement railway-oriented error handling
 - Offer CLI interface for REDACTED_LDAP_BIND_PASSWORDistrative operations
 - Support connection pooling and transaction management
 
 **Key Interfaces**:
+
 - **API Interface**: `FlextDbOracleApi` - Main programmatic interface
 - **CLI Interface**: `FlextDbOracleCli` - Command-line REDACTED_LDAP_BIND_PASSWORDistrative tools
 - **Configuration Interface**: Environment variables and configuration files
@@ -111,33 +113,41 @@ graph TB
 ### Supporting Applications
 
 #### flext-tap-oracle
+
 **Technology**: Python Application
 **Purpose**: Oracle data extraction for Singer taps
 **Container Relations**:
+
 - Imports flext-db-oracle library
 - Uses FlextDbOracleApi for database queries
 - Handles Singer protocol for data extraction
 
 #### flext-target-oracle
+
 **Technology**: Python Application
 **Purpose**: Oracle data loading for Singer targets
 **Container Relations**:
+
 - Imports flext-db-oracle library
 - Uses FlextDbOracleApi for database inserts/updates
 - Implements Singer protocol for data loading
 
 #### flext-dbt-oracle
+
 **Technology**: Python Application (dbt adapter)
 **Purpose**: Oracle data transformation with dbt
 **Container Relations**:
+
 - Imports flext-db-oracle library
 - Uses FlextDbOracleApi for dbt operations
 - Implements dbt Oracle adapter interface
 
 #### client-a-oud-mig
+
 **Technology**: Python Application
 **Purpose**: Oracle Unified Directory migration tools
 **Container Relations**:
+
 - Imports flext-db-oracle library
 - Uses specialized migration APIs
 - Handles Oracle directory data operations
@@ -145,18 +155,21 @@ graph TB
 ### External Systems
 
 #### Oracle Database
+
 **Technology**: Oracle Database XE 21c/19c/18c
 **Purpose**: Primary data storage and processing
 **Interface**: SQL over TCP/IP (Port 1521)
-**Protocols**: Oracle Net Services, SQL*Net
+**Protocols**: Oracle Net Services, SQL\*Net
 
 #### Oracle Integration Cloud (OIC)
+
 **Technology**: Cloud-based integration platform
 **Purpose**: Cloud data integration and processing
 **Interface**: REST APIs (Port 443)
 **Protocols**: HTTPS, OAuth 2.0
 
 #### Directory Services
+
 **Technology**: LDAP/Active Directory
 **Purpose**: Authentication and user management
 **Interface**: LDAP over TCP/IP (Ports 389/636)
@@ -165,17 +178,20 @@ graph TB
 ### Development & Testing Infrastructure
 
 #### pytest Testing Framework
+
 **Technology**: Python testing framework
 **Purpose**: Comprehensive test execution and validation
 **Coverage**: 100% requirement for production code
 **Integration**: pytest-xdist for parallel execution
 
 #### Poetry Package Manager
+
 **Technology**: Python dependency management
 **Purpose**: Package building and dependency resolution
 **Features**: Lock file management, virtual environment handling
 
 #### Docker Test Environment
+
 **Technology**: Containerized Oracle database
 **Purpose**: Isolated testing environment
 **Image**: Oracle XE 21c container for integration tests
@@ -183,24 +199,29 @@ graph TB
 ## Technology Choices
 
 ### Programming Language
+
 - **Python 3.13+**: Modern type system, performance improvements, exclusive support
 
 ### Core Dependencies
+
 - **SQLAlchemy 2.0+**: Enterprise ORM with async support and modern patterns
-- **python-oracledb 3.2+**: Official Oracle driver with performance optimizations
+- **Python-oracledb 3.2+**: Official Oracle driver with performance optimizations
 - **Pydantic v2**: Data validation and serialization with modern Python support
 
 ### FLEXT Ecosystem
+
 - **flext-core**: Foundation patterns (FlextCore.Result[T], FlextCore.Service, FlextCore.Container)
 - **flext-cli**: CLI framework integration (Click + Rich abstractions)
 
 ### Development Tools
+
 - **Poetry**: Modern Python packaging and dependency management
 - **pytest**: Comprehensive testing with advanced features
 - **Ruff**: Fast linting and formatting (replaces multiple tools)
 - **Pyrefly**: Next-generation type checking
 
 ### Quality Assurance
+
 - **100% Test Coverage**: Mandatory for all production code
 - **Type Safety**: Pyrefly strict mode compliance
 - **Code Quality**: Ruff linting with zero violations
@@ -209,17 +230,20 @@ graph TB
 ## Deployment & Runtime
 
 ### Library Distribution
+
 - **PyPI Package**: `flext-db-oracle` distributed via PyPI
 - **Version Management**: Semantic versioning with compatibility guarantees
 - **Dependency Resolution**: Poetry lock files ensure reproducible builds
 
 ### Runtime Requirements
+
 - **Python 3.13+**: Exclusive support with modern type features
-- **Oracle Client**: python-oracledb handles client libraries automatically
+- **Oracle Client**: Python-oracledb handles client libraries automatically
 - **Memory**: Minimal footprint with efficient connection pooling
 - **Network**: Reliable connectivity to Oracle databases
 
 ### Configuration Management
+
 - **Environment Variables**: Runtime configuration
 - **Configuration Files**: Optional YAML/TOML configuration
 - **Secrets Management**: Secure credential handling
@@ -228,16 +252,19 @@ graph TB
 ## Security Architecture
 
 ### Authentication & Authorization
+
 - **Database Credentials**: Secure storage and rotation
 - **Connection Security**: SSL/TLS encryption support
 - **Access Control**: Role-based permissions integration
 
 ### Data Protection
+
 - **In-Transit**: TLS encryption for database connections
 - **At-Rest**: Database-level encryption support
 - **Credential Security**: Environment variable isolation
 
 ### Audit & Monitoring
+
 - **Query Logging**: Configurable SQL logging (security-conscious)
 - **Connection Monitoring**: Pool utilization and performance metrics
 - **Error Tracking**: Comprehensive error reporting and alerting
@@ -245,16 +272,19 @@ graph TB
 ## Scalability & Performance
 
 ### Connection Management
+
 - **Connection Pooling**: SQLAlchemy async engine with configurable pools
 - **Pool Tuning**: Size, overflow, timeout, and recycle parameters
 - **Health Checks**: Automatic connection validation and recovery
 
 ### Query Optimization
+
 - **Prepared Statements**: Parameter binding for security and performance
 - **Batch Operations**: Support for bulk inserts and updates
 - **Result Streaming**: Memory-efficient large result set handling
 
 ### Resource Management
+
 - **Memory Efficiency**: Minimal memory footprint design
 - **CPU Optimization**: Efficient query processing and data transformation
 - **Concurrent Operations**: Async support for high-throughput scenarios
@@ -262,16 +292,19 @@ graph TB
 ## Monitoring & Observability
 
 ### Metrics Collection
+
 - **Performance Metrics**: Query execution times, connection pool utilization
 - **Error Rates**: Failed operations and error classifications
 - **Resource Usage**: Memory, CPU, and network utilization
 
 ### Logging Integration
+
 - **Structured Logging**: JSON-formatted logs with context
 - **Log Levels**: Configurable verbosity (ERROR, WARN, INFO, DEBUG)
 - **Context Propagation**: Request tracing and correlation IDs
 
 ### Health Checks
+
 - **Database Connectivity**: Automatic connection validation
 - **Pool Health**: Connection pool status and utilization
 - **Service Availability**: Overall service health and readiness
@@ -279,12 +312,14 @@ graph TB
 ## Evolution Planning
 
 ### Version 1.0.0 (Current Target)
+
 - ✅ Complete CLI functionality with Rich integration
 - ✅ Production-ready documentation and examples
 - ✅ Comprehensive error handling and edge cases
 - ✅ Performance benchmarks and optimization
 
 ### Future Enhancements
+
 - **Async Support**: Concurrent operations with asyncio
 - **DataFrame Integration**: pandas/polars support for analytics
 - **Oracle 23ai Features**: Vector operations and AI capabilities

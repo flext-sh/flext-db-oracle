@@ -160,7 +160,7 @@ class DocumentationAuditor:
         result = AuditResult(file_path=file_path)
 
         try:
-            content = file_path.read_text(encoding="utf-8")
+            content = await asyncio.to_thread(file_path.read_text, encoding="utf-8")
             result.statistics = self._analyze_content(content)
             result.issues = await self._validate_content(file_path, content)
 
@@ -821,7 +821,7 @@ def main() -> None:
 
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")
-    except Exception as e:
+    except Exception:
         logger.exception("Operation failed")
         sys.exit(1)
 

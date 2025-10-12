@@ -31,12 +31,12 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 
 ### FLEXT-Core Integration Status
 
-| Pattern            | Status           | Description                     |
-| ------------------ | ---------------- | ------------------------------- |
-| **FlextCore.Result<T>** | 🟢 Complete      | 784+ occurrences, railway pattern throughout |
-| **FlextCore.Container** | 🟢 Complete      | Full dependency injection implementation |
-| **FlextCore.Logger**    | 🟢 Complete      | Structured logging integrated |
-| **FlextCore.Service**   | 🟢 Complete      | FlextDbOracleApi extends base service |
+| Pattern                 | Status      | Description                                  |
+| ----------------------- | ----------- | -------------------------------------------- |
+| **FlextCore.Result<T>** | 🟢 Complete | 784+ occurrences, railway pattern throughout |
+| **FlextCore.Container** | 🟢 Complete | Full dependency injection implementation     |
+| **FlextCore.Logger**    | 🟢 Complete | Structured logging integrated                |
+| **FlextCore.Service**   | 🟢 Complete | FlextDbOracleApi extends base service        |
 
 > **Status**: 🟢 **PRODUCTION READY** - Complete FLEXT ecosystem integration achieved
 

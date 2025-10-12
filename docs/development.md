@@ -30,6 +30,7 @@ make validate
 ### ✅ COMPLETED - Foundation Layer (100%)
 
 #### Working Components
+
 - ✅ **Core Database Operations**: Query, execute, schema introspection fully functional
 - ✅ **SQLAlchemy 2.0 Integration**: Complete abstraction with clean separation
 - ✅ **FlextCore.Result Error Handling**: 784+ occurrences, railway pattern throughout
@@ -40,6 +41,7 @@ make validate
 - ⚠️ **Test Coverage**: ~95% (test failures prevent full validation)
 
 #### Production-Ready Features
+
 - ✅ **Connection Pooling**: Enterprise-grade connection management
 - ✅ **Transaction Support**: ACID compliance with proper error handling
 - ✅ **Schema Introspection**: Complete metadata extraction capabilities
@@ -49,12 +51,14 @@ make validate
 ### 🚨 BLOCKED - Testing & Quality Assurance (85%)
 
 #### Current Issues
+
 - ❌ **Import Failures**: Major test files failing due to flext-core test utility issues
 - ❌ **Pydantic Deprecations**: Deprecated class-based config in production code
 - ❌ **Constants Validation**: Test failures indicating potential constant misconfigurations
 - ❌ **CI/CD Pipeline**: Automated testing blocked by import failures
 
 #### Immediate Priorities
+
 - 🔧 **Fix Test Imports**: Resolve flext-core test utility import errors
 - 🔧 **Update Pydantic**: Migrate to ConfigDict pattern for v3 compatibility
 - 🔧 **Validate Constants**: Ensure test expectations match actual values
@@ -63,12 +67,14 @@ make validate
 ### ⚠️ PARTIAL - CLI Layer (60%)
 
 #### Implemented Components
+
 - ✅ **CLI Architecture**: Click integration with flext-cli patterns
 - ✅ **Command Structure**: Command registration and dispatching
 - ✅ **CLI Models**: Pydantic models for CLI operations
 - ✅ **Basic Output**: Functional CLI with text-based output
 
 #### Critical Gaps (Phase 2 Priority)
+
 - ❌ **Rich Formatters**: SimpleNamespace placeholders (client.py:60-74)
 - ❌ **Table Display**: No Rich table rendering for query results
 - ❌ **Progress Indicators**: Missing progress bars for long operations
@@ -78,6 +84,7 @@ make validate
 ### ❌ NOT IMPLEMENTED - Advanced Features (0%)
 
 #### Future Features
+
 - ❌ **Async Support**: Synchronous operations only
 - ❌ **DataFrame Integration**: No pandas/polars support
 - ❌ **Oracle 23ai Features**: Vector types, statement pipelining
@@ -107,12 +114,14 @@ make test  # 100% coverage required
 ### Test Infrastructure
 
 #### Test Framework Features
+
 - **30 Test Files**: 8,633+ lines of comprehensive test code
 - **287 Tests**: 286 passing, 1 error (CLI formatter placeholders)
 - **100% Coverage**: Mandatory requirement for all production code
 - **Pytest Ecosystem**: Markers, fixtures, parametrization, parallel execution
 
 #### Test Categories Implemented
+
 - ✅ **Unit Tests**: Individual component testing (243 tests)
 - ✅ **Integration Tests**: Real Oracle XE 21c container testing (32 tests)
 - ✅ **E2E Tests**: Complete workflow validation (11 tests)
@@ -121,6 +130,7 @@ make test  # 100% coverage required
 ### Test Environment Setup
 
 #### Local Development
+
 ```bash
 # Install test dependencies
 poetry install --with test
@@ -134,6 +144,7 @@ open htmlcov/index.html
 ```
 
 #### Oracle Integration Testing
+
 ```bash
 # Start Oracle container
 make oracle-start
@@ -153,15 +164,18 @@ make oracle-stop
 ### 1. **FLEXT-Core Integration Success**
 
 #### Challenge
+
 Integrating with 32+ dependent FLEXT projects while maintaining backward compatibility and performance.
 
 #### Solution Implemented
+
 - **Complete FlextCore.Result Migration**: 784+ occurrences across codebase
 - **Backward Compatibility**: Maintained both `.data` and `.value` APIs
 - **Type Safety**: Zero Pyrefly errors across entire codebase
 - **Clean Architecture**: Clear separation between infrastructure, domain, and application layers
 
 #### Best Practices Established
+
 - **Railway Pattern Throughout**: All operations return `FlextCore.Result[T]`
 - **Single Class Per Module**: Unified API per module (FlextDbOracleApi, FlextDbOracleModels, etc.)
 - **Root Module Imports**: `from flext_db_oracle import X` only, no internal imports
@@ -170,15 +184,18 @@ Integrating with 32+ dependent FLEXT projects while maintaining backward compati
 ### 2. **SQLAlchemy Abstraction Excellence**
 
 #### Challenge
+
 Creating clean SQLAlchemy abstraction without leaking implementation details while providing full Oracle functionality.
 
 #### Solution Implemented
+
 - **Single Import Point**: Only `api.py` imports SQLAlchemy/oracledb
 - **Complete Abstraction**: All other modules use FlextDbOracleApi
 - **Infrastructure Isolation**: Clean separation between domain and infrastructure layers
 - **Ecosystem Protection**: Prevents SQLAlchemy version conflicts across 32+ projects
 
 #### Best Practices Established
+
 - **Abstraction Layers**: Domain models never import infrastructure
 - **API-First Design**: All database operations through unified API
 - **Dependency Isolation**: Infrastructure concerns contained in single module
@@ -187,15 +204,18 @@ Creating clean SQLAlchemy abstraction without leaking implementation details whi
 ### 3. **Testing Infrastructure Maturity**
 
 #### Challenge
+
 Achieving 100% test coverage with real Oracle integration while maintaining fast execution and CI/CD compatibility.
 
 #### Solution Implemented
+
 - **30 Test Files**: Comprehensive coverage with 8,633+ lines of test code
 - **287 Tests**: 286 passing with 45.23s execution time
 - **Oracle Container Integration**: Real database testing with Docker
 - **Parallel Execution**: pytest-xdist support for faster CI/CD
 
 #### Best Practices Established
+
 - **Fixture-Based Testing**: Reusable fixtures for consistent test setup
 - **Parametrized Testing**: Multiple scenarios tested efficiently
 - **Mock Strategy**: Minimal mocking, prefer real implementations
@@ -204,15 +224,18 @@ Achieving 100% test coverage with real Oracle integration while maintaining fast
 ### 4. **Type Safety Achievement**
 
 #### Challenge
+
 Achieving Pyrefly strict mode compliance across large, complex codebase with multiple integrations.
 
 #### Solution Implemented
+
 - **100% Type Annotations**: No `Any` types, complete type coverage
 - **Pyrefly Strict Compliance**: Zero type checking errors
 - **Protocol Usage**: Structural typing for clean interfaces
 - **Generic Type Support**: Full support for `FlextCore.Result[T]` generics
 
 #### Best Practices Established
+
 - **Type-Only Imports**: Clear separation of runtime vs type-only imports
 - **Protocol Classes**: Structural typing over inheritance
 - **Generic Constraints**: Proper generic type usage throughout
@@ -221,15 +244,18 @@ Achieving Pyrefly strict mode compliance across large, complex codebase with mul
 ### 5. **Clean Architecture Validation**
 
 #### Challenge
+
 Implementing Clean Architecture patterns at scale while maintaining practical usability and performance.
 
 #### Solution Implemented
+
 - **Layer Separation**: Strict infrastructure/domain/application separation
 - **Dependency Direction**: Only inward dependencies (infrastructure ← domain ← application)
 - **API Consolidation**: Single entry point per layer
 - **Service Patterns**: Domain services with infrastructure abstraction
 
 #### Best Practices Established
+
 - **Domain-First Design**: Domain models drive infrastructure implementation
 - **Service Layer Pattern**: Business logic in dedicated service classes
 - **Repository Pattern**: Data access abstraction through services
@@ -238,15 +264,18 @@ Implementing Clean Architecture patterns at scale while maintaining practical us
 ### 6. **CLI Architecture Evolution**
 
 #### Challenge
+
 Building CLI foundation that integrates with FLEXT ecosystem while preparing for Rich enhancement.
 
 #### Current State
+
 - **Foundation Complete**: Click integration with flext-cli patterns established
 - **Placeholder Strategy**: SimpleNamespace allows functional CLI while Rich is developed
 - **Architecture Ready**: Clean separation for Rich formatter integration
 - **Phase 2 Planned**: Complete Rich integration with professional output
 
 #### Best Practices Established
+
 - **Abstraction Layers**: Separate CLI framework from output formatting
 - **Progressive Enhancement**: Functional CLI first, rich features second
 - **Pattern Consistency**: Follow flext-cli established patterns
@@ -280,16 +309,19 @@ git commit -m "feat: description of changes"
 ### Code Quality Standards
 
 #### Type Safety (ZERO TOLERANCE)
+
 - **Pyrefly strict mode**: All `src/` code must pass without errors
 - **100% type annotations**: No `Any` types allowed
 - **Protocol compliance**: Structural typing over inheritance
 
 #### Code Quality (ZERO TOLERANCE)
+
 - **Ruff linting**: Zero violations in production code
 - **Line length**: 88 characters maximum (Ruff default)
 - **Import organization**: Ruff handles automatically
 
 #### Testing Standards (MANDATORY)
+
 - **100% coverage**: All production code must be tested
 - **Real implementations**: Prefer actual code over excessive mocking
 - **Performance**: Tests must complete within time budgets
@@ -299,12 +331,14 @@ git commit -m "feat: description of changes"
 ### Common Development Issues
 
 #### Import Errors
+
 ```bash
 # Always use PYTHONPATH for proper imports
 PYTHONPATH=src poetry run python -c "from flext_db_oracle import FlextDbOracleApi"
 ```
 
 #### Type Checking Issues
+
 ```bash
 # Run type check to identify issues
 make type-check
@@ -314,6 +348,7 @@ PYTHONPATH=src poetry run pyrefly check src/flext_db_oracle/api.py
 ```
 
 #### Test Failures
+
 ```bash
 # Run failing tests with verbose output
 PYTHONPATH=src poetry run pytest tests/unit/test_api.py -vv
@@ -323,6 +358,7 @@ PYTHONPATH=src poetry run pytest --lf
 ```
 
 #### Oracle Connection Issues
+
 ```bash
 # Test Oracle connectivity
 make oracle-connect
@@ -338,11 +374,13 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 ### Performance Issues
 
 #### Slow Test Execution
+
 - Use `pytest-xdist` for parallel execution
 - Focus on unit tests for fast feedback
 - Run integration tests separately
 
 #### Memory Usage
+
 - Monitor memory usage during testing
 - Use fixtures with appropriate scope
 - Clean up resources in test teardown
@@ -350,11 +388,13 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 ### Architecture Issues
 
 #### Circular Imports
+
 - Maintain layer hierarchy (infrastructure → domain → application)
 - Use dependency injection to break circular dependencies
 - Import services at runtime when necessary
 
 #### API Compatibility
+
 - Test changes against dependent projects
 - Maintain backward compatibility
 - Use deprecation warnings for API changes
@@ -362,7 +402,9 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 ### Current Test Issues Troubleshooting
 
 #### Import Failures in Test Files
+
 **Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
+
 ```bash
 # Check what's available in flext-core test utilities
 PYTHONPATH=src python -c "from flext_tests.matchers import *; print(dir())"
@@ -373,7 +415,9 @@ PYTHONPATH=src python -c "from flext_tests.matchers import *; print(dir())"
 ```
 
 #### Pydantic Deprecation Warnings
+
 **Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
+
 ```bash
 # Current problematic code in src/flext_db_oracle/exceptions.py:28
 class ExceptionParams(FlextCore.Models.Entity):
@@ -388,7 +432,9 @@ class ExceptionParams(FlextCore.Models.Entity):
 ```
 
 #### Constants Test Failures
+
 **Issue**: Network constants test failing (expecting 1024, getting 1)
+
 ```bash
 # Check actual constant values
 PYTHONPATH=src python -c "from flext_db_oracle.constants import FlextDbOracleConstants; print(FlextDbOracleConstants.Network.MIN_PORT)"
@@ -399,7 +445,9 @@ PYTHONPATH=src python -c "from flext_db_oracle.constants import FlextDbOracleCon
 ```
 
 #### Test Collection Issues
+
 **Issue**: `collected 11 items / 1 error` - Major test files not loading
+
 ```bash
 # Run specific working tests first
 PYTHONPATH=src poetry run pytest tests/unit/test_constants.py -v
