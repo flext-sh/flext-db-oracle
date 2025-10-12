@@ -97,7 +97,7 @@
 
 #### Ecosystem Integration
 - **FLEXT ecosystem**: Mandatory compatibility with 32+ dependent projects
-- **flext-core integration**: Required usage of FlextResult[T], FlextService patterns
+- **flext-core integration**: Required usage of FlextCore.Result[T], FlextCore.Service patterns
 - **Zero custom implementations**: All Oracle operations through flext-db-oracle
 
 ### Business Constraints
@@ -162,7 +162,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 ### Railway Pattern Error Handling
 
 #### Core Principles
-- **No bare exceptions**: All operations return `FlextResult[T]`
+- **No bare exceptions**: All operations return `FlextCore.Result[T]`
 - **Composability**: Operations chain with `flat_map()` and `map()`
 - **Context preservation**: Errors carry full operation history
 - **Type safety**: Generic types ensure correct error handling
@@ -184,7 +184,7 @@ result = (
 #### Strict Type Checking
 - **Pyrefly strict mode**: All code must pass strict type checking
 - **100% type annotations**: No `Any` types in production code
-- **Generic type support**: Full support for `FlextResult[T]` patterns
+- **Generic type support**: Full support for `FlextCore.Result[T]` patterns
 - **Protocol compliance**: Structural typing over inheritance
 
 #### Type Safety Benefits
@@ -222,7 +222,7 @@ result = (
 - **Impact**: Clean separation between domain and infrastructure layers
 
 #### ADR-003: Railway Pattern Implementation
-- **Decision**: FlextResult[T] throughout for composable error handling
+- **Decision**: FlextCore.Result[T] throughout for composable error handling
 - **Rationale**: Type-safe, composable error handling for enterprise reliability
 - **Impact**: No exception-based error handling in business logic
 
@@ -287,7 +287,7 @@ result = (
 
 **Domain-Driven Design (DDD)**: Software development approach focused on modeling business domains.
 
-**FlextResult[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error handling.
+**FlextCore.Result[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error handling.
 
 ### Oracle Database Terms
 
@@ -301,13 +301,13 @@ result = (
 
 ### FLEXT Ecosystem Terms
 
-**FlextResult[T]**: Railway pattern implementation for composable error handling.
+**FlextCore.Result[T]**: Railway pattern implementation for composable error handling.
 
-**FlextService**: Base class for domain services with common functionality.
+**FlextCore.Service**: Base class for domain services with common functionality.
 
-**FlextContainer**: Dependency injection container for service management.
+**FlextCore.Container**: Dependency injection container for service management.
 
-**FlextLogger**: Structured logging implementation with JSON formatting.
+**FlextCore.Logger**: Structured logging implementation with JSON formatting.
 
 ---
 

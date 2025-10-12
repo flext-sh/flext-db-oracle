@@ -178,12 +178,12 @@ __all__ = [
 
 **Key Methods**:
 ```python
-def connect(self, config: OracleConfig) -> FlextResult[Connection]
-def execute_query(self, sql: str, params: dict = None) -> FlextResult[QueryResult]
-def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
-def begin_transaction(self) -> FlextResult[Transaction]
-def commit_transaction(self) -> FlextResult[None]
-def rollback_transaction(self) -> FlextResult[None]
+def connect(self, config: OracleConfig) -> FlextCore.Result[Connection]
+def execute_query(self, sql: str, params: dict = None) -> FlextCore.Result[QueryResult]
+def get_schema_info(self, schema: str) -> FlextCore.Result[SchemaInfo]
+def begin_transaction(self) -> FlextCore.Result[Transaction]
+def commit_transaction(self) -> FlextCore.Result[None]
+def rollback_transaction(self) -> FlextCore.Result[None]
 ```
 
 ### Service Layer
@@ -332,7 +332,7 @@ def rollback_transaction(self) -> FlextResult[None]
 
 - **Pyrefly Strict Mode**: ✅ Compliant (0 errors)
 - **Type Annotations**: ✅ 100% coverage
-- **Generic Types**: ✅ Full FlextResult[T] support
+- **Generic Types**: ✅ Full FlextCore.Result[T] support
 - **Protocol Usage**: ✅ 8 structural typing protocols
 
 ### Code Quality Standards

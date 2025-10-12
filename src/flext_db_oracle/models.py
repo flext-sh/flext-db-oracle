@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextModels, FlextTypes
+from flext_core import FlextCore
 from pydantic import (
     Field,
     computed_field,
@@ -22,7 +22,7 @@ from pydantic import (
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleModels(FlextModels):
+class FlextDbOracleModels(FlextCore.Models):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -31,7 +31,7 @@ class FlextDbOracleModels(FlextModels):
     All types moved to typings.py.
     """
 
-    class ConnectionStatus(FlextModels.Entity):
+    class ConnectionStatus(FlextCore.Models.Entity):
         """Connection status using flext-core Entity."""
 
         is_connected: bool = False
@@ -73,11 +73,11 @@ class FlextDbOracleModels(FlextModels):
             if not self.is_connected:
                 return False
 
-            # Consider connection unhealthy if no activity for more than 1 hour
-            max_idle_seconds = 3600  # 1 hour
+            # Consider connection unhealthy if no activity for more than configured timeout
             return not (
                 self.connection_age_seconds
-                and self.connection_age_seconds > max_idle_seconds
+                and self.connection_age_seconds
+                > FlextDbOracleConstants.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
             )
 
         @computed_field
@@ -106,16 +106,21 @@ class FlextDbOracleModels(FlextModels):
             if not self.is_connected or self.connection_time is None:
                 return "No performance data"
 
-            # Performance thresholds
-            excellent_threshold = 0.1
-            good_threshold = 0.5
-            acceptable_threshold = 2.0
-
-            if self.connection_time < excellent_threshold:
+            # Performance thresholds from constants
+            if (
+                self.connection_time
+                < FlextDbOracleConstants.OraclePerformance.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+            ):
                 return f"Excellent ({self.connection_time:.3f}s)"
-            if self.connection_time < good_threshold:
+            if (
+                self.connection_time
+                < FlextDbOracleConstants.OraclePerformance.CONNECTION_GOOD_THRESHOLD_SECONDS
+            ):
                 return f"Good ({self.connection_time:.3f}s)"
-            if self.connection_time < acceptable_threshold:
+            if (
+                self.connection_time
+                < FlextDbOracleConstants.OraclePerformance.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+            ):
                 return f"Acceptable ({self.connection_time:.3f}s)"
             return f"Slow ({self.connection_time:.3f}s)"
 
@@ -171,19 +176,19 @@ class FlextDbOracleModels(FlextModels):
                 return None
             return f"{value:.3f}s"
 
-    class QueryResult(FlextModels.Entity):
+    class QueryResult(FlextCore.Models.Entity):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[FlextTypes.Dict] = Field(default_factory=list)
+        result_data: list[FlextCore.Types.Dict] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
-        columns: FlextTypes.StringList = Field(
+        columns: FlextCore.Types.StringList = Field(
             default_factory=list, description="Column names"
         )
-        rows: list[FlextTypes.List] = Field(
+        rows: list[FlextCore.Types.List] = Field(
             default_factory=list, description="Row data"
         )
         query_hash: str | None = Field(
@@ -217,15 +222,20 @@ class FlextDbOracleModels(FlextModels):
         @property
         def performance_rating(self) -> str:
             """Computed field for query performance rating."""
-            excellent_threshold_ms = 100
-            good_threshold_ms = 500
-            acceptable_threshold_ms = 2000
-
-            if self.execution_time_ms < excellent_threshold_ms:
+            if (
+                self.execution_time_ms
+                < FlextDbOracleConstants.OraclePerformance.QUERY_EXCELLENT_THRESHOLD_MS
+            ):
                 return "Excellent"
-            if self.execution_time_ms < good_threshold_ms:
+            if (
+                self.execution_time_ms
+                < FlextDbOracleConstants.OraclePerformance.QUERY_GOOD_THRESHOLD_MS
+            ):
                 return "Good"
-            if self.execution_time_ms < acceptable_threshold_ms:
+            if (
+                self.execution_time_ms
+                < FlextDbOracleConstants.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS
+            ):
                 return "Acceptable"
             return "Slow"
 
@@ -236,9 +246,12 @@ class FlextDbOracleModels(FlextModels):
             if not self.rows:
                 return 0
 
-            # Rough estimation: assume average 50 bytes per cell
+            # Rough estimation using configured factor
             cells = len(self.rows) * len(self.columns)
-            return cells * 50
+            return (
+                cells
+                * FlextDbOracleConstants.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+            )
 
         @computed_field
         @property
@@ -279,14 +292,14 @@ class FlextDbOracleModels(FlextModels):
                 return f"{value}ms"
             return f"{value / FlextDbOracleConstants.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD:.2f}s"
 
-    class Table(FlextModels.Entity):
+    class Table(FlextCore.Models.Entity):
         """Table metadata using flext-core Entity."""
 
         name: str
         schema_name: str = Field(alias="schema")
         columns: list[FlextDbOracleModels.Column] = Field(default_factory=list)
 
-    class Column(FlextModels.Entity):
+    class Column(FlextCore.Models.Entity):
         """Column metadata using flext-core Entity."""
 
         name: str
@@ -294,31 +307,31 @@ class FlextDbOracleModels(FlextModels):
         nullable: bool = True
         default_value: str | None = None
 
-    class Schema(FlextModels.Entity):
+    class Schema(FlextCore.Models.Entity):
         """Schema metadata using flext-core Entity."""
 
         name: str
         tables: list[FlextDbOracleModels.Table] = Field(default_factory=list)
 
-    class CreateIndexConfig(FlextModels.Entity):
+    class CreateIndexConfig(FlextCore.Models.Entity):
         """Create index config using flext-core Entity."""
 
         table_name: str
         index_name: str
-        columns: FlextTypes.StringList
+        columns: FlextCore.Types.StringList
         unique: bool = False
         schema_name: str | None = None
         tablespace: str | None = None
         parallel: int | None = None
 
-    class MergeStatementConfig(FlextModels.Entity):
+    class MergeStatementConfig(FlextCore.Models.Entity):
         """Merge statement config using flext-core Entity."""
 
         target_table: str
         source_query: str
-        merge_conditions: FlextTypes.StringList
-        update_columns: FlextTypes.StringList = Field(default_factory=list)
-        insert_columns: FlextTypes.StringList = Field(default_factory=list)
+        merge_conditions: FlextCore.Types.StringList
+        update_columns: FlextCore.Types.StringList = Field(default_factory=list)
+        insert_columns: FlextCore.Types.StringList = Field(default_factory=list)
 
 
 # ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleModels.ClassName directly

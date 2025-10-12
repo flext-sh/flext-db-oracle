@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextBus, FlextDispatcher, FlextTypes
+from flext_core import FlextCore
 
 from flext_db_oracle import (
     FlextDbOracleConfig,
@@ -24,7 +24,7 @@ class TestDispatcherSurgical:
     """Surgical tests for dispatcher functionality targeting uncovered lines."""
 
     def test_build_dispatcher_creates_dispatcher(self) -> None:
-        """Test build_dispatcher creates FlextDispatcher instance."""
+        """Test build_dispatcher creates FlextCore.Dispatcher instance."""
         # Create Oracle config for services
         config = FlextDbOracleConfig(
             host="localhost",
@@ -38,10 +38,10 @@ class TestDispatcherSurgical:
         # Test build_dispatcher method (covers lines 70-144)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
 
-        assert isinstance(dispatcher, FlextDispatcher)
+        assert isinstance(dispatcher, FlextCore.Dispatcher)
 
     def test_build_dispatcher_with_custom_bus(self) -> None:
-        """Test build_dispatcher with custom FlextBus."""
+        """Test build_dispatcher with custom FlextCore.Bus."""
         config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
@@ -50,12 +50,12 @@ class TestDispatcherSurgical:
             password="test",
         )
         services = FlextDbOracleServices(oracle_config=config, domain_events=[])
-        custom_bus = FlextBus()
+        custom_bus = FlextCore.Bus()
 
         # Call with keyword argument as per method signature
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services, bus=custom_bus)
 
-        assert isinstance(dispatcher, FlextDispatcher)
+        assert isinstance(dispatcher, FlextCore.Dispatcher)
         # Verify the custom bus was used by checking the dispatcher's bus
         assert dispatcher._bus is custom_bus
 
@@ -187,7 +187,7 @@ class TestDispatcherSurgical:
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
             parameters_list=cast(
-                "list[FlextTypes.Dict]",
+                "list[FlextCore.Types.Dict]",
                 [{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
             ),
         )
@@ -304,7 +304,7 @@ class TestDispatcherCommandClasses:
         ]
         cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO users (id, name) VALUES (:id, :name)",
-            parameters_list=cast("list[FlextTypes.Dict]", params_list),
+            parameters_list=cast("list[FlextCore.Types.Dict]", params_list),
         )
         assert cmd.sql == "INSERT INTO users (id, name) VALUES (:id, :name)"
         assert cmd.parameters_list == params_list
@@ -321,7 +321,7 @@ class TestDispatcherCommandClasses:
         assert cmd.schema == "HR"
 
     def test_build_dispatcher_creates_dispatcher(self) -> None:
-        """Test build_dispatcher creates FlextDispatcher instance."""
+        """Test build_dispatcher creates FlextCore.Dispatcher instance."""
         # Create Oracle config for services
         config = FlextDbOracleConfig(
             host="localhost",
@@ -335,10 +335,10 @@ class TestDispatcherCommandClasses:
         # Test build_dispatcher method (covers lines 70-144)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
 
-        assert isinstance(dispatcher, FlextDispatcher)
+        assert isinstance(dispatcher, FlextCore.Dispatcher)
 
     def test_build_dispatcher_with_custom_bus(self) -> None:
-        """Test build_dispatcher with custom FlextBus."""
+        """Test build_dispatcher with custom FlextCore.Bus."""
         config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
@@ -347,12 +347,12 @@ class TestDispatcherCommandClasses:
             password="test",
         )
         services = FlextDbOracleServices(config=config, domain_events=[])
-        custom_bus = FlextBus()
+        custom_bus = FlextCore.Bus()
 
         # Call with keyword argument as per method signature
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services, bus=custom_bus)
 
-        assert isinstance(dispatcher, FlextDispatcher)
+        assert isinstance(dispatcher, FlextCore.Dispatcher)
         # Verify the custom bus was used by checking the dispatcher's bus
         assert dispatcher._bus is custom_bus
 
@@ -484,7 +484,7 @@ class TestDispatcherCommandClasses:
         many_cmd = FlextDbOracleDispatcher.ExecuteManyCommand(
             sql="INSERT INTO test VALUES (:id, :name)",
             parameters_list=cast(
-                "list[FlextTypes.Dict]",
+                "list[FlextCore.Types.Dict]",
                 [{"id": 1, "name": "test1"}, {"id": 2, "name": "test2"}],
             ),
         )

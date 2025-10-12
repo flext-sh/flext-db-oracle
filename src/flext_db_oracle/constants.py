@@ -14,20 +14,20 @@ import os
 from enum import StrEnum
 from typing import ClassVar, Final, Literal
 
-from flext_core import FlextConstants, FlextTypes
+from flext_core import FlextCore
 
 
-class FlextDbOracleConstants(FlextConstants):
-    """Oracle database constants extending FlextConstants foundation.
+class FlextDbOracleConstants(FlextCore.Constants):
+    """Oracle database constants extending FlextCore.Constants foundation.
 
     Single class with all Oracle-specific constants as internal nested classes,
     following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
-    Extends FlextConstants for universal constants, defines only
+    Extends FlextCore.Constants for universal constants, defines only
     Oracle-specific constants using nested namespace classes.
 
     **STANDARDIZATION NOTES**:
-    - Extends FlextConstants for foundation constants (Network, Platform, etc.)
+    - Extends FlextCore.Constants for foundation constants (Network, Platform, etc.)
     - Uses Final for immutable constants
     - Uses StrEnum for type-safe enumerations
     - Uses Literal for type-safe string literals
@@ -85,7 +85,7 @@ class FlextDbOracleConstants(FlextConstants):
         BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
         # Singer to Oracle type mapping
-        SINGER_TYPE_MAP: ClassVar[FlextTypes.StringDict] = {
+        SINGER_TYPE_MAP: ClassVar[FlextCore.Types.StringDict] = {
             "string": "VARCHAR2(4000)",
             "integer": "NUMBER(38)",
             "number": "NUMBER",
@@ -221,12 +221,26 @@ class FlextDbOracleConstants(FlextConstants):
         MAX_DISPLAY_ROWS: Final[int] = 1000
         MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
-        )  # Reference FlextConstants
+            FlextCore.Constants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextCore.Constants
         MAX_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.MAX_ITEMS
-        )  # Reference FlextConstants
+            FlextCore.Constants.Performance.BatchProcessing.MAX_ITEMS
+        )  # Reference FlextCore.Constants
         DEFAULT_POOL_RECYCLE: Final[int] = 3600  # 1 hour
+
+        # Performance thresholds for connection health
+        CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600  # 1 hour
+        CONNECTION_EXCELLENT_THRESHOLD_SECONDS: Final[float] = 0.1
+        CONNECTION_GOOD_THRESHOLD_SECONDS: Final[float] = 0.5
+        CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS: Final[float] = 2.0
+
+        # Query performance thresholds
+        QUERY_EXCELLENT_THRESHOLD_MS: Final[int] = 100
+        QUERY_GOOD_THRESHOLD_MS: Final[int] = 500
+        QUERY_ACCEPTABLE_THRESHOLD_MS: Final[int] = 2000
+
+        # Data size estimation factor (bytes per cell)
+        DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
 
         # Oracle hints
         INDEX_HINT: Final[str] = "/*+ INDEX */"
@@ -241,7 +255,7 @@ class FlextDbOracleConstants(FlextConstants):
         REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
         SERIALIZABLE: Final[str] = "SERIALIZABLE"
 
-        VALID_LEVELS: Final[FlextTypes.StringList] = [
+        VALID_LEVELS: Final[FlextCore.Types.StringList] = [
             READ_UNCOMMITTED,
             READ_COMMITTED,
             REPEATABLE_READ,
@@ -265,7 +279,7 @@ class FlextDbOracleConstants(FlextConstants):
         ENV_SID: Final[str] = "ORACLE_SID"
 
         # Environment variable mapping
-        ENV_MAPPING: ClassVar[FlextTypes.StringDict] = {
+        ENV_MAPPING: ClassVar[FlextCore.Types.StringDict] = {
             "FLEXT_TARGET_ORACLE_HOST": "host",
             "ORACLE_HOST": "host",
             "FLEXT_TARGET_ORACLE_PORT": "port",
@@ -294,15 +308,15 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_POOL_MAX: Final[int] = 20
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
         DEFAULT_CONNECTION_TIMEOUT: Final[int] = (
-            FlextConstants.Network.DEFAULT_TIMEOUT
-        )  # Reference FlextConstants
+            FlextCore.Constants.Network.DEFAULT_TIMEOUT
+        )  # Reference FlextCore.Constants
 
         # Query defaults
         DEFAULT_QUERY_TIMEOUT: Final[int] = 60
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
-        )  # Reference FlextConstants
+            FlextCore.Constants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextCore.Constants
 
         # Performance defaults
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
@@ -376,7 +390,7 @@ class FlextDbOracleConstants(FlextConstants):
         """Lists of constants for validation and iteration."""
 
         # Valid Oracle data types
-        VALID_DATA_TYPES: Final[FlextTypes.StringList] = [
+        VALID_DATA_TYPES: Final[FlextCore.Types.StringList] = [
             "VARCHAR2",
             "NUMBER",
             "DATE",
@@ -388,14 +402,14 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Valid connection types
-        VALID_CONNECTION_TYPES: Final[FlextTypes.StringList] = [
+        VALID_CONNECTION_TYPES: Final[FlextCore.Types.StringList] = [
             "service_name",
             "sid",
             "tns",
         ]
 
         # Valid query types
-        VALID_QUERY_TYPES: Final[FlextTypes.StringList] = [
+        VALID_QUERY_TYPES: Final[FlextCore.Types.StringList] = [
             "SELECT",
             "INSERT",
             "UPDATE",
@@ -406,7 +420,7 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Valid isolation levels
-        VALID_ISOLATION_LEVELS: Final[FlextTypes.StringList] = [
+        VALID_ISOLATION_LEVELS: Final[FlextCore.Types.StringList] = [
             "READ_UNCOMMITTED",
             "READ_COMMITTED",
             "REPEATABLE_READ",
@@ -414,7 +428,7 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Oracle system users to exclude
-        SYSTEM_USERS: Final[FlextTypes.StringList] = [
+        SYSTEM_USERS: Final[FlextCore.Types.StringList] = [
             "SYS",
             "SYSTEM",
             "ANONYMOUS",
@@ -425,7 +439,7 @@ class FlextDbOracleConstants(FlextConstants):
         ]
 
         # Default schema names
-        DEFAULT_SCHEMAS: Final[FlextTypes.StringList] = [
+        DEFAULT_SCHEMAS: Final[FlextCore.Types.StringList] = [
             "SYSTEM",
             "SYS",
             "PUBLIC",
@@ -436,6 +450,6 @@ class FlextDbOracleConstants(FlextConstants):
 # No compatibility aliases - use direct imports only
 
 
-__all__: FlextTypes.StringList = [
+__all__: FlextCore.Types.StringList = [
     "FlextDbOracleConstants",
 ]

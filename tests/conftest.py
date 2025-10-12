@@ -12,7 +12,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextResult
+from flext_core import FlextCore
 from flext_tests import FlextTestsDomains
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -24,10 +24,10 @@ TEST_ORACLE_PASSWORD = "FlextTest123"
 class FlextTestDocker:
     """Simple Docker test utility for Oracle container management."""
 
-    def start_container(self, name: str) -> FlextResult[str]:
+    def start_container(self, name: str) -> FlextCore.Result[str]:
         """Start a Docker container."""
         # Simple implementation - in real tests this would start the container
-        return FlextResult[str].ok(name)
+        return FlextCore.Result[str].ok(name)
 
     def stop_container(self, name: str) -> None:
         """Stop a Docker container."""

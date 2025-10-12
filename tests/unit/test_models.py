@@ -15,11 +15,15 @@ import time
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextModels, FlextResult, FlextTypes
+from flext_core import FlextCore
 from flext_tests import FlextTestsDomains
 from pydantic import ValidationError
 
-from flext_db_oracle import FlextDbOracleConfig, FlextDbOracleModels
+from flext_db_oracle import (
+    FlextDbOracleConfig,
+    FlextDbOracleModels,
+    FlextDbOracleUtilities,
+)
 
 
 class TestOracleValidation:
@@ -27,7 +31,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_success(self) -> None:
         """Test successful Oracle identifier validation."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test valid identifiers
         result = validator.validate_identifier("VALID_TABLE")
@@ -46,7 +50,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_empty(self) -> None:
         """Test Oracle identifier validation with empty input."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test empty string
         result = validator.validate_identifier("")
@@ -60,7 +64,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_too_long(self) -> None:
         """Test Oracle identifier validation with too long input."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Create identifier longer than 30 characters (Oracle limit)
         long_identifier = "A" * 31
@@ -70,7 +74,7 @@ class TestOracleValidation:
 
     def test_validate_identifier_invalid_characters(self) -> None:
         """Test Oracle identifier validation with invalid characters."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test invalid characters
         invalid_identifiers = [
@@ -363,13 +367,13 @@ class TestFlextDbOracleModelsStructure:
     """Test FlextDbOracleModels class structure and inheritance."""
 
     def test_models_inheritance(self) -> None:
-        """Test FlextDbOracleModels inherits from FlextModels."""
-        assert issubclass(FlextDbOracleModels, FlextModels)
+        """Test FlextDbOracleModels inherits from FlextCore.Models."""
+        assert issubclass(FlextDbOracleModels, FlextCore.Models)
 
     def test_nested_validation_class(self) -> None:
-        """Test _OracleValidation nested class exists."""
-        assert hasattr(FlextDbOracleModels, "_OracleValidation")
-        assert callable(FlextDbOracleModels.OracleValidation.validate_identifier)
+        """Test OracleValidation class exists in utilities."""
+        assert hasattr(FlextDbOracleUtilities, "OracleValidation")
+        assert callable(FlextDbOracleUtilities.OracleValidation.validate_identifier)
 
     def test_class_variables_exist(self) -> None:
         """Test required class variables exist."""
@@ -457,7 +461,7 @@ class TestModelsModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config_data() -> FlextTypes.Dict:
+        def create_test_oracle_config_data() -> FlextCore.Types.Dict:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -469,7 +473,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_table_model_data() -> FlextTypes.Dict:
+        def create_test_table_model_data() -> FlextCore.Types.Dict:
             """Create test table model data."""
             return {
                 "table_name": "test_table",
@@ -481,7 +485,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_query_model_data() -> FlextTypes.Dict:
+        def create_test_query_model_data() -> FlextCore.Types.Dict:
             """Create test query model data."""
             return {
                 "query_id": "query_123",
@@ -579,7 +583,7 @@ class TestModelsModule:
         # Test model validation if method exists
         if hasattr(models, "validate_model"):
             result = models.validate_model(test_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_serialize_model(self) -> None:
         """Test FlextDbOracleModels serialize_model functionality."""
@@ -589,7 +593,7 @@ class TestModelsModule:
         # Test model serialization if method exists
         if hasattr(models, "serialize_model"):
             result = models.serialize_model(test_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_deserialize_model(self) -> None:
         """Test FlextDbOracleModels deserialize_model functionality."""
@@ -599,7 +603,7 @@ class TestModelsModule:
         # Test model deserialization if method exists
         if hasattr(models, "deserialize_model"):
             result = models.deserialize_model(str(test_data))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_comprehensive_scenario(self) -> None:
         """Test comprehensive models module scenario."""
@@ -629,7 +633,7 @@ class TestModelsModule:
         # Test model operations
         if hasattr(models, "validate_model"):
             validate_result = models.validate_model(test_config_data)
-            assert isinstance(validate_result, FlextResult)
+            assert isinstance(validate_result, FlextCore.Result)
 
     def test_flext_db_oracle_models_error_handling(self) -> None:
         """Test models module error handling patterns."""
@@ -641,19 +645,19 @@ class TestModelsModule:
         # Test model validation error handling
         if hasattr(models, "validate_model"):
             result = models.validate_model(invalid_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid data gracefully
 
         # Test model serialization error handling
         if hasattr(models, "serialize_model"):
             result = models.serialize_model(invalid_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid data gracefully
 
         # Test model deserialization error handling
         if hasattr(models, "deserialize_model"):
             result = models.deserialize_model("invalid_json")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid JSON gracefully
 
     def test_flext_db_oracle_models_with_flext_tests(
@@ -686,7 +690,7 @@ class TestModelsModule:
         # Test model validation with flext_tests data
         if hasattr(models, "validate_model"):
             result = models.validate_model(test_config_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_docstring(self) -> None:
         """Test that FlextDbOracleModels has proper docstring."""
@@ -779,7 +783,7 @@ class TestModelsModule:
         if hasattr(models, "validate_model"):
             for config_data in realistic_configs:
                 result = models.validate_model(config_data)
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_integration_patterns(self) -> None:
         """Test models integration patterns between different components."""
@@ -791,17 +795,17 @@ class TestModelsModule:
         # Validate model
         if hasattr(models, "validate_model"):
             validate_result = models.validate_model(test_config_data)
-            assert isinstance(validate_result, FlextResult)
+            assert isinstance(validate_result, FlextCore.Result)
 
         # Serialize model
         if hasattr(models, "serialize_model"):
             serialize_result = models.serialize_model(test_config_data)
-            assert isinstance(serialize_result, FlextResult)
+            assert isinstance(serialize_result, FlextCore.Result)
 
         # Deserialize model
         if hasattr(models, "deserialize_model"):
             deserialize_result = models.deserialize_model(str(test_config_data))
-            assert isinstance(deserialize_result, FlextResult)
+            assert isinstance(deserialize_result, FlextCore.Result)
 
     def test_flext_db_oracle_models_performance_patterns(self) -> None:
         """Test models performance patterns."""
@@ -817,7 +821,7 @@ class TestModelsModule:
             for i in range(10):
                 config_data = {**test_config_data, "host": f"host_{i}"}
                 result = models.validate_model(config_data)
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, FlextCore.Result)
 
         end_time = time.time()
         assert (end_time - start_time) < 1.0  # Should complete in less than 1 second
@@ -853,9 +857,9 @@ class TestModelsModule:
         for thread in threads:
             thread.join()
 
-        # All results should be FlextResult instances
+        # All results should be FlextCore.Result instances
         for result in results:
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
 
 """Test field definitions and validation.
@@ -895,7 +899,7 @@ class TestFlextDbOracleModels:
 
     def test_validate_identifier_success(self) -> None:
         """Test successful Oracle identifier validation."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test valid identifiers
         result = validator.validate_identifier("VALID_TABLE")
@@ -914,7 +918,7 @@ class TestFlextDbOracleModels:
 
     def test_validate_identifier_empty(self) -> None:
         """Test Oracle identifier validation with empty input."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test empty string
         result = validator.validate_identifier("")
@@ -928,7 +932,7 @@ class TestFlextDbOracleModels:
 
     def test_validate_identifier_too_long(self) -> None:
         """Test Oracle identifier validation with too long input."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Create identifier longer than 30 characters (Oracle limit)
         long_identifier = "A" * 31
@@ -938,7 +942,7 @@ class TestFlextDbOracleModels:
 
     def test_validate_identifier_invalid_characters(self) -> None:
         """Test Oracle identifier validation with invalid characters."""
-        validator = FlextDbOracleModels.OracleValidation
+        validator = FlextDbOracleUtilities.OracleValidation
 
         # Test invalid characters
         invalid_identifiers = [
@@ -1215,13 +1219,13 @@ class TestFlextDbOracleModels:
         assert "Failed to parse URL" in str(result.error)
 
     def test_models_inheritance(self) -> None:
-        """Test FlextDbOracleModels inherits from FlextModels."""
-        assert issubclass(FlextDbOracleModels, FlextModels)
+        """Test FlextDbOracleModels inherits from FlextCore.Models."""
+        assert issubclass(FlextDbOracleModels, FlextCore.Models)
 
     def test_nested_validation_class(self) -> None:
-        """Test _OracleValidation nested class exists."""
-        assert hasattr(FlextDbOracleModels, "_OracleValidation")
-        assert callable(FlextDbOracleModels.OracleValidation.validate_identifier)
+        """Test OracleValidation class exists in utilities."""
+        assert hasattr(FlextDbOracleUtilities, "OracleValidation")
+        assert callable(FlextDbOracleUtilities.OracleValidation.validate_identifier)
 
     def test_class_variables_exist(self) -> None:
         """Test required class variables exist."""
@@ -1301,7 +1305,7 @@ class TestFlextDbOracleModels:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config_data() -> FlextTypes.Dict:
+        def create_test_oracle_config_data() -> FlextCore.Types.Dict:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -1313,7 +1317,7 @@ class TestFlextDbOracleModels:
             }
 
         @staticmethod
-        def create_test_table_model_data() -> FlextTypes.Dict:
+        def create_test_table_model_data() -> FlextCore.Types.Dict:
             """Create test table model data."""
             return {
                 "table_name": "test_table",
@@ -1325,7 +1329,7 @@ class TestFlextDbOracleModels:
             }
 
         @staticmethod
-        def create_test_query_model_data() -> FlextTypes.Dict:
+        def create_test_query_model_data() -> FlextCore.Types.Dict:
             """Create test query model data."""
             return {
                 "query_id": "query_123",
@@ -1423,7 +1427,7 @@ class TestFlextDbOracleModels:
         # Test model validation if method exists
         if hasattr(models, "validate_model"):
             result = models.validate_model(test_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_serialize_model(self) -> None:
         """Test FlextDbOracleModels serialize_model functionality."""
@@ -1433,7 +1437,7 @@ class TestFlextDbOracleModels:
         # Test model serialization if method exists
         if hasattr(models, "serialize_model"):
             result = models.serialize_model(test_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_deserialize_model(self) -> None:
         """Test FlextDbOracleModels deserialize_model functionality."""
@@ -1443,7 +1447,7 @@ class TestFlextDbOracleModels:
         # Test model deserialization if method exists
         if hasattr(models, "deserialize_model"):
             result = models.deserialize_model(str(test_data))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_comprehensive_scenario(self) -> None:
         """Test comprehensive models module scenario."""
@@ -1473,7 +1477,7 @@ class TestFlextDbOracleModels:
         # Test model operations
         if hasattr(models, "validate_model"):
             validate_result = models.validate_model(test_config_data)
-            assert isinstance(validate_result, FlextResult)
+            assert isinstance(validate_result, FlextCore.Result)
 
     def test_flext_db_oracle_models_error_handling(self) -> None:
         """Test models module error handling patterns."""
@@ -1485,19 +1489,19 @@ class TestFlextDbOracleModels:
         # Test model validation error handling
         if hasattr(models, "validate_model"):
             result = models.validate_model(invalid_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid data gracefully
 
         # Test model serialization error handling
         if hasattr(models, "serialize_model"):
             result = models.serialize_model(invalid_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid data gracefully
 
         # Test model deserialization error handling
         if hasattr(models, "deserialize_model"):
             result = models.deserialize_model("invalid_json")
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
             # Should handle invalid JSON gracefully
 
     def test_flext_db_oracle_models_with_flext_tests(
@@ -1530,7 +1534,7 @@ class TestFlextDbOracleModels:
         # Test model validation with flext_tests data
         if hasattr(models, "validate_model"):
             result = models.validate_model(test_config_data)
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_docstring(self) -> None:
         """Test that FlextDbOracleModels has proper docstring."""
@@ -1623,7 +1627,7 @@ class TestFlextDbOracleModels:
         if hasattr(models, "validate_model"):
             for config_data in realistic_configs:
                 result = models.validate_model(config_data)
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, FlextCore.Result)
 
     def test_flext_db_oracle_models_integration_patterns(self) -> None:
         """Test models integration patterns between different components."""
@@ -1635,17 +1639,17 @@ class TestFlextDbOracleModels:
         # Validate model
         if hasattr(models, "validate_model"):
             validate_result = models.validate_model(test_config_data)
-            assert isinstance(validate_result, FlextResult)
+            assert isinstance(validate_result, FlextCore.Result)
 
         # Serialize model
         if hasattr(models, "serialize_model"):
             serialize_result = models.serialize_model(test_config_data)
-            assert isinstance(serialize_result, FlextResult)
+            assert isinstance(serialize_result, FlextCore.Result)
 
         # Deserialize model
         if hasattr(models, "deserialize_model"):
             deserialize_result = models.deserialize_model(str(test_config_data))
-            assert isinstance(deserialize_result, FlextResult)
+            assert isinstance(deserialize_result, FlextCore.Result)
 
     def test_flext_db_oracle_models_performance_patterns(self) -> None:
         """Test models performance patterns."""
@@ -1661,7 +1665,7 @@ class TestFlextDbOracleModels:
             for i in range(10):
                 config_data = {**test_config_data, "host": f"host_{i}"}
                 result = models.validate_model(config_data)
-                assert isinstance(result, FlextResult)
+                assert isinstance(result, FlextCore.Result)
 
         end_time = time.time()
         assert (end_time - start_time) < 1.0  # Should complete in less than 1 second
@@ -1697,6 +1701,6 @@ class TestFlextDbOracleModels:
         for thread in threads:
             thread.join()
 
-        # All results should be FlextResult instances
+        # All results should be FlextCore.Result instances
         for result in results:
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, FlextCore.Result)

@@ -35,9 +35,9 @@ graph TB
     subgraph "Cross-Cutting Concerns"
         CONFIG[FlextDbOracleConfig<br/>⚙️ Configuration<br/>Pydantic Settings<br/>Configuration Pattern]
 
-        LOGGER[FlextLogger<br/>📊 Structured Logging<br/>JSON Format<br/>Logging Pattern]
+        LOGGER[FlextCore.Logger<br/>📊 Structured Logging<br/>JSON Format<br/>Logging Pattern]
 
-        CONTAINER[FlextContainer<br/>📦 Dependency Injection<br/>Service Locator<br/>Container Pattern]
+        CONTAINER[FlextCore.Container<br/>📦 Dependency Injection<br/>Service Locator<br/>Container Pattern]
     end
 
     subgraph "External Interfaces"
@@ -49,7 +49,7 @@ graph TB
 
         PYDANTIC[Pydantic v2<br/>✅ Data Validation<br/>Type Safety]
 
-        FLEXT_CORE[flext-core<br/>🏛️ Foundation Patterns<br/>FlextResult[T]]
+        FLEXT_CORE[flext-core<br/>🏛️ Foundation Patterns<br/>FlextCore.Result[T]]
 
         CLICK[Click<br/>💻 CLI Framework<br/>Command Line]
 
@@ -121,16 +121,16 @@ graph TB
 **Responsibilities**:
 - Unified entry point for all Oracle operations
 - Orchestrates service calls and error handling
-- Implements railway-oriented programming with FlextResult[T]
+- Implements railway-oriented programming with FlextCore.Result[T]
 - Provides both sync and async operation support
 
 **Key Interfaces**:
 ```python
-class FlextDbOracleApi(FlextService):
-    def connect(self, config: OracleConfig) -> FlextResult[Connection]
-    def execute_query(self, sql: str, params: dict = None) -> FlextResult[QueryResult]
-    def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
-    def close_connection(self) -> FlextResult[None]
+class FlextDbOracleApi(FlextCore.Service):
+    def connect(self, config: OracleConfig) -> FlextCore.Result[Connection]
+    def execute_query(self, sql: str, params: dict = None) -> FlextCore.Result[QueryResult]
+    def get_schema_info(self, schema: str) -> FlextCore.Result[SchemaInfo]
+    def close_connection(self) -> FlextCore.Result[None]
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
@@ -180,7 +180,7 @@ class OracleConfig(BaseModel):
 
 class QueryResult(BaseModel):
     rows: List[List[Any]]
-    columns: List[str]
+    columns: FlextCore.Types.StringList
     row_count: int
     execution_time: float
 ```
@@ -259,7 +259,7 @@ FlextDbOracleException (base)
 - Configuration validation and defaults
 - Runtime configuration updates
 
-#### FlextLogger (Logging)
+#### FlextCore.Logger (Logging)
 **Pattern**: Logging Pattern
 **Responsibilities**:
 - Structured JSON logging
@@ -267,7 +267,7 @@ FlextDbOracleException (base)
 - Context propagation
 - Performance-aware logging
 
-#### FlextContainer (Dependency Injection)
+#### FlextCore.Container (Dependency Injection)
 **Pattern**: Container Pattern
 **Responsibilities**:
 - Service registration and resolution
@@ -296,7 +296,7 @@ sequenceDiagram
     Oracle-->>Connection: result set
     Connection-->>API: QueryResult
     API->>Models: validate_result(result)
-    API-->>Client: FlextResult[QueryResult]
+    API-->>Client: FlextCore.Result[QueryResult]
 ```
 
 ### Error Handling Flow
@@ -306,15 +306,15 @@ sequenceDiagram
     participant API as FlextDbOracleApi
     participant Services as FlextDbOracleServices
     participant Exceptions as FlextDbOracleExceptions
-    participant Logger as FlextLogger
+    participant Logger as FlextCore.Logger
 
     API->>Services: business_operation()
     Services->>Services: operation_fails()
     Services->>Exceptions: create_domain_exception()
     Exceptions->>Logger: log_error(context)
-    Services-->>API: FlextResult.fail(exception)
+    Services-->>API: FlextCore.Result.fail(exception)
     API->>Logger: log_operation_failure()
-    API-->>Client: FlextResult.failure
+    API-->>Client: FlextCore.Result.failure
 ```
 
 ### Connection Management Flow
@@ -344,7 +344,7 @@ stateDiagram-v2
 ## Component Quality Attributes
 
 ### Reliability
-- **Error Handling**: Comprehensive exception handling with FlextResult[T]
+- **Error Handling**: Comprehensive exception handling with FlextCore.Result[T]
 - **Connection Resilience**: Automatic retry and recovery mechanisms
 - **Data Integrity**: Transaction management with rollback capabilities
 - **Resource Management**: Proper cleanup and leak prevention

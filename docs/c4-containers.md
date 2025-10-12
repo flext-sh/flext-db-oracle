@@ -191,7 +191,7 @@ graph TB
 - **Pydantic v2**: Data validation and serialization with modern Python support
 
 ### FLEXT Ecosystem
-- **flext-core**: Foundation patterns (FlextResult[T], FlextService, FlextContainer)
+- **flext-core**: Foundation patterns (FlextCore.Result[T], FlextCore.Service, FlextCore.Container)
 - **flext-cli**: CLI framework integration (Click + Rich abstractions)
 
 ### Development Tools

@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import cast
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import FlextCore
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -706,7 +706,7 @@ class TestRealOracleExceptionsAdvanced:
                 # Focus on ensuring no crashes and proper error handling
                 assert (
                     result.is_success or result.is_failure
-                )  # Should return valid FlextResult
+                )  # Should return valid FlextCore.Result
 
         # Try to get columns for non-existent table
         columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
@@ -797,7 +797,7 @@ class TestRealOracleExceptionsAdvanced:
             try:
                 # Convert config_data to proper types
                 port_value = config_data.get("port", 1521)
-                typed_config: FlextTypes.Dict = {
+                typed_config: FlextCore.Types.Dict = {
                     "host": str(config_data.get("host", "")),
                     "port": int(port_value),
                     "user": str(config_data.get("user", "")),

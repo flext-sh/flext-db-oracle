@@ -32,7 +32,7 @@ make validate
 #### Working Components
 - ✅ **Core Database Operations**: Query, execute, schema introspection fully functional
 - ✅ **SQLAlchemy 2.0 Integration**: Complete abstraction with clean separation
-- ✅ **FlextResult Error Handling**: 784+ occurrences, railway pattern throughout
+- ✅ **FlextCore.Result Error Handling**: 784+ occurrences, railway pattern throughout
 - ✅ **Configuration Management**: Pydantic-based configuration with validation
 - ✅ **FLEXT Ecosystem Integration**: Complete flext-core, flext-cli integration
 - ✅ **Type Safety**: Pyrefly strict mode compliant (ZERO errors)
@@ -156,13 +156,13 @@ make oracle-stop
 Integrating with 32+ dependent FLEXT projects while maintaining backward compatibility and performance.
 
 #### Solution Implemented
-- **Complete FlextResult Migration**: 784+ occurrences across codebase
+- **Complete FlextCore.Result Migration**: 784+ occurrences across codebase
 - **Backward Compatibility**: Maintained both `.data` and `.value` APIs
 - **Type Safety**: Zero Pyrefly errors across entire codebase
 - **Clean Architecture**: Clear separation between infrastructure, domain, and application layers
 
 #### Best Practices Established
-- **Railway Pattern Throughout**: All operations return `FlextResult[T]`
+- **Railway Pattern Throughout**: All operations return `FlextCore.Result[T]`
 - **Single Class Per Module**: Unified API per module (FlextDbOracleApi, FlextDbOracleModels, etc.)
 - **Root Module Imports**: `from flext_db_oracle import X` only, no internal imports
 - **Zero Breaking Changes**: Maintained API compatibility across ecosystem
@@ -210,7 +210,7 @@ Achieving Pyrefly strict mode compliance across large, complex codebase with mul
 - **100% Type Annotations**: No `Any` types, complete type coverage
 - **Pyrefly Strict Compliance**: Zero type checking errors
 - **Protocol Usage**: Structural typing for clean interfaces
-- **Generic Type Support**: Full support for `FlextResult[T]` generics
+- **Generic Type Support**: Full support for `FlextCore.Result[T]` generics
 
 #### Best Practices Established
 - **Type-Only Imports**: Clear separation of runtime vs type-only imports
@@ -233,7 +233,7 @@ Implementing Clean Architecture patterns at scale while maintaining practical us
 - **Domain-First Design**: Domain models drive infrastructure implementation
 - **Service Layer Pattern**: Business logic in dedicated service classes
 - **Repository Pattern**: Data access abstraction through services
-- **Dependency Injection**: FlextContainer for service management
+- **Dependency Injection**: FlextCore.Container for service management
 
 ### 6. **CLI Architecture Evolution**
 
@@ -376,14 +376,14 @@ PYTHONPATH=src python -c "from flext_tests.matchers import *; print(dir())"
 **Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
 ```bash
 # Current problematic code in src/flext_db_oracle/exceptions.py:28
-class ExceptionParams(FlextModels.Entity):
+class ExceptionParams(FlextCore.Models.Entity):
     class Config:  # DEPRECATED
         pass
 
 # Fix: Migrate to ConfigDict
 from pydantic import ConfigDict
 
-class ExceptionParams(FlextModels.Entity):
+class ExceptionParams(FlextCore.Models.Entity):
     model_config = ConfigDict()  # MODERN APPROACH
 ```
 

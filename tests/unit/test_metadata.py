@@ -39,7 +39,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_get_schemas_structure(self) -> None:
         """Test get_schemas method structure and error handling."""
-        # Test method exists and returns FlextResult
+        # Test method exists and returns FlextCore.Result
         result = self.manager.get_schemas()
         assert hasattr(result, "is_success")
         assert hasattr(result, "error")
@@ -136,7 +136,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
-        # All methods should return FlextResult and handle disconnected state gracefully
+        # All methods should return FlextCore.Result and handle disconnected state gracefully
         methods_to_test = [
             ("get_schemas", []),
             ("get_tables", []),
@@ -147,7 +147,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             method = getattr(self.manager, method_name)
             result = method(*args)
 
-            # All methods should return FlextResult
+            # All methods should return FlextCore.Result
             assert hasattr(result, "is_success")
             assert hasattr(result, "error")
 

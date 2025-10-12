@@ -1,6 +1,6 @@
 """Oracle Database exceptions using FLEXT ecosystem patterns.
 
-All Oracle-specific exceptions follow the standard FlextExceptions pattern with
+All Oracle-specific exceptions follow the standard FlextCore.Exceptions pattern with
 helper methods for context management and correlation ID support.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -11,30 +11,30 @@ from __future__ import annotations
 
 from typing import Final, override
 
-from flext_core import FlextExceptions, FlextModels, FlextTypes
-from pydantic import Field, field_validator
+from flext_core import FlextCore
+from pydantic import ConfigDict, Field, field_validator
 
 
-class FlextDbOracleExceptions(FlextExceptions):
-    """Oracle database exceptions following standard FlextExceptions pattern.
+class FlextDbOracleExceptions(FlextCore.Exceptions):
+    """Oracle database exceptions following standard FlextCore.Exceptions pattern.
 
-    All Oracle-specific exceptions extend FlextExceptions.BaseError and use
+    All Oracle-specific exceptions extend FlextCore.Exceptions.BaseError and use
     standardized helper methods for context management and correlation ID tracking.
 
     This class consolidates all Oracle database exception functionality
     with proper error codes, context, and correlation tracking.
     """
 
-    class ExceptionParams(FlextModels.Entity):
+    class ExceptionParams(FlextCore.Models.Entity):
         """Parameters for Oracle exception handling."""
 
         error_code: str = Field(description="Oracle error code")
         message: str = Field(description="Error message")
-        context: FlextTypes.Dict = Field(
+        context: FlextCore.Types.Dict = Field(
             default_factory=dict, description="Additional context"
         )
         sql_statement: str | None = Field(default=None, description="SQL statement")
-        connection_info: FlextTypes.StringDict | None = Field(
+        connection_info: FlextCore.Types.StringDict | None = Field(
             default=None, description="Connection information"
         )
 
@@ -47,10 +47,7 @@ class FlextDbOracleExceptions(FlextExceptions):
                 raise ValueError(msg)
             return v
 
-        class Config:
-            """Pydantic config for ExceptionParams."""
-
-            frozen = True  # Make it immutable
+        model_config = ConfigDict(frozen=True)  # Make it immutable
 
     class OracleErrorCodes:
         """Oracle-specific error codes."""
@@ -73,7 +70,7 @@ class FlextDbOracleExceptions(FlextExceptions):
         TIMEOUT: Final[str] = "ORA-12170"
         NETWORK_ERROR: Final[str] = "ORA-12514"
 
-    class OracleBaseError(FlextExceptions.BaseError):
+    class OracleBaseError(FlextCore.Exceptions.BaseError):
         """Base Oracle database error with standard helper methods."""
 
         def _extract_common_kwargs(
@@ -108,7 +105,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             # Store Oracle-specific attributes before extracting common kwargs
             self.oracle_code: str | None = None
             self.sql_statement: str | None = None
-            self.connection_info: FlextTypes.StringDict | None = None
+            self.connection_info: FlextCore.Types.StringDict | None = None
 
             if "oracle_code" in kwargs:
                 self.oracle_code = (
@@ -360,7 +357,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             operation: str | None = None,
-            data_context: FlextTypes.Dict | None = None,
+            data_context: FlextCore.Types.Dict | None = None,
             **kwargs: object,
         ) -> None:
             """Initialize Oracle processing error with operation details.
@@ -579,6 +576,6 @@ class FlextDbOracleExceptions(FlextExceptions):
         return isinstance(error, FlextDbOracleExceptions.OracleBaseError)
 
 
-__all__: FlextTypes.StringList = [
+__all__: FlextCore.Types.StringList = [
     "FlextDbOracleExceptions",
 ]

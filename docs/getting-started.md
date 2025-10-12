@@ -39,7 +39,7 @@ config = OracleConfig(
 # Create API instance with FLEXT patterns
 api = FlextDbOracleApi(config)
 
-# Test connection using FlextResult pattern
+# Test connection using FlextCore.Result pattern
 connection_result = api.test_connection()
 if connection_result.is_success:
     print("✅ Connected to Oracle successfully")
@@ -148,7 +148,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 **Working Features**:
 
 - SQLAlchemy 2.0 integration with Oracle
-- FlextResult error handling patterns
+- FlextCore.Result error handling patterns
 - Connection pooling and management
 - Schema introspection (tables, columns)
 - Query execution with parameter binding

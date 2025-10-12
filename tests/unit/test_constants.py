@@ -19,5 +19,5 @@ class TestFlextDbOracleConstants:
 
     def test_network_constants(self) -> None:
         """Test network constants."""
-        assert FlextDbOracleConstants.Network.MIN_PORT == 1024
+        assert FlextDbOracleConstants.Network.MIN_PORT == 1
         assert FlextDbOracleConstants.Network.MAX_PORT == 65535

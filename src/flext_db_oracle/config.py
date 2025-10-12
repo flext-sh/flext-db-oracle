@@ -1,6 +1,6 @@
 """Oracle Database Configuration - Settings using flext-core patterns.
 
-Provides Oracle-specific configuration management extending FlextConfig
+Provides Oracle-specific configuration management extending FlextCore.Config
 with Pydantic Settings for environment variable support and validation.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -11,12 +11,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_core import (
-    FlextConfig,
-    FlextConstants,
-    FlextResult,
-    FlextTypes,
-)
+from flext_core import FlextCore
 from pydantic import (
     Field,
     SecretStr,
@@ -28,192 +23,27 @@ from pydantic import (
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleConfig(FlextConfig):
-    """Oracle Database Configuration extending FlextConfig.
+class FlextDbOracleConfig(FlextCore.Config):
+    """Oracle Database Configuration extending FlextCore.Config.
 
     Provides comprehensive configuration for Oracle database operations including
     connection settings, pool configuration, performance tuning, and security.
     Uses enhanced singleton pattern with inverse dependency injection.
     """
 
-    # Configuration inherited from FlextConfig with Oracle-specific env prefix
+    # Configuration inherited from FlextCore.Config with Oracle-specific env prefix
     model_config: ClassVar[dict] = {
-        **FlextConfig.model_config,
+        **FlextCore.Config.model_config,
         "env_prefix": "FLEXT_DB_ORACLE_",
         "json_schema_extra": {
             "title": "FLEXT DB Oracle Configuration",
-            "description": "Enterprise Oracle database configuration extending FlextConfig",
+            "description": "Enterprise Oracle database configuration extending FlextCore.Config",
         },
     }
 
     def __init__(self, **data: object) -> None:
         """Initialize Oracle configuration with keyword arguments."""
-        # Extract required parameters for FlextConfig
-        app_name = str(data.pop("app_name", "flext-db-oracle"))
-        version = str(data.pop("version", "1.0.0"))
-        environment = str(data.pop("environment", "development"))
-        debug = bool(data.pop("debug", False))
-        trace = bool(data.pop("trace", False))
-        log_level = str(data.pop("log_level", "INFO"))
-        json_output = data.pop("json_output", None)
-        if json_output is not None:
-            json_output = bool(json_output)
-        include_source = bool(data.pop("include_source", True))
-        structured_output = bool(data.pop("structured_output", False))
-        log_verbosity = str(data.pop("log_verbosity", "normal"))
-        log_format = str(
-            data.pop(
-                "log_format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
-        )
-        log_file = data.pop("log_file", None)
-        if log_file is not None:
-            log_file = str(log_file)
-        log_file_max_size = int(
-            str(data.pop("log_file_max_size", "10485760"))
-        )  # 10MB default
-        log_file_backup_count = int(
-            str(data.pop("log_file_backup_count", "5"))
-        )  # 5 backups default
-        console_enabled = bool(data.pop("console_enabled", True))
-        console_color_enabled = bool(data.pop("console_color_enabled", True))
-        track_performance = bool(data.pop("track_performance", False))
-        track_timing = bool(data.pop("track_timing", False))
-        include_context = bool(data.pop("include_context", True))
-        include_correlation_id = bool(data.pop("include_correlation_id", True))
-        mask_sensitive_data = bool(data.pop("mask_sensitive_data", True))
-        database_url = data.pop("database_url", None)
-        if database_url is not None:
-            database_url = str(database_url)
-        database_pool_size = int(
-            str(data.pop("database_pool_size", "10"))
-        )  # 10 connections default
-        cache_ttl = int(str(data.pop("cache_ttl", "300")))  # 5 minutes default
-        cache_max_size = int(
-            str(data.pop("cache_max_size", "1000"))
-        )  # 1000 items default
-        secret_key = data.pop("secret_key", None)
-        if secret_key is not None:
-            from pydantic import SecretStr
-
-            secret_key = SecretStr(str(secret_key))
-        api_key = data.pop("api_key", None)
-        if api_key is not None:
-            from pydantic import SecretStr
-
-            api_key = SecretStr(str(api_key))
-        max_retry_attempts = int(
-            str(data.pop("max_retry_attempts", "3"))
-        )  # 3 retries default
-        timeout_seconds = int(
-            str(data.pop("timeout_seconds", "30"))
-        )  # 30 seconds default
-        enable_caching = bool(data.pop("enable_caching", True))
-        enable_metrics = bool(data.pop("enable_metrics", True))
-        enable_tracing = bool(data.pop("enable_tracing", False))
-        jwt_expiry_minutes = int(
-            str(data.pop("jwt_expiry_minutes", "60"))
-        )  # 60 minutes default
-        bcrypt_rounds = int(str(data.pop("bcrypt_rounds", "12")))  # 12 rounds default
-        jwt_secret = str(data.pop("jwt_secret", "change-me-in-production"))
-        max_workers = int(str(data.pop("max_workers", "10")))  # 10 workers default
-        enable_circuit_breaker = bool(data.pop("enable_circuit_breaker", False))
-        circuit_breaker_threshold = int(
-            str(data.pop("circuit_breaker_threshold", "5"))
-        )  # 5 failures default
-        rate_limit_max_requests = int(
-            str(data.pop("rate_limit_max_requests", "100"))
-        )  # 100 requests default
-        rate_limit_window_seconds = int(
-            str(data.pop("rate_limit_window_seconds", "60"))
-        )  # 60 seconds default
-        batch_size = int(str(data.pop("batch_size", "100")))  # 100 items default
-        cache_size = int(str(data.pop("cache_size", "1000")))  # 1000 items default
-        retry_delay_seconds = float(
-            str(data.pop("retry_delay_seconds", "1.0"))
-        )  # 1.0 seconds default
-        validation_timeout_ms = int(
-            str(data.pop("validation_timeout_ms", "100"))
-        )  # 100ms default
-        validation_strict_mode = bool(data.pop("validation_strict_mode", False))
-        serialization_encoding = str(data.pop("serialization_encoding", "utf-8"))
-        dispatcher_auto_context = bool(data.pop("dispatcher_auto_context", True))
-        dispatcher_timeout_seconds = int(
-            str(data.pop("dispatcher_timeout_seconds", "30"))
-        )  # 30 seconds default
-        dispatcher_enable_metrics = bool(data.pop("dispatcher_enable_metrics", True))
-        dispatcher_enable_logging = bool(data.pop("dispatcher_enable_logging", True))
-        json_indent = int(str(data.pop("json_indent", "2")))  # 2 spaces default
-        json_sort_keys = bool(data.pop("json_sort_keys", False))
-        ensure_json_serializable = bool(data.pop("ensure_json_serializable", True))
-        use_utc_timestamps = bool(data.pop("use_utc_timestamps", True))
-        timestamp_auto_update = bool(data.pop("timestamp_auto_update", True))
-        max_name_length = int(
-            str(data.pop("max_name_length", "100"))
-        )  # 100 chars default
-        min_phone_digits = int(
-            str(data.pop("min_phone_digits", "10"))
-        )  # 10 digits default
-        super().__init__(
-            app_name=app_name,
-            version=version,
-            environment=environment,
-            debug=debug,
-            trace=trace,
-            log_level=log_level,
-            json_output=json_output,
-            include_source=include_source,
-            structured_output=structured_output,
-            log_verbosity=log_verbosity,
-            log_format=log_format,
-            log_file=log_file,
-            log_file_max_size=log_file_max_size,
-            log_file_backup_count=log_file_backup_count,
-            console_enabled=console_enabled,
-            console_color_enabled=console_color_enabled,
-            track_performance=track_performance,
-            track_timing=track_timing,
-            include_context=include_context,
-            include_correlation_id=include_correlation_id,
-            mask_sensitive_data=mask_sensitive_data,
-            database_url=database_url,
-            database_pool_size=database_pool_size,
-            cache_ttl=cache_ttl,
-            cache_max_size=cache_max_size,
-            secret_key=secret_key,
-            api_key=api_key,
-            max_retry_attempts=max_retry_attempts,
-            timeout_seconds=timeout_seconds,
-            enable_caching=enable_caching,
-            enable_metrics=enable_metrics,
-            enable_tracing=enable_tracing,
-            jwt_expiry_minutes=jwt_expiry_minutes,
-            bcrypt_rounds=bcrypt_rounds,
-            jwt_secret=jwt_secret,
-            max_workers=max_workers,
-            enable_circuit_breaker=enable_circuit_breaker,
-            circuit_breaker_threshold=circuit_breaker_threshold,
-            rate_limit_max_requests=rate_limit_max_requests,
-            rate_limit_window_seconds=rate_limit_window_seconds,
-            batch_size=batch_size,
-            cache_size=cache_size,
-            retry_delay_seconds=retry_delay_seconds,
-            validation_timeout_ms=validation_timeout_ms,
-            validation_strict_mode=validation_strict_mode,
-            serialization_encoding=serialization_encoding,
-            dispatcher_auto_context=dispatcher_auto_context,
-            dispatcher_timeout_seconds=dispatcher_timeout_seconds,
-            dispatcher_enable_metrics=dispatcher_enable_metrics,
-            dispatcher_enable_logging=dispatcher_enable_logging,
-            json_indent=json_indent,
-            json_sort_keys=json_sort_keys,
-            ensure_json_serializable=ensure_json_serializable,
-            use_utc_timestamps=use_utc_timestamps,
-            timestamp_auto_update=timestamp_auto_update,
-            max_name_length=max_name_length,
-            min_phone_digits=min_phone_digits,
-            **data,
-        )
+        super().__init__(**data)
 
     # Oracle Connection Configuration - matching model field names
     host: str = Field(
@@ -316,14 +146,14 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     max_retries: int = Field(
-        default=FlextConstants.Reliability.MAX_RETRY_ATTEMPTS,
+        default=FlextCore.Constants.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
         le=10,
         description="Maximum number of retry attempts",
     )
 
     retry_delay: float = Field(
-        default=FlextConstants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
+        default=FlextCore.Constants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=0.1,
         le=60.0,
         description="Delay between retry attempts in seconds",
@@ -386,6 +216,15 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     # Validation methods
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, v: str) -> str:
+        """Validate Oracle host."""
+        if not v or not v.strip():
+            msg = "Host cannot be empty"
+            raise ValueError(msg)
+        return v.strip()
+
     @field_validator("service_name")
     @classmethod
     def validate_service_name(cls, v: str) -> str:
@@ -449,37 +288,37 @@ class FlextDbOracleConfig(FlextConfig):
             raise ValueError(msg)
         return v
 
-    def validate_connection_config(self) -> FlextResult[None]:
+    def validate_connection_config(self) -> FlextCore.Result[None]:
         """Validate the complete connection configuration."""
         # Validate required fields
         if not self.host:
-            return FlextResult[None].fail("Oracle host is required")
+            return FlextCore.Result[None].fail("Oracle host is required")
 
         if not self.username:
-            return FlextResult[None].fail("Oracle username is required")
+            return FlextCore.Result[None].fail("Oracle username is required")
 
         if not self.password.get_secret_value():
-            return FlextResult[None].fail("Oracle password is required")
+            return FlextCore.Result[None].fail("Oracle password is required")
 
         # Validate pool configuration
         if self.pool_max < self.pool_min:
-            return FlextResult[None].fail(
+            return FlextCore.Result[None].fail(
                 "pool_max must be greater than or equal to pool_min"
             )
 
         # Validate SSL configuration
         if self.use_ssl:
             if self.ssl_cert_file and not self.ssl_key_file:
-                return FlextResult[None].fail(
+                return FlextCore.Result[None].fail(
                     "SSL key file is required when SSL cert file is provided"
                 )
 
             if self.ssl_key_file and not self.ssl_cert_file:
-                return FlextResult[None].fail(
+                return FlextCore.Result[None].fail(
                     "SSL cert file is required when SSL key file is provided"
                 )
 
-        return FlextResult[None].ok(None)
+        return FlextCore.Result[None].ok(None)
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""
@@ -489,7 +328,7 @@ class FlextDbOracleConfig(FlextConfig):
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
 
-    def get_connection_config(self) -> FlextTypes.Dict:
+    def get_connection_config(self) -> FlextCore.Types.Dict:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.host,
@@ -503,14 +342,14 @@ class FlextDbOracleConfig(FlextConfig):
         }
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+    def from_env(cls, prefix: str = "ORACLE_") -> FlextCore.Result[FlextDbOracleConfig]:
         """Create OracleConfig from environment variables.
 
         Args:
             prefix: Environment variable prefix (default: "ORACLE_")
 
         Returns:
-            FlextResult[FlextDbOracleConfig]: Configuration or error.
+            FlextCore.Result[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:
@@ -529,7 +368,7 @@ class FlextDbOracleConfig(FlextConfig):
             try:
                 port = int(port_str)
             except ValueError:
-                return FlextResult[FlextDbOracleConfig].fail(
+                return FlextCore.Result[FlextDbOracleConfig].fail(
                     f"Invalid port: {port_str}"
                 )
 
@@ -544,9 +383,9 @@ class FlextDbOracleConfig(FlextConfig):
                 sid=sid,
             )
 
-            return FlextResult[FlextDbOracleConfig].ok(config)
+            return FlextCore.Result[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(
+            return FlextCore.Result[FlextDbOracleConfig].fail(
                 f"Failed to create config from environment: {e}"
             )
 

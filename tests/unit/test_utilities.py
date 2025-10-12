@@ -12,7 +12,7 @@ from io import StringIO
 from unittest.mock import Mock
 
 import pytest
-from flext_core import FlextTypes
+from flext_core import FlextCore
 from flext_tests.matchers import FlextTestsMatchers
 from pydantic import BaseModel
 
@@ -76,7 +76,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         for input_query, should_succeed in test_queries:
             result = self.utilities.format_sql_for_oracle(input_query)
-            # Method has @safe_result decorator, returns FlextResult
+            # Method has @safe_result decorator, returns FlextCore.Result
             if should_succeed:
                 assert result.is_success
                 assert isinstance(result.unwrap(), str)
@@ -89,7 +89,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         query1 = "SELECT * FROM users WHERE id = ?"
         query2 = "SELECT * FROM users WHERE id = ?"
 
-        # Method returns FlextResult with @safe_result decorator
+        # Method returns FlextCore.Result with @safe_result decorator
         result1 = self.utilities.generate_query_hash(query1)
         result2 = self.utilities.generate_query_hash(query2)
 
@@ -110,8 +110,8 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_generate_query_hash_with_params_real(self) -> None:
         """Test query hash generation with parameters."""
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
-        params1: FlextTypes.Dict = {"id": 1, "name": "John"}
-        params2: FlextTypes.Dict = {"id": 2, "name": "Jane"}
+        params1: FlextCore.Types.Dict = {"id": 1, "name": "John"}
+        params2: FlextCore.Types.Dict = {"id": 2, "name": "Jane"}
 
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
@@ -170,7 +170,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_create_api_from_config_method_real(self) -> None:
         """Test create_api_from_config method."""
         # Test with valid config dictionary
-        config_dict: FlextTypes.Dict = {
+        config_dict: FlextCore.Types.Dict = {
             "host": "test_host",
             "port": 1521,
             "service_name": "TEST_SERVICE",
@@ -180,13 +180,13 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         result = self.utilities.create_api_from_config(config_dict)
 
-        # Should return FlextResult
+        # Should return FlextCore.Result
         assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_create_api_from_config_invalid_real(self) -> None:
         """Test create_api_from_config with invalid config."""
-        invalid_configs: list[FlextTypes.Dict] = [
+        invalid_configs: list[FlextCore.Types.Dict] = [
             {},  # Empty config
             {"host": "test"},  # Missing required fields
             {"invalid": "config"},  # Invalid field names
@@ -201,7 +201,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         """Test create_config_from_env method."""
         result = self.utilities.create_config_from_env()
 
-        # Should return FlextResult - may fail if env vars not set
+        # Should return FlextCore.Result - may fail if env vars not set
         assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
@@ -257,7 +257,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         """Test utilities integration with flext-core patterns."""
         utilities = FlextDbOracleUtilities()
 
-        # Test FlextResult operations
+        # Test FlextCore.Result operations
         result1 = utilities.escape_oracle_identifier("test_name")
         assert hasattr(result1, "is_success")
         assert hasattr(result1, "error") or hasattr(result1, "value")
@@ -311,7 +311,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_generate_query_hash_with_params(self) -> None:
         """Test generate_query_hash with parameters."""
         sql = "SELECT * FROM users WHERE id = :id"
-        params: FlextTypes.Dict = {"id": 123}
+        params: FlextCore.Types.Dict = {"id": 123}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success
@@ -322,7 +322,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
     def test_generate_query_hash_empty_params(self) -> None:
         """Test generate_query_hash with empty params dict."""
         sql = "SELECT 1 FROM DUAL"
-        params: FlextTypes.Dict = {}
+        params: FlextCore.Types.Dict = {}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success
@@ -568,7 +568,7 @@ SPDX-License-Identifier: MIT
 class TestModelDump:
     """Test class that supports model_dump methods."""
 
-    def model_dump(self) -> FlextTypes.Dict:
+    def model_dump(self) -> FlextCore.Types.Dict:
         """Dump model to dictionary."""
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
 
@@ -604,7 +604,7 @@ class TestFlextDbOracleUtilities:
 
     def test_utilities_create_api_from_config_method(self) -> None:
         """Test create_api_from_config utility method."""
-        config_dict: FlextTypes.Dict = {
+        config_dict: FlextCore.Types.Dict = {
             "host": "util_api_test",
             "port": 1521,
             "service_name": "UTIL_API_TEST",
@@ -1018,7 +1018,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
         for input_query, should_succeed in test_queries:
             result = self.utilities.format_sql_for_oracle(input_query)
-            # Method has @safe_result decorator, returns FlextResult
+            # Method has @safe_result decorator, returns FlextCore.Result
             if should_succeed:
                 assert result.is_success
                 assert isinstance(result.unwrap(), str)
@@ -1031,7 +1031,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         query1 = "SELECT * FROM users WHERE id = ?"
         query2 = "SELECT * FROM users WHERE id = ?"
 
-        # Method returns FlextResult with @safe_result decorator
+        # Method returns FlextCore.Result with @safe_result decorator
         result1 = self.utilities.generate_query_hash(query1)
         result2 = self.utilities.generate_query_hash(query2)
 
@@ -1052,8 +1052,8 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_generate_query_hash_with_params_real(self) -> None:
         """Test query hash generation with parameters."""
         query = "SELECT * FROM users WHERE id = ? AND name = ?"
-        params1: FlextTypes.Dict = {"id": 1, "name": "John"}
-        params2: FlextTypes.Dict = {"id": 2, "name": "Jane"}
+        params1: FlextCore.Types.Dict = {"id": 1, "name": "John"}
+        params2: FlextCore.Types.Dict = {"id": 2, "name": "Jane"}
 
         result1 = self.utilities.generate_query_hash(query, params1)
         result2 = self.utilities.generate_query_hash(query, params2)
@@ -1112,7 +1112,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_create_api_from_config_method_real(self) -> None:
         """Test create_api_from_config method."""
         # Test with valid config dictionary
-        config_dict: FlextTypes.Dict = {
+        config_dict: FlextCore.Types.Dict = {
             "host": "test_host",
             "port": 1521,
             "service_name": "TEST_SERVICE",
@@ -1122,13 +1122,13 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
         result = self.utilities.create_api_from_config(config_dict)
 
-        # Should return FlextResult
+        # Should return FlextCore.Result
         assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
     def test_create_api_from_config_invalid_real(self) -> None:
         """Test create_api_from_config with invalid config."""
-        invalid_configs: list[FlextTypes.Dict] = [
+        invalid_configs: list[FlextCore.Types.Dict] = [
             {},  # Empty config
             {"host": "test"},  # Missing required fields
             {"invalid": "config"},  # Invalid field names
@@ -1143,7 +1143,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         """Test create_config_from_env method."""
         result = self.utilities.create_config_from_env()
 
-        # Should return FlextResult - may fail if env vars not set
+        # Should return FlextCore.Result - may fail if env vars not set
         assert hasattr(result, "is_success")
         assert hasattr(result, "error") or hasattr(result, "value")
 
@@ -1199,7 +1199,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         """Test utilities integration with flext-core patterns."""
         utilities = FlextDbOracleUtilities()
 
-        # Test FlextResult operations
+        # Test FlextCore.Result operations
         result1 = utilities.escape_oracle_identifier("test_name")
         assert hasattr(result1, "is_success")
         assert hasattr(result1, "error") or hasattr(result1, "value")
@@ -1240,7 +1240,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
         # But instances should be independent objects
         assert id(utilities1) != id(utilities2)
 
-    def model_dump(self) -> FlextTypes.Dict:
+    def model_dump(self) -> FlextCore.Types.Dict:
         """Dump model to dictionary."""
         return {"status": "healthy", "version": "1.0.0", "uptime": 3600}
 
@@ -1268,7 +1268,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
 
     def test_utilities_create_api_from_config_method(self) -> None:
         """Test create_api_from_config utility method."""
-        config_dict: FlextTypes.Dict = {
+        config_dict: FlextCore.Types.Dict = {
             "host": "util_api_test",
             "port": 1521,
             "service_name": "UTIL_API_TEST",
@@ -1573,7 +1573,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_generate_query_hash_with_params(self) -> None:
         """Test generate_query_hash with parameters."""
         sql = "SELECT * FROM users WHERE id = :id"
-        params: FlextTypes.Dict = {"id": 123}
+        params: FlextCore.Types.Dict = {"id": 123}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success
@@ -1584,7 +1584,7 @@ class TestFlextDbOracleUtilitiesErrorHandling:
     def test_generate_query_hash_empty_params(self) -> None:
         """Test generate_query_hash with empty params dict."""
         sql = "SELECT 1 FROM DUAL"
-        params: FlextTypes.Dict = {}
+        params: FlextCore.Types.Dict = {}
         result = FlextDbOracleUtilities.generate_query_hash(sql, params)
 
         assert result.is_success

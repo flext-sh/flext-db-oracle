@@ -79,7 +79,7 @@ graph TB
 **flext-db-oracle** provides a unified, enterprise-grade interface for Oracle database operations within the FLEXT ecosystem. It abstracts the complexities of SQLAlchemy 2.0 and python-oracledb while providing:
 
 - **Type-safe database operations** with Pydantic v2 models
-- **Railway-oriented error handling** with FlextResult[T]
+- **Railway-oriented error handling** with FlextCore.Result[T]
 - **Clean Architecture** implementation following DDD principles
 - **Comprehensive testing** with 100% coverage requirement
 - **Production monitoring** and observability integration

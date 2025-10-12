@@ -22,13 +22,13 @@ Oracle database interface providing 36 methods for connection management, query 
 api = FlextDbOracleApi(config)
 
 # Test connection
-result = api.test_connection() -> FlextResult[bool]
+result = api.test_connection() -> FlextCore.Result[bool]
 
 # Connect to database
-result = api.connect() -> FlextResult[Self]
+result = api.connect() -> FlextCore.Result[Self]
 
 # Disconnect from database
-result = api.disconnect() -> FlextResult[None]
+result = api.disconnect() -> FlextCore.Result[None]
 
 # Check connection status
 status = api.is_connected() -> bool
@@ -38,42 +38,42 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.query(sql, parameters=None) -> FlextCore.Result[list[FlextCore.Types.Dict]]
 
 # Execute single row SELECT
-result = api.query_one(sql, parameters=None) -> FlextResult[dict | None]
+result = api.query_one(sql, parameters=None) -> FlextCore.Result[dict | None]
 
 # Execute INSERT/UPDATE/DELETE
-result = api.execute(sql, parameters=None) -> FlextResult[int]
+result = api.execute(sql, parameters=None) -> FlextCore.Result[int]
 
 # Execute multiple statements
-result = api.execute_many(sql, parameters_list) -> FlextResult[int]
+result = api.execute_many(sql, parameters_list) -> FlextCore.Result[int]
 ```
 
 ### Schema Methods
 
 ```python
 # Get available schemas
-result = api.get_schemas() -> FlextResult[FlextTypes.StringList]
+result = api.get_schemas() -> FlextCore.Result[FlextCore.Types.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.get_tables(schema=None) -> FlextCore.Result[list[FlextCore.Types.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.get_columns(table, schema=None) -> FlextCore.Result[list[FlextCore.Types.Dict]]
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> FlextResult[FlextTypes.Dict]
+result = api.get_table_metadata(table, schema=None) -> FlextCore.Result[FlextCore.Types.Dict]
 ```
 
 ### Configuration Methods
 
 ```python
 # Create from environment variables
-result = FlextDbOracleApi.from_env() -> FlextResult[FlextDbOracleApi]
+result = FlextDbOracleApi.from_env() -> FlextCore.Result[FlextDbOracleApi]
 
 # Create from URL
-result = FlextDbOracleApi.from_url(url) -> FlextResult[FlextDbOracleApi]
+result = FlextDbOracleApi.from_url(url) -> FlextCore.Result[FlextDbOracleApi]
 
 # Get current config
 config = api.config -> OracleConfig
@@ -111,7 +111,7 @@ result = cli.execute_health_check()
 
 ## Error Handling
 
-All methods return FlextResult for type-safe error handling.
+All methods return FlextCore.Result for type-safe error handling.
 
 ```python
 result = api.query("SELECT 1 FROM DUAL")

@@ -14,7 +14,7 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
-from flext_core import FlextConstants, FlextResult, FlextTypes
+from flext_core import FlextCore
 from flext_tests.domains import FlextTestsDomains
 from flext_tests.matchers import FlextTestsMatchers
 
@@ -73,7 +73,7 @@ class TestFlextDbOracleServicesBasic:
         # Note: Private methods are not accessible for testing
         # Test public connection methods instead
         result = service.test_connection()
-        # test_connection returns FlextResult[bool], not connection string
+        # test_connection returns FlextCore.Result[bool], not connection string
         assert (
             result.is_success or result.is_failure
         )  # Either success or failure is valid
@@ -107,7 +107,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test SELECT with conditions
-        conditions: FlextTypes.Dict = {"id": 1, "name": "test"}
+        conditions: FlextCore.Types.Dict = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -125,7 +125,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test safe SELECT with parameters
-        conditions: FlextTypes.Dict = {"id": 1, "status": "active"}
+        conditions: FlextCore.Types.Dict = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -173,7 +173,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test schema mapping
-        singer_schema: FlextTypes.Dict = {
+        singer_schema: FlextCore.Types.Dict = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -203,7 +203,7 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test CREATE TABLE DDL
-        columns: list[FlextTypes.Dict] = [
+        columns: list[FlextCore.Types.Dict] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -438,7 +438,7 @@ class TestFlextDbOracleServicesBasic:
 
         # Test query hash generation
         sql = "SELECT * FROM users WHERE id = :id"
-        params: FlextTypes.Dict = {"id": 123}
+        params: FlextCore.Types.Dict = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         assert hash_result.is_success
         assert isinstance(hash_result.value, str)
@@ -510,12 +510,12 @@ class TestServiceErrorHandling:
         service = FlextDbOracleServices(oracle_config=config, domain_events=[])
 
         # Test with invalid schema structure
-        invalid_schema: FlextTypes.Dict = {"properties": "not_a_dict"}
+        invalid_schema: FlextCore.Types.Dict = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         assert mapping_result.is_failure
 
         # Test with missing properties
-        missing_props_schema: FlextTypes.Dict = {}
+        missing_props_schema: FlextCore.Types.Dict = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         assert mapping_result.is_failure or len(mapping_result.value) == 0
 
@@ -540,7 +540,7 @@ class TestDirectCoverageBoostAPI:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
-            host=FlextConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
+            host=FlextCore.Constants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
             port=9999,
             username="invalid",
             password="invalid",
@@ -750,7 +750,7 @@ class TestDirectCoverageBoostConnection:
                 result = operation()
                 # Different operations return different types
                 if hasattr(result, "is_failure") and hasattr(result, "is_success"):
-                    # FlextResult type
+                    # FlextCore.Result type
                     assert result.is_failure or result.is_success
                 elif isinstance(result, bool):
                     # Boolean return like is_connected()
@@ -993,11 +993,11 @@ class TestDirectCoverageBoostServices:
         ]
 
         for config_result in configs:
-            # Type guard: ensure we have a FlextResult before passing to assert_result_success
+            # Type guard: ensure we have a FlextCore.Result before passing to assert_result_success
             if not hasattr(config_result, "success"):
-                continue  # Skip non-FlextResult items
-            # Cast to FlextResult to satisfy mypy
-            result = cast("FlextResult[object]", config_result)
+                continue  # Skip non-FlextCore.Result items
+            # Cast to FlextCore.Result to satisfy mypy
+            result = cast("FlextCore.Result[object]", config_result)
             FlextTestsMatchers.assert_flext_result_success(result)
             # Use the cast result for accessing value
             config = cast(
@@ -1019,7 +1019,9 @@ class TestDirectCoverageBoostServices:
             # Test connection attempt - this internally uses URL building
             connection_result = services.connect()
             # Should fail gracefully without Oracle server but URL building should work
-            assert hasattr(connection_result, "is_failure")  # Should return FlextResult
+            assert hasattr(
+                connection_result, "is_failure"
+            )  # Should return FlextCore.Result
             # Expected to fail without Oracle server - check that it's a proper failure
             assert connection_result.is_failure
 
@@ -1094,7 +1096,8 @@ class TestDirectCoverageBoostServices:
                     assert "UPDATE" in sql_text.upper()
                 elif method_name.startswith("build_delete"):
                     assert (
-                        FlextConstants.Platform.HTTP_METHOD_DELETE in sql_text.upper()
+                        FlextCore.Constants.Platform.HTTP_METHOD_DELETE
+                        in sql_text.upper()
                     )
 
             except AttributeError:
@@ -1142,7 +1145,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_get_schemas_structure(self) -> None:
         """Test get_schemas method structure and error handling."""
-        # Test method exists and returns FlextResult
+        # Test method exists and returns FlextCore.Result
         result = self.manager.get_schemas()
         assert hasattr(result, "is_success")
         assert hasattr(result, "error")
@@ -1239,7 +1242,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
-        # All methods should return FlextResult and handle disconnected state gracefully
+        # All methods should return FlextCore.Result and handle disconnected state gracefully
         methods_to_test = [
             ("get_schemas", []),
             ("get_tables", []),
@@ -1250,7 +1253,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             method = getattr(self.manager, method_name)
             result = method(*args)
 
-            # All methods should return FlextResult
+            # All methods should return FlextCore.Result
             assert hasattr(result, "is_success")
             assert hasattr(result, "error")
 
@@ -1414,7 +1417,7 @@ class TestFlextDbOracleConnectionSimple:
         """Test connection error handling."""
         # Test connection attempt (will fail due to invalid config)
         result = self.connection.connect()
-        # Should return FlextResult
+        # Should return FlextCore.Result
         assert hasattr(result, "is_success")
         assert hasattr(result, "error")
 
@@ -1491,7 +1494,7 @@ class TestFlextDbOracleConnectionSimple:
         # Note: Private methods are not accessible for testing
         # Test public connection methods instead
         result = service.test_connection()
-        # test_connection returns FlextResult[bool], not connection string
+        # test_connection returns FlextCore.Result[bool], not connection string
         assert (
             result.is_success or result.is_failure
         )  # Either success or failure is valid
@@ -1525,7 +1528,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test SELECT with conditions
-        conditions: FlextTypes.Dict = {"id": 1, "name": "test"}
+        conditions: FlextCore.Types.Dict = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -1543,7 +1546,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test safe SELECT with parameters
-        conditions: FlextTypes.Dict = {"id": 1, "status": "active"}
+        conditions: FlextCore.Types.Dict = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -1591,7 +1594,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test schema mapping
-        singer_schema: FlextTypes.Dict = {
+        singer_schema: FlextCore.Types.Dict = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1621,7 +1624,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test CREATE TABLE DDL
-        columns: list[FlextTypes.Dict] = [
+        columns: list[FlextCore.Types.Dict] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1856,7 +1859,7 @@ class TestFlextDbOracleConnectionSimple:
 
         # Test query hash generation
         sql = "SELECT * FROM users WHERE id = :id"
-        params: FlextTypes.Dict = {"id": 123}
+        params: FlextCore.Types.Dict = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         assert hash_result.is_success
         assert isinstance(hash_result.value, str)
@@ -1924,11 +1927,11 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config, domain_events=[])
 
         # Test with invalid schema structure
-        invalid_schema: FlextTypes.Dict = {"properties": "not_a_dict"}
+        invalid_schema: FlextCore.Types.Dict = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         assert mapping_result.is_failure
 
         # Test with missing properties
-        missing_props_schema: FlextTypes.Dict = {}
+        missing_props_schema: FlextCore.Types.Dict = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         assert mapping_result.is_failure or len(mapping_result.value) == 0

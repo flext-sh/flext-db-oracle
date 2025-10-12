@@ -5,18 +5,18 @@ FLEXT ecosystem integration patterns for flext-db-oracle.
 ## FLEXT Core Integration
 
 ```python
-from flext_core import FlextResult, FlextLogger, FlextContainer
+from flext_core import FlextCore
 from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
-# FlextResult error handling
+# FlextCore.Result error handling
 result = api.query("SELECT 1 FROM DUAL")
 if result.is_success:
     data = result.value
 else:
     error = result.error
 
-# FlextLogger usage
-logger = FlextLogger(__name__)
+# FlextCore.Logger usage
+logger = FlextCore.Logger(__name__)
 logger.info("Oracle operation completed")
 ```
 
