@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess  # noqa: S404
+import subprocess
 import sys
 from pathlib import Path
 
