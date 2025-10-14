@@ -5,6 +5,7 @@ Coverage target: dispatcher.py lines 70-144 (build_dispatcher method).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations

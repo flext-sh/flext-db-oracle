@@ -5,6 +5,7 @@ achieving maximum coverage through real API operations using flext_tests.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 from __future__ import annotations
@@ -826,6 +827,7 @@ no mocks or legacy patterns. Achieves near 100% coverage following FLEXT standar
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1348,6 +1350,7 @@ class TestApiModule:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1609,6 +1612,7 @@ with minimal mocking to avoid Pydantic/framework conflicts.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1765,6 +1769,7 @@ class TestApiSurgicalSimple:
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1822,6 +1827,7 @@ Focus on API (40%), CLI (21%), and other modules with lowest coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 

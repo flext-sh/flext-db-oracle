@@ -530,6 +530,7 @@ Focus on API (40%), CLI (21%), and other modules with lowest coverage.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1117,6 +1118,7 @@ instead of mocks, following the user's requirement for real code testing.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
@@ -1350,6 +1352,7 @@ focusing on the actual available methods and attributes.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
+
 """
 
 
