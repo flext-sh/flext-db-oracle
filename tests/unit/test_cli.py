@@ -497,7 +497,7 @@ class TestOutputFormatter:
         assert "item2" in output
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with dict items."""
+        """Test list output formatting with dict[str, object] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: list[FlextCore.Types.Dict] = [
             {"name": "table1", "type": "TABLE"},

@@ -474,7 +474,7 @@ class FlextDbOracleApi(FlextCore.Service):
                         # Convert list of dicts to list of lists
                         rows_data = [list(row.values()) for row in result.value]
                         columns = list(first_element.keys())
-                    # Note: Only handling dict format for now -
+                    # Note: Only handling dict[str, object] format for now -
                     # other formats can be added when needed
 
                 query_result = FlextDbOracleModels.QueryResult(

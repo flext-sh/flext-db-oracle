@@ -426,7 +426,7 @@ class FlextDbOracleServices(FlextCore.Service):
                 # Build INSERT statement using SQLAlchemy 2.0 Core API with specific columns
                 stmt = insert(table)
 
-                # Create values dict for only the specified columns
+                # Create values dict[str, object] for only the specified columns
                 values_dict: FlextCore.Types.Dict = {
                     col.lower(): text(f":{col.lower()}") for col in columns
                 }

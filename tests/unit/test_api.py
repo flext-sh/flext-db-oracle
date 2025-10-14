@@ -90,7 +90,7 @@ class TestFlextDbOracleApiRealFunctionality:
         # Verify config section with type casting
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
-        # Cast to proper dict type for PyRight
+        # Cast to proper dict[str, object] type for PyRight
         config_dict: FlextCore.Types.Dict = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
@@ -275,7 +275,7 @@ class TestFlextDbOracleApiRealFunctionality:
         FlextTestsMatchers.assert_result_success(result)
         metrics = result.value
         assert isinstance(metrics, dict)
-        # Current implementation returns empty dict - test actual behavior
+        # Current implementation returns empty dict[str, object] - test actual behavior
         # This demonstrates the method works, even if metrics are not populated
 
     # Configuration Factory Methods Tests
@@ -1542,7 +1542,7 @@ class TestFlextDbOracleApiSafeMethods:
         assert result.is_success
         assert isinstance(result.value, dict)
 
-        # Metrics dict should be valid (may be empty initially)
+        # Metrics dict[str, object] should be valid (may be empty initially)
         metrics = result.value
         assert isinstance(metrics, dict)
         # API should return metrics structure even if empty
@@ -1806,7 +1806,7 @@ class TestFlextDbOracleApiWorking:
         assert isinstance(api_from_config, FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test dict serialization methods."""
+        """Test dict[str, object] serialization methods."""
         # These should work without database
         as_dict = self.api.to_dict()
         assert isinstance(as_dict, dict)

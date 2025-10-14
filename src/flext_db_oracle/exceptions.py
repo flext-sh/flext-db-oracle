@@ -86,9 +86,11 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
                 str(error_code) if error_code is not None else None,
             )
 
-        def _build_context(self, base_context: dict, **oracle_fields: object) -> dict:
+        def _build_context(
+            self, base_context: dict, **oracle_fields: object
+        ) -> dict[str, object]:
             """Build complete context with Oracle-specific fields."""
-            context = dict(base_context)
+            context = dict[str, object](base_context)
             context.update(oracle_fields)
             return context
 
@@ -122,7 +124,9 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             if "connection_info" in kwargs:
                 conn_info = kwargs.pop("connection_info")
                 self.connection_info = (
-                    dict(conn_info) if isinstance(conn_info, dict) else None
+                    dict[str, object](conn_info)
+                    if isinstance(conn_info, dict)
+                    else None
                 )
 
             # Extract common parameters using helper
@@ -149,7 +153,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
                 correlation_id=correlation_id,
             )
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Allow subclasses to add their own context fields."""
             return {}
 
@@ -196,7 +200,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "ValidationError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add validation-specific context fields."""
             return {
                 "field": self.field,
@@ -246,7 +250,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "ConfigurationError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add configuration-specific context fields."""
             return {
                 "config_key": self.config_key,
@@ -297,7 +301,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "ConnectionError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add connection-specific context fields."""
             return {
                 "host": self.host,
@@ -334,7 +338,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "AuthenticationError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add authentication-specific context fields."""
             return {
                 "username": self.username,
@@ -380,7 +384,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "ProcessingError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add processing-specific context fields."""
             return {
                 "operation": self.operation,
@@ -428,7 +432,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "TimeoutError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add timeout-specific context fields."""
             return {
                 "timeout_seconds": self.timeout_seconds,
@@ -475,7 +479,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "QueryError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add query-specific context fields."""
             return {
                 "query": self.query,
@@ -505,7 +509,7 @@ class FlextDbOracleExceptions(FlextCore.Exceptions):
             )
             self.error_type = "MetadataError"
 
-        def _get_extra_context(self) -> dict:
+        def _get_extra_context(self) -> dict[str, object]:
             """Add metadata-specific context fields."""
             return {
                 "table_name": self.table_name,

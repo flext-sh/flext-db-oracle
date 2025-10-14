@@ -184,7 +184,7 @@ __all__ = [
 
 ```python
 def connect(self, config: OracleConfig) -> FlextCore.Result[Connection]
-def execute_query(self, sql: str, params: dict = None) -> FlextCore.Result[QueryResult]
+def execute_query(self, sql: str, params: dict[str, object] = None) -> FlextCore.Result[QueryResult]
 def get_schema_info(self, schema: str) -> FlextCore.Result[SchemaInfo]
 def begin_transaction(self) -> FlextCore.Result[Transaction]
 def commit_transaction(self) -> FlextCore.Result[None]

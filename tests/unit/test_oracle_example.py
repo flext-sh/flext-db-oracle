@@ -103,7 +103,7 @@ class TestRealOracleConnection:
             # Success case - use modern .unwrap() access
             fetch_data = result.unwrap()
             if fetch_data:
-                # fetch_one returns Union[dict, None], so we know it's a dict if not None
+                # fetch_one returns Union[dict, None], so we know it's a dict[str, object] if not None
                 assert isinstance(fetch_data, dict), (
                     f"Expected dict, got {type(fetch_data)}"
                 )

@@ -211,7 +211,7 @@ class FlextDbOracleUtilities(FlextCore.Service):
             if hasattr(query_result, "to_dict_list"):
                 data = getattr(query_result, "to_dict_list")()
             elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
-                # Build dict list from columns and rows
+                # Build dict[str, object] list from columns and rows
                 data = []
                 columns: object = getattr(query_result, "columns")
                 rows: object = getattr(query_result, "rows")

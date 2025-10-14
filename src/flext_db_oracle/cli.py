@@ -168,7 +168,7 @@ class FlextDbOracleCli(FlextCore.Service[str]):
                 FlextCore.Result[str]: Formatted list output.
 
             """
-            # Convert dict items to string representation
+            # Convert dict[str, object] items to string representation
             if items and isinstance(items[0], dict):
                 string_items = [
                     str(item.get("name", item))

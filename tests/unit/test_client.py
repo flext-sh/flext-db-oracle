@@ -32,7 +32,7 @@ def cast_to_json_value(
         value = result.unwrap()
         if isinstance(value, (str, int, float, bool, list, dict, type(None))):
             return cast("FlextCore.Result[FlextCore.Types.JsonValue]", result)
-        # Convert complex objects to dict representation
+        # Convert complex objects to dict[str, object] representation
         return FlextCore.Result[FlextCore.Types.JsonValue].ok({
             "type": type(value).__name__,
             "value": str(value),
@@ -255,7 +255,7 @@ class TestFlextDbOracleClientRealFunctionality:
         FlextTestsMatchers.assert_flext_result_success(cast_to_json_value(result))
 
         config_data = result.value  # Access data from builder result
-        # Handle case where builder returns dict with 'data' key
+        # Handle case where builder returns dict[str, object] with 'data' key
         if isinstance(config_data, dict) and "data" in config_data:
             config = config_data["data"]
         else:
