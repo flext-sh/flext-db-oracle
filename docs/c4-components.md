@@ -190,7 +190,7 @@ class OracleConfig(BaseModel):
     password: SecretStr
 
 class QueryResult(BaseModel):
-    rows: List[List[Any]]
+    rows: List[List[object]]
     columns: FlextCore.Types.StringList
     row_count: int
     execution_time: float

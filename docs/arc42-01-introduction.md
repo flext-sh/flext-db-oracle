@@ -208,7 +208,7 @@ result = (
 #### Strict Type Checking
 
 - **Pyrefly strict mode**: All code must pass strict type checking
-- **100% type annotations**: No `Any` types in production code
+- **100% type annotations**: No `object` types in production code
 - **Generic type support**: Full support for `FlextCore.Result[T]` patterns
 - **Protocol compliance**: Structural typing over inheritance
 

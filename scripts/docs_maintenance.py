@@ -28,7 +28,6 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 from urllib.parse import urlparse
 
 import yaml
@@ -63,8 +62,8 @@ class AuditResult:
     """Results of documentation audit."""
 
     file_path: Path
-    issues: list[dict[str, Any]] = field(default_factory=list)
-    statistics: dict[str, Any] = field(default_factory=dict)
+    issues: list[dict[str, object]] = field(default_factory=list)
+    statistics: dict[str, object] = field(default_factory=dict)
     score: float = 0.0
     severity_counts: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
@@ -106,7 +105,7 @@ class MaintenanceReport:
     critical_issues: int = 0
     average_score: float = 0.0
     file_results: list[AuditResult] = field(default_factory=list)
-    summary: dict[str, Any] = field(default_factory=dict)
+    summary: dict[str, object] = field(default_factory=dict)
     recommendations: FlextCore.Types.StringList = field(default_factory=list)
 
 
@@ -176,7 +175,7 @@ class DocumentationAuditor:
         result.score = result.health_score
         return result
 
-    def _analyze_content(self, content: str) -> dict[str, Any]:
+    def _analyze_content(self, content: str) -> dict[str, object]:
         """Analyze content statistics."""
         lines = content.split("\n")
         words = re.findall(r"\b\w+\b", content)
@@ -214,7 +213,7 @@ class DocumentationAuditor:
 
     async def _validate_content(
         self, file_path: Path, content: str
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, object]]:
         """Validate content quality and identify issues."""
         issues = []
 
@@ -267,7 +266,7 @@ class DocumentationAuditor:
         age_seconds = time.time() - mtime
         return int(age_seconds / (24 * 3600))
 
-    def _validate_markdown_syntax(self, content: str) -> list[dict[str, Any]]:
+    def _validate_markdown_syntax(self, content: str) -> list[dict[str, object]]:
         """Validate markdown syntax."""
         # Heading hierarchy validation
         headings = re.findall(r"^(#{1,6})\s+(.+)$", content, re.MULTILINE)
@@ -312,7 +311,7 @@ class DocumentationAuditor:
 
         return issues
 
-    async def _validate_links(self, content: str) -> list[dict[str, Any]]:
+    async def _validate_links(self, content: str) -> list[dict[str, object]]:
         """Validate external links."""
         issues = []
         external_links = re.findall(r"\[([^\]]+)\]\((https?://[^)]+)\)", content)
@@ -366,7 +365,7 @@ class DocumentationAuditor:
 
     def _validate_internal_references(
         self, _file_path: Path, content: str
-    ) -> list[dict[str, Any]]:
+    ) -> list[dict[str, object]]:
         """Validate internal references and cross-links."""
         issues = []
 
@@ -392,7 +391,7 @@ class DocumentationAuditor:
 
         return issues
 
-    def _validate_style_consistency(self, content: str) -> list[dict[str, Any]]:
+    def _validate_style_consistency(self, content: str) -> list[dict[str, object]]:
         """Validate style consistency."""
         issues = []
 
@@ -427,7 +426,7 @@ class DocumentationAuditor:
 
         return issues
 
-    def _validate_accessibility(self, content: str) -> list[dict[str, Any]]:
+    def _validate_accessibility(self, content: str) -> list[dict[str, object]]:
         """Validate accessibility compliance."""
         issues = []
 

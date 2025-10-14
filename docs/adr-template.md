@@ -93,7 +93,7 @@ Include:
 
 ## Notes
 
-[Any additional notes, considerations, or follow-up items:
+[object additional notes, considerations, or follow-up items:
 
 - Open questions
 - Future considerations

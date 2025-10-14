@@ -351,7 +351,7 @@ python scripts/docs_maintenance.py --audit | grep "emphasis_inconsistency\|list_
 
 ```python
 # Extend DocumentationAuditor class
-def _validate_custom_rule(self, content: str) -> List[Dict[str, Any]]:
+def _validate_custom_rule(self, content: str) -> List[Dict[str, object]]:
     """Implement custom validation logic."""
     issues = []
 
