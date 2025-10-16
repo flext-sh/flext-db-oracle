@@ -34,12 +34,10 @@ def cast_to_json_value(
         if isinstance(value, (str, int, float, bool, list, dict, type(None))):
             return cast("FlextResult[FlextTypes.JsonValue]", result)
         # Convert complex objects to dict[str, object] representation
-        return FlextResult[FlextTypes.JsonValue].ok(
-            {
-                "type": type(value).__name__,
-                "value": str(value),
-            }
-        )
+        return FlextResult[FlextTypes.JsonValue].ok({
+            "type": type(value).__name__,
+            "value": str(value),
+        })
     return cast("FlextResult[FlextTypes.JsonValue]", result)
 
 

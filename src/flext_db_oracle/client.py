@@ -213,14 +213,12 @@ class FlextDbOracleClient(FlextService):
                     self.current_connection.query(sql, params_dict)
                 )
                 if query_result.is_success:
-                    return FlextResult[FlextTypes.Dict].ok(
-                        {
-                            "rows": list(query_result.value),
-                            "row_count": len(query_result.value)
-                            if query_result.value
-                            else 0,
-                        }
-                    )
+                    return FlextResult[FlextTypes.Dict].ok({
+                        "rows": list(query_result.value),
+                        "row_count": len(query_result.value)
+                        if query_result.value
+                        else 0,
+                    })
                 return FlextResult[FlextTypes.Dict].fail(
                     query_result.error or "Query execution failed",
                 )

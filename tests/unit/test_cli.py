@@ -749,9 +749,9 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = FlextResult[FlextTypes.StringList].ok(
-                ["TABLE1"]
-            )
+            mock_get_tables.return_value = FlextResult[FlextTypes.StringList].ok([
+                "TABLE1"
+            ])
 
             result = cli_service.execute_list_tables(
                 host="localhost",
