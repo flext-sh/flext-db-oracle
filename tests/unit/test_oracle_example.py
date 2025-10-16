@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
-from flext_core import FlextCore
+from flext_core import FlextResult, FlextTypes
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig, FlextDbOracleServices
 
@@ -148,7 +148,7 @@ class TestRealOracleConnection:
             # Success case - table created successfully
 
             # Execute many inserts
-            params_list: list[FlextCore.Types.Dict] = [
+            params_list: list[FlextTypes.Dict] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
@@ -354,7 +354,7 @@ class TestRealOracleApi:
             # Use real DDL generation method instead of create_table_ddl
             # Build DDL manually since create_table_ddl doesn't exist
             ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts: FlextCore.Types.StringList = []
+            column_parts: FlextTypes.StringList = []
             for col in columns:
                 col_def = f"{col['name']} {col['type']}"
                 if not col.get("nullable", True):
@@ -365,7 +365,7 @@ class TestRealOracleApi:
             ddl_parts.extend((", ".join(column_parts), ")"))
             ddl_sql = " ".join(ddl_parts)
             # Create success result for consistent pattern
-            ddl_result = FlextCore.Result[str].ok(ddl_sql)
+            ddl_result = FlextResult[str].ok(ddl_sql)
             if ddl_result.is_failure:
                 msg = f"DDL generation failed: {ddl_result.error}"
                 raise AssertionError(msg)

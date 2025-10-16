@@ -210,7 +210,7 @@ graph TB
 
 ### FLEXT Ecosystem
 
-- **flext-core**: Foundation patterns (FlextCore.Result[T], FlextCore.Service, FlextCore.Container)
+- **flext-core**: Foundation patterns (FlextResult[T], FlextService, FlextContainer)
 - **flext-cli**: CLI framework integration (Click + Rich abstractions)
 
 ### Development Tools

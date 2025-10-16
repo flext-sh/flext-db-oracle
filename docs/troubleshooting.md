@@ -51,7 +51,7 @@ Install dependencies:
 poetry install
 ```
 
-### "ImportError: FlextCore.Result"
+### "ImportError: FlextResult"
 
 Ensure flext-core is installed:
 

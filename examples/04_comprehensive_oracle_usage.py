@@ -1,6 +1,6 @@
 """FLEXT DB Oracle Simple Usage Example.
 
-Exemplo simplificado usando FlextCore.Processors.ServiceProcessor para eliminar
+Exemplo simplificado usando FlextProcessors.ServiceProcessor para eliminar
 complexidade e demonstrar padrões flext-core avançados.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -10,36 +10,36 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextCore
+from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
-logger = FlextCore.Logger(__name__)
+logger = FlextLogger(__name__)
 
 
-class OracleExampleProcessor(FlextCore.Service[str]):
-    """Simplified Oracle example using FlextCore.Service - ELIMINA COMPLEXIDADE."""
+class OracleExampleProcessor(FlextService[str]):
+    """Simplified Oracle example using FlextService - ELIMINA COMPLEXIDADE."""
 
-    def execute(self) -> FlextCore.Result[str]:
+    def execute(self) -> FlextResult[str]:
         """Execute the main domain service operation.
 
         Returns:
-            FlextCore.Result[str]: Success result with completion message.
+            FlextResult[str]: Success result with completion message.
 
         """
-        return FlextCore.Result[str].ok("Oracle processing completed successfully")
+        return FlextResult[str].ok("Oracle processing completed successfully")
 
-    def process(self, _query: str) -> FlextCore.Result[FlextDbOracleApi]:
+    def process(self, _query: str) -> FlextResult[FlextDbOracleApi]:
         """Process Oracle connection and execute query.
 
         Returns:
-            FlextCore.Result[FlextDbOracleApi]: Success result with connected API instance.
+            FlextResult[FlextDbOracleApi]: Success result with connected API instance.
 
         """
         try:
             config_result = FlextDbOracleConfig.from_env()
             if not config_result.is_success:
-                return FlextCore.Result[FlextDbOracleApi].fail(
+                return FlextResult[FlextDbOracleApi].fail(
                     config_result.error or "Failed to load configuration",
                 )
             config = config_result.value
@@ -48,24 +48,24 @@ class OracleExampleProcessor(FlextCore.Service[str]):
 
             connect_result = api.connect()
             if not connect_result.is_success:
-                return FlextCore.Result[FlextDbOracleApi].fail(
+                return FlextResult[FlextDbOracleApi].fail(
                     connect_result.error or "Failed to connect",
                 )
 
-            return FlextCore.Result[FlextDbOracleApi].ok(api)
+            return FlextResult[FlextDbOracleApi].ok(api)
         except Exception as e:
-            return FlextCore.Result[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
+            return FlextResult[FlextDbOracleApi].fail(f"Oracle setup failed: {e}")
 
     def build(
         self,
         api: FlextDbOracleApi,
         *,
         correlation_id: str,
-    ) -> FlextCore.Types.Dict:
+    ) -> FlextTypes.Dict:
         """Build simple result dictionary.
 
         Returns:
-            FlextCore.Types.Dict: Dictionary with status and connection info.
+            FlextTypes.Dict: Dictionary with status and connection info.
 
         """
         return {
@@ -76,7 +76,7 @@ class OracleExampleProcessor(FlextCore.Service[str]):
 
 
 def demonstrate_basic_operations() -> None:
-    """Simple demonstration usando FlextCore.Processors patterns."""
+    """Simple demonstration usando FlextProcessors patterns."""
     processor = OracleExampleProcessor()
 
     # Execute domain service

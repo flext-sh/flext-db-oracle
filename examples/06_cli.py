@@ -14,17 +14,17 @@ import subprocess
 import sys
 from pathlib import Path
 
-from flext_core import FlextCore
+from flext_core import FlextTypes, FlextUtilities
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[FlextCore.Types.Dict]:
+def _get_cli_examples() -> list[FlextTypes.Dict]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[FlextCore.Types.Dict]: List of CLI command examples with metadata.
+        list[FlextTypes.Dict]: List of CLI command examples with metadata.
 
     """
     return [
@@ -88,7 +88,7 @@ def _get_cli_examples() -> list[FlextCore.Types.Dict]:
     ]
 
 
-def _run_example_command(example: FlextCore.Types.Dict) -> None:
+def _run_example_command(example: FlextTypes.Dict) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return
@@ -131,7 +131,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: FlextCore.Types.StringList) -> tuple[int, str, str]:
+def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -141,7 +141,7 @@ def run_cli_command(cmd: FlextCore.Types.StringList) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            result = FlextCore.Utilities.run_external_command(
+            result = FlextUtilities.run_external_command(
                 cmd,
                 shell=False,  # Explicitly disable shell for security
                 check=False,

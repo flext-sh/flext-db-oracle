@@ -13,7 +13,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextResult
 from flext_tests import FlextTestsDomains
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
@@ -25,10 +25,10 @@ TEST_ORACLE_PASSWORD = "FlextTest123"
 class FlextTestDocker:
     """Simple Docker test utility for Oracle container management."""
 
-    def start_container(self, name: str) -> FlextCore.Result[str]:
+    def start_container(self, name: str) -> FlextResult[str]:
         """Start a Docker container."""
         # Simple implementation - in real tests this would start the container
-        return FlextCore.Result[str].ok(name)
+        return FlextResult[str].ok(name)
 
     def stop_container(self, name: str) -> None:
         """Stop a Docker container."""
@@ -56,6 +56,7 @@ class DockerCommandExecutor:
 
     def __init__(self, compose_file: Path) -> None:
         """Initialize with compose file path."""
+        super().__init__()
         self.compose_file = compose_file
 
     def check_docker_availability(self) -> None:
@@ -98,6 +99,7 @@ class OracleContainerManager:
 
     def __init__(self, compose_file: Path) -> None:
         """Initialize with compose file path."""
+        super().__init__()
         self.compose_file = compose_file
         self.max_health_attempts = 120
         self.health_check_interval = 5

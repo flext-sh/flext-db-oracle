@@ -11,12 +11,14 @@ import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from flext_core import FlextCore
+from flext_core import (
+    FlextLogger,
+)
 from sqlalchemy import Engine, text
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
-logger = FlextCore.Logger(__name__)
+logger = FlextLogger(__name__)
 
 
 def create_oracle_config() -> FlextDbOracleConfig:
@@ -50,7 +52,7 @@ def oracle_connection() -> Iterator[Engine]:
 
     connect_result = api.connect()
 
-    # Use modern FlextCore.Result pattern for clean error handling
+    # Use modern FlextResult pattern for clean error handling
     if not connect_result.is_success:
         error_msg = connect_result.error or "Connection failed"
         msg = f"Failed to connect to Oracle: {error_msg}"

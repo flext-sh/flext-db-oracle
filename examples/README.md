@@ -21,7 +21,7 @@ Demonstrates comprehensive Oracle database operations including:
 
 **Key Features:**
 
-- Enterprise-grade error handling with FlextCore.Result patterns
+- Enterprise-grade error handling with FlextResult patterns
 - Performance monitoring and metrics collection
 - Plugin system demonstration with real Oracle operations
 - Configuration validation and multi-environment support
@@ -134,7 +134,26 @@ This example shows:
 """
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 def demonstrate_comprehensive_usage():
     """Demonstrate comprehensive Oracle database usage."""
@@ -356,7 +375,7 @@ def setup_ha_environment():
 
 1. **Follow naming convention**: `##_descriptive_name.py`
 2. **Include comprehensive docstrings**: Explain purpose and key concepts
-3. **Handle errors gracefully**: Use FlextCore.Result patterns throughout
+3. **Handle errors gracefully**: Use FlextResult patterns throughout
 4. **Demonstrate best practices**: Show production patterns
 5. **Include cleanup code**: Proper resource management
 
@@ -382,7 +401,26 @@ Usage:
 """
 
 from flext_db_oracle import FlextDbOracleApi
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
 def main() -> None:
     """Main example execution function."""

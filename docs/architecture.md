@@ -20,12 +20,12 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 ### FLEXT Pattern Integration
 
-| Pattern                 | Implementation         | Status         |
-| ----------------------- | ---------------------- | -------------- |
-| **FlextCore.Result<T>** | Monadic error handling | 🟢 Complete    |
-| **FlextCore.Service**   | Base service patterns  | 🟢 Implemented |
-| **FlextCore.Container** | Dependency injection   | 🟡 Partial     |
-| **FlextCore.Logger**    | Structured logging     | 🟢 Integrated  |
+| Pattern            | Implementation         | Status         |
+| ------------------ | ---------------------- | -------------- |
+| **FlextResult<T>** | Monadic error handling | 🟢 Complete    |
+| **FlextService**   | Base service patterns  | 🟢 Implemented |
+| **FlextContainer** | Dependency injection   | 🟡 Partial     |
+| **FlextLogger**    | Structured logging     | 🟢 Integrated  |
 
 ## Module Architecture
 
@@ -60,8 +60,8 @@ graph TB
     Client[Client Application] --> API[FlextDbOracleApi]
     CLI[CLI Interface] --> API
 
-    API --> Container[FlextCore.Container]
-    API --> Logger[FlextCore.Logger]
+    API --> Container[FlextContainer]
+    API --> Logger[FlextLogger]
     API --> Services[FlextDbOracleServices]
 
     Services --> Models[Domain Models]
@@ -71,7 +71,7 @@ graph TB
     SQLAlchemy --> Driver[python-oracledb]
     Driver --> Oracle[(Oracle Database)]
 
-    Models --> Result[FlextCore.Result<T>]
+    Models --> Result[FlextResult<T>]
     Services --> Result
     API --> Result
 ```
@@ -103,24 +103,43 @@ graph TB
 
 ## Error Handling Strategy
 
-### FlextCore.Result Pattern
+### FlextResult Pattern
 
-All operations use FlextCore.Result for railway-oriented programming:
+All operations use FlextResult for railway-oriented programming:
 
 ```python
-from flext_core import FlextCore
+from flext_core import FlextBus
+from flext_core import FlextConfig
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import FlextDecorators
+from flext_core import FlextDispatcher
+from flext_core import FlextExceptions
+from flext_core import FlextHandlers
+from flext_core import FlextLogger
+from flext_core import FlextMixins
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import FlextProtocols
+from flext_core import FlextRegistry
+from flext_core import FlextResult
+from flext_core import FlextRuntime
+from flext_core import FlextService
+from flext_core import FlextTypes
+from flext_core import FlextUtilities
 
-def query_operation() -> FlextCore.Result[List[Dict]]:
+def query_operation() -> FlextResult[List[Dict]]:
     # No try/catch - explicit error handling
     connection_result = self._get_connection()
     if connection_result.is_failure:
-        return FlextCore.Result[List[Dict]].fail(connection_result.error)
+        return FlextResult[List[Dict]].fail(connection_result.error)
 
     query_result = self._execute_query(sql)
     if query_result.is_failure:
-        return FlextCore.Result[List[Dict]].fail(query_result.error)
+        return FlextResult[List[Dict]].fail(query_result.error)
 
-    return FlextCore.Result[List[Dict]].ok(query_result.value)
+    return FlextResult[List[Dict]].ok(query_result.value)
 ```
 
 ### Exception Hierarchy
@@ -145,7 +164,7 @@ FlextDbOracleException (base)
 
 **FLEXT Integration**:
 
-- flext-core (FlextCore.Result, FlextCore.Container, FlextCore.Logger)
+- flext-core (FlextResult, FlextContainer, FlextLogger)
 - flext-cli (CLI patterns and utilities)
 - Domain-driven design patterns
 
@@ -201,11 +220,11 @@ engine = create_engine(
 ```python
 class OraclePlugin(ABC):
     @abstractmethod
-    def validate_query(self, sql: str) -> FlextCore.Result[str]:
+    def validate_query(self, sql: str) -> FlextResult[str]:
         """Validate and potentially modify SQL queries"""
 
     @abstractmethod
-    def monitor_performance(self, metrics: Dict) -> FlextCore.Result[None]:
+    def monitor_performance(self, metrics: Dict) -> FlextResult[None]:
         """Monitor query performance"""
 ```
 
@@ -244,9 +263,9 @@ class OraclePlugin(ABC):
 
 **FLEXT Compliance**:
 
-- FlextCore.Result for all fallible operations
-- FlextCore.Container for dependency injection
-- FlextCore.Logger for structured logging
+- FlextResult for all fallible operations
+- FlextContainer for dependency injection
+- FlextLogger for structured logging
 - Domain service patterns throughout
 
 ## Future Architecture Evolution

@@ -31,7 +31,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
-from flext_core import FlextCore
+from flext_core import FlextTypes
 
 # Configure logging
 logging.basicConfig(
@@ -106,7 +106,7 @@ class MaintenanceReport:
     average_score: float = 0.0
     file_results: list[AuditResult] = field(default_factory=list)
     summary: dict[str, object] = field(default_factory=dict)
-    recommendations: FlextCore.Types.StringList = field(default_factory=list)
+    recommendations: FlextTypes.StringList = field(default_factory=list)
 
 
 class DocumentationAuditor:
@@ -165,12 +165,14 @@ class DocumentationAuditor:
 
         except Exception:
             logger.exception(f"Error auditing {file_path}")
-            result.issues.append({
-                "type": "file_error",
-                "severity": "critical",
-                "message": "Failed to read file",
-                "line": 0,
-            })
+            result.issues.append(
+                {
+                    "type": "file_error",
+                    "severity": "critical",
+                    "message": "Failed to read file",
+                    "line": 0,
+                }
+            )
 
         result.score = result.health_score
         return result
@@ -221,24 +223,28 @@ class DocumentationAuditor:
         if self.config.audit_enabled:
             file_age = self._get_file_age(file_path)
             if file_age > self.config.max_age_days:
-                issues.append({
-                    "type": "stale_content",
-                    "severity": "medium",
-                    "message": f"File is {file_age} days old (max: {self.config.max_age_days})",
-                    "line": 0,
-                    "suggestion": "Review and update content for freshness",
-                })
+                issues.append(
+                    {
+                        "type": "stale_content",
+                        "severity": "medium",
+                        "message": f"File is {file_age} days old (max: {self.config.max_age_days})",
+                        "line": 0,
+                        "suggestion": "Review and update content for freshness",
+                    }
+                )
 
         # Content length validation
         word_count = len(re.findall(r"\b\w+\b", content))
         if word_count < self.config.min_word_count:
-            issues.append({
-                "type": "insufficient_content",
-                "severity": "low",
-                "message": f"Content too short ({word_count} words, min: {self.config.min_word_count})",
-                "line": 0,
-                "suggestion": "Add more detailed content and examples",
-            })
+            issues.append(
+                {
+                    "type": "insufficient_content",
+                    "severity": "low",
+                    "message": f"Content too short ({word_count} words, min: {self.config.min_word_count})",
+                    "line": 0,
+                    "suggestion": "Add more detailed content and examples",
+                }
+            )
 
         # Markdown syntax validation
         if self.config.validate_markdown:
@@ -289,25 +295,29 @@ class DocumentationAuditor:
         code_blocks = re.findall(r"```(\w+)?\n(.*?)\n```", content, re.DOTALL)
         for i, (lang, code) in enumerate(code_blocks):
             if not lang and len(code.strip()) > 50:
-                issues.append({
-                    "type": "code_block_language",
-                    "severity": "low",
-                    "message": f"Code block {i + 1} missing language specification",
-                    "line": 0,
-                    "suggestion": "Add language specifier after opening ```",
-                })
+                issues.append(
+                    {
+                        "type": "code_block_language",
+                        "severity": "low",
+                        "message": f"Code block {i + 1} missing language specification",
+                        "line": 0,
+                        "suggestion": "Add language specifier after opening ```",
+                    }
+                )
 
         # List consistency
         list_items = re.findall(r"^(\s*)([-*+])\s+", content, re.MULTILINE)
         markers = [marker for _, marker in list_items]
         if len(set(markers)) > 1:
-            issues.append({
-                "type": "list_consistency",
-                "severity": "low",
-                "message": f"Mixed list markers: {set(markers)}",
-                "line": 0,
-                "suggestion": "Use consistent list markers throughout document",
-            })
+            issues.append(
+                {
+                    "type": "list_consistency",
+                    "severity": "low",
+                    "message": f"Mixed list markers: {set(markers)}",
+                    "line": 0,
+                    "suggestion": "Use consistent list markers throughout document",
+                }
+            )
 
         return issues
 
@@ -321,13 +331,15 @@ class DocumentationAuditor:
                 # Basic URL validation
                 parsed = urlparse(url)
                 if not parsed.netloc:
-                    issues.append({
-                        "type": "invalid_url",
-                        "severity": "high",
-                        "message": f"Invalid URL format: {url}",
-                        "line": 0,
-                        "suggestion": "Fix URL format or remove broken link",
-                    })
+                    issues.append(
+                        {
+                            "type": "invalid_url",
+                            "severity": "high",
+                            "message": f"Invalid URL format: {url}",
+                            "line": 0,
+                            "suggestion": "Fix URL format or remove broken link",
+                        }
+                    )
                     continue
 
                 # Optional: Check if URL is reachable (commented out for performance)
@@ -353,13 +365,15 @@ class DocumentationAuditor:
                 #     })
 
             except Exception as e:
-                issues.append({
-                    "type": "link_validation_error",
-                    "severity": "low",
-                    "message": f"Link validation failed for {url}: {e}",
-                    "line": 0,
-                    "suggestion": "Review link format and accessibility",
-                })
+                issues.append(
+                    {
+                        "type": "link_validation_error",
+                        "severity": "low",
+                        "message": f"Link validation failed for {url}: {e}",
+                        "line": 0,
+                        "suggestion": "Review link format and accessibility",
+                    }
+                )
 
         return issues
 
@@ -381,13 +395,15 @@ class DocumentationAuditor:
                 # Try relative to docs directory
                 docs_path = self.docs_path / link
                 if not docs_path.exists():
-                    issues.append({
-                        "type": "broken_internal_link",
-                        "severity": "high",
-                        "message": f"Broken internal link: {link}",
-                        "line": 0,
-                        "suggestion": "Fix file path or remove broken reference",
-                    })
+                    issues.append(
+                        {
+                            "type": "broken_internal_link",
+                            "severity": "high",
+                            "message": f"Broken internal link: {link}",
+                            "line": 0,
+                            "suggestion": "Fix file path or remove broken reference",
+                        }
+                    )
 
         return issues
 
@@ -402,13 +418,15 @@ class DocumentationAuditor:
         ]
 
         if len(bold_patterns[0]) > 0 and len(bold_patterns[1]) > 0:
-            issues.append({
-                "type": "emphasis_inconsistency",
-                "severity": "low",
-                "message": "Mixed bold emphasis styles (**text** and __text__)",
-                "line": 0,
-                "suggestion": "Use consistent emphasis style throughout document",
-            })
+            issues.append(
+                {
+                    "type": "emphasis_inconsistency",
+                    "severity": "low",
+                    "message": "Mixed bold emphasis styles (**text** and __text__)",
+                    "line": 0,
+                    "suggestion": "Use consistent emphasis style throughout document",
+                }
+            )
 
         # Check for excessive code blocks
         total_lines = len(content.split("\n"))
@@ -416,13 +434,15 @@ class DocumentationAuditor:
         code_ratio = code_lines / total_lines if total_lines > 0 else 0
 
         if code_ratio > self.quality_thresholds["max_code_block_ratio"]:
-            issues.append({
-                "type": "excessive_code",
-                "severity": "low",
-                "message": f"High code block ratio ({code_ratio:.1%})",
-                "line": 0,
-                "suggestion": "Balance code examples with explanatory text",
-            })
+            issues.append(
+                {
+                    "type": "excessive_code",
+                    "severity": "low",
+                    "message": f"High code block ratio ({code_ratio:.1%})",
+                    "line": 0,
+                    "suggestion": "Balance code examples with explanatory text",
+                }
+            )
 
         return issues
 
@@ -434,25 +454,29 @@ class DocumentationAuditor:
         images = re.findall(r"!\[([^\]]*)\]\(([^)]+)\)", content)
         for alt_text, src in images:
             if not alt_text.strip():
-                issues.append({
-                    "type": "missing_alt_text",
-                    "severity": "medium",
-                    "message": f"Image missing alt text: {src}",
-                    "line": 0,
-                    "suggestion": "Add descriptive alt text for accessibility",
-                })
+                issues.append(
+                    {
+                        "type": "missing_alt_text",
+                        "severity": "medium",
+                        "message": f"Image missing alt text: {src}",
+                        "line": 0,
+                        "suggestion": "Add descriptive alt text for accessibility",
+                    }
+                )
 
         # Check for links without descriptive text
         links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
         for text, _url in links:
             if text.lower() in {"here", "click here", "link", "read more"}:
-                issues.append({
-                    "type": "non_descriptive_link",
-                    "severity": "low",
-                    "message": f'Non-descriptive link text: "{text}"',
-                    "line": 0,
-                    "suggestion": "Use descriptive link text for better accessibility",
-                })
+                issues.append(
+                    {
+                        "type": "non_descriptive_link",
+                        "severity": "low",
+                        "message": f'Non-descriptive link text: "{text}"',
+                        "line": 0,
+                        "suggestion": "Use descriptive link text for better accessibility",
+                    }
+                )
 
         return issues
 
@@ -466,7 +490,7 @@ class ContentOptimizer:
 
     def optimize_file(
         self, _file_path: Path, audit_result: AuditResult
-    ) -> FlextCore.Types.StringList:
+    ) -> FlextTypes.StringList:
         """Optimize content based on audit results."""
         optimizations = []
 
@@ -535,13 +559,15 @@ class ReportGenerator:
             count = severity_counts.get(severity, 0)
             lines.append(f"- **{severity.title()}**: {count}")
 
-        lines.extend([
-            "",
-            "## File Results",
-            "",
-            "| File | Health Score | Issues | Critical | High | Medium | Low |",
-            "|------|--------------|--------|----------|------|--------|-----|",
-        ])
+        lines.extend(
+            [
+                "",
+                "## File Results",
+                "",
+                "| File | Health Score | Issues | Critical | High | Medium | Low |",
+                "|------|--------------|--------|----------|------|--------|-----|",
+            ]
+        )
 
         lines.extend(
             f"| {result.file_path.name} | {result.score}% | {result.total_issues} | "
@@ -554,12 +580,14 @@ class ReportGenerator:
 
         # Recommendations
         if report.recommendations:
-            lines.extend([
-                "",
-                "## Recommendations",
-                "",
-                "\n".join(f"- {rec}" for rec in report.recommendations),
-            ])
+            lines.extend(
+                [
+                    "",
+                    "## Recommendations",
+                    "",
+                    "\n".join(f"- {rec}" for rec in report.recommendations),
+                ]
+            )
 
         return "\n".join(lines)
 
@@ -625,7 +653,7 @@ async def run_audit(config: MaintenanceConfig) -> MaintenanceReport:
 
 def generate_recommendations(
     results: list[AuditResult], config: MaintenanceConfig
-) -> FlextCore.Types.StringList:
+) -> FlextTypes.StringList:
     """Generate actionable recommendations based on audit results."""
     recommendations = []
 

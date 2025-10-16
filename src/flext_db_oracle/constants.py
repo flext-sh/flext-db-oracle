@@ -15,20 +15,20 @@ import os
 from enum import StrEnum
 from typing import ClassVar, Final, Literal
 
-from flext_core import FlextCore
+from flext_core import FlextConstants, FlextTypes
 
 
-class FlextDbOracleConstants(FlextCore.Constants):
-    """Oracle database constants extending FlextCore.Constants foundation.
+class FlextDbOracleConstants(FlextConstants):
+    """Oracle database constants extending FlextConstants foundation.
 
     Single class with all Oracle-specific constants as internal nested classes,
     following SOLID principles, PEP8, Python 3.13+, and FLEXT structural patterns.
 
-    Extends FlextCore.Constants for universal constants, defines only
+    Extends FlextConstants for universal constants, defines only
     Oracle-specific constants using nested namespace classes.
 
     **STANDARDIZATION NOTES**:
-    - Extends FlextCore.Constants for foundation constants (Network, Platform, etc.)
+    - Extends FlextConstants for foundation constants (Network, Platform, etc.)
     - Uses Final for immutable constants
     - Uses StrEnum for type-safe enumerations
     - Uses Literal for type-safe string literals
@@ -86,7 +86,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
         # Singer to Oracle type mapping
-        SINGER_TYPE_MAP: ClassVar[FlextCore.Types.StringDict] = {
+        SINGER_TYPE_MAP: ClassVar[FlextTypes.StringDict] = {
             "string": "VARCHAR2(4000)",
             "integer": "NUMBER(38)",
             "number": "NUMBER",
@@ -124,66 +124,70 @@ class FlextDbOracleConstants(FlextCore.Constants):
         SCHEMA_PATTERN: Final[str] = r"^[A-Za-z][A-Za-z0-9_$#]*$"
 
         # Oracle reserved words
-        ORACLE_RESERVED: Final[frozenset[str]] = frozenset({
-            "SELECT",
-            "FROM",
-            "WHERE",
-            "INSERT",
-            "UPDATE",
-            "DELETE",
-            "CREATE",
-            "DROP",
-            "ALTER",
-            "TABLE",
-            "INDEX",
-            "VIEW",
-            "PROCEDURE",
-            "FUNCTION",
-            "TRIGGER",
-            "SEQUENCE",
-            "PACKAGE",
-            "CONSTRAINT",
-            "PRIMARY",
-            "FOREIGN",
-            "KEY",
-            "UNIQUE",
-            "NOT",
-            "NULL",
-            "CHECK",
-            "DEFAULT",
-            "REFERENCES",
-            "ON",
-            "CASCADE",
-            "RESTRICT",
-            "SET",
-            "COMMIT",
-            "ROLLBACK",
-            "SAVEPOINT",
-        })
+        ORACLE_RESERVED: Final[frozenset[str]] = frozenset(
+            {
+                "SELECT",
+                "FROM",
+                "WHERE",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "CREATE",
+                "DROP",
+                "ALTER",
+                "TABLE",
+                "INDEX",
+                "VIEW",
+                "PROCEDURE",
+                "FUNCTION",
+                "TRIGGER",
+                "SEQUENCE",
+                "PACKAGE",
+                "CONSTRAINT",
+                "PRIMARY",
+                "FOREIGN",
+                "KEY",
+                "UNIQUE",
+                "NOT",
+                "NULL",
+                "CHECK",
+                "DEFAULT",
+                "REFERENCES",
+                "ON",
+                "CASCADE",
+                "RESTRICT",
+                "SET",
+                "COMMIT",
+                "ROLLBACK",
+                "SAVEPOINT",
+            }
+        )
 
         # SQL keywords for validation
-        SQL_KEYWORDS: Final[frozenset[str]] = frozenset({
-            "SELECT",
-            "FROM",
-            "WHERE",
-            "JOIN",
-            "INNER",
-            "LEFT",
-            "RIGHT",
-            "OUTER",
-            "ON",
-            "GROUP",
-            "BY",
-            "HAVING",
-            "ORDER",
-            "ASC",
-            "DESC",
-            "LIMIT",
-            "OFFSET",
-            "UNION",
-            "ALL",
-            "DISTINCT",
-        })
+        SQL_KEYWORDS: Final[frozenset[str]] = frozenset(
+            {
+                "SELECT",
+                "FROM",
+                "WHERE",
+                "JOIN",
+                "INNER",
+                "LEFT",
+                "RIGHT",
+                "OUTER",
+                "ON",
+                "GROUP",
+                "BY",
+                "HAVING",
+                "ORDER",
+                "ASC",
+                "DESC",
+                "LIMIT",
+                "OFFSET",
+                "UNION",
+                "ALL",
+                "DISTINCT",
+            }
+        )
 
     class ErrorMessages:
         """Oracle-specific error messages."""
@@ -222,11 +226,11 @@ class FlextDbOracleConstants(FlextCore.Constants):
         MAX_DISPLAY_ROWS: Final[int] = 1000
         MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextCore.Constants.Performance.BatchProcessing.DEFAULT_SIZE
-        )  # Reference FlextCore.Constants
+            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextConstants
         MAX_BATCH_SIZE: Final[int] = (
-            FlextCore.Constants.Performance.BatchProcessing.MAX_ITEMS
-        )  # Reference FlextCore.Constants
+            FlextConstants.Performance.BatchProcessing.MAX_ITEMS
+        )  # Reference FlextConstants
         DEFAULT_POOL_RECYCLE: Final[int] = 3600  # 1 hour
 
         # Performance thresholds for connection health
@@ -256,7 +260,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
         SERIALIZABLE: Final[str] = "SERIALIZABLE"
 
-        VALID_LEVELS: Final[FlextCore.Types.StringList] = [
+        VALID_LEVELS: Final[FlextTypes.StringList] = [
             READ_UNCOMMITTED,
             READ_COMMITTED,
             REPEATABLE_READ,
@@ -280,7 +284,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         ENV_SID: Final[str] = "ORACLE_SID"
 
         # Environment variable mapping
-        ENV_MAPPING: ClassVar[FlextCore.Types.StringDict] = {
+        ENV_MAPPING: ClassVar[FlextTypes.StringDict] = {
             "FLEXT_TARGET_ORACLE_HOST": "host",
             "ORACLE_HOST": "host",
             "FLEXT_TARGET_ORACLE_PORT": "port",
@@ -309,15 +313,15 @@ class FlextDbOracleConstants(FlextCore.Constants):
         DEFAULT_POOL_MAX: Final[int] = 20
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
         DEFAULT_CONNECTION_TIMEOUT: Final[int] = (
-            FlextCore.Constants.Network.DEFAULT_TIMEOUT
-        )  # Reference FlextCore.Constants
+            FlextConstants.Network.DEFAULT_TIMEOUT
+        )  # Reference FlextConstants
 
         # Query defaults
         DEFAULT_QUERY_TIMEOUT: Final[int] = 60
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextCore.Constants.Performance.BatchProcessing.DEFAULT_SIZE
-        )  # Reference FlextCore.Constants
+            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+        )  # Reference FlextConstants
 
         # Performance defaults
         DEFAULT_COMMIT_SIZE: Final[int] = 1000
@@ -391,7 +395,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         """Lists of constants for validation and iteration."""
 
         # Valid Oracle data types
-        VALID_DATA_TYPES: Final[FlextCore.Types.StringList] = [
+        VALID_DATA_TYPES: Final[FlextTypes.StringList] = [
             "VARCHAR2",
             "NUMBER",
             "DATE",
@@ -403,14 +407,14 @@ class FlextDbOracleConstants(FlextCore.Constants):
         ]
 
         # Valid connection types
-        VALID_CONNECTION_TYPES: Final[FlextCore.Types.StringList] = [
+        VALID_CONNECTION_TYPES: Final[FlextTypes.StringList] = [
             "service_name",
             "sid",
             "tns",
         ]
 
         # Valid query types
-        VALID_QUERY_TYPES: Final[FlextCore.Types.StringList] = [
+        VALID_QUERY_TYPES: Final[FlextTypes.StringList] = [
             "SELECT",
             "INSERT",
             "UPDATE",
@@ -421,7 +425,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         ]
 
         # Valid isolation levels
-        VALID_ISOLATION_LEVELS: Final[FlextCore.Types.StringList] = [
+        VALID_ISOLATION_LEVELS: Final[FlextTypes.StringList] = [
             "READ_UNCOMMITTED",
             "READ_COMMITTED",
             "REPEATABLE_READ",
@@ -429,7 +433,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         ]
 
         # Oracle system users to exclude
-        SYSTEM_USERS: Final[FlextCore.Types.StringList] = [
+        SYSTEM_USERS: Final[FlextTypes.StringList] = [
             "SYS",
             "SYSTEM",
             "ANONYMOUS",
@@ -440,7 +444,7 @@ class FlextDbOracleConstants(FlextCore.Constants):
         ]
 
         # Default schema names
-        DEFAULT_SCHEMAS: Final[FlextCore.Types.StringList] = [
+        DEFAULT_SCHEMAS: Final[FlextTypes.StringList] = [
             "SYSTEM",
             "SYS",
             "PUBLIC",
@@ -451,6 +455,6 @@ class FlextDbOracleConstants(FlextCore.Constants):
 # No compatibility aliases - use direct imports only
 
 
-__all__: FlextCore.Types.StringList = [
+__all__: FlextTypes.StringList = [
     "FlextDbOracleConstants",
 ]

@@ -14,7 +14,7 @@ import os
 from typing import cast
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextTypes
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -244,7 +244,7 @@ class TestOracleE2E:
                 },
             }
 
-            typed_schema = cast("FlextCore.Types.Dict", singer_schema)
+            typed_schema = cast("FlextTypes.Dict", singer_schema)
             schema_result = api.map_singer_schema(typed_schema)
             if schema_result.is_failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")
@@ -320,7 +320,7 @@ class TestOracleE2E:
 
         api = FlextDbOracleApi(invalid_config)
 
-        # Connection should return FlextCore.Result (may succeed or fail gracefully)
+        # Connection should return FlextResult (may succeed or fail gracefully)
         connect_result = api.connect()
         assert hasattr(connect_result, "is_success")
         # Note: API might succeed if it has resilience patterns, this is acceptable behavior

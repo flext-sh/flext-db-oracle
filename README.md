@@ -16,7 +16,7 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 
 1. **Oracle Connectivity** - Database connections and resource management
 2. **Schema Operations** - Metadata extraction and schema introspection
-3. **Query Execution** - SQL operations with FlextCore.Result error handling
+3. **Query Execution** - SQL operations with FlextResult error handling
 4. **Foundation Library** - Base for Oracle-related FLEXT projects
 
 ### Integration Points
@@ -31,12 +31,12 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 
 ### FLEXT-Core Integration Status
 
-| Pattern                 | Status      | Description                                  |
-| ----------------------- | ----------- | -------------------------------------------- |
-| **FlextCore.Result<T>** | 🟢 Complete | 784+ occurrences, railway pattern throughout |
-| **FlextCore.Container** | 🟢 Complete | Full dependency injection implementation     |
-| **FlextCore.Logger**    | 🟢 Complete | Structured logging integrated                |
-| **FlextCore.Service**   | 🟢 Complete | FlextDbOracleApi extends base service        |
+| Pattern            | Status      | Description                                  |
+| ------------------ | ----------- | -------------------------------------------- |
+| **FlextResult<T>** | 🟢 Complete | 784+ occurrences, railway pattern throughout |
+| **FlextContainer** | 🟢 Complete | Full dependency injection implementation     |
+| **FlextLogger**    | 🟢 Complete | Structured logging integrated                |
+| **FlextService**   | 🟢 Complete | FlextDbOracleApi extends base service        |
 
 > **Status**: 🟢 **PRODUCTION READY** - Complete FLEXT ecosystem integration achieved
 
@@ -55,7 +55,7 @@ flext-db-oracle provides Oracle database integration for FLEXT ecosystem project
 - **Enterprise Connection Pooling**: Advanced connection management with failover
 - **Complete Schema Introspection**: Tables, columns, constraints, metadata extraction
 - **Query Optimization**: Parameter binding, result processing, transaction support
-- **FlextCore.Result Error Handling**: 784+ occurrences, railway pattern throughout
+- **FlextResult Error Handling**: 784+ occurrences, railway pattern throughout
 - **FLEXT Ecosystem Integration**: Complete flext-core and flext-cli integration
 - **Type Safety**: Pyrefly strict mode compliant (ZERO errors)
 - **Quality Assurance**: 100% test coverage, Ruff linting compliant
@@ -115,7 +115,7 @@ connection_result = api.test_connection()
 if connection_result.is_success:
     print("✅ Connected to Oracle")
 
-# Query with FlextCore.Result pattern
+# Query with FlextResult pattern
 result = api.query("SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5})
 if result.is_success:
     tables = result.unwrap()
@@ -199,7 +199,7 @@ Zero tolerance quality requirements:
 **Working Features**:
 
 - SQLAlchemy 2.0 Oracle integration
-- FlextCore.Result error handling
+- FlextResult error handling
 - Connection pooling and management
 - Schema introspection capabilities
 - CLI interface structure
@@ -237,8 +237,8 @@ Zero tolerance quality requirements:
 
 ### FLEXT-Core Compliance Checklist
 
-- [ ] Use FlextCore.Result for all error handling
-- [ ] Implement FlextCore.Service patterns
+- [ ] Use FlextResult for all error handling
+- [ ] Implement FlextService patterns
 - [ ] Follow Clean Architecture principles
 - [ ] Add comprehensive type hints
 - [ ] Include working code examples

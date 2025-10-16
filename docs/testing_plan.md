@@ -127,7 +127,7 @@ collected 11 items / 1 error
 - **Query Execution**: Parameter binding, result processing, error handling
 - **Schema Operations**: Introspection, metadata extraction
 - **Transaction Management**: ACID compliance, rollback scenarios
-- **Error Handling**: All FlextCore.Result error paths
+- **Error Handling**: All FlextResult error paths
 
 #### Key Test Fixtures
 
@@ -293,18 +293,18 @@ exclude_lines = [
 
 ### 1. Railway Pattern Testing
 
-#### Test FlextCore.Result Operations
+#### Test FlextResult Operations
 
 ```python
 def test_flext_result_success_path(flext_db_oracle_api):
-    """Test successful operation returns FlextCore.Result.ok()."""
+    """Test successful operation returns FlextResult.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
     assert result.is_success
     connection = result.unwrap()
     assert connection is not None
 
 def test_flext_result_error_path(flext_db_oracle_api):
-    """Test failed operation returns FlextCore.Result.fail()."""
+    """Test failed operation returns FlextResult.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
     assert result.is_failure
     assert "connection failed" in result.error.lower()

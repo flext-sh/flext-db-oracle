@@ -14,7 +14,7 @@ import json
 from collections.abc import Callable
 from typing import cast
 
-from flext_core import FlextCore
+from flext_core import FlextContainer, FlextResult, FlextService, FlextTypes
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -23,7 +23,7 @@ from flext_db_oracle.typings import FlextDbOracleTypes
 from .constants import FlextDbOracleConstants
 
 
-class FlextDbOracleClient(FlextCore.Service):
+class FlextDbOracleClient(FlextService):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
@@ -37,11 +37,11 @@ class FlextDbOracleClient(FlextCore.Service):
         # Configuration - store locally
         self._oracle_config = config or FlextDbOracleConfig()
 
-        # Initialize FlextCore.Service with config
+        # Initialize FlextService with config
         super().__init__(config=self._oracle_config)
 
         # Core dependencies injected via composition
-        self._container = FlextCore.Container.get_global()
+        self._container = FlextContainer.get_global()
         # Logger will be initialized lazily via the parent class property
 
         # Application state
@@ -75,11 +75,11 @@ class FlextDbOracleClient(FlextCore.Service):
         service_name: str | None = None,
         username: str | None = None,
         password: str | None = None,
-    ) -> FlextCore.Result[FlextDbOracleApi]:
+    ) -> FlextResult[FlextDbOracleApi]:
         """Connect to Oracle database with provided parameters or config defaults.
 
         Returns:
-            FlextCore.Result[FlextDbOracleApi]: API instance or error.
+            FlextResult[FlextDbOracleApi]: API instance or error.
 
         """
         try:
@@ -92,17 +92,11 @@ class FlextDbOracleClient(FlextCore.Service):
 
             # Validate required parameters
             if not actual_host:
-                return FlextCore.Result[FlextDbOracleApi].fail(
-                    "Oracle host is required"
-                )
+                return FlextResult[FlextDbOracleApi].fail("Oracle host is required")
             if not actual_username:
-                return FlextCore.Result[FlextDbOracleApi].fail(
-                    "Oracle username is required"
-                )
+                return FlextResult[FlextDbOracleApi].fail("Oracle username is required")
             if not actual_password:
-                return FlextCore.Result[FlextDbOracleApi].fail(
-                    "Oracle password is required"
-                )
+                return FlextResult[FlextDbOracleApi].fail("Oracle password is required")
 
             self.logger.info(
                 f"Connecting to Oracle at {actual_host}:{actual_port}/{actual_service_name}"
@@ -119,221 +113,215 @@ class FlextDbOracleClient(FlextCore.Service):
 
             # Create and configure Oracle API
             api = FlextDbOracleApi(config=config)
-            connect_result: FlextCore.Result[FlextDbOracleApi] = api.connect()
+            connect_result: FlextResult[FlextDbOracleApi] = api.connect()
 
             if connect_result.is_success:
                 self.current_connection = api
                 self.logger.info("Oracle connection established successfully")
-                return FlextCore.Result[FlextDbOracleApi].ok(api)
-            return FlextCore.Result[FlextDbOracleApi].fail(
+                return FlextResult[FlextDbOracleApi].ok(api)
+            return FlextResult[FlextDbOracleApi].fail(
                 f"Oracle connection failed: {connect_result.error}",
             )
 
         except Exception as e:
-            return FlextCore.Result[FlextDbOracleApi].fail(f"Connection error: {e}")
+            return FlextResult[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(
         self,
         operation: str,
         **params: object,
-    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute operation with validation chain.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Operation result or error.
+            FlextResult[FlextTypes.Dict]: Operation result or error.
 
         """
-        validation_result: FlextCore.Result[None] = self._validate_connection()
+        validation_result: FlextResult[None] = self._validate_connection()
         if validation_result.is_failure:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 validation_result.error or "Validation failed",
             )
 
         return self._execute_operation(operation, **params)
 
-    def _validate_connection(self) -> FlextCore.Result[None]:
+    def _validate_connection(self) -> FlextResult[None]:
         """Validate current Oracle connection.
 
         Returns:
-            FlextCore.Result[None]: Success or error.
+            FlextResult[None]: Success or error.
 
         """
         if not self.current_connection:
-            return FlextCore.Result[None].fail("No active Oracle connection")
+            return FlextResult[None].fail("No active Oracle connection")
 
         if not self.current_connection.is_connected:
-            return FlextCore.Result[None].fail("Oracle connection not active")
+            return FlextResult[None].fail("Oracle connection not active")
 
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     def _execute_operation(
         self,
         operation: str,
         **params: object,
-    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute Oracle operation with error handling.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Operation result or error.
+            FlextResult[FlextTypes.Dict]: Operation result or error.
 
         """
         if not self.current_connection:
-            return FlextCore.Result[FlextCore.Types.Dict].fail("No active connection")
+            return FlextResult[FlextTypes.Dict].fail("No active connection")
 
         try:
             if operation == "list_schemas":
-                schemas_result: FlextCore.Result[FlextCore.Types.StringList] = (
+                schemas_result: FlextResult[FlextTypes.StringList] = (
                     self.current_connection.get_schemas()
                 )
                 if schemas_result.is_success:
-                    return FlextCore.Result[FlextCore.Types.Dict].ok(
+                    return FlextResult[FlextTypes.Dict].ok(
                         {"schemas": list(schemas_result.value)},
                     )
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     schemas_result.error or "Schema listing failed",
                 )
 
             if operation == "list_tables":
                 schema = str(params.get("schema", ""))
-                tables_result: FlextCore.Result[FlextCore.Types.StringList] = (
+                tables_result: FlextResult[FlextTypes.StringList] = (
                     self.current_connection.get_tables(schema or None)
                 )
                 if tables_result.is_success:
-                    return FlextCore.Result[FlextCore.Types.Dict].ok(
+                    return FlextResult[FlextTypes.Dict].ok(
                         {"tables": list(tables_result.value)},
                     )
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     tables_result.error or "Table listing failed",
                 )
 
             if operation == "query":
                 sql = str(params.get("sql", ""))
                 if not sql:
-                    return FlextCore.Result[FlextCore.Types.Dict].fail(
-                        "SQL query required"
-                    )
+                    return FlextResult[FlextTypes.Dict].fail("SQL query required")
 
                 params_dict_raw = params.get("params", {})
-                params_dict: FlextCore.Types.Dict = (
+                params_dict: FlextTypes.Dict = (
                     params_dict_raw if isinstance(params_dict_raw, dict) else {}
                 )
-                query_result: FlextCore.Result[list[FlextCore.Types.Dict]] = (
+                query_result: FlextResult[list[FlextTypes.Dict]] = (
                     self.current_connection.query(sql, params_dict)
                 )
                 if query_result.is_success:
-                    return FlextCore.Result[FlextCore.Types.Dict].ok({
-                        "rows": list(query_result.value),
-                        "row_count": len(query_result.value)
-                        if query_result.value
-                        else 0,
-                    })
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                    return FlextResult[FlextTypes.Dict].ok(
+                        {
+                            "rows": list(query_result.value),
+                            "row_count": len(query_result.value)
+                            if query_result.value
+                            else 0,
+                        }
+                    )
+                return FlextResult[FlextTypes.Dict].fail(
                     query_result.error or "Query execution failed",
                 )
 
             if operation == "health_check":
-                health_result: FlextCore.Result[FlextCore.Types.Dict] = (
+                health_result: FlextResult[FlextTypes.Dict] = (
                     self.current_connection.get_health_status()
                 )
                 if health_result.is_success:
-                    return FlextCore.Result[FlextCore.Types.Dict].ok(
-                        health_result.value
-                    )
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                    return FlextResult[FlextTypes.Dict].ok(health_result.value)
+                return FlextResult[FlextTypes.Dict].fail(
                     health_result.error or "Health check failed",
                 )
 
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
+            return FlextResult[FlextTypes.Dict].fail(
                 f"Unknown operation: {operation}",
             )
 
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(f"Operation failed: {e}")
+            return FlextResult[FlextTypes.Dict].fail(f"Operation failed: {e}")
 
     def _format_and_display_result(
         self,
-        operation_result: FlextCore.Result[FlextCore.Types.Dict],
+        operation_result: FlextResult[FlextTypes.Dict],
         format_type: str = "table",
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Format and display operation result.
 
         Returns:
-            FlextCore.Result[str]: Formatted result or error.
+            FlextResult[str]: Formatted result or error.
 
         """
         if operation_result.is_failure:
-            return FlextCore.Result[str].fail(
-                operation_result.error or "Operation failed"
-            )
+            return FlextResult[str].fail(operation_result.error or "Operation failed")
 
         data = operation_result.value
-        formatter_result: FlextCore.Result[
-            Callable[[FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]]
+        formatter_result: FlextResult[
+            Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
         ] = self._get_formatter_strategy(format_type)
         if formatter_result.is_failure:
-            return FlextCore.Result[str].fail(
+            return FlextResult[str].fail(
                 formatter_result.error or "Formatter strategy failed",
             )
 
         formatter = formatter_result.value
         if callable(formatter):
-            format_result: FlextCore.Result[str] = formatter(
+            format_result: FlextResult[str] = formatter(
                 cast("FlextDbOracleTypes.Query.QueryResult", data)
             )
             return format_result
-        return FlextCore.Result[str].fail("Invalid formatter strategy")
+        return FlextResult[str].fail("Invalid formatter strategy")
 
     def _get_formatter_strategy(
         self, format_type: str
-    ) -> FlextCore.Result[
-        Callable[[FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]]
+    ) -> FlextResult[
+        Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
     ]:
         """Get formatter strategy for output format.
 
         Returns:
-            FlextCore.Result[object]: Formatter strategy or error.
+            FlextResult[object]: Formatter strategy or error.
 
         """
         try:
             formatter_strategies: dict[
                 str,
-                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]],
+                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]],
             ] = {
                 "table": self._format_as_table,
                 "json": self._format_as_json,
-                "plain": lambda data: FlextCore.Result[str].ok(str(data)),
+                "plain": lambda data: FlextResult[str].ok(str(data)),
             }
 
             if format_type in formatter_strategies:
-                return FlextCore.Result[
-                    Callable[
-                        [FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]
-                    ]
+                return FlextResult[
+                    Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
                 ].ok(formatter_strategies[format_type])
-            return FlextCore.Result[
-                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]]
+            return FlextResult[
+                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
             ].fail(f"Unsupported format: {format_type}")
         except Exception as e:
-            return FlextCore.Result[
-                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextCore.Result[str]]
+            return FlextResult[
+                Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
             ].fail(f"Formatter strategy error: {e}")
 
     def _format_as_table(
         self, data: FlextDbOracleTypes.Query.QueryResult
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Format data as table output.
 
         Returns:
-            FlextCore.Result[str]: Table formatted data or error.
+            FlextResult[str]: Table formatted data or error.
 
         """
         try:
             # Adapt data for table display
-            adapted_result: FlextCore.Result[list[FlextCore.Types.StringDict]] = (
+            adapted_result: FlextResult[list[FlextTypes.StringDict]] = (
                 self._adapt_data_for_table(data)
             )
             if adapted_result.is_failure:
-                return FlextCore.Result[str].fail(
+                return FlextResult[str].fail(
                     adapted_result.error or "Data adaptation failed",
                 )
 
@@ -341,61 +329,61 @@ class FlextDbOracleClient(FlextCore.Service):
 
             # Simple table formatting
             if adapted_data:
-                headers: FlextCore.Types.StringList = list(adapted_data[0].keys())
-                rows: list[FlextCore.Types.StringList] = [
+                headers: FlextTypes.StringList = list(adapted_data[0].keys())
+                rows: list[FlextTypes.StringList] = [
                     [str(row[h]) for h in headers] for row in adapted_data
                 ]
                 result_str = (
                     f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
                 )
                 result_str += "\n".join(["|".join(row) for row in rows])
-                return FlextCore.Result[str].ok(result_str)
+                return FlextResult[str].ok(result_str)
 
-            return FlextCore.Result[str].ok(str(adapted_data))
+            return FlextResult[str].ok(str(adapted_data))
         except Exception as e:
-            return FlextCore.Result[str].fail(f"Table formatting failed: {e}")
+            return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _format_as_json(
         self, data: FlextDbOracleTypes.Query.QueryResult
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Format data as JSON output.
 
         Returns:
-            FlextCore.Result[str]: JSON formatted data or error.
+            FlextResult[str]: JSON formatted data or error.
 
         """
         try:
-            return FlextCore.Result[str].ok(json.dumps(data, indent=2, default=str))
+            return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
         except Exception as e:
-            return FlextCore.Result[str].fail(f"JSON formatting failed: {e}")
+            return FlextResult[str].fail(f"JSON formatting failed: {e}")
 
     def _adapt_data_for_table(
         self,
         data: FlextDbOracleTypes.Query.QueryResult,
-    ) -> FlextCore.Result[list[FlextCore.Types.StringDict]]:
+    ) -> FlextResult[list[FlextTypes.StringDict]]:
         """Adapt data for table display.
 
         Returns:
-            FlextCore.Result[list[FlextCore.Types.StringDict]]: Adapted data or error.
+            FlextResult[list[FlextTypes.StringDict]]: Adapted data or error.
 
         """
         try:
 
-            def adapt_schemas(r: object) -> list[FlextCore.Types.StringDict]:
+            def adapt_schemas(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"schema": str(s)} for s in r if isinstance(r, list)]
                     if isinstance(r, list)
                     else []
                 )
 
-            def adapt_tables(r: object) -> list[FlextCore.Types.StringDict]:
+            def adapt_tables(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"table": str(t)} for t in r if isinstance(r, list)]
                     if isinstance(r, list)
                     else []
                 )
 
-            def adapt_health(r: object) -> list[FlextCore.Types.StringDict]:
+            def adapt_health(r: object) -> list[FlextTypes.StringDict]:
                 return (
                     [{"key": str(k), "value": str(v)} for k, v in r.items()]
                     if isinstance(r, dict)
@@ -404,7 +392,7 @@ class FlextDbOracleClient(FlextCore.Service):
 
             adaptation_strategies: dict[
                 str,
-                Callable[[object], list[FlextCore.Types.StringDict]],
+                Callable[[object], list[FlextTypes.StringDict]],
             ] = {
                 "schemas": adapt_schemas,
                 "tables": adapt_tables,
@@ -413,43 +401,39 @@ class FlextDbOracleClient(FlextCore.Service):
 
             for key, strategy in adaptation_strategies.items():
                 if key in data:
-                    adapted_data: list[FlextCore.Types.StringDict] = strategy(data[key])
-                    return FlextCore.Result[list[FlextCore.Types.StringDict]].ok(
-                        adapted_data
-                    )
+                    adapted_data: list[FlextTypes.StringDict] = strategy(data[key])
+                    return FlextResult[list[FlextTypes.StringDict]].ok(adapted_data)
 
             # Default: convert to list of key-value pairs
-            result: list[FlextCore.Types.StringDict] = [
+            result: list[FlextTypes.StringDict] = [
                 {"key": str(k), "value": str(v)} for k, v in data.items()
             ]
-            return FlextCore.Result[list[FlextCore.Types.StringDict]].ok(result)
+            return FlextResult[list[FlextTypes.StringDict]].ok(result)
         except Exception as e:
-            return FlextCore.Result[list[FlextCore.Types.StringDict]].fail(
+            return FlextResult[list[FlextTypes.StringDict]].fail(
                 f"Data adaptation failed: {e}",
             )
 
     def _execute_health_check(
         self,
-    ) -> FlextCore.Result[FlextCore.Types.Dict]:
+    ) -> FlextResult[FlextTypes.Dict]:
         """Execute Oracle health check.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Health check result or error.
+            FlextResult[FlextTypes.Dict]: Health check result or error.
 
         """
         try:
-            validation_result: FlextCore.Result[None] = self._validate_connection()
+            validation_result: FlextResult[None] = self._validate_connection()
             if validation_result.is_failure:
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
+                return FlextResult[FlextTypes.Dict].fail(
                     validation_result.error or "Connection validation failed",
                 )
 
             if not self.current_connection:
-                return FlextCore.Result[FlextCore.Types.Dict].fail(
-                    "No connection available"
-                )
+                return FlextResult[FlextTypes.Dict].fail("No connection available")
 
-            health_data: FlextCore.Types.Dict = {
+            health_data: FlextTypes.Dict = {
                 "connection_status": "active"
                 if self.current_connection.is_connected
                 else "inactive",
@@ -459,47 +443,45 @@ class FlextDbOracleClient(FlextCore.Service):
                 "timestamp": "now",  # Could use actual timestamp
             }
 
-            return FlextCore.Result[FlextCore.Types.Dict].ok(health_data)
+            return FlextResult[FlextTypes.Dict].ok(health_data)
         except Exception as e:
-            return FlextCore.Result[FlextCore.Types.Dict].fail(
-                f"Health check failed: {e}"
-            )
+            return FlextResult[FlextTypes.Dict].fail(f"Health check failed: {e}")
 
-    def list_schemas(self) -> FlextCore.Result[str]:
+    def list_schemas(self) -> FlextResult[str]:
         """List Oracle schemas with formatted output.
 
         Returns:
-            FlextCore.Result[str]: Formatted schemas list or error.
+            FlextResult[str]: Formatted schemas list or error.
 
         """
-        operation_result: FlextCore.Result[FlextCore.Types.Dict] = (
-            self._execute_with_chain("list_schemas")
+        operation_result: FlextResult[FlextTypes.Dict] = self._execute_with_chain(
+            "list_schemas"
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def list_tables(self, schema: str | None = None) -> FlextCore.Result[str]:
+    def list_tables(self, schema: str | None = None) -> FlextResult[str]:
         """List Oracle tables with formatted output.
 
         Returns:
-            FlextCore.Result[str]: Formatted tables list or error.
+            FlextResult[str]: Formatted tables list or error.
 
         """
-        operation_result: FlextCore.Result[FlextCore.Types.Dict] = (
-            self._execute_with_chain("list_tables", schema=schema or "")
+        operation_result: FlextResult[FlextTypes.Dict] = self._execute_with_chain(
+            "list_tables", schema=schema or ""
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def execute(self) -> FlextCore.Result[object]:
+    def execute(self) -> FlextResult[object]:
         """Execute the main domain operation for Oracle client.
 
         Returns:
-            FlextCore.Result[object]: Success with operation result or failure with error
+            FlextResult[object]: Success with operation result or failure with error
 
         """
         # Default implementation - subclasses should override with specific logic
-        return FlextCore.Result[object].fail(
+        return FlextResult[object].fail(
             "Execute method not implemented for Oracle client"
         )
 
@@ -507,11 +489,11 @@ class FlextDbOracleClient(FlextCore.Service):
         self,
         sql: str,
         params: FlextDbOracleTypes.Query.QueryParameters | None = None,
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Execute SQL query with formatted output.
 
         Returns:
-            FlextCore.Result[str]: Formatted query results or error.
+            FlextResult[str]: Formatted query results or error.
 
         """
         operation_result = self._execute_with_chain(
@@ -522,35 +504,35 @@ class FlextDbOracleClient(FlextCore.Service):
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def health_check(self) -> FlextCore.Result[FlextCore.Types.Dict]:
+    def health_check(self) -> FlextResult[FlextTypes.Dict]:
         """Perform Oracle health check.
 
         Returns:
-            FlextCore.Result[FlextCore.Types.Dict]: Health check result or error.
+            FlextResult[FlextTypes.Dict]: Health check result or error.
 
         """
         return self._execute_health_check()
 
-    def disconnect(self) -> FlextCore.Result[None]:
+    def disconnect(self) -> FlextResult[None]:
         """Disconnect from Oracle database.
 
         Returns:
-            FlextCore.Result[None]: Success or error.
+            FlextResult[None]: Success or error.
 
         """
         if self.current_connection:
-            result: FlextCore.Result[None] = self.current_connection.disconnect()
+            result: FlextResult[None] = self.current_connection.disconnect()
             self.current_connection = None
             return result
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     def configure_preferences(
         self, **preferences: str | int | bool
-    ) -> FlextCore.Result[None]:
+    ) -> FlextResult[None]:
         """Configure client preferences.
 
         Returns:
-            FlextCore.Result[None]: Success or error.
+            FlextResult[None]: Success or error.
 
         """
         try:
@@ -559,18 +541,18 @@ class FlextDbOracleClient(FlextCore.Service):
                 "Client preferences updated",
                 extra={"preferences": "preferences"},
             )
-            return FlextCore.Result[None].ok(None)
+            return FlextResult[None].ok(None)
         except Exception as e:
-            return FlextCore.Result[None].fail(f"Preference configuration failed: {e}")
+            return FlextResult[None].fail(f"Preference configuration failed: {e}")
 
     @classmethod
     def run_cli_command(
         cls, operation: str, **params: str | int | bool
-    ) -> FlextCore.Result[str]:
+    ) -> FlextResult[str]:
         """Run Oracle CLI command with proper error handling.
 
         Returns:
-            FlextCore.Result[str]: Command result or error.
+            FlextResult[str]: Command result or error.
 
         """
         try:
@@ -578,15 +560,13 @@ class FlextDbOracleClient(FlextCore.Service):
 
             if operation == "health":
 
-                def health_cmd() -> FlextCore.Result[FlextCore.Types.Dict]:
+                def health_cmd() -> FlextResult[FlextTypes.Dict]:
                     return client.health_check()
 
-                health_result: FlextCore.Result[FlextCore.Types.Dict] = health_cmd()
+                health_result: FlextResult[FlextTypes.Dict] = health_cmd()
                 if health_result.is_success:
-                    return FlextCore.Result[str].ok(
-                        f"Health check: {health_result.value}"
-                    )
-                return FlextCore.Result[str].fail(
+                    return FlextResult[str].ok(f"Health check: {health_result.value}")
+                return FlextResult[str].fail(
                     health_result.error or "Health check failed",
                 )
 
@@ -596,13 +576,13 @@ class FlextDbOracleClient(FlextCore.Service):
                     f"Unused CLI parameters for operation '{operation}': {params}",
                 )
 
-            return FlextCore.Result[str].fail(f"Unknown CLI operation: {operation}")
+            return FlextResult[str].fail(f"Unknown CLI operation: {operation}")
         except Exception as e:
-            return FlextCore.Result[str].fail(f"CLI command failed: {e}")
+            return FlextResult[str].fail(f"CLI command failed: {e}")
 
 
 # ZERO TOLERANCE: No wrapper functions or global instances - use FlextDbOracleClient.get_client() directly
 
-__all__: FlextCore.Types.StringList = [
+__all__: FlextTypes.StringList = [
     "FlextDbOracleClient",
 ]

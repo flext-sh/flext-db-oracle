@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextCore
+from flext_core import FlextModels, FlextTypes
 from pydantic import (
     Field,
     computed_field,
@@ -23,7 +23,7 @@ from pydantic import (
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleModels(FlextCore.Models):
+class FlextDbOracleModels(FlextModels):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -32,7 +32,7 @@ class FlextDbOracleModels(FlextCore.Models):
     All types moved to typings.py.
     """
 
-    class ConnectionStatus(FlextCore.Models.Entity):
+    class ConnectionStatus(FlextModels.Entity):
         """Connection status using flext-core Entity."""
 
         is_connected: bool = False
@@ -50,7 +50,6 @@ class FlextDbOracleModels(FlextCore.Models):
         db_version: str | None = None
 
         @computed_field
-        @property
         def status_description(self) -> str:
             """Computed field for human-readable status description."""
             if self.is_connected:
@@ -60,7 +59,6 @@ class FlextDbOracleModels(FlextCore.Models):
             return "Disconnected"
 
         @computed_field
-        @property
         def connection_age_seconds(self) -> float | None:
             """Computed field for connection age in seconds."""
             if not self.is_connected or not self.last_activity:
@@ -68,7 +66,6 @@ class FlextDbOracleModels(FlextCore.Models):
             return (datetime.now(UTC) - self.last_activity).total_seconds()
 
         @computed_field
-        @property
         def is_healthy(self) -> bool:
             """Computed field indicating if connection is healthy."""
             if not self.is_connected:
@@ -82,7 +79,6 @@ class FlextDbOracleModels(FlextCore.Models):
             )
 
         @computed_field
-        @property
         def connection_info(self) -> str:
             """Computed field for connection information summary."""
             if not self.is_connected:
@@ -101,7 +97,6 @@ class FlextDbOracleModels(FlextCore.Models):
             return ", ".join(parts) if parts else "Connected"
 
         @computed_field
-        @property
         def performance_info(self) -> str:
             """Computed field for connection performance information."""
             if not self.is_connected or self.connection_time is None:
@@ -177,19 +172,19 @@ class FlextDbOracleModels(FlextCore.Models):
                 return None
             return f"{value:.3f}s"
 
-    class QueryResult(FlextCore.Models.Entity):
+    class QueryResult(FlextModels.Entity):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[FlextCore.Types.Dict] = Field(default_factory=list)
+        result_data: list[FlextTypes.Dict] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
-        columns: FlextCore.Types.StringList = Field(
+        columns: FlextTypes.StringList = Field(
             default_factory=list, description="Column names"
         )
-        rows: list[FlextCore.Types.List] = Field(
+        rows: list[FlextTypes.List] = Field(
             default_factory=list, description="Row data"
         )
         query_hash: str | None = Field(
@@ -202,25 +197,21 @@ class FlextDbOracleModels(FlextCore.Models):
         )
 
         @computed_field
-        @property
         def execution_time_seconds(self) -> float:
             """Computed field for execution time in seconds."""
             return self.execution_time_ms / 1000.0
 
         @computed_field
-        @property
         def has_results(self) -> bool:
             """Computed field indicating if query returned results."""
             return self.row_count > 0
 
         @computed_field
-        @property
         def column_count(self) -> int:
             """Computed field for number of columns."""
             return len(self.columns)
 
         @computed_field
-        @property
         def performance_rating(self) -> str:
             """Computed field for query performance rating."""
             if (
@@ -241,7 +232,6 @@ class FlextDbOracleModels(FlextCore.Models):
             return "Slow"
 
         @computed_field
-        @property
         def data_size_bytes(self) -> int:
             """Computed field for estimated data size in bytes."""
             if not self.rows:
@@ -255,7 +245,6 @@ class FlextDbOracleModels(FlextCore.Models):
             )
 
         @computed_field
-        @property
         def memory_usage_mb(self) -> float:
             """Computed field for estimated memory usage in MB."""
             return self.data_size_bytes / (1024 * 1024)
@@ -293,14 +282,14 @@ class FlextDbOracleModels(FlextCore.Models):
                 return f"{value}ms"
             return f"{value / FlextDbOracleConstants.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD:.2f}s"
 
-    class Table(FlextCore.Models.Entity):
+    class Table(FlextModels.Entity):
         """Table metadata using flext-core Entity."""
 
         name: str
         schema_name: str = Field(alias="schema")
         columns: list[FlextDbOracleModels.Column] = Field(default_factory=list)
 
-    class Column(FlextCore.Models.Entity):
+    class Column(FlextModels.Entity):
         """Column metadata using flext-core Entity."""
 
         name: str
@@ -308,31 +297,31 @@ class FlextDbOracleModels(FlextCore.Models):
         nullable: bool = True
         default_value: str | None = None
 
-    class Schema(FlextCore.Models.Entity):
+    class Schema(FlextModels.Entity):
         """Schema metadata using flext-core Entity."""
 
         name: str
         tables: list[FlextDbOracleModels.Table] = Field(default_factory=list)
 
-    class CreateIndexConfig(FlextCore.Models.Entity):
+    class CreateIndexConfig(FlextModels.Entity):
         """Create index config using flext-core Entity."""
 
         table_name: str
         index_name: str
-        columns: FlextCore.Types.StringList
+        columns: FlextTypes.StringList
         unique: bool = False
         schema_name: str | None = None
         tablespace: str | None = None
         parallel: int | None = None
 
-    class MergeStatementConfig(FlextCore.Models.Entity):
+    class MergeStatementConfig(FlextModels.Entity):
         """Merge statement config using flext-core Entity."""
 
         target_table: str
         source_query: str
-        merge_conditions: FlextCore.Types.StringList
-        update_columns: FlextCore.Types.StringList = Field(default_factory=list)
-        insert_columns: FlextCore.Types.StringList = Field(default_factory=list)
+        merge_conditions: FlextTypes.StringList
+        update_columns: FlextTypes.StringList = Field(default_factory=list)
+        insert_columns: FlextTypes.StringList = Field(default_factory=list)
 
 
 # ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleModels.ClassName directly

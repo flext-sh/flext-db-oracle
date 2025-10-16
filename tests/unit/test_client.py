@@ -13,7 +13,7 @@ import time
 from typing import cast
 
 import pytest
-from flext_core import FlextCore
+from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
 from flext_tests.domains import FlextTestsDomains
 from flext_tests.matchers import FlextTestsMatchers
 
@@ -25,20 +25,22 @@ from flext_db_oracle import (
 
 
 def cast_to_json_value(
-    result: FlextCore.Result[object],
-) -> FlextCore.Result[FlextCore.Types.JsonValue]:
-    """Cast a FlextCore.Result to JsonValue type for test matchers."""
+    result: FlextResult[object],
+) -> FlextResult[FlextTypes.JsonValue]:
+    """Cast a FlextResult to JsonValue type for test matchers."""
     if result.is_success:
         # Convert the value to a JSON-serializable type
         value = result.unwrap()
         if isinstance(value, (str, int, float, bool, list, dict, type(None))):
-            return cast("FlextCore.Result[FlextCore.Types.JsonValue]", result)
+            return cast("FlextResult[FlextTypes.JsonValue]", result)
         # Convert complex objects to dict[str, object] representation
-        return FlextCore.Result[FlextCore.Types.JsonValue].ok({
-            "type": type(value).__name__,
-            "value": str(value),
-        })
-    return cast("FlextCore.Result[FlextCore.Types.JsonValue]", result)
+        return FlextResult[FlextTypes.JsonValue].ok(
+            {
+                "type": type(value).__name__,
+                "value": str(value),
+            }
+        )
+    return cast("FlextResult[FlextTypes.JsonValue]", result)
 
 
 class TestFlextDbOracleClientRealFunctionality:
@@ -194,8 +196,8 @@ class TestFlextDbOracleClientRealFunctionality:
         assert client.container is not None
 
         # Test component types
-        assert isinstance(client.logger, FlextCore.Logger)
-        assert isinstance(client.container, FlextCore.Container)
+        assert isinstance(client.logger, FlextLogger)
+        assert isinstance(client.container, FlextContainer)
 
     def test_user_preferences_modification_real(self) -> None:
         """Test user preferences can be modified."""
@@ -236,7 +238,7 @@ class TestFlextDbOracleClientRealFunctionality:
     def test_client_with_testbuilders_pattern_real(self) -> None:
         """Test client creation using TestBuilders patterns."""
         # Use TestBuilders to create test configuration
-        config_result = FlextCore.Result[FlextDbOracleConfig].ok(
+        config_result = FlextResult[FlextDbOracleConfig].ok(
             FlextDbOracleConfig(
                 host="testbuilder_host",
                 port=1521,
@@ -246,12 +248,12 @@ class TestFlextDbOracleClientRealFunctionality:
             )
         )
 
-        # Type guard: ensure we have a FlextCore.Result before passing to assert_result_success
+        # Type guard: ensure we have a FlextResult before passing to assert_result_success
         if not hasattr(config_result, "is_success"):
-            msg = "Expected FlextCore.Result with .is_success attribute"
+            msg = "Expected FlextResult with .is_success attribute"
             raise AssertionError(msg)
 
-        # Cast to FlextCore.Result to satisfy mypy
+        # Cast to FlextResult to satisfy mypy
         result = config_result
         FlextTestsMatchers.assert_flext_result_success(cast_to_json_value(result))
 
@@ -355,12 +357,12 @@ class TestFlextDbOracleClientRealFunctionality:
         """Test client integration with flext-core patterns."""
         client = FlextDbOracleClient()
 
-        # Test FlextCore.Result pattern usage - client is initialized in constructor
+        # Test FlextResult pattern usage - client is initialized in constructor
         # No initialize method needed, client is ready to use
         assert client.container is not None
         assert client.logger is not None
 
-        # Test query execution returns FlextCore.Result (without connection - should fail gracefully)
+        # Test query execution returns FlextResult (without connection - should fail gracefully)
         query_result = client.execute_query("SELECT 1")
         assert hasattr(query_result, "is_success")
         assert hasattr(query_result, "error") or hasattr(query_result, "value")
@@ -553,7 +555,7 @@ class TestFlextDbOracleClientRealFunctionality:
             method = getattr(client, method_name)
             result = method(*args)
 
-            # All methods should return FlextCore.Result and fail gracefully without connection
+            # All methods should return FlextResult and fail gracefully without connection
             assert hasattr(result, "is_success")
             assert hasattr(result, "error") or hasattr(result, "value")
             FlextTestsMatchers.assert_flext_result_failure(
@@ -603,7 +605,7 @@ class TestClientModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_client_config() -> FlextCore.Types.Dict:
+        def create_test_client_config() -> FlextTypes.Dict:
             """Create test client configuration data."""
             return {
                 "host": "localhost",
@@ -615,7 +617,7 @@ class TestClientModule:
             }
 
         @staticmethod
-        def create_test_connection_data() -> FlextCore.Types.Dict:
+        def create_test_connection_data() -> FlextTypes.Dict:
             """Create test connection data."""
             return {
                 "connection_id": "conn_123",
@@ -625,7 +627,7 @@ class TestClientModule:
             }
 
         @staticmethod
-        def create_test_pool_data() -> FlextCore.Types.Dict:
+        def create_test_pool_data() -> FlextTypes.Dict:
             """Create test pool data."""
             return {
                 "pool_name": "test_pool",
@@ -646,7 +648,7 @@ class TestClientModule:
         # Test client creation from config if method exists
         if hasattr(FlextDbOracleClient, "from_config"):
             result = FlextDbOracleClient.from_config(test_config)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_create_connection(self) -> None:
         """Test FlextDbOracleClient create_connection functionality."""
@@ -656,7 +658,7 @@ class TestClientModule:
         # Test connection creation if method exists
         if hasattr(client, "create_connection"):
             result = client.create_connection(test_config)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_get_connection(self) -> None:
         """Test FlextDbOracleClient get_connection functionality."""
@@ -670,7 +672,7 @@ class TestClientModule:
         # Test connection retrieval if method exists
         if hasattr(client, "get_connection"):
             result = client.get_connection(test_connection["connection_id"])
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_close_connection(self) -> None:
         """Test FlextDbOracleClient close_connection functionality."""
@@ -684,7 +686,7 @@ class TestClientModule:
         # Test connection closure if method exists
         if hasattr(client, "close_connection"):
             result = client.close_connection(test_connection["connection_id"])
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_create_pool(self) -> None:
         """Test FlextDbOracleClient create_pool functionality."""
@@ -694,7 +696,7 @@ class TestClientModule:
         # Test pool creation if method exists
         if hasattr(client, "create_pool"):
             result = client.create_pool(test_pool)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_get_pool(self) -> None:
         """Test FlextDbOracleClient get_pool functionality."""
@@ -708,7 +710,7 @@ class TestClientModule:
         # Test pool retrieval if method exists
         if hasattr(client, "get_pool"):
             result = client.get_pool(test_pool["pool_name"])
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_execute_with_connection(self) -> None:
         """Test FlextDbOracleClient execute_with_connection functionality."""
@@ -725,7 +727,7 @@ class TestClientModule:
             result = client.execute_with_connection(
                 test_connection["connection_id"], test_query
             )
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_get_connection_status(self) -> None:
         """Test FlextDbOracleClient get_connection_status functionality."""
@@ -739,7 +741,7 @@ class TestClientModule:
         # Test connection status retrieval if method exists
         if hasattr(client, "get_connection_status"):
             result = client.get_connection_status(test_connection["connection_id"])
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_comprehensive_scenario(self) -> None:
         """Test comprehensive client module scenario."""
@@ -754,19 +756,19 @@ class TestClientModule:
         # Test connection operations
         if hasattr(client, "create_connection"):
             create_result = client.create_connection(test_config)
-            assert isinstance(create_result, FlextCore.Result)
+            assert isinstance(create_result, FlextResult)
 
         # Test pool operations
         if hasattr(client, "create_pool"):
             pool_result = client.create_pool(test_pool)
-            assert isinstance(pool_result, FlextCore.Result)
+            assert isinstance(pool_result, FlextResult)
 
         # Test connection status
         if hasattr(client, "get_connection_status"):
             status_result = client.get_connection_status(
                 test_connection["connection_id"]
             )
-            assert isinstance(status_result, FlextCore.Result)
+            assert isinstance(status_result, FlextResult)
 
     def test_flext_db_oracle_client_error_handling(self) -> None:
         """Test client module error handling patterns."""
@@ -779,19 +781,19 @@ class TestClientModule:
         # Test connection creation error handling
         if hasattr(client, "create_connection"):
             result = client.create_connection(invalid_config)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             # Should handle invalid config gracefully
 
         # Test connection retrieval with invalid ID
         if hasattr(client, "get_connection"):
             result = client.get_connection(invalid_connection_id)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             # Should handle invalid connection ID gracefully
 
         # Test connection status with invalid ID
         if hasattr(client, "get_connection_status"):
             result = client.get_connection_status(invalid_connection_id)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
             # Should handle invalid connection ID gracefully
 
     def test_flext_db_oracle_client_with_flext_tests(
@@ -811,12 +813,12 @@ class TestClientModule:
         # Test connection creation with flext_tests data
         if hasattr(client, "create_connection"):
             result = client.create_connection(test_config)
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
         # Test connection retrieval with flext_tests data
         if hasattr(client, "get_connection"):
             result = client.get_connection(test_connection["connection_id"])
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_docstring(self) -> None:
         """Test that FlextDbOracleClient has proper docstring."""
@@ -900,13 +902,13 @@ class TestClientModule:
         if hasattr(client, "create_connection"):
             for config_data in realistic_configs:
                 result = client.create_connection(config_data)
-                assert isinstance(result, FlextCore.Result)
+                assert isinstance(result, FlextResult)
 
         # Test pool creation with realistic pools
         if hasattr(client, "create_pool"):
             for pool_data in realistic_pools:
                 result = client.create_pool(pool_data)
-                assert isinstance(result, FlextCore.Result)
+                assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_client_integration_patterns(self) -> None:
         """Test client integration patterns between different components."""
@@ -919,24 +921,24 @@ class TestClientModule:
         # Create connection
         if hasattr(client, "create_connection"):
             create_result = client.create_connection(test_config)
-            assert isinstance(create_result, FlextCore.Result)
+            assert isinstance(create_result, FlextResult)
 
         # Get connection
         if hasattr(client, "get_connection"):
             get_result = client.get_connection(test_connection["connection_id"])
-            assert isinstance(get_result, FlextCore.Result)
+            assert isinstance(get_result, FlextResult)
 
         # Execute with connection
         if hasattr(client, "execute_with_connection"):
             execute_result = client.execute_with_connection(
                 test_connection["connection_id"], "SELECT 1 FROM dual"
             )
-            assert isinstance(execute_result, FlextCore.Result)
+            assert isinstance(execute_result, FlextResult)
 
         # Close connection
         if hasattr(client, "close_connection"):
             close_result = client.close_connection(test_connection["connection_id"])
-            assert isinstance(close_result, FlextCore.Result)
+            assert isinstance(close_result, FlextResult)
 
     def test_flext_db_oracle_client_performance_patterns(self) -> None:
         """Test client performance patterns."""
@@ -952,7 +954,7 @@ class TestClientModule:
             for i in range(10):
                 config_data = {**test_config, "host": f"host_{i}"}
                 result = client.create_connection(config_data)
-                assert isinstance(result, FlextCore.Result)
+                assert isinstance(result, FlextResult)
 
         end_time = time.time()
         assert (end_time - start_time) < 2.0  # Should complete in less than 2 seconds
@@ -988,9 +990,9 @@ class TestClientModule:
         for thread in threads:
             thread.join()
 
-        # All results should be FlextCore.Result instances
+        # All results should be FlextResult instances
         for result in results:
-            assert isinstance(result, FlextCore.Result)
+            assert isinstance(result, FlextResult)
 
     def setup_method(self) -> None:
         """Setup test CLI client with real configuration."""
@@ -1142,8 +1144,8 @@ class TestClientModule:
         assert client.container is not None
 
         # Test component types
-        assert isinstance(client.logger, FlextCore.Logger)
-        assert isinstance(client.container, FlextCore.Container)
+        assert isinstance(client.logger, FlextLogger)
+        assert isinstance(client.container, FlextContainer)
 
     def test_user_preferences_modification_real(self) -> None:
         """Test user preferences can be modified."""
@@ -1249,12 +1251,12 @@ class TestClientModule:
         """Test client integration with flext-core patterns."""
         client = FlextDbOracleClient()
 
-        # Test FlextCore.Result pattern usage - client is initialized in constructor
+        # Test FlextResult pattern usage - client is initialized in constructor
         # No initialize method needed, client is ready to use
         assert client.container is not None
         assert client.logger is not None
 
-        # Test query execution returns FlextCore.Result (without connection - should fail gracefully)
+        # Test query execution returns FlextResult (without connection - should fail gracefully)
         query_result = client.execute_query("SELECT 1")
         assert hasattr(query_result, "is_success")
         assert hasattr(query_result, "error") or hasattr(query_result, "value")
@@ -1447,7 +1449,7 @@ class TestClientModule:
             method = getattr(client, method_name)
             result = method(*args)
 
-            # All methods should return FlextCore.Result and fail gracefully without connection
+            # All methods should return FlextResult and fail gracefully without connection
             assert hasattr(result, "is_success")
             assert hasattr(result, "error") or hasattr(result, "value")
             FlextTestsMatchers.assert_result_failure(

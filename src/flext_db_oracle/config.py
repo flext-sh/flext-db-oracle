@@ -1,6 +1,6 @@
 """Oracle Database Configuration - Settings using flext-core patterns.
 
-Provides Oracle-specific configuration management extending FlextCore.Config
+Provides Oracle-specific configuration management extending FlextConfig
 with Pydantic Settings for environment variable support and validation.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_core import FlextCore
+from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
 from pydantic import (
     Field,
     SecretStr,
@@ -24,21 +24,21 @@ from pydantic import (
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleConfig(FlextCore.Config):
-    """Oracle Database Configuration extending FlextCore.Config.
+class FlextDbOracleConfig(FlextConfig):
+    """Oracle Database Configuration extending FlextConfig.
 
     Provides comprehensive configuration for Oracle database operations including
     connection settings, pool configuration, performance tuning, and security.
     Uses enhanced singleton pattern with inverse dependency injection.
     """
 
-    # Configuration inherited from FlextCore.Config with Oracle-specific env prefix
+    # Configuration inherited from FlextConfig with Oracle-specific env prefix
     model_config: ClassVar[dict] = {
-        **FlextCore.Config.model_config,
+        **FlextConfig.model_config,
         "env_prefix": "FLEXT_DB_ORACLE_",
         "json_schema_extra": {
             "title": "FLEXT DB Oracle Configuration",
-            "description": "Enterprise Oracle database configuration extending FlextCore.Config",
+            "description": "Enterprise Oracle database configuration extending FlextConfig",
         },
     }
 
@@ -85,7 +85,6 @@ class FlextDbOracleConfig(FlextCore.Config):
     )
 
     @computed_field
-    @property
     def connection_string(self) -> str:
         """Computed Oracle connection string for SQLAlchemy."""
         # Build connection string using Oracle format
@@ -147,14 +146,14 @@ class FlextDbOracleConfig(FlextCore.Config):
     )
 
     max_retries: int = Field(
-        default=FlextCore.Constants.Reliability.MAX_RETRY_ATTEMPTS,
+        default=FlextConstants.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
         le=10,
         description="Maximum number of retry attempts",
     )
 
     retry_delay: float = Field(
-        default=FlextCore.Constants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
+        default=FlextConstants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=0.1,
         le=60.0,
         description="Delay between retry attempts in seconds",
@@ -289,37 +288,37 @@ class FlextDbOracleConfig(FlextCore.Config):
             raise ValueError(msg)
         return v
 
-    def validate_connection_config(self) -> FlextCore.Result[None]:
+    def validate_connection_config(self) -> FlextResult[None]:
         """Validate the complete connection configuration."""
         # Validate required fields
         if not self.host:
-            return FlextCore.Result[None].fail("Oracle host is required")
+            return FlextResult[None].fail("Oracle host is required")
 
         if not self.username:
-            return FlextCore.Result[None].fail("Oracle username is required")
+            return FlextResult[None].fail("Oracle username is required")
 
         if not self.password.get_secret_value():
-            return FlextCore.Result[None].fail("Oracle password is required")
+            return FlextResult[None].fail("Oracle password is required")
 
         # Validate pool configuration
         if self.pool_max < self.pool_min:
-            return FlextCore.Result[None].fail(
+            return FlextResult[None].fail(
                 "pool_max must be greater than or equal to pool_min"
             )
 
         # Validate SSL configuration
         if self.use_ssl:
             if self.ssl_cert_file and not self.ssl_key_file:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     "SSL key file is required when SSL cert file is provided"
                 )
 
             if self.ssl_key_file and not self.ssl_cert_file:
-                return FlextCore.Result[None].fail(
+                return FlextResult[None].fail(
                     "SSL cert file is required when SSL key file is provided"
                 )
 
-        return FlextCore.Result[None].ok(None)
+        return FlextResult[None].ok(None)
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""
@@ -329,7 +328,7 @@ class FlextDbOracleConfig(FlextCore.Config):
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
 
-    def get_connection_config(self) -> FlextCore.Types.Dict:
+    def get_connection_config(self) -> FlextTypes.Dict:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.host,
@@ -343,14 +342,14 @@ class FlextDbOracleConfig(FlextCore.Config):
         }
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> FlextCore.Result[FlextDbOracleConfig]:
+    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
         """Create OracleConfig from environment variables.
 
         Args:
             prefix: Environment variable prefix (default: "ORACLE_")
 
         Returns:
-            FlextCore.Result[FlextDbOracleConfig]: Configuration or error.
+            FlextResult[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:
@@ -369,7 +368,7 @@ class FlextDbOracleConfig(FlextCore.Config):
             try:
                 port = int(port_str)
             except ValueError:
-                return FlextCore.Result[FlextDbOracleConfig].fail(
+                return FlextResult[FlextDbOracleConfig].fail(
                     f"Invalid port: {port_str}"
                 )
 
@@ -384,9 +383,9 @@ class FlextDbOracleConfig(FlextCore.Config):
                 sid=sid,
             )
 
-            return FlextCore.Result[FlextDbOracleConfig].ok(config)
+            return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextCore.Result[FlextDbOracleConfig].fail(
+            return FlextResult[FlextDbOracleConfig].fail(
                 f"Failed to create config from environment: {e}"
             )
 
