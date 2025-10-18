@@ -31,7 +31,6 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
-from flext_core import FlextTypes
 
 # Configure logging
 logging.basicConfig(
@@ -62,7 +61,7 @@ class AuditResult:
     """Results of documentation audit."""
 
     file_path: Path
-    issues: list[dict[str, object]] = field(default_factory=list)
+    issues: list[dict[str, int | str]] = field(default_factory=list)
     statistics: dict[str, object] = field(default_factory=dict)
     score: float = 0.0
     severity_counts: dict[str, int] = field(default_factory=lambda: defaultdict(int))
@@ -84,9 +83,9 @@ class AuditResult:
             return 100.0
 
         # Weight issues by severity
-        weights = {"critical": 10, "high": 5, "medium": 2, "low": 1}
+        weights: dict[str, int] = {"critical": 10, "high": 5, "medium": 2, "low": 1}
         total_weight = sum(
-            weights.get(issue.get("severity", "low"), 1) for issue in self.issues
+            weights.get(str(issue.get("severity", "low")), 1) for issue in self.issues
         )
 
         # Base score reduction
@@ -106,7 +105,7 @@ class MaintenanceReport:
     average_score: float = 0.0
     file_results: list[AuditResult] = field(default_factory=list)
     summary: dict[str, object] = field(default_factory=dict)
-    recommendations: FlextTypes.StringList = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 
 class DocumentationAuditor:
@@ -213,7 +212,7 @@ class DocumentationAuditor:
 
     async def _validate_content(
         self, file_path: Path, content: str
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, int | str]]:
         """Validate content quality and identify issues."""
         issues = []
 
@@ -266,7 +265,7 @@ class DocumentationAuditor:
         age_seconds = time.time() - mtime
         return int(age_seconds / (24 * 3600))
 
-    def _validate_markdown_syntax(self, content: str) -> list[dict[str, object]]:
+    def _validate_markdown_syntax(self, content: str) -> list[dict[str, int | str]]:
         """Validate markdown syntax."""
         # Heading hierarchy validation
         headings = re.findall(r"^(#{1,6})\s+(.+)$", content, re.MULTILINE)
@@ -311,7 +310,7 @@ class DocumentationAuditor:
 
         return issues
 
-    async def _validate_links(self, content: str) -> list[dict[str, object]]:
+    async def _validate_links(self, content: str) -> list[dict[str, int | str]]:
         """Validate external links."""
         issues = []
         external_links = re.findall(r"\[([^\]]+)\]\((https?://[^)]+)\)", content)
@@ -365,7 +364,7 @@ class DocumentationAuditor:
 
     def _validate_internal_references(
         self, _file_path: Path, content: str
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, int | str]]:
         """Validate internal references and cross-links."""
         issues = []
 
@@ -391,7 +390,7 @@ class DocumentationAuditor:
 
         return issues
 
-    def _validate_style_consistency(self, content: str) -> list[dict[str, object]]:
+    def _validate_style_consistency(self, content: str) -> list[dict[str, int | str]]:
         """Validate style consistency."""
         issues = []
 
@@ -426,7 +425,7 @@ class DocumentationAuditor:
 
         return issues
 
-    def _validate_accessibility(self, content: str) -> list[dict[str, object]]:
+    def _validate_accessibility(self, content: str) -> list[dict[str, int | str]]:
         """Validate accessibility compliance."""
         issues = []
 
@@ -464,9 +463,7 @@ class ContentOptimizer:
         """Initialize content optimizer with configuration."""
         self.config = config
 
-    def optimize_file(
-        self, _file_path: Path, audit_result: AuditResult
-    ) -> FlextTypes.StringList:
+    def optimize_file(self, _file_path: Path, audit_result: AuditResult) -> list[str]:
         """Optimize content based on audit results."""
         optimizations = []
 
@@ -625,7 +622,7 @@ async def run_audit(config: MaintenanceConfig) -> MaintenanceReport:
 
 def generate_recommendations(
     results: list[AuditResult], config: MaintenanceConfig
-) -> FlextTypes.StringList:
+) -> list[str]:
     """Generate actionable recommendations based on audit results."""
     recommendations = []
 
@@ -705,7 +702,7 @@ def run_optimization(config: MaintenanceConfig) -> None:
 
     for file_path in files:
         logger.info(f"Optimizing {file_path}")
-        # TODO(@dev): Implement optimization logic
+        # TODO(marlonsc): Implement optimization logic - https://github.com/client-a-telecom/flext/issues/XXXX
         logger.info(f"Optimization suggestions for {file_path}: (not implemented yet)")
 
 

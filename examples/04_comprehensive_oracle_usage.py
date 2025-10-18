@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextLogger, FlextResult, FlextService, FlextTypes
+from flext_core import FlextLogger, FlextResult, FlextService
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
@@ -61,11 +61,11 @@ class OracleExampleProcessor(FlextService[str]):
         api: FlextDbOracleApi,
         *,
         correlation_id: str,
-    ) -> FlextTypes.Dict:
+    ) -> dict[str, object]:
         """Build simple result dictionary.
 
         Returns:
-            FlextTypes.Dict: Dictionary with status and connection info.
+            dict[str, object]: Dictionary with status and connection info.
 
         """
         return {

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
-from flext_core import FlextResult, FlextTypes
+from flext_core import FlextResult
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig, FlextDbOracleServices
 
@@ -148,7 +148,7 @@ class TestRealOracleConnection:
             # Success case - table created successfully
 
             # Execute many inserts
-            params_list: list[FlextTypes.Dict] = [
+            params_list: list[dict[str, object]] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
@@ -354,7 +354,7 @@ class TestRealOracleApi:
             # Use real DDL generation method instead of create_table_ddl
             # Build DDL manually since create_table_ddl doesn't exist
             ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts: FlextTypes.StringList = []
+            column_parts: list[str] = []
             for col in columns:
                 col_def = f"{col['name']} {col['type']}"
                 if not col.get("nullable", True):

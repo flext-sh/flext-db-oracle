@@ -10,21 +10,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from pathlib import Path
 
-from flext_core import FlextTypes, FlextUtilities
+from flext_core import FlextUtilities
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[FlextTypes.Dict]:
+def _get_cli_examples() -> list[dict[str, object]]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[FlextTypes.Dict]: List of CLI command examples with metadata.
+        list[dict[str, object]]: List of CLI command examples with metadata.
 
     """
     return [
@@ -88,7 +87,7 @@ def _get_cli_examples() -> list[FlextTypes.Dict]:
     ]
 
 
-def _run_example_command(example: FlextTypes.Dict) -> None:
+def _run_example_command(example: dict[str, object]) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return
@@ -131,7 +130,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
+def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:
@@ -143,15 +142,14 @@ def run_cli_command(cmd: FlextTypes.StringList) -> tuple[int, str, str]:
         try:
             result = FlextUtilities.run_external_command(
                 cmd,
-                shell=False,  # Explicitly disable shell for security
-                check=False,
                 capture_output=True,
-                text=True,
-                timeout=30,
+                check=False,
+                timeout=30.0,
             )
-            return result.returncode, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            return 1, "", "Command timed out"
+            if result.is_success:
+                process = result.unwrap()
+                return process.returncode, process.stdout, process.stderr
+            return 1, "", f"Command failed: {result.error}"
         except Exception as e:
             return 1, "", f"Command failed: {e}"
 

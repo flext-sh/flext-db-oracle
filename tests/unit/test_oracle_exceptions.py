@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextTypes
 from pydantic import SecretStr
 
 from flext_db_oracle import (
@@ -318,7 +317,7 @@ class TestRealOracleExceptionsAdvanced:
             try:
                 # Convert config_data to proper types
                 port_value = config_data.get("port", 1521)
-                typed_config: FlextTypes.Dict = {
+                typed_config: dict[str, object] = {
                     "host": str(config_data.get("host", "")),
                     "port": int(port_value),
                     "user": str(config_data.get("user", "")),

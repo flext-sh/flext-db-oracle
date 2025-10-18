@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
 
 from flext_core import (
@@ -17,8 +16,6 @@ from flext_core import (
     FlextService,
     FlextTypes,
 )
-
-from flext_db_oracle.protocols import FlextDbOracleProtocols
 
 
 class FlextDbOracleDispatcher(FlextService):
@@ -41,28 +38,28 @@ class FlextDbOracleDispatcher(FlextService):
         """Command to execute a SQL query and return rows."""
 
         sql: str
-        parameters: FlextTypes.Dict | None = None
+        parameters: dict[str, object] | None = None
 
     @dataclass(slots=True)
     class FetchOneCommand:
         """Command to execute a SQL query and fetch a single row."""
 
         sql: str
-        parameters: FlextTypes.Dict | None = None
+        parameters: dict[str, object] | None = None
 
     @dataclass(slots=True)
     class ExecuteStatementCommand:
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
         sql: str
-        parameters: FlextTypes.Dict | None = None
+        parameters: dict[str, object] | None = None
 
     @dataclass(slots=True)
     class ExecuteManyCommand:
         """Command to execute a SQL statement multiple times."""
 
         sql: str
-        parameters_list: list[FlextTypes.Dict]
+        parameters_list: list[dict[str, object]]
 
     @dataclass(slots=True)
     class GetSchemasCommand:
@@ -84,7 +81,7 @@ class FlextDbOracleDispatcher(FlextService):
     @classmethod
     def build_dispatcher(
         cls,
-        services: FlextDbOracleProtocols.Database.QueryExecutorProtocol,
+        services: FlextDbOracleServices,
         *,
         bus: FlextBus | None = None,
     ) -> FlextDispatcher:
@@ -107,25 +104,25 @@ class FlextDbOracleDispatcher(FlextService):
         def execute_query_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
             sql = getattr(command, "sql", "")
-            parameters: FlextTypes.Dict = getattr(command, "parameters", None) or {}
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.execute_query(sql, parameters)
 
         def fetch_one_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
             sql = getattr(command, "sql", "")
-            parameters: FlextTypes.Dict = getattr(command, "parameters", None) or {}
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.fetch_one(sql, parameters)
 
         def execute_statement_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
             sql = getattr(command, "sql", "")
-            parameters: FlextTypes.Dict = getattr(command, "parameters", None) or {}
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
             return services.execute_statement(sql, parameters)
 
         def execute_many_handler(command: object) -> object:
             # Safe attribute access with hasattr checks
             sql = getattr(command, "sql", "")
-            parameters_list: list[FlextTypes.Dict] = getattr(
+            parameters_list: list[dict[str, object]] = getattr(
                 command, "parameters_list", []
             )
             return services.execute_many(sql, parameters_list)
@@ -147,7 +144,7 @@ class FlextDbOracleDispatcher(FlextService):
         # Use register_function_map with proper typing
 
         function_map: dict[
-            type, tuple[Callable[[object], object], FlextTypes.Dict | None]
+            type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]
         ] = {
             cls.ConnectCommand: (connect_handler, None),
             cls.DisconnectCommand: (disconnect_handler, None),

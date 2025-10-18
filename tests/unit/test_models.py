@@ -16,7 +16,7 @@ import time
 from unittest.mock import patch
 
 import pytest
-from flext_core import FlextModels, FlextResult, FlextTypes
+from flext_core import FlextModels, FlextResult
 from flext_tests import FlextTestsDomains
 from pydantic import ValidationError
 
@@ -462,7 +462,7 @@ class TestModelsModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config_data() -> FlextTypes.Dict:
+        def create_test_oracle_config_data() -> dict[str, object]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -474,7 +474,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_table_model_data() -> FlextTypes.Dict:
+        def create_test_table_model_data() -> dict[str, object]:
             """Create test table model data."""
             return {
                 "table_name": "test_table",
@@ -486,7 +486,7 @@ class TestModelsModule:
             }
 
         @staticmethod
-        def create_test_query_model_data() -> FlextTypes.Dict:
+        def create_test_query_model_data() -> dict[str, object]:
             """Create test query model data."""
             return {
                 "query_id": "query_123",
@@ -1307,7 +1307,7 @@ class TestFlextDbOracleModels:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config_data() -> FlextTypes.Dict:
+        def create_test_oracle_config_data() -> dict[str, object]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -1319,7 +1319,7 @@ class TestFlextDbOracleModels:
             }
 
         @staticmethod
-        def create_test_table_model_data() -> FlextTypes.Dict:
+        def create_test_table_model_data() -> dict[str, object]:
             """Create test table model data."""
             return {
                 "table_name": "test_table",
@@ -1331,7 +1331,7 @@ class TestFlextDbOracleModels:
             }
 
         @staticmethod
-        def create_test_query_model_data() -> FlextTypes.Dict:
+        def create_test_query_model_data() -> dict[str, object]:
             """Create test query model data."""
             return {
                 "query_id": "query_123",

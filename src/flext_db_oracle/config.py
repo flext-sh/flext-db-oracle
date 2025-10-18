@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_core import FlextConfig, FlextConstants, FlextResult, FlextTypes
+from flext_core import FlextConfig, FlextConstants, FlextResult
 from pydantic import (
     Field,
     SecretStr,
@@ -328,7 +328,7 @@ class FlextDbOracleConfig(FlextConfig):
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
 
-    def get_connection_config(self) -> FlextTypes.Dict:
+    def get_connection_config(self) -> dict[str, object]:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.host,
@@ -387,6 +387,66 @@ class FlextDbOracleConfig(FlextConfig):
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(
                 f"Failed to create config from environment: {e}"
+            )
+
+    @classmethod
+    def from_url(cls, url: str) -> FlextResult[FlextDbOracleConfig]:
+        """Create OracleConfig from Oracle URL string.
+
+        Args:
+            url: Oracle connection URL (oracle://user:pass@host:port/service)
+
+        Returns:
+            FlextResult[FlextDbOracleConfig]: Configuration or error.
+
+        """
+        try:
+            from urllib.parse import urlparse
+
+            # Parse the URL
+            parsed = urlparse(url)
+            if parsed.scheme != "oracle":
+                return FlextResult[FlextDbOracleConfig].fail(
+                    f"Invalid URL scheme: {parsed.scheme}. Expected 'oracle'"
+                )
+
+            # Extract components
+            host = parsed.hostname
+            port = parsed.port
+            username = parsed.username
+            password = parsed.password
+            path = parsed.path.lstrip("/")  # Remove leading slash
+
+            if not host:
+                return FlextResult[FlextDbOracleConfig].fail("Host is required in URL")
+            if not port:
+                return FlextResult[FlextDbOracleConfig].fail("Port is required in URL")
+            if not username:
+                return FlextResult[FlextDbOracleConfig].fail(
+                    "Username is required in URL"
+                )
+            if not password:
+                return FlextResult[FlextDbOracleConfig].fail(
+                    "Password is required in URL"
+                )
+            if not path:
+                return FlextResult[FlextDbOracleConfig].fail(
+                    "Service name is required in URL path"
+                )
+
+            # Create config
+            config = FlextDbOracleConfig(
+                host=host,
+                port=port,
+                username=username,
+                password=password,
+                service_name=path,
+            )
+
+            return FlextResult[FlextDbOracleConfig].ok(config)
+        except Exception as e:
+            return FlextResult[FlextDbOracleConfig].fail(
+                f"Failed to create config from URL: {e}"
             )
 
     @classmethod

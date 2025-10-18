@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from flext_db_oracle import (
     FlextDbOracleApi,
+    FlextDbOracleConfig,
     FlextDbOracleConstants,
     FlextDbOracleExceptions,
     FlextDbOracleModels,
@@ -55,7 +56,7 @@ class TestBasicModelCreation:
 
     def test_oracle_config_creation(self) -> None:
         """Test Oracle configuration model creation."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -66,20 +67,20 @@ class TestBasicModelCreation:
         assert config.port == 1521
         assert config.service_name == "TEST"
         assert config.username == "testuser"
-        # Password should be a string
-        assert config.password == "testpass"
+        # Password should be a SecretStr
+        assert config.password.get_secret_value() == "testpass"
 
     def test_oracle_config_with_ssl(self) -> None:
         """Test Oracle configuration with SSL settings."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="secure.example.com",
             port=2484,
             service_name="SECURE_DB",
             username="secure_user",
             password="secure_pass",
-            ssl_server_cert_dn="CN=secure.example.com",
+            ssl_cert_file="/path/to/cert.pem",
         )
-        assert config.ssl_server_cert_dn == "CN=secure.example.com"
+        assert config.ssl_cert_file == "/path/to/cert.pem"
 
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
@@ -100,7 +101,7 @@ class TestFlextDbOracleServices:
 
     def test_service_creation(self) -> None:
         """Test service can be created with config."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -113,7 +114,7 @@ class TestFlextDbOracleServices:
 
     def test_service_is_not_connected_initially(self) -> None:
         """Test service is not connected when created."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -125,7 +126,7 @@ class TestFlextDbOracleServices:
 
     def test_service_has_sql_building_methods(self) -> None:
         """Test service has SQL building capabilities."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",
@@ -142,7 +143,7 @@ class TestFlextDbOracleServices:
 
     def test_service_sql_validation(self) -> None:
         """Test SQL validation through the service."""
-        config = Models.OracleConfig(
+        config = FlextDbOracleConfig(
             host="localhost",
             port=1521,
             service_name="TEST",

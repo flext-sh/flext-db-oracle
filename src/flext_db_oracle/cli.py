@@ -23,7 +23,6 @@ from flext_core import (
     FlextLogger,
     FlextResult,
     FlextService,
-    FlextTypes,
 )
 
 from flext_db_oracle.api import FlextDbOracleApi
@@ -165,7 +164,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: FlextTypes.StringList | list[FlextTypes.Dict],
+            items: list[str] | list[dict[str, object]],
             title: str,
             output_format: str = "table",
         ) -> FlextResult[str]:
@@ -230,7 +229,7 @@ class FlextDbOracleCli(FlextService[str]):
         username: str = FlextDbOracleConstants.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT,
-    ) -> FlextResult[FlextTypes.Dict]:
+    ) -> FlextResult[dict[str, object]]:
         """Execute comprehensive health check for Oracle database connection.
 
         Args:
@@ -242,7 +241,7 @@ class FlextDbOracleCli(FlextService[str]):
             timeout: Connection timeout in seconds
 
         Returns:
-            FlextResult[FlextTypes.Dict]: Health check results with status and timing
+            FlextResult[dict[str, object]]: Health check results with status and timing
 
         """
         start_time = time.time()
@@ -264,14 +263,14 @@ class FlextDbOracleCli(FlextService[str]):
             # Test connection
             health_result = api.get_health_status()
             if health_result.is_failure:
-                return FlextResult[FlextTypes.Dict].fail(
+                return FlextResult[dict[str, object]].fail(
                     f"Health check failed: {health_result.error}"
                 )
 
             elapsed_time = time.time() - start_time
             health_data = health_result.unwrap()
 
-            result: FlextTypes.Dict = {
+            result: dict[str, object] = {
                 "status": "healthy",
                 "host": host,
                 "port": port,
@@ -281,11 +280,11 @@ class FlextDbOracleCli(FlextService[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-            return FlextResult[FlextTypes.Dict].ok(result)
+            return FlextResult[dict[str, object]].ok(result)
 
         except Exception as e:
             elapsed_time = time.time() - start_time
-            error_result: FlextTypes.Dict = {
+            error_result: dict[str, object] = {
                 "status": "unhealthy",
                 "host": host,
                 "port": port,
@@ -295,7 +294,7 @@ class FlextDbOracleCli(FlextService[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-            return FlextResult[FlextTypes.Dict].ok(error_result)
+            return FlextResult[dict[str, object]].ok(error_result)
 
     def execute_list_schemas(
         self,
@@ -537,7 +536,7 @@ class FlextDbOracleCli(FlextService[str]):
             self.logger.info("Oracle CLI service initialized")
         return FlextResult[str].ok("Oracle CLI service ready")
 
-    def run_cli(self, args: FlextTypes.StringList | None = None) -> FlextResult[str]:
+    def run_cli(self, args: list[str] | None = None) -> FlextResult[str]:
         """Run CLI with command line arguments simulation.
 
         Returns:

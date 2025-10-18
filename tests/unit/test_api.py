@@ -16,7 +16,7 @@ import time
 from typing import cast
 
 import pytest
-from flext_core import FlextConstants, FlextResult, FlextTypes
+from flext_core import FlextResult
 from flext_tests import FlextTestsDomains
 from flext_tests.matchers import FlextTestsMatchers
 
@@ -92,7 +92,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
         # Cast to proper dict[str, object] type for PyRight
-        config_dict: FlextTypes.Dict = config_obj
+        config_dict: dict[str, object] = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -162,7 +162,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         class StubDispatcher:
             def __init__(self) -> None:
-                self.commands: FlextTypes.List = []
+                self.commands: list[object] = []
 
             def dispatch(self, command: object) -> FlextResult[object]:
                 self.commands.append(command)
@@ -246,7 +246,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_disconnect_when_not_connected_real(self) -> None:
         """Test disconnect when not connected."""
         result = self.api.disconnect()
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
 
     # Utility Methods Tests
     def test_optimize_query_real_functionality(self) -> None:
@@ -263,7 +263,7 @@ class TestFlextDbOracleApiRealFunctionality:
         for input_query, expected_clean in test_queries:
             result = self.api.optimize_query(input_query)
 
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers().assert_result_success(result)
             optimized_query = result.value
             assert isinstance(optimized_query, str)
             # The real implementation cleans whitespace and formatting
@@ -273,7 +273,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test observability metrics retrieval."""
         result = self.api.get_observability_metrics()
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         metrics = result.value
         assert isinstance(metrics, dict)
         # Current implementation returns empty dict[str, object] - test actual behavior
@@ -298,7 +298,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = FlextDbOracleApi.from_url("oracle://user:pass@host:1521/service")
 
         # Should succeed with valid Oracle URL
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         api = result.value
         assert api.config.host == "host"
         assert api.config.port == 1521
@@ -325,7 +325,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.register_plugin("test_plugin", plugin)
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         assert "test_plugin" in self.api.plugins
         assert self.api.plugins["test_plugin"] == plugin
 
@@ -337,7 +337,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.unregister_plugin("test_plugin")
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         assert "test_plugin" not in self.api.plugins
 
     def test_plugin_unregistration_not_found_real(self) -> None:
@@ -358,7 +358,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.get_plugin("test_plugin")
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         retrieved_plugin = result.value
         assert retrieved_plugin == plugin
 
@@ -382,7 +382,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         result = self.api.list_plugins()
 
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         plugin_list = result.value
         assert isinstance(plugin_list, list)
         # Should return list of plugin info objects
@@ -393,7 +393,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.list_plugins()
 
         # Should succeed with empty list (based on actual API implementation)
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         plugin_list = result.value
         assert isinstance(plugin_list, list)
         assert len(plugin_list) == 0
@@ -421,7 +421,7 @@ class TestFlextDbOracleApiRealFunctionality:
         )
 
         # Verify the result is successful
-        FlextTestsMatchers.assert_result_success(config_result)
+        FlextTestsMatchers().assert_result_success(config_result)
         config = config_result.unwrap()
         assert isinstance(config, FlextDbOracleConfig)
 
@@ -467,12 +467,12 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # api2 should not have api1's plugin
         api2_list = api2.list_plugins()
-        FlextTestsMatchers.assert_result_success(api2_list)
+        FlextTestsMatchers().assert_result_success(api2_list)
         assert api2_list.value == []  # Empty list
 
         # api1 should have its plugin
         api1_list = api1.list_plugins()
-        FlextTestsMatchers.assert_result_success(api1_list)
+        FlextTestsMatchers().assert_result_success(api1_list)
         plugin_list = api1_list.value
         assert isinstance(plugin_list, list)
         assert len(plugin_list) == 1
@@ -484,7 +484,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.optimize_query(invalid_sql)
 
         # Should still work - optimization is forgiving and cleans whitespace
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         optimized_query = result.value
         assert isinstance(optimized_query, str)
         # Should clean the query even if SQL syntax is invalid
@@ -529,7 +529,7 @@ class TestFlextDbOracleApiRealFunctionality:
             assert hasattr(result, "error")
 
             if result.is_success:
-                FlextTestsMatchers.assert_result_success(result)
+                FlextTestsMatchers().assert_result_success(result)
                 # Should return some Oracle type string
                 oracle_type = result.value
                 assert isinstance(oracle_type, str)
@@ -554,7 +554,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         # Create test Singer schema
-        test_schema: FlextTypes.Dict = {
+        test_schema: dict[str, object] = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -573,7 +573,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         if result.is_success:
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers().assert_result_success(result)
             schema_mapping = result.value
             assert isinstance(schema_mapping, dict)
         else:
@@ -686,43 +686,43 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test plugin management edge cases."""
         # Test registering None plugin (should work with defensive design)
         result = self.api.register_plugin("none_plugin", None)
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
 
         # Should be retrievable
         get_result = self.api.get_plugin("none_plugin")
-        FlextTestsMatchers.assert_result_success(get_result)
+        FlextTestsMatchers().assert_result_success(get_result)
         assert get_result.value is None
 
         # Test empty string plugin name
         empty_result = self.api.register_plugin("", {"test": "plugin"})
-        FlextTestsMatchers.assert_result_success(empty_result)
+        FlextTestsMatchers().assert_result_success(empty_result)
 
         # Test retrieving empty name plugin
         get_empty = self.api.get_plugin("")
-        FlextTestsMatchers.assert_result_success(get_empty)
+        FlextTestsMatchers().assert_result_success(get_empty)
 
         # Test unregistering plugin that exists
         unregister_result = self.api.unregister_plugin("")
-        FlextTestsMatchers.assert_result_success(unregister_result)
+        FlextTestsMatchers().assert_result_success(unregister_result)
 
     def test_optimize_query_edge_cases_real(self) -> None:
         """Test optimize_query with edge cases."""
         # Test empty query
         empty_result = self.api.optimize_query("")
-        FlextTestsMatchers.assert_result_success(empty_result)
+        FlextTestsMatchers().assert_result_success(empty_result)
         assert not empty_result.value
 
         # Test query with lots of whitespace
         whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
         whitespace_result = self.api.optimize_query(whitespace_query)
-        FlextTestsMatchers.assert_result_success(whitespace_result)
+        FlextTestsMatchers().assert_result_success(whitespace_result)
         optimized = whitespace_result.value
         assert optimized == "SELECT * FROM employees"
 
         # Test query with tabs and mixed whitespace
         tab_query = "SELECT\t\t*\tFROM\t\temployees\t\tWHERE\t\tid\t=\t1"
         tab_result = self.api.optimize_query(tab_query)
-        FlextTestsMatchers.assert_result_success(tab_result)
+        FlextTestsMatchers().assert_result_success(tab_result)
         optimized_tab = tab_result.value
         assert optimized_tab == "SELECT * FROM employees WHERE id = 1"
 
@@ -741,7 +741,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
         # Test API operations work with minimal config
         plugins = minimal_api.list_plugins()
-        FlextTestsMatchers.assert_result_success(plugins)
+        FlextTestsMatchers().assert_result_success(plugins)
 
         # Test with config containing special characters
         special_config = FlextDbOracleConfig(
@@ -764,7 +764,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(result, "error")
 
         # Should succeed with health information
-        FlextTestsMatchers.assert_result_success(result)
+        FlextTestsMatchers().assert_result_success(result)
         health_data = result.value
         assert isinstance(health_data, dict)
 
@@ -838,7 +838,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> FlextTypes.Dict:
+        def create_test_oracle_config() -> dict[str, object]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -849,16 +849,16 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_query_data() -> dict[str, str | FlextTypes.Dict | int]:
+        def create_test_query_data() -> dict[str, str | dict[str, object] | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",
-                "params": cast("FlextTypes.Dict", {"id": 1}),
+                "params": cast("dict[str, object]", {"id": 1}),
                 "fetch_size": 100,
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[FlextTypes.Dict]]:
+        def create_test_schema_data() -> dict[str, str | list[dict[str, object]]]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -948,7 +948,7 @@ class TestApiModule:
 
         # Test query execution if method exists
         if hasattr(api, "execute_query"):
-            result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
+            result: FlextResult[list[dict[str, object]]] = api.execute_query(
                 str(test_query["query"]), test_query["params"]
             )
             assert isinstance(result, FlextResult)
@@ -970,7 +970,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                cast("FlextTypes.Dict", test_query["params"]),
+                cast("dict[str, object]", test_query["params"]),
             )
             assert isinstance(result, FlextResult)
 
@@ -989,7 +989,7 @@ class TestApiModule:
 
         # Test metadata retrieval if method exists
         if hasattr(api, "get_table_metadata"):
-            result: FlextResult[FlextTypes.Dict] = api.get_table_metadata(
+            result: FlextResult[dict[str, object]] = api.get_table_metadata(
                 str(test_schema["table_name"])
             )
             assert isinstance(result, FlextResult)
@@ -1025,7 +1025,7 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         # Test table schema retrieval if method exists
         if hasattr(api, "get_tables"):
-            result: FlextResult[FlextTypes.StringList] = api.get_tables()
+            result: FlextResult[list[str]] = api.get_tables()
             assert isinstance(result, FlextResult)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
@@ -1052,14 +1052,14 @@ class TestApiModule:
 
         # Test query operations
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
+            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
                 str(test_query["query"]), test_query["params"]
             )
             assert isinstance(query_result, FlextResult)
 
         # Test schema operations
         if hasattr(api, "get_tables"):
-            schema_result: FlextResult[FlextTypes.StringList] = api.get_tables()
+            schema_result: FlextResult[list[str]] = api.get_tables()
             assert isinstance(schema_result, FlextResult)
 
         # Test disconnection
@@ -1090,7 +1090,7 @@ class TestApiModule:
 
         # Test query execution error handling
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
+            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
                 invalid_query, {}
             )
             assert isinstance(query_result, FlextResult)
@@ -1098,7 +1098,7 @@ class TestApiModule:
 
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
-            metadata_result: FlextResult[FlextTypes.Dict] = api.get_table_metadata(
+            metadata_result: FlextResult[dict[str, object]] = api.get_table_metadata(
                 "non_existent_table"
             )
             assert isinstance(metadata_result, FlextResult)
@@ -1230,7 +1230,7 @@ class TestApiModule:
         # Test query execution with realistic queries
         if hasattr(api, "execute_query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
+                query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
                     str(query_data["query"]), query_data["params"]
                 )
                 assert isinstance(query_result, FlextResult)
@@ -1320,7 +1320,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             query = f"SELECT {index} FROM dual"
             if hasattr(api, "execute_query"):
-                result: FlextResult[list[FlextTypes.Dict]] = api.execute_query(
+                result: FlextResult[list[dict[str, object]]] = api.execute_query(
                     query, {}
                 )
                 results.append(result)
@@ -1454,7 +1454,7 @@ class TestFlextDbOracleApiSafeMethods:
             )
 
         # Create a test plugin directly
-        plugin: FlextTypes.Dict = {
+        plugin: dict[str, object] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1586,7 +1586,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         # Create a plugin for testing directly
-        plugin: FlextTypes.Dict = {
+        plugin: dict[str, object] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1759,7 +1759,7 @@ class TestApiSurgicalSimple:
         api = FlextDbOracleApi(config=config)
 
         # Test dispatch enabled property exists and is boolean
-        result = api._dispatch_enabled()
+        result = api._dispatch_enabled
         assert isinstance(result, bool)
 
 
@@ -1836,7 +1836,7 @@ class TestDirectCoverageBoostAPI:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
-            host=FlextConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
+            host="invalid-host",  # Invalid but quick to fail
             port=9999,
             username="invalid",
             password="invalid",
@@ -2081,7 +2081,7 @@ class TestDirectCoverageBoostTypes:
         try:
             table = FlextDbOracleModels.Table(
                 name="TEST_TABLE",
-                owner="TEST_SCHEMA",
+                schema="TEST_SCHEMA",
                 columns=[],  # Empty columns
             )
             assert table.name == "TEST_TABLE"
@@ -2213,7 +2213,7 @@ class TestDirectCoverageBoostServices:
 
         # Test SQL builder functionality through services
         identifier_result = services.build_select("test_table", ["col1", "col2"])
-        FlextTestsMatchers.assert_result_success(identifier_result)
+        FlextTestsMatchers().assert_result_success(identifier_result)
         assert "SELECT" in identifier_result.unwrap()
 
     def test_services_sql_builder_operations(self) -> None:
@@ -2233,7 +2233,7 @@ class TestDirectCoverageBoostServices:
 
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
-            FlextTestsMatchers.assert_result_success(result)
+            FlextTestsMatchers().assert_result_success(result)
             assert identifier.upper() in result.unwrap()
 
         # Test table reference building through services
@@ -2242,7 +2242,7 @@ class TestDirectCoverageBoostServices:
             ["col1"],
             schema_name="test_schema",
         )
-        FlextTestsMatchers.assert_result_success(table_ref_result)
+        FlextTestsMatchers().assert_result_success(table_ref_result)
         sql_result = table_ref_result.unwrap()
         assert (
             "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
@@ -2251,7 +2251,7 @@ class TestDirectCoverageBoostServices:
         # Test column list building through services
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
-        FlextTestsMatchers.assert_result_success(column_result)
+        FlextTestsMatchers().assert_result_success(column_result)
         result_sql = column_result.unwrap()
         assert "col1" in result_sql
         assert "col2" in result_sql
@@ -2286,7 +2286,7 @@ class TestDirectCoverageBoostServices:
 
         for config_result in configs:
             # Verify the result is successful and get the config
-            FlextTestsMatchers.assert_result_success(config_result)
+            FlextTestsMatchers().assert_result_success(config_result)
             config = config_result.unwrap()
 
             services = FlextDbOracleServices(config=config, domain_events=[])
@@ -2351,7 +2351,7 @@ class TestDirectCoverageBoostServices:
 
                 # All SQL methods should return results
                 assert result is not None
-                FlextTestsMatchers.assert_result_success(result)
+                FlextTestsMatchers().assert_result_success(result)
 
                 # Result should contain SQL (might be string or tuple)
                 sql_content = result.value
@@ -2377,9 +2377,7 @@ class TestDirectCoverageBoostServices:
                 elif method_name.startswith("build_update"):
                     assert "UPDATE" in sql_text.upper()
                 elif method_name.startswith("build_delete"):
-                    assert (
-                        FlextConstants.Platform.HTTP_METHOD_DELETE in sql_text.upper()
-                    )
+                    assert "DELETE" in sql_text.upper()
 
             except AttributeError:
                 # Method might not exist or be named differently

@@ -18,7 +18,7 @@ import re
 from typing import cast
 
 from flext_cli import FlextCliOutput
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextService
 
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -50,7 +50,7 @@ class FlextDbOracleUtilities(FlextService):
     @staticmethod
     def generate_query_hash(
         sql: str,
-        params: FlextTypes.Dict | None = None,
+        params: dict[str, object] | None = None,
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific.
 
@@ -175,11 +175,11 @@ class FlextDbOracleUtilities(FlextService):
             return FlextResult.fail(f"Query result formatting failed: {e}")
 
     @staticmethod
-    def create_config_from_env() -> FlextResult[FlextTypes.StringDict]:
+    def create_config_from_env() -> FlextResult[dict[str, str]]:
         """Create Oracle configuration from environment variables.
 
         Returns:
-            FlextResult[FlextTypes.StringDict]: Configuration or error.
+            FlextResult[dict[str, str]]: Configuration or error.
 
         """
         try:
@@ -277,7 +277,7 @@ class FlextDbOracleUtilities(FlextService):
 
     @staticmethod
     def create_api_from_config(
-        config: FlextTypes.Dict,
+        config: dict[str, object],
     ) -> FlextResult[object]:
         """Create Oracle API instance from configuration.
 
@@ -350,7 +350,7 @@ class FlextDbOracleUtilities(FlextService):
             if format_type.lower() == "table":
                 # Table format display
                 if hasattr(health_data, "model_dump"):
-                    data_dict: FlextTypes.Dict = getattr(health_data, "model_dump")()
+                    data_dict: dict[str, object] = getattr(health_data, "model_dump")()
                     if isinstance(data_dict, dict):
                         if hasattr(console, "print"):
                             getattr(console, "print")("Health Status:")
@@ -363,7 +363,7 @@ class FlextDbOracleUtilities(FlextService):
                     getattr(console, "print")(f"Health data: {health_data}")
             # JSON or other format
             elif hasattr(health_data, "model_dump"):
-                json_data: FlextTypes.Dict = getattr(health_data, "model_dump")()
+                json_data: dict[str, object] = getattr(health_data, "model_dump")()
                 if hasattr(console, "print"):
                     getattr(console, "print")(json.dumps(json_data, indent=2))
             elif hasattr(console, "print"):
