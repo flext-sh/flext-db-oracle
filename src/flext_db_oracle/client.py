@@ -15,7 +15,6 @@ from collections.abc import Callable
 from typing import cast
 
 from flext_core import FlextContainer, FlextResult, FlextService
-
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.typings import FlextDbOracleTypes
@@ -59,9 +58,6 @@ class FlextDbOracleClient(FlextService):
     def config(self) -> FlextDbOracleConfig:
         """Get the Oracle configuration (overrides base class)."""
         return self._oracle_config
-
-        self.logger.info("Oracle CLI client initialized")
-        return None
 
     @property
     def oracle_config(self) -> FlextDbOracleConfig:

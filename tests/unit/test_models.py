@@ -17,14 +17,13 @@ from unittest.mock import patch
 
 import pytest
 from flext_core import FlextModels, FlextResult
-from flext_tests import FlextTestsDomains
-from pydantic import ValidationError
-
 from flext_db_oracle import (
     FlextDbOracleConfig,
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
+from flext_tests import FlextTestsDomains
+from pydantic import ValidationError
 
 
 class TestOracleValidation:
@@ -396,7 +395,7 @@ class TestFlextDbOracleModelsStructure:
         assert callable(FlextDbOracleConfig)
 
         # Test it can be instantiated
-        config = FlextDbOracleConfig(username="test", password="test", domain_events=[])
+        config = FlextDbOracleConfig(username="test", password="test")
         assert config is not None
 
 
@@ -413,7 +412,7 @@ class TestOracleConfigEdgeCases:
 
         assert config.host == "oracle-ñáéíóú.example.com"
         assert config.username == "usér_name"
-        assert config.password == "páss_wórd_ñ"
+        assert config.password.get_secret_value() == "páss_wórd_ñ"
 
     def test_config_extreme_values(self) -> None:
         """Test Oracle config with extreme but valid values."""
@@ -423,14 +422,14 @@ class TestOracleConfigEdgeCases:
             username="u",  # Minimum username
             password="p",  # Minimum password
             pool_min=1,  # Minimum pool
-            pool_max=1000,  # Large pool
-            timeout=3600,  # Long timeout
+            pool_max=100,  # Maximum allowed pool (validated constraint)
+            query_timeout=3600,  # Long timeout for queries
         )
 
         assert len(config.host) == 253
         assert config.port == 65535
-        assert config.pool_max == 1000
-        assert config.timeout == 3600
+        assert config.pool_max == 100
+        assert config.query_timeout == 3600
 
     def test_config_serialization(self) -> None:
         """Test Oracle config can be serialized and deserialized."""
@@ -1249,7 +1248,7 @@ class TestFlextDbOracleModels:
         assert callable(FlextDbOracleConfig)
 
         # Test it can be instantiated
-        config = FlextDbOracleConfig(username="test", password="test", domain_events=[])
+        config = FlextDbOracleConfig(username="test", password="test")
         assert config is not None
 
     def test_config_with_unicode_characters(self) -> None:
@@ -1262,7 +1261,7 @@ class TestFlextDbOracleModels:
 
         assert config.host == "oracle-ñáéíóú.example.com"
         assert config.username == "usér_name"
-        assert config.password == "páss_wórd_ñ"
+        assert config.password.get_secret_value() == "páss_wórd_ñ"
 
     def test_config_extreme_values(self) -> None:
         """Test Oracle config with extreme but valid values."""
@@ -1272,14 +1271,14 @@ class TestFlextDbOracleModels:
             username="u",  # Minimum username
             password="p",  # Minimum password
             pool_min=1,  # Minimum pool
-            pool_max=1000,  # Large pool
-            timeout=3600,  # Long timeout
+            pool_max=100,  # Maximum allowed pool (validated constraint)
+            query_timeout=3600,  # Long timeout for queries
         )
 
         assert len(config.host) == 253
         assert config.port == 65535
-        assert config.pool_max == 1000
-        assert config.timeout == 3600
+        assert config.pool_max == 100
+        assert config.query_timeout == 3600
 
     def test_config_serialization(self) -> None:
         """Test Oracle config can be serialized and deserialized."""

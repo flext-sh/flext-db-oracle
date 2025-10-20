@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextLogger, FlextResult, FlextService
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)

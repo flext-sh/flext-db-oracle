@@ -10,7 +10,6 @@ from __future__ import annotations
 import contextlib
 
 from flext_core import FlextResult
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig, FlextDbOracleServices
 
 
@@ -31,7 +30,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle connection and disconnection."""
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Test connect - using modern .value access after failure check
         result = connection.connect()
@@ -54,7 +53,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle query execution."""
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -86,7 +85,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle fetch_one."""
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -119,7 +118,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Connect first - using modern pattern
         connect_result = connection.connect()
@@ -425,7 +424,7 @@ class TestRealOracleErrorHandling:
             password="invalid_password",
         )
 
-        connection = FlextDbOracleServices(config=invalid_config, domain_events=[])
+        connection = FlextDbOracleServices(config=invalid_config)
         result = connection.connect()
         assert result.is_failure
         error_msg = (result.error or "").lower()
@@ -444,7 +443,7 @@ class TestRealOracleErrorHandling:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test execution with invalid SQL."""
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         connect_result = connection.connect()
         if connect_result.is_failure:

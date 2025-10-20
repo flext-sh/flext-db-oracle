@@ -24,7 +24,6 @@ from flext_core import (
     FlextResult,
     FlextService,
 )
-
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -45,7 +44,6 @@ class FlextDbOracleCli(FlextService[str]):
         """Initialize Oracle CLI Service."""
         super().__init__()
         self._container = FlextContainer.get_global()
-        self.logger = FlextLogger(__name__)
         # Initialize CLI components with explicit error handling
         cli_result = self._initialize_cli_main()
         if cli_result.is_failure:
@@ -532,8 +530,7 @@ class FlextDbOracleCli(FlextService[str]):
             FlextResult[str]: Service status.
 
         """
-        if self.logger:
-            self.logger.info("Oracle CLI service initialized")
+        self.logger.info("Oracle CLI service initialized")
         return FlextResult[str].ok("Oracle CLI service ready")
 
     def run_cli(self, args: list[str] | None = None) -> FlextResult[str]:

@@ -12,15 +12,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextModels
+from flext_core import FlextConstants, FlextModels
+from flext_db_oracle.constants import FlextDbOracleConstants
 from pydantic import (
     Field,
     computed_field,
     field_serializer,
     model_validator,
 )
-
-from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleModels(FlextModels):
@@ -72,7 +71,11 @@ class FlextDbOracleModels(FlextModels):
         @computed_field
         def is_healthy(self) -> bool:
             """Connection health status."""
-            age_seconds = self.connection_age_seconds
+            age_seconds = (
+                (datetime.now(UTC) - self.last_activity).total_seconds()
+                if self.is_connected and self.last_activity
+                else None
+            )
             return self.is_connected and not (
                 age_seconds is not None
                 and age_seconds
@@ -225,7 +228,13 @@ class FlextDbOracleModels(FlextModels):
         @computed_field
         def memory_usage_mb(self) -> float:
             """Estimated memory usage in MB."""
-            data_size = self.data_size_bytes
+            data_size = (
+                len(self.rows)
+                * len(self.columns)
+                * FlextDbOracleConstants.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                if self.rows
+                else 0
+            )
             return data_size / (1024 * 1024)
 
         @model_validator(mode="after")

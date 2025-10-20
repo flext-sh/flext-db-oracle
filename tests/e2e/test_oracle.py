@@ -14,7 +14,6 @@ import os
 from typing import cast
 
 import pytest
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,

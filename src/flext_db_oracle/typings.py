@@ -123,7 +123,7 @@ class FlextDbOracleTypes(FlextTypes):
     class Security:
         """Oracle security complex types."""
 
-        type UserPermissions = dict[str, list[str] | FlextTypes.BoolDict]
+        type UserPermissions = dict[str, list[str] | dict[str, bool]]
         type RoleDefinition = dict[
             str, str | list[str] | dict[str, FlextTypes.JsonValue]
         ]

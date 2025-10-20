@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from flext_core import FlextConfig, FlextConstants, FlextResult
+from flext_db_oracle.constants import FlextDbOracleConstants
 from pydantic import (
     Field,
     SecretStr,
@@ -20,8 +21,6 @@ from pydantic import (
     computed_field,
     field_validator,
 )
-
-from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleConfig(FlextConfig):
@@ -33,7 +32,7 @@ class FlextDbOracleConfig(FlextConfig):
     """
 
     # Configuration inherited from FlextConfig with Oracle-specific env prefix
-    model_config: ClassVar[dict] = {
+    model_config = {
         **FlextConfig.model_config,
         "env_prefix": "FLEXT_DB_ORACLE_",
         "json_schema_extra": {

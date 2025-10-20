@@ -17,9 +17,6 @@ from typing import cast
 
 import pytest
 from flext_core import FlextResult
-from flext_tests import FlextTestsDomains
-from flext_tests.matchers import FlextTestsMatchers
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
@@ -27,6 +24,8 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     dispatcher as oracle_dispatcher,
 )
+from flext_tests import FlextTestsDomains
+from flext_tests.matchers import FlextTestsMatchers
 
 
 class TestFlextDbOracleApiRealFunctionality:
@@ -2007,7 +2006,7 @@ class TestDirectCoverageBoostConnection:
     ) -> None:
         """Test connection edge cases for missed lines."""
         # Test connection lifecycle edge cases
-        connection = FlextDbOracleServices(config=real_oracle_config, domain_events=[])
+        connection = FlextDbOracleServices(config=real_oracle_config)
 
         # Test multiple connect/disconnect cycles
         for _i in range(3):
@@ -2031,7 +2030,7 @@ class TestDirectCoverageBoostConnection:
             service_name="invalid",
         )
 
-        connection = FlextDbOracleServices(config=bad_config, domain_events=[])
+        connection = FlextDbOracleServices(config=bad_config)
 
         # Test operations on invalid connection
         operations = [
@@ -2205,7 +2204,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
 
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(config=config)
         assert services is not None
 
         # Test available service classes
@@ -2226,7 +2225,7 @@ class TestDirectCoverageBoostServices:
             username="test",
             password="test",
         )
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(config=config)
 
         # Test identifier validation with various inputs
         test_identifiers = ["valid_table", "VALID_TABLE", "table123", "test_col"]
@@ -2289,7 +2288,7 @@ class TestDirectCoverageBoostServices:
             FlextTestsMatchers().assert_result_success(config_result)
             config = config_result.unwrap()
 
-            services = FlextDbOracleServices(config=config, domain_events=[])
+            services = FlextDbOracleServices(config=config)
 
             # Test services initialization
             assert services is not None
@@ -2318,7 +2317,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
 
-        services = FlextDbOracleServices(config=config, domain_events=[])
+        services = FlextDbOracleServices(config=config)
 
         # Test all SQL generation methods
         sql_test_cases = [

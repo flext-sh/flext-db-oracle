@@ -21,7 +21,6 @@ from flext_core import (
     FlextResult,
     FlextService,
 )
-
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -53,11 +52,11 @@ class FlextDbOracleApi(FlextService):
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration and complete flext-core integration."""
+        # Initialize FlextService first
+        super().__init__()
+
         # Configuration management - use FlextDbOracleConfig directly
         self._oracle_config = config
-
-        # Initialize FlextService with config
-        super().__init__(config=self._oracle_config)
 
         # Core services initialization
         self._services = FlextDbOracleServices(config=self._oracle_config)
@@ -106,50 +105,50 @@ class FlextDbOracleApi(FlextService):
         return cls(config)
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[Self]:
+    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleApi]:
         """Create API instance from environment variables.
 
         Args:
             prefix: Environment variable prefix (default: "ORACLE_")
 
         Returns:
-            FlextResult[Self]: API instance or error.
+            FlextResult[FlextDbOracleApi]: API instance or error.
 
         """
         try:
             config_result = FlextDbOracleConfig.from_env(prefix)
             if config_result.is_failure:
-                return FlextResult[Self].fail(
+                return FlextResult[FlextDbOracleApi].fail(
                     f"Config creation failed: {config_result.error}"
                 )
 
             config = config_result.unwrap()
-            return FlextResult[Self].ok(cls(config))
+            return FlextResult[FlextDbOracleApi].ok(cls(config))
         except Exception as e:
-            return FlextResult[Self].fail(f"API creation from environment failed: {e}")
+            return FlextResult[FlextDbOracleApi].fail(f"API creation from environment failed: {e}")
 
     @classmethod
-    def from_url(cls, url: str) -> FlextResult[Self]:
+    def from_url(cls, url: str) -> FlextResult[FlextDbOracleApi]:
         """Create API instance from Oracle URL string.
 
         Args:
             url: Oracle connection URL (oracle://user:pass@host:port/service)
 
         Returns:
-            FlextResult[Self]: API instance or error.
+            FlextResult[FlextDbOracleApi]: API instance or error.
 
         """
         try:
             config_result = FlextDbOracleConfig.from_url(url)
             if config_result.is_failure:
-                return FlextResult[Self].fail(
+                return FlextResult[FlextDbOracleApi].fail(
                     f"Config creation from URL failed: {config_result.error}"
                 )
 
             config = config_result.unwrap()
-            return FlextResult[Self].ok(cls(config))
+            return FlextResult[FlextDbOracleApi].ok(cls(config))
         except Exception as e:
-            return FlextResult[Self].fail(f"API creation from URL failed: {e}")
+            return FlextResult[FlextDbOracleApi].fail(f"API creation from URL failed: {e}")
 
     def to_dict(self) -> dict[str, object]:
         """Convert API instance to dictionary representation."""
@@ -270,10 +269,10 @@ class FlextDbOracleApi(FlextService):
 
         columns_data = [
             {
-                "name": col.name,
-                "data_type": col.data_type,
-                "nullable": col.nullable,
-                "default_value": col.default_value,
+                "name": col.get("column_name", ""),
+                "data_type": col.get("data_type", ""),
+                "nullable": col.get("nullable", False),
+                "default_value": col.get("data_default", None),
             }
             for col in result.unwrap()
         ]
@@ -403,7 +402,7 @@ class FlextDbOracleApi(FlextService):
     def get_health_status(self) -> FlextResult[dict[str, object]]:
         """Get database connection health status."""
         try:
-            status = {
+            status: dict[str, object] = {
                 "connected": self.is_connected,
                 "host": self._oracle_config.host,
                 "port": self._oracle_config.port,

@@ -19,7 +19,6 @@ from typing import cast
 
 from flext_cli import FlextCliOutput
 from flext_core import FlextResult, FlextService
-
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 

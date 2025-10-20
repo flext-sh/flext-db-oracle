@@ -27,7 +27,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             username="test",
             password="test",
         )
-        self.services = FlextDbOracleServices(config=self.config, domain_events=[])
+        self.services = FlextDbOracleServices(config=self.config)
         self.manager = self.services  # They are the same unified class now
 
     def test_metadata_manager_initialization(self) -> None:

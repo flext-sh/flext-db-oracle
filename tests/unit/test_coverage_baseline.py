@@ -108,7 +108,7 @@ class TestFlextDbOracleServices:
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config, domain_events=[])
+        service = FlextDbOracleServices(config=config)
         assert service is not None
         assert service.config == config
 
@@ -121,7 +121,7 @@ class TestFlextDbOracleServices:
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config, domain_events=[])
+        service = FlextDbOracleServices(config=config)
         assert service.is_connected() is False
 
     def test_service_has_sql_building_methods(self) -> None:
@@ -133,7 +133,7 @@ class TestFlextDbOracleServices:
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config, domain_events=[])
+        service = FlextDbOracleServices(config=config)
 
         # Test SQL building methods exist
         assert hasattr(service, "build_select")
@@ -150,7 +150,7 @@ class TestFlextDbOracleServices:
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config, domain_events=[])
+        service = FlextDbOracleServices(config=config)
 
         # Test building a simple SELECT statement
         result = service.build_select("USERS", ["ID", "NAME"])

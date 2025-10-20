@@ -14,9 +14,8 @@ from pathlib import Path
 
 import pytest
 from flext_core import FlextResult
-from flext_tests import FlextTestsDomains
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_tests import FlextTestsDomains
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
