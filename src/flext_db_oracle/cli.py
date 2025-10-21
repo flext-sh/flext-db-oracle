@@ -20,7 +20,6 @@ import yaml
 from flext_cli import FlextCliCommands
 from flext_core import (
     FlextContainer,
-    FlextLogger,
     FlextResult,
     FlextService,
 )
@@ -32,7 +31,7 @@ from flext_db_oracle.constants import FlextDbOracleConstants
 class FlextDbOracleCli(FlextService[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
-    ZERO TOLERANCE COMPLIANCE:
+    Zero Tolerance COMPLIANCE:
     - NO direct click imports - uses flext-cli foundation only
     - Unified class pattern with nested helpers
     - Explicit FlextResult error handling
@@ -56,7 +55,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Initialize CLI main component with explicit error handling.
 
         Returns:
-            FlextResult[FlextCliCommands]: CLI main component or error.
+        FlextResult[FlextCliCommands]: CLI main component or error.
 
         """
         try:
@@ -88,7 +87,7 @@ class FlextDbOracleCli(FlextService[str]):
             """Create Oracle configuration from parameters.
 
             Returns:
-                FlextResult[FlextDbOracleConfig]: Configuration or error.
+            FlextResult[FlextDbOracleConfig]: Configuration or error.
 
             """
             if password is None or not password.strip():
@@ -117,7 +116,7 @@ class FlextDbOracleCli(FlextService[str]):
             """Validate Oracle database connection.
 
             Returns:
-                FlextResult[bool]: True if connection valid, False otherwise.
+            FlextResult[bool]: True if connection valid, False otherwise.
 
             """
             # Create new API instance with the config
@@ -144,20 +143,20 @@ class FlextDbOracleCli(FlextService[str]):
             """Format success message using simple formatting.
 
             Returns:
-                FlextResult[str]: Formatted success message.
+            FlextResult[str]: Formatted success message.
 
             """
-            formatted_msg = f"✅ {message}"
+            formatted_msg = f"{message}"
             return FlextResult[str].ok(formatted_msg)
 
         def format_error_message(self, error: str) -> FlextResult[str]:
             """Format error message using simple formatting.
 
             Returns:
-                FlextResult[str]: Formatted error message.
+            FlextResult[str]: Formatted error message.
 
             """
-            formatted_msg = f"❌ {error}"
+            formatted_msg = f"{error}"
             return FlextResult[str].ok(formatted_msg)
 
         def format_list_output(
@@ -169,7 +168,7 @@ class FlextDbOracleCli(FlextService[str]):
             """Format list output using simple formatters.
 
             Returns:
-                FlextResult[str]: Formatted list output.
+            FlextResult[str]: Formatted list output.
 
             """
             # Convert dict[str, object] items to string representation
@@ -203,7 +202,7 @@ class FlextDbOracleCli(FlextService[str]):
             """Format any data object using simple formatters.
 
             Returns:
-                FlextResult[str]: Formatted data.
+            FlextResult[str]: Formatted data.
 
             """
             if output_format == "json":
@@ -228,18 +227,18 @@ class FlextDbOracleCli(FlextService[str]):
         password: str | None = None,
         timeout: int = FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT,
     ) -> FlextResult[dict[str, object]]:
-        """Execute comprehensive health check for Oracle database connection.
+        """Execute complete health check for Oracle database connection.
 
         Args:
-            host: Oracle database hostname
-            port: Oracle database port
-            service_name: Oracle service name
-            username: Oracle username
-            password: Oracle password (required)
-            timeout: Connection timeout in seconds
+        host: Oracle database hostname
+        port: Oracle database port
+        service_name: Oracle service name
+        username: Oracle username
+        password: Oracle password (required)
+        timeout: Connection timeout in seconds
 
         Returns:
-            FlextResult[dict[str, object]]: Health check results with status and timing
+        FlextResult[dict[str, object]]: Health check results with status and timing
 
         """
         start_time = time.time()
@@ -306,7 +305,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Execute Oracle schemas listing.
 
         Returns:
-            FlextResult[str]: Schemas list or error.
+        FlextResult[str]: Schemas list or error.
 
         """
         formatter = self._OutputFormatter(self._cli_main)
@@ -378,7 +377,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Execute Oracle tables listing for a schema.
 
         Returns:
-            FlextResult[str]: Tables list or error.
+        FlextResult[str]: Tables list or error.
 
         """
         formatter = self._OutputFormatter(self._cli_main)
@@ -452,7 +451,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Execute SQL query against Oracle database.
 
         Returns:
-            FlextResult[str]: Query results or error.
+        FlextResult[str]: Query results or error.
 
         """
         formatter = self._OutputFormatter(self._cli_main)
@@ -527,7 +526,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Execute domain service - required by FlextService.
 
         Returns:
-            FlextResult[str]: Service status.
+        FlextResult[str]: Service status.
 
         """
         self.logger.info("Oracle CLI service initialized")
@@ -537,7 +536,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Run CLI with command line arguments simulation.
 
         Returns:
-            FlextResult[str]: CLI execution result.
+        FlextResult[str]: CLI execution result.
 
         """
         if args is None:
@@ -548,10 +547,10 @@ class FlextDbOracleCli(FlextService[str]):
             help_msg = """Oracle Database CLI - Enterprise Oracle operations.
 
 Available commands:
-  health    Check Oracle database health
-  schemas   List Oracle schemas
-  tables    List Oracle tables in a schema
-  query     Execute SQL query
+ health Check Oracle database health
+ schemas List Oracle schemas
+ tables List Oracle tables in a schema
+ query Execute SQL query
 
 Use --help with any command for detailed options.
 """
@@ -575,11 +574,11 @@ Use --help with any command for detailed options.
             min_query_args = 2
             if len(args) < min_query_args:
                 error_msg = "SQL query is required for query command"
-                self._OutputFormatter(self._cli_main).display_message(f"❌ {error_msg}")
+                self._OutputFormatter(self._cli_main).display_message(f"{error_msg}")
                 return FlextResult[str].fail(error_msg)
             return self.execute_query(args[1])
         error_msg = f"Unknown command: {command}"
-        self._OutputFormatter(self._cli_main).display_message(f"❌ {error_msg}")
+        self._OutputFormatter(self._cli_main).display_message(f"{error_msg}")
         return FlextResult[str].fail(error_msg)
 
     @classmethod

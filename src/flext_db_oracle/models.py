@@ -262,7 +262,7 @@ class FlextDbOracleModels(FlextModels):
         """Table metadata using flext-core Entity."""
 
         name: str
-        schema_name: str = Field(alias="schema")
+        owner: str = Field(alias="schema")
         columns: list[FlextDbOracleModels.Column] = Field(default_factory=list)
 
     class Column(FlextModels.Entity):
@@ -300,7 +300,7 @@ class FlextDbOracleModels(FlextModels):
         insert_columns: list[str] = Field(default_factory=list)
 
 
-# ZERO TOLERANCE: No compatibility aliases - use FlextDbOracleModels.ClassName directly
+# Zero Tolerance: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
 __all__ = [
     "FlextDbOracleModels",

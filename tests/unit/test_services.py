@@ -14,15 +14,18 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
-from flext_core import FlextConstants, FlextResult
+from flext_core import FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleServices,
 )
-from flext_tests.domains import FlextTestsDomains
-from flext_tests.matchers import FlextTestsMatchers
+
+# Removed flext_tests.domains import - using direct object creation
+
+# Removed flext_tests.matchers import - using direct assertions
 
 
 class TestFlextDbOracleServicesBasic:
@@ -540,7 +543,7 @@ class TestDirectCoverageBoostAPI:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleConfig(
-            host=FlextConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
+            host=FlextDbOracleConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
             port=9999,
             username="invalid",
             password="invalid",
@@ -917,7 +920,7 @@ class TestDirectCoverageBoostServices:
 
         # Test SQL builder functionality through services
         identifier_result = services.build_select("test_table", ["col1", "col2"])
-        FlextTestsMatchers.assert_flext_result_success(identifier_result)
+        assert identifier_result.is_success
         assert "SELECT" in identifier_result.unwrap()
 
     def test_services_sql_builder_operations(self) -> None:
@@ -937,7 +940,7 @@ class TestDirectCoverageBoostServices:
 
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
-            FlextTestsMatchers.assert_flext_result_success(result)
+            assert result.is_success
             assert identifier.upper() in result.unwrap()
 
         # Test table reference building through services
@@ -946,7 +949,7 @@ class TestDirectCoverageBoostServices:
             ["col1"],
             schema_name="test_schema",
         )
-        FlextTestsMatchers.assert_flext_result_success(table_ref_result)
+        assert table_ref_result.is_success
         sql_result = table_ref_result.unwrap()
         assert (
             "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
@@ -955,7 +958,7 @@ class TestDirectCoverageBoostServices:
         # Test column list building through services
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
-        FlextTestsMatchers.assert_flext_result_success(column_result)
+        assert column_result.is_success
         result_sql = column_result.unwrap()
         assert "col1" in result_sql
         assert "col2" in result_sql
@@ -965,7 +968,7 @@ class TestDirectCoverageBoostServices:
         # Test all configuration scenarios
         configs = [
             # Valid config
-            FlextTestsDomains.create_api_response()
+            type("MockResponse", (), {"with_success_data": lambda self, data: data})()
             .with_success_data(
                 FlextDbOracleConfig(
                     host="test_host",
@@ -978,7 +981,7 @@ class TestDirectCoverageBoostServices:
             )
             .build(),
             # Edge case config
-            FlextTestsDomains.create_api_response()
+            type("MockResponse", (), {"with_success_data": lambda self, data: data})()
             .with_success_data(
                 FlextDbOracleConfig(
                     host="localhost",
@@ -998,7 +1001,7 @@ class TestDirectCoverageBoostServices:
                 continue  # Skip non-FlextResult items
             # Cast to FlextResult to satisfy mypy
             result = cast("FlextResult[object]", config_result)
-            FlextTestsMatchers.assert_flext_result_success(result)
+            assert result.is_success
             # Use the cast result for accessing value
             config = cast(
                 "FlextDbOracleConfig",
@@ -1067,7 +1070,7 @@ class TestDirectCoverageBoostServices:
 
                 # All SQL methods should return results
                 assert result is not None
-                FlextTestsMatchers.assert_flext_result_success(result)
+                assert result.is_success
 
                 # Result should contain SQL (might be string or tuple)
                 sql_content = result.value
@@ -1094,7 +1097,8 @@ class TestDirectCoverageBoostServices:
                     assert "UPDATE" in sql_text.upper()
                 elif method_name.startswith("build_delete"):
                     assert (
-                        FlextConstants.Platform.HTTP_METHOD_DELETE in sql_text.upper()
+                        FlextDbOracleConstants.Platform.HTTP_METHOD_DELETE
+                        in sql_text.upper()
                     )
 
             except AttributeError:

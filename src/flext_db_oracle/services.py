@@ -26,6 +26,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         super().__init__()
         self._config = config
         self._engine: Engine | None = None
+        self._operations: list[dict[str, object]] = []
 
     def _build_connection_url(self) -> FlextResult[str]:
         """Build Oracle connection URL from configuration."""
@@ -231,22 +232,22 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         try:
             if schema_name:
                 sql = """
-                SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
-                FROM all_tab_columns
-                WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
-                ORDER BY column_id
-                """
+ SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
+ FROM all_tab_columns
+ WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
+ ORDER BY column_id
+ """
                 params: dict[str, object] = {
                     "table_name": table_name,
                     "schema_name": schema_name,
                 }
             else:
                 sql = """
-                SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
-                FROM user_tab_columns
-                WHERE table_name = UPPER(:table_name)
-                ORDER BY column_id
-                """
+ SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
+ FROM user_tab_columns
+ WHERE table_name = UPPER(:table_name)
+ ORDER BY column_id
+ """
                 params = {"table_name": table_name}
 
             return self.execute_query(sql, params)
@@ -260,24 +261,24 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         try:
             if schema:
                 sql = """
-                SELECT column_name
-                FROM all_constraints c, all_cons_columns cc
-                WHERE c.constraint_type = 'P'
-                AND c.constraint_name = cc.constraint_name
-                AND c.table_name = UPPER(:table_name)
-                AND c.owner = :schema
-                ORDER BY cc.position
-                """
+ SELECT column_name
+ FROM all_constraints c, all_cons_columns cc
+ WHERE c.constraint_type = 'P'
+ AND c.constraint_name = cc.constraint_name
+ AND c.table_name = UPPER(:table_name)
+ AND c.owner = :schema
+ ORDER BY cc.position
+ """
                 params: dict[str, object] = {"table_name": table_name, "schema": schema}
             else:
                 sql = """
-                SELECT column_name
-                FROM all_constraints c, all_cons_columns cc
-                WHERE c.constraint_type = 'P'
-                AND c.constraint_name = cc.constraint_name
-                AND c.table_name = UPPER(:table_name)
-                ORDER BY cc.position
-                """
+ SELECT column_name
+ FROM all_constraints c, all_cons_columns cc
+ WHERE c.constraint_type = 'P'
+ AND c.constraint_name = cc.constraint_name
+ AND c.table_name = UPPER(:table_name)
+ ORDER BY cc.position
+ """
                 params = {"table_name": table_name}
 
             result = self.execute_query(sql, params)
@@ -292,7 +293,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
     def get_table_metadata(
         self, table_name: str, schema: str | None = None
     ) -> FlextResult[dict[str, object]]:
-        """Get comprehensive table metadata."""
+        """Get complete table metadata."""
         try:
             # Get table columns
             columns_result = self.get_columns(table_name, schema)
@@ -519,7 +520,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         """Get plugin - placeholder implementation.
 
         Args:
-            name: Plugin name (reserved for future implementation)
+        name: Plugin name (reserved for future implementation)
 
         """
         return FlextResult.ok(None)
@@ -552,6 +553,37 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             return FlextResult.ok(count)
         except Exception as e:
             return FlextResult.fail(f"Failed to get row count: {e}")
+
+    def track_operation(
+        self,
+        operation_type: str,
+        duration: float,
+        _success: bool,
+        metadata: dict[str, object] | None = None,
+    ) -> FlextResult[None]:
+        """Track database operation for monitoring."""
+        try:
+            operation = {
+                "operation_type": operation_type,
+                "duration": duration,
+                "success": _success,
+                "metadata": metadata or {},
+                "timestamp": self._get_current_timestamp(),
+            }
+            self._operations.append(operation)
+            return FlextResult.ok(None)
+        except Exception as e:
+            return FlextResult.fail(f"Failed to track operation: {e}")
+
+    def get_operations(self) -> FlextResult[list[dict[str, object]]]:
+        """Get tracked operations."""
+        return FlextResult.ok(self._operations.copy())
+
+    def _get_current_timestamp(self) -> str:
+        """Get current timestamp for operation tracking."""
+        import time
+
+        return str(int(time.time()))
 
 
 # Export the single refactored class following flext-core pattern

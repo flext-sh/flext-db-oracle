@@ -34,7 +34,7 @@ class FlextDbOracleUtilities(FlextService):
         """Execute the main domain operation for Oracle utilities.
 
         Returns:
-            FlextResult[object]: Success with operation result or failure with error
+        FlextResult[object]: Success with operation result or failure with error
 
         """
         # Default implementation - subclasses should override with specific logic
@@ -54,7 +54,7 @@ class FlextDbOracleUtilities(FlextService):
         """Generate hash for SQL query caching - Oracle specific.
 
         Returns:
-            FlextResult[str]: Query hash or error.
+        FlextResult[str]: Query hash or error.
 
         """
         # Use standard string processing for normalization
@@ -74,7 +74,7 @@ class FlextDbOracleUtilities(FlextService):
         """Format SQL query for Oracle logging - Oracle specific.
 
         Returns:
-            FlextResult[str]: Formatted SQL or error.
+        FlextResult[str]: Formatted SQL or error.
 
         """
         # Use standard string processing for basic formatting
@@ -101,7 +101,7 @@ class FlextDbOracleUtilities(FlextService):
         """Escape Oracle identifier for safe SQL construction - Oracle specific.
 
         Returns:
-            FlextResult[str]: Escaped identifier or error.
+        FlextResult[str]: Escaped identifier or error.
 
         """
         try:
@@ -142,7 +142,7 @@ class FlextDbOracleUtilities(FlextService):
         Uses FlextUtilities for consistent formatting and validation.
 
         Returns:
-            FlextResult[str]: Formatted result or error.
+        FlextResult[str]: Formatted result or error.
 
         """
         try:
@@ -178,7 +178,7 @@ class FlextDbOracleUtilities(FlextService):
         """Create Oracle configuration from environment variables.
 
         Returns:
-            FlextResult[dict[str, str]]: Configuration or error.
+        FlextResult[dict[str, str]]: Configuration or error.
 
         """
         try:
@@ -281,7 +281,7 @@ class FlextDbOracleUtilities(FlextService):
         """Create Oracle API instance from configuration.
 
         Returns:
-            FlextResult[object]: API instance or error.
+        FlextResult[object]: API instance or error.
 
         """
         try:

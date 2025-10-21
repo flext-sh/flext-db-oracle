@@ -33,7 +33,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Establish Oracle database connection.
 
                 Returns:
-                    FlextResult[bool]: Connection success status
+                FlextResult[bool]: Connection success status
 
                 """
                 ...
@@ -43,7 +43,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Close Oracle database connection.
 
                 Returns:
-                    FlextResult[bool]: Disconnection success status
+                FlextResult[bool]: Disconnection success status
 
                 """
                 ...
@@ -53,7 +53,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Check if Oracle connection is active.
 
                 Returns:
-                    FlextResult[bool]: Connection status
+                FlextResult[bool]: Connection status
 
                 """
                 ...
@@ -63,7 +63,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Test Oracle database connectivity.
 
                 Returns:
-                    FlextResult[bool]: Connection test result
+                FlextResult[bool]: Connection test result
 
                 """
                 ...
@@ -73,7 +73,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get current Oracle connection object.
 
                 Returns:
-                    FlextResult[object]: Connection object or error
+                FlextResult[object]: Connection object or error
 
                 """
                 ...
@@ -89,11 +89,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Execute Oracle SQL query.
 
                 Args:
-                    sql: SQL query string
-                    params: Query parameters
+                sql: SQL query string
+                params: Query parameters
 
                 Returns:
-                    FlextResult[object]: Query result or error
+                FlextResult[object]: Query result or error
 
                 """
                 ...
@@ -105,11 +105,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Execute Oracle SQL statement.
 
                 Args:
-                    sql: SQL statement string
-                    params: Statement parameters
+                sql: SQL statement string
+                params: Statement parameters
 
                 Returns:
-                    FlextResult[bool]: Execution success status
+                FlextResult[bool]: Execution success status
 
                 """
                 ...
@@ -121,11 +121,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Execute Oracle SQL statement with multiple parameter sets.
 
                 Args:
-                    sql: SQL statement string
-                    params_list: List of parameter dictionaries
+                sql: SQL statement string
+                params_list: List of parameter dictionaries
 
                 Returns:
-                    FlextResult[int]: Number of affected rows
+                FlextResult[int]: Number of affected rows
 
                 """
                 ...
@@ -137,11 +137,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Fetch single result from Oracle query.
 
                 Args:
-                    sql: SQL query string
-                    params: Query parameters
+                sql: SQL query string
+                params: Query parameters
 
                 Returns:
-                    FlextResult[object | None]: Single result or None
+                FlextResult[object | None]: Single result or None
 
                 """
                 ...
@@ -154,7 +154,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get list of Oracle schemas.
 
                 Returns:
-                    FlextResult[list[str]]: Schema names or error
+                FlextResult[list[str]]: Schema names or error
 
                 """
                 ...
@@ -163,10 +163,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get list of tables in Oracle schema.
 
                 Args:
-                    schema: Schema name (optional)
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[list[str]]: Table names or error
+                FlextResult[list[str]]: Table names or error
 
                 """
                 ...
@@ -177,11 +177,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get column information for Oracle table.
 
                 Args:
-                    table: Table name
-                    schema: Schema name (optional)
+                table: Table name
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[list[dict[str, object]]]: Column metadata or error
+                FlextResult[list[dict[str, object]]]: Column metadata or error
 
                 """
                 ...
@@ -192,11 +192,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle table metadata.
 
                 Args:
-                    table: Table name
-                    schema: Schema name (optional)
+                table: Table name
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[dict[str, object]]: Table metadata or error
+                FlextResult[dict[str, object]]: Table metadata or error
 
                 """
                 ...
@@ -207,11 +207,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get primary key columns for Oracle table.
 
                 Args:
-                    table: Table name
-                    schema: Schema name (optional)
+                table: Table name
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[list[str]]: Primary key column names or error
+                FlextResult[list[str]]: Primary key column names or error
 
                 """
                 ...
@@ -231,14 +231,14 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Build Oracle SELECT statement.
 
                 Args:
-                    table: Table name
-                    columns: Column names (optional)
-                    where_clause: WHERE condition (optional)
-                    order_by: ORDER BY clause (optional)
-                    limit: Row limit (optional)
+                table: Table name
+                columns: Column names (optional)
+                where_clause: WHERE condition (optional)
+                order_by: ORDER BY clause (optional)
+                limit: Row limit (optional)
 
                 Returns:
-                    FlextResult[str]: SQL SELECT statement or error
+                FlextResult[str]: SQL SELECT statement or error
 
                 """
                 ...
@@ -249,11 +249,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Build Oracle INSERT statement.
 
                 Args:
-                    table: Table name
-                    data: Column data
+                table: Table name
+                data: Column data
 
                 Returns:
-                    FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
 
                 """
                 ...
@@ -264,12 +264,12 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Build Oracle UPDATE statement.
 
                 Args:
-                    table: Table name
-                    data: Column data
-                    where_clause: WHERE condition
+                table: Table name
+                data: Column data
+                where_clause: WHERE condition
 
                 Returns:
-                    FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
 
                 """
                 ...
@@ -280,11 +280,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Build Oracle DELETE statement.
 
                 Args:
-                    table: Table name
-                    where_clause: WHERE condition
+                table: Table name
+                where_clause: WHERE condition
 
                 Returns:
-                    FlextResult[str]: SQL DELETE statement or error
+                FlextResult[str]: SQL DELETE statement or error
 
                 """
                 ...
@@ -302,12 +302,12 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Generate Oracle CREATE TABLE DDL.
 
                 Args:
-                    table: Table name
-                    columns: Column definitions
-                    schema: Schema name (optional)
+                table: Table name
+                columns: Column definitions
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[str]: CREATE TABLE DDL or error
+                FlextResult[str]: CREATE TABLE DDL or error
 
                 """
                 ...
@@ -318,11 +318,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Generate Oracle DROP TABLE DDL.
 
                 Args:
-                    table: Table name
-                    schema: Schema name (optional)
+                table: Table name
+                schema: Schema name (optional)
 
                 Returns:
-                    FlextResult[str]: DROP TABLE DDL or error
+                FlextResult[str]: DROP TABLE DDL or error
 
                 """
                 ...
@@ -338,13 +338,13 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Build Oracle CREATE INDEX statement.
 
                 Args:
-                    table: Table name
-                    columns: Index columns
-                    index_name: Index name (optional)
-                    unique: Create unique index
+                table: Table name
+                columns: Index columns
+                index_name: Index name (optional)
+                unique: Create unique index
 
                 Returns:
-                    FlextResult[str]: CREATE INDEX statement or error
+                FlextResult[str]: CREATE INDEX statement or error
 
                 """
                 ...
@@ -362,12 +362,12 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Record Oracle database metric.
 
                 Args:
-                    name: Metric name
-                    value: Metric value
-                    tags: Metric tags (optional)
+                name: Metric name
+                value: Metric value
+                tags: Metric tags (optional)
 
                 Returns:
-                    FlextResult[bool]: Success status
+                FlextResult[bool]: Success status
 
                 """
                 ...
@@ -376,7 +376,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get collected Oracle metrics.
 
                 Returns:
-                    FlextResult[dict[str, object]]: Metrics data or error
+                FlextResult[dict[str, object]]: Metrics data or error
 
                 """
                 ...
@@ -387,12 +387,12 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Track Oracle operation performance.
 
                 Args:
-                    operation: Operation name
-                    duration: Operation duration
-                    success: Operation success status
+                operation: Operation name
+                duration: Operation duration
+                success: Operation success status
 
                 Returns:
-                    FlextResult[bool]: Tracking success status
+                FlextResult[bool]: Tracking success status
 
                 """
                 ...
@@ -405,11 +405,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Register Oracle database plugin.
 
                 Args:
-                    name: Plugin name
-                    plugin: Plugin instance
+                name: Plugin name
+                plugin: Plugin instance
 
                 Returns:
-                    FlextResult[bool]: Registration success status
+                FlextResult[bool]: Registration success status
 
                 """
                 ...
@@ -418,10 +418,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Unregister Oracle database plugin.
 
                 Args:
-                    name: Plugin name
+                name: Plugin name
 
                 Returns:
-                    FlextResult[bool]: Unregistration success status
+                FlextResult[bool]: Unregistration success status
 
                 """
                 ...
@@ -430,10 +430,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle database plugin by name.
 
                 Args:
-                    name: Plugin name
+                name: Plugin name
 
                 Returns:
-                    FlextResult[object]: Plugin instance or error
+                FlextResult[object]: Plugin instance or error
 
                 """
                 ...
@@ -442,7 +442,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """List registered Oracle database plugins.
 
                 Returns:
-                    FlextResult[list[str]]: Plugin names or error
+                FlextResult[list[str]]: Plugin names or error
 
                 """
                 ...
@@ -455,7 +455,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Perform Oracle database health check.
 
                 Returns:
-                    FlextResult[dict[str, object]]: Health status or error
+                FlextResult[dict[str, object]]: Health status or error
 
                 """
                 ...
@@ -464,7 +464,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle connection status information.
 
                 Returns:
-                    FlextResult[dict[str, object]]: Connection status or error
+                FlextResult[dict[str, object]]: Connection status or error
 
                 """
                 ...

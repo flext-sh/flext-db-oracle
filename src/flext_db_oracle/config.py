@@ -26,13 +26,13 @@ from pydantic import (
 class FlextDbOracleConfig(FlextConfig):
     """Oracle Database Configuration extending FlextConfig.
 
-    Provides comprehensive configuration for Oracle database operations including
+    Provides complete configuration for Oracle database operations including
     connection settings, pool configuration, performance tuning, and security.
     Uses enhanced singleton pattern with inverse dependency injection.
     """
 
     # Configuration inherited from FlextConfig with Oracle-specific env prefix
-    model_config = {
+    model_config: ClassVar[dict[str, object]] = {
         **FlextConfig.model_config,
         "env_prefix": "FLEXT_DB_ORACLE_",
         "json_schema_extra": {
@@ -130,6 +130,13 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     # Performance Configuration
+    timeout: int = Field(
+        default=60,
+        ge=1,
+        le=3600,
+        description="General timeout in seconds",
+    )
+
     query_timeout: int = Field(
         default=FlextDbOracleConstants.OracleDefaults.DEFAULT_QUERY_TIMEOUT,
         ge=1,
@@ -393,10 +400,10 @@ class FlextDbOracleConfig(FlextConfig):
         """Create OracleConfig from Oracle URL string.
 
         Args:
-            url: Oracle connection URL (oracle://user:pass@host:port/service)
+        url: Oracle connection URL (oracle://user:pass@host:port/service)
 
         Returns:
-            FlextResult[FlextDbOracleConfig]: Configuration or error.
+        FlextResult[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:

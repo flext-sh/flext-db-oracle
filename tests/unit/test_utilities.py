@@ -19,7 +19,8 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
-from flext_tests.matchers import FlextTestsMatchers
+
+# Removed flext_tests.matchers import - using direct assertions
 from pydantic import BaseModel
 
 # Access constants through the FlextDbOracleConstants class
@@ -131,7 +132,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="json")
-        FlextTestsMatchers.assert_flext_result_success(result)
+        assert result.is_success
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -146,7 +147,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         ]
 
         result = self.utilities.format_query_result(mock_result, format_type="table")
-        FlextTestsMatchers.assert_flext_result_success(result)
+        assert result.is_success
         formatted = result.value
 
         assert isinstance(formatted, str)
@@ -161,7 +162,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
                 mock_result,
                 format_type=format_type,
             )
-            FlextTestsMatchers.assert_flext_result_success(result)
+            assert result.is_success
             formatted = result.value
             assert isinstance(formatted, str)
             # Should handle empty data gracefully
@@ -193,7 +194,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
 
         for invalid_config in invalid_configs:
             result = self.utilities.create_api_from_config(invalid_config)
-            FlextTestsMatchers.assert_flext_result_failure(result)
+            assert not result.is_success
             assert isinstance(result.error, str)
 
     def test_create_config_from_env_real(self) -> None:
@@ -227,7 +228,7 @@ class TestFlextDbOracleUtilitiesRealFunctionality:
         # Perform multiple operations
         for i in range(50):
             result = self.utilities.escape_oracle_identifier(f"test_name_{i}")
-            FlextTestsMatchers.assert_flext_result_success(result)
+            assert result.is_success
 
         end_time = time.time()
         elapsed = end_time - start_time

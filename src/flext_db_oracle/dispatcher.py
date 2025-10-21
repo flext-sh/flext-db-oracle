@@ -164,7 +164,7 @@ class FlextDbOracleDispatcher(FlextService):
         return dispatcher
 
 
-# FLEXT ZERO TOLERANCE: No aliases or legacy access - use unified class directly
+# FLEXT Zero Tolerance: No aliases or legacy access - use unified class directly
 
 __all__ = [
     "FlextDbOracleDispatcher",

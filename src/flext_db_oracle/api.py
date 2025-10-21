@@ -125,17 +125,19 @@ class FlextDbOracleApi(FlextService):
             config = config_result.unwrap()
             return FlextResult[FlextDbOracleApi].ok(cls(config))
         except Exception as e:
-            return FlextResult[FlextDbOracleApi].fail(f"API creation from environment failed: {e}")
+            return FlextResult[FlextDbOracleApi].fail(
+                f"API creation from environment failed: {e}"
+            )
 
     @classmethod
     def from_url(cls, url: str) -> FlextResult[FlextDbOracleApi]:
         """Create API instance from Oracle URL string.
 
         Args:
-            url: Oracle connection URL (oracle://user:pass@host:port/service)
+        url: Oracle connection URL (oracle://user:pass@host:port/service)
 
         Returns:
-            FlextResult[FlextDbOracleApi]: API instance or error.
+        FlextResult[FlextDbOracleApi]: API instance or error.
 
         """
         try:
@@ -148,7 +150,9 @@ class FlextDbOracleApi(FlextService):
             config = config_result.unwrap()
             return FlextResult[FlextDbOracleApi].ok(cls(config))
         except Exception as e:
-            return FlextResult[FlextDbOracleApi].fail(f"API creation from URL failed: {e}")
+            return FlextResult[FlextDbOracleApi].fail(
+                f"API creation from URL failed: {e}"
+            )
 
     def to_dict(self) -> dict[str, object]:
         """Convert API instance to dictionary representation."""
@@ -283,7 +287,7 @@ class FlextDbOracleApi(FlextService):
         table: str,
         schema: str | None = None,
     ) -> FlextResult[dict[str, object]]:
-        """Get comprehensive table metadata including columns and constraints."""
+        """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
     def get_primary_keys(

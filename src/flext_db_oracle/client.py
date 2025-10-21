@@ -75,7 +75,7 @@ class FlextDbOracleClient(FlextService):
         """Connect to Oracle database with provided parameters or config defaults.
 
         Returns:
-            FlextResult[FlextDbOracleApi]: API instance or error.
+        FlextResult[FlextDbOracleApi]: API instance or error.
 
         """
         try:
@@ -130,7 +130,7 @@ class FlextDbOracleClient(FlextService):
         """Execute operation with validation chain.
 
         Returns:
-            FlextResult[dict[str, object]]: Operation result or error.
+        FlextResult[dict[str, object]]: Operation result or error.
 
         """
         validation_result: FlextResult[None] = self._validate_connection()
@@ -145,7 +145,7 @@ class FlextDbOracleClient(FlextService):
         """Validate current Oracle connection.
 
         Returns:
-            FlextResult[None]: Success or error.
+        FlextResult[None]: Success or error.
 
         """
         if not self.current_connection:
@@ -164,7 +164,7 @@ class FlextDbOracleClient(FlextService):
         """Execute Oracle operation with error handling.
 
         Returns:
-            FlextResult[dict[str, object]]: Operation result or error.
+        FlextResult[dict[str, object]]: Operation result or error.
 
         """
         if not self.current_connection:
@@ -244,7 +244,7 @@ class FlextDbOracleClient(FlextService):
         """Format and display operation result.
 
         Returns:
-            FlextResult[str]: Formatted result or error.
+        FlextResult[str]: Formatted result or error.
 
         """
         if operation_result.is_failure:
@@ -275,7 +275,7 @@ class FlextDbOracleClient(FlextService):
         """Get formatter strategy for output format.
 
         Returns:
-            FlextResult[object]: Formatter strategy or error.
+        FlextResult[object]: Formatter strategy or error.
 
         """
         try:
@@ -306,7 +306,7 @@ class FlextDbOracleClient(FlextService):
         """Format data as table output.
 
         Returns:
-            FlextResult[str]: Table formatted data or error.
+        FlextResult[str]: Table formatted data or error.
 
         """
         try:
@@ -343,7 +343,7 @@ class FlextDbOracleClient(FlextService):
         """Format data as JSON output.
 
         Returns:
-            FlextResult[str]: JSON formatted data or error.
+        FlextResult[str]: JSON formatted data or error.
 
         """
         try:
@@ -358,7 +358,7 @@ class FlextDbOracleClient(FlextService):
         """Adapt data for table display.
 
         Returns:
-            FlextResult[list[dict[str, str]]]: Adapted data or error.
+        FlextResult[list[dict[str, str]]]: Adapted data or error.
 
         """
         try:
@@ -414,7 +414,7 @@ class FlextDbOracleClient(FlextService):
         """Execute Oracle health check.
 
         Returns:
-            FlextResult[dict[str, object]]: Health check result or error.
+        FlextResult[dict[str, object]]: Health check result or error.
 
         """
         try:
@@ -445,7 +445,7 @@ class FlextDbOracleClient(FlextService):
         """List Oracle schemas with formatted output.
 
         Returns:
-            FlextResult[str]: Formatted schemas list or error.
+        FlextResult[str]: Formatted schemas list or error.
 
         """
         operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
@@ -458,7 +458,7 @@ class FlextDbOracleClient(FlextService):
         """List Oracle tables with formatted output.
 
         Returns:
-            FlextResult[str]: Formatted tables list or error.
+        FlextResult[str]: Formatted tables list or error.
 
         """
         operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
@@ -471,7 +471,7 @@ class FlextDbOracleClient(FlextService):
         """Execute the main domain operation for Oracle client.
 
         Returns:
-            FlextResult[object]: Success with operation result or failure with error
+        FlextResult[object]: Success with operation result or failure with error
 
         """
         # Default implementation - subclasses should override with specific logic
@@ -487,7 +487,7 @@ class FlextDbOracleClient(FlextService):
         """Execute SQL query with formatted output.
 
         Returns:
-            FlextResult[str]: Formatted query results or error.
+        FlextResult[str]: Formatted query results or error.
 
         """
         operation_result = self._execute_with_chain(
@@ -502,7 +502,7 @@ class FlextDbOracleClient(FlextService):
         """Perform Oracle health check.
 
         Returns:
-            FlextResult[dict[str, object]]: Health check result or error.
+        FlextResult[dict[str, object]]: Health check result or error.
 
         """
         return self._execute_health_check()
@@ -511,7 +511,7 @@ class FlextDbOracleClient(FlextService):
         """Disconnect from Oracle database.
 
         Returns:
-            FlextResult[None]: Success or error.
+        FlextResult[None]: Success or error.
 
         """
         if self.current_connection:
@@ -526,7 +526,7 @@ class FlextDbOracleClient(FlextService):
         """Configure client preferences.
 
         Returns:
-            FlextResult[None]: Success or error.
+        FlextResult[None]: Success or error.
 
         """
         try:
@@ -546,7 +546,7 @@ class FlextDbOracleClient(FlextService):
         """Run Oracle CLI command with proper error handling.
 
         Returns:
-            FlextResult[str]: Command result or error.
+        FlextResult[str]: Command result or error.
 
         """
         try:
@@ -575,7 +575,7 @@ class FlextDbOracleClient(FlextService):
             return FlextResult[str].fail(f"CLI command failed: {e}")
 
 
-# ZERO TOLERANCE: No wrapper functions or global instances - use FlextDbOracleClient.get_client() directly
+# Zero Tolerance: No wrapper functions or global instances - use FlextDbOracleClient.get_client() directly
 
 __all__: list[str] = [
     "FlextDbOracleClient",

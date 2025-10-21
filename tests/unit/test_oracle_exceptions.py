@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import cast
 
-from flext_core import FlextExceptions
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleExceptions as FlextExceptions,
     FlextDbOracleServices,
 )
 from pydantic import SecretStr

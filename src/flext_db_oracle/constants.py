@@ -27,7 +27,7 @@ class FlextDbOracleConstants(FlextConstants):
     Extends FlextConstants for universal constants, defines only
     Oracle-specific constants using nested namespace classes.
 
-    **STANDARDIZATION NOTES**:
+    STANDARDIZATION NOTES:
     - Extends FlextConstants for foundation constants (Network, Platform, etc.)
     - Uses Final for immutable constants
     - Uses StrEnum for type-safe enumerations
@@ -446,6 +446,20 @@ class FlextDbOracleConstants(FlextConstants):
             "PUBLIC",
             "USER",
         ]
+
+    class Platform(FlextConstants.Platform):
+        """Oracle-specific platform constants extending base Platform."""
+
+        # Network constants
+        LOOPBACK_IP: Final[str] = "127.0.0.1"
+        LOCALHOST_IP: Final[str] = "127.0.0.1"
+
+        # HTTP methods
+        HTTP_METHOD_DELETE: Final[str] = "DELETE"
+        HTTP_METHOD_GET: Final[str] = "GET"
+        HTTP_METHOD_POST: Final[str] = "POST"
+        HTTP_METHOD_PUT: Final[str] = "PUT"
+        HTTP_METHOD_PATCH: Final[str] = "PATCH"
 
 
 # No compatibility aliases - use direct imports only
