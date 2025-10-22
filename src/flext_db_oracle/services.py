@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
+import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from urllib.parse import quote_plus
@@ -343,7 +344,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         schema = f"{schema_name}." if schema_name else ""
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses column identifiers and bind parameters, not user input
-        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"
+        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"  # noqa: S608
         return FlextResult.ok(sql)
 
     def build_insert_statement(
@@ -359,7 +360,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         vals = ", ".join(f":{col}" for col in columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"INSERT INTO {schema}{table_name} ({cols}) VALUES ({vals})"
+        sql = f"INSERT INTO {schema}{table_name} ({cols}) VALUES ({vals})"  # noqa: S608
         if returning_columns:
             ret = ", ".join(returning_columns)
             sql += f" RETURNING {ret}"
@@ -378,7 +379,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         wheres = " AND ".join(f"{col} = :where_{col}" for col in where_columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col, :where_col)
-        sql = f"UPDATE {schema}{table_name} SET {sets} WHERE {wheres}"
+        sql = f"UPDATE {schema}{table_name} SET {sets} WHERE {wheres}"  # noqa: S608
         return FlextResult.ok(sql)
 
     def build_delete_statement(
@@ -389,7 +390,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"DELETE FROM {schema}{table_name} WHERE {wheres}"
+        sql = f"DELETE FROM {schema}{table_name} WHERE {wheres}"  # noqa: S608
         return FlextResult.ok(sql)
 
     def build_create_index_statement(self, _config: object) -> FlextResult[str]:
@@ -480,22 +481,6 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         """Get metrics - placeholder."""
         return FlextResult.ok({})
 
-    def track_operation(
-        self,
-        _operation: str,
-        _duration_ms: float,
-        *,
-        _success: bool,
-        _metadata: dict[str, object] | None = None,
-    ) -> FlextResult[str]:
-        """Track operation - placeholder."""
-        op_id = hashlib.sha256(f"{_operation}_{_duration_ms}".encode()).hexdigest()[:16]
-        return FlextResult.ok(op_id)
-
-    def get_operations(self) -> FlextResult[list[dict[str, object]]]:
-        """Get operations - placeholder."""
-        return FlextResult.ok([])
-
     def health_check(self) -> FlextResult[dict[str, object]]:
         """Perform health check."""
         return FlextResult.ok({
@@ -516,11 +501,11 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         """List plugins - placeholder."""
         return FlextResult.ok({})
 
-    def get_plugin(self, name: str) -> FlextResult[object]:
+    def get_plugin(self, _name: str) -> FlextResult[object]:
         """Get plugin - placeholder implementation.
 
         Args:
-        name: Plugin name (reserved for future implementation)
+        _name: Plugin name (reserved for future implementation)
 
         """
         return FlextResult.ok(None)
@@ -539,7 +524,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             schema = f"{schema_name}." if schema_name else ""
             # Query builder pattern - inputs should be validated by caller
             # S608: Safe - uses column identifiers and bind parameters
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
+            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # noqa: S608
             result = self.execute_query(sql)
             if result.is_failure:
                 return FlextResult.fail(result.error or "Failed to get count")
@@ -558,6 +543,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         self,
         operation_type: str,
         duration: float,
+        *,
         _success: bool,
         metadata: dict[str, object] | None = None,
     ) -> FlextResult[None]:
@@ -581,8 +567,6 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""
-        import time
-
         return str(int(time.time()))
 
 

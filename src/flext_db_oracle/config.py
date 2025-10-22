@@ -37,7 +37,9 @@ class FlextDbOracleConfig(FlextConfig):
         "env_prefix": "FLEXT_DB_ORACLE_",
         "json_schema_extra": {
             "title": "FLEXT DB Oracle Configuration",
-            "description": "Enterprise Oracle database configuration extending FlextConfig",
+            "description": (
+                "Enterprise Oracle database configuration extending FlextConfig"
+            ),
         },
     }
 
@@ -48,6 +50,7 @@ class FlextDbOracleConfig(FlextConfig):
     # Oracle Connection Configuration - matching model field names
     host: str = Field(
         default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
+        min_length=1,
         description="Oracle database hostname or IP address",
     )
 
@@ -60,16 +63,19 @@ class FlextDbOracleConfig(FlextConfig):
 
     service_name: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
+        min_length=1,
         description="Oracle service name",
     )
 
     name: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_DATABASE_NAME,
+        min_length=1,
         description="Oracle database name",
     )
 
     sid: str = Field(
         default=FlextDbOracleConstants.Connection.DEFAULT_SID,
+        min_length=1,
         description="Oracle SID (System Identifier)",
     )
 
@@ -222,23 +228,10 @@ class FlextDbOracleConfig(FlextConfig):
     )
 
     # Validation methods
-    @field_validator("host")
-    @classmethod
-    def validate_host(cls, v: str) -> str:
-        """Validate Oracle host."""
-        if not v or not v.strip():
-            msg = "Host cannot be empty"
-            raise ValueError(msg)
-        return v.strip()
-
     @field_validator("service_name")
     @classmethod
     def validate_service_name(cls, v: str) -> str:
-        """Validate Oracle service name."""
-        if not v or not v.strip():
-            msg = "Oracle service name cannot be empty"
-            raise ValueError(msg)
-
+        """Validate Oracle service name (length check + uppercase transformation)."""
         # Check length
         if (
             len(v)
@@ -252,11 +245,7 @@ class FlextDbOracleConfig(FlextConfig):
     @field_validator("name")
     @classmethod
     def validate_database_name(cls, v: str) -> str:
-        """Validate Oracle database name."""
-        if not v or not v.strip():
-            msg = "Oracle database name cannot be empty"
-            raise ValueError(msg)
-
+        """Validate Oracle database name (length check + uppercase transformation)."""
         # Check length
         if (
             len(v)
@@ -270,11 +259,7 @@ class FlextDbOracleConfig(FlextConfig):
     @field_validator("sid")
     @classmethod
     def validate_sid(cls, v: str) -> str:
-        """Validate Oracle SID."""
-        if not v or not v.strip():
-            msg = "Oracle SID cannot be empty"
-            raise ValueError(msg)
-
+        """Validate Oracle SID (length check + uppercase transformation)."""
         # Check length
         if (
             len(v)
