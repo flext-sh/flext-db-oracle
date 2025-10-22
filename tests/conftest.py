@@ -13,24 +13,11 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextResult
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
-from flext_tests import FlextTestsDomains
+from flext_tests import FlextTestDocker, FlextTestsDomains
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
-
-
-class FlextTestDocker:
-    """Simple Docker test utility for Oracle container management."""
-
-    def start_container(self, name: str) -> FlextResult[str]:
-        """Start a Docker container."""
-        # Simple implementation - in real tests this would start the container
-        return FlextResult[str].ok(name)
-
-    def stop_container(self, name: str) -> None:
-        """Stop a Docker container."""
 
 
 class OperationTestError(Exception):
