@@ -17,6 +17,7 @@ from unittest.mock import Mock, patch
 
 import yaml
 from flext_core import FlextResult
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,

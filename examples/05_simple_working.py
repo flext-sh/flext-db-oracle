@@ -11,6 +11,7 @@ without inventing non-existent methods.
 from __future__ import annotations
 
 from flext_core import FlextLogger
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)

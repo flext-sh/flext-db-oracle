@@ -13,8 +13,9 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from flext_tests import FlextTestDocker, FlextTestsDomains
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"

@@ -13,7 +13,6 @@ from __future__ import annotations
 from typing import ClassVar
 
 from flext_core import FlextConfig, FlextConstants, FlextResult
-from flext_db_oracle.constants import FlextDbOracleConstants
 from pydantic import (
     Field,
     SecretStr,
@@ -21,6 +20,8 @@ from pydantic import (
     computed_field,
     field_validator,
 )
+
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleConfig(FlextConfig):

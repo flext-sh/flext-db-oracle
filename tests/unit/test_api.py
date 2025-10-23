@@ -17,6 +17,9 @@ from typing import cast
 
 import pytest
 from flext_core import FlextResult
+from flext_tests import FlextTestsDomains
+from flext_tests.matchers import FlextTestsMatchers
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
@@ -24,8 +27,6 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     dispatcher as oracle_dispatcher,
 )
-from flext_tests import FlextTestsDomains
-from flext_tests.matchers import FlextTestsMatchers
 
 
 class TestFlextDbOracleApiRealFunctionality:

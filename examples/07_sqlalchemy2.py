@@ -14,8 +14,9 @@ from contextlib import contextmanager
 from flext_core import (
     FlextLogger,
 )
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 from sqlalchemy import Engine, text
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
 

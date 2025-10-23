@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import cast
 
 from flext_core import FlextBus, FlextDispatcher
+
 from flext_db_oracle import (
     FlextDbOracleConfig,
     FlextDbOracleDispatcher,

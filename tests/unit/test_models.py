@@ -17,13 +17,14 @@ from unittest.mock import patch
 
 import pytest
 from flext_core import FlextModels, FlextResult
+from flext_tests import FlextTestsDomains
+from pydantic import ValidationError
+
 from flext_db_oracle import (
     FlextDbOracleConfig,
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
-from flext_tests import FlextTestsDomains
-from pydantic import ValidationError
 
 
 class TestOracleValidation:

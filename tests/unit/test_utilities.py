@@ -13,15 +13,16 @@ from io import StringIO
 from unittest.mock import Mock
 
 import pytest
+
+# Removed flext_tests.matchers import - using direct assertions
+from pydantic import BaseModel
+
 from flext_db_oracle import (
     FlextDbOracleConfig,
     FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleUtilities,
 )
-
-# Removed flext_tests.matchers import - using direct assertions
-from pydantic import BaseModel
 
 # Access constants through the FlextDbOracleConstants class
 MAX_DISPLAY_ROWS = FlextDbOracleConstants.OraclePerformance.MAX_DISPLAY_ROWS

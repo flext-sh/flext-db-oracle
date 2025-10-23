@@ -14,13 +14,14 @@ from typing import cast
 
 import pytest
 from flext_core import FlextContainer, FlextLogger, FlextResult, FlextTypes
+from flext_tests.domains import FlextTestsDomains
+from flext_tests.matchers import FlextTestsMatchers
+
 from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleConfig,
     FlextDbOracleTypes,
 )
-from flext_tests.domains import FlextTestsDomains
-from flext_tests.matchers import FlextTestsMatchers
 
 
 def cast_to_json_value(

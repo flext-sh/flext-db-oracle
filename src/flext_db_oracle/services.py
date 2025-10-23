@@ -14,9 +14,10 @@ from contextlib import contextmanager
 from urllib.parse import quote_plus
 
 from flext_core import FlextResult, FlextService
-from flext_db_oracle.config import FlextDbOracleConfig
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
+
+from flext_db_oracle.config import FlextDbOracleConfig
 
 
 class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):

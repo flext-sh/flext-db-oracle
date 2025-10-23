@@ -15,6 +15,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from flext_core import FlextResult
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,

@@ -13,13 +13,14 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from flext_core import FlextConstants, FlextModels
-from flext_db_oracle.constants import FlextDbOracleConstants
 from pydantic import (
     Field,
     computed_field,
     field_serializer,
     model_validator,
 )
+
+from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleModels(FlextModels):
