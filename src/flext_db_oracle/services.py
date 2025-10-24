@@ -345,7 +345,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         schema = f"{schema_name}." if schema_name else ""
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses column identifiers and bind parameters, not user input
-        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"  # noqa: S608
+        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"
         return FlextResult.ok(sql)
 
     def build_insert_statement(
@@ -361,7 +361,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         vals = ", ".join(f":{col}" for col in columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"INSERT INTO {schema}{table_name} ({cols}) VALUES ({vals})"  # noqa: S608
+        sql = f"INSERT INTO {schema}{table_name} ({cols}) VALUES ({vals})"
         if returning_columns:
             ret = ", ".join(returning_columns)
             sql += f" RETURNING {ret}"
@@ -380,7 +380,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         wheres = " AND ".join(f"{col} = :where_{col}" for col in where_columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col, :where_col)
-        sql = f"UPDATE {schema}{table_name} SET {sets} WHERE {wheres}"  # noqa: S608
+        sql = f"UPDATE {schema}{table_name} SET {sets} WHERE {wheres}"
         return FlextResult.ok(sql)
 
     def build_delete_statement(
@@ -391,7 +391,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         # Query builder pattern - inputs should be validated by caller
         # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"DELETE FROM {schema}{table_name} WHERE {wheres}"  # noqa: S608
+        sql = f"DELETE FROM {schema}{table_name} WHERE {wheres}"
         return FlextResult.ok(sql)
 
     def build_create_index_statement(self, _config: object) -> FlextResult[str]:
@@ -525,7 +525,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             schema = f"{schema_name}." if schema_name else ""
             # Query builder pattern - inputs should be validated by caller
             # S608: Safe - uses column identifiers and bind parameters
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # noqa: S608
+            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
             result = self.execute_query(sql)
             if result.is_failure:
                 return FlextResult.fail(result.error or "Failed to get count")
