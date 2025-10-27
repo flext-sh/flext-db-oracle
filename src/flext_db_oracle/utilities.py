@@ -210,12 +210,12 @@ class FlextDbOracleUtilities(FlextService):
         try:
             # Handle different query result types
             if hasattr(query_result, "to_dict_list"):
-                data = getattr(query_result, "to_dict_list")()
+                data = query_result.to_dict_list()
             elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
                 # Build dict[str, object] list from columns and rows
                 data = []
-                columns: object = getattr(query_result, "columns")
-                rows: object = getattr(query_result, "rows")
+                columns: object = query_result.columns
+                rows: object = query_result.rows
                 try:
                     # Type-safe conversion - handle as any sequence type
                     if hasattr(rows, "__iter__") and not isinstance(rows, (str, bytes)):
@@ -250,11 +250,11 @@ class FlextDbOracleUtilities(FlextService):
                         data.append(row_dict)
                 except Exception as e:
                     if hasattr(console, "print"):
-                        getattr(console, "print")(f"Error building table data: {e}")
+                        console.print(f"Error building table data: {e}")
                     return
             else:
                 if hasattr(console, "print"):
-                    getattr(console, "print")("Unsupported query result format")
+                    console.print("Unsupported query result format")
                 return
 
             # Use flext-cli for table display instead of direct Rich
@@ -264,16 +264,16 @@ class FlextDbOracleUtilities(FlextService):
 
                 if table_result.is_success:
                     if hasattr(console, "print"):
-                        getattr(console, "print")(table_result.unwrap())
+                        console.print(table_result.unwrap())
                 # Fallback to simple data display if table formatting fails
                 elif hasattr(console, "print"):
-                    getattr(console, "print")(f"Data: {data}")
+                    console.print(f"Data: {data}")
             elif hasattr(console, "print"):
-                getattr(console, "print")("No data to display")
+                console.print("No data to display")
 
         except Exception as e:
             if hasattr(console, "print"):
-                getattr(console, "print")(f"Error displaying table: {e}")
+                console.print(f"Error displaying table: {e}")
 
     @staticmethod
     def create_api_from_config(
@@ -350,28 +350,28 @@ class FlextDbOracleUtilities(FlextService):
             if format_type.lower() == "table":
                 # Table format display
                 if hasattr(health_data, "model_dump"):
-                    data_dict: dict[str, object] = getattr(health_data, "model_dump")()
+                    data_dict: dict[str, object] = health_data.model_dump()
                     if isinstance(data_dict, dict):
                         if hasattr(console, "print"):
-                            getattr(console, "print")("Health Status:")
-                            getattr(console, "print")("-" * 20)
+                            console.print("Health Status:")
+                            console.print("-" * 20)
                             for key, value in data_dict.items():
-                                getattr(console, "print")(f"{key}: {value}")
+                                console.print(f"{key}: {value}")
                     elif hasattr(console, "print"):
-                        getattr(console, "print")(f"Health data: {data_dict}")
+                        console.print(f"Health data: {data_dict}")
                 elif hasattr(console, "print"):
-                    getattr(console, "print")(f"Health data: {health_data}")
+                    console.print(f"Health data: {health_data}")
             # JSON or other format
             elif hasattr(health_data, "model_dump"):
-                json_data: dict[str, object] = getattr(health_data, "model_dump")()
+                json_data: dict[str, object] = health_data.model_dump()
                 if hasattr(console, "print"):
-                    getattr(console, "print")(json.dumps(json_data, indent=2))
+                    console.print(json.dumps(json_data, indent=2))
             elif hasattr(console, "print"):
-                getattr(console, "print")(str(health_data))
+                console.print(str(health_data))
 
         except Exception as e:
             if hasattr(console, "print"):
-                getattr(console, "print")(f"Error displaying health data: {e}")
+                console.print(f"Error displaying health data: {e}")
 
     class OracleValidation:
         """Oracle validation utilities using flext-core patterns."""
