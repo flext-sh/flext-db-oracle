@@ -15,7 +15,6 @@ from collections.abc import Sequence
 from typing import Self, override
 
 from flext_core import (
-    FlextBus,
     FlextContainer,
     FlextContext,
     FlextResult,
@@ -68,13 +67,10 @@ class FlextDbOracleApi(FlextService):
         # Complete flext-core ecosystem integration
         self._container = FlextContainer.get_global()
         self._context = FlextContext()
-        self._bus = FlextBus()
         # Logger will be initialized lazily via the parent class property
 
         # Optional dispatcher for CQRS patterns
-        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(
-            self._services, bus=self._bus
-        )
+        self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
         # Plugin system
         self._plugins: dict[str, object] = {}
