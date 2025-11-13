@@ -81,6 +81,87 @@ class FlextDbOracleDispatcher(FlextService):
         schema: str | None = None
 
     @classmethod
+    def _create_connection_handlers(
+        cls, services: FlextDbOracleServices
+    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+        """Create connection-related handler functions."""
+
+        def connect_handler(_cmd: object) -> object:
+            return services.connect()
+
+        def disconnect_handler(_cmd: object) -> object:
+            return services.disconnect()
+
+        def connection_test_handler(_command_data: object) -> object:
+            """Oracle connection test handler - command_data parameter required by dispatcher interface."""
+            return services.test_connection()
+
+        return {
+            cls.ConnectCommand: (connect_handler, None),
+            cls.DisconnectCommand: (disconnect_handler, None),
+            cls.TestConnectionCommand: (connection_test_handler, None),
+        }
+
+    @classmethod
+    def _create_query_handlers(
+        cls, services: FlextDbOracleServices
+    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+        """Create query-related handler functions."""
+
+        def execute_query_handler(command: object) -> object:
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            return services.execute_query(sql, parameters)
+
+        def fetch_one_handler(command: object) -> object:
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            return services.fetch_one(sql, parameters)
+
+        def execute_statement_handler(command: object) -> object:
+            sql = getattr(command, "sql", "")
+            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            return services.execute_statement(sql, parameters)
+
+        def execute_many_handler(command: object) -> object:
+            sql = getattr(command, "sql", "")
+            parameters_list: list[dict[str, object]] = getattr(
+                command, "parameters_list", []
+            )
+            return services.execute_many(sql, parameters_list)
+
+        return {
+            cls.ExecuteQueryCommand: (execute_query_handler, None),
+            cls.FetchOneCommand: (fetch_one_handler, None),
+            cls.ExecuteStatementCommand: (execute_statement_handler, None),
+            cls.ExecuteManyCommand: (execute_many_handler, None),
+        }
+
+    @classmethod
+    def _create_schema_handlers(
+        cls, services: FlextDbOracleServices
+    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+        """Create schema/metadata handler functions."""
+
+        def get_schemas_handler(_cmd: object) -> object:
+            return services.get_schemas()
+
+        def get_tables_handler(command: object) -> object:
+            schema = getattr(command, "schema", None)
+            return services.get_tables(schema)
+
+        def get_columns_handler(command: object) -> object:
+            table = getattr(command, "table", "")
+            schema = getattr(command, "schema", None)
+            return services.get_columns(table, schema)
+
+        return {
+            cls.GetSchemasCommand: (get_schemas_handler, None),
+            cls.GetTablesCommand: (get_tables_handler, None),
+            cls.GetColumnsCommand: (get_columns_handler, None),
+        }
+
+    @classmethod
     def build_dispatcher(
         cls,
         services: FlextDbOracleServices,
@@ -91,74 +172,19 @@ class FlextDbOracleDispatcher(FlextService):
         dispatcher = FlextDispatcher(bus=bus)
         registry = FlextRegistry(dispatcher)
 
-        # Create properly typed handler functions using object type for flexibility
-        def connect_handler(_cmd: object) -> object:
-            return services.connect()
-
-        def disconnect_handler(_cmd: object) -> object:
-            return services.disconnect()
-
-        def connection_test_handler(_command_data: object) -> object:
-            """Oracle connection test handler - command_data parameter required by dispatcher interface."""
-            # Parameter _command_data is required by dispatcher interface but not used in this handler
-            return services.test_connection()
-
-        def execute_query_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
-            return services.execute_query(sql, parameters)
-
-        def fetch_one_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
-            return services.fetch_one(sql, parameters)
-
-        def execute_statement_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
-            return services.execute_statement(sql, parameters)
-
-        def execute_many_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            sql = getattr(command, "sql", "")
-            parameters_list: list[dict[str, object]] = getattr(
-                command, "parameters_list", []
-            )
-            return services.execute_many(sql, parameters_list)
-
-        def get_schemas_handler(_cmd: object) -> object:
-            return services.get_schemas()
-
-        def get_tables_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            schema = getattr(command, "schema", None)
-            return services.get_tables(schema)
-
-        def get_columns_handler(command: object) -> object:
-            # Safe attribute access with hasattr checks
-            table = getattr(command, "table", "")
-            schema = getattr(command, "schema", None)
-            return services.get_columns(table, schema)
-
-        # Use register_function_map with proper typing
-
+        # Create handler functions grouped by functionality
         function_map: dict[
             type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]
-        ] = {
-            cls.ConnectCommand: (connect_handler, None),
-            cls.DisconnectCommand: (disconnect_handler, None),
-            cls.TestConnectionCommand: (connection_test_handler, None),
-            cls.ExecuteQueryCommand: (execute_query_handler, None),
-            cls.FetchOneCommand: (fetch_one_handler, None),
-            cls.ExecuteStatementCommand: (execute_statement_handler, None),
-            cls.ExecuteManyCommand: (execute_many_handler, None),
-            cls.GetSchemasCommand: (get_schemas_handler, None),
-            cls.GetTablesCommand: (get_tables_handler, None),
-            cls.GetColumnsCommand: (get_columns_handler, None),
-        }
+        ] = {}
+
+        # Add connection handlers
+        function_map.update(cls._create_connection_handlers(services))
+
+        # Add query handlers
+        function_map.update(cls._create_query_handlers(services))
+
+        # Add schema handlers
+        function_map.update(cls._create_schema_handlers(services))
 
         registry.register_function_map(function_map)
 

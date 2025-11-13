@@ -439,6 +439,19 @@ class FlextDbOracleCli(FlextService[str]):
             f"Listed {len(tables)} tables in schema {schema} successfully",
         )
 
+    def _handle_error_and_fail(
+        self,
+        formatter: _OutputFormatter,
+        error_message: str,
+        display_message: str | None = None,
+    ) -> FlextResult[str]:
+        """Handle error by displaying message and returning failure result."""
+        if display_message:
+            error_msg = formatter.format_error_message(display_message)
+            if error_msg.is_success:
+                formatter.display_message(error_msg.unwrap())
+        return FlextResult[str].fail(error_message)
+
     def execute_query(
         self,
         sql: str,
@@ -458,10 +471,9 @@ class FlextDbOracleCli(FlextService[str]):
         formatter = self._OutputFormatter(self._cli_main)
 
         if not sql.strip():
-            error_msg = formatter.format_error_message("SQL query cannot be empty")
-            if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
-            return FlextResult[str].fail("SQL query cannot be empty")
+            return self._handle_error_and_fail(
+                formatter, "SQL query cannot be empty", "SQL query cannot be empty"
+            )
 
         # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
@@ -473,22 +485,16 @@ class FlextDbOracleCli(FlextService[str]):
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
-            error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}",
+            return self._handle_error_and_fail(
+                formatter, error_text, f"Configuration failed: {error_text}"
             )
-            if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
-            return FlextResult[str].fail(error_text)
 
         config = config_result.unwrap()
         validation_result = self._OracleConnectionHelper.validate_connection(config)
 
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
-            error_msg = formatter.format_error_message(error_text)
-            if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
-            return FlextResult[str].fail(error_text)
+            return self._handle_error_and_fail(formatter, error_text, error_text)
 
         # Create API instance
         api = FlextDbOracleApi(config)
@@ -497,10 +503,9 @@ class FlextDbOracleCli(FlextService[str]):
         query_result = api.query(sql)
         if query_result.is_failure:
             error_text = query_result.error or "Unknown query error"
-            error_msg = formatter.format_error_message(f"Query failed: {error_text}")
-            if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
-            return FlextResult[str].fail(error_text)
+            return self._handle_error_and_fail(
+                formatter, error_text, f"Query failed: {error_text}"
+            )
 
         result = query_result.unwrap()
         row_count = len(result)  # result is a list, so count items

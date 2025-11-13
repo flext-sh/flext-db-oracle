@@ -173,69 +173,82 @@ class FlextDbOracleClient(FlextService):
 
         try:
             if operation == "list_schemas":
-                schemas_result: FlextResult[list[str]] = (
-                    self.current_connection.get_schemas()
-                )
-                if schemas_result.is_success:
-                    return FlextResult[dict[str, object]].ok(
-                        {"schemas": list(schemas_result.value)},
-                    )
-                return FlextResult[dict[str, object]].fail(
-                    schemas_result.error or "Schema listing failed",
-                )
-
+                return self._handle_list_schemas_operation()
             if operation == "list_tables":
-                schema = str(params.get("schema", ""))
-                tables_result: FlextResult[list[str]] = (
-                    self.current_connection.get_tables(schema or None)
-                )
-                if tables_result.is_success:
-                    return FlextResult[dict[str, object]].ok(
-                        {"tables": list(tables_result.value)},
-                    )
-                return FlextResult[dict[str, object]].fail(
-                    tables_result.error or "Table listing failed",
-                )
-
+                return self._handle_list_tables_operation(**params)
             if operation == "query":
-                sql = str(params.get("sql", ""))
-                if not sql:
-                    return FlextResult[dict[str, object]].fail("SQL query required")
-
-                params_dict_raw = params.get("params", {})
-                params_dict: dict[str, object] = (
-                    params_dict_raw if isinstance(params_dict_raw, dict) else {}
-                )
-                query_result: FlextResult[list[dict[str, object]]] = (
-                    self.current_connection.query(sql, params_dict)
-                )
-                if query_result.is_success:
-                    return FlextResult[dict[str, object]].ok({
-                        "rows": list(query_result.value),
-                        "row_count": len(query_result.value)
-                        if query_result.value
-                        else 0,
-                    })
-                return FlextResult[dict[str, object]].fail(
-                    query_result.error or "Query execution failed",
-                )
-
+                return self._handle_query_operation(**params)
             if operation == "health_check":
-                health_result: FlextResult[dict[str, object]] = (
-                    self.current_connection.get_health_status()
-                )
-                if health_result.is_success:
-                    return FlextResult[dict[str, object]].ok(health_result.value)
-                return FlextResult[dict[str, object]].fail(
-                    health_result.error or "Health check failed",
-                )
+                return self._handle_health_check_operation()
 
             return FlextResult[dict[str, object]].fail(
-                f"Unknown operation: {operation}",
+                f"Unknown operation: {operation}"
             )
 
         except Exception as e:
             return FlextResult[dict[str, object]].fail(f"Operation failed: {e}")
+
+    def _handle_list_schemas_operation(self) -> FlextResult[dict[str, object]]:
+        """Handle list schemas operation."""
+        schemas_result: FlextResult[list[str]] = self.current_connection.get_schemas()
+        if schemas_result.is_success:
+            return FlextResult[dict[str, object]].ok({
+                "schemas": list(schemas_result.value)
+            })
+        return FlextResult[dict[str, object]].fail(
+            schemas_result.error or "Schema listing failed"
+        )
+
+    def _handle_list_tables_operation(
+        self, **params: object
+    ) -> FlextResult[dict[str, object]]:
+        """Handle list tables operation."""
+        schema = str(params.get("schema", ""))
+        tables_result: FlextResult[list[str]] = self.current_connection.get_tables(
+            schema or None
+        )
+        if tables_result.is_success:
+            return FlextResult[dict[str, object]].ok({
+                "tables": list(tables_result.value)
+            })
+        return FlextResult[dict[str, object]].fail(
+            tables_result.error or "Table listing failed"
+        )
+
+    def _handle_query_operation(
+        self, **params: object
+    ) -> FlextResult[dict[str, object]]:
+        """Handle query operation."""
+        sql = str(params.get("sql", ""))
+        if not sql:
+            return FlextResult[dict[str, object]].fail("SQL query required")
+
+        params_dict_raw = params.get("params", {})
+        params_dict: dict[str, object] = (
+            params_dict_raw if isinstance(params_dict_raw, dict) else {}
+        )
+        query_result: FlextResult[list[dict[str, object]]] = (
+            self.current_connection.query(sql, params_dict)
+        )
+        if query_result.is_success:
+            return FlextResult[dict[str, object]].ok({
+                "rows": list(query_result.value),
+                "row_count": len(query_result.value) if query_result.value else 0,
+            })
+        return FlextResult[dict[str, object]].fail(
+            query_result.error or "Query execution failed"
+        )
+
+    def _handle_health_check_operation(self) -> FlextResult[dict[str, object]]:
+        """Handle health check operation."""
+        health_result: FlextResult[dict[str, object]] = (
+            self.current_connection.get_health_status()
+        )
+        if health_result.is_success:
+            return FlextResult[dict[str, object]].ok(health_result.value)
+        return FlextResult[dict[str, object]].fail(
+            health_result.error or "Health check failed"
+        )
 
     def _format_and_display_result(
         self,

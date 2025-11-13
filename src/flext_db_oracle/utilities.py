@@ -201,75 +201,82 @@ class FlextDbOracleUtilities(FlextService):
                 f"Failed to create config from environment: {e}",
             )
 
-    @staticmethod
+    def _extract_data_from_result(
+        self, query_result: object
+    ) -> list[dict[str, object]] | None:
+        """Extract data from different query result types."""
+        if hasattr(query_result, "to_dict_list"):
+            return query_result.to_dict_list()
+        if hasattr(query_result, "columns") and hasattr(query_result, "rows"):
+            return self._convert_columns_rows_to_dicts(
+                query_result.columns, query_result.rows
+            )
+        return None
+
+    def _convert_columns_rows_to_dicts(
+        self, columns: object, rows: object
+    ) -> list[dict[str, object]]:
+        """Convert columns and rows to list of dictionaries."""
+        data = []
+        try:
+            rows_sequence = self._safe_sequence_conversion(rows)
+            columns_sequence = self._safe_sequence_conversion(columns)
+
+            for row_item in rows_sequence:
+                if not isinstance(row_item, (list, tuple)):
+                    continue
+                row_dict = {}
+                if columns_sequence:
+                    for i, col in enumerate(columns_sequence):
+                        if i < len(row_item):
+                            row_dict[str(col)] = row_item[i]
+                data.append(row_dict)
+        except Exception:
+            return []
+        return data
+
+    def _safe_sequence_conversion(self, sequence: object) -> list:
+        """Safely convert sequence-like objects to lists."""
+        if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
+            try:
+                return list(cast("list", sequence))
+            except (TypeError, AttributeError):
+                return []
+        return []
+
+    def _display_table_data(
+        self, data: list[dict[str, object]], console: object
+    ) -> None:
+        """Display table data using flext-cli output service."""
+        if not data:
+            if hasattr(console, "print"):
+                console.print("No data to display")
+            return
+
+        output_service = FlextCliOutput()
+        table_result = output_service.format_table(data)
+
+        if table_result.is_success:
+            if hasattr(console, "print"):
+                console.print(table_result.unwrap())
+        elif hasattr(console, "print"):
+            console.print(f"Data: {data}")
+
     def _display_query_table(
+        self,
         query_result: object,
         console: object,
     ) -> None:
         """Display query result as table using flext-cli output."""
         try:
-            # Handle different query result types
-            if hasattr(query_result, "to_dict_list"):
-                data = query_result.to_dict_list()
-            elif hasattr(query_result, "columns") and hasattr(query_result, "rows"):
-                # Build dict[str, object] list from columns and rows
-                data = []
-                columns: object = query_result.columns
-                rows: object = query_result.rows
-                try:
-                    # Type-safe conversion - handle as any sequence type
-                    if hasattr(rows, "__iter__") and not isinstance(rows, (str, bytes)):
-                        try:
-                            # Convert to list with type safety
-                            rows_sequence = list(cast("list", rows))
-                        except (TypeError, AttributeError):
-                            rows_sequence = []
-                    else:
-                        rows_sequence = []
+            data = self._extract_data_from_result(query_result)
 
-                    if hasattr(columns, "__iter__") and not isinstance(
-                        columns, (str, bytes)
-                    ):
-                        try:
-                            # Convert to list with type safety
-                            columns_sequence = list(cast("list", columns))
-                        except (TypeError, AttributeError):
-                            columns_sequence = []
-                    else:
-                        columns_sequence = []
-
-                    # Type-safe iteration with explicit type checking
-                    for row_item in rows_sequence:
-                        if not isinstance(row_item, (list, tuple)):
-                            continue
-                        row_dict = {}
-                        if columns_sequence:
-                            for i, col in enumerate(columns_sequence):
-                                if i < len(row_item):
-                                    row_dict[str(col)] = row_item[i]
-                        data.append(row_dict)
-                except Exception as e:
-                    if hasattr(console, "print"):
-                        console.print(f"Error building table data: {e}")
-                    return
-            else:
+            if data is None:
                 if hasattr(console, "print"):
                     console.print("Unsupported query result format")
                 return
 
-            # Use flext-cli for table display instead of direct Rich
-            if data:
-                output_service = FlextCliOutput()
-                table_result = output_service.format_table(data)
-
-                if table_result.is_success:
-                    if hasattr(console, "print"):
-                        console.print(table_result.unwrap())
-                # Fallback to simple data display if table formatting fails
-                elif hasattr(console, "print"):
-                    console.print(f"Data: {data}")
-            elif hasattr(console, "print"):
-                console.print("No data to display")
+            self._display_table_data(data, console)
 
         except Exception as e:
             if hasattr(console, "print"):
@@ -340,6 +347,41 @@ class FlextDbOracleUtilities(FlextService):
             return FlextResult.fail(f"Failed to create API from config: {e}")
 
     @staticmethod
+    def _extract_health_data_dict(health_data: object) -> dict[str, object] | None:
+        """Extract dictionary from health data object."""
+        if hasattr(health_data, "model_dump"):
+            return health_data.model_dump()
+        return None
+
+    @staticmethod
+    def _display_health_table_format(
+        data_dict: dict[str, object], console: object
+    ) -> None:
+        """Display health data in table format."""
+        if isinstance(data_dict, dict):
+            if hasattr(console, "print"):
+                console.print("Health Status:")
+                console.print("-" * 20)
+                for key, value in data_dict.items():
+                    console.print(f"{key}: {value}")
+        elif hasattr(console, "print"):
+            console.print(f"Health data: {data_dict}")
+
+    @staticmethod
+    def _display_health_json_format(
+        data_dict: dict[str, object], console: object
+    ) -> None:
+        """Display health data in JSON format."""
+        if hasattr(console, "print"):
+            console.print(json.dumps(data_dict, indent=2))
+
+    @staticmethod
+    def _display_health_fallback(health_data: object, console: object) -> None:
+        """Fallback display for unsupported health data formats."""
+        if hasattr(console, "print"):
+            console.print(str(health_data))
+
+    @staticmethod
     def _display_health_data(
         health_data: object,
         format_type: str,
@@ -347,27 +389,21 @@ class FlextDbOracleUtilities(FlextService):
     ) -> None:
         """Display health data in specified format."""
         try:
+            data_dict = FlextDbOracleUtilities._extract_health_data_dict(health_data)
+
             if format_type.lower() == "table":
-                # Table format display
-                if hasattr(health_data, "model_dump"):
-                    data_dict: dict[str, object] = health_data.model_dump()
-                    if isinstance(data_dict, dict):
-                        if hasattr(console, "print"):
-                            console.print("Health Status:")
-                            console.print("-" * 20)
-                            for key, value in data_dict.items():
-                                console.print(f"{key}: {value}")
-                    elif hasattr(console, "print"):
-                        console.print(f"Health data: {data_dict}")
-                elif hasattr(console, "print"):
-                    console.print(f"Health data: {health_data}")
-            # JSON or other format
-            elif hasattr(health_data, "model_dump"):
-                json_data: dict[str, object] = health_data.model_dump()
-                if hasattr(console, "print"):
-                    console.print(json.dumps(json_data, indent=2))
-            elif hasattr(console, "print"):
-                console.print(str(health_data))
+                if data_dict is not None:
+                    FlextDbOracleUtilities._display_health_table_format(
+                        data_dict, console
+                    )
+                else:
+                    FlextDbOracleUtilities._display_health_fallback(
+                        health_data, console
+                    )
+            elif data_dict is not None:
+                FlextDbOracleUtilities._display_health_json_format(data_dict, console)
+            else:
+                FlextDbOracleUtilities._display_health_fallback(health_data, console)
 
         except Exception as e:
             if hasattr(console, "print"):
