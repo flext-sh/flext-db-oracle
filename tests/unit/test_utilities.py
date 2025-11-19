@@ -13,8 +13,7 @@ from io import StringIO
 from unittest.mock import Mock
 
 import pytest
-
-# Removed flext_tests.matchers import - using direct assertions
+from flext_tests import FlextTestsMatchers
 from pydantic import BaseModel
 
 from flext_db_oracle import (

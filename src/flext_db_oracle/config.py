@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import ClassVar
-
 from flext_core import FlextConfig, FlextConstants, FlextResult
 from pydantic import (
     Field,
@@ -20,33 +18,47 @@ from pydantic import (
     computed_field,
     field_validator,
 )
+from pydantic_settings import SettingsConfigDict
 
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class FlextDbOracleConfig(FlextConfig):
-    """Oracle Database Configuration extending FlextConfig.
+@FlextConfig.auto_register("db_oracle")
+class FlextDbOracleConfig(FlextConfig.AutoConfig):
+    """Oracle Database Configuration using AutoConfig pattern.
+
+    **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
+
+    This class uses FlextConfig.AutoConfig for automatic:
+    - Singleton pattern (thread-safe)
+    - Namespace registration (accessible via config.db_oracle)
+    - Environment variable loading from FLEXT_DB_ORACLE_* variables
+    - .env file loading (production/development)
+    - Automatic type conversion and validation via Pydantic v2
 
     Provides complete configuration for Oracle database operations including
     connection settings, pool configuration, performance tuning, and security.
-    Uses enhanced singleton pattern with inverse dependency injection.
     """
 
-    # Configuration inherited from FlextConfig with Oracle-specific env prefix
-    model_config: ClassVar[dict[str, object]] = {
-        **FlextConfig.model_config,
-        "env_prefix": "FLEXT_DB_ORACLE_",
-        "json_schema_extra": {
+    model_config = SettingsConfigDict(
+        env_prefix="FLEXT_DB_ORACLE_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+        validate_assignment=True,
+        str_strip_whitespace=True,
+        validate_default=True,
+        frozen=False,
+        arbitrary_types_allowed=True,
+        strict=False,
+        json_schema_extra={
             "title": "FLEXT DB Oracle Configuration",
             "description": (
                 "Enterprise Oracle database configuration extending FlextConfig"
             ),
         },
-    }
-
-    def __init__(self, **data: object) -> None:
-        """Initialize Oracle configuration with keyword arguments."""
-        super().__init__(**data)
+    )
 
     # Oracle Connection Configuration - matching model field names
     host: str = Field(
@@ -337,44 +349,23 @@ class FlextDbOracleConfig(FlextConfig):
     def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
         """Create OracleConfig from environment variables.
 
+        **DEPRECATED**: Use `FlextDbOracleConfig.get_instance()` instead.
+        AutoConfig automatically loads from FLEXT_DB_ORACLE_* environment variables.
+
+        This method is kept for backward compatibility but uses Pydantic Settings
+        automatically via AutoConfig pattern.
+
         Args:
-            prefix: Environment variable prefix (default: "ORACLE_")
+            prefix: Environment variable prefix (default: "ORACLE_", but AutoConfig uses "FLEXT_DB_ORACLE_")
 
         Returns:
             FlextResult[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:
-            import os
-
-            # Extract environment variables
-            host = os.getenv(f"{prefix}HOST", "localhost")
-            port_str = os.getenv(f"{prefix}PORT", "1521")
-            name = os.getenv(f"{prefix}NAME", "XE")
-            username = os.getenv(f"{prefix}USERNAME", "")
-            password = os.getenv(f"{prefix}PASSWORD")
-            service_name = os.getenv(f"{prefix}SERVICE_NAME")
-            sid = os.getenv(f"{prefix}SID")
-
-            # Validate port
-            try:
-                port = int(port_str)
-            except ValueError:
-                return FlextResult[FlextDbOracleConfig].fail(
-                    f"Invalid port: {port_str}"
-                )
-
-            # Create config
-            config = FlextDbOracleConfig(
-                host=host,
-                port=port,
-                name=name,
-                username=username,
-                password=password,
-                service_name=service_name,
-                sid=sid,
-            )
-
+            # Use AutoConfig singleton which automatically loads from environment
+            # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
+            config = cls.get_instance()
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(
