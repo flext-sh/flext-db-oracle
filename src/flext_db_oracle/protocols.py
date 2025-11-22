@@ -2,7 +2,7 @@
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols, FlextResult
+from flext_core import FlextProtocols, FlextResult, FlextTypes
 
 
 class FlextDbOracleProtocols(FlextProtocols):
@@ -84,7 +84,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_query(
-                self, sql: str, params: dict[str, object] | None = None
+                self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
             ) -> FlextResult[object]:
                 """Execute Oracle SQL query.
 
@@ -100,7 +100,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_statement(
-                self, sql: str, params: dict[str, object] | None = None
+                self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
             ) -> FlextResult[bool]:
                 """Execute Oracle SQL statement.
 
@@ -116,7 +116,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_many(
-                self, sql: str, params_list: list[dict[str, object]]
+                self, sql: str, params_list: list[dict[str, FlextTypes.JsonValue]]
             ) -> FlextResult[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -132,8 +132,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: dict[str, object] | None = None
-            ) -> FlextResult[object | None]:
+                self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
+            ) -> FlextResult[FlextTypes.JsonValue | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -173,7 +173,7 @@ class FlextDbOracleProtocols(FlextProtocols):
 
             def get_columns(
                 self, table: str, schema: str | None = None
-            ) -> FlextResult[list[dict[str, object]]]:
+            ) -> FlextResult[list[dict[str, FlextTypes.JsonValue]]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -181,14 +181,14 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                FlextResult[list[dict[str, object]]]: Column metadata or error
+                FlextResult[list[dict[str, FlextTypes.JsonValue]]]: Column metadata or error
 
                 """
                 ...
 
             def get_table_metadata(
                 self, table: str, schema: str | None = None
-            ) -> FlextResult[dict[str, object]]:
+            ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
                 """Get Oracle table metadata.
 
                 Args:
@@ -196,7 +196,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                FlextResult[dict[str, object]]: Table metadata or error
+                FlextResult[dict[str, FlextTypes.JsonValue]]: Table metadata or error
 
                 """
                 ...
@@ -244,8 +244,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: dict[str, object]
-            ) -> FlextResult[tuple[str, dict[str, object]]]:
+                self, table: str, data: dict[str, FlextTypes.JsonValue]
+            ) -> FlextResult[tuple[str, dict[str, FlextTypes.JsonValue]]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -253,14 +253,17 @@ class FlextDbOracleProtocols(FlextProtocols):
                 data: Column data
 
                 Returns:
-                FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, FlextTypes.JsonValue]]]: SQL and parameters or error
 
                 """
                 ...
 
             def build_update_statement(
-                self, table: str, data: dict[str, object], where_clause: str
-            ) -> FlextResult[tuple[str, dict[str, object]]]:
+                self,
+                table: str,
+                data: dict[str, FlextTypes.JsonValue],
+                where_clause: str,
+            ) -> FlextResult[tuple[str, dict[str, FlextTypes.JsonValue]]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -269,7 +272,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 where_clause: WHERE condition
 
                 Returns:
-                FlextResult[tuple[str, dict[str, object]]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, FlextTypes.JsonValue]]]: SQL and parameters or error
 
                 """
                 ...
@@ -296,7 +299,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             def create_table_ddl(
                 self,
                 table: str,
-                columns: list[dict[str, object]],
+                columns: list[dict[str, FlextTypes.JsonValue]],
                 schema: str | None = None,
             ) -> FlextResult[str]:
                 """Generate Oracle CREATE TABLE DDL.
@@ -372,11 +375,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def get_metrics(self) -> FlextResult[dict[str, object]]:
+            def get_metrics(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
                 """Get collected Oracle metrics.
 
                 Returns:
-                FlextResult[dict[str, object]]: Metrics data or error
+                FlextResult[dict[str, FlextTypes.JsonValue]]: Metrics data or error
 
                 """
                 ...
@@ -451,20 +454,22 @@ class FlextDbOracleProtocols(FlextProtocols):
         class HealthCheckProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def health_check(self) -> FlextResult[dict[str, object]]:
+            def health_check(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
                 """Perform Oracle database health check.
 
                 Returns:
-                FlextResult[dict[str, object]]: Health status or error
+                FlextResult[dict[str, FlextTypes.JsonValue]]: Health status or error
 
                 """
                 ...
 
-            def get_connection_status(self) -> FlextResult[dict[str, object]]:
+            def get_connection_status(
+                self,
+            ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
                 """Get Oracle connection status information.
 
                 Returns:
-                FlextResult[dict[str, object]]: Connection status or error
+                FlextResult[dict[str, FlextTypes.JsonValue]]: Connection status or error
 
                 """
                 ...

@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from flext_core import (
-    FlextBus,
     FlextDispatcher,
     FlextRegistry,
     FlextService,
@@ -40,28 +39,28 @@ class FlextDbOracleDispatcher(FlextService):
         """Command to execute a SQL query and return rows."""
 
         sql: str
-        parameters: dict[str, object] | None = None
+        parameters: dict[str, FlextTypes.JsonValue] | None = None
 
     @dataclass(slots=True)
     class FetchOneCommand:
         """Command to execute a SQL query and fetch a single row."""
 
         sql: str
-        parameters: dict[str, object] | None = None
+        parameters: dict[str, FlextTypes.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteStatementCommand:
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
         sql: str
-        parameters: dict[str, object] | None = None
+        parameters: dict[str, FlextTypes.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteManyCommand:
         """Command to execute a SQL statement multiple times."""
 
         sql: str
-        parameters_list: list[dict[str, object]]
+        parameters_list: list[dict[str, FlextTypes.JsonValue]]
 
     @dataclass(slots=True)
     class GetSchemasCommand:
@@ -110,22 +109,28 @@ class FlextDbOracleDispatcher(FlextService):
 
         def execute_query_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            parameters: dict[str, FlextTypes.JsonValue] = (
+                getattr(command, "parameters", None) or {}
+            )
             return services.execute_query(sql, parameters)
 
         def fetch_one_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            parameters: dict[str, FlextTypes.JsonValue] = (
+                getattr(command, "parameters", None) or {}
+            )
             return services.fetch_one(sql, parameters)
 
         def execute_statement_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, object] = getattr(command, "parameters", None) or {}
+            parameters: dict[str, FlextTypes.JsonValue] = (
+                getattr(command, "parameters", None) or {}
+            )
             return services.execute_statement(sql, parameters)
 
         def execute_many_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters_list: list[dict[str, object]] = getattr(
+            parameters_list: list[dict[str, FlextTypes.JsonValue]] = getattr(
                 command, "parameters_list", []
             )
             return services.execute_many(sql, parameters_list)
@@ -169,7 +174,7 @@ class FlextDbOracleDispatcher(FlextService):
         bus: FlextBus | None = None,
     ) -> FlextDispatcher:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = FlextDispatcher(bus=bus)
+        dispatcher = FlextDispatcher()
         registry = FlextRegistry(dispatcher)
 
         # Create handler functions grouped by functionality

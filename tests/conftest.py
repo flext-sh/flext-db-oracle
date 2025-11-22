@@ -141,18 +141,38 @@ def shared_oracle_container(docker_control: FlextTestDocker) -> Generator[str]:
     """Start and maintain flext-oracle-db-test container.
 
     Container auto-starts if not running and remains running after tests.
+    Only recreates container if there are actual infrastructure failures.
     """
-    # Remove any existing container with the same name first
-    docker_control.stop_container("flext-oracle-db-test")
+    container_name = "flext-oracle-db-test"
 
-    result = docker_control.start_container("flext-oracle-db-test")
+    # Check if container is already running and healthy
+    health_result = docker_control.check_container_health(container_name)
+    if health_result.is_success and health_result.value:
+        # Container is running and healthy, reuse it
+        yield container_name
+        return
+
+    # Container not healthy or doesn't exist, start a new one
+    # Stop any existing unhealthy container first
+    docker_control.stop_container(container_name)
+
+    result = docker_control.start_container(container_name)
     if result.is_failure:
         pytest.skip(f"Failed to start Oracle container: {result.error}")
 
-    yield "flext-oracle-db-test"
+    # Wait for container to be fully ready
+    health_check_result = docker_control.wait_for_container_health(
+        container_name, timeout=300
+    )
+    if health_check_result.is_failure:
+        pytest.skip(
+            f"Oracle container failed health check: {health_check_result.error}"
+        )
 
-    # Keep container running after tests
-    docker_control.stop_container("flext-oracle-db-test")
+    yield container_name
+
+    # Keep container running after tests for future test runs
+    # Only stop if explicitly requested or if there were infrastructure failures
 
 
 @pytest.fixture(scope="session")
@@ -226,3 +246,74 @@ def connected_oracle_api(oracle_api: FlextDbOracleApi) -> Generator[FlextDbOracl
 def flext_domains() -> FlextTestsDomains:
     """Provide FlextTestsDomains instance for domain-based testing."""
     return FlextTestsDomains()
+
+
+@pytest.fixture(autouse=True)
+def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[None]:
+    """Ensure test idempotency by cleaning up test data before and after tests."""
+    # Pre-test cleanup
+    if connected_oracle_api is not None:
+        try:
+            # Clean up any test tables/data created by previous tests
+            cleanup_queries = [
+                "DROP TABLE IF EXISTS test_table CASCADE",
+                "DROP TABLE IF EXISTS flext_test_table CASCADE",
+                "DROP SEQUENCE IF EXISTS test_seq CASCADE",
+                "DROP SEQUENCE IF EXISTS flext_test_seq CASCADE",
+            ]
+            for query in cleanup_queries:
+                try:
+                    result = connected_oracle_api.execute_statement(query)
+                    if result.is_failure:
+                        # Log but don't fail - cleanup is best effort
+                        pass
+                except Exception:
+                    # Ignore cleanup failures
+                    pass
+        except Exception:
+            # Ignore cleanup failures completely
+            pass
+
+    yield
+
+    # Post-test cleanup (ensure clean state for next test)
+    if connected_oracle_api is not None:
+        try:
+            # Additional cleanup after test execution
+            post_cleanup_queries = [
+                "DROP TABLE IF EXISTS temp_test_table CASCADE",
+                "DROP TABLE IF EXISTS session_test_table CASCADE",
+            ]
+            for query in post_cleanup_queries:
+                try:
+                    result = connected_oracle_api.execute_statement(query)
+                    if result.is_failure:
+                        pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+
+@pytest.fixture
+def test_database_setup(
+    connected_oracle_api: FlextDbOracleApi,
+) -> Generator[dict[str, str]]:
+    """Set up test database schema and return test table info."""
+    test_schema = {
+        "test_table": "CREATE TABLE test_table (id NUMBER PRIMARY KEY, name VARCHAR2(100))",
+        "test_sequence": "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
+    }
+
+    # Create test schema
+    for ddl in test_schema.values():
+        try:
+            result = connected_oracle_api.execute_statement(ddl)
+            if result.is_failure:
+                pytest.skip(f"Could not create test schema: {result.error}")
+        except Exception as e:
+            pytest.skip(f"Test setup failed: {e}")
+
+    return test_schema
+
+    # Cleanup will be handled by test_cleanup fixture

@@ -13,7 +13,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from urllib.parse import quote_plus
 
-from flext_core import FlextResult, FlextService
+from flext_core import FlextResult, FlextService, FlextTypes
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
@@ -28,7 +28,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         super().__init__()
         self._config = config
         self._engine: Engine | None = None
-        self._operations: list[dict[str, object]] = []
+        self._operations: list[dict[str, FlextTypes.JsonValue]] = []
 
     def _build_connection_url(self) -> FlextResult[str]:
         """Build Oracle connection URL from configuration."""
@@ -126,8 +126,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
     # Query Operations
     def execute_query(
-        self, sql: str, params: dict[str, object] | None = None
-    ) -> FlextResult[list[dict[str, object]]]:
+        self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
+    ) -> FlextResult[list[dict[str, FlextTypes.JsonValue]]]:
         """Execute SQL query and return results."""
         try:
             engine_result = self._get_engine()
@@ -144,7 +144,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             return FlextResult.fail(f"Query execution failed: {e}")
 
     def execute_statement(
-        self, sql: str, params: dict[str, object] | None = None
+        self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
     ) -> FlextResult[int]:
         """Execute SQL statement and return affected rows."""
         try:
@@ -161,7 +161,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             return FlextResult.fail(f"Statement execution failed: {e}")
 
     def execute_many(
-        self, sql: str, params_list: list[dict[str, object]]
+        self, sql: str, params_list: list[dict[str, FlextTypes.JsonValue]]
     ) -> FlextResult[int]:
         """Execute SQL statement multiple times."""
         try:
@@ -181,8 +181,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             return FlextResult.fail(f"Bulk execution failed: {e}")
 
     def fetch_one(
-        self, sql: str, params: dict[str, object] | None = None
-    ) -> FlextResult[dict[str, object] | None]:
+        self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
+    ) -> FlextResult[dict[str, FlextTypes.JsonValue] | None]:
         """Execute query and return first result."""
         try:
             result = self.execute_query(sql, params)
@@ -213,7 +213,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         try:
             if schema:
                 sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-                params: dict[str, object] | None = {"schema_name": schema}
+                params: dict[str, FlextTypes.JsonValue] | None = {"schema_name": schema}
             else:
                 sql = "SELECT table_name FROM user_tables ORDER BY table_name"
                 params = None
@@ -229,7 +229,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
     def get_columns(
         self, table_name: str, schema_name: str | None = None
-    ) -> FlextResult[list[dict[str, object]]]:
+    ) -> FlextResult[list[dict[str, FlextTypes.JsonValue]]]:
         """Get column information for Oracle table."""
         try:
             if schema_name:
@@ -239,7 +239,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
  WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
  ORDER BY column_id
  """
-                params: dict[str, object] = {
+                params: dict[str, FlextTypes.JsonValue] = {
                     "table_name": table_name,
                     "schema_name": schema_name,
                 }
@@ -271,7 +271,10 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
  AND c.owner = :schema
  ORDER BY cc.position
  """
-                params: dict[str, object] = {"table_name": table_name, "schema": schema}
+                params: dict[str, FlextTypes.JsonValue] = {
+                    "table_name": table_name,
+                    "schema": schema,
+                }
             else:
                 sql = """
  SELECT column_name
@@ -294,7 +297,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
     def get_table_metadata(
         self, table_name: str, schema: str | None = None
-    ) -> FlextResult[dict[str, object]]:
+    ) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """Get complete table metadata."""
         try:
             # Get table columns
@@ -307,7 +310,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             if pk_result.is_failure:
                 return FlextResult.fail(pk_result.error or "Failed to get primary keys")
 
-            metadata: dict[str, object] = {
+            metadata: dict[str, FlextTypes.JsonValue] = {
                 "table_name": table_name,
                 "schema": schema,
                 "columns": columns_result.unwrap(),
@@ -336,7 +339,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         self,
         table_name: str,
         columns: list[str] | None = None,
-        conditions: dict[str, object] | None = None,
+        conditions: dict[str, FlextTypes.JsonValue] | None = None,
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Build SELECT query - simplified implementation."""
@@ -401,7 +404,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[dict[str, object]],
+        columns: list[dict[str, FlextTypes.JsonValue]],
         schema_name: str | None = None,
     ) -> FlextResult[str]:
         """Generate CREATE TABLE DDL - simplified."""
@@ -441,7 +444,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         return FlextResult.ok(oracle_type)
 
     def map_singer_schema(
-        self, singer_schema: dict[str, object]
+        self, singer_schema: dict[str, FlextTypes.JsonValue]
     ) -> FlextResult[dict[str, str]]:
         """Map Singer schema to Oracle types - simplified."""
         mapping = {}
@@ -457,13 +460,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
 
     # Placeholder methods for compatibility
     def generate_query_hash(
-        self, sql: str, params: dict[str, object] | None = None
+        self, sql: str, params: dict[str, FlextTypes.JsonValue] | None = None
     ) -> FlextResult[str]:
         """Generate query hash - simplified."""
         hash_input = f"{sql}_{params!s}"
         return FlextResult.ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
 
-    def get_connection_status(self) -> FlextResult[dict[str, object]]:
+    def get_connection_status(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """Get connection status - simplified."""
         return FlextResult.ok({
             "connected": self.is_connected(),
@@ -478,11 +481,11 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         """Record metric - placeholder."""
         return FlextResult.ok(None)
 
-    def get_metrics(self) -> FlextResult[dict[str, object]]:
+    def get_metrics(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """Get metrics - placeholder."""
         return FlextResult.ok({})
 
-    def health_check(self) -> FlextResult[dict[str, object]]:
+    def health_check(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """Perform health check."""
         return FlextResult.ok({
             "status": "healthy" if self.is_connected() else "unhealthy",
@@ -498,7 +501,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         """Unregister plugin - placeholder."""
         return FlextResult.ok(None)
 
-    def list_plugins(self) -> FlextResult[dict[str, object]]:
+    def list_plugins(self) -> FlextResult[dict[str, FlextTypes.JsonValue]]:
         """List plugins - placeholder."""
         return FlextResult.ok({})
 
@@ -546,7 +549,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         duration: float,
         *,
         _success: bool,
-        metadata: dict[str, object] | None = None,
+        metadata: dict[str, FlextTypes.JsonValue] | None = None,
     ) -> FlextResult[None]:
         """Track database operation for monitoring."""
         try:
@@ -562,7 +565,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
         except Exception as e:
             return FlextResult.fail(f"Failed to track operation: {e}")
 
-    def get_operations(self) -> FlextResult[list[dict[str, object]]]:
+    def get_operations(self) -> FlextResult[list[dict[str, FlextTypes.JsonValue]]]:
         """Get tracked operations."""
         return FlextResult.ok(self._operations.copy())
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextConstants, FlextModels
+from flext_core import FlextConstants, FlextModels, FlextTypes
 from pydantic import (
     Field,
     computed_field,
@@ -37,50 +37,52 @@ class FlextDbOracleModels(FlextModels):
 
         is_connected: bool = False
         last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
-        error_message: str | None = None
+        error_message: str = Field(
+            default="", description="Error message when disconnected"
+        )
 
         # Additional Oracle-specific connection details
-        connection_time: float | None = None
-        last_activity: datetime | None = None
-        session_id: str | None = None
-        host: str | None = None
-        port: int | None = None
-        service_name: str | None = None
-        username: str | None = None
-        db_version: str | None = None
+        connection_time: float = Field(
+            default=0.0, description="Connection establishment time in seconds"
+        )
+        last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
+        session_id: str = Field(default="", description="Oracle session identifier")
+        host: str = Field(default="", description="Database host")
+        port: int = Field(
+            default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
+            description="Database port",
+        )
+        service_name: str = Field(default="", description="Oracle service name")
+        username: str = Field(default="", description="Database username")
+        db_version: str = Field(default="", description="Oracle database version")
 
         @computed_field
         def status_description(self) -> str:
             """Human-readable status description."""
+            if self.is_connected:
+                return "Connected"
             return (
-                "Connected"
-                if self.is_connected
-                else f"Disconnected: {self.error_message}"
+                f"Disconnected: {self.error_message}"
                 if self.error_message
                 else "Disconnected"
             )
 
         @computed_field
-        def connection_age_seconds(self) -> float | None:
+        def connection_age_seconds(self) -> float:
             """Connection age in seconds."""
-            return (
-                (datetime.now(UTC) - self.last_activity).total_seconds()
-                if self.is_connected and self.last_activity
-                else None
-            )
+            if self.is_connected:
+                return (datetime.now(UTC) - self.last_activity).total_seconds()
+            return 0.0
 
         @computed_field
         def is_healthy(self) -> bool:
             """Connection health status."""
-            age_seconds = (
-                (datetime.now(UTC) - self.last_activity).total_seconds()
-                if self.is_connected and self.last_activity
-                else None
-            )
-            return self.is_connected and not (
-                age_seconds is not None
-                and age_seconds
-                > FlextDbOracleConstants.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+            if not self.is_connected:
+                return False
+            age_seconds = self.connection_age_seconds
+            return (
+                age_seconds
+                <= FlextDbOracleConstants.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
             )
 
         @computed_field
@@ -96,27 +98,26 @@ class FlextDbOracleModels(FlextModels):
                     ("service", self.service_name),
                     ("user", self.username),
                 ]
-                if v
+                if v  # Empty strings are falsy, so this works
             ]
             return ", ".join(parts) or "Connected"
 
         @computed_field
         def performance_info(self) -> str:
             """Connection performance information."""
-            if not self.is_connected or self.connection_time is None:
+            if not self.is_connected or self.connection_time <= 0:
                 return "No performance data"
             thresholds = FlextDbOracleConstants.OraclePerformance
-            return (
-                f"Excellent ({self.connection_time:.3f}s)"
-                if self.connection_time
-                < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
-                else f"Good ({self.connection_time:.3f}s)"
-                if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS
-                else f"Acceptable ({self.connection_time:.3f}s)"
-                if self.connection_time
+            if self.connection_time < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS:
+                return f"Excellent ({self.connection_time:.3f}s)"
+            if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS:
+                return f"Good ({self.connection_time:.3f}s)"
+            if (
+                self.connection_time
                 < thresholds.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
-                else f"Slow ({self.connection_time:.3f}s)"
-            )
+            ):
+                return f"Acceptable ({self.connection_time:.3f}s)"
+            return f"Slow ({self.connection_time:.3f}s)"
 
         @model_validator(mode="after")
         def validate_connection_status_consistency(
@@ -126,65 +127,53 @@ class FlextDbOracleModels(FlextModels):
             if self.is_connected and not self.host:
                 msg = "Connected status requires host information"
                 raise ValueError(msg)
-            if (
-                self.is_connected
-                and self.port
-                and not (
-                    FlextConstants.Network.MIN_PORT
-                    <= self.port
-                    <= FlextConstants.Network.MAX_PORT
-                )
+            if self.is_connected and not (
+                FlextConstants.Network.MIN_PORT
+                <= self.port
+                <= FlextConstants.Network.MAX_PORT
             ):
                 msg = f"Invalid port number: {self.port}"
                 raise ValueError(msg)
             if not self.is_connected and not self.error_message:
                 self.error_message = "Connection failed"
-            if self.connection_time is not None and self.connection_time < 0:
+            if self.connection_time < 0:
                 msg = "Connection time cannot be negative"
                 raise ValueError(msg)
             return self
 
         @field_serializer("error_message")
-        def serialize_error_message(self, value: str | None) -> str | None:
+        def serialize_error_message(self, value: str) -> str:
             """Truncate long error messages."""
             max_error_length = 500
-            return (
-                None
-                if value is None
-                else f"{value[:max_error_length]}... (truncated)"
-                if len(value) > max_error_length
-                else value
-            )
+            if len(value) > max_error_length:
+                return f"{value[:max_error_length]}... (truncated)"
+            return value
 
         @field_serializer("last_check", "last_activity")
-        def serialize_datetime(self, value: datetime | None) -> str | None:
+        def serialize_datetime(self, value: datetime) -> str:
             """Format datetime as ISO string."""
-            return None if value is None else value.isoformat()
+            return value.isoformat()
 
         @field_serializer("connection_time")
-        def serialize_connection_time(self, value: float | None) -> str | None:
+        def serialize_connection_time(self, value: float) -> str:
             """Format connection time with units."""
-            return None if value is None else f"{value:.3f}s"
+            return f"{value:.3f}s"
 
     class QueryResult(FlextModels.Entity):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[dict[str, object]] = Field(default_factory=list)
+        result_data: list[dict[str, FlextTypes.JsonValue]] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[object]] = Field(default_factory=list, description="Row data")
-        query_hash: str | None = Field(
-            default=None,
-            description="Query hash for caching",
+        rows: list[list[FlextTypes.JsonValue]] = Field(
+            default_factory=list, description="Row data"
         )
-        explain_plan: str | None = Field(
-            default=None,
-            description="Query execution plan",
-        )
+        query_hash: str = Field(default="", description="Query hash for caching")
+        explain_plan: str = Field(default="", description="Query execution plan")
 
         @computed_field
         def execution_time_seconds(self) -> float:
@@ -272,7 +261,9 @@ class FlextDbOracleModels(FlextModels):
         name: str
         data_type: str
         nullable: bool = True
-        default_value: str | None = None
+        default_value: str = Field(
+            default="", description="Default value for the column"
+        )
 
     class Schema(FlextModels.Entity):
         """Schema metadata using flext-core Entity."""
@@ -287,9 +278,11 @@ class FlextDbOracleModels(FlextModels):
         index_name: str
         columns: list[str]
         unique: bool = False
-        schema_name: str | None = None
-        tablespace: str | None = None
-        parallel: int | None = None
+        schema_name: str = Field(default="", description="Schema name")
+        tablespace: str = Field(default="", description="Tablespace name")
+        parallel: int = Field(
+            default=1, description="Parallel degree for index creation"
+        )
 
     class MergeStatementConfig(FlextModels.Entity):
         """Merge statement config using flext-core Entity."""

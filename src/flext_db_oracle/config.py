@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 from flext_core import FlextConfig, FlextConstants, FlextResult
 from pydantic import (
     Field,
@@ -346,7 +348,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         }
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+    def from_env(cls, _prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
         """Create OracleConfig from environment variables.
 
         **DEPRECATED**: Use `FlextDbOracleConfig.get_instance()` instead.
@@ -354,9 +356,6 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
 
         This method is kept for backward compatibility but uses Pydantic Settings
         automatically via AutoConfig pattern.
-
-        Args:
-            prefix: Environment variable prefix (default: "ORACLE_", but AutoConfig uses "FLEXT_DB_ORACLE_")
 
         Returns:
             FlextResult[FlextDbOracleConfig]: Configuration or error.
@@ -384,8 +383,6 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
 
         """
         try:
-            from urllib.parse import urlparse
-
             # Parse the URL
             parsed = urlparse(url)
             if parsed.scheme != "oracle":

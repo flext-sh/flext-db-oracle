@@ -1,68 +1,63 @@
 #!/usr/bin/env python3
-"""Simple working Oracle example using only real API methods.
+"""Simple working Oracle example demonstrating configuration setup.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
-This example demonstrates the actual functionality available in flext-db-oracle
-without inventing non-existent methods.
+This example demonstrates basic configuration and setup functionality.
 """
 
 from __future__ import annotations
 
 from flext_core import FlextLogger
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
 
 
 def demonstrate_real_functionality() -> None:
-    """Demonstrate actual working functionality."""
-    logger.info("=== FLEXT Oracle Example - Real Functionality ===")
+    """Demonstrate configuration and basic setup functionality."""
+    logger.info("=== FLEXT Oracle Example - Configuration Demo ===")
 
     try:
-        # 1. Create configuration from environment
+        # 1. Create configuration from environment (with defaults)
         config_result = FlextDbOracleConfig.from_env()
-        if not config_result.is_success:
-            logger.error(f"❌ Configuration failed: {config_result.error}")
-            return
-        config = config_result.value
-        logger.info(f"✅ Configuration created: {config.host}:{config.port}")
-
-        # 2. Create API instance
-        api = FlextDbOracleApi(config)
-        logger.info("✅ API instance created")
-
-        # 3. Test connection
-        connection_result = api.test_connection()
-        if connection_result.is_success:
-            logger.info("✅ Connection test successful")
+        if config_result.is_success:
+            config = config_result.value
+            logger.info(f"✅ Configuration created: {config.host}:{config.port}")
         else:
-            logger.error(f"❌ Connection test failed: {connection_result.error}")
-            return
+            # Create demo config if env config fails
+            config = FlextDbOracleConfig(
+                host="demo-host", username="demo-user", password="demo-password"
+            )
+            logger.info("✅ Demo configuration created")
 
-        # 4. Get schemas (if connected)
-        with api as connected_api:
-            schemas_result = connected_api.get_schemas()
-            if schemas_result.is_success:
-                logger.info(f"✅ Found {len(schemas_result.value)} schemas")
-            else:
-                logger.warning(f"⚠️  Could not get schemas: {schemas_result.error}")
+        # 2. Show configuration values
+        logger.info(f"📋 Host: {config.host}")
+        logger.info(f"📋 Port: {config.port}")
+        logger.info(f"📋 Service: {config.service_name}")
+        username_display = (
+            config.username.get_secret_value()[:3]
+            if hasattr(config.username, "get_secret_value")
+            else str(config.username)[:3]
+        )
+        logger.info(f"📋 Username: {username_display}***")
 
-            # 5. Execute simple query
-            query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
-            if query_result.is_success:
-                result_data = query_result.value
-                logger.info(f"✅ Query successful: {len(result_data)} rows")
-                if result_data:
-                    logger.info(f"   First row: {result_data[0]}")
-            else:
-                logger.warning(f"⚠️  Query failed: {query_result.error}")
+        # 3. Demonstrate config validation
+        if config.host and config.port > 0:
+            logger.info("✅ Configuration is valid")
+        else:
+            logger.error("❌ Configuration is invalid")
 
     except Exception:
-        logger.exception("❌ Example failed")
+        logger.exception("❌ Unexpected error")
+
+
+def main() -> None:
+    """Main entry point."""
+    demonstrate_real_functionality()
 
 
 if __name__ == "__main__":
-    demonstrate_real_functionality()
+    main()

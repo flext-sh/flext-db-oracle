@@ -140,13 +140,11 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            result = (
-                FlextUtilities.FlextUtilities.CommandExecution.run_external_command(
-                    cmd,
-                    capture_output=True,
-                    check=False,
-                    timeout=30.0,
-                )
+            result = FlextUtilities.CommandExecution.run_external_command(
+                cmd,
+                capture_output=True,
+                check=False,
+                timeout=30.0,
             )
             if result.is_success:
                 process = result.unwrap()

@@ -10,11 +10,8 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from typing import cast
-from unittest.mock import MagicMock
 
 import pytest
-from flext_core import FlextResult
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -865,7 +862,7 @@ class TestDirectCoverageBoostObservability:
             assert metrics_result.is_success
             assert isinstance(metrics_result.value, dict)
 
-        except (TypeError, AttributeError, ImportError):
+        except (TypeError, AttributeError):
             # Handle if observability not fully implemented
             pass
 
@@ -998,16 +995,11 @@ class TestDirectCoverageBoostServices:
 
         for config_result in configs:
             # Type guard: ensure we have a FlextResult before passing to assert_result_success
-            if not hasattr(config_result, "success"):
+            if not hasattr(config_result, "is_success"):
                 continue  # Skip non-FlextResult items
-            # Cast to FlextResult to satisfy mypy
-            result = cast("FlextResult[object]", config_result)
-            assert result.is_success
-            # Use the cast result for accessing value
-            config = cast(
-                "FlextDbOracleConfig",
-                result.value,
-            )
+            assert config_result.is_success
+            # Use the result for accessing value
+            config = config_result.value
 
             services = FlextDbOracleServices(config=config)
 
@@ -1061,9 +1053,8 @@ class TestDirectCoverageBoostServices:
         ]
 
         for case_dict in sql_test_cases:
-            case = cast("dict[str, str | tuple[str, ...]]", case_dict)
-            method_name = str(case["method"])
-            args = case["args"]
+            method_name = str(case_dict["method"])
+            args = case_dict["args"]
 
             try:
                 method = getattr(services, method_name)

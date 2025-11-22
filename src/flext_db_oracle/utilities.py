@@ -15,10 +15,10 @@ import importlib
 import json
 import os
 import re
-from typing import cast
+from typing import Any
 
 from flext_cli import FlextCliOutput
-from flext_core import FlextResult, FlextService
+from flext_core import FlextResult, FlextService, FlextTypes
 
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -29,7 +29,7 @@ class FlextDbOracleUtilities(FlextService):
 
     def __init__(self) -> None:
         """Initialize Oracle utilities service."""
-        super().__init__(config=None)  # Utilities don't need specific config
+        super().__init__()  # Utilities don't need specific config
 
     def execute(self) -> FlextResult[object]:
         """Execute the main domain operation for Oracle utilities.
@@ -50,7 +50,7 @@ class FlextDbOracleUtilities(FlextService):
     @staticmethod
     def generate_query_hash(
         sql: str,
-        params: dict[str, object] | None = None,
+        params: dict[str, FlextTypes.JsonValue] | None = None,
     ) -> FlextResult[str]:
         """Generate hash for SQL query caching - Oracle specific.
 
@@ -203,7 +203,7 @@ class FlextDbOracleUtilities(FlextService):
 
     def _extract_data_from_result(
         self, query_result: object
-    ) -> list[dict[str, object]] | None:
+    ) -> list[dict[str, FlextTypes.JsonValue]] | None:
         """Extract data from different query result types."""
         if hasattr(query_result, "to_dict_list"):
             return query_result.to_dict_list()
@@ -215,7 +215,7 @@ class FlextDbOracleUtilities(FlextService):
 
     def _convert_columns_rows_to_dicts(
         self, columns: object, rows: object
-    ) -> list[dict[str, object]]:
+    ) -> list[dict[str, FlextTypes.JsonValue]]:
         """Convert columns and rows to list of dictionaries."""
         data = []
         try:
@@ -235,17 +235,19 @@ class FlextDbOracleUtilities(FlextService):
             return []
         return data
 
-    def _safe_sequence_conversion(self, sequence: object) -> list:
+    def _safe_sequence_conversion(self, sequence: object) -> list[Any]:
         """Safely convert sequence-like objects to lists."""
+        if isinstance(sequence, list):
+            return sequence
         if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
             try:
-                return list(cast("list", sequence))
+                return list(sequence)
             except (TypeError, AttributeError):
                 return []
         return []
 
     def _display_table_data(
-        self, data: list[dict[str, object]], console: object
+        self, data: list[dict[str, FlextTypes.JsonValue]], console: object
     ) -> None:
         """Display table data using flext-cli output service."""
         if not data:
@@ -284,7 +286,7 @@ class FlextDbOracleUtilities(FlextService):
 
     @staticmethod
     def create_api_from_config(
-        config: dict[str, object],
+        config: dict[str, FlextTypes.JsonValue],
     ) -> FlextResult[object]:
         """Create Oracle API instance from configuration.
 
@@ -347,7 +349,9 @@ class FlextDbOracleUtilities(FlextService):
             return FlextResult.fail(f"Failed to create API from config: {e}")
 
     @staticmethod
-    def _extract_health_data_dict(health_data: object) -> dict[str, object] | None:
+    def _extract_health_data_dict(
+        health_data: object,
+    ) -> dict[str, FlextTypes.JsonValue] | None:
         """Extract dictionary from health data object."""
         if hasattr(health_data, "model_dump"):
             return health_data.model_dump()
@@ -355,7 +359,7 @@ class FlextDbOracleUtilities(FlextService):
 
     @staticmethod
     def _display_health_table_format(
-        data_dict: dict[str, object], console: object
+        data_dict: dict[str, FlextTypes.JsonValue], console: object
     ) -> None:
         """Display health data in table format."""
         if isinstance(data_dict, dict):
@@ -369,7 +373,7 @@ class FlextDbOracleUtilities(FlextService):
 
     @staticmethod
     def _display_health_json_format(
-        data_dict: dict[str, object], console: object
+        data_dict: dict[str, FlextTypes.JsonValue], console: object
     ) -> None:
         """Display health data in JSON format."""
         if hasattr(console, "print"):

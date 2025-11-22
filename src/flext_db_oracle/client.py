@@ -12,15 +12,12 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import cast
 
 from flext_core import FlextContainer, FlextResult, FlextService
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.typings import FlextDbOracleTypes
-
-from .constants import FlextDbOracleConstants
 
 
 class FlextDbOracleClient(FlextService):
@@ -30,30 +27,24 @@ class FlextDbOracleClient(FlextService):
     management using the flext-db-oracle foundation API with full flext-core integration.
     """
 
-    def __init__(
-        self, *, debug: bool = False, config: FlextDbOracleConfig | None = None
-    ) -> None:
-        """Initialize Oracle CLI client with proper composition."""
-        # Configuration - store locally
-        self._oracle_config = config or FlextDbOracleConfig()
+    debug: bool = False
+    current_connection: FlextDbOracleApi | None = None
+    user_preferences: FlextDbOracleTypes.Connection.ConnectionConfiguration = {}
 
-        # Initialize FlextService with config
-        super().__init__(config=self._oracle_config)
+    def __init__(self, *, debug: bool = False) -> None:
+        """Initialize Oracle CLI client with proper composition."""
+        # Configuration - create locally (don't pass to parent to avoid extra_forbidden error)
+        self._oracle_config = FlextDbOracleConfig()
+
+        # Initialize FlextService without config parameter
+        super().__init__()
 
         # Core dependencies injected via composition
         self._container = FlextContainer.get_global()
         # Logger will be initialized lazily via the parent class property
 
-        # Application state
+        # Application state - set debug value
         self.debug = debug
-        self.current_connection: FlextDbOracleApi | None = None
-        self.user_preferences: FlextDbOracleTypes.Connection.ConnectionConfiguration = {
-            "default_output_format": "table",
-            "auto_confirm_operations": "False",
-            "show_execution_time": "True",
-            "connection_timeout": FlextDbOracleConstants.Connection.DEFAULT_CONNECTION_TIMEOUT,
-            "query_limit": FlextDbOracleConstants.Query.DEFAULT_QUERY_LIMIT,
-        }
 
     @property
     def config(self) -> FlextDbOracleConfig:
@@ -275,9 +266,7 @@ class FlextDbOracleClient(FlextService):
 
         formatter = formatter_result.value
         if callable(formatter):
-            format_result: FlextResult[str] = formatter(
-                cast("FlextDbOracleTypes.Query.QueryResult", data)
-            )
+            format_result: FlextResult[str] = formatter(data)
             return format_result
         return FlextResult[str].fail("Invalid formatter strategy")
 

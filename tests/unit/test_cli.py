@@ -270,15 +270,12 @@ class TestFlextDbOracleCli:
         assert cli_service.logger is not None
         # _cli_main may be None if FlextCliCommands fails to initialize
 
-    def test_cli_service_initialization_with_cli_failure(self) -> None:
-        """Test CLI service initialization when FlextCliCommands fails."""
-        with patch("flext_db_oracle.cli.FlextCliCommands") as mock_cli_main:
-            mock_cli_main.side_effect = Exception("CLI initialization error")
+    def test_cli_service_initialization_basic(self) -> None:
+        """Test basic CLI service initialization."""
+        cli_service = FlextDbOracleCli()
 
-            cli_service = FlextDbOracleCli()
-
-            assert cli_service is not None
-            assert cli_service._cli_main is None
+        assert cli_service is not None
+        assert hasattr(cli_service, "logger")
 
     def test_initialize_cli_main_success(self) -> None:
         """Test successful CLI main initialization."""

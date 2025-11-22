@@ -21,6 +21,6 @@ class TestFlextDbOracleConfig:
     def test_config_attributes(self) -> None:
         """Test config has required attributes."""
         config = FlextDbOracleConfig()
-        assert hasattr(config, "oracle_host")
-        assert hasattr(config, "oracle_port")
-        assert hasattr(config, "oracle_service_name")
+        assert hasattr(config, "host")
+        assert hasattr(config, "port")
+        assert hasattr(config, "service_name")
