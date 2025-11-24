@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from typing import cast
 
 from flext_core import FlextContainer, FlextResult, FlextService
 
@@ -45,11 +46,6 @@ class FlextDbOracleClient(FlextService):
 
         # Application state - set debug value
         self.debug = debug
-
-    @property
-    def config(self) -> FlextDbOracleConfig:
-        """Get the Oracle configuration (overrides base class)."""
-        return self._oracle_config
 
     @property
     def oracle_config(self) -> FlextDbOracleConfig:
@@ -181,6 +177,8 @@ class FlextDbOracleClient(FlextService):
 
     def _handle_list_schemas_operation(self) -> FlextResult[dict[str, object]]:
         """Handle list schemas operation."""
+        if self.current_connection is None:
+            return FlextResult[dict[str, object]].fail("No active database connection")
         schemas_result: FlextResult[list[str]] = self.current_connection.get_schemas()
         if schemas_result.is_success:
             return FlextResult[dict[str, object]].ok({
@@ -194,6 +192,8 @@ class FlextDbOracleClient(FlextService):
         self, **params: object
     ) -> FlextResult[dict[str, object]]:
         """Handle list tables operation."""
+        if self.current_connection is None:
+            return FlextResult[dict[str, object]].fail("No active database connection")
         schema = str(params.get("schema", ""))
         tables_result: FlextResult[list[str]] = self.current_connection.get_tables(
             schema or None
@@ -210,6 +210,8 @@ class FlextDbOracleClient(FlextService):
         self, **params: object
     ) -> FlextResult[dict[str, object]]:
         """Handle query operation."""
+        if self.current_connection is None:
+            return FlextResult[dict[str, object]].fail("No active database connection")
         sql = str(params.get("sql", ""))
         if not sql:
             return FlextResult[dict[str, object]].fail("SQL query required")
@@ -232,6 +234,8 @@ class FlextDbOracleClient(FlextService):
 
     def _handle_health_check_operation(self) -> FlextResult[dict[str, object]]:
         """Handle health check operation."""
+        if self.current_connection is None:
+            return FlextResult[dict[str, object]].fail("No active database connection")
         health_result: FlextResult[dict[str, object]] = (
             self.current_connection.get_health_status()
         )
@@ -266,7 +270,9 @@ class FlextDbOracleClient(FlextService):
 
         formatter = formatter_result.value
         if callable(formatter):
-            format_result: FlextResult[str] = formatter(data)
+            format_result: FlextResult[str] = formatter(
+                cast("FlextDbOracleTypes.Query.QueryResult", data)
+            )
             return format_result
         return FlextResult[str].fail("Invalid formatter strategy")
 
@@ -470,7 +476,7 @@ class FlextDbOracleClient(FlextService):
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self, **kwargs: object) -> FlextResult[object]:
         """Execute the main domain operation for Oracle client.
 
         Returns:

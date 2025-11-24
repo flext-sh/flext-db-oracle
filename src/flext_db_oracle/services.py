@@ -11,6 +11,7 @@ import hashlib
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from typing import cast
 from urllib.parse import quote_plus
 
 from flext_core import FlextResult, FlextService, FlextTypes
@@ -313,8 +314,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             metadata: dict[str, FlextTypes.JsonValue] = {
                 "table_name": table_name,
                 "schema": schema,
-                "columns": columns_result.unwrap(),
-                "primary_keys": pk_result.unwrap(),
+                "columns": cast("FlextTypes.JsonValue", columns_result.unwrap()),
+                "primary_keys": cast("FlextTypes.JsonValue", pk_result.unwrap()),
             }
 
             return FlextResult.ok(metadata)
@@ -322,17 +323,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
             return FlextResult.fail(f"Failed to get table metadata: {e}")
 
     # Domain Service
-    def execute(self) -> FlextResult[FlextDbOracleConfig]:
+    def execute(self, **kwargs: object) -> FlextResult[FlextDbOracleConfig]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
             return FlextResult.ok(self._config)
         return FlextResult.fail(test_result.error or "Connection test failed")
-
-    @property
-    def config(self) -> FlextDbOracleConfig:
-        """Get the Oracle configuration."""
-        return self._config
 
     # Placeholder methods for compatibility - delegate to simpler implementations
     def build_select(
@@ -560,7 +556,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleConfig]):
                 "metadata": metadata or {},
                 "timestamp": self._get_current_timestamp(),
             }
-            self._operations.append(operation)
+            self._operations.append(cast("dict[str, FlextTypes.JsonValue]", operation))
             return FlextResult.ok(None)
         except Exception as e:
             return FlextResult.fail(f"Failed to track operation: {e}")

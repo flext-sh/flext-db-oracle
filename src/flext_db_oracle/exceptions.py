@@ -32,7 +32,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize Oracle error with message and optional metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.oracle_error_code = oracle_error_code
             self.sql_state = sql_state
 
@@ -48,7 +48,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize connection error with TNS and connection metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.tns_error = tns_error
             self.connection_string = connection_string
 
@@ -64,7 +64,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize metadata error with object name and type metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.object_name = object_name
             self.object_type = object_type
 
@@ -80,7 +80,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize processing error with operation type and stage metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 
@@ -96,7 +96,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.sql_text = sql_text
             self.bind_variables = bind_variables or {}
 
@@ -112,7 +112,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             **kwargs: object,
         ) -> None:
             """Initialize timeout error with query ID and elapsed time metadata."""
-            super().__init__(message, **kwargs)
+            super().__init__(message)
             self.query_id = query_id
             self.elapsed_time = elapsed_time
 

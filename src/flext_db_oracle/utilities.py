@@ -15,7 +15,7 @@ import importlib
 import json
 import os
 import re
-from typing import Any
+from typing import Any, cast
 
 from flext_cli import FlextCliOutput
 from flext_core import FlextResult, FlextService, FlextTypes
@@ -31,7 +31,7 @@ class FlextDbOracleUtilities(FlextService):
         """Initialize Oracle utilities service."""
         super().__init__()  # Utilities don't need specific config
 
-    def execute(self) -> FlextResult[object]:
+    def execute(self, **kwargs: object) -> FlextResult[object]:
         """Execute the main domain operation for Oracle utilities.
 
         Returns:
@@ -239,11 +239,12 @@ class FlextDbOracleUtilities(FlextService):
         """Safely convert sequence-like objects to lists."""
         if isinstance(sequence, list):
             return sequence
-        if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
-            try:
-                return list(sequence)
-            except (TypeError, AttributeError):
-                return []
+        try:
+            # Check if it's iterable (but not string/bytes)
+            if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
+                return list(cast("Any", sequence))
+        except (TypeError, AttributeError):
+            pass
         return []
 
     def _display_table_data(

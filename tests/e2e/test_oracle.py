@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from typing import cast
 
 import pytest
 
@@ -54,7 +55,7 @@ class TestOracleE2E:
         7. Table cleanup
         8. Disconnection
         """
-        with FlextDbOracleApi(real_oracle_config) as api:
+        with FlextDbOracleApi(config=real_oracle_config) as api:
             # Test connection
             connection_test = api.test_connection()
             if connection_test.is_failure:
@@ -208,7 +209,7 @@ class TestOracleE2E:
         real_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
-        with FlextDbOracleApi(real_oracle_config) as api:
+        with FlextDbOracleApi(config=real_oracle_config) as api:
             # Test various Singer type conversions
             singer_types = [
                 ("string", "VARCHAR2(4000)"),
@@ -380,7 +381,7 @@ class TestOracleE2E:
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         try:
-            with FlextDbOracleApi(real_oracle_config) as api:
+            with FlextDbOracleApi(config=real_oracle_config) as api:
                 # Test query with timing
                 timed_result = api.query("SELECT 1 FROM DUAL")
 

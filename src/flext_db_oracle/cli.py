@@ -121,7 +121,7 @@ class FlextDbOracleCli(FlextService[str]):
 
             """
             # Create new API instance with the config
-            new_api = FlextDbOracleApi(config)
+            new_api = FlextDbOracleApi(config=config)
 
             # Connect to the database
             connect_result = new_api.connect()
@@ -339,7 +339,7 @@ class FlextDbOracleCli(FlextService[str]):
             return FlextResult[str].fail(error_text)
 
         # Create API instance
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(config=config)
 
         # Get schemas
         schemas_result = api.get_schemas()
@@ -411,7 +411,7 @@ class FlextDbOracleCli(FlextService[str]):
             return FlextResult[str].fail(error_text)
 
         # Create API instance
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(config=config)
 
         # Get tables
         tables_result = api.get_tables(schema)
@@ -497,7 +497,7 @@ class FlextDbOracleCli(FlextService[str]):
             return self._handle_error_and_fail(formatter, error_text, error_text)
 
         # Create API instance
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(config=config)
 
         # Execute query
         query_result = api.query(sql)
@@ -528,7 +528,7 @@ class FlextDbOracleCli(FlextService[str]):
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
     @override
-    def execute(self) -> FlextResult[str]:
+    def execute(self, **kwargs: object) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
         Returns:

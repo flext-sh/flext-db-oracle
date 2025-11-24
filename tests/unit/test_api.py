@@ -22,6 +22,7 @@ from flext_tests.matchers import FlextTestsMatchers
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConfig,
+    FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleServices,
 )
@@ -153,8 +154,6 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_dispatcher_feature_flag_enabled(self) -> None:
         """Test that dispatcher feature flag can be enabled."""
         # Test the feature flag functionality
-        import os
-
         old_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
         try:

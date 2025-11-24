@@ -10,6 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
+from unittest.mock import MagicMock
 
 import pytest
 

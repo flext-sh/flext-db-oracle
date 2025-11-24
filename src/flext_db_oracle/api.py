@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import contextlib
 from collections.abc import Sequence
-from typing import Self, override
+from typing import Self, cast, override
 
 from flext_core import (
     FlextContainer,
-    FlextContext,
     FlextResult,
     FlextService,
+    FlextTypes,
 )
 
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -66,7 +66,7 @@ class FlextDbOracleApi(FlextService):
 
         # Complete flext-core ecosystem integration
         self._container = FlextContainer.get_global()
-        self._context = FlextContext()
+        self._context: dict[str, object] = {}
         # Logger will be initialized lazily via the parent class property
 
         # Optional dispatcher for CQRS patterns
@@ -78,11 +78,6 @@ class FlextDbOracleApi(FlextService):
     @property
     def oracle_config(self) -> FlextDbOracleConfig:
         """Get the Oracle configuration."""
-        return self._oracle_config
-
-    @property
-    def config(self) -> FlextDbOracleConfig:
-        """Get the Oracle configuration (overrides base class)."""
         return self._oracle_config
 
     def is_valid(self) -> bool:
@@ -99,7 +94,7 @@ class FlextDbOracleApi(FlextService):
     @classmethod
     def from_config(cls, config: FlextDbOracleConfig) -> Self:
         """Create API instance from configuration."""
-        return cls(config)
+        return cls(config=config)
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleApi]:
@@ -120,7 +115,7 @@ class FlextDbOracleApi(FlextService):
                 )
 
             config = config_result.unwrap()
-            return FlextResult[FlextDbOracleApi].ok(cls(config))
+            return FlextResult[FlextDbOracleApi].ok(cls(config=config))
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(
                 f"API creation from environment failed: {e}"
@@ -145,7 +140,7 @@ class FlextDbOracleApi(FlextService):
                 )
 
             config = config_result.unwrap()
-            return FlextResult[FlextDbOracleApi].ok(cls(config))
+            return FlextResult[FlextDbOracleApi].ok(cls(config=config))
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(
                 f"API creation from URL failed: {e}"
@@ -207,7 +202,15 @@ class FlextDbOracleApi(FlextService):
     ) -> FlextResult[list[dict[str, object]]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        return self._services.execute_query(sql, parameters or {})
+        result = self._services.execute_query(
+            sql, cast("FlextTypes.JsonDict", parameters or {})
+        )
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Query execution failed")
+        # Simplify the return type by casting
+        return FlextResult[list[dict[str, object]]].ok(
+            cast("list[dict[str, object]]", result.unwrap())
+        )
 
     def query_one(
         self,
@@ -215,7 +218,15 @@ class FlextDbOracleApi(FlextService):
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[dict[str, object] | None]:
         """Execute a SELECT query and return first result or None."""
-        return self._services.fetch_one(sql, parameters or {})
+        result = self._services.fetch_one(
+            sql, cast("FlextTypes.JsonDict", parameters or {})
+        )
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Query execution failed")
+        # Simplify the return type by casting
+        return FlextResult[dict[str, object] | None].ok(
+            cast("dict[str, object] | None", result.unwrap())
+        )
 
     def execute_sql(
         self,
@@ -224,7 +235,12 @@ class FlextDbOracleApi(FlextService):
     ) -> FlextResult[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
-        return self._services.execute_statement(sql, parameters or {})
+        result = self._services.execute_statement(
+            sql, cast("FlextTypes.JsonDict", parameters or {})
+        )
+        if result.is_failure:
+            return FlextResult.fail(result.error or "SQL execution failed")
+        return FlextResult[int].ok(result.unwrap())
 
     def execute_many(
         self,
@@ -233,7 +249,12 @@ class FlextDbOracleApi(FlextService):
     ) -> FlextResult[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        return self._services.execute_many(sql, list(parameters_list))
+        result = self._services.execute_many(
+            sql, cast("list[FlextTypes.JsonDict]", list(parameters_list))
+        )
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Bulk execution failed")
+        return FlextResult[int].ok(result.unwrap())
 
     def execute_statement(
         self,
@@ -243,7 +264,12 @@ class FlextDbOracleApi(FlextService):
         """Execute SQL statement directly and return affected rows."""
         try:
             sql_text = str(sql) if not isinstance(sql, str) else sql
-            return self._services.execute_statement(sql_text, parameters or {})
+            result = self._services.execute_statement(
+                sql_text, cast("FlextTypes.JsonDict", parameters or {})
+            )
+            if result.is_failure:
+                return FlextResult.fail(result.error or "Statement execution failed")
+            return FlextResult[int].ok(result.unwrap())
         except Exception as e:
             return FlextResult.fail(f"Statement execution failed: {e}")
 
@@ -277,7 +303,10 @@ class FlextDbOracleApi(FlextService):
             }
             for col in result.unwrap()
         ]
-        return FlextResult[list[dict[str, object]]].ok(columns_data)
+        # Cast to simplify return type
+        return FlextResult[list[dict[str, object]]].ok(
+            cast("list[dict[str, object]]", columns_data)
+        )
 
     def get_table_metadata(
         self,
@@ -285,7 +314,13 @@ class FlextDbOracleApi(FlextService):
         schema: str | None = None,
     ) -> FlextResult[dict[str, object]]:
         """Get complete table metadata including columns and constraints."""
-        return self._services.get_table_metadata(table, schema)
+        result = self._services.get_table_metadata(table, schema)
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Metadata retrieval failed")
+        # Simplify return type by casting
+        return FlextResult[dict[str, object]].ok(
+            cast("dict[str, object]", result.unwrap())
+        )
 
     def get_primary_keys(
         self,
@@ -308,7 +343,11 @@ class FlextDbOracleApi(FlextService):
         schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
-        return self._services.map_singer_schema(schema)
+        result = self._services.map_singer_schema(cast("FlextTypes.JsonDict", schema))
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Schema mapping failed")
+        # Simplify return type by casting
+        return FlextResult[dict[str, str]].ok(result.unwrap())
 
     # Transaction Management
     def transaction(self) -> FlextResult[object]:
@@ -328,7 +367,13 @@ class FlextDbOracleApi(FlextService):
 
     def get_observability_metrics(self) -> FlextResult[dict[str, object]]:
         """Get observability metrics for the connection."""
-        return self._services.get_metrics()
+        result = self._services.get_metrics()
+        if result.is_failure:
+            return FlextResult.fail(result.error or "Metrics retrieval failed")
+        # Simplify return type by casting
+        return FlextResult[dict[str, object]].ok(
+            cast("dict[str, object]", result.unwrap())
+        )
 
     # Plugin System
     def register_plugin(self, name: str, plugin: object) -> FlextResult[None]:
@@ -434,7 +479,7 @@ class FlextDbOracleApi(FlextService):
                 self.logger.debug("Disconnecting on context exit")
                 self._services.disconnect()
 
-    def execute(self) -> FlextResult[FlextDbOracleConfig]:
+    def execute(self, **kwargs: object) -> FlextResult[FlextDbOracleConfig]:
         """Execute default domain service operation - return config."""
         try:
             return FlextResult.ok(self._oracle_config)

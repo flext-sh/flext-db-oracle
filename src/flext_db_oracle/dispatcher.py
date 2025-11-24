@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 from flext_core import (
     FlextDispatcher,
@@ -95,11 +96,14 @@ class FlextDbOracleDispatcher(FlextService):
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection()
 
-        return {
-            cls.ConnectCommand: (connect_handler, None),
-            cls.DisconnectCommand: (disconnect_handler, None),
-            cls.TestConnectionCommand: (connection_test_handler, None),
-        }
+        return cast(
+            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            {
+                cls.ConnectCommand: (connect_handler, None),
+                cls.DisconnectCommand: (disconnect_handler, None),
+                cls.TestConnectionCommand: (connection_test_handler, None),
+            },
+        )
 
     @classmethod
     def _create_query_handlers(
@@ -135,12 +139,15 @@ class FlextDbOracleDispatcher(FlextService):
             )
             return services.execute_many(sql, parameters_list)
 
-        return {
-            cls.ExecuteQueryCommand: (execute_query_handler, None),
-            cls.FetchOneCommand: (fetch_one_handler, None),
-            cls.ExecuteStatementCommand: (execute_statement_handler, None),
-            cls.ExecuteManyCommand: (execute_many_handler, None),
-        }
+        return cast(
+            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            {
+                cls.ExecuteQueryCommand: (execute_query_handler, None),
+                cls.FetchOneCommand: (fetch_one_handler, None),
+                cls.ExecuteStatementCommand: (execute_statement_handler, None),
+                cls.ExecuteManyCommand: (execute_many_handler, None),
+            },
+        )
 
     @classmethod
     def _create_schema_handlers(
@@ -160,18 +167,21 @@ class FlextDbOracleDispatcher(FlextService):
             schema = getattr(command, "schema", None)
             return services.get_columns(table, schema)
 
-        return {
-            cls.GetSchemasCommand: (get_schemas_handler, None),
-            cls.GetTablesCommand: (get_tables_handler, None),
-            cls.GetColumnsCommand: (get_columns_handler, None),
-        }
+        return cast(
+            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            {
+                cls.GetSchemasCommand: (get_schemas_handler, None),
+                cls.GetTablesCommand: (get_tables_handler, None),
+                cls.GetColumnsCommand: (get_columns_handler, None),
+            },
+        )
 
     @classmethod
     def build_dispatcher(
         cls,
         services: FlextDbOracleServices,
         *,
-        bus: FlextBus | None = None,
+        bus: object | None = None,
     ) -> FlextDispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = FlextDispatcher()
