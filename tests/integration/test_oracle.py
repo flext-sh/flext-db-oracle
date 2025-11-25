@@ -38,7 +38,7 @@ class TestOracleIntegration:
         self, mock_oracle_config: FlextDbOracleConfig
     ) -> None:
         """Test API instantiation with mock config."""
-        api = FlextDbOracleApi.from_config(mock_oracle_config)
+        api = FlextDbOracleApi(config=mock_oracle_config)
         assert api is not None
         assert hasattr(api, "connect")
         assert hasattr(api, "disconnect")
@@ -54,7 +54,7 @@ class TestOracleIntegration:
         config = real_oracle_config or mock_oracle_config
 
         # Create API instance
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
 
         # If we have real config, try to connect
         if real_oracle_config is not None:
@@ -106,7 +106,7 @@ class TestOracleIntegration:
     ) -> None:
         """Test error handling with real Oracle connection or skip if not available."""
         config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
 
         if real_oracle_config is None:
             pytest.skip("Oracle container not available - skipping error handling test")
@@ -144,7 +144,7 @@ class TestOracleIntegration:
     ) -> None:
         """Test API context manager functionality with real Oracle or skip if not available."""
         config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
 
         if real_oracle_config is None:
             pytest.skip(
@@ -174,7 +174,7 @@ class TestOracleIntegration:
     ) -> None:
         """Test metadata operations with real Oracle or skip if not available."""
         config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
 
         if real_oracle_config is None:
             pytest.skip(

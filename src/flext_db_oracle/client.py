@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import cast
+from typing import ClassVar, cast
 
 from flext_core import FlextContainer, FlextResult, FlextService
 
@@ -30,7 +30,9 @@ class FlextDbOracleClient(FlextService):
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
-    user_preferences: FlextDbOracleTypes.Connection.ConnectionConfiguration = {}
+    user_preferences: ClassVar[
+        FlextDbOracleTypes.Connection.ConnectionConfiguration
+    ] = {}
 
     def __init__(self, *, debug: bool = False) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -476,7 +478,7 @@ class FlextDbOracleClient(FlextService):
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def execute(self, **kwargs: object) -> FlextResult[object]:
+    def execute(self, **_kwargs: object) -> FlextResult[object]:
         """Execute the main domain operation for Oracle client.
 
         Returns:

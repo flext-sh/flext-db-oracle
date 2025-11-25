@@ -266,7 +266,7 @@ class TestFlextDbOracleModels:
             FlextDbOracleModels.QueryResult(query="SELECT 1", execution_time_ms=-100)
 
         # Invalid: row/column mismatch (this should be caught)
-        with pytest.raises(ValueError, match="Row length.*doesn't match column count"):
+        with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
             FlextDbOracleModels.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],  # 2 columns
@@ -505,7 +505,7 @@ class TestFlextDbOracleConfig:
         assert config.password == "secret123"
         assert config.ssl_server_cert_dn == "CN=oracle.example.com"
 
-    def test_config_from_env_no_env_vars(self, monkeypatch) -> None:
+    def test_config_from_env_no_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test config creation from environment with no variables set."""
         # Clear relevant env vars
         env_vars_to_clear = [
@@ -533,7 +533,7 @@ class TestFlextDbOracleConfig:
         assert config.port == 1521
         assert config.service_name == "XEPDB1"
 
-    def test_config_from_env_with_values(self, monkeypatch) -> None:
+    def test_config_from_env_with_values(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test config creation from environment variables."""
         monkeypatch.setenv("ORACLE_HOST", "db.example.com")
         monkeypatch.setenv("ORACLE_PORT", "1522")
@@ -553,7 +553,9 @@ class TestFlextDbOracleConfig:
         assert config.password == "dbpass"
         assert config.name == "ORCL"  # database_name maps to name
 
-    def test_config_from_env_flext_prefix(self, monkeypatch) -> None:
+    def test_config_from_env_flext_prefix(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
@@ -564,7 +566,9 @@ class TestFlextDbOracleConfig:
         assert config.host == "flext-db.example.com"
         assert config.username == "flext-user"
 
-    def test_config_from_env_mixed_prefixes(self, monkeypatch) -> None:
+    def test_config_from_env_mixed_prefixes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with mixed prefixes."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
@@ -578,7 +582,9 @@ class TestFlextDbOracleConfig:
         assert config.host == "flext-host"  # FLEXT prefix takes precedence if both set
         assert config.username == "flext-user"
 
-    def test_config_from_env_port_conversion(self, monkeypatch) -> None:
+    def test_config_from_env_port_conversion(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test port conversion from environment string to int."""
         monkeypatch.setenv("ORACLE_PORT", "1523")
 
@@ -588,7 +594,9 @@ class TestFlextDbOracleConfig:
         assert config.port == 1523
         assert isinstance(config.port, int)
 
-    def test_config_from_env_invalid_port(self, monkeypatch) -> None:
+    def test_config_from_env_invalid_port(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with invalid port."""
         monkeypatch.setenv("ORACLE_PORT", "invalid")
 

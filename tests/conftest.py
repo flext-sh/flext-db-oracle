@@ -14,6 +14,7 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
+import oracledb
 import pytest
 from flext_core import FlextLogger
 from flext_tests import FlextTestDocker, FlextTestsDomains
@@ -272,15 +273,6 @@ def shared_oracle_container(
 
     logger.info(f"Waiting for container {container_name} to be ready...")
 
-    # Verificar se container está pronto usando conexão Oracle direta
-    # (mais confiável que healthcheck do Docker para Oracle)
-    try:
-        import oracledb
-    except ImportError:
-        pytest.fail(
-            "oracledb module not available - install with: pip install oracledb"
-        )
-
     while waited < max_wait:
         try:
             # Usar configurações do container
@@ -362,7 +354,7 @@ def oracle_api(
     """Return Oracle API for tests that can use it."""
     if real_oracle_config is None:
         return None
-    return FlextDbOracleApi.from_config(real_oracle_config)
+    return FlextDbOracleApi(config=real_oracle_config)
 
 
 @pytest.fixture

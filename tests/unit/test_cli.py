@@ -1003,7 +1003,7 @@ class TestCLIRealFunctionality:
             password=str(config_data["password"]),
         )
 
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
 
         # Verify parameter processing worked
         assert api.config.host == "param_test_host"
@@ -1087,7 +1087,7 @@ class TestCLIRealFunctionality:
             username="user",
             password="pass",
         )
-        url_api = FlextDbOracleApi.from_config(config_for_url)
+        url_api = FlextDbOracleApi(config=config_for_url)
         assert url_api.config.host == "host"
         assert url_api.config.port == 1521
         assert url_api.config.service_name == "SERVICE"

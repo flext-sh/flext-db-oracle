@@ -71,7 +71,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_from_config_factory_method_real(self) -> None:
         """Test from_config class method."""
-        api = FlextDbOracleApi.from_config(self.config)
+        api = FlextDbOracleApi(config=self.config)
         assert isinstance(api, FlextDbOracleApi)
         assert api.config == self.config
         assert api is not self.api  # Different instance
@@ -875,7 +875,7 @@ class TestApiModule:
                 username=str(config_data["username"]),
                 password=str(config_data["password"]),
             )
-            result = FlextDbOracleApi.from_config(config)
+            result = FlextDbOracleApi(config=config)
             assert isinstance(result, FlextDbOracleApi)
 
     def test_flext_db_oracle_api_connect(self) -> None:
@@ -1345,7 +1345,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="test",
         )
 
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
         assert api is not None
         assert api.config == config
         assert not api.is_connected
@@ -1361,7 +1361,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="testpass",
         )
 
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
         assert api is not None
         assert api.config.host == "localhost"
         assert api.config.port == 1521
@@ -1623,7 +1623,7 @@ class TestApiSurgicalSimple:
             password="test",
         )
 
-        api = FlextDbOracleApi.from_config(config)
+        api = FlextDbOracleApi(config=config)
         assert isinstance(api, FlextDbOracleApi)
         assert api.config.host == "localhost"
 
@@ -1784,7 +1784,7 @@ class TestFlextDbOracleApiWorking:
     def test_factory_methods(self) -> None:
         """Test factory methods work."""
         # Test from_config class method
-        api_from_config = FlextDbOracleApi.from_config(self.config)
+        api_from_config = FlextDbOracleApi(config=self.config)
         assert api_from_config is not None
         assert isinstance(api_from_config, FlextDbOracleApi)
 

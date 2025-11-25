@@ -359,7 +359,9 @@ class TestFlextDbOracleUtilities:
     # create_config_from_env tests
     # =============================================================================
 
-    def test_create_config_from_env_no_env_vars(self, monkeypatch) -> None:
+    def test_create_config_from_env_no_env_vars(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with no environment variables."""
         # Clear relevant env vars
         env_vars_to_clear = [
@@ -383,7 +385,9 @@ class TestFlextDbOracleUtilities:
         assert isinstance(config, dict)
         assert len(config) == 0  # No env vars set
 
-    def test_create_config_from_env_with_values(self, monkeypatch) -> None:
+    def test_create_config_from_env_with_values(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with environment variables."""
         monkeypatch.setenv("ORACLE_HOST", "test-host")
         monkeypatch.setenv("ORACLE_PORT", "1522")
@@ -400,7 +404,9 @@ class TestFlextDbOracleUtilities:
         assert config["password"] == "testpass"
         assert config["service_name"] == "testservice"
 
-    def test_create_config_from_env_flext_prefix(self, monkeypatch) -> None:
+    def test_create_config_from_env_flext_prefix(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
@@ -411,7 +417,9 @@ class TestFlextDbOracleUtilities:
         assert config["host"] == "flext-host"
         assert config["username"] == "flext-user"
 
-    def test_create_config_from_env_mixed_prefixes(self, monkeypatch) -> None:
+    def test_create_config_from_env_mixed_prefixes(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test config creation with mixed prefixes (FLEXT takes precedence)."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")

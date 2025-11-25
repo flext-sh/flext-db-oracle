@@ -256,7 +256,7 @@ class FlextDbOracleCli(FlextService[str]):
                 password=password,
                 timeout=timeout,
             )
-            api = FlextDbOracleApi.from_config(config)
+            api = FlextDbOracleApi(config=config)
 
             # Test connection
             health_result = api.get_health_status()
@@ -528,7 +528,7 @@ class FlextDbOracleCli(FlextService[str]):
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
     @override
-    def execute(self, **kwargs: object) -> FlextResult[str]:
+    def execute(self, **_kwargs: object) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
         Returns:

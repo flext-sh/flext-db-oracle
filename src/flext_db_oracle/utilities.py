@@ -31,7 +31,7 @@ class FlextDbOracleUtilities(FlextService):
         """Initialize Oracle utilities service."""
         super().__init__()  # Utilities don't need specific config
 
-    def execute(self, **kwargs: object) -> FlextResult[object]:
+    def execute(self, **_kwargs: object) -> FlextResult[object]:
         """Execute the main domain operation for Oracle utilities.
 
         Returns:

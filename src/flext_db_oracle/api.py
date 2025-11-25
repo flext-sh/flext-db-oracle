@@ -92,11 +92,6 @@ class FlextDbOracleApi(FlextService):
             return False
 
     @classmethod
-    def from_config(cls, config: FlextDbOracleConfig) -> Self:
-        """Create API instance from configuration."""
-        return cls(config=config)
-
-    @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleApi]:
         """Create API instance from environment variables.
 
@@ -479,7 +474,7 @@ class FlextDbOracleApi(FlextService):
                 self.logger.debug("Disconnecting on context exit")
                 self._services.disconnect()
 
-    def execute(self, **kwargs: object) -> FlextResult[FlextDbOracleConfig]:
+    def execute(self, **_kwargs: object) -> FlextResult[FlextDbOracleConfig]:
         """Execute default domain service operation - return config."""
         try:
             return FlextResult.ok(self._oracle_config)

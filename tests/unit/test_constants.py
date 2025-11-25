@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import time
 from enum import StrEnum
 from typing import Literal
 
@@ -575,8 +576,6 @@ class TestFlextDbOracleConstants:
         """Test Oracle performance constants with real query timing."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-
-        import time
 
         # Execute a query and measure timing
         start_time = time.time()

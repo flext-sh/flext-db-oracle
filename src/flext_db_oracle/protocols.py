@@ -404,7 +404,7 @@ class FlextDbOracleProtocols(FlextProtocols):
         class PluginRegistryProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def register_plugin(self, name: str, plugin: object) -> FlextResult[bool]:
+            def register_plugin(self, name: str, _plugin: object) -> FlextResult[bool]:
                 """Register Oracle database plugin.
 
                 Args:

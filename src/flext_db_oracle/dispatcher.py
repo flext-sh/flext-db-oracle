@@ -181,7 +181,7 @@ class FlextDbOracleDispatcher(FlextService):
         cls,
         services: FlextDbOracleServices,
         *,
-        bus: object | None = None,
+        _bus: object | None = None,
     ) -> FlextDispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = FlextDispatcher()
