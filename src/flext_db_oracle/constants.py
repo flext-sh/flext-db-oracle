@@ -372,20 +372,30 @@ class FlextDbOracleConstants(FlextConstants):
             RAW = "RAW"
 
     class Literals:
-        """Type-safe string literals for Oracle operations."""
+        """Type-safe string literals for Oracle operations.
+
+        Python 3.13+ best practice: Use type keyword for type aliases.
+        """
 
         # Connection literals
-        ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
-        QueryTypeLiteral = Literal[
+        type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
+        """Oracle connection type literal."""
+        type QueryTypeLiteral = Literal[
             "SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER"
         ]
-        DataTypeLiteral = Literal[
+        """Oracle query type literal."""
+        type DataTypeLiteral = Literal[
             "VARCHAR2", "NUMBER", "DATE", "TIMESTAMP", "CLOB", "BLOB", "CHAR", "RAW"
         ]
+        """Oracle data type literal."""
 
         # Environment literals
-        EnvironmentLiteral = Literal["development", "staging", "production", "test"]
-        LogLevelLiteral = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        type EnvironmentLiteral = Literal[
+            "development", "staging", "production", "test"
+        ]
+        """Environment type literal."""
+        type LogLevelLiteral = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        """Log level literal."""
 
     class Lists:
         """Lists of constants for validation and iteration."""

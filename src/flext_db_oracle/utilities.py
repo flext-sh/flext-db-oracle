@@ -15,7 +15,7 @@ import importlib
 import json
 import os
 import re
-from typing import Any, cast
+from typing import cast
 
 from flext_cli import FlextCliOutput
 from flext_core import FlextResult, FlextService, FlextTypes
@@ -235,14 +235,14 @@ class FlextDbOracleUtilities(FlextService):
             return []
         return data
 
-    def _safe_sequence_conversion(self, sequence: object) -> list[Any]:
+    def _safe_sequence_conversion(self, sequence: object) -> list[FlextTypes.JsonValue]:
         """Safely convert sequence-like objects to lists."""
         if isinstance(sequence, list):
             return sequence
         try:
             # Check if it's iterable (but not string/bytes)
             if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
-                return list(cast("Any", sequence))
+                return list(cast("list[FlextTypes.JsonValue]", sequence))
         except (TypeError, AttributeError):
             pass
         return []
