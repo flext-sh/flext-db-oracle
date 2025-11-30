@@ -14,6 +14,8 @@ from datetime import UTC, datetime
 
 from flext_core import FlextConstants, FlextModels, FlextTypes
 from pydantic import (
+    BaseModel,
+    ConfigDict,
     Field,
     computed_field,
     field_serializer,
@@ -21,6 +23,17 @@ from pydantic import (
 )
 
 from flext_db_oracle.constants import FlextDbOracleConstants
+
+
+class FlextDbOracleBaseModel(BaseModel):
+    """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
+
+    model_config = ConfigDict(
+        use_enum_values=True,
+        validate_default=True,
+        str_strip_whitespace=True,
+        extra="forbid",
+    )
 
 
 class FlextDbOracleModels(FlextModels):
@@ -297,5 +310,6 @@ class FlextDbOracleModels(FlextModels):
 # Zero Tolerance: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
 __all__ = [
+    "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
 ]

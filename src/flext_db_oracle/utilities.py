@@ -1,447 +1,226 @@
-"""Oracle Database utilities providing helper functions and validation.
-
-This module provides utility functions for Oracle database operations
-including query hashing, validation, and configuration management.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""FlextDbOracle utilities module."""
 
 from __future__ import annotations
 
-import hashlib
-import importlib
-import json
-import os
-import re
-from typing import cast
+from collections.abc import Callable, Iterable, Mapping
+from enum import StrEnum
+from functools import cache, wraps
+from typing import Annotated, Any, TypeIs, TypeVar, get_type_hints
 
-from flext_cli import FlextCliOutput
-from flext_core import FlextResult, FlextService, FlextTypes
+from flext_core import FlextResult, FlextUtilities
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 
-from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.constants import FlextDbOracleConstants
+T = TypeVar("T")
 
 
-class FlextDbOracleUtilities(FlextService):
-    """Oracle Database utilities using flext-core modern API."""
+class FlextDbOracleUtilities(FlextUtilities):
+    """TypeIs (PEP 742), BeforeValidator, validate_call, collections.abc, ParamSpec."""
 
-    def __init__(self) -> None:
-        """Initialize Oracle utilities service."""
-        super().__init__()  # Utilities don't need specific config
-
-    def execute(self, **_kwargs: object) -> FlextResult[object]:
-        """Execute the main domain operation for Oracle utilities.
-
-        Returns:
-        FlextResult[object]: Success with operation result or failure with error
-
-        """
-        # Default implementation - subclasses should override with specific logic
-        return FlextResult[object].fail(
-            "Execute method not implemented for Oracle utilities"
-        )
-
-    # =============================================================================
-    # ORACLE-SPECIFIC UTILITY METHODS
-    # =============================================================================
-
-    @staticmethod
-    def generate_query_hash(
-        sql: str,
-        params: dict[str, FlextTypes.JsonValue] | None = None,
-    ) -> FlextResult[str]:
-        """Generate hash for SQL query caching - Oracle specific.
-
-        Returns:
-        FlextResult[str]: Query hash or error.
-
-        """
-        # Use standard string processing for normalization
-        normalized_sql = str(sql).strip()
-        normalized_sql = " ".join(normalized_sql.split())
-
-        # Create content for hashing using standard JSON
-        params_json: str = json.dumps(params or {}, sort_keys=True)
-        hash_content = f"{normalized_sql}|{params_json}"
-
-        # Generate SHA-256 hash
-        hash_value = hashlib.sha256(hash_content.encode()).hexdigest()[:16]
-        return FlextResult.ok(hash_value)
-
-    @staticmethod
-    def format_sql_for_oracle(sql: str) -> FlextResult[str]:
-        """Format SQL query for Oracle logging - Oracle specific.
-
-        Returns:
-        FlextResult[str]: Formatted SQL or error.
-
-        """
-        # Use standard string processing for basic formatting
-        formatted = str(sql).strip()
-
-        # Oracle-specific keyword formatting
-        oracle_keywords = [
-            "SELECT",
-            "FROM",
-            "WHERE",
-            "JOIN",
-            "ORDER BY",
-            "GROUP BY",
-            "HAVING",
-        ]
-        for keyword in oracle_keywords:
-            formatted = formatted.replace(f" {keyword.lower()} ", f"\\n{keyword} ")
-            formatted = formatted.replace(f" {keyword.upper()} ", f"\\n{keyword} ")
-
-        return FlextResult.ok(formatted)
-
-    @staticmethod
-    def escape_oracle_identifier(identifier: str) -> FlextResult[str]:
-        """Escape Oracle identifier for safe SQL construction - Oracle specific.
-
-        Returns:
-        FlextResult[str]: Escaped identifier or error.
-
-        """
-        try:
-            # Use standard string processing for safe string handling
-            clean_identifier = str(identifier).strip()
-            clean_identifier = clean_identifier.strip('"').strip("'")
-
-            # Validate identifier length manually
-            if len(clean_identifier) < 1:
-                return FlextResult.fail(f"Empty Oracle identifier: {identifier}")
-
-            # Oracle identifier validation - alphanumeric + underscore + dollar + hash
-            allowed_chars = (
-                clean_identifier.replace("_", "").replace("$", "").replace("#", "")
-            )
-            if not allowed_chars.isalnum():
-                return FlextResult.fail(f"Invalid Oracle identifier: {identifier}")
-
-            # Oracle identifiers should be uppercase
-            escaped = f'"{clean_identifier.upper()}"'
-
-            return FlextResult.ok(escaped)
-        except Exception as e:
-            return FlextResult.fail(f"Failed to escape Oracle identifier: {e}")
-
-    # Factory methods ELIMINATED - use direct class instantiation:
-    # FlextDbOracleConfig.from_env()
-    # FlextDbOracleApi(config)
-
-    @classmethod
-    def format_query_result(
-        cls,
-        query_result: object,
-        format_type: str = "table",
-    ) -> FlextResult[str]:
-        """Format query result for display.
-
-        Uses FlextUtilities for consistent formatting and validation.
-
-        Returns:
-        FlextResult[str]: Formatted result or error.
-
-        """
-        try:
-            # Validate inputs manually
-            if query_result is None:
-                return FlextResult.fail("Query result is None")
-
-            # Use standard string processing for safe format type handling
-            safe_format_type = str(format_type).lower()
-
-            # Use standard JSON for consistent serialization if needed
-            if safe_format_type == "json":
-                try:
-                    formatted = json.dumps(query_result, indent=2)
-                    return FlextResult.ok(formatted)
-                except Exception:
-                    # Fallback for non-serializable objects
-                    formatted = f"Query result (non-serializable): {type(query_result).__name__}"
-                    return FlextResult.ok(formatted)
-
-            # Table format or other formats
-            if safe_format_type == "table":
-                formatted = f"Query result formatted as {safe_format_type}: {type(query_result).__name__}"
-            else:
-                formatted = f"Query result in {safe_format_type} format: {type(query_result).__name__}"
-
-            return FlextResult.ok(formatted)
-        except Exception as e:
-            return FlextResult.fail(f"Query result formatting failed: {e}")
-
-    @staticmethod
-    def create_config_from_env() -> FlextResult[dict[str, str]]:
-        """Create Oracle configuration from environment variables.
-
-        Returns:
-        FlextResult[dict[str, str]]: Configuration or error.
-
-        """
-        try:
-            config_data = {}
-
-            # Oracle connection environment variables
-            env_mappings = {
-                **FlextDbOracleConstants.OracleEnvironment.ENV_MAPPING,
-            }
-
-            for env_key, config_key in env_mappings.items():
-                value = os.environ.get(env_key)
-                if value:
-                    config_data[config_key] = value
-
-            return FlextResult.ok(config_data)
-        except Exception as e:
-            return FlextResult.fail(
-                f"Failed to create config from environment: {e}",
-            )
-
-    def _extract_data_from_result(
-        self, query_result: object
-    ) -> list[dict[str, FlextTypes.JsonValue]] | None:
-        """Extract data from different query result types."""
-        if hasattr(query_result, "to_dict_list"):
-            return query_result.to_dict_list()
-        if hasattr(query_result, "columns") and hasattr(query_result, "rows"):
-            return self._convert_columns_rows_to_dicts(
-                query_result.columns, query_result.rows
-            )
-        return None
-
-    def _convert_columns_rows_to_dicts(
-        self, columns: object, rows: object
-    ) -> list[dict[str, FlextTypes.JsonValue]]:
-        """Convert columns and rows to list of dictionaries."""
-        data = []
-        try:
-            rows_sequence = self._safe_sequence_conversion(rows)
-            columns_sequence = self._safe_sequence_conversion(columns)
-
-            for row_item in rows_sequence:
-                if not isinstance(row_item, (list, tuple)):
-                    continue
-                row_dict = {}
-                if columns_sequence:
-                    for i, col in enumerate(columns_sequence):
-                        if i < len(row_item):
-                            row_dict[str(col)] = row_item[i]
-                data.append(row_dict)
-        except Exception:
-            return []
-        return data
-
-    def _safe_sequence_conversion(self, sequence: object) -> list[FlextTypes.JsonValue]:
-        """Safely convert sequence-like objects to lists."""
-        if isinstance(sequence, list):
-            return sequence
-        try:
-            # Check if it's iterable (but not string/bytes)
-            if hasattr(sequence, "__iter__") and not isinstance(sequence, (str, bytes)):
-                return list(cast("list[FlextTypes.JsonValue]", sequence))
-        except (TypeError, AttributeError):
-            pass
-        return []
-
-    def _display_table_data(
-        self, data: list[dict[str, FlextTypes.JsonValue]], console: object
-    ) -> None:
-        """Display table data using flext-cli output service."""
-        if not data:
-            if hasattr(console, "print"):
-                console.print("No data to display")
-            return
-
-        output_service = FlextCliOutput()
-        table_result = output_service.format_table(data)
-
-        if table_result.is_success:
-            if hasattr(console, "print"):
-                console.print(table_result.unwrap())
-        elif hasattr(console, "print"):
-            console.print(f"Data: {data}")
-
-    def _display_query_table(
-        self,
-        query_result: object,
-        console: object,
-    ) -> None:
-        """Display query result as table using flext-cli output."""
-        try:
-            data = self._extract_data_from_result(query_result)
-
-            if data is None:
-                if hasattr(console, "print"):
-                    console.print("Unsupported query result format")
-                return
-
-            self._display_table_data(data, console)
-
-        except Exception as e:
-            if hasattr(console, "print"):
-                console.print(f"Error displaying table: {e}")
-
-    @staticmethod
-    def create_api_from_config(
-        config: dict[str, FlextTypes.JsonValue],
-    ) -> FlextResult[object]:
-        """Create Oracle API instance from configuration.
-
-        Returns:
-        FlextResult[object]: API instance or error.
-
-        """
-        try:
-            # Validate required fields are present
-            if not config:
-                return FlextResult.fail("Configuration dictionary cannot be empty")
-
-            required_fields = ["host", "username"]
-            missing_fields = [
-                field for field in required_fields if not config.get(field)
-            ]
-            if missing_fields:
-                return FlextResult.fail(
-                    f"Missing required fields: {', '.join(missing_fields)}",
-                )
-
-            # Convert port to int with proper type checking - use FlextDbOracleConstants
-            port_value = config.get(
-                "port", FlextDbOracleConstants.Connection.DEFAULT_PORT
-            )
-            port_int = (
-                int(port_value)
-                if isinstance(port_value, (int, str))
-                else FlextDbOracleConstants.Connection.DEFAULT_PORT
-            )
-
-            service_name = str(
-                config.get(
-                    "service_name",
-                    FlextDbOracleConstants.OracleDefaults.DEFAULT_DATABASE_NAME,
-                )
-            )
-            oracle_config = FlextDbOracleConfig(
-                host=str(
-                    config.get(
-                        "host", FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST
-                    )
-                ),
-                port=port_int,
-                name=service_name,  # Required field - use service_name as database
-                username=str(config.get("username", "")),
-                password=str(config.get("password", "")),
-                service_name=service_name,
-            )
-
-            # Create API instance with configuration (use runtime import to avoid circular imports)
-            api_module = importlib.import_module("flext_db_oracle.api")
-            flext_db_oracle_api_class = api_module.FlextDbOracleApi
-            api = flext_db_oracle_api_class(oracle_config)
-
-            # API creation successful - return the API instance
-            return FlextResult.ok(api)
-
-        except Exception as e:
-            return FlextResult.fail(f"Failed to create API from config: {e}")
-
-    @staticmethod
-    def _extract_health_data_dict(
-        health_data: object,
-    ) -> dict[str, FlextTypes.JsonValue] | None:
-        """Extract dictionary from health data object."""
-        if hasattr(health_data, "model_dump"):
-            return health_data.model_dump()
-        return None
-
-    @staticmethod
-    def _display_health_table_format(
-        data_dict: dict[str, FlextTypes.JsonValue], console: object
-    ) -> None:
-        """Display health data in table format."""
-        if isinstance(data_dict, dict):
-            if hasattr(console, "print"):
-                console.print("Health Status:")
-                console.print("-" * 20)
-                for key, value in data_dict.items():
-                    console.print(f"{key}: {value}")
-        elif hasattr(console, "print"):
-            console.print(f"Health data: {data_dict}")
-
-    @staticmethod
-    def _display_health_json_format(
-        data_dict: dict[str, FlextTypes.JsonValue], console: object
-    ) -> None:
-        """Display health data in JSON format."""
-        if hasattr(console, "print"):
-            console.print(json.dumps(data_dict, indent=2))
-
-    @staticmethod
-    def _display_health_fallback(health_data: object, console: object) -> None:
-        """Fallback display for unsupported health data formats."""
-        if hasattr(console, "print"):
-            console.print(str(health_data))
-
-    @staticmethod
-    def _display_health_data(
-        health_data: object,
-        format_type: str,
-        console: object,
-    ) -> None:
-        """Display health data in specified format."""
-        try:
-            data_dict = FlextDbOracleUtilities._extract_health_data_dict(health_data)
-
-            if format_type.lower() == "table":
-                if data_dict is not None:
-                    FlextDbOracleUtilities._display_health_table_format(
-                        data_dict, console
-                    )
-                else:
-                    FlextDbOracleUtilities._display_health_fallback(
-                        health_data, console
-                    )
-            elif data_dict is not None:
-                FlextDbOracleUtilities._display_health_json_format(data_dict, console)
-            else:
-                FlextDbOracleUtilities._display_health_fallback(health_data, console)
-
-        except Exception as e:
-            if hasattr(console, "print"):
-                console.print(f"Error displaying health data: {e}")
-
-    class OracleValidation:
-        """Oracle validation utilities using flext-core patterns."""
+    class Enum:
+        """TypeIs genérico, parsing, coerção - ZERO TypeGuard manual."""
 
         @staticmethod
-        def validate_identifier(identifier: str) -> FlextResult[str]:
-            """Validate Oracle identifier."""
-            if not identifier or not identifier.strip():
-                return FlextResult[str].fail("Identifier cannot be empty")
+        def is_member[E: StrEnum](enum_cls: type[E], value: object) -> TypeIs[E]:
+            """TypeIs narrowing em AMBAS branches if/else."""
+            return isinstance(value, enum_cls) or (
+                isinstance(value, str) and value in enum_cls._value2member_map_
+            )
 
-            # Check length
-            if (
-                len(identifier)
-                > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
-            ):
-                return FlextResult[str].fail(
-                    f"Identifier too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-                )
+        @staticmethod
+        def is_subset[E: StrEnum](
+            enum_cls: type[E], valid: frozenset[E], value: object
+        ) -> TypeIs[E]:
+            if isinstance(value, enum_cls):
+                return value in valid
+            if isinstance(value, str):
+                try:
+                    return enum_cls(value) in valid
+                except ValueError:
+                    return False
+            return False
 
-            # Check pattern
-            if not re.match(
-                FlextDbOracleConstants.OracleValidation.ORACLE_IDENTIFIER_PATTERN,
-                identifier.upper(),
-            ):
-                return FlextResult[str].fail(
-                    "Identifier does not match Oracle naming pattern"
-                )
+        @staticmethod
+        def parse[E: StrEnum](enum_cls: type[E], value: str | E) -> FlextResult[E]:
+            if isinstance(value, enum_cls):
+                return FlextResult.ok(value)
+            try:
+                return FlextResult.ok(enum_cls(value))
+            except ValueError:
+                return FlextResult.fail(f"Invalid {enum_cls.__name__}: '{value}'")
 
-            return FlextResult[str].ok(identifier.upper())
+        @staticmethod
+        def coerce_validator[E: StrEnum](enum_cls: type[E]) -> Callable[[Any], E]:
+            """BeforeValidator factory para Pydantic."""
+
+            def _coerce(v: Any) -> E:
+                if isinstance(v, enum_cls):
+                    return v
+                if isinstance(v, str):
+                    try:
+                        return enum_cls(v)
+                    except ValueError:
+                        pass
+                msg = f"Invalid {enum_cls.__name__}: {v!r}"
+                raise ValueError(msg)
+
+            return _coerce
+
+        @staticmethod
+        @cache
+        def values[E: StrEnum](enum_cls: type[E]) -> frozenset[str]:
+            return frozenset(m.value for m in enum_cls)
+
+    class Collection:
+        """Parsing de Sequence/Mapping com StrEnums."""
+
+        @staticmethod
+        def parse_sequence[E: StrEnum](
+            enum_cls: type[E], values: Iterable[str | E]
+        ) -> FlextResult[tuple[E, ...]]:
+            parsed, errors = [], []
+            for i, v in enumerate(values):
+                if isinstance(v, enum_cls):
+                    parsed.append(v)
+                else:
+                    try:
+                        parsed.append(enum_cls(v))
+                    except ValueError:
+                        errors.append(f"[{i}]: '{v}'")
+            return (
+                FlextResult.fail(f"Invalid: {errors}")
+                if errors
+                else FlextResult.ok(tuple(parsed))
+            )
+
+        @staticmethod
+        def coerce_list_validator[E: StrEnum](
+            enum_cls: type[E],
+        ) -> Callable[[Any], list[E]]:
+            def _coerce(value: Any) -> list[E]:
+                if not isinstance(value, (list, tuple, set)):
+                    msg = "Expected sequence"
+                    raise ValueError(msg)
+                result = []
+                for i, item in enumerate(value):
+                    if isinstance(item, enum_cls):
+                        result.append(item)
+                    elif isinstance(item, str):
+                        try:
+                            result.append(enum_cls(item))
+                        except ValueError:
+                            msg = f"Invalid at [{i}]: {item!r}"
+                            raise ValueError(msg)
+                    else:
+                        msg = f"Expected str at [{i}]"
+                        raise ValueError(msg)
+                return result
+
+            return _coerce
+
+    class Args:
+        """@validated, parse_kwargs - ZERO boilerplate de validação."""
+
+        @staticmethod
+        def validated[P, R](func: Callable[P, R]) -> Callable[P, R]:
+            """Decorator com validate_call - aceita str OU enum, converte auto."""
+            from pydantic import validate_call
+
+            return validate_call(
+                config=ConfigDict(arbitrary_types_allowed=True, use_enum_values=False),
+                validate_return=False,
+            )(func)
+
+        @staticmethod
+        def validated_with_result[P, R](
+            func: Callable[P, FlextResult[R]],
+        ) -> Callable[P, FlextResult[R]]:
+            """ValidationError → FlextResult.fail()."""
+            from pydantic import validate_call
+
+            @wraps(func)
+            def wrapper(*args: Any, **kwargs: Any) -> FlextResult[R]:
+                try:
+                    return validate_call(
+                        config=ConfigDict(arbitrary_types_allowed=True),
+                        validate_return=False,
+                    )(func)(*args, **kwargs)
+                except Exception as e:
+                    return FlextResult.fail(str(e))
+
+            return wrapper
+
+        @staticmethod
+        def parse_kwargs[E: StrEnum](
+            kwargs: Mapping[str, Any], enum_fields: Mapping[str, type[E]]
+        ) -> FlextResult[dict[str, Any]]:
+            parsed, errors = dict(kwargs), []
+            for field, enum_cls in enum_fields.items():
+                if field in parsed and isinstance(parsed[field], str):
+                    try:
+                        parsed[field] = enum_cls(parsed[field])
+                    except ValueError:
+                        errors.append(f"{field}: '{parsed[field]}'")
+            return (
+                FlextResult.fail(f"Invalid: {errors}")
+                if errors
+                else FlextResult.ok(parsed)
+            )
+
+        @staticmethod
+        def get_enum_params(func: Callable[..., Any]) -> dict[str, type[StrEnum]]:
+            """Extrai parâmetros StrEnum da signature."""
+            try:
+                hints = get_type_hints(func)
+            except:
+                return {}
+            return {
+                n: h
+                for n, h in hints.items()
+                if n != "return" and isinstance(h, type) and issubclass(h, StrEnum)
+            }
+
+    class Model:
+        """from_dict, merge_defaults, update - ZERO try/except."""
+
+        @staticmethod
+        def from_dict[M: BaseModel](
+            model_cls: type[M], data: Mapping[str, Any], *, strict: bool = False
+        ) -> FlextResult[M]:
+            try:
+                return FlextResult.ok(model_cls.model_validate(data, strict=strict))
+            except Exception as e:
+                return FlextResult.fail(f"Validation failed: {e}")
+
+        @staticmethod
+        def merge_defaults[M: BaseModel](
+            model_cls: type[M],
+            defaults: Mapping[str, Any],
+            overrides: Mapping[str, Any],
+        ) -> FlextResult[M]:
+            return FlextDbOracleUtilities.Model.from_dict(
+                model_cls, {**defaults, **overrides}
+            )
+
+        @staticmethod
+        def update[M: BaseModel](instance: M, **updates: Any) -> FlextResult[M]:
+            try:
+                current = instance.model_dump()
+                current.update(updates)
+                return FlextResult.ok(type(instance).model_validate(current))
+            except Exception as e:
+                return FlextResult.fail(f"Update failed: {e}")
+
+    class Pydantic:
+        """Fábricas de Annotated types."""
+
+        @staticmethod
+        def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type:
+            return Annotated[
+                enum_cls,
+                BeforeValidator(FlextDbOracleUtilities.Enum.coerce_validator(enum_cls)),
+            ]
 
 
-__all__ = ["FlextDbOracleUtilities"]
+__all__ = [
+    "FlextDbOracleUtilities",
+]
