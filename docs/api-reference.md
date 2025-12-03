@@ -38,7 +38,7 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.query(sql, parameters=None) -> FlextResult[list[t.Dict]]
 
 # Execute single row SELECT
 result = api.query_one(sql, parameters=None) -> FlextResult[dict | None]
@@ -54,16 +54,16 @@ result = api.execute_many(sql, parameters_list) -> FlextResult[int]
 
 ```python
 # Get available schemas
-result = api.get_schemas() -> FlextResult[FlextTypes.StringList]
+result = api.get_schemas() -> FlextResult[t.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.get_tables(schema=None) -> FlextResult[list[t.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> FlextResult[list[FlextTypes.Dict]]
+result = api.get_columns(table, schema=None) -> FlextResult[list[t.Dict]]
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> FlextResult[FlextTypes.Dict]
+result = api.get_table_metadata(table, schema=None) -> FlextResult[t.Dict]
 ```
 
 ### Configuration Methods

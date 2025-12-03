@@ -7,13 +7,13 @@ from enum import StrEnum
 from functools import cache, wraps
 from typing import Annotated, Any, TypeIs, TypeVar, get_type_hints
 
-from flext_core import FlextResult, FlextUtilities
+from flext_core import FlextResult, u
 from pydantic import BaseModel, BeforeValidator, ConfigDict
 
 T = TypeVar("T")
 
 
-class FlextDbOracleUtilities(FlextUtilities):
+class FlextDbOracleUtilities(u):
     """TypeIs (PEP 742), BeforeValidator, validate_call, collections.abc, ParamSpec."""
 
     class Enum:

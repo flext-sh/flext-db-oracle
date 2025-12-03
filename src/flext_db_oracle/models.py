@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextConstants, FlextModels, FlextTypes
+from flext_core import FlextConstants, FlextModels, t
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -176,13 +176,13 @@ class FlextDbOracleModels(FlextModels):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[dict[str, FlextTypes.JsonValue]] = Field(default_factory=list)
+        result_data: list[dict[str, t.JsonValue]] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[FlextTypes.JsonValue]] = Field(
+        rows: list[list[t.JsonValue]] = Field(
             default_factory=list, description="Row data"
         )
         query_hash: str = Field(default="", description="Query hash for caching")

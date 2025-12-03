@@ -14,7 +14,7 @@ from flext_core import (
     FlextDispatcher,
     FlextRegistry,
     FlextService,
-    FlextTypes,
+    t,
 )
 
 from flext_db_oracle.services import FlextDbOracleServices
@@ -40,28 +40,28 @@ class FlextDbOracleDispatcher(FlextService):
         """Command to execute a SQL query and return rows."""
 
         sql: str
-        parameters: dict[str, FlextTypes.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class FetchOneCommand:
         """Command to execute a SQL query and fetch a single row."""
 
         sql: str
-        parameters: dict[str, FlextTypes.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteStatementCommand:
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
         sql: str
-        parameters: dict[str, FlextTypes.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteManyCommand:
         """Command to execute a SQL statement multiple times."""
 
         sql: str
-        parameters_list: list[dict[str, FlextTypes.JsonValue]]
+        parameters_list: list[dict[str, t.JsonValue]]
 
     @dataclass(slots=True)
     class GetSchemasCommand:
@@ -83,7 +83,7 @@ class FlextDbOracleDispatcher(FlextService):
     @classmethod
     def _create_connection_handlers(
         cls, services: FlextDbOracleServices
-    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create connection-related handler functions."""
 
         def connect_handler(_cmd: object) -> object:
@@ -97,7 +97,7 @@ class FlextDbOracleDispatcher(FlextService):
             return services.test_connection()
 
         return cast(
-            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.ConnectCommand: (connect_handler, None),
                 cls.DisconnectCommand: (disconnect_handler, None),
@@ -108,39 +108,39 @@ class FlextDbOracleDispatcher(FlextService):
     @classmethod
     def _create_query_handlers(
         cls, services: FlextDbOracleServices
-    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create query-related handler functions."""
 
         def execute_query_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, FlextTypes.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_query(sql, parameters)
 
         def fetch_one_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, FlextTypes.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.fetch_one(sql, parameters)
 
         def execute_statement_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, FlextTypes.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_statement(sql, parameters)
 
         def execute_many_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters_list: list[dict[str, FlextTypes.JsonValue]] = getattr(
+            parameters_list: list[dict[str, t.JsonValue]] = getattr(
                 command, "parameters_list", []
             )
             return services.execute_many(sql, parameters_list)
 
         return cast(
-            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.ExecuteQueryCommand: (execute_query_handler, None),
                 cls.FetchOneCommand: (fetch_one_handler, None),
@@ -152,7 +152,7 @@ class FlextDbOracleDispatcher(FlextService):
     @classmethod
     def _create_schema_handlers(
         cls, services: FlextDbOracleServices
-    ) -> dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create schema/metadata handler functions."""
 
         def get_schemas_handler(_cmd: object) -> object:
@@ -168,7 +168,7 @@ class FlextDbOracleDispatcher(FlextService):
             return services.get_columns(table, schema)
 
         return cast(
-            "dict[type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]]",
+            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.GetSchemasCommand: (get_schemas_handler, None),
                 cls.GetTablesCommand: (get_tables_handler, None),
@@ -188,9 +188,7 @@ class FlextDbOracleDispatcher(FlextService):
         registry = FlextRegistry(dispatcher)
 
         # Create handler functions grouped by functionality
-        function_map: dict[
-            type, tuple[FlextTypes.MiddlewareType, dict[str, object] | None]
-        ] = {}
+        function_map: dict[type, tuple[t.MiddlewareType, dict[str, object] | None]] = {}
 
         # Add connection handlers
         function_map.update(cls._create_connection_handlers(services))

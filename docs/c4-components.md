@@ -191,7 +191,7 @@ class OracleConfig(BaseModel):
 
 class QueryResult(BaseModel):
     rows: List[List[object]]
-    columns: FlextTypes.StringList
+    columns: t.StringList
     row_count: int
     execution_time: float
 ```

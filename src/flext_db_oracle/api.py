@@ -18,7 +18,7 @@ from flext_core import (
     FlextContainer,
     FlextResult,
     FlextService,
-    FlextTypes,
+    t,
 )
 
 from flext_db_oracle.config import FlextDbOracleConfig
@@ -197,9 +197,7 @@ class FlextDbOracleApi(FlextService):
     ) -> FlextResult[list[dict[str, object]]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        result = self._services.execute_query(
-            sql, cast("FlextTypes.JsonDict", parameters or {})
-        )
+        result = self._services.execute_query(sql, cast("t.JsonDict", parameters or {}))
         if result.is_failure:
             return FlextResult.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
@@ -213,9 +211,7 @@ class FlextDbOracleApi(FlextService):
         parameters: dict[str, object] | None = None,
     ) -> FlextResult[dict[str, object] | None]:
         """Execute a SELECT query and return first result or None."""
-        result = self._services.fetch_one(
-            sql, cast("FlextTypes.JsonDict", parameters or {})
-        )
+        result = self._services.fetch_one(sql, cast("t.JsonDict", parameters or {}))
         if result.is_failure:
             return FlextResult.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
@@ -231,7 +227,7 @@ class FlextDbOracleApi(FlextService):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         result = self._services.execute_statement(
-            sql, cast("FlextTypes.JsonDict", parameters or {})
+            sql, cast("t.JsonDict", parameters or {})
         )
         if result.is_failure:
             return FlextResult.fail(result.error or "SQL execution failed")
@@ -245,7 +241,7 @@ class FlextDbOracleApi(FlextService):
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         result = self._services.execute_many(
-            sql, cast("list[FlextTypes.JsonDict]", list(parameters_list))
+            sql, cast("list[t.JsonDict]", list(parameters_list))
         )
         if result.is_failure:
             return FlextResult.fail(result.error or "Bulk execution failed")
@@ -260,7 +256,7 @@ class FlextDbOracleApi(FlextService):
         try:
             sql_text = str(sql) if not isinstance(sql, str) else sql
             result = self._services.execute_statement(
-                sql_text, cast("FlextTypes.JsonDict", parameters or {})
+                sql_text, cast("t.JsonDict", parameters or {})
             )
             if result.is_failure:
                 return FlextResult.fail(result.error or "Statement execution failed")
@@ -338,7 +334,7 @@ class FlextDbOracleApi(FlextService):
         schema: dict[str, object],
     ) -> FlextResult[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
-        result = self._services.map_singer_schema(cast("FlextTypes.JsonDict", schema))
+        result = self._services.map_singer_schema(cast("t.JsonDict", schema))
         if result.is_failure:
             return FlextResult.fail(result.error or "Schema mapping failed")
         # Simplify return type by casting
