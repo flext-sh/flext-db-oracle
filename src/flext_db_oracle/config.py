@@ -309,19 +309,19 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         # Validate pool configuration
         if self.pool_max < self.pool_min:
             return FlextResult[None].fail(
-                "pool_max must be greater than or equal to pool_min"
+                "pool_max must be greater than or equal to pool_min",
             )
 
         # Validate SSL configuration
         if self.use_ssl:
             if self.ssl_cert_file and not self.ssl_key_file:
                 return FlextResult[None].fail(
-                    "SSL key file is required when SSL cert file is provided"
+                    "SSL key file is required when SSL cert file is provided",
                 )
 
             if self.ssl_key_file and not self.ssl_cert_file:
                 return FlextResult[None].fail(
-                    "SSL cert file is required when SSL key file is provided"
+                    "SSL cert file is required when SSL key file is provided",
                 )
 
         return FlextResult[None].ok(None)
@@ -368,7 +368,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(
-                f"Failed to create config from environment: {e}"
+                f"Failed to create config from environment: {e}",
             )
 
     @classmethod
@@ -387,7 +387,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             parsed = urlparse(url)
             if parsed.scheme != "oracle":
                 return FlextResult[FlextDbOracleConfig].fail(
-                    f"Invalid URL scheme: {parsed.scheme}. Expected 'oracle'"
+                    f"Invalid URL scheme: {parsed.scheme}. Expected 'oracle'",
                 )
 
             # Extract components
@@ -403,15 +403,15 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
                 return FlextResult[FlextDbOracleConfig].fail("Port is required in URL")
             if not username:
                 return FlextResult[FlextDbOracleConfig].fail(
-                    "Username is required in URL"
+                    "Username is required in URL",
                 )
             if not password:
                 return FlextResult[FlextDbOracleConfig].fail(
-                    "Password is required in URL"
+                    "Password is required in URL",
                 )
             if not path:
                 return FlextResult[FlextDbOracleConfig].fail(
-                    "Service name is required in URL path"
+                    "Service name is required in URL path",
                 )
 
             # Create config
@@ -426,7 +426,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             return FlextResult[FlextDbOracleConfig].ok(config)
         except Exception as e:
             return FlextResult[FlextDbOracleConfig].fail(
-                f"Failed to create config from URL: {e}"
+                f"Failed to create config from URL: {e}",
             )
 
     @classmethod

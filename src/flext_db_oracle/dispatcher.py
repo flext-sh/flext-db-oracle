@@ -82,7 +82,8 @@ class FlextDbOracleDispatcher(FlextService):
 
     @classmethod
     def _create_connection_handlers(
-        cls, services: FlextDbOracleServices
+        cls,
+        services: FlextDbOracleServices,
     ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create connection-related handler functions."""
 
@@ -107,7 +108,8 @@ class FlextDbOracleDispatcher(FlextService):
 
     @classmethod
     def _create_query_handlers(
-        cls, services: FlextDbOracleServices
+        cls,
+        services: FlextDbOracleServices,
     ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create query-related handler functions."""
 
@@ -135,7 +137,9 @@ class FlextDbOracleDispatcher(FlextService):
         def execute_many_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
             parameters_list: list[dict[str, t.JsonValue]] = getattr(
-                command, "parameters_list", []
+                command,
+                "parameters_list",
+                [],
             )
             return services.execute_many(sql, parameters_list)
 
@@ -151,7 +155,8 @@ class FlextDbOracleDispatcher(FlextService):
 
     @classmethod
     def _create_schema_handlers(
-        cls, services: FlextDbOracleServices
+        cls,
+        services: FlextDbOracleServices,
     ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create schema/metadata handler functions."""
 

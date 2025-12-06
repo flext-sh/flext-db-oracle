@@ -17,14 +17,14 @@ from typing import Any
 import oracledb
 import pytest
 from flext_core import FlextLogger
-from flext_tests import FlextTestDocker, FlextTestsDomains
+from flext_tests import FlextTestsDocker, FlextTestsDomains
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
 
 logger = FlextLogger(__name__)
 
-# Register FlextTestDocker pytest fixtures in this module's namespace
-FlextTestDocker.register_pytest_fixtures(namespace=globals())
+# Register FlextTestsDocker pytest fixtures in this module's namespace
+FlextTestsDocker.register_pytest_fixtures(namespace=globals())
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"
@@ -47,7 +47,7 @@ class DockerCommandExecutor:
     """Execute Docker commands safely with proper error handling - DEPRECATED.
 
     This class is kept for backwards compatibility but should not be used directly.
-    Use FlextTestDocker instead for consistent container management.
+    Use FlextTestsDocker instead for consistent container management.
     """
 
     def __init__(self, compose_file: Path) -> None:
@@ -56,33 +56,33 @@ class DockerCommandExecutor:
         self.compose_file = compose_file
 
     def check_docker_availability(self) -> None:
-        """Check if Docker is available - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Check if Docker is available - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
     def check_container_status(self) -> bool:
-        """Check container status - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Check container status - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
     def check_container_health(self) -> bool:
-        """Check container health - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Check container health - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
     def start_container(self) -> None:
-        """Start container - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Start container - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
     def run_setup_script(self) -> bool:
-        """Run setup script - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Run setup script - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
     def is_setup_completed(self) -> bool:
-        """Check setup completion - use FlextTestDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestDocker instead."
+        """Check setup completion - use FlextTestsDocker instead."""
+        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
         raise DeprecationWarning(msg)
 
 
@@ -90,7 +90,7 @@ class OracleContainerManager:
     """Manage Oracle container lifecycle for testing - DEPRECATED.
 
     This class is kept for backwards compatibility but should not be used directly.
-    Use FlextTestDocker fixtures instead for consistent container management.
+    Use FlextTestsDocker fixtures instead for consistent container management.
     """
 
     def __init__(self, compose_file: Path) -> None:
@@ -101,23 +101,23 @@ class OracleContainerManager:
         self.health_check_interval = 5
 
     def ensure_container_ready(self) -> None:
-        """Ensure container is ready - use FlextTestDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        """Ensure container is ready - use FlextTestsDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
         raise DeprecationWarning(msg)
 
     def _start_and_wait_for_health(self) -> None:
-        """Start and wait for health - use FlextTestDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        """Start and wait for health - use FlextTestsDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
         raise DeprecationWarning(msg)
 
     def _wait_for_healthy_status(self) -> None:
-        """Wait for healthy status - use FlextTestDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        """Wait for healthy status - use FlextTestsDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
         raise DeprecationWarning(msg)
 
     def _wait_for_setup_completion(self) -> None:
-        """Wait for setup completion - use FlextTestDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestDocker fixtures instead."
+        """Wait for setup completion - use FlextTestsDocker instead."""
+        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
         raise DeprecationWarning(msg)
 
 
@@ -126,14 +126,16 @@ def pytest_configure(config: pytest.Config) -> None:
     # Add markers for different test types
     config.addinivalue_line("markers", "oracle: Oracle database integration tests")
     config.addinivalue_line(
-        "markers", "unit_pure: Pure unit tests with no external dependencies"
+        "markers",
+        "unit_pure: Pure unit tests with no external dependencies",
     )
     config.addinivalue_line(
         "markers",
         "unit_integration: Unit tests that can use real Oracle when available",
     )
     config.addinivalue_line(
-        "markers", "slow: Slow-running tests that should be run separately"
+        "markers",
+        "slow: Slow-running tests that should be run separately",
     )
 
     # Environment configuration for Oracle tests
@@ -149,14 +151,14 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
-    docker = FlextTestDocker()
+    docker = FlextTestsDocker()
     cleanup_result = docker.cleanup_dirty_containers()
     if cleanup_result.is_failure:
         logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
     else:
         cleaned = cleanup_result.unwrap()
         if cleaned:
-            logger.info(f"Recreated dirty containers: {cleaned}")
+            logger.info("Recreated dirty containers: %s", cleaned)
         else:
             logger.debug("No dirty containers to clean")
 
@@ -184,29 +186,29 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
     )
 
     if is_service_failure:
-        docker = FlextTestDocker()
+        docker = FlextTestsDocker()
         docker.mark_container_dirty("flext-oracle-db-test")
         logger.error(
             f"ORACLE SERVICE FAILURE detected in {item.nodeid}, "
-            f"container marked DIRTY for recreation: {exc_msg}"
+            f"container marked DIRTY for recreation: {exc_msg}",
         )
 
 
 @pytest.fixture(scope="session")
-def docker_control() -> FlextTestDocker:
-    """Provide FlextTestDocker instance for container management."""
-    return FlextTestDocker()
+def docker_control() -> FlextTestsDocker:
+    """Provide FlextTestsDocker instance for container management."""
+    return FlextTestsDocker()
 
 
 @pytest.fixture(scope="session")
 def shared_oracle_container(
-    docker_control: FlextTestDocker,
+    docker_control: FlextTestsDocker,
 ) -> Generator[str]:
     """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
     container_name = "flext-oracle-db-test"
 
     # Get container config from SHARED_CONTAINERS
-    container_config = FlextTestDocker.SHARED_CONTAINERS.get(container_name)
+    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
     if container_config is None:
         pytest.skip(f"Container {container_name} not found in SHARED_CONTAINERS")
 
@@ -228,12 +230,13 @@ def shared_oracle_container(
     if is_dirty:
         # Container está dirty - recriar completamente (down -v + up)
         logger.info(
-            f"Container {container_name} is dirty, recreating with fresh volumes"
+            "Container %s is dirty, recreating with fresh volumes",
+            container_name,
         )
         cleanup_result = docker_control.cleanup_dirty_containers()
         if cleanup_result.is_failure:
             pytest.skip(
-                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}"
+                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}",
             )
         # cleanup_dirty_containers já faz down -v e up, então container deve estar rodando agora
     else:
@@ -241,14 +244,15 @@ def shared_oracle_container(
         status = docker_control.get_container_status(container_name)
         container_running = (
             status.is_success
-            and isinstance(status.value, FlextTestDocker.ContainerInfo)
-            and status.value.status == FlextTestDocker.ContainerStatus.RUNNING
+            and isinstance(status.value, FlextTestsDocker.ContainerInfo)
+            and status.value.status == FlextTestsDocker.ContainerStatus.RUNNING
         )
 
         if not container_running:
             # Container não está rodando mas não está dirty - apenas iniciar (sem recriar volumes)
             logger.info(
-                f"Container {container_name} is not running (but not dirty), starting..."
+                "Container %s is not running (but not dirty), starting...",
+                container_name,
             )
             service_name = str(container_config.get("service", ""))
             compose_result = docker_control.compose_up(
@@ -257,12 +261,13 @@ def shared_oracle_container(
             )
             if compose_result.is_failure:
                 pytest.skip(
-                    f"Failed to start container {container_name}: {compose_result.error}"
+                    f"Failed to start container {container_name}: {compose_result.error}",
                 )
         else:
             # Container está rodando e não está dirty - tudo OK
             logger.debug(
-                f"Container {container_name} is running and clean, no action needed"
+                "Container %s is running and clean, no action needed",
+                container_name,
             )
 
     # AGUARDAR container estar pronto antes de permitir testes
@@ -271,14 +276,16 @@ def shared_oracle_container(
     wait_interval: float = 5.0  # segundos
     waited: float = 0.0
 
-    logger.info(f"Waiting for container {container_name} to be ready...")
+    logger.info("Waiting for container %s to be ready...", container_name)
 
     while waited < max_wait:
         try:
             # Usar configurações do container
             dsn = oracledb.makedsn("localhost", 1522, service_name="FLEXTDB")
             connection = oracledb.connect(
-                user="flext_test", password="flext_test_password", dsn=dsn
+                user="flext_test",
+                password="flext_test_password",
+                dsn=dsn,
             )
             connection.close()
             logger.info(f"Container {container_name} is ready after {waited:.1f}s")
@@ -287,7 +294,7 @@ def shared_oracle_container(
             # Container ainda não está pronto, continuar aguardando
             if waited % 30 == 0:  # Log a cada 30 segundos
                 logger.debug(
-                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
+                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}",
                 )
 
         time.sleep(wait_interval)
@@ -295,7 +302,7 @@ def shared_oracle_container(
 
     if waited >= max_wait:
         pytest.skip(
-            f"Container {container_name} did not become ready within {max_wait}s"
+            f"Container {container_name} did not become ready within {max_wait}s",
         )
 
     return container_name

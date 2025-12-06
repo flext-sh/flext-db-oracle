@@ -35,7 +35,8 @@ class TestOracleIntegration:
     """Integration tests for Oracle database operations using REAL Oracle connectivity."""
 
     def test_api_instantiation_mock(
-        self, mock_oracle_config: FlextDbOracleConfig
+        self,
+        mock_oracle_config: FlextDbOracleConfig,
     ) -> None:
         """Test API instantiation with mock config."""
         api = FlextDbOracleApi(config=mock_oracle_config)
@@ -95,7 +96,7 @@ class TestOracleIntegration:
             # Mock config - just test that API can be created and has expected methods
             assert api is not None
             pytest.skip(
-                "Oracle container not available - tested API instantiation only"
+                "Oracle container not available - tested API instantiation only",
             )
 
     @pytest.mark.oracle
@@ -148,7 +149,7 @@ class TestOracleIntegration:
 
         if real_oracle_config is None:
             pytest.skip(
-                "Oracle container not available - skipping context manager test"
+                "Oracle container not available - skipping context manager test",
             )
 
         # Test context manager usage
@@ -178,7 +179,7 @@ class TestOracleIntegration:
 
         if real_oracle_config is None:
             pytest.skip(
-                "Oracle container not available - skipping metadata operations test"
+                "Oracle container not available - skipping metadata operations test",
             )
 
         # Connect to Oracle
@@ -233,7 +234,7 @@ class TestOracleIntegration:
         """Test database operations using test schema setup."""
         if connected_oracle_api is None or test_database_setup is None:
             pytest.skip(
-                "Oracle container not available - skipping database operations test"
+                "Oracle container not available - skipping database operations test",
             )
 
         # Test table creation from setup
@@ -242,13 +243,13 @@ class TestOracleIntegration:
         # Test basic CRUD operations
         # Insert data
         insert_result = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')"
+            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
         )
         assert insert_result.is_success, f"Insert failed: {insert_result.error}"
 
         # Query data
         query_result = connected_oracle_api.query(
-            "SELECT id, name FROM test_table WHERE id = 1"
+            "SELECT id, name FROM test_table WHERE id = 1",
         )
         assert query_result.is_success, f"Query failed: {query_result.error}"
         data = query_result.value
@@ -258,13 +259,13 @@ class TestOracleIntegration:
 
         # Update data
         update_result = connected_oracle_api.execute_statement(
-            "UPDATE test_table SET name = 'Updated User' WHERE id = 1"
+            "UPDATE test_table SET name = 'Updated User' WHERE id = 1",
         )
         assert update_result.is_success, f"Update failed: {update_result.error}"
 
         # Verify update
         query_result = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 1"
+            "SELECT name FROM test_table WHERE id = 1",
         )
         assert query_result.is_success
         data = query_result.value
@@ -272,13 +273,13 @@ class TestOracleIntegration:
 
         # Delete data
         delete_result = connected_oracle_api.execute_statement(
-            "DELETE FROM test_table WHERE id = 1"
+            "DELETE FROM test_table WHERE id = 1",
         )
         assert delete_result.is_success, f"Delete failed: {delete_result.error}"
 
         # Verify deletion
         query_result = connected_oracle_api.query(
-            "SELECT COUNT(*) as count FROM test_table"
+            "SELECT COUNT(*) as count FROM test_table",
         )
         assert query_result.is_success
         data = query_result.value
@@ -297,7 +298,7 @@ class TestOracleIntegration:
         # Test transaction commit
         # Insert in transaction
         insert_result = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')"
+            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
         assert insert_result.is_success
 
@@ -307,7 +308,7 @@ class TestOracleIntegration:
 
         # Verify data persists
         query_result = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 100"
+            "SELECT name FROM test_table WHERE id = 100",
         )
         assert query_result.is_success
         data = query_result.value
@@ -325,7 +326,7 @@ class TestOracleIntegration:
         """Test schema/metadata operations."""
         if connected_oracle_api is None:
             pytest.skip(
-                "Oracle container not available - skipping schema operations test"
+                "Oracle container not available - skipping schema operations test",
             )
 
         # Test schema listing

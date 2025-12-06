@@ -79,7 +79,8 @@ class TestFlextDbOracleUtilities:
         """Test query hash generation with parameters."""
         params = {"id": 1, "name": "test"}
         result = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table WHERE id = :id", params
+            "SELECT * FROM table WHERE id = :id",
+            params,
         )
         assert result.is_success
         hash_value = result.unwrap()
@@ -91,10 +92,12 @@ class TestFlextDbOracleUtilities:
         params1 = {"id": 1, "name": "test", "active": True}
         params2 = {"name": "test", "active": True, "id": 1}
         result1 = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table", params1
+            "SELECT * FROM table",
+            params1,
         )
         result2 = FlextDbOracleUtilities.generate_query_hash(
-            "SELECT * FROM table", params2
+            "SELECT * FROM table",
+            params2,
         )
 
         assert result1.is_success
@@ -360,7 +363,8 @@ class TestFlextDbOracleUtilities:
     # =============================================================================
 
     def test_create_config_from_env_no_env_vars(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with no environment variables."""
         # Clear relevant env vars
@@ -386,7 +390,8 @@ class TestFlextDbOracleUtilities:
         assert len(config) == 0  # No env vars set
 
     def test_create_config_from_env_with_values(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with environment variables."""
         monkeypatch.setenv("ORACLE_HOST", "test-host")
@@ -405,7 +410,8 @@ class TestFlextDbOracleUtilities:
         assert config["service_name"] == "testservice"
 
     def test_create_config_from_env_flext_prefix(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
@@ -418,7 +424,8 @@ class TestFlextDbOracleUtilities:
         assert config["username"] == "flext-user"
 
     def test_create_config_from_env_mixed_prefixes(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with mixed prefixes (FLEXT takes precedence)."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
@@ -437,7 +444,7 @@ class TestFlextDbOracleUtilities:
     def test_oracle_validation_validate_identifier_valid(self) -> None:
         """Test valid identifier validation."""
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "VALID_TABLE"
+            "VALID_TABLE",
         )
         assert result.is_success
         assert result.unwrap() == "VALID_TABLE"
@@ -454,7 +461,7 @@ class TestFlextDbOracleUtilities:
             FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 1
         )
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            long_identifier
+            long_identifier,
         )
         assert result.is_failure
         assert "too long" in result.error
@@ -462,7 +469,7 @@ class TestFlextDbOracleUtilities:
     def test_oracle_validation_validate_identifier_invalid_pattern(self) -> None:
         """Test invalid pattern identifier validation."""
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "invalid@name"
+            "invalid@name",
         )
         assert result.is_failure
         assert "does not match" in result.error
@@ -476,7 +483,7 @@ class TestFlextDbOracleUtilities:
     def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
         """Test lowercase identifier conversion to uppercase."""
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
-            "valid_table"
+            "valid_table",
         )
         assert result.is_success
         assert result.unwrap() == "VALID_TABLE"
@@ -487,7 +494,9 @@ class TestFlextDbOracleUtilities:
 
     @pytest.mark.unit_integration
     def test_real_oracle_escape_identifier_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test identifier escaping with real Oracle when available."""
         if not oracle_available or connected_oracle_api is None:
@@ -511,7 +520,9 @@ class TestFlextDbOracleUtilities:
 
     @pytest.mark.unit_integration
     def test_real_oracle_query_hash_consistency(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that query hashing produces consistent results with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
@@ -537,7 +548,9 @@ class TestFlextDbOracleUtilities:
 
     @pytest.mark.unit_integration
     def test_real_oracle_format_sql_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test SQL formatting works with real Oracle queries."""
         if not oracle_available or connected_oracle_api is None:

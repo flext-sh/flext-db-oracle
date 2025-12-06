@@ -29,7 +29,8 @@ class TestFlextDbOracleExceptions:
     def test_error_with_oracle_code(self) -> None:
         """Test Error with oracle error code."""
         error = FlextDbOracleExceptions.Error(
-            "Test error", oracle_error_code="ORA-12345"
+            "Test error",
+            oracle_error_code="ORA-12345",
         )
         assert error is not None
         assert error.oracle_error_code == "ORA-12345"

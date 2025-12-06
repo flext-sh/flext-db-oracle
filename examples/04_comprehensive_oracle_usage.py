@@ -40,7 +40,7 @@ class OracleExampleProcessor(FlextService[str]):
         try:
             # Simulate API usage without actual connection
             logger.info("Oracle API would be created and connected here")
-            logger.info(f"Would execute query: {_query}")
+            logger.info("Would execute query: %s", _query)
 
             return FlextResult[str].ok("Oracle processing simulated successfully")
         except Exception as e:

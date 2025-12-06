@@ -121,7 +121,9 @@ class TestFlextDbOracleModels:
         """Test ConnectionStatus validation."""
         # Valid connected status
         status = FlextDbOracleModels.ConnectionStatus(
-            is_connected=True, host="localhost", port=1521
+            is_connected=True,
+            host="localhost",
+            port=1521,
         )
         # Should not raise validation error
         validated = status.model_validate(status.model_dump())
@@ -129,7 +131,8 @@ class TestFlextDbOracleModels:
 
         # Invalid: connected without host
         with pytest.raises(
-            ValueError, match="Connected status requires host information"
+            ValueError,
+            match="Connected status requires host information",
         ):
             FlextDbOracleModels.ConnectionStatus(
                 is_connected=True,
@@ -256,7 +259,10 @@ class TestFlextDbOracleModels:
         """Test QueryResult validation."""
         # Valid result
         result = FlextDbOracleModels.QueryResult(
-            query="SELECT 1", columns=["id"], rows=[[1], [2]], execution_time_ms=100
+            query="SELECT 1",
+            columns=["id"],
+            rows=[[1], [2]],
+            execution_time_ms=100,
         )
         validated = result.model_validate(result.model_dump())
         assert validated.row_count == 2  # Auto-corrected
@@ -314,7 +320,10 @@ class TestFlextDbOracleModels:
     def test_column_creation(self) -> None:
         """Test Column model creation."""
         column = FlextDbOracleModels.Column(
-            name="user_id", data_type="NUMBER(38)", nullable=False, default_value="NULL"
+            name="user_id",
+            data_type="NUMBER(38)",
+            nullable=False,
+            default_value="NULL",
         )
         assert column.name == "user_id"
         assert column.data_type == "NUMBER(38)"
@@ -385,7 +394,9 @@ class TestFlextDbOracleModels:
     # =============================================================================
 
     def test_connection_status_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test ConnectionStatus with real Oracle connection."""
         if not oracle_available or connected_oracle_api is None:
@@ -415,7 +426,9 @@ class TestFlextDbOracleModels:
         )
 
     def test_query_result_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test QueryResult with real Oracle data."""
         if not oracle_available or connected_oracle_api is None:
@@ -423,7 +436,7 @@ class TestFlextDbOracleModels:
 
         # Execute a real query
         query_result = connected_oracle_api.query(
-            "SELECT 1 as id, 'test' as name FROM DUAL"
+            "SELECT 1 as id, 'test' as name FROM DUAL",
         )
         assert query_result.is_success
 
@@ -451,7 +464,9 @@ class TestFlextDbOracleModels:
         }
 
     def test_table_model_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Table model with real Oracle schema data."""
         if not oracle_available or connected_oracle_api is None:
@@ -554,7 +569,8 @@ class TestFlextDbOracleConfig:
         assert config.name == "ORCL"  # database_name maps to name
 
     def test_config_from_env_flext_prefix(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
@@ -567,7 +583,8 @@ class TestFlextDbOracleConfig:
         assert config.username == "flext-user"
 
     def test_config_from_env_mixed_prefixes(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with mixed prefixes."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
@@ -583,7 +600,8 @@ class TestFlextDbOracleConfig:
         assert config.username == "flext-user"
 
     def test_config_from_env_port_conversion(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test port conversion from environment string to int."""
         monkeypatch.setenv("ORACLE_PORT", "1523")
@@ -595,7 +613,8 @@ class TestFlextDbOracleConfig:
         assert isinstance(config.port, int)
 
     def test_config_from_env_invalid_port(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with invalid port."""
         monkeypatch.setenv("ORACLE_PORT", "invalid")
@@ -608,7 +627,10 @@ class TestFlextDbOracleConfig:
     def test_config_serialization(self) -> None:
         """Test config serialization."""
         config = FlextDbOracleConfig(
-            host="test.com", port=1522, username="user", password="pass"
+            host="test.com",
+            port=1522,
+            username="user",
+            password="pass",
         )
 
         serialized = config.model_dump()

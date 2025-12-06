@@ -610,7 +610,7 @@ class TestCliServiceOperations:
             "get_health_status",
         ) as mock_health:
             mock_health.return_value = FlextResult[dict[str, object]].fail(
-                "Database unreachable"
+                "Database unreachable",
             )
 
             result = cli_service.execute_health_check(

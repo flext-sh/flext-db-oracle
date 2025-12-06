@@ -43,7 +43,8 @@ class FlextDbOracleTypes(t):
         """
 
         ConnectionConfiguration: type = dict[
-            str, str | int | bool | dict[str, t.JsonValue]
+            str,
+            str | int | bool | dict[str, t.JsonValue],
         ]
         """Oracle connection configuration type."""
         ConnectionPool: type = dict[str, int | bool | str]
@@ -137,7 +138,8 @@ class FlextDbOracleTypes(t):
         """
 
         SessionConfiguration: type = dict[
-            str, str | int | bool | dict[str, t.JsonValue]
+            str,
+            str | int | bool | dict[str, t.JsonValue],
         ]
         """Oracle session configuration type."""
         SessionState: type = dict[str, t.JsonValue | dict[str, t.JsonValue]]
@@ -189,7 +191,8 @@ class FlextDbOracleTypes(t):
         RoleDefinition: type = dict[str, str | list[str] | dict[str, t.JsonValue]]
         """Oracle role definition type."""
         PrivilegeConfiguration: type = dict[
-            str, bool | list[str] | dict[str, t.JsonValue]
+            str,
+            bool | list[str] | dict[str, t.JsonValue],
         ]
         """Oracle privilege configuration type."""
         AccessPolicy: type = dict[str, str | bool | dict[str, t.JsonValue]]

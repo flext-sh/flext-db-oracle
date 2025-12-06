@@ -84,7 +84,9 @@ class FlextDbOracleProtocols(p):
             """Protocol for Oracle query execution operations."""
 
             def execute_query(
-                self, sql: str, params: dict[str, t.JsonValue] | None = None
+                self,
+                sql: str,
+                params: dict[str, t.JsonValue] | None = None,
             ) -> FlextResult[object]:
                 """Execute Oracle SQL query.
 
@@ -100,7 +102,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def execute_statement(
-                self, sql: str, params: dict[str, t.JsonValue] | None = None
+                self,
+                sql: str,
+                params: dict[str, t.JsonValue] | None = None,
             ) -> FlextResult[bool]:
                 """Execute Oracle SQL statement.
 
@@ -116,7 +120,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def execute_many(
-                self, sql: str, params_list: list[dict[str, t.JsonValue]]
+                self,
+                sql: str,
+                params_list: list[dict[str, t.JsonValue]],
             ) -> FlextResult[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -132,7 +138,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def fetch_one(
-                self, sql: str, params: dict[str, t.JsonValue] | None = None
+                self,
+                sql: str,
+                params: dict[str, t.JsonValue] | None = None,
             ) -> FlextResult[t.JsonValue | None]:
                 """Fetch single result from Oracle query.
 
@@ -172,7 +180,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def get_columns(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> FlextResult[list[dict[str, t.JsonValue]]]:
                 """Get column information for Oracle table.
 
@@ -187,7 +197,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def get_table_metadata(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> FlextResult[dict[str, t.JsonValue]]:
                 """Get Oracle table metadata.
 
@@ -202,7 +214,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def get_primary_keys(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> FlextResult[list[str]]:
                 """Get primary key columns for Oracle table.
 
@@ -244,7 +258,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: dict[str, t.JsonValue]
+                self,
+                table: str,
+                data: dict[str, t.JsonValue],
             ) -> FlextResult[tuple[str, dict[str, t.JsonValue]]]:
                 """Build Oracle INSERT statement.
 
@@ -278,7 +294,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def build_delete_statement(
-                self, table: str, where_clause: str
+                self,
+                table: str,
+                where_clause: str,
             ) -> FlextResult[str]:
                 """Build Oracle DELETE statement.
 
@@ -316,7 +334,9 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def drop_table_ddl(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> FlextResult[str]:
                 """Generate Oracle DROP TABLE DDL.
 
@@ -385,7 +405,11 @@ class FlextDbOracleProtocols(p):
                 ...
 
             def track_operation(
-                self, operation: str, duration: float, *, success: bool
+                self,
+                operation: str,
+                duration: float,
+                *,
+                success: bool,
             ) -> FlextResult[bool]:
                 """Track Oracle operation performance.
 

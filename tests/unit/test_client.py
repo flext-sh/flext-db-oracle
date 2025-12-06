@@ -16,7 +16,9 @@ class TestFlextDbOracleClientRealFunctionality:
         """Test client can be created."""
         # Create config first
         FlextDbOracleConfig(
-            host="test-host", username="test-user", password="test-password"
+            host="test-host",
+            username="test-user",
+            password="test-password",
         )
         # Create client without passing config (it will create default internally)
         client = FlextDbOracleClient()

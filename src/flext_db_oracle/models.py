@@ -51,12 +51,14 @@ class FlextDbOracleModels(FlextModels):
         is_connected: bool = False
         last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
         error_message: str = Field(
-            default="", description="Error message when disconnected"
+            default="",
+            description="Error message when disconnected",
         )
 
         # Additional Oracle-specific connection details
         connection_time: float = Field(
-            default=0.0, description="Connection establishment time in seconds"
+            default=0.0,
+            description="Connection establishment time in seconds",
         )
         last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
         session_id: str = Field(default="", description="Oracle session identifier")
@@ -183,7 +185,8 @@ class FlextDbOracleModels(FlextModels):
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
         rows: list[list[t.JsonValue]] = Field(
-            default_factory=list, description="Row data"
+            default_factory=list,
+            description="Row data",
         )
         query_hash: str = Field(default="", description="Query hash for caching")
         explain_plan: str = Field(default="", description="Query execution plan")
@@ -275,7 +278,8 @@ class FlextDbOracleModels(FlextModels):
         data_type: str
         nullable: bool = True
         default_value: str = Field(
-            default="", description="Default value for the column"
+            default="",
+            description="Default value for the column",
         )
 
     class Schema(FlextModels.Entity):
@@ -294,7 +298,8 @@ class FlextDbOracleModels(FlextModels):
         schema_name: str = Field(default="", description="Schema name")
         tablespace: str = Field(default="", description="Tablespace name")
         parallel: int = Field(
-            default=1, description="Parallel degree for index creation"
+            default=1,
+            description="Parallel degree for index creation",
         )
 
     class MergeStatementConfig(FlextModels.Entity):

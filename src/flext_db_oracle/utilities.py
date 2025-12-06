@@ -28,7 +28,9 @@ class FlextDbOracleUtilities(u):
 
         @staticmethod
         def is_subset[E: StrEnum](
-            enum_cls: type[E], valid: frozenset[E], value: object
+            enum_cls: type[E],
+            valid: frozenset[E],
+            value: object,
         ) -> TypeIs[E]:
             if isinstance(value, enum_cls):
                 return value in valid
@@ -75,7 +77,8 @@ class FlextDbOracleUtilities(u):
 
         @staticmethod
         def parse_sequence[E: StrEnum](
-            enum_cls: type[E], values: Iterable[str | E]
+            enum_cls: type[E],
+            values: Iterable[str | E],
         ) -> FlextResult[tuple[E, ...]]:
             parsed, errors = [], []
             for i, v in enumerate(values):
@@ -151,7 +154,8 @@ class FlextDbOracleUtilities(u):
 
         @staticmethod
         def parse_kwargs[E: StrEnum](
-            kwargs: Mapping[str, Any], enum_fields: Mapping[str, type[E]]
+            kwargs: Mapping[str, Any],
+            enum_fields: Mapping[str, type[E]],
         ) -> FlextResult[dict[str, Any]]:
             parsed, errors = dict(kwargs), []
             for field, enum_cls in enum_fields.items():
@@ -184,7 +188,10 @@ class FlextDbOracleUtilities(u):
 
         @staticmethod
         def from_dict[M: BaseModel](
-            model_cls: type[M], data: Mapping[str, Any], *, strict: bool = False
+            model_cls: type[M],
+            data: Mapping[str, Any],
+            *,
+            strict: bool = False,
         ) -> FlextResult[M]:
             try:
                 return FlextResult.ok(model_cls.model_validate(data, strict=strict))
@@ -198,7 +205,8 @@ class FlextDbOracleUtilities(u):
             overrides: Mapping[str, Any],
         ) -> FlextResult[M]:
             return FlextDbOracleUtilities.Model.from_dict(
-                model_cls, {**defaults, **overrides}
+                model_cls,
+                {**defaults, **overrides},
             )
 
         @staticmethod

@@ -85,7 +85,10 @@ class FlextDbOracleClient(FlextService):
                 return FlextResult[FlextDbOracleApi].fail("Oracle password is required")
 
             self.logger.info(
-                f"Connecting to Oracle at {actual_host}:{actual_port}/{actual_service_name}"
+                "Connecting to Oracle at %s:%s/%s",
+                actual_host,
+                actual_port,
+                actual_service_name,
             )
 
             # Create Oracle configuration
@@ -171,7 +174,7 @@ class FlextDbOracleClient(FlextService):
                 return self._handle_health_check_operation()
 
             return FlextResult[dict[str, object]].fail(
-                f"Unknown operation: {operation}"
+                f"Unknown operation: {operation}",
             )
 
         except Exception as e:
@@ -184,32 +187,34 @@ class FlextDbOracleClient(FlextService):
         schemas_result: FlextResult[list[str]] = self.current_connection.get_schemas()
         if schemas_result.is_success:
             return FlextResult[dict[str, object]].ok({
-                "schemas": list(schemas_result.value)
+                "schemas": list(schemas_result.value),
             })
         return FlextResult[dict[str, object]].fail(
-            schemas_result.error or "Schema listing failed"
+            schemas_result.error or "Schema listing failed",
         )
 
     def _handle_list_tables_operation(
-        self, **params: object
+        self,
+        **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Handle list tables operation."""
         if self.current_connection is None:
             return FlextResult[dict[str, object]].fail("No active database connection")
         schema = str(params.get("schema", ""))
         tables_result: FlextResult[list[str]] = self.current_connection.get_tables(
-            schema or None
+            schema or None,
         )
         if tables_result.is_success:
             return FlextResult[dict[str, object]].ok({
-                "tables": list(tables_result.value)
+                "tables": list(tables_result.value),
             })
         return FlextResult[dict[str, object]].fail(
-            tables_result.error or "Table listing failed"
+            tables_result.error or "Table listing failed",
         )
 
     def _handle_query_operation(
-        self, **params: object
+        self,
+        **params: object,
     ) -> FlextResult[dict[str, object]]:
         """Handle query operation."""
         if self.current_connection is None:
@@ -231,7 +236,7 @@ class FlextDbOracleClient(FlextService):
                 "row_count": len(query_result.value) if query_result.value else 0,
             })
         return FlextResult[dict[str, object]].fail(
-            query_result.error or "Query execution failed"
+            query_result.error or "Query execution failed",
         )
 
     def _handle_health_check_operation(self) -> FlextResult[dict[str, object]]:
@@ -244,7 +249,7 @@ class FlextDbOracleClient(FlextService):
         if health_result.is_success:
             return FlextResult[dict[str, object]].ok(health_result.value)
         return FlextResult[dict[str, object]].fail(
-            health_result.error or "Health check failed"
+            health_result.error or "Health check failed",
         )
 
     def _format_and_display_result(
@@ -273,13 +278,14 @@ class FlextDbOracleClient(FlextService):
         formatter = formatter_result.value
         if callable(formatter):
             format_result: FlextResult[str] = formatter(
-                cast("FlextDbOracleTypes.Query.QueryResult", data)
+                cast("FlextDbOracleTypes.Query.QueryResult", data),
             )
             return format_result
         return FlextResult[str].fail("Invalid formatter strategy")
 
     def _get_formatter_strategy(
-        self, format_type: str
+        self,
+        format_type: str,
     ) -> FlextResult[
         Callable[[FlextDbOracleTypes.Query.QueryResult], FlextResult[str]]
     ]:
@@ -312,7 +318,8 @@ class FlextDbOracleClient(FlextService):
             ].fail(f"Formatter strategy error: {e}")
 
     def _format_as_table(
-        self, data: FlextDbOracleTypes.Query.QueryResult
+        self,
+        data: FlextDbOracleTypes.Query.QueryResult,
     ) -> FlextResult[str]:
         """Format data as table output.
 
@@ -349,7 +356,8 @@ class FlextDbOracleClient(FlextService):
             return FlextResult[str].fail(f"Table formatting failed: {e}")
 
     def _format_as_json(
-        self, data: FlextDbOracleTypes.Query.QueryResult
+        self,
+        data: FlextDbOracleTypes.Query.QueryResult,
     ) -> FlextResult[str]:
         """Format data as JSON output.
 
@@ -460,7 +468,7 @@ class FlextDbOracleClient(FlextService):
 
         """
         operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
-            "list_schemas"
+            "list_schemas",
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
@@ -473,7 +481,8 @@ class FlextDbOracleClient(FlextService):
 
         """
         operation_result: FlextResult[dict[str, object]] = self._execute_with_chain(
-            "list_tables", schema=schema or ""
+            "list_tables",
+            schema=schema or "",
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
@@ -487,7 +496,7 @@ class FlextDbOracleClient(FlextService):
         """
         # Default implementation - subclasses should override with specific logic
         return FlextResult[object].fail(
-            "Execute method not implemented for Oracle client"
+            "Execute method not implemented for Oracle client",
         )
 
     def execute_query(
@@ -532,7 +541,8 @@ class FlextDbOracleClient(FlextService):
         return FlextResult[None].ok(None)
 
     def configure_preferences(
-        self, **preferences: str | int | bool
+        self,
+        **preferences: str | int | bool,
     ) -> FlextResult[None]:
         """Configure client preferences.
 
@@ -552,7 +562,9 @@ class FlextDbOracleClient(FlextService):
 
     @classmethod
     def run_cli_command(
-        cls, operation: str, **params: str | int | bool
+        cls,
+        operation: str,
+        **params: str | int | bool,
     ) -> FlextResult[str]:
         """Run Oracle CLI command with proper error handling.
 
@@ -578,7 +590,9 @@ class FlextDbOracleClient(FlextService):
             # Log unused params for debugging but don't remove them as they may be used for future operations
             if params:
                 client.logger.debug(
-                    f"Unused CLI parameters for operation '{operation}': {params}",
+                    "Unused CLI parameters for operation '%s': %s",
+                    operation,
+                    params,
                 )
 
             return FlextResult[str].fail(f"Unknown CLI operation: {operation}")

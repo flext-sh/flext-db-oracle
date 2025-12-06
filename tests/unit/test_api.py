@@ -398,7 +398,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 service_name="testbuilder_service",
                 username="testbuilder_user",
                 password="testbuilder_password",
-            )
+            ),
         )
 
         # Verify the result is successful
@@ -929,7 +929,8 @@ class TestApiModule:
         # Test query execution if method exists
         if hasattr(api, "execute_query"):
             result: FlextResult[list[dict[str, object]]] = api.execute_query(
-                str(test_query["query"]), test_query["params"]
+                str(test_query["query"]),
+                test_query["params"],
             )
             assert isinstance(result, FlextResult)
 
@@ -970,7 +971,7 @@ class TestApiModule:
         # Test metadata retrieval if method exists
         if hasattr(api, "get_table_metadata"):
             result: FlextResult[dict[str, object]] = api.get_table_metadata(
-                str(test_schema["table_name"])
+                str(test_schema["table_name"]),
             )
             assert isinstance(result, FlextResult)
 
@@ -1033,7 +1034,8 @@ class TestApiModule:
         # Test query operations
         if hasattr(api, "execute_query"):
             query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
-                str(test_query["query"]), test_query["params"]
+                str(test_query["query"]),
+                test_query["params"],
             )
             assert isinstance(query_result, FlextResult)
 
@@ -1071,7 +1073,8 @@ class TestApiModule:
         # Test query execution error handling
         if hasattr(api, "execute_query"):
             query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
-                invalid_query, {}
+                invalid_query,
+                {},
             )
             assert isinstance(query_result, FlextResult)
             # Should handle invalid query gracefully
@@ -1079,13 +1082,14 @@ class TestApiModule:
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
             metadata_result: FlextResult[dict[str, object]] = api.get_table_metadata(
-                "non_existent_table"
+                "non_existent_table",
             )
             assert isinstance(metadata_result, FlextResult)
             # Should handle non-existent table gracefully
 
     def test_flext_db_oracle_api_with_flext_tests(
-        self, flext_domains: FlextTestsDomains
+        self,
+        flext_domains: FlextTestsDomains,
     ) -> None:
         """Test api functionality with flext_tests infrastructure."""
         config_data = self._TestDataHelper.create_test_oracle_config()
@@ -1211,7 +1215,8 @@ class TestApiModule:
         if hasattr(api, "execute_query"):
             for query_data in realistic_queries:
                 query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
-                    str(query_data["query"]), query_data["params"]
+                    str(query_data["query"]),
+                    query_data["params"],
                 )
                 assert isinstance(query_result, FlextResult)
 
@@ -1301,7 +1306,8 @@ class TestApiModule:
             query = f"SELECT {index} FROM dual"
             if hasattr(api, "execute_query"):
                 result: FlextResult[list[dict[str, object]]] = api.execute_query(
-                    query, {}
+                    query,
+                    {},
                 )
                 results.append(result)
 

@@ -11,8 +11,10 @@ from __future__ import annotations
 
 from typing import Final
 
+from flext_db_oracle.constants import FlextDbOracleConstants
 
-class TestConstants:
+
+class TestsConstants(FlextDbOracleConstants):
     """Centralized test constants following flext-core nested class pattern."""
 
     class Paths:
@@ -59,3 +61,8 @@ class TestConstants:
         TEST_DATA_TYPE: Final[str] = "VARCHAR2"
         TEST_DATA_SIZE: Final[int] = 255
         TEST_NULLABLE: Final[bool] = True
+
+
+# Standardized short name for use in tests
+c = TestsConstants
+__all__ = ["TestsConstants", "c"]

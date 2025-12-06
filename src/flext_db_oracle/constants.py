@@ -381,17 +381,33 @@ class FlextDbOracleConstants(FlextConstants):
         type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
         """Oracle connection type literal."""
         type QueryTypeLiteral = Literal[
-            "SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER"
+            "SELECT",
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+            "CREATE",
+            "DROP",
+            "ALTER",
         ]
         """Oracle query type literal."""
         type DataTypeLiteral = Literal[
-            "VARCHAR2", "NUMBER", "DATE", "TIMESTAMP", "CLOB", "BLOB", "CHAR", "RAW"
+            "VARCHAR2",
+            "NUMBER",
+            "DATE",
+            "TIMESTAMP",
+            "CLOB",
+            "BLOB",
+            "CHAR",
+            "RAW",
         ]
         """Oracle data type literal."""
 
         # Environment literals
         type EnvironmentLiteral = Literal[
-            "development", "staging", "production", "test"
+            "development",
+            "staging",
+            "production",
+            "test",
         ]
         """Environment type literal."""
         type LogLevelLiteral = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]

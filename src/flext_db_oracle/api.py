@@ -106,14 +106,14 @@ class FlextDbOracleApi(FlextService):
             config_result = FlextDbOracleConfig.from_env(prefix)
             if config_result.is_failure:
                 return FlextResult[FlextDbOracleApi].fail(
-                    f"Config creation failed: {config_result.error}"
+                    f"Config creation failed: {config_result.error}",
                 )
 
             config = config_result.unwrap()
             return FlextResult[FlextDbOracleApi].ok(cls(config=config))
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(
-                f"API creation from environment failed: {e}"
+                f"API creation from environment failed: {e}",
             )
 
     @classmethod
@@ -131,14 +131,14 @@ class FlextDbOracleApi(FlextService):
             config_result = FlextDbOracleConfig.from_url(url)
             if config_result.is_failure:
                 return FlextResult[FlextDbOracleApi].fail(
-                    f"Config creation from URL failed: {config_result.error}"
+                    f"Config creation from URL failed: {config_result.error}",
                 )
 
             config = config_result.unwrap()
             return FlextResult[FlextDbOracleApi].ok(cls(config=config))
         except Exception as e:
             return FlextResult[FlextDbOracleApi].fail(
-                f"API creation from URL failed: {e}"
+                f"API creation from URL failed: {e}",
             )
 
     def to_dict(self) -> dict[str, object]:
@@ -202,7 +202,7 @@ class FlextDbOracleApi(FlextService):
             return FlextResult.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
         return FlextResult[list[dict[str, object]]].ok(
-            cast("list[dict[str, object]]", result.unwrap())
+            cast("list[dict[str, object]]", result.unwrap()),
         )
 
     def query_one(
@@ -216,7 +216,7 @@ class FlextDbOracleApi(FlextService):
             return FlextResult.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
         return FlextResult[dict[str, object] | None].ok(
-            cast("dict[str, object] | None", result.unwrap())
+            cast("dict[str, object] | None", result.unwrap()),
         )
 
     def execute_sql(
@@ -227,7 +227,8 @@ class FlextDbOracleApi(FlextService):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         result = self._services.execute_statement(
-            sql, cast("t.JsonDict", parameters or {})
+            sql,
+            cast("t.JsonDict", parameters or {}),
         )
         if result.is_failure:
             return FlextResult.fail(result.error or "SQL execution failed")
@@ -241,7 +242,8 @@ class FlextDbOracleApi(FlextService):
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         result = self._services.execute_many(
-            sql, cast("list[t.JsonDict]", list(parameters_list))
+            sql,
+            cast("list[t.JsonDict]", list(parameters_list)),
         )
         if result.is_failure:
             return FlextResult.fail(result.error or "Bulk execution failed")
@@ -256,7 +258,8 @@ class FlextDbOracleApi(FlextService):
         try:
             sql_text = str(sql) if not isinstance(sql, str) else sql
             result = self._services.execute_statement(
-                sql_text, cast("t.JsonDict", parameters or {})
+                sql_text,
+                cast("t.JsonDict", parameters or {}),
             )
             if result.is_failure:
                 return FlextResult.fail(result.error or "Statement execution failed")
@@ -282,7 +285,7 @@ class FlextDbOracleApi(FlextService):
         result = self._services.get_columns(table, schema)
         if result.is_failure:
             return FlextResult[list[dict[str, object]]].fail(
-                result.error or "Unknown error"
+                result.error or "Unknown error",
             )
 
         columns_data = [
@@ -296,7 +299,7 @@ class FlextDbOracleApi(FlextService):
         ]
         # Cast to simplify return type
         return FlextResult[list[dict[str, object]]].ok(
-            cast("list[dict[str, object]]", columns_data)
+            cast("list[dict[str, object]]", columns_data),
         )
 
     def get_table_metadata(
@@ -310,7 +313,7 @@ class FlextDbOracleApi(FlextService):
             return FlextResult.fail(result.error or "Metadata retrieval failed")
         # Simplify return type by casting
         return FlextResult[dict[str, object]].ok(
-            cast("dict[str, object]", result.unwrap())
+            cast("dict[str, object]", result.unwrap()),
         )
 
     def get_primary_keys(
@@ -363,7 +366,7 @@ class FlextDbOracleApi(FlextService):
             return FlextResult.fail(result.error or "Metrics retrieval failed")
         # Simplify return type by casting
         return FlextResult[dict[str, object]].ok(
-            cast("dict[str, object]", result.unwrap())
+            cast("dict[str, object]", result.unwrap()),
         )
 
     # Plugin System
@@ -417,8 +420,11 @@ class FlextDbOracleApi(FlextService):
             if not isinstance(data, list) or not data:
                 return FlextResult.ok(
                     FlextDbOracleModels.QueryResult(
-                        query=sql, columns=[], rows=[], row_count=0
-                    )
+                        query=sql,
+                        columns=[],
+                        rows=[],
+                        row_count=0,
+                    ),
                 )
 
             first_row = data[0]
@@ -430,8 +436,11 @@ class FlextDbOracleApi(FlextService):
 
             return FlextResult.ok(
                 FlextDbOracleModels.QueryResult(
-                    query=sql, columns=columns, rows=rows, row_count=len(data)
-                )
+                    query=sql,
+                    columns=columns,
+                    rows=rows,
+                    row_count=len(data),
+                ),
             )
         except Exception as e:
             return FlextResult.fail(f"SQL execution error: {e}")

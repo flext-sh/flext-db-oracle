@@ -13,6 +13,8 @@ import os
 import sys
 from pathlib import Path
 
+from flext_core import u
+
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
@@ -138,7 +140,7 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            result = ution.run_external_command(
+            result = u.run_external_command(
                 cmd,
                 capture_output=True,
                 check=False,

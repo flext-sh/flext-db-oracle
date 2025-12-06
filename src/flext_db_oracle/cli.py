@@ -262,7 +262,7 @@ class FlextDbOracleCli(FlextService[str]):
             health_result = api.get_health_status()
             if health_result.is_failure:
                 return FlextResult[dict[str, object]].fail(
-                    f"Health check failed: {health_result.error}"
+                    f"Health check failed: {health_result.error}",
                 )
 
             elapsed_time = time.time() - start_time
@@ -472,7 +472,9 @@ class FlextDbOracleCli(FlextService[str]):
 
         if not sql.strip():
             return self._handle_error_and_fail(
-                formatter, "SQL query cannot be empty", "SQL query cannot be empty"
+                formatter,
+                "SQL query cannot be empty",
+                "SQL query cannot be empty",
             )
 
         # Create configuration and validate connection
@@ -486,7 +488,9 @@ class FlextDbOracleCli(FlextService[str]):
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
             return self._handle_error_and_fail(
-                formatter, error_text, f"Configuration failed: {error_text}"
+                formatter,
+                error_text,
+                f"Configuration failed: {error_text}",
             )
 
         config = config_result.unwrap()
@@ -504,7 +508,9 @@ class FlextDbOracleCli(FlextService[str]):
         if query_result.is_failure:
             error_text = query_result.error or "Unknown query error"
             return self._handle_error_and_fail(
-                formatter, error_text, f"Query failed: {error_text}"
+                formatter,
+                error_text,
+                f"Query failed: {error_text}",
             )
 
         result = query_result.unwrap()

@@ -34,7 +34,8 @@ import yaml
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -163,7 +164,7 @@ class DocumentationAuditor:
             result.issues = await self._validate_content(file_path, content)
 
         except Exception:
-            logger.exception(f"Error auditing {file_path}")
+            logger.exception("Error auditing %s", file_path)
             result.issues.append({
                 "type": "file_error",
                 "severity": "critical",
@@ -211,7 +212,9 @@ class DocumentationAuditor:
         }
 
     async def _validate_content(
-        self, file_path: Path, content: str
+        self,
+        file_path: Path,
+        content: str,
     ) -> list[dict[str, int | str]]:
         """Validate content quality and identify issues."""
         issues = []
@@ -363,7 +366,9 @@ class DocumentationAuditor:
         return issues
 
     def _validate_internal_references(
-        self, _file_path: Path, content: str
+        self,
+        _file_path: Path,
+        content: str,
     ) -> list[dict[str, int | str]]:
         """Validate internal references and cross-links."""
         issues = []
@@ -500,7 +505,7 @@ class ReportGenerator:
         content = self._build_report_content(maintenance_report)
         report_file.write_text(content)
 
-        logger.info(f"Generated maintenance report: {report_file}")
+        logger.info("Generated maintenance report: %s", report_file)
         return report_file
 
     def _build_report_content(self, report: MaintenanceReport) -> str:
@@ -579,7 +584,7 @@ async def run_audit(config: MaintenanceConfig) -> MaintenanceReport:
     total_score = 0.0
 
     for file_path in files:
-        logger.info(f"Auditing {file_path}")
+        logger.info("Auditing %s", file_path)
         result = await auditor.audit_file(file_path)
         results.append(result)
 
@@ -612,16 +617,17 @@ async def run_audit(config: MaintenanceConfig) -> MaintenanceReport:
     # Generate and save report
     report_file = report_generator.generate_report(report)
 
-    logger.info(f"Audit complete. Report saved to {report_file}")
+    logger.info("Audit complete. Report saved to %s", report_file)
     logger.info(
-        f"Summary: {len(results)} files, {total_issues} issues, {average_score:.1f}% average score"
+        f"Summary: {len(results)} files, {total_issues} issues, {average_score:.1f}% average score",
     )
 
     return report
 
 
 def generate_recommendations(
-    results: list[AuditResult], config: MaintenanceConfig
+    results: list[AuditResult],
+    config: MaintenanceConfig,
 ) -> list[str]:
     """Generate actionable recommendations based on audit results."""
     recommendations = []
@@ -646,7 +652,7 @@ def generate_recommendations(
     )
     if critical_count > 0:
         recommendations.append(
-            f"**CRITICAL: Address {critical_count} critical issues immediately**"
+            f"**CRITICAL: Address {critical_count} critical issues immediately**",
         )
 
     # Stale content
@@ -657,14 +663,14 @@ def generate_recommendations(
     ]
     if stale_files:
         recommendations.append(
-            f"**Review {len(stale_files)} stale files (> {config.max_age_days} days old)**"
+            f"**Review {len(stale_files)} stale files (> {config.max_age_days} days old)**",
         )
 
     # Quality improvements
     low_score_files = [r for r in results if r.score < 70.0]
     if low_score_files:
         recommendations.append(
-            f"**Improve quality of {len(low_score_files)} low-scoring files (< 70%)**"
+            f"**Improve quality of {len(low_score_files)} low-scoring files (< 70%)**",
         )
 
     return recommendations
@@ -686,7 +692,7 @@ async def run_validation(config: MaintenanceConfig) -> bool:
         elif result.total_issues > 0:
             logger.warning(f"⚠️  {file_path}: {result.total_issues} issues")
         else:
-            logger.info(f"✅ {file_path}: No issues")
+            logger.info("✅ %s: No issues", file_path)
 
     return all_valid
 
@@ -701,9 +707,9 @@ def run_optimization(config: MaintenanceConfig) -> None:
     files = auditor.discover_files()
 
     for file_path in files:
-        logger.info(f"Optimizing {file_path}")
+        logger.info("Optimizing %s", file_path)
         # TODO(marlonsc): Implement optimization logic - https://github.com/client-a-telecom/flext/issues/XXXX
-        logger.info(f"Optimization suggestions for {file_path}: (not implemented yet)")
+        logger.info("Optimization suggestions for %s: (not implemented yet)", file_path)
 
 
 async def run_comprehensive(config: MaintenanceConfig) -> MaintenanceReport:
@@ -746,19 +752,22 @@ def load_config() -> MaintenanceConfig:
                 .get("thresholds", {})
                 .get("min_word_count", 100),
                 validate_markdown=data.get("validation", {}).get(
-                    "markdown_syntax", True
+                    "markdown_syntax",
+                    True,
                 ),
                 validate_links=data.get("validation", {}).get("link_validation", True),
                 validate_references=data.get("validation", {}).get(
-                    "internal_references", True
+                    "internal_references",
+                    True,
                 ),
                 auto_correct=data.get("optimization", {}).get("auto_correct", False),
                 suggestions_only=data.get("optimization", {}).get(
-                    "suggestions_only", True
+                    "suggestions_only",
+                    True,
                 ),
             )
         except Exception as e:
-            logger.warning(f"Failed to load config: {e}. Using defaults.")
+            logger.warning("Failed to load config: %s. Using defaults.", e)
 
     return MaintenanceConfig()
 
@@ -766,19 +775,27 @@ def load_config() -> MaintenanceConfig:
 def main() -> None:
     """Main entry point for documentation maintenance."""
     parser = argparse.ArgumentParser(
-        description="Documentation Maintenance & Quality Assurance Framework"
+        description="Documentation Maintenance & Quality Assurance Framework",
     )
     parser.add_argument(
-        "--audit", action="store_true", help="Run comprehensive documentation audit"
+        "--audit",
+        action="store_true",
+        help="Run comprehensive documentation audit",
     )
     parser.add_argument(
-        "--validate", action="store_true", help="Run validation checks only"
+        "--validate",
+        action="store_true",
+        help="Run validation checks only",
     )
     parser.add_argument(
-        "--optimize", action="store_true", help="Run content optimization"
+        "--optimize",
+        action="store_true",
+        help="Run content optimization",
     )
     parser.add_argument(
-        "--comprehensive", action="store_true", help="Run complete maintenance suite"
+        "--comprehensive",
+        action="store_true",
+        help="Run complete maintenance suite",
     )
     parser.add_argument("--config", type=str, help="Path to configuration file")
 
@@ -811,7 +828,7 @@ def main() -> None:
                 print(f"  Critical Issues: {result.critical_issues}")
                 print(f"  Average Score: {result.average_score}%")
                 print(
-                    f"  Report: docs/reports/maintenance_report_{result.timestamp.strftime('%Y%m%d_%H%M%S')}.md"
+                    f"  Report: docs/reports/maintenance_report_{result.timestamp.strftime('%Y%m%d_%H%M%S')}.md",
                 )
         else:
             operation(config)

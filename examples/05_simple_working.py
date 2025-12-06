@@ -29,7 +29,9 @@ def demonstrate_real_functionality() -> None:
         else:
             # Create demo config if env config fails
             config = FlextDbOracleConfig(
-                host="demo-host", username="demo-user", password="demo-password"
+                host="demo-host",
+                username="demo-user",
+                password="demo-password",
             )
             logger.info("✅ Demo configuration created")
 
@@ -42,7 +44,7 @@ def demonstrate_real_functionality() -> None:
             if hasattr(config.username, "get_secret_value")
             else str(config.username)[:3]
         )
-        logger.info(f"📋 Username: {username_display}***")
+        logger.info("📋 Username: %s***", username_display)
 
         # 3. Demonstrate config validation
         if config.host and config.port > 0:
