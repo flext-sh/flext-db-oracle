@@ -15,10 +15,10 @@ import os
 from enum import StrEnum
 from typing import ClassVar, Final, Literal
 
-from flext_core import FlextConstants
+from flext_core import c as c_core
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants(c_core):
     """Oracle database constants extending FlextConstants foundation.
 
     Single class with all Oracle-specific constants as internal nested classes,
@@ -222,10 +222,10 @@ class FlextDbOracleConstants(FlextConstants):
         MAX_DISPLAY_ROWS: Final[int] = 1000
         MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+            c_core.Performance.BatchProcessing.DEFAULT_SIZE
         )  # Reference FlextConstants
         MAX_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.MAX_ITEMS
+            c_core.Performance.BatchProcessing.MAX_ITEMS
         )  # Reference FlextConstants
         DEFAULT_POOL_RECYCLE: Final[int] = 3600  # 1 hour
 
@@ -309,14 +309,14 @@ class FlextDbOracleConstants(FlextConstants):
         DEFAULT_POOL_MAX: Final[int] = 20
         DEFAULT_POOL_TIMEOUT: Final[int] = 60
         DEFAULT_CONNECTION_TIMEOUT: Final[int] = (
-            FlextConstants.Network.DEFAULT_TIMEOUT
+            c_core.Network.DEFAULT_TIMEOUT
         )  # Reference FlextConstants
 
         # Query defaults
         DEFAULT_QUERY_TIMEOUT: Final[int] = 60
         DEFAULT_QUERY_LIMIT: Final[int] = 1000
         DEFAULT_BATCH_SIZE: Final[int] = (
-            FlextConstants.Performance.BatchProcessing.DEFAULT_SIZE
+            c_core.Performance.BatchProcessing.DEFAULT_SIZE
         )  # Reference FlextConstants
 
         # Performance defaults
@@ -473,7 +473,7 @@ class FlextDbOracleConstants(FlextConstants):
             "USER",
         ]
 
-    class Platform(FlextConstants.Platform):
+    class Platform(c_core.Platform):
         """Oracle-specific platform constants extending base Platform."""
 
         # Network constants

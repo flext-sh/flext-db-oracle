@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextConstants, FlextModels, t
+from flext_core import c as c_core, m as m_core, t
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -36,7 +36,7 @@ class FlextDbOracleBaseModel(BaseModel):
     )
 
 
-class FlextDbOracleModels(FlextModels):
+class FlextDbOracleModels(m_core):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -45,7 +45,7 @@ class FlextDbOracleModels(FlextModels):
     All types moved to typings.py.
     """
 
-    class ConnectionStatus(FlextModels.Entity):
+    class ConnectionStatus(m_core.Entity):
         """Connection status using flext-core Entity."""
 
         is_connected: bool = False
@@ -143,9 +143,7 @@ class FlextDbOracleModels(FlextModels):
                 msg = "Connected status requires host information"
                 raise ValueError(msg)
             if self.is_connected and not (
-                FlextConstants.Network.MIN_PORT
-                <= self.port
-                <= FlextConstants.Network.MAX_PORT
+                c_core.Network.MIN_PORT <= self.port <= c_core.Network.MAX_PORT
             ):
                 msg = f"Invalid port number: {self.port}"
                 raise ValueError(msg)
@@ -174,7 +172,7 @@ class FlextDbOracleModels(FlextModels):
             """Format connection time with units."""
             return f"{value:.3f}s"
 
-    class QueryResult(FlextModels.Entity):
+    class QueryResult(m_core.Entity):
         """Query result using flext-core Entity."""
 
         query: str
@@ -264,14 +262,14 @@ class FlextDbOracleModels(FlextModels):
             threshold = FlextDbOracleConstants.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
-    class Table(FlextModels.Entity):
+    class Table(m_core.Entity):
         """Table metadata using flext-core Entity."""
 
         name: str
         owner: str = Field(alias="schema")
         columns: list[FlextDbOracleModels.Column] = Field(default_factory=list)
 
-    class Column(FlextModels.Entity):
+    class Column(m_core.Entity):
         """Column metadata using flext-core Entity."""
 
         name: str
@@ -282,13 +280,13 @@ class FlextDbOracleModels(FlextModels):
             description="Default value for the column",
         )
 
-    class Schema(FlextModels.Entity):
+    class Schema(m_core.Entity):
         """Schema metadata using flext-core Entity."""
 
         name: str
         tables: list[FlextDbOracleModels.Table] = Field(default_factory=list)
 
-    class CreateIndexConfig(FlextModels.Entity):
+    class CreateIndexConfig(m_core.Entity):
         """Create index config using flext-core Entity."""
 
         table_name: str
@@ -302,7 +300,7 @@ class FlextDbOracleModels(FlextModels):
             description="Parallel degree for index creation",
         )
 
-    class MergeStatementConfig(FlextModels.Entity):
+    class MergeStatementConfig(m_core.Entity):
         """Merge statement config using flext-core Entity."""
 
         target_table: str

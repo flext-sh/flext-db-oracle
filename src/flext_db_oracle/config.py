@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from flext_core import FlextConfig, FlextConstants, FlextResult
+from flext_core import c as c_core, r
+from flext_core.config import FlextConfig
 from pydantic import (
     Field,
     SecretStr,
@@ -173,14 +174,14 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     )
 
     max_retries: int = Field(
-        default=FlextConstants.Reliability.MAX_RETRY_ATTEMPTS,
+        default=c_core.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
         le=10,
         description="Maximum number of retry attempts",
     )
 
     retry_delay: float = Field(
-        default=FlextConstants.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
+        default=c_core.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=0.1,
         le=60.0,
         description="Delay between retry attempts in seconds",
@@ -294,37 +295,37 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             raise ValueError(msg)
         return v
 
-    def validate_connection_config(self) -> FlextResult[None]:
+    def validate_connection_config(self) -> r[None]:
         """Validate the complete connection configuration."""
         # Validate required fields
         if not self.host:
-            return FlextResult[None].fail("Oracle host is required")
+            return r[None].fail("Oracle host is required")
 
         if not self.username:
-            return FlextResult[None].fail("Oracle username is required")
+            return r[None].fail("Oracle username is required")
 
         if not self.password.get_secret_value():
-            return FlextResult[None].fail("Oracle password is required")
+            return r[None].fail("Oracle password is required")
 
         # Validate pool configuration
         if self.pool_max < self.pool_min:
-            return FlextResult[None].fail(
+            return r[None].fail(
                 "pool_max must be greater than or equal to pool_min",
             )
 
         # Validate SSL configuration
         if self.use_ssl:
             if self.ssl_cert_file and not self.ssl_key_file:
-                return FlextResult[None].fail(
+                return r[None].fail(
                     "SSL key file is required when SSL cert file is provided",
                 )
 
             if self.ssl_key_file and not self.ssl_cert_file:
-                return FlextResult[None].fail(
+                return r[None].fail(
                     "SSL cert file is required when SSL key file is provided",
                 )
 
-        return FlextResult[None].ok(None)
+        return r[None].ok(None)
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""
@@ -348,7 +349,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         }
 
     @classmethod
-    def from_env(cls, _prefix: str = "ORACLE_") -> FlextResult[FlextDbOracleConfig]:
+    def from_env(cls, _prefix: str = "ORACLE_") -> r[FlextDbOracleConfig]:
         """Create OracleConfig from environment variables.
 
         **DEPRECATED**: Use `FlextDbOracleConfig.get_instance()` instead.
@@ -358,35 +359,35 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         automatically via AutoConfig pattern.
 
         Returns:
-            FlextResult[FlextDbOracleConfig]: Configuration or error.
+            r[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:
             # Use AutoConfig singleton which automatically loads from environment
             # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
             config = cls.get_instance()
-            return FlextResult[FlextDbOracleConfig].ok(config)
+            return r[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(
+            return r[FlextDbOracleConfig].fail(
                 f"Failed to create config from environment: {e}",
             )
 
     @classmethod
-    def from_url(cls, url: str) -> FlextResult[FlextDbOracleConfig]:
+    def from_url(cls, url: str) -> r[FlextDbOracleConfig]:
         """Create OracleConfig from Oracle URL string.
 
         Args:
         url: Oracle connection URL (oracle://user:pass@host:port/service)
 
         Returns:
-        FlextResult[FlextDbOracleConfig]: Configuration or error.
+        r[FlextDbOracleConfig]: Configuration or error.
 
         """
         try:
             # Parse the URL
             parsed = urlparse(url)
             if parsed.scheme != "oracle":
-                return FlextResult[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleConfig].fail(
                     f"Invalid URL scheme: {parsed.scheme}. Expected 'oracle'",
                 )
 
@@ -398,19 +399,19 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             path = parsed.path.lstrip("/")  # Remove leading slash
 
             if not host:
-                return FlextResult[FlextDbOracleConfig].fail("Host is required in URL")
+                return r[FlextDbOracleConfig].fail("Host is required in URL")
             if not port:
-                return FlextResult[FlextDbOracleConfig].fail("Port is required in URL")
+                return r[FlextDbOracleConfig].fail("Port is required in URL")
             if not username:
-                return FlextResult[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleConfig].fail(
                     "Username is required in URL",
                 )
             if not password:
-                return FlextResult[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleConfig].fail(
                     "Password is required in URL",
                 )
             if not path:
-                return FlextResult[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleConfig].fail(
                     "Service name is required in URL path",
                 )
 
@@ -423,9 +424,9 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
                 service_name=path,
             )
 
-            return FlextResult[FlextDbOracleConfig].ok(config)
+            return r[FlextDbOracleConfig].ok(config)
         except Exception as e:
-            return FlextResult[FlextDbOracleConfig].fail(
+            return r[FlextDbOracleConfig].fail(
                 f"Failed to create config from URL: {e}",
             )
 
