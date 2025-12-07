@@ -229,7 +229,7 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)
 - [Functional Error Handling in Scala](https://www.youtube.com/watch?v=8G01pKsT3NU)
-- [FlextResult Implementation](../../flext-core/src/flext_core/result.py)
+- [FlextResult Implementation](https://github.com/organization/flext/tree/main/flext-core/src/flext_core/result.py)
 - [Error Handling Patterns](https://blog.cleancoder.com/uncle-bob/2018/10/18/FP-vs-OO.html)
 
 ## Notes

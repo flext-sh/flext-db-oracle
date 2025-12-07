@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_core import FlextTypes, t
+from flext_core import FlextTypes
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -24,7 +24,7 @@ from flext_core import FlextTypes, t
 
 
 # Oracle database domain TypeVars
-class FlextDbOracleTypes(t):
+class FlextDbOracleTypes(FlextTypes):
     """Oracle database-specific type definitions extending t.
 
     Domain-specific type system for Oracle database operations.

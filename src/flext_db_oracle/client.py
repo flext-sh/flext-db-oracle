@@ -19,7 +19,7 @@ from flext_core.container import FlextContainer
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.typings import FlextDbOracleTypes
+from flext_db_oracle.typings import t
 
 
 class FlextDbOracleClient(s):
@@ -31,9 +31,7 @@ class FlextDbOracleClient(s):
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
-    user_preferences: ClassVar[
-        FlextDbOracleTypes.Connection.ConnectionConfiguration
-    ] = {}
+    user_preferences: ClassVar[t.Connection.ConnectionConfiguration] = {}
 
     def __init__(self, *, debug: bool = False) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -268,9 +266,9 @@ class FlextDbOracleClient(s):
             return r[str].fail(operation_result.error or "Operation failed")
 
         data = operation_result.value
-        formatter_result: r[
-            Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]
-        ] = self._get_formatter_strategy(format_type)
+        formatter_result: r[Callable[[t.Query.QueryResult], r[str]]] = (
+            self._get_formatter_strategy(format_type)
+        )
         if formatter_result.is_failure:
             return r[str].fail(
                 formatter_result.error or "Formatter strategy failed",
@@ -279,7 +277,7 @@ class FlextDbOracleClient(s):
         formatter = formatter_result.value
         if callable(formatter):
             format_result: r[str] = formatter(
-                cast("FlextDbOracleTypes.Query.QueryResult", data),
+                cast("t.Query.QueryResult", data),
             )
             return format_result
         return r[str].fail("Invalid formatter strategy")
@@ -287,7 +285,7 @@ class FlextDbOracleClient(s):
     def _get_formatter_strategy(
         self,
         format_type: str,
-    ) -> r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]]:
+    ) -> r[Callable[[t.Query.QueryResult], r[str]]]:
         """Get formatter strategy for output format.
 
         Returns:
@@ -297,7 +295,7 @@ class FlextDbOracleClient(s):
         try:
             formatter_strategies: dict[
                 str,
-                Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]],
+                Callable[[t.Query.QueryResult], r[str]],
             ] = {
                 "table": self._format_as_table,
                 "json": self._format_as_json,
@@ -305,20 +303,20 @@ class FlextDbOracleClient(s):
             }
 
             if format_type in formatter_strategies:
-                return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].ok(
+                return r[Callable[[t.Query.QueryResult], r[str]]].ok(
                     formatter_strategies[format_type]
                 )
-            return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].fail(
+            return r[Callable[[t.Query.QueryResult], r[str]]].fail(
                 f"Unsupported format: {format_type}"
             )
         except Exception as e:
-            return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].fail(
+            return r[Callable[[t.Query.QueryResult], r[str]]].fail(
                 f"Formatter strategy error: {e}"
             )
 
     def _format_as_table(
         self,
-        data: FlextDbOracleTypes.Query.QueryResult,
+        data: t.Query.QueryResult,
     ) -> r[str]:
         """Format data as table output.
 
@@ -354,7 +352,7 @@ class FlextDbOracleClient(s):
 
     def _format_as_json(
         self,
-        data: FlextDbOracleTypes.Query.QueryResult,
+        data: t.Query.QueryResult,
     ) -> r[str]:
         """Format data as JSON output.
 
@@ -369,7 +367,7 @@ class FlextDbOracleClient(s):
 
     def _adapt_data_for_table(
         self,
-        data: FlextDbOracleTypes.Query.QueryResult,
+        data: t.Query.QueryResult,
     ) -> r[list[dict[str, str]]]:
         """Adapt data for table display.
 
@@ -499,7 +497,7 @@ class FlextDbOracleClient(s):
     def execute_query(
         self,
         sql: str,
-        params: FlextDbOracleTypes.Query.QueryParameters | None = None,
+        params: t.Query.QueryParameters | None = None,
     ) -> r[str]:
         """Execute SQL query with formatted output.
 

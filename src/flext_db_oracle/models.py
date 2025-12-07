@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import c as c_core, m as m_core, t
+from flext_core import FlextTypes, c as c_core, m as m_core
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -64,7 +64,7 @@ class FlextDbOracleModels(m_core):
         session_id: str = Field(default="", description="Oracle session identifier")
         host: str = Field(default="", description="Database host")
         port: int = Field(
-            default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
+            default=FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
             description="Database port",
         )
         service_name: str = Field(default="", description="Oracle service name")
@@ -97,7 +97,7 @@ class FlextDbOracleModels(m_core):
             age_seconds = self.connection_age_seconds()
             return (
                 age_seconds
-                <= FlextDbOracleConstants.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+                <= FlextDbOracleConstants.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
             )
 
         @computed_field
@@ -176,13 +176,15 @@ class FlextDbOracleModels(m_core):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[dict[str, t.JsonValue]] = Field(default_factory=list)
+        result_data: list[dict[str, FlextTypes.Json.JsonValue]] = Field(
+            default_factory=list
+        )
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[t.JsonValue]] = Field(
+        rows: list[list[FlextTypes.Json.JsonValue]] = Field(
             default_factory=list,
             description="Row data",
         )
@@ -224,7 +226,7 @@ class FlextDbOracleModels(m_core):
             return (
                 len(self.rows)
                 * len(self.columns)
-                * FlextDbOracleConstants.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                * FlextDbOracleConstants.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -235,7 +237,7 @@ class FlextDbOracleModels(m_core):
             data_size = (
                 len(self.rows)
                 * len(self.columns)
-                * FlextDbOracleConstants.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                * FlextDbOracleConstants.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -259,7 +261,7 @@ class FlextDbOracleModels(m_core):
         @field_serializer("execution_time_ms")
         def serialize_execution_time(self, value: int) -> str:
             """Format execution time with appropriate units."""
-            threshold = FlextDbOracleConstants.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
+            threshold = FlextDbOracleConstants.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
     class Table(m_core.Entity):

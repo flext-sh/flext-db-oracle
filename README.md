@@ -227,9 +227,7 @@ Zero tolerance quality requirements:
 - **[Architecture](docs/architecture.md)** - Design patterns and structure
 - **[API Reference](docs/api-reference.md)** - Complete API documentation
 - **[Development](docs/development.md)** - Contributing and workflows
-- **[Integration](docs/integration.md)** - Ecosystem integration patterns
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues
-- **[TODO & Roadmap](TODO.md)** - Development status and plans
 
 ---
 

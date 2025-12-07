@@ -307,35 +307,52 @@ class TestFlextDbOracleConstants:
 
     def test_literals_constants(self) -> None:
         """Test type-safe literal constants."""
-        lit = FlextDbOracleConstants.Literals
+        c = FlextDbOracleConstants
 
-        # Connection literals
-        assert lit.ConnectionTypeLiteral == Literal["service_name", "sid", "tns"]
+        # Connection literals - now at DbOracle level
         assert (
-            lit.QueryTypeLiteral
+            c.DbOracle.ConnectionTypeLiteral
             == Literal[
-                "SELECT",
-                "INSERT",
-                "UPDATE",
-                "DELETE",
-                "CREATE",
-                "DROP",
-                "ALTER",
+                c.DbOracle.OracleEnums.ConnectionType.SERVICE_NAME,
+                c.DbOracle.OracleEnums.ConnectionType.SID,
+                c.DbOracle.OracleEnums.ConnectionType.TNS,
             ]
         )
+
+        # Query type literals - now at DbOracle level
         assert (
-            lit.DataTypeLiteral
+            c.DbOracle.QueryTypeLiteral
             == Literal[
-                "VARCHAR2",
-                "NUMBER",
-                "DATE",
-                "TIMESTAMP",
-                "CLOB",
-                "BLOB",
-                "CHAR",
-                "RAW",
+                c.DbOracle.OracleEnums.QueryType.SELECT,
+                c.DbOracle.OracleEnums.QueryType.INSERT,
+                c.DbOracle.OracleEnums.QueryType.UPDATE,
+                c.DbOracle.OracleEnums.QueryType.DELETE,
+                c.DbOracle.OracleEnums.QueryType.CREATE,
+                c.DbOracle.OracleEnums.QueryType.DROP,
+                c.DbOracle.OracleEnums.QueryType.ALTER,
             ]
         )
+
+        # Data type literals - now at DbOracle level
+        assert (
+            c.DbOracle.DataTypeLiteral
+            == Literal[
+                c.DbOracle.OracleEnums.DataType.VARCHAR2,
+                c.DbOracle.OracleEnums.DataType.NUMBER,
+                c.DbOracle.OracleEnums.DataType.DATE,
+                c.DbOracle.OracleEnums.DataType.TIMESTAMP,
+                c.DbOracle.OracleEnums.DataType.CLOB,
+                c.DbOracle.OracleEnums.DataType.BLOB,
+                c.DbOracle.OracleEnums.DataType.CHAR,
+                c.DbOracle.OracleEnums.DataType.RAW,
+            ]
+        )
+
+        # Backward compatibility - Literals class forwards to DbOracle level
+        lit = c.DbOracle.Literals
+        assert lit.ConnectionTypeLiteral == c.DbOracle.ConnectionTypeLiteral
+        assert lit.QueryTypeLiteral == c.DbOracle.QueryTypeLiteral
+        assert lit.DataTypeLiteral == c.DbOracle.DataTypeLiteral
 
         # Environment literals
         assert (
