@@ -21,6 +21,7 @@
         "flext-ldap @ file:../flext-ldap",
         "flext-meltano @ file:../flext-meltano",
         "flext-observability @ file:../flext-observability",
+        "oracledb>=2.0.0",
         "pydantic (>=2.12.3)",
         "pydantic-core (>=2.41.4)",
     ]

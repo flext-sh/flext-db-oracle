@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_core import t
+from flext_core import FlextTypes, t
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -42,21 +42,19 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        ConnectionConfiguration: type = dict[
+        type ConnectionConfiguration = dict[
             str,
-            str | int | bool | dict[str, t.JsonValue],
+            str | int | bool | dict[str, FlextTypes.Json.JsonValue],
         ]
-        """Oracle connection configuration type."""
-        ConnectionPool: type = dict[str, int | bool | str]
-        """Oracle connection pool type."""
-        ConnectionString: type = str
-        """Oracle connection string type."""
-        ConnectionParams: type = dict[str, str | int | bool]
-        """Oracle connection parameters type."""
-        SslConfiguration: type = dict[str, str | bool | dict[str, t.JsonValue]]
-        """Oracle SSL configuration type."""
-        AuthenticationConfig: type = dict[str, str | dict[str, t.JsonValue]]
-        """Oracle authentication configuration type."""
+        type ConnectionPool = dict[str, int | bool | str]
+        type ConnectionString = str
+        type ConnectionParams = dict[str, str | int | bool]
+        type SslConfiguration = dict[
+            str, str | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type AuthenticationConfig = dict[
+            str, str | dict[str, FlextTypes.Json.JsonValue]
+        ]
 
     # =========================================================================
     # ORACLE QUERY TYPES - SQL query and execution types
@@ -68,18 +66,16 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        SqlQuery: type = str
-        """Oracle SQL query type."""
-        QueryParameters: type = dict[str, t.JsonValue]
-        """Oracle query parameters type."""
-        QueryResult: type = dict[str, t.JsonValue | list[t.JsonValue]]
-        """Oracle query result type."""
-        QueryMetadata: type = dict[str, str | int | dict[str, t.JsonValue]]
-        """Oracle query metadata type."""
-        PreparedStatement: type = dict[str, str | dict[str, t.JsonValue]]
-        """Oracle prepared statement type."""
-        QueryExecution: type = dict[str, str | int | bool | dict[str, t.JsonValue]]
-        """Oracle query execution type."""
+        type SqlQuery = str
+        type QueryParameters = dict[str, FlextTypes.Json.JsonValue]
+        type QueryResult = dict[
+            str, FlextTypes.Json.JsonValue | list[FlextTypes.Json.JsonValue]
+        ]
+        type QueryMetadata = dict[str, str | int | dict[str, FlextTypes.Json.JsonValue]]
+        type PreparedStatement = dict[str, str | dict[str, FlextTypes.Json.JsonValue]]
+        type QueryExecution = dict[
+            str, str | int | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
 
     # =========================================================================
     # ORACLE TRANSACTION TYPES - Transaction management types
@@ -91,18 +87,16 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        TransactionConfiguration: type = dict[str, str | int | bool]
-        """Oracle transaction configuration type."""
-        TransactionState: type = dict[str, str | bool | dict[str, t.JsonValue]]
-        """Oracle transaction state type."""
-        IsolationLevel: type = str
-        """Oracle isolation level type."""
-        TransactionBlock: type = list[dict[str, str | dict[str, t.JsonValue]]]
-        """Oracle transaction block type."""
-        SavepointConfig: type = dict[str, str | int]
-        """Oracle savepoint configuration type."""
-        RollbackConfig: type = dict[str, str | bool | list[str]]
-        """Oracle rollback configuration type."""
+        type TransactionConfiguration = dict[str, str | int | bool]
+        type TransactionState = dict[
+            str, str | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type IsolationLevel = str
+        type TransactionBlock = list[
+            dict[str, str | dict[str, FlextTypes.Json.JsonValue]]
+        ]
+        type SavepointConfig = dict[str, str | int]
+        type RollbackConfig = dict[str, str | bool | list[str]]
 
     # =========================================================================
     # ORACLE SCHEMA TYPES - Database schema and structure types
@@ -114,18 +108,18 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        SchemaDefinition: type = dict[str, str | list[dict[str, t.JsonValue]]]
-        """Oracle schema definition type."""
-        TableDefinition: type = dict[str, str | list[dict[str, str | bool | int]]]
-        """Oracle table definition type."""
-        ColumnDefinition: type = dict[str, str | int | bool | dict[str, t.JsonValue]]
-        """Oracle column definition type."""
-        IndexDefinition: type = dict[str, str | list[str] | dict[str, t.JsonValue]]
-        """Oracle index definition type."""
-        ConstraintDefinition: type = dict[str, str | list[str] | bool]
-        """Oracle constraint definition type."""
-        ViewDefinition: type = dict[str, str | dict[str, t.JsonValue]]
-        """Oracle view definition type."""
+        type SchemaDefinition = dict[
+            str, str | list[dict[str, FlextTypes.Json.JsonValue]]
+        ]
+        type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
+        type ColumnDefinition = dict[
+            str, str | int | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type IndexDefinition = dict[
+            str, str | list[str] | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type ConstraintDefinition = dict[str, str | list[str] | bool]
+        type ViewDefinition = dict[str, str | dict[str, FlextTypes.Json.JsonValue]]
 
     # =========================================================================
     # ORACLE SESSION TYPES - Database session management types
@@ -137,21 +131,19 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        SessionConfiguration: type = dict[
+        type SessionConfiguration = dict[
             str,
-            str | int | bool | dict[str, t.JsonValue],
+            str | int | bool | dict[str, FlextTypes.Json.JsonValue],
         ]
-        """Oracle session configuration type."""
-        SessionState: type = dict[str, t.JsonValue | dict[str, t.JsonValue]]
-        """Oracle session state type."""
-        SessionVariables: type = dict[str, t.JsonValue]
-        """Oracle session variables type."""
-        SessionMetrics: type = dict[str, int | float | str]
-        """Oracle session metrics type."""
-        SessionPooling: type = dict[str, int | bool | str | dict[str, t.JsonValue]]
-        """Oracle session pooling type."""
-        SessionTimeout: type = dict[str, int | str]
-        """Oracle session timeout type."""
+        type SessionState = dict[
+            str, FlextTypes.Json.JsonValue | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type SessionVariables = dict[str, FlextTypes.Json.JsonValue]
+        type SessionMetrics = dict[str, int | float | str]
+        type SessionPooling = dict[
+            str, int | bool | str | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type SessionTimeout = dict[str, int | str]
 
     # =========================================================================
     # ORACLE PERFORMANCE TYPES - Performance monitoring and optimization types
@@ -163,18 +155,20 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        PerformanceMetrics: type = dict[str, int | float | dict[str, t.JsonValue]]
-        """Oracle performance metrics type."""
-        QueryPlan: type = dict[str, str | int | list[dict[str, t.JsonValue]]]
-        """Oracle query plan type."""
-        ExecutionStats: type = dict[str, int | float | str | dict[str, t.JsonValue]]
-        """Oracle execution statistics type."""
-        IndexUsage: type = dict[str, str | int | bool | dict[str, t.JsonValue]]
-        """Oracle index usage type."""
-        CacheConfiguration: type = dict[str, int | str | bool]
-        """Oracle cache configuration type."""
-        OptimizationHints: type = dict[str, str | list[str]]
-        """Oracle optimization hints type."""
+        type PerformanceMetrics = dict[
+            str, int | float | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type QueryPlan = dict[
+            str, str | int | list[dict[str, FlextTypes.Json.JsonValue]]
+        ]
+        type ExecutionStats = dict[
+            str, int | float | str | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type IndexUsage = dict[
+            str, str | int | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type CacheConfiguration = dict[str, int | str | bool]
+        type OptimizationHints = dict[str, str | list[str]]
 
     # =========================================================================
     # ORACLE SECURITY TYPES - Database security and access control types
@@ -186,21 +180,21 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        UserPermissions: type = dict[str, list[str] | dict[str, bool]]
-        """Oracle user permissions type."""
-        RoleDefinition: type = dict[str, str | list[str] | dict[str, t.JsonValue]]
-        """Oracle role definition type."""
-        PrivilegeConfiguration: type = dict[
-            str,
-            bool | list[str] | dict[str, t.JsonValue],
+        type UserPermissions = dict[str, list[str] | dict[str, bool]]
+        type RoleDefinition = dict[
+            str, str | list[str] | dict[str, FlextTypes.Json.JsonValue]
         ]
-        """Oracle privilege configuration type."""
-        AccessPolicy: type = dict[str, str | bool | dict[str, t.JsonValue]]
-        """Oracle access policy type."""
-        EncryptionConfig: type = dict[str, str | bool | dict[str, t.JsonValue]]
-        """Oracle encryption configuration type."""
-        AuditConfiguration: type = dict[str, bool | str | dict[str, t.JsonValue]]
-        """Oracle audit configuration type."""
+        type PrivilegeConfiguration = dict[
+            str,
+            bool | list[str] | dict[str, FlextTypes.Json.JsonValue],
+        ]
+        type AccessPolicy = dict[str, str | bool | dict[str, FlextTypes.Json.JsonValue]]
+        type EncryptionConfig = dict[
+            str, str | bool | dict[str, FlextTypes.Json.JsonValue]
+        ]
+        type AuditConfiguration = dict[
+            str, bool | str | dict[str, FlextTypes.Json.JsonValue]
+        ]
 
     # =========================================================================
     # ORACLE DATA TYPES - Oracle-specific data type mappings
@@ -212,34 +206,27 @@ class FlextDbOracleTypes(t):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        OracleDataType: type = str
-        """Oracle data type."""
-        PythonDataType: type = type[object]
-        """Python data type."""
-        TypeMapping: type = dict[str, str | type[object]]
-        """Oracle type mapping."""
-        DataConversion: type = dict[str, t.JsonValue | object]
-        """Oracle data conversion."""
-        TypeValidation: type = dict[str, bool | str | list[str]]
-        """Oracle type validation."""
-        NullHandling: type = dict[str, bool | t.JsonValue]
-        """Oracle null handling."""
+        type OracleDataType = str
+        type PythonDataType = type[object]
+        type TypeMapping = dict[str, str | type[object]]
+        type DataConversion = dict[str, FlextTypes.Json.JsonValue | object]
+        type TypeValidation = dict[str, bool | str | list[str]]
+        type NullHandling = dict[str, bool | FlextTypes.Json.JsonValue]
 
     # =========================================================================
     # ORACLE PROJECT TYPES - Domain-specific project types extending t
     # =========================================================================
 
-    class OracleProject:
-        """Oracle database-specific project types extending t.
+    class Project:
+        """Oracle database-specific project types.
 
-        Adds Oracle database-specific project types while inheriting generic types
-        from t. Follows domain separation principle: Oracle domain owns
+        Adds Oracle database-specific project types.
+        Follows domain separation principle: Oracle domain owns
         Oracle-specific types.
         """
 
-        # Oracle-specific project types extending the generic ones
-        # Python 3.13+ best practice: Use TypeAlias for better type checking
-        ProjectType: type = Literal[
+        # Oracle-specific project types
+        type ProjectType = Literal[
             # Generic types inherited from t
             "library",
             "application",
@@ -258,23 +245,39 @@ class FlextDbOracleTypes(t):
             "sql-service",
             "data-connector",
         ]
-        """Oracle project type literal."""
 
         # Oracle-specific project configurations
-        OracleProjectConfig: type = dict[str, t.JsonValue]
-        """Oracle project configuration type."""
-        DatabaseConfig: type = dict[str, str | int | bool | list[str]]
-        """Oracle database configuration type."""
-        SchemaConfig: type = dict[str, bool | str | dict[str, t.JsonValue]]
-        """Oracle schema configuration type."""
-        ConnectionConfig: type = dict[str, t.JsonValue]
-        """Oracle connection configuration type."""
+        type OracleProjectConfig = dict[str, FlextTypes.Json.JsonValue]
+        type DatabaseConfig = dict[str, str | int | bool | list[str]]
+        type SchemaConfig = dict[str, bool | str | dict[str, FlextTypes.Json.JsonValue]]
+        type ConnectionConfig = dict[str, FlextTypes.Json.JsonValue]
+
+    class DbOracle:
+        """DbOracle types namespace for cross-project access.
+
+        Provides organized access to all DbOracle types for other FLEXT projects.
+        Usage: Other projects can reference `t.DbOracle.Connection.*`, `t.DbOracle.Query.*`, etc.
+        This enables consistent namespace patterns for cross-project type access.
+
+        Examples:
+            from flext_db_oracle.typings import t
+            config: t.DbOracle.Connection.ConnectionConfiguration = ...
+            query: t.DbOracle.Query.SqlQuery = ...
+
+        Note: Namespace composition via inheritance - no aliases needed.
+        Access parent namespaces directly through inheritance.
+
+        """
 
 
-# =============================================================================
-# PUBLIC API EXPORTS - Oracle DB TypeVars and types
-# =============================================================================
+# Alias for simplified usage
+t = FlextDbOracleTypes
 
-__all__: list[str] = [
-    "FlextDbOracleTypes",
-]
+# Namespace composition via class inheritance
+# DbOracle namespace provides access to nested classes through inheritance
+# Access patterns:
+# - t.DbOracle.* for DbOracle-specific types
+# - t.Project.* for project types
+# - t.Core.* for core types (inherited from parent)
+
+__all__ = ["FlextDbOracleTypes", "t"]

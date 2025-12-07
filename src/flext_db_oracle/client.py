@@ -228,8 +228,8 @@ class FlextDbOracleClient(s):
         params_dict: dict[str, object] = (
             params_dict_raw if isinstance(params_dict_raw, dict) else {}
         )
-        query_result: r[list[dict[str, object]]] = (
-            self.current_connection.query(sql, params_dict)
+        query_result: r[list[dict[str, object]]] = self.current_connection.query(
+            sql, params_dict
         )
         if query_result.is_success:
             return r[dict[str, object]].ok({
@@ -287,9 +287,7 @@ class FlextDbOracleClient(s):
     def _get_formatter_strategy(
         self,
         format_type: str,
-    ) -> r[
-        Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]
-    ]:
+    ) -> r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]]:
         """Get formatter strategy for output format.
 
         Returns:
@@ -307,16 +305,16 @@ class FlextDbOracleClient(s):
             }
 
             if format_type in formatter_strategies:
-                return r[
-                    Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]
-                ].ok(formatter_strategies[format_type])
-            return r[
-                Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]
-            ].fail(f"Unsupported format: {format_type}")
+                return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].ok(
+                    formatter_strategies[format_type]
+                )
+            return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].fail(
+                f"Unsupported format: {format_type}"
+            )
         except Exception as e:
-            return r[
-                Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]
-            ].fail(f"Formatter strategy error: {e}")
+            return r[Callable[[FlextDbOracleTypes.Query.QueryResult], r[str]]].fail(
+                f"Formatter strategy error: {e}"
+            )
 
     def _format_as_table(
         self,
@@ -330,9 +328,7 @@ class FlextDbOracleClient(s):
         """
         try:
             # Adapt data for table display
-            adapted_result: r[list[dict[str, str]]] = (
-                self._adapt_data_for_table(data)
-            )
+            adapted_result: r[list[dict[str, str]]] = self._adapt_data_for_table(data)
             if adapted_result.is_failure:
                 return r[str].fail(
                     adapted_result.error or "Data adaptation failed",
