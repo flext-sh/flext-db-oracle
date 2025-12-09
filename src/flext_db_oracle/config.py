@@ -23,7 +23,7 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
-from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.constants import c
 
 
 @FlextConfig.auto_register("db_oracle")
@@ -43,9 +43,10 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     connection settings, pool configuration, performance tuning, and security.
     """
 
+    # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_DB_ORACLE_",
-        env_file=".env",
+        env_file=FlextConfig.resolve_env_file(),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -65,32 +66,32 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
 
     # Oracle Connection Configuration - matching model field names
     host: str = Field(
-        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_HOST,
+        default=c.OracleDefaults.DEFAULT_HOST,
         min_length=1,
         description="Oracle database hostname or IP address",
     )
 
     port: int = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_PORT,
+        default=c.Connection.DEFAULT_PORT,
         ge=1,
         le=65535,
         description="Oracle database port number",
     )
 
     service_name: str = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
+        default=c.Connection.DEFAULT_SERVICE_NAME,
         min_length=1,
         description="Oracle service name",
     )
 
     name: str = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_DATABASE_NAME,
+        default=c.Connection.DEFAULT_DATABASE_NAME,
         min_length=1,
         description="Oracle database name",
     )
 
     sid: str = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_SID,
+        default=c.Connection.DEFAULT_SID,
         min_length=1,
         description="Oracle SID (System Identifier)",
     )
@@ -118,34 +119,34 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         return f"oracle+oracledb://{user}:{password}@{host}:{port}/{service}"
 
     charset: str = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_CHARSET,
+        default=c.Connection.DEFAULT_CHARSET,
         description="Oracle database character set",
     )
 
     # Connection Pool Configuration
     pool_min: int = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MIN,
+        default=c.Connection.DEFAULT_POOL_MIN,
         ge=1,
         le=100,
         description="Minimum number of connections in pool",
     )
 
     pool_max: int = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_MAX,
+        default=c.Connection.DEFAULT_POOL_MAX,
         ge=1,
         le=100,
         description="Maximum number of connections in pool",
     )
 
     pool_increment: int = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_INCREMENT,
+        default=c.Connection.DEFAULT_POOL_INCREMENT,
         ge=1,
         le=10,
         description="Number of connections to increment when pool grows",
     )
 
     pool_timeout: int = Field(
-        default=FlextDbOracleConstants.Connection.DEFAULT_POOL_TIMEOUT,
+        default=c.Connection.DEFAULT_POOL_TIMEOUT,
         ge=1,
         le=3600,
         description="Connection pool timeout in seconds",
@@ -160,14 +161,14 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     )
 
     query_timeout: int = Field(
-        default=FlextDbOracleConstants.OracleDefaults.DEFAULT_QUERY_TIMEOUT,
+        default=c.OracleDefaults.DEFAULT_QUERY_TIMEOUT,
         ge=1,
         le=3600,
         description="Query timeout in seconds",
     )
 
     fetch_size: int = Field(
-        default=FlextDbOracleConstants.Query.DEFAULT_ARRAY_SIZE,
+        default=c.Query.DEFAULT_ARRAY_SIZE,
         ge=1,
         le=10000,
         description="Default fetch size for queries",
@@ -230,14 +231,14 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     )
 
     performance_threshold_warning: float = Field(
-        default=FlextDbOracleConstants.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
+        default=c.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
         ge=0.1,
         le=60.0,
         description="Performance warning threshold in seconds",
     )
 
     performance_threshold_critical: float = Field(
-        default=float(FlextDbOracleConstants.Connection.DEFAULT_TIMEOUT),
+        default=float(c.Connection.DEFAULT_TIMEOUT),
         ge=0.1,
         le=300.0,
         description="Performance critical threshold in seconds",
@@ -249,11 +250,8 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     def validate_service_name(cls, v: str) -> str:
         """Validate Oracle service name (length check + uppercase transformation)."""
         # Check length
-        if (
-            len(v)
-            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
-        ):
-            msg = f"Oracle service name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if len(v) > c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            msg = f"Oracle service name too long (max {c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()
@@ -263,11 +261,8 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     def validate_database_name(cls, v: str) -> str:
         """Validate Oracle database name (length check + uppercase transformation)."""
         # Check length
-        if (
-            len(v)
-            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
-        ):
-            msg = f"Oracle database name too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if len(v) > c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            msg = f"Oracle database name too long (max {c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()
@@ -277,11 +272,8 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     def validate_sid(cls, v: str) -> str:
         """Validate Oracle SID (length check + uppercase transformation)."""
         # Check length
-        if (
-            len(v)
-            > FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
-        ):
-            msg = f"Oracle SID too long (max {FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        if len(v) > c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            msg = f"Oracle SID too long (max {c.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
             raise ValueError(msg)
 
         return v.strip().upper()

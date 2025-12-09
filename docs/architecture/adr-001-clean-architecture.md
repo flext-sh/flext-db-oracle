@@ -193,7 +193,7 @@ Clean Architecture provides the best foundation for enterprise database integrat
 ## References
 
 - [Clean Architecture by Robert C. Martin](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
-- [FLEXT Core Architecture](https://github.com/organization/flext/tree/main/flext-core/docs/architecture.md)
+- [FLEXT Core Architecture](https://github.com/organization/flext/tree/main/flext-core/docs/architecture/README.md)
 - [Domain-Driven Design Fundamentals](https://domainlanguage.com/ddd/)
 - [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
 

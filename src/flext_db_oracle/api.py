@@ -18,7 +18,7 @@ from flext_core import r, s, t
 from flext_core.container import FlextContainer
 
 from flext_db_oracle.config import FlextDbOracleConfig
-from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -80,8 +80,7 @@ class FlextDbOracleApi(s):
         """Check if API configuration is valid."""
         try:
             return (
-                self._oracle_config.port
-                >= FlextDbOracleConstants.OracleNetwork.MIN_PORT
+                self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT
                 and self._oracle_config.service_name is not None
             )
         except AttributeError:

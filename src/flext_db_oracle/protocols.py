@@ -44,7 +44,7 @@ class FlextDbOracleProtocols(FlextProtocols):
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
-        class ConnectionProtocol(FlextProtocols.Domain.Service, Protocol):
+        class ConnectionProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database connection operations."""
 
             def connect(self) -> FlextProtocols.Result[bool]:
@@ -98,7 +98,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class QueryExecutorProtocol(FlextProtocols.Domain.Service, Protocol):
+        class QueryExecutorProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle query execution operations."""
 
             def execute_query(
@@ -173,7 +173,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class SchemaIntrospectorProtocol(FlextProtocols.Domain.Service, Protocol):
+        class SchemaIntrospectorProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle schema introspection operations."""
 
             def get_schemas(self) -> FlextProtocols.Result[list[str]]:
@@ -251,7 +251,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class SqlBuilderProtocol(FlextProtocols.Domain.Service, Protocol):
+        class SqlBuilderProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle SQL statement building operations."""
 
             def build_select(
@@ -331,7 +331,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class DdlGeneratorProtocol(FlextProtocols.Domain.Service, Protocol):
+        class DdlGeneratorProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle DDL generation operations."""
 
             def create_table_ddl(
@@ -393,7 +393,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class MetricsCollectorProtocol(FlextProtocols.Domain.Service, Protocol):
+        class MetricsCollectorProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database metrics collection."""
 
             def record_metric(
@@ -447,7 +447,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class PluginRegistryProtocol(FlextProtocols.Domain.Service, Protocol):
+        class PluginRegistryProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
             def register_plugin(
@@ -499,7 +499,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class HealthCheckProtocol(FlextProtocols.Domain.Service, Protocol):
+        class HealthCheckProtocol(FlextProtocols.Service, Protocol):
             """Protocol for Oracle database health check operations."""
 
             def health_check(

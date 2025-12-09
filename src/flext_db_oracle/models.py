@@ -13,6 +13,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from flext_core import FlextTypes, c as c_core, m as m_core
+from flext_core.utilities import u as flext_u
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -21,8 +22,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
-from flext_db_oracle.constants import FlextDbOracleConstants
 
 
 class FlextDbOracleBaseModel(BaseModel):
@@ -45,6 +44,14 @@ class FlextDbOracleModels(m_core):
     All types moved to typings.py.
     """
 
+    def __init_subclass__(cls, **kwargs: object) -> None:
+        """Warn when FlextDbOracleModels is subclassed directly."""
+        super().__init_subclass__(**kwargs)
+        flext_u.Deprecation.warn_once(
+            f"subclass:{cls.__name__}",
+            "Subclassing FlextDbOracleModels is deprecated. Use FlextModels directly with composition instead.",
+        )
+
     class ConnectionStatus(m_core.Entity):
         """Connection status using flext-core Entity."""
 
@@ -64,7 +71,7 @@ class FlextDbOracleModels(m_core):
         session_id: str = Field(default="", description="Oracle session identifier")
         host: str = Field(default="", description="Database host")
         port: int = Field(
-            default=FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
+            default=c.DbOracle.Connection.DEFAULT_PORT,
             description="Database port",
         )
         service_name: str = Field(default="", description="Oracle service name")
@@ -97,7 +104,7 @@ class FlextDbOracleModels(m_core):
             age_seconds = self.connection_age_seconds()
             return (
                 age_seconds
-                <= FlextDbOracleConstants.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+                <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
             )
 
         @computed_field
@@ -122,7 +129,7 @@ class FlextDbOracleModels(m_core):
             """Connection performance information."""
             if not self.is_connected or self.connection_time <= 0:
                 return "No performance data"
-            thresholds = FlextDbOracleConstants.OraclePerformance
+            thresholds = c.OraclePerformance
             if self.connection_time < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS:
                 return f"Excellent ({self.connection_time:.3f}s)"
             if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS:
@@ -209,7 +216,7 @@ class FlextDbOracleModels(m_core):
         @computed_field
         def performance_rating(self) -> str:
             """Query performance rating."""
-            thresholds = FlextDbOracleConstants.OraclePerformance
+            thresholds = c.OraclePerformance
             return (
                 "Excellent"
                 if self.execution_time_ms < thresholds.QUERY_EXCELLENT_THRESHOLD_MS
@@ -226,7 +233,7 @@ class FlextDbOracleModels(m_core):
             return (
                 len(self.rows)
                 * len(self.columns)
-                * FlextDbOracleConstants.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -237,7 +244,7 @@ class FlextDbOracleModels(m_core):
             data_size = (
                 len(self.rows)
                 * len(self.columns)
-                * FlextDbOracleConstants.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
                 if self.rows
                 else 0
             )
@@ -261,7 +268,7 @@ class FlextDbOracleModels(m_core):
         @field_serializer("execution_time_ms")
         def serialize_execution_time(self, value: int) -> str:
             """Format execution time with appropriate units."""
-            threshold = FlextDbOracleConstants.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
+            threshold = c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
     class Table(m_core.Entity):
@@ -314,7 +321,12 @@ class FlextDbOracleModels(m_core):
 
 # Zero Tolerance: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
+m = FlextDbOracleModels
+m_db_oracle = FlextDbOracleModels
+
 __all__ = [
     "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
+    "m",
+    "m_db_oracle",
 ]

@@ -336,7 +336,7 @@ class FlextDbOracleServices(s[FlextDbOracleConfig]):
         except Exception as e:
             return r.fail(f"Failed to get table metadata: {e}")
 
-    # Domain Service
+    # Service
     def execute(self, **_kwargs: object) -> r[FlextDbOracleConfig]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()

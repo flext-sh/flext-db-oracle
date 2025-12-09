@@ -1,6 +1,8 @@
-# FLEXT-DB-Oracle Project Guidelines
+# flext-db-oracle - FLEXT Infrastructure
 
-**Reference**: See [../CLAUDE.md](../CLAUDE.md) for FLEXT ecosystem standards and general rules.
+**Hierarchy**: PROJECT
+**Parent**: [../CLAUDE.md](../CLAUDE.md) - Workspace standards
+**Last Update**: 2025-12-07
 
 ---
 
@@ -77,4 +79,8 @@ if result.is_success:
 
 ---
 
-**Additional Resources**: [../CLAUDE.md](../CLAUDE.md) (workspace), [README.md](README.md) (overview)
+**See Also**:
+- [Workspace Standards](../CLAUDE.md)
+- [flext-core Patterns](../flext-core/CLAUDE.md)
+- [flext-oracle-wms Patterns](../flext-oracle-wms/CLAUDE.md)
+- [flext-oracle-oic Patterns](../flext-oracle-oic/CLAUDE.md)

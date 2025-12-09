@@ -15,7 +15,7 @@ from flext_db_oracle.config import FlextDbOracleConfig
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, m, m_db_oracle
 from flext_db_oracle.protocols import FlextDbOracleProtocols
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.typings import FlextDbOracleTypes
@@ -40,4 +40,6 @@ __all__ = [
     "FlextDbOracleUtilities",
     "__version__",
     "__version_info__",
+    "m",
+    "m_db_oracle",
 ]
