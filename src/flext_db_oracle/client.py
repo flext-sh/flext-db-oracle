@@ -185,11 +185,9 @@ class FlextDbOracleClient(s):
             return r[dict[str, object]].fail("No active database connection")
         schemas_result: r[list[str]] = self.current_connection.get_schemas()
         if schemas_result.is_success:
-            return r[dict[str, object]].ok(
-                {
-                    "schemas": list(schemas_result.value),
-                }
-            )
+            return r[dict[str, object]].ok({
+                "schemas": list(schemas_result.value),
+            })
         return r[dict[str, object]].fail(
             schemas_result.error or "Schema listing failed",
         )
@@ -206,11 +204,9 @@ class FlextDbOracleClient(s):
             schema or None,
         )
         if tables_result.is_success:
-            return r[dict[str, object]].ok(
-                {
-                    "tables": list(tables_result.value),
-                }
-            )
+            return r[dict[str, object]].ok({
+                "tables": list(tables_result.value),
+            })
         return r[dict[str, object]].fail(
             tables_result.error or "Table listing failed",
         )
@@ -234,12 +230,10 @@ class FlextDbOracleClient(s):
             sql, params_dict
         )
         if query_result.is_success:
-            return r[dict[str, object]].ok(
-                {
-                    "rows": list(query_result.value),
-                    "row_count": len(query_result.value) if query_result.value else 0,
-                }
-            )
+            return r[dict[str, object]].ok({
+                "rows": list(query_result.value),
+                "row_count": len(query_result.value) if query_result.value else 0,
+            })
         return r[dict[str, object]].fail(
             query_result.error or "Query execution failed",
         )

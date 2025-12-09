@@ -490,14 +490,12 @@ class FlextDbOracleServices(s[FlextDbOracleConfig]):
         self,
     ) -> r[dict[str, t.Json.JsonValue]]:
         """Get connection status - simplified."""
-        return r.ok(
-            {
-                "connected": self.is_connected(),
-                "host": self._config.host,
-                "port": self._config.port,
-                "service_name": self._config.service_name,
-            }
-        )
+        return r.ok({
+            "connected": self.is_connected(),
+            "host": self._config.host,
+            "port": self._config.port,
+            "service_name": self._config.service_name,
+        })
 
     def record_metric(
         self,
@@ -514,13 +512,11 @@ class FlextDbOracleServices(s[FlextDbOracleConfig]):
 
     def health_check(self) -> r[dict[str, t.Json.JsonValue]]:
         """Perform health check."""
-        return r.ok(
-            {
-                "status": "healthy" if self.is_connected() else "unhealthy",
-                "connected": self.is_connected(),
-                "timestamp": "2025-01-01T00:00:00Z",
-            }
-        )
+        return r.ok({
+            "status": "healthy" if self.is_connected() else "unhealthy",
+            "connected": self.is_connected(),
+            "timestamp": "2025-01-01T00:00:00Z",
+        })
 
     def register_plugin(self, _name: str, _plugin: object) -> r[None]:
         """Register plugin - placeholder."""
