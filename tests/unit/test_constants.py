@@ -354,15 +354,11 @@ class TestFlextDbOracleConstants:
         assert lit.QueryTypeLiteral == c.DbOracle.QueryTypeLiteral
         assert lit.DataTypeLiteral == c.DbOracle.DataTypeLiteral
 
-        # Environment literals
-        assert (
-            lit.EnvironmentLiteral
-            == Literal["development", "staging", "production", "test"]
-        )
-        assert (
-            lit.LogLevelLiteral
-            == Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-        )
+        # Environment and LogLevel types now reference StrEnums (single source of truth)
+        # EnvironmentLiteral references Settings.Environment StrEnum
+        assert lit.EnvironmentLiteral is FlextConstants.Settings.Environment
+        # LogLevelLiteral references Settings.LogLevel StrEnum
+        assert lit.LogLevelLiteral is FlextConstants.Settings.LogLevel
 
     # =============================================================================
     # Lists constants tests

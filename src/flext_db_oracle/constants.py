@@ -128,66 +128,70 @@ class FlextDbOracleConstants(c_core):
             SCHEMA_PATTERN: Final[str] = r"^[A-Za-z][A-Za-z0-9_$#]*$"
 
             # Oracle reserved words
-            ORACLE_RESERVED: Final[frozenset[str]] = frozenset({
-                "SELECT",
-                "FROM",
-                "WHERE",
-                "INSERT",
-                "UPDATE",
-                "DELETE",
-                "CREATE",
-                "DROP",
-                "ALTER",
-                "TABLE",
-                "INDEX",
-                "VIEW",
-                "PROCEDURE",
-                "FUNCTION",
-                "TRIGGER",
-                "SEQUENCE",
-                "PACKAGE",
-                "CONSTRAINT",
-                "PRIMARY",
-                "FOREIGN",
-                "KEY",
-                "UNIQUE",
-                "NOT",
-                "NULL",
-                "CHECK",
-                "DEFAULT",
-                "REFERENCES",
-                "ON",
-                "CASCADE",
-                "RESTRICT",
-                "SET",
-                "COMMIT",
-                "ROLLBACK",
-                "SAVEPOINT",
-            })
+            ORACLE_RESERVED: Final[frozenset[str]] = frozenset(
+                {
+                    "SELECT",
+                    "FROM",
+                    "WHERE",
+                    "INSERT",
+                    "UPDATE",
+                    "DELETE",
+                    "CREATE",
+                    "DROP",
+                    "ALTER",
+                    "TABLE",
+                    "INDEX",
+                    "VIEW",
+                    "PROCEDURE",
+                    "FUNCTION",
+                    "TRIGGER",
+                    "SEQUENCE",
+                    "PACKAGE",
+                    "CONSTRAINT",
+                    "PRIMARY",
+                    "FOREIGN",
+                    "KEY",
+                    "UNIQUE",
+                    "NOT",
+                    "NULL",
+                    "CHECK",
+                    "DEFAULT",
+                    "REFERENCES",
+                    "ON",
+                    "CASCADE",
+                    "RESTRICT",
+                    "SET",
+                    "COMMIT",
+                    "ROLLBACK",
+                    "SAVEPOINT",
+                }
+            )
 
             # SQL keywords for validation
-            SQL_KEYWORDS: Final[frozenset[str]] = frozenset({
-                "SELECT",
-                "FROM",
-                "WHERE",
-                "JOIN",
-                "INNER",
-                "LEFT",
-                "RIGHT",
-                "OUTER",
-                "ON",
-                "GROUP",
-                "BY",
-                "HAVING",
-                "ORDER",
-                "ASC",
-                "DESC",
-                "LIMIT",
-                "OFFSET",
-                "UNION",
-                "ALL",
-                "DISTINCT",
-            })
+            SQL_KEYWORDS: Final[frozenset[str]] = frozenset(
+                {
+                    "SELECT",
+                    "FROM",
+                    "WHERE",
+                    "JOIN",
+                    "INNER",
+                    "LEFT",
+                    "RIGHT",
+                    "OUTER",
+                    "ON",
+                    "GROUP",
+                    "BY",
+                    "HAVING",
+                    "ORDER",
+                    "ASC",
+                    "DESC",
+                    "LIMIT",
+                    "OFFSET",
+                    "UNION",
+                    "ALL",
+                    "DISTINCT",
+                }
+            )
 
         class ErrorMessages:
             """Oracle-specific error messages."""
@@ -436,13 +440,13 @@ class FlextDbOracleConstants(c_core):
             Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
             """
 
-            # Environment literals - reuse from flext-core (no duplication)
-            type EnvironmentLiteral = c_core.Literals.EnvironmentLiteral
-            """Environment type literal - references flext-core."""
+            # Environment literals - reuse from flext-core Settings.Environment StrEnum
+            type EnvironmentLiteral = c_core.Settings.Environment
+            """Environment type literal - references flext-core Settings.Environment StrEnum."""
 
-            # Log level literals - reuse from flext-core (no duplication)
-            type LogLevelLiteral = c_core.Literals.LogLevelLiteral
-            """Log level literal - references flext-core."""
+            # Log level literals - reuse from flext-core Settings.LogLevel StrEnum
+            type LogLevelLiteral = c_core.Settings.LogLevel
+            """Log level literal - references flext-core Settings.LogLevel StrEnum."""
 
         class Lists:
             """Lists of constants for validation and iteration.
