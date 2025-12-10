@@ -69,8 +69,8 @@ class TestRealOracleConnection:
             if result.is_failure:
                 msg = f"Query failed: {result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .unwrap() access
-            query_data = result.unwrap()
+            # Success case - use modern .value access
+            query_data = result.value
             assert isinstance(query_data, list)
             assert len(query_data) == 1
             # Use safe_get_first_value to handle various row formats
@@ -101,8 +101,8 @@ class TestRealOracleConnection:
             if result.is_failure:
                 msg = f"Fetch one failed: {result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .unwrap() access
-            fetch_data = result.unwrap()
+            # Success case - use modern .value access
+            fetch_data = result.value
             if fetch_data:
                 # fetch_one returns Union[dict, None], so we know it's a dict[str, object] if not None
                 assert isinstance(fetch_data, dict), (
@@ -172,8 +172,8 @@ class TestRealOracleConnection:
             if select_result.is_failure:
                 msg = f"Count query failed: {select_result.error}"
                 raise AssertionError(msg)
-            # Success case - use modern .unwrap() access
-            count_data = select_result.unwrap()
+            # Success case - use modern .value access
+            count_data = select_result.value
             assert isinstance(count_data, list)
             assert len(count_data) > 0
             if len(count_data) > 0:

@@ -147,7 +147,7 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
                 timeout=30.0,
             )
             if result.is_success:
-                process = result.unwrap()
+                process = result.value
                 return process.returncode, process.stdout, process.stderr
             return 1, "", f"Command failed: {result.error}"
         except Exception as e:

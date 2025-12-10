@@ -155,7 +155,7 @@ class TestFlextDbOracleServices:
         # Test building a simple SELECT statement
         result = service.build_select("USERS", ["ID", "NAME"])
         assert result.is_success
-        sql = result.unwrap()
+        sql = result.value
         assert "SELECT" in sql
         assert "FROM" in sql
         assert "USERS" in sql

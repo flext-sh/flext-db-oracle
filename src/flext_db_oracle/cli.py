@@ -50,7 +50,7 @@ class FlextDbOracleCli(FlextService[str]):
             self.logger.warning(f"CLI initialization failed: {cli_result.error}")
             self._cli_main: FlextCliCommands | None = None
         else:
-            self._cli_main = cli_result.unwrap()
+            self._cli_main = cli_result.value
 
     def _initialize_cli_main(self) -> FlextResult[FlextCliCommands]:
         """Initialize CLI main component with explicit error handling.
@@ -266,7 +266,7 @@ class FlextDbOracleCli(FlextService[str]):
                 )
 
             elapsed_time = time.time() - start_time
-            health_data = health_result.unwrap()
+            health_data = health_result.value
 
             result: dict[str, object] = {
                 "status": "healthy",
@@ -325,17 +325,17 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Configuration failed: {error_text}",
             )
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
-        config = config_result.unwrap()
+        config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
 
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
         # Create API instance
@@ -349,10 +349,10 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Failed to get schemas: {error_text}",
             )
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
-        schemas = schemas_result.unwrap()
+        schemas = schemas_result.value
 
         # Format and display schemas
         formatted_result = formatter.format_list_output(
@@ -361,7 +361,7 @@ class FlextDbOracleCli(FlextService[str]):
             output_format,
         )
         if formatted_result.is_success:
-            formatter.display_message(formatted_result.unwrap())
+            formatter.display_message(formatted_result.value)
 
         return FlextResult[str].ok(f"Listed {len(schemas)} schemas successfully")
 
@@ -397,17 +397,17 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Configuration failed: {error_text}",
             )
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
-        config = config_result.unwrap()
+        config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
 
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
         # Create API instance
@@ -421,10 +421,10 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Failed to get tables: {error_text}",
             )
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
 
-        tables = tables_result.unwrap()
+        tables = tables_result.value
 
         # Format and display tables
         formatted_result = formatter.format_list_output(
@@ -433,7 +433,7 @@ class FlextDbOracleCli(FlextService[str]):
             output_format,
         )
         if formatted_result.is_success:
-            formatter.display_message(formatted_result.unwrap())
+            formatter.display_message(formatted_result.value)
 
         return FlextResult[str].ok(
             f"Listed {len(tables)} tables in schema {schema} successfully",
@@ -449,7 +449,7 @@ class FlextDbOracleCli(FlextService[str]):
         if display_message:
             error_msg = formatter.format_error_message(display_message)
             if error_msg.is_success:
-                formatter.display_message(error_msg.unwrap())
+                formatter.display_message(error_msg.value)
         return FlextResult[str].fail(error_message)
 
     def execute_query(
@@ -493,7 +493,7 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Configuration failed: {error_text}",
             )
 
-        config = config_result.unwrap()
+        config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
 
         if validation_result.is_failure:
@@ -513,7 +513,7 @@ class FlextDbOracleCli(FlextService[str]):
                 f"Query failed: {error_text}",
             )
 
-        result = query_result.unwrap()
+        result = query_result.value
         row_count = len(result)  # result is a list, so count items
 
         # Format and display result
@@ -521,7 +521,7 @@ class FlextDbOracleCli(FlextService[str]):
             f"Query executed successfully. Rows: {row_count}",
         )
         if success_msg.is_success:
-            formatter.display_message(success_msg.unwrap())
+            formatter.display_message(success_msg.value)
 
         # Format result using specified output format
         formatted_result = formatter.format_data(
@@ -529,7 +529,7 @@ class FlextDbOracleCli(FlextService[str]):
             output_format,
         )
         if formatted_result.is_success:
-            return FlextResult[str].ok(formatted_result.unwrap())
+            return FlextResult[str].ok(formatted_result.value)
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 

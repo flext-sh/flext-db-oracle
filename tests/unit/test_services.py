@@ -920,7 +920,7 @@ class TestDirectCoverageBoostServices:
         # Test SQL builder functionality through services
         identifier_result = services.build_select("test_table", ["col1", "col2"])
         assert identifier_result.is_success
-        assert "SELECT" in identifier_result.unwrap()
+        assert "SELECT" in identifier_result.value
 
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
@@ -940,7 +940,7 @@ class TestDirectCoverageBoostServices:
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
             assert result.is_success
-            assert identifier.upper() in result.unwrap()
+            assert identifier.upper() in result.value
 
         # Test table reference building through services
         table_ref_result = services.build_select(
@@ -949,7 +949,7 @@ class TestDirectCoverageBoostServices:
             schema_name="test_schema",
         )
         assert table_ref_result.is_success
-        sql_result = table_ref_result.unwrap()
+        sql_result = table_ref_result.value
         assert (
             "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
         ) or "test_schema.test_table" in sql_result
@@ -958,7 +958,7 @@ class TestDirectCoverageBoostServices:
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
         assert column_result.is_success
-        result_sql = column_result.unwrap()
+        result_sql = column_result.value
         assert "col1" in result_sql
         assert "col2" in result_sql
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core import r, s
 from flext_core.container import FlextContainer
@@ -277,7 +277,7 @@ class FlextDbOracleClient(s):
         formatter = formatter_result.value
         if callable(formatter):
             format_result: r[str] = formatter(
-                cast("t.Query.QueryResult", data),
+                data  # type: ignore[assignment]  # QueryResult type from protocol,
             )
             return format_result
         return r[str].fail("Invalid formatter strategy")

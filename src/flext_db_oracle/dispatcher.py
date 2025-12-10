@@ -8,7 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
 
 from flext_core import (
     FlextDispatcher,
@@ -97,7 +96,7 @@ class FlextDbOracleDispatcher(s):
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection()
 
-        return cast(
+        return (
             "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.ConnectCommand: (connect_handler, None),
@@ -143,7 +142,7 @@ class FlextDbOracleDispatcher(s):
             )
             return services.execute_many(sql, parameters_list)
 
-        return cast(
+        return (
             "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.ExecuteQueryCommand: (execute_query_handler, None),
@@ -172,7 +171,7 @@ class FlextDbOracleDispatcher(s):
             schema = getattr(command, "schema", None)
             return services.get_columns(table, schema)
 
-        return cast(
+        return (
             "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
             {
                 cls.GetSchemasCommand: (get_schemas_handler, None),

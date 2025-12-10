@@ -156,7 +156,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if cleanup_result.is_failure:
         logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
     else:
-        cleaned = cleanup_result.unwrap()
+        cleaned = cleanup_result.value
         if cleaned:
             logger.info("Recreated dirty containers: %s", cleaned)
         else:

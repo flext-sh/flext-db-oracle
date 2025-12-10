@@ -542,7 +542,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success
-        config = result.unwrap()
+        config = result.value
         # Should have defaults
         assert config.host == "localhost"
         assert config.port == 1521
@@ -560,7 +560,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success
-        config = result.unwrap()
+        config = result.value
         assert config.host == "db.example.com"
         assert config.port == 1522
         assert config.service_name == "MYDB"
@@ -578,7 +578,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success
-        config = result.unwrap()
+        config = result.value
         assert config.host == "flext-db.example.com"
         assert config.username == "flext-user"
 
@@ -594,7 +594,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success
-        config = result.unwrap()
+        config = result.value
         # Both prefixes should be present in the mapping
         assert config.host == "flext-host"  # FLEXT prefix takes precedence if both set
         assert config.username == "flext-user"
@@ -608,7 +608,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success
-        config = result.unwrap()
+        config = result.value
         assert config.port == 1523
         assert isinstance(config.port, int)
 
@@ -621,7 +621,7 @@ class TestFlextDbOracleConfig:
 
         result = FlextDbOracleConfig.from_env()
         assert result.is_success  # Should not fail, uses default
-        config = result.unwrap()
+        config = result.value
         assert config.port == 1521  # Default value
 
     def test_config_serialization(self) -> None:
