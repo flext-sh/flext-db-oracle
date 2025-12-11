@@ -22,7 +22,7 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,
     FlextDbOracleClient,
-    FlextDbOracleConfig,
+    FlextDbOracleSettings,
     FlextDbOracleUtilities,
 )
 
@@ -231,7 +231,7 @@ class TestFlextDbOracleClientIntegration:
     def test_client_with_real_config_creation(self) -> None:
         """Test client operations with real configuration objects."""
         # Create real configuration
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             name="XE",  # Required field
@@ -366,7 +366,7 @@ class TestOracleConnectionHelper:
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -386,7 +386,7 @@ class TestOracleConnectionHelper:
 
     def test_validate_connection_failure(self) -> None:
         """Test connection validation failure handling."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="invalid-host",
             port=1521,
             service_name="INVALID",
@@ -557,7 +557,7 @@ class TestCliServiceOperations:
         """Test successful health check execution."""
         cli_service = FlextDbOracleCli()
 
-        FlextDbOracleConfig(
+        FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -910,7 +910,7 @@ class TestCLIRealFunctionality:
     def test_api_observability_and_connection_real(self) -> None:
         """Test API observability and connection functionality - REAL IMPLEMENTATION."""
         # Create real API configuration
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TESTDB",
@@ -956,7 +956,7 @@ class TestCLIRealFunctionality:
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""
         # Create API with invalid configuration to test error handling
-        invalid_config = FlextDbOracleConfig(
+        invalid_config = FlextDbOracleSettings(
             host="invalid.host",
             port=9999,
             service_name="INVALID_SERVICE",
@@ -995,7 +995,7 @@ class TestCLIRealFunctionality:
         }
 
         # Test from_config with parameters
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
@@ -1014,7 +1014,7 @@ class TestCLIRealFunctionality:
     def test_comprehensive_api_coverage_real(self) -> None:
         """Comprehensive API coverage test using real functionality - NO MOCKS."""
         # Create comprehensive test configuration
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="comprehensive_test",
             port=1521,
             name="COMP_TEST",  # Required field
@@ -1080,7 +1080,7 @@ class TestCLIRealFunctionality:
                     os.environ[key] = original_value
 
         # Test from_config factory method
-        config_for_url = FlextDbOracleConfig(
+        config_for_url = FlextDbOracleSettings(
             host="host",
             port=1521,
             service_name="SERVICE",
@@ -1094,7 +1094,7 @@ class TestCLIRealFunctionality:
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",

@@ -1,6 +1,6 @@
 """Oracle Database Configuration - Settings using flext-core patterns.
 
-Provides Oracle-specific configuration management extending FlextConfig
+Provides Oracle-specific configuration management extending FlextSettings
 with Pydantic Settings for environment variable support and validation.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -13,7 +13,7 @@ from __future__ import annotations
 from urllib.parse import urlparse
 
 from flext_core import c as c_core, r
-from flext_core.config import FlextConfig
+from flext_core.settings import FlextSettings
 from pydantic import (
     Field,
     SecretStr,
@@ -26,13 +26,13 @@ from pydantic_settings import SettingsConfigDict
 from flext_db_oracle.constants import c
 
 
-@FlextConfig.auto_register("db_oracle")
-class FlextDbOracleConfig(FlextConfig.AutoConfig):
+@FlextSettings.auto_register("db_oracle")
+class FlextDbOracleSettings(FlextSettings.AutoConfig):
     """Oracle Database Configuration using AutoConfig pattern.
 
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration
 
-    This class uses FlextConfig.AutoConfig for automatic:
+    This class uses FlextSettings.AutoConfig for automatic:
     - Singleton pattern (thread-safe)
     - Namespace registration (accessible via config.db_oracle)
     - Environment variable loading from FLEXT_DB_ORACLE_* variables
@@ -43,10 +43,10 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
     connection settings, pool configuration, performance tuning, and security.
     """
 
-    # Use FlextConfig.resolve_env_file() to ensure all FLEXT configs use same .env
+    # Use FlextSettings.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
         env_prefix="FLEXT_DB_ORACLE_",
-        env_file=FlextConfig.resolve_env_file(),
+        env_file=FlextSettings.resolve_env_file(),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -59,7 +59,7 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         json_schema_extra={
             "title": "FLEXT DB Oracle Configuration",
             "description": (
-                "Enterprise Oracle database configuration extending FlextConfig"
+                "Enterprise Oracle database configuration extending FlextSettings"
             ),
         },
     )
@@ -341,45 +341,45 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
         }
 
     @classmethod
-    def from_env(cls, _prefix: str = "ORACLE_") -> r[FlextDbOracleConfig]:
+    def from_env(cls, _prefix: str = "ORACLE_") -> r[FlextDbOracleSettings]:
         """Create OracleConfig from environment variables.
 
-        **DEPRECATED**: Use `FlextDbOracleConfig.get_instance()` instead.
+        **DEPRECATED**: Use `FlextDbOracleSettings.get_instance()` instead.
         AutoConfig automatically loads from FLEXT_DB_ORACLE_* environment variables.
 
         This method is kept for backward compatibility but uses Pydantic Settings
         automatically via AutoConfig pattern.
 
         Returns:
-            r[FlextDbOracleConfig]: Configuration or error.
+            r[FlextDbOracleSettings]: Configuration or error.
 
         """
         try:
             # Use AutoConfig singleton which automatically loads from environment
             # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
             config = cls.get_instance()
-            return r[FlextDbOracleConfig].ok(config)
+            return r[FlextDbOracleSettings].ok(config)
         except Exception as e:
-            return r[FlextDbOracleConfig].fail(
+            return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from environment: {e}",
             )
 
     @classmethod
-    def from_url(cls, url: str) -> r[FlextDbOracleConfig]:
+    def from_url(cls, url: str) -> r[FlextDbOracleSettings]:
         """Create OracleConfig from Oracle URL string.
 
         Args:
         url: Oracle connection URL (oracle://user:pass@host:port/service)
 
         Returns:
-        r[FlextDbOracleConfig]: Configuration or error.
+        r[FlextDbOracleSettings]: Configuration or error.
 
         """
         try:
             # Parse the URL
             parsed = urlparse(url)
             if parsed.scheme != "oracle":
-                return r[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleSettings].fail(
                     f"Invalid URL scheme: {parsed.scheme}. Expected 'oracle'",
                 )
 
@@ -391,24 +391,24 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
             path = parsed.path.lstrip("/")  # Remove leading slash
 
             if not host:
-                return r[FlextDbOracleConfig].fail("Host is required in URL")
+                return r[FlextDbOracleSettings].fail("Host is required in URL")
             if not port:
-                return r[FlextDbOracleConfig].fail("Port is required in URL")
+                return r[FlextDbOracleSettings].fail("Port is required in URL")
             if not username:
-                return r[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleSettings].fail(
                     "Username is required in URL",
                 )
             if not password:
-                return r[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleSettings].fail(
                     "Password is required in URL",
                 )
             if not path:
-                return r[FlextDbOracleConfig].fail(
+                return r[FlextDbOracleSettings].fail(
                     "Service name is required in URL path",
                 )
 
             # Create config
-            config = FlextDbOracleConfig(
+            config = FlextDbOracleSettings(
                 host=host,
                 port=port,
                 username=username,
@@ -416,13 +416,13 @@ class FlextDbOracleConfig(FlextConfig.AutoConfig):
                 service_name=path,
             )
 
-            return r[FlextDbOracleConfig].ok(config)
+            return r[FlextDbOracleSettings].ok(config)
         except Exception as e:
-            return r[FlextDbOracleConfig].fail(
+            return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from URL: {e}",
             )
 
     @classmethod
     def reset_global_instance(cls) -> None:
-        """Reset the global FlextDbOracleConfig instance (mainly for testing)."""
+        """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
         # Clear any cached instances

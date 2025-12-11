@@ -7,20 +7,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleSettings
 
 
-class TestFlextDbOracleConfig:
-    """Test FlextDbOracleConfig functionality."""
+class TestFlextDbOracleSettings:
+    """Test FlextDbOracleSettings functionality."""
 
     def test_config_creation(self) -> None:
         """Test config can be created."""
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleSettings()
         assert config is not None
 
     def test_config_attributes(self) -> None:
         """Test config has required attributes."""
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleSettings()
         assert hasattr(config, "host")
         assert hasattr(config, "port")
         assert hasattr(config, "service_name")

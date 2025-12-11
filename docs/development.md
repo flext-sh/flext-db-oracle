@@ -365,8 +365,8 @@ make oracle-connect
 
 # Check configuration
 PYTHONPATH=src poetry run python -c "
-from flext_db_oracle import FlextDbOracleConfig
-config = FlextDbOracleConfig()
+from flext_db_oracle import FlextDbOracleSettings
+config = FlextDbOracleSettings()
 print(f'Host: {config.oracle_host}:{config.oracle_port}')
 "
 ```

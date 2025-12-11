@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from flext_core import FlextLogger
 
-from flext_db_oracle import FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleSettings
 
 logger = FlextLogger(__name__)
 
@@ -22,13 +22,13 @@ def demonstrate_real_functionality() -> None:
 
     try:
         # 1. Create configuration from environment (with defaults)
-        config_result = FlextDbOracleConfig.from_env()
+        config_result = FlextDbOracleSettings.from_env()
         if config_result.is_success:
             config = config_result.value
             logger.info(f"✅ Configuration created: {config.host}:{config.port}")
         else:
             # Create demo config if env config fails
-            config = FlextDbOracleConfig(
+            config = FlextDbOracleSettings(
                 host="demo-host",
                 username="demo-user",
                 password="demo-password",

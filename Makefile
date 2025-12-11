@@ -148,7 +148,7 @@ oracle-schema: ## Validate Oracle schema access
 
 .PHONY: oracle-validate
 oracle-validate: ## Validate Oracle configuration
-	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle.config import FlextDbOracleConfig; print('Config valid')"
+	PYTHONPATH=$(SRC_DIR) $(POETRY) run python -c "from flext_db_oracle.config import FlextDbOracleSettings; print('Config valid')"
 
 .PHONY: oracle-operations
 oracle-operations: oracle-validate oracle-connect oracle-schema ## Run all Oracle validations

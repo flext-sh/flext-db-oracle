@@ -11,7 +11,7 @@ from flext_db_oracle.__version__ import __version__, __version_info__
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.cli import FlextDbOracleCli
 from flext_db_oracle.client import FlextDbOracleClient
-from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.exceptions import FlextDbOracleExceptions
@@ -29,13 +29,13 @@ __all__ = [
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
-    "FlextDbOracleConfig",
     "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
     "FlextDbOracleProtocols",
     "FlextDbOracleServices",
+    "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "__version__",

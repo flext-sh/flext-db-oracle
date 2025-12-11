@@ -13,9 +13,9 @@ from pydantic import SecretStr
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleConfig,
     FlextDbOracleExceptions as FlextExceptions,
     FlextDbOracleServices,
+    FlextDbOracleSettings,
 )
 
 
@@ -25,7 +25,7 @@ class TestRealOracleExceptionsCore:
     def test_real_authentication_error_scenario(self) -> None:
         """Test FlextExceptions.AuthenticationError with real invalid credentials."""
         # Use real invalid credentials against Oracle container
-        invalid_config = FlextDbOracleConfig(
+        invalid_config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -62,7 +62,7 @@ class TestRealOracleExceptionsCore:
     def test_real_connection_error_scenario(self) -> None:
         """Test FlextExceptions.OracleConnectionError with real unreachable host."""
         # Use real unreachable host
-        unreachable_config = FlextDbOracleConfig(
+        unreachable_config = FlextDbOracleSettings(
             host="unreachable-host-12345.invalid",
             port=1521,
             service_name="XEPDB1",
@@ -99,7 +99,7 @@ class TestRealOracleExceptionsCore:
         """Test FlextExceptions.ConfigurationError with real invalid config."""
         # Test config without service_name or sid - should fail validation
         try:
-            invalid_config = FlextDbOracleConfig(
+            invalid_config = FlextDbOracleSettings(
                 host="localhost",
                 port=1521,
                 service_name="",  # Empty service name
@@ -124,7 +124,7 @@ class TestRealOracleExceptionsCore:
 
     def test_real_query_error_scenario(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test FlextExceptions.OracleQueryError with real invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -164,11 +164,11 @@ class TestRealOracleExceptionsCore:
 
     def test_real_timeout_error_scenario(
         self,
-        real_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test FlextExceptions.TimeoutError with real long-running query."""
         # Create config with very short timeout
-        timeout_config = FlextDbOracleConfig(
+        timeout_config = FlextDbOracleSettings(
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
@@ -326,8 +326,8 @@ class TestRealOracleExceptionsAdvanced:
                 if "service_name" in config_data:
                     typed_config["service_name"] = str(config_data["service_name"])
 
-                # Cast typed_config to specific types for FlextDbOracleConfig
-                FlextDbOracleConfig(
+                # Cast typed_config to specific types for FlextDbOracleSettings
+                FlextDbOracleSettings(
                     host=str(typed_config["host"]),
                     port=cast("int", typed_config["port"]),
                     username=str(typed_config["user"]),

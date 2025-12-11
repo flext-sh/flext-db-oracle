@@ -33,7 +33,7 @@ graph TB
     subgraph "Infrastructure Layer"
         CONNECTION[connection.py<br/>Connection Management<br/>SQLAlchemy Engine<br/>Pool Lifecycle]
         UTILITIES[utilities.py<br/>FlextDbOracleUtilities<br/>Helper Functions<br/>Common Operations]
-        CONFIG[config.py<br/>FlextDbOracleConfig<br/>Configuration Management<br/>Pydantic Settings]
+        CONFIG[config.py<br/>FlextDbOracleSettings<br/>Configuration Management<br/>Pydantic Settings]
     end
 
     subgraph "Supporting Modules"
@@ -151,7 +151,7 @@ __all__ = [
     "FlextDbOracleApi",      # Main API
     "FlextDbOracleCli",      # CLI interface
     "FlextDbOracleClient",   # Client operations
-    "FlextDbOracleConfig",   # Configuration
+    "FlextDbOracleSettings",   # Configuration
     "FlextDbOracleConstants", # Constants
     # ... 9 more classes
     "__version__",           # Version info

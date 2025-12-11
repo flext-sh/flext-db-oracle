@@ -9,9 +9,9 @@ SPDX-License-Identifier: MIT
 """
 
 from flext_db_oracle import (
-    FlextDbOracleConfig,
     FlextDbOracleModels,
     FlextDbOracleServices,
+    FlextDbOracleSettings,
 )
 
 
@@ -20,7 +20,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleConfig(
+        self.config = FlextDbOracleSettings(
             host="test",
             port=1521,
             service_name="TEST",

@@ -25,7 +25,7 @@ from flext_core import (
 )
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -84,35 +84,35 @@ class FlextDbOracleCli(FlextService[str]):
             service_name: str = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME,
             username: str = FlextDbOracleConstants.OracleDefaults.DEFAULT_USERNAME,
             password: str | None = None,
-        ) -> FlextResult[FlextDbOracleConfig]:
+        ) -> FlextResult[FlextDbOracleSettings]:
             """Create Oracle configuration from parameters.
 
             Returns:
-            FlextResult[FlextDbOracleConfig]: Configuration or error.
+            FlextResult[FlextDbOracleSettings]: Configuration or error.
 
             """
             if password is None or not password.strip():
-                return FlextResult[FlextDbOracleConfig].fail(
+                return FlextResult[FlextDbOracleSettings].fail(
                     "Password is required for Oracle connection",
                 )
 
             try:
-                config = FlextDbOracleConfig(
+                config = FlextDbOracleSettings(
                     host=host,
                     port=port,
                     service_name=service_name,
                     username=username,  # Fixed: Use 'username' parameter name
                     password=password,
                 )
-                return FlextResult[FlextDbOracleConfig].ok(config)
+                return FlextResult[FlextDbOracleSettings].ok(config)
             except Exception as e:
-                return FlextResult[FlextDbOracleConfig].fail(
+                return FlextResult[FlextDbOracleSettings].fail(
                     f"Configuration creation failed: {e}",
                 )
 
         @staticmethod
         def validate_connection(
-            config: FlextDbOracleConfig,
+            config: FlextDbOracleSettings,
         ) -> FlextResult[bool]:
             """Validate Oracle database connection.
 
@@ -248,7 +248,7 @@ class FlextDbOracleCli(FlextService[str]):
             # Build connection config
 
             # Create API instance
-            config = FlextDbOracleConfig(
+            config = FlextDbOracleSettings(
                 host=host,
                 port=port,
                 service_name=service_name,

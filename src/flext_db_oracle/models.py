@@ -183,15 +183,13 @@ class FlextDbOracleModels(m_core):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[dict[str, FlextTypes.Json.JsonValue]] = Field(
-            default_factory=list
-        )
+        result_data: list[dict[str, FlextTypes.JsonValue]] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[FlextTypes.Json.JsonValue]] = Field(
+        rows: list[list[FlextTypes.JsonValue]] = Field(
             default_factory=list,
             description="Row data",
         )

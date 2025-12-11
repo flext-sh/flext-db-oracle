@@ -14,14 +14,14 @@ import pytest
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleConfig,
+    FlextDbOracleSettings,
 )
 
 
 @pytest.fixture
-def mock_oracle_config() -> FlextDbOracleConfig:
+def mock_oracle_config() -> FlextDbOracleSettings:
     """Create a mock Oracle config for testing API instantiation."""
-    return FlextDbOracleConfig(
+    return FlextDbOracleSettings(
         host="mock-host",
         port=1521,
         service_name="mock-service",
@@ -36,7 +36,7 @@ class TestOracleIntegration:
 
     def test_api_instantiation_mock(
         self,
-        mock_oracle_config: FlextDbOracleConfig,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test API instantiation with mock config."""
         api = FlextDbOracleApi(config=mock_oracle_config)
@@ -48,8 +48,8 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_full_workflow(
         self,
-        real_oracle_config: FlextDbOracleConfig | None,
-        mock_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings | None,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test complete API workflow with real Oracle connection or skip if not available."""
         config = real_oracle_config or mock_oracle_config
@@ -102,8 +102,8 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_error_handling(
         self,
-        real_oracle_config: FlextDbOracleConfig | None,
-        mock_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings | None,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test error handling with real Oracle connection or skip if not available."""
         config = real_oracle_config or mock_oracle_config
@@ -140,8 +140,8 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_context_manager(
         self,
-        real_oracle_config: FlextDbOracleConfig | None,
-        mock_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings | None,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test API context manager functionality with real Oracle or skip if not available."""
         config = real_oracle_config or mock_oracle_config
@@ -170,8 +170,8 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_metadata_operations(
         self,
-        real_oracle_config: FlextDbOracleConfig | None,
-        mock_oracle_config: FlextDbOracleConfig,
+        real_oracle_config: FlextDbOracleSettings | None,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test metadata operations with real Oracle or skip if not available."""
         config = real_oracle_config or mock_oracle_config
@@ -348,7 +348,7 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_performance_operations(
         self,
-        real_oracle_config: FlextDbOracleConfig | None,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test performance-related operations with real Oracle."""
         if real_oracle_config is None:

@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig, FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
@@ -487,12 +487,12 @@ class TestFlextDbOracleModels:
                 assert table.columns == []  # No columns defined in this simple test
 
 
-class TestFlextDbOracleConfig:
-    """Comprehensive test FlextDbOracleConfig functionality."""
+class TestFlextDbOracleSettings:
+    """Comprehensive test FlextDbOracleSettings functionality."""
 
     def test_config_creation_defaults(self) -> None:
         """Test config creation with defaults."""
-        config = FlextDbOracleConfig()
+        config = FlextDbOracleSettings()
         assert config.host == "localhost"
         assert config.port == 1521
         assert config.name == "XE"  # database name defaults to XE
@@ -503,7 +503,7 @@ class TestFlextDbOracleConfig:
 
     def test_config_creation_with_values(self) -> None:
         """Test config creation with custom values."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="oracle.example.com",
             port=1522,
             name="ORCL",
@@ -540,7 +540,7 @@ class TestFlextDbOracleConfig:
         for var in env_vars_to_clear:
             monkeypatch.delenv(var, raising=False)
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success
         config = result.value
         # Should have defaults
@@ -558,7 +558,7 @@ class TestFlextDbOracleConfig:
         monkeypatch.setenv("ORACLE_DATABASE_NAME", "ORCL")
         monkeypatch.setenv("ORACLE_SID", "ORCL")
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success
         config = result.value
         assert config.host == "db.example.com"
@@ -576,7 +576,7 @@ class TestFlextDbOracleConfig:
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success
         config = result.value
         assert config.host == "flext-db.example.com"
@@ -592,7 +592,7 @@ class TestFlextDbOracleConfig:
         monkeypatch.setenv("ORACLE_USERNAME", "oracle-user")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success
         config = result.value
         # Both prefixes should be present in the mapping
@@ -606,7 +606,7 @@ class TestFlextDbOracleConfig:
         """Test port conversion from environment string to int."""
         monkeypatch.setenv("ORACLE_PORT", "1523")
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success
         config = result.value
         assert config.port == 1523
@@ -619,14 +619,14 @@ class TestFlextDbOracleConfig:
         """Test config creation with invalid port."""
         monkeypatch.setenv("ORACLE_PORT", "invalid")
 
-        result = FlextDbOracleConfig.from_env()
+        result = FlextDbOracleSettings.from_env()
         assert result.is_success  # Should not fail, uses default
         config = result.value
         assert config.port == 1521  # Default value
 
     def test_config_serialization(self) -> None:
         """Test config serialization."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="test.com",
             port=1522,
             username="user",
@@ -641,24 +641,24 @@ class TestFlextDbOracleConfig:
 
     def test_config_equality(self) -> None:
         """Test config equality comparison."""
-        config1 = FlextDbOracleConfig(host="localhost", port=1521)
-        config2 = FlextDbOracleConfig(host="localhost", port=1521)
-        config3 = FlextDbOracleConfig(host="remotehost", port=1521)
+        config1 = FlextDbOracleSettings(host="localhost", port=1521)
+        config2 = FlextDbOracleSettings(host="localhost", port=1521)
+        config3 = FlextDbOracleSettings(host="remotehost", port=1521)
 
         assert config1 == config2
         assert config1 != config3
 
     def test_config_repr(self) -> None:
         """Test config string representation."""
-        config = FlextDbOracleConfig(host="localhost", port=1521, username="system")
+        config = FlextDbOracleSettings(host="localhost", port=1521, username="system")
         repr_str = repr(config)
-        assert "FlextDbOracleConfig" in repr_str
+        assert "FlextDbOracleSettings" in repr_str
         assert "localhost" in repr_str
         assert "1521" in repr_str
 
     def test_config_connection_string_components(self) -> None:
         """Test that config has all components needed for connection string."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="oracle.example.com",
             port=1521,
             service_name="ORCLPDB1",
@@ -677,7 +677,7 @@ class TestFlextDbOracleConfig:
     def test_config_validation_through_creation(self) -> None:
         """Test config validation through successful creation."""
         # Valid config should create without errors
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="valid-host",
             port=1521,
             service_name="VALID_SERVICE",
@@ -688,8 +688,8 @@ class TestFlextDbOracleConfig:
 
     def test_config_immutable_defaults(self) -> None:
         """Test that config defaults are properly set and don't change."""
-        config1 = FlextDbOracleConfig()
-        config2 = FlextDbOracleConfig()
+        config1 = FlextDbOracleSettings()
+        config2 = FlextDbOracleSettings()
 
         # Both should have same defaults
         assert config1.host == config2.host == "localhost"

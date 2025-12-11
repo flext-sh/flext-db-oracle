@@ -99,7 +99,7 @@ def test_connection_with_mocked_engine(mock_create_engine):
 def test_config_validation_with_invalid_host():
     """Test configuration validation fails with empty host."""
     # Arrange
-    config = FlextDbOracleConfig(
+    config = FlextDbOracleSettings(
         host="",  # Invalid empty host
         port=1521,
         username="test_user",

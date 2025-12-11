@@ -11,28 +11,28 @@ from __future__ import annotations
 
 from flext_core import FlextLogger
 
-from flext_db_oracle import FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleSettings
 
 logger = FlextLogger(__name__)
 
 
-def create_oracle_config() -> FlextDbOracleConfig:
+def create_oracle_config() -> FlextDbOracleSettings:
     """Create Oracle database configuration.
 
     Returns:
-        FlextDbOracleConfig: Configured Oracle database settings.
+        FlextDbOracleSettings: Configured Oracle database settings.
 
     """
     try:
         # Try to load from environment
-        config_result = FlextDbOracleConfig.from_env()
+        config_result = FlextDbOracleSettings.from_env()
         if config_result.is_success:
             return config_result.value
     except Exception:
         logger.debug("Could not load config from environment, using demo config")
 
     # Fallback to demo configuration
-    return FlextDbOracleConfig(
+    return FlextDbOracleSettings(
         host="demo-oracle.example.com",
         port=1521,
         service_name="DEMO",

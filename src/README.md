@@ -71,7 +71,7 @@ All modules integrate with FLEXT Core patterns:
 
 - **FlextResult[T]**: Railway-oriented programming for error handling
 - **FlextContainer**: Dependency injection for service management
-- **FlextConfig**: Configuration management with validation
+- **FlextSettings**: Configuration management with validation
 - **FlextModels.Entity**: Domain-driven design entity patterns
 
 ## 🎯 Module Naming Conventions
@@ -87,7 +87,7 @@ All modules integrate with FLEXT Core patterns:
 ```python
 # Primary imports (direct imports only - STRICT RULE)
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.typings import FlextDbOracleTypes
 
 # Metadata operations (direct imports only)

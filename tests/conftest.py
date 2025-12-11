@@ -19,7 +19,7 @@ import pytest
 from flext_core import FlextLogger
 from flext_tests import FlextTestsDocker, FlextTestsDomains
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger = FlextLogger(__name__)
 
@@ -338,12 +338,12 @@ def ensure_shared_docker_container(shared_oracle_container: str) -> None:
 @pytest.fixture
 def real_oracle_config(
     oracle_container: str | None,
-) -> FlextDbOracleConfig | None:
+) -> FlextDbOracleSettings | None:
     """Return real Oracle configuration for tests that can use it."""
     # If Oracle container is not available, return None to allow tests to be skipped
     if oracle_container is None:
         return None
-    return FlextDbOracleConfig(
+    return FlextDbOracleSettings(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
         name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
@@ -356,7 +356,7 @@ def real_oracle_config(
 
 @pytest.fixture
 def oracle_api(
-    real_oracle_config: FlextDbOracleConfig | None,
+    real_oracle_config: FlextDbOracleSettings | None,
 ) -> FlextDbOracleApi | None:
     """Return Oracle API for tests that can use it."""
     if real_oracle_config is None:
@@ -391,9 +391,9 @@ def flext_domains() -> FlextTestsDomains:
 
 
 @pytest.fixture
-def mock_oracle_config() -> FlextDbOracleConfig:
+def mock_oracle_config() -> FlextDbOracleSettings:
     """Provide mock Oracle config for tests when real Oracle is not available."""
-    return FlextDbOracleConfig(
+    return FlextDbOracleSettings(
         host="mock-host",
         port=1521,
         service_name="mock-service",
@@ -404,9 +404,9 @@ def mock_oracle_config() -> FlextDbOracleConfig:
 
 @pytest.fixture
 def oracle_config(
-    real_oracle_config: FlextDbOracleConfig | None,
-    mock_oracle_config: FlextDbOracleConfig,
-) -> FlextDbOracleConfig:
+    real_oracle_config: FlextDbOracleSettings | None,
+    mock_oracle_config: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
     """Provide Oracle config - real if available, mock otherwise."""
     return real_oracle_config or mock_oracle_config
 

@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_db_oracle import (
-    FlextDbOracleConfig,
     FlextDbOracleDispatcher,
     FlextDbOracleServices,
+    FlextDbOracleSettings,
 )
 
 
@@ -18,7 +18,7 @@ class TestDispatcherSurgical:
 
     def test_dispatcher_creation(self) -> None:
         """Test dispatcher can be created."""
-        config = FlextDbOracleConfig(
+        config = FlextDbOracleSettings(
             host="test-host",
             username="test-user",
             password="test-password",

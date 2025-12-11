@@ -33,7 +33,7 @@ Implement a single-entry-point SQLAlchemy abstraction where:
 - **Domain Models**: Pydantic v2 models for data validation and serialization
 - **Connection Management**: SQLAlchemy engine wrapped in custom connection class
 - **Error Translation**: SQLAlchemy exceptions converted to domain-specific exceptions
-- **Configuration**: SQLAlchemy engine configuration through FlextDbOracleConfig
+- **Configuration**: SQLAlchemy engine configuration through FlextDbOracleSettings
 
 ## Rationale
 

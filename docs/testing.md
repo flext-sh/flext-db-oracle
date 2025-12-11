@@ -135,7 +135,7 @@ collected 11 items / 1 error
 @pytest.fixture
 def flext_db_oracle_api() -> FlextDbOracleApi:
     """Provides configured FlextDbOracleApi instance."""
-    config = FlextDbOracleConfig()
+    config = FlextDbOracleSettings()
     return FlextDbOracleApi(config)
 
 @pytest.fixture

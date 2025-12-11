@@ -143,7 +143,7 @@ CREATE TABLE flext_test.departments (
 def test_oracle_connection_with_real_database():
     """Test Oracle connection with actual database instance."""
     # Arrange
-    config = FlextDbOracleConfig.from_env().value
+    config = FlextDbOracleSettings.from_env().value
     connection = FlextDbOracleConnection(config)
 
     # Act

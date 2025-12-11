@@ -18,7 +18,7 @@ from flext_core import r, s
 from flext_core.container import FlextContainer
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleConfig
+from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 
 
@@ -36,7 +36,7 @@ class FlextDbOracleClient(s):
     def __init__(self, *, debug: bool = False) -> None:
         """Initialize Oracle CLI client with proper composition."""
         # Configuration - create locally (don't pass to parent to avoid extra_forbidden error)
-        self._oracle_config = FlextDbOracleConfig()
+        self._oracle_config = FlextDbOracleSettings()
 
         # Initialize FlextService without config parameter
         super().__init__()
@@ -49,7 +49,7 @@ class FlextDbOracleClient(s):
         self.debug = debug
 
     @property
-    def oracle_config(self) -> FlextDbOracleConfig:
+    def oracle_config(self) -> FlextDbOracleSettings:
         """Get the Oracle configuration."""
         return self._oracle_config
 
@@ -91,7 +91,7 @@ class FlextDbOracleClient(s):
             )
 
             # Create Oracle configuration
-            config: FlextDbOracleConfig = FlextDbOracleConfig(
+            config: FlextDbOracleSettings = FlextDbOracleSettings(
                 host=actual_host,
                 port=actual_port,
                 service_name=actual_service_name,
@@ -265,7 +265,6 @@ class FlextDbOracleClient(s):
         if operation_result.is_failure:
             return r[str].fail(operation_result.error or "Operation failed")
 
-        data = operation_result.value
         formatter_result: r[Callable[[t.Query.QueryResult], r[str]]] = (
             self._get_formatter_strategy(format_type)
         )
@@ -276,9 +275,7 @@ class FlextDbOracleClient(s):
 
         formatter = formatter_result.value
         if callable(formatter):
-            format_result: r[str] = formatter(
-                data  # type: ignore[assignment]  # QueryResult type from protocol,
-            )
+            format_result: r[str] = formatter(operation_result.value)
             return format_result
         return r[str].fail("Invalid formatter strategy")
 

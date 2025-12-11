@@ -39,28 +39,28 @@ class FlextDbOracleDispatcher(s):
         """Command to execute a SQL query and return rows."""
 
         sql: str
-        parameters: dict[str, t.Json.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class FetchOneCommand:
         """Command to execute a SQL query and fetch a single row."""
 
         sql: str
-        parameters: dict[str, t.Json.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteStatementCommand:
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
         sql: str
-        parameters: dict[str, t.Json.JsonValue] | None = None
+        parameters: dict[str, t.JsonValue] | None = None
 
     @dataclass(slots=True)
     class ExecuteManyCommand:
         """Command to execute a SQL statement multiple times."""
 
         sql: str
-        parameters_list: list[dict[str, t.Json.JsonValue]]
+        parameters_list: list[dict[str, t.JsonValue]]
 
     @dataclass(slots=True)
     class GetSchemasCommand:
@@ -114,28 +114,28 @@ class FlextDbOracleDispatcher(s):
 
         def execute_query_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, t.Json.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_query(sql, parameters)
 
         def fetch_one_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, t.Json.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.fetch_one(sql, parameters)
 
         def execute_statement_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters: dict[str, t.Json.JsonValue] = (
+            parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_statement(sql, parameters)
 
         def execute_many_handler(command: object) -> object:
             sql = getattr(command, "sql", "")
-            parameters_list: list[dict[str, t.Json.JsonValue]] = getattr(
+            parameters_list: list[dict[str, t.JsonValue]] = getattr(
                 command,
                 "parameters_list",
                 [],

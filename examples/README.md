@@ -133,9 +133,9 @@ This example shows:
 7. Graceful error handling and cleanup
 """
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
@@ -159,7 +159,7 @@ def demonstrate_comprehensive_usage():
     """Demonstrate comprehensive Oracle database usage."""
 
     # Load configuration from environment
-    config_result = FlextDbOracleConfig.from_env()
+    config_result = FlextDbOracleSettings.from_env()
     if config_result.is_failure:
         print(f"Configuration failed: {config_result.error}")
         return
@@ -297,7 +297,7 @@ if __name__ == "__main__":
 # Quick setup for local development
 def setup_local_development():
     """Setup local development environment."""
-    config = FlextDbOracleConfig(
+    config = FlextDbOracleSettings(
         host="localhost",
         port=1521,
         service_name="XEPDB1",
@@ -315,7 +315,7 @@ def setup_local_development():
 # Configuration for testing scenarios
 def setup_testing_environment():
     """Setup testing environment with isolated database."""
-    config = FlextDbOracleConfig.from_env("TEST_ORACLE_")
+    config = FlextDbOracleSettings.from_env("TEST_ORACLE_")
     api = FlextDbOracleApi(config, context_name="testing")
 
     # Enable comprehensive logging for testing
@@ -331,7 +331,7 @@ def setup_testing_environment():
 # Production-ready configuration with security
 def setup_production_environment():
     """Setup production environment with enterprise features."""
-    config = FlextDbOracleConfig.from_env("PROD_ORACLE_")
+    config = FlextDbOracleSettings.from_env("PROD_ORACLE_")
 
     # Validate production configuration
     validation_result = config.validate_domain_rules()
@@ -354,7 +354,7 @@ from flext_db_oracle.plugins import register_all_oracle_plugins
 # High-availability configuration with failover
 def setup_ha_environment():
     """Setup high-availability Oracle environment."""
-    primary_config = FlextDbOracleConfig.from_env("PRIMARY_ORACLE_")
+    primary_config = FlextDbOracleSettings.from_env("PRIMARY_ORACLE_")
 
     api = FlextDbOracleApi(primary_config, context_name="ha_primary")
 
@@ -402,7 +402,7 @@ Usage:
 
 from flext_db_oracle import FlextDbOracleApi
 from flext_core import FlextBus
-from flext_core import FlextConfig
+from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext

@@ -33,7 +33,7 @@ graph TB
     end
 
     subgraph "Cross-Cutting Concerns"
-        CONFIG[FlextDbOracleConfig<br/>⚙️ Configuration<br/>Pydantic Settings<br/>Configuration Pattern]
+        CONFIG[FlextDbOracleSettings<br/>⚙️ Configuration<br/>Pydantic Settings<br/>Configuration Pattern]
 
         LOGGER[FlextLogger<br/>📊 Structured Logging<br/>JSON Format<br/>Logging Pattern]
 
@@ -275,7 +275,7 @@ FlextDbOracleException (base)
 
 ### Cross-Cutting Components
 
-#### FlextDbOracleConfig (Configuration)
+#### FlextDbOracleSettings (Configuration)
 
 **Pattern**: Configuration Pattern
 **Responsibilities**:

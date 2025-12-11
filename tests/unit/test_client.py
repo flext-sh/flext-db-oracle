@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleClient, FlextDbOracleConfig
+from flext_db_oracle import FlextDbOracleClient, FlextDbOracleSettings
 
 
 class TestFlextDbOracleClientRealFunctionality:
@@ -15,7 +15,7 @@ class TestFlextDbOracleClientRealFunctionality:
     def test_client_creation(self) -> None:
         """Test client can be created."""
         # Create config first
-        FlextDbOracleConfig(
+        FlextDbOracleSettings(
             host="test-host",
             username="test-user",
             password="test-password",
