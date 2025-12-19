@@ -17,7 +17,7 @@ from flext_core import r, s, t
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
-from flext_db_oracle.config import FlextDbOracleSettings
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 
 class FlextDbOracleServices(s[FlextDbOracleSettings]):

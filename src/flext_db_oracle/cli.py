@@ -25,8 +25,8 @@ from flext_core import (
 )
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 
 class FlextDbOracleCli(FlextService[str]):

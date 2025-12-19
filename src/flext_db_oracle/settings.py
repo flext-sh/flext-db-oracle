@@ -27,7 +27,7 @@ from flext_db_oracle.constants import c
 
 
 @FlextSettings.auto_register("db_oracle")
-class FlextDbOracleSettings(FlextSettings.AutoConfig):
+class FlextDbOracleSettings(BaseSettings):
     """Oracle Database Configuration using AutoConfig pattern.
 
     **ARCHITECTURAL PATTERN**: Zero-Boilerplate Auto-Registration

@@ -17,11 +17,11 @@ from typing import Self, override
 from flext_core import r, s
 from flext_core.container import FlextContainer
 
-from flext_db_oracle.config import FlextDbOracleSettings
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 # Simplified delegation - no complex decorators needed
 

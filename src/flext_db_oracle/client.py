@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar
+from typing import ClassVar, cast
 
 from flext_core import r, s
 from flext_core.container import FlextContainer
 
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleSettings
+from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 
 
@@ -33,13 +33,13 @@ class FlextDbOracleClient(s):
     current_connection: FlextDbOracleApi | None = None
     user_preferences: ClassVar[t.Connection.ConnectionConfiguration] = {}
 
-    def __init__(self, *, debug: bool = False) -> None:
+    def __init__(self, *, debug: bool = False, **kwargs: t.GeneralValueType) -> None:
         """Initialize Oracle CLI client with proper composition."""
         # Configuration - create locally (don't pass to parent to avoid extra_forbidden error)
         self._oracle_config = FlextDbOracleSettings()
 
-        # Initialize FlextService without config parameter
-        super().__init__()
+        # Initialize FlextService with remaining kwargs
+        super().__init__(**kwargs)
 
         # Core dependencies injected via composition
         self._container = FlextContainer.get_global()
@@ -275,7 +275,9 @@ class FlextDbOracleClient(s):
 
         formatter = formatter_result.value
         if callable(formatter):
-            format_result: r[str] = formatter(operation_result.value)
+            # Cast to QueryResult type for type checker
+            query_result = cast("t.Query.QueryResult", operation_result.value)
+            format_result: r[str] = formatter(query_result)
             return format_result
         return r[str].fail("Invalid formatter strategy")
 
@@ -375,18 +377,10 @@ class FlextDbOracleClient(s):
         try:
 
             def adapt_schemas(r: object) -> list[dict[str, str]]:
-                return (
-                    [{"schema": str(s)} for s in r if isinstance(r, list)]
-                    if isinstance(r, list)
-                    else []
-                )
+                return [{"schema": str(s)} for s in r] if isinstance(r, list) else []
 
             def adapt_tables(r: object) -> list[dict[str, str]]:
-                return (
-                    [{"table": str(t)} for t in r if isinstance(r, list)]
-                    if isinstance(r, list)
-                    else []
-                )
+                return [{"table": str(t)} for t in r] if isinstance(r, list) else []
 
             def adapt_health(r: object) -> list[dict[str, str]]:
                 return (

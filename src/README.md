@@ -87,7 +87,7 @@ All modules integrate with FLEXT Core patterns:
 ```python
 # Primary imports (direct imports only - STRICT RULE)
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.config import FlextDbOracleSettings
+from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import FlextDbOracleTypes
 
 # Metadata operations (direct imports only)
