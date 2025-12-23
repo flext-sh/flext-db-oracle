@@ -23,6 +23,8 @@ from pydantic import (
     model_validator,
 )
 
+from flext_db_oracle.constants import c
+
 
 class FlextDbOracleBaseModel(BaseModel):
     """Base model for FlextDbOracle with standard Pydantic v2 configuration."""

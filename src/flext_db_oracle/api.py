@@ -62,7 +62,7 @@ class FlextDbOracleApi(s):
 
         # Complete flext-core ecosystem integration
         self._container = FlextContainer.get_global()
-        self._context: dict[str, object] = {}
+        self._context = {}
         # Logger will be initialized lazily via the parent class property
 
         # Optional dispatcher for CQRS patterns

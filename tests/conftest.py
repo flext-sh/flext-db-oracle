@@ -23,8 +23,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger = FlextLogger(__name__)
 
-# Register FlextTestsDocker pytest fixtures in this module's namespace
-FlextTestsDocker.register_pytest_fixtures(namespace=globals())
+# FlextTestsDocker fixtures are now auto-registered via pytest hooks
 
 # Test constants - NOT PRODUCTION PASSWORDS
 TEST_ORACLE_PASSWORD = "FlextTest123"

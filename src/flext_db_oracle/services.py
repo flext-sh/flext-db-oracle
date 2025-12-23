@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -20,7 +19,7 @@ from sqlalchemy.engine import Connection, Engine
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
-class FlextDbOracleServices(s[FlextDbOracleSettings]):
+class FlextDbOracleServices(s):
     """Generic Oracle database services using flext-core patterns."""
 
     def __init__(self, config: FlextDbOracleSettings) -> None:
@@ -36,7 +35,6 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             password = self._config.password.get_secret_value()
             if not password:
                 return r.fail("Password is required for database connection")
-
             encoded_password = quote_plus(password)
             db_id = self._config.sid or self._config.service_name
             url = f"oracle+oracledb://{self._config.username}:{encoded_password}@{self._config.host}:{self._config.port}/{db_id}"
@@ -53,41 +51,34 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     # Connection Management
     def connect(self) -> r[FlextDbOracleServices]:
         """Establish Oracle database connection."""
-        try:
-            url_result = self._build_connection_url()
-            if url_result.is_failure:
-                return r.fail(
-                    url_result.error or "Failed to build connection URL",
-                )
-
-            self._engine = create_engine(
-                url_result.value,
-                pool_pre_ping=True,
-                pool_recycle=3600,  # 1 hour
-                echo=False,
+        url_result = self._build_connection_url()
+        if url_result.is_failure:
+            return r.fail(
+                url_result.error or "Failed to build connection URL",
             )
-
-            # Test connection
+        self._engine = create_engine(
+            url_result.value,
+            pool_pre_ping=True,
+            pool_recycle=3600,  # 1 hour
+            echo=False,
+        )
+        # Test connection
+        try:
             with self._engine.connect() as conn:
                 conn.execute(text("SELECT 1 FROM dual"))
-
             self.logger.info(f"Connected to Oracle database: {self._config.host}")
             return r.ok(self)
-
         except Exception as e:
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
     def disconnect(self) -> r[None]:
         """Disconnect from Oracle database."""
-        try:
-            if self._engine:
-                self._engine.dispose()
-                self._engine = None
-                self.logger.info("Disconnected from Oracle database")
-            return r.ok(None)
-        except Exception as e:
-            return r.fail(f"Disconnect failed: {e}")
+        if self._engine:
+            self._engine.dispose()
+            self._engine = None
+            self.logger.info("Disconnected from Oracle database")
+        return r.ok(None)
 
     def is_connected(self) -> bool:
         """Check if connected to Oracle database."""
@@ -95,11 +86,10 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
 
     def test_connection(self) -> r[bool]:
         """Test Oracle database connection."""
+        engine_result = self._get_engine()
+        if engine_result.is_failure:
+            return r.fail("Not connected to database")
         try:
-            engine_result = self._get_engine()
-            if engine_result.is_failure:
-                return r.fail("Not connected to database")
-
             with engine_result.value.connect() as conn:
                 conn.execute(text("SELECT 1 FROM dual"))
             return r.ok(True)
@@ -115,12 +105,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         with self._engine.connect() as connection:
             yield connection
 
-    @contextmanager
     def transaction(self) -> Generator[Connection]:
         """Get transaction context for database operations."""
-        if not self._engine:
-            msg = "No database connection established"
-            raise RuntimeError(msg)
         with self._engine.begin() as transaction:
             yield transaction
 
@@ -131,13 +117,12 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         params: dict[str, t.JsonValue] | None = None,
     ) -> r[list[dict[str, t.JsonValue]]]:
         """Execute SQL query and return results."""
+        engine_result = self._get_engine()
+        if engine_result.is_failure:
+            return r.fail(
+                engine_result.error or "Failed to get database engine",
+            )
         try:
-            engine_result = self._get_engine()
-            if engine_result.is_failure:
-                return r.fail(
-                    engine_result.error or "Failed to get database engine",
-                )
-
             with engine_result.value.connect() as conn:
                 result = conn.execute(text(sql), params or {})
                 rows = [dict(row) for row in result]
@@ -151,13 +136,12 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         params: dict[str, t.JsonValue] | None = None,
     ) -> r[int]:
         """Execute SQL statement and return affected rows."""
+        engine_result = self._get_engine()
+        if engine_result.is_failure:
+            return r.fail(
+                engine_result.error or "Failed to get database engine",
+            )
         try:
-            engine_result = self._get_engine()
-            if engine_result.is_failure:
-                return r.fail(
-                    engine_result.error or "Failed to get database engine",
-                )
-
             with engine_result.value.connect() as conn:
                 result = conn.execute(text(sql), params or {})
                 return r.ok(result.rowcount)
@@ -170,15 +154,14 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         params_list: list[dict[str, t.JsonValue]],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
+        engine_result = self._get_engine()
+        if engine_result.is_failure:
+            return r.fail(
+                engine_result.error or "Failed to get database engine",
+            )
         try:
-            engine_result = self._get_engine()
-            if engine_result.is_failure:
-                return r.fail(
-                    engine_result.error or "Failed to get database engine",
-                )
-
-            total_affected = 0
             with engine_result.value.connect() as conn:
+                total_affected = 0
                 for params in params_list:
                     result = conn.execute(text(sql), params)
                     total_affected += result.rowcount
@@ -192,48 +175,35 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         params: dict[str, t.JsonValue] | None = None,
     ) -> r[dict[str, t.JsonValue] | None]:
         """Execute query and return first result."""
-        try:
-            result = self.execute_query(sql, params)
-            if result.is_failure:
-                return r.fail(result.error or "Query execution failed")
-
-            rows = result.value
-            return r.ok(rows[0] if rows else None)
-        except Exception as e:
-            return r.fail(f"Fetch one failed: {e}")
+        result = self.execute_query(sql, params)
+        if result.is_failure:
+            return r.fail(result.error or "Query execution failed")
+        rows = result.value
+        return r.ok(rows[0] if rows else None)
 
     # Schema Operations
     def get_schemas(self) -> r[list[str]]:
         """Get list of Oracle schemas."""
-        try:
-            sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
-            result = self.execute_query(sql)
-            if result.is_failure:
-                return r.fail(result.error or "Failed to execute query")
-
-            schemas = [str(row["schema_name"]) for row in result.value]
-            return r.ok(schemas)
-        except Exception as e:
-            return r.fail(f"Failed to get schemas: {e}")
+        sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
+        result = self.execute_query(sql)
+        if result.is_failure:
+            return r.fail(result.error or "Failed to execute query")
+        schemas = [str(row["schema_name"]) for row in result.value]
+        return r.ok(schemas)
 
     def get_tables(self, schema: str | None = None) -> r[list[str]]:
         """Get list of tables in Oracle schema."""
-        try:
-            if schema:
-                sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-                params: dict[str, t.JsonValue] | None = {"schema_name": schema}
-            else:
-                sql = "SELECT table_name FROM user_tables ORDER BY table_name"
-                params = None
-
-            result = self.execute_query(sql, params)
-            if result.is_failure:
-                return r.fail(result.error or "Failed to execute query")
-
-            tables = [str(row["table_name"]) for row in result.value]
-            return r.ok(tables)
-        except Exception as e:
-            return r.fail(f"Failed to get tables: {e}")
+        if schema:
+            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            params: dict[str, t.JsonValue] | None = {"schema_name": schema}
+        else:
+            sql = "SELECT table_name FROM user_tables ORDER BY table_name"
+            params = None
+        result = self.execute_query(sql, params)
+        if result.is_failure:
+            return r.fail(result.error or "Failed to execute query")
+        tables = [str(row["table_name"]) for row in result.value]
+        return r.ok(tables)
 
     def get_columns(
         self,
@@ -241,30 +211,26 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         schema_name: str | None = None,
     ) -> r[list[dict[str, t.JsonValue]]]:
         """Get column information for Oracle table."""
-        try:
-            if schema_name:
-                sql = """
- SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
- FROM all_tab_columns
- WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
- ORDER BY column_id
- """
-                params: dict[str, t.JsonValue] = {
-                    "table_name": table_name,
-                    "schema_name": schema_name,
-                }
-            else:
-                sql = """
- SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
- FROM user_tab_columns
- WHERE table_name = UPPER(:table_name)
- ORDER BY column_id
- """
-                params = {"table_name": table_name}
-
-            return self.execute_query(sql, params)
-        except Exception as e:
-            return r.fail(f"Failed to get columns: {e}")
+        if schema_name:
+            sql = """
+SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
+FROM all_tab_columns
+WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
+ORDER BY column_id
+"""
+            params: dict[str, t.JsonValue] = {
+                "table_name": table_name,
+                "schema_name": schema_name,
+            }
+        else:
+            sql = """
+SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
+FROM user_tab_columns
+WHERE table_name = UPPER(:table_name)
+ORDER BY column_id
+"""
+            params = {"table_name": table_name}
+        return self.execute_query(sql, params)
 
     def get_primary_keys(
         self,
@@ -275,33 +241,32 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         try:
             if schema:
                 sql = """
- SELECT column_name
- FROM all_constraints c, all_cons_columns cc
- WHERE c.constraint_type = 'P'
- AND c.constraint_name = cc.constraint_name
- AND c.table_name = UPPER(:table_name)
- AND c.owner = :schema
- ORDER BY cc.position
- """
+                SELECT column_name
+                FROM all_constraints c, all_cons_columns cc
+                WHERE c.constraint_type = 'P'
+                AND c.constraint_name = cc.constraint_name
+                AND c.table_name = UPPER(:table_name)
+                AND c.owner = UPPER(:schema)
+                ORDER BY cc.position
+                """
                 params: dict[str, t.JsonValue] = {
                     "table_name": table_name,
                     "schema": schema,
                 }
             else:
                 sql = """
- SELECT column_name
- FROM all_constraints c, all_cons_columns cc
- WHERE c.constraint_type = 'P'
- AND c.constraint_name = cc.constraint_name
- AND c.table_name = UPPER(:table_name)
- ORDER BY cc.position
- """
+                SELECT column_name
+                FROM user_constraints c, user_cons_columns cc
+                WHERE c.constraint_type = 'P'
+                AND c.constraint_name = cc.constraint_name
+                AND c.table_name = UPPER(:table_name)
+                ORDER BY cc.position
+                """
                 params = {"table_name": table_name}
 
             result = self.execute_query(sql, params)
             if result.is_failure:
-                return r.fail(result.error or "Failed to execute query")
-
+                return r.fail(result.error or "Failed to get primary keys")
             primary_keys = [str(row["column_name"]) for row in result.value]
             return r.ok(primary_keys)
         except Exception as e:
@@ -318,19 +283,16 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             columns_result = self.get_columns(table_name, schema)
             if columns_result.is_failure:
                 return r.fail(columns_result.error or "Failed to get columns")
-
             # Get primary keys
             pk_result = self.get_primary_keys(table_name, schema)
             if pk_result.is_failure:
                 return r.fail(pk_result.error or "Failed to get primary keys")
-
             metadata: dict[str, t.JsonValue] = {
                 "table_name": table_name,
                 "schema": schema,
-                "columns": (columns_result.value),
-                "primary_keys": (pk_result.value),
+                "columns": columns_result.value,
+                "primary_keys": pk_result.value,
             }
-
             return r.ok(metadata)
         except Exception as e:
             return r.fail(f"Failed to get table metadata: {e}")
@@ -347,9 +309,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def build_select(
         self,
         table_name: str,
+        schema_name: str | None = None,
         columns: list[str] | None = None,
         conditions: dict[str, t.JsonValue] | None = None,
-        schema_name: str | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
         cols = ", ".join(columns) if columns else "*"
@@ -364,16 +326,15 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: list[str],
-        schema_name: str | None = None,
+        schema: str | None = None,
         returning_columns: list[str] | None = None,
     ) -> r[str]:
         """Build INSERT statement - simplified."""
-        schema = f"{schema_name}." if schema_name else ""
         cols = ", ".join(columns)
         vals = ", ".join(f":{col}" for col in columns)
-        # Query builder pattern - inputs should be validated by caller
+        schema_prefix = f"{schema}." if schema else ""
         # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"INSERT INTO {schema}{table_name} ({cols}) VALUES ({vals})"
+        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"
         if returning_columns:
             ret = ", ".join(returning_columns)
             sql += f" RETURNING {ret}"
@@ -384,29 +345,26 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         table_name: str,
         set_columns: list[str],
         where_columns: list[str],
-        schema_name: str | None = None,
+        schema: str | None = None,
     ) -> r[str]:
         """Build UPDATE statement - simplified."""
-        schema = f"{schema_name}." if schema_name else ""
         sets = ", ".join(f"{col} = :{col}" for col in set_columns)
         wheres = " AND ".join(f"{col} = :where_{col}" for col in where_columns)
-        # Query builder pattern - inputs should be validated by caller
+        schema_prefix = f"{schema}." if schema else ""
         # S608: Safe - uses parameterized bind variables (:col, :where_col)
-        sql = f"UPDATE {schema}{table_name} SET {sets} WHERE {wheres}"
+        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"
         return r.ok(sql)
 
     def build_delete_statement(
         self,
         table_name: str,
         where_columns: list[str],
-        schema_name: str | None = None,
+        schema: str | None = None,
     ) -> r[str]:
         """Build DELETE statement - simplified."""
-        schema = f"{schema_name}." if schema_name else ""
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
-        # Query builder pattern - inputs should be validated by caller
-        # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"DELETE FROM {schema}{table_name} WHERE {wheres}"
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"
         return r.ok(sql)
 
     def build_create_index_statement(self, _config: object) -> r[str]:
@@ -417,39 +375,37 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: list[dict[str, t.JsonValue]],
-        schema_name: str | None = None,
+        schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
-        schema = f"{schema_name}." if schema_name else ""
         col_defs: list[str] = []
         for col in columns:
             name = col.get("name", "unknown")
             data_type = col.get("data_type", "VARCHAR2(255)")
             nullable = "" if col.get("nullable", True) else " NOT NULL"
             col_defs.append(f"{name} {data_type}{nullable}")
-
-        ddl = f"CREATE TABLE {schema}{table_name} (\n  {', '.join(col_defs)}\n)"
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
         return r.ok(ddl)
 
     def drop_table_ddl(
         self,
         table_name: str,
-        schema_name: str | None = None,
+        schema: str | None = None,
     ) -> r[str]:
         """Generate DROP TABLE DDL."""
-        schema = f"{schema_name}." if schema_name else ""
-        ddl = f"DROP TABLE {schema}{table_name}"
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"DROP TABLE {schema_prefix}{table_name}"
         return r.ok(ddl)
 
     def convert_singer_type(
         self,
-        singer_type: str | list[str],
+        singer_type: str | list[str] = "string",
         _format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
         if isinstance(singer_type, list):
             singer_type = singer_type[0] if singer_type else "string"
-
         type_map = {
             "string": "VARCHAR2(255)",
             "integer": "NUMBER",
@@ -478,7 +434,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     # Placeholder methods for compatibility
     def generate_query_hash(
         self,
-        sql: str,
+        sql: str = "",
         params: dict[str, t.JsonValue] | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
@@ -497,7 +453,6 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         })
 
     def record_metric(
-        self,
         _name: str,
         _value: float,
         _tags: dict[str, str] | None = None,
@@ -513,27 +468,23 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Perform health check."""
         return r.ok({
             "status": "healthy" if self.is_connected() else "unhealthy",
-            "connected": self.is_connected(),
             "timestamp": "2025-01-01T00:00:00Z",
         })
 
     def register_plugin(self, _name: str, _plugin: object) -> r[None]:
         """Register plugin - placeholder."""
-        return r.ok(None)
 
     def unregister_plugin(self, _name: str) -> r[None]:
         """Unregister plugin - placeholder."""
-        return r.ok(None)
 
     def list_plugins(self) -> r[dict[str, t.JsonValue]]:
         """List plugins - placeholder."""
-        return r.ok({})
 
     def get_plugin(self, _name: str) -> r[object]:
         """Get plugin - placeholder implementation.
 
         Args:
-        _name: Plugin name (reserved for future implementation)
+            _name: Plugin name (reserved for future implementation)
 
         """
         return r.ok(None)
@@ -560,7 +511,6 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             result = self.execute_query(sql)
             if result.is_failure:
                 return r.fail(result.error or "Failed to get count")
-
             rows = result.value
             if rows and "count" in rows[0]:
                 count_value = rows[0]["count"]
@@ -573,10 +523,10 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
 
     def track_operation(
         self,
-        operation_type: str,
-        duration: float,
+        operation_type: str = "",
+        duration: float = 0.0,
         *,
-        _success: bool,
+        success: bool = True,
         metadata: dict[str, t.JsonValue] | None = None,
     ) -> r[None]:
         """Track database operation for monitoring."""
@@ -584,7 +534,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             operation = {
                 "operation_type": operation_type,
                 "duration": duration,
-                "success": _success,
+                "success": success,
                 "metadata": metadata or {},
                 "timestamp": self._get_current_timestamp(),
             }

@@ -2,7 +2,6 @@
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -26,58 +25,41 @@ class FlextDbOracleDispatcher(s):
     class ConnectCommand:
         """Command to establish an Oracle database connection."""
 
-    @dataclass(slots=True)
     class DisconnectCommand:
         """Command to close the Oracle database connection."""
 
-    @dataclass(slots=True)
     class TestConnectionCommand:
         """Command to validate the Oracle database connectivity."""
 
-    @dataclass(slots=True)
     class ExecuteQueryCommand:
         """Command to execute a SQL query and return rows."""
 
         sql: str
         parameters: dict[str, t.JsonValue] | None = None
 
-    @dataclass(slots=True)
     class FetchOneCommand:
         """Command to execute a SQL query and fetch a single row."""
 
-        sql: str
-        parameters: dict[str, t.JsonValue] | None = None
-
-    @dataclass(slots=True)
     class ExecuteStatementCommand:
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
-        sql: str
-        parameters: dict[str, t.JsonValue] | None = None
-
-    @dataclass(slots=True)
     class ExecuteManyCommand:
         """Command to execute a SQL statement multiple times."""
 
-        sql: str
         parameters_list: list[dict[str, t.JsonValue]]
 
-    @dataclass(slots=True)
     class GetSchemasCommand:
         """Command to retrieve available database schemas."""
 
-    @dataclass(slots=True)
     class GetTablesCommand:
         """Command to list tables for an optional schema."""
 
         schema: str | None = None
 
-    @dataclass(slots=True)
     class GetColumnsCommand:
         """Command to list column metadata for a table."""
 
         table: str
-        schema: str | None = None
 
     @classmethod
     def _create_connection_handlers(
@@ -105,9 +87,8 @@ class FlextDbOracleDispatcher(s):
             },
         )
 
-    @classmethod
     def _create_query_handlers(
-        cls,
+        self,
         services: FlextDbOracleServices,
     ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create query-related handler functions."""
@@ -142,19 +123,15 @@ class FlextDbOracleDispatcher(s):
             )
             return services.execute_many(sql, parameters_list)
 
-        return (
-            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
-            {
-                cls.ExecuteQueryCommand: (execute_query_handler, None),
-                cls.FetchOneCommand: (fetch_one_handler, None),
-                cls.ExecuteStatementCommand: (execute_statement_handler, None),
-                cls.ExecuteManyCommand: (execute_many_handler, None),
-            },
-        )
+        return {
+            self.ExecuteQueryCommand: (execute_query_handler, None),
+            self.FetchOneCommand: (fetch_one_handler, None),
+            self.ExecuteStatementCommand: (execute_statement_handler, None),
+            self.ExecuteManyCommand: (execute_many_handler, None),
+        }
 
-    @classmethod
     def _create_schema_handlers(
-        cls,
+        self,
         services: FlextDbOracleServices,
     ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
         """Create schema/metadata handler functions."""
@@ -171,14 +148,11 @@ class FlextDbOracleDispatcher(s):
             schema = getattr(command, "schema", None)
             return services.get_columns(table, schema)
 
-        return (
-            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
-            {
-                cls.GetSchemasCommand: (get_schemas_handler, None),
-                cls.GetTablesCommand: (get_tables_handler, None),
-                cls.GetColumnsCommand: (get_columns_handler, None),
-            },
-        )
+        return {
+            self.GetSchemasCommand: (get_schemas_handler, None),
+            self.GetTablesCommand: (get_tables_handler, None),
+            self.GetColumnsCommand: (get_columns_handler, None),
+        }
 
     @classmethod
     def build_dispatcher(
@@ -190,26 +164,20 @@ class FlextDbOracleDispatcher(s):
         """Create a dispatcher instance wired to Oracle services."""
         dispatcher = FlextDispatcher()
         registry = FlextRegistry(dispatcher)
-
         # Create handler functions grouped by functionality
         function_map: dict[type, tuple[t.MiddlewareType, dict[str, object] | None]] = {}
-
         # Add connection handlers
         function_map.update(cls._create_connection_handlers(services))
-
-        # Add query handlers
-        function_map.update(cls._create_query_handlers(services))
-
+        # Add query handlers - need instance for these methods now
+        instance = cls()
+        function_map.update(instance._create_query_handlers(services))
         # Add schema handlers
-        function_map.update(cls._create_schema_handlers(services))
-
+        function_map.update(instance._create_schema_handlers(services))
         registry.register_function_map(function_map)
-
         return dispatcher
 
 
 # FLEXT Zero Tolerance: No aliases or legacy access - use unified class directly
-
 __all__ = [
     "FlextDbOracleDispatcher",
 ]

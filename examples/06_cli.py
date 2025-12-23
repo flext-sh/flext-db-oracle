@@ -191,8 +191,7 @@ export FLEXT_CLI_LOG_LEVEL="debug"
 
     env_file = Path(".env")
     if not env_file.exists():
-        with env_file.open("w", encoding="utf-8") as f:
-            f.write(setup_script.strip())
+        env_file.write_text(setup_script.strip(), encoding="utf-8")
 
 
 def show_docker_example() -> None:
