@@ -18,11 +18,9 @@ from typing import Protocol, override
 
 import yaml
 from flext_cli import FlextCliCommands
-from flext_core import (
-    FlextContainer,
+from flext import FlextContainer,
     FlextResult,
-    FlextService,
-)
+    FlextService
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants

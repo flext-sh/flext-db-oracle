@@ -1,10 +1,21 @@
-"""init   module.
+"""FLEXT DB Oracle Tests - Test infrastructure and utilities.
 
-This module is part of the FLEXT ecosystem. Docstrings follow PEP 257 and Google style.
+Provides TestsFlextDbOracle classes extending FlextTests and FlextDbOracle for comprehensive testing.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
+
+from tests.constants import TestsFlextDbOracleConstants, c, tc
+from tests.models import TestsFlextDbOracleModels, m, tm
+
+__all__ = [
+    "TestsFlextDbOracleConstants",
+    "TestsFlextDbOracleModels",
+    "c",
+    "m",
+    "tc",
+    "tm",
+]

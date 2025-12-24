@@ -186,7 +186,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def get_tables(
-                self, schema: str | None = None
+                self, schema: str | None = None,
             ) -> FlextProtocols.Result[list[str]]:
                 """Get list of tables in Oracle schema.
 
@@ -451,7 +451,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle database plugin registry operations."""
 
             def register_plugin(
-                self, name: str, _plugin: object
+                self, name: str, _plugin: object,
             ) -> FlextProtocols.Result[bool]:
                 """Register Oracle database plugin.
 

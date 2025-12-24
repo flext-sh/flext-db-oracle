@@ -1,7 +1,7 @@
 # flext-db-oracle
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-functional-yellow.svg)](#)
+[![Status](https://img.shields.io/badge/status-functional-yellow.svg)]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **Python-oracledb** with FLEXT patterns.

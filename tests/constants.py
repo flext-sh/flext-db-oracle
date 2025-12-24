@@ -1,7 +1,11 @@
-"""Test constants for flext-db-oracle tests.
+"""Constants for flext-db-oracle tests.
 
-Centralized constants for test fixtures, factories, and test data.
-Does NOT duplicate src/flext_db_oracle/constants.py - only test-specific constants.
+Provides TestsFlextDbOracleConstants, extending FlextTestsConstants with flext-db-oracle-specific
+constants using COMPOSITION INHERITANCE.
+
+Inheritance hierarchy:
+- FlextTestsConstants (flext_tests) - Provides .Tests.* namespace
+- FlextDbOracleConstants (production) - Provides .Oracle.* namespace
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -11,11 +15,31 @@ from __future__ import annotations
 
 from typing import Final
 
+from flext_tests.constants import FlextTestsConstants
+
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class TestsConstants(FlextDbOracleConstants):
-    """Centralized test constants following flext-core nested class pattern."""
+class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
+    """Constants for flext-db-oracle tests using COMPOSITION INHERITANCE.
+
+    MANDATORY: Inherits from BOTH:
+    1. FlextTestsConstants - for test infrastructure (.Tests.*)
+    2. FlextDbOracleConstants - for domain constants (.Oracle.*)
+
+    Access patterns:
+    - tc.Tests.Docker.* (container testing)
+    - tc.Tests.Matcher.* (assertion messages)
+    - tc.Tests.Factory.* (test data generation)
+    - tc.Oracle.* (domain constants from production)
+    - tc.TestConnection.* (project-specific test data)
+
+    Rules:
+    - NEVER duplicate constants from FlextTestsConstants or FlextDbOracleConstants
+    - Only flext-db-oracle-specific test constants allowed
+    - All generic constants come from FlextTestsConstants
+    - All production constants come from FlextDbOracleConstants
+    """
 
     class Paths:
         """Test path constants."""
@@ -24,7 +48,7 @@ class TestsConstants(FlextDbOracleConstants):
         TEST_OUTPUT_DIR: Final[str] = "tests/fixtures/data/output"
         TEST_TEMP_PREFIX: Final[str] = "flext_db_oracle_test_"
 
-    class Connection:
+    class TestConnection:
         """Connection test constants."""
 
         TEST_SERVICE_NAME: Final[str] = "TEST_SERVICE"
@@ -35,7 +59,7 @@ class TestsConstants(FlextDbOracleConstants):
         TEST_USER: Final[str] = "test_user"
         TEST_PASSWORD: Final[str] = "test_password"
 
-    class Database:
+    class TestDatabase:
         """Database test constants."""
 
         TEST_SCHEMA: Final[str] = "TEST_SCHEMA"
@@ -43,7 +67,7 @@ class TestsConstants(FlextDbOracleConstants):
         TEST_COLUMN: Final[str] = "TEST_COLUMN"
         TEST_INDEX: Final[str] = "TEST_INDEX"
 
-    class Query:
+    class TestQuery:
         """Query test constants."""
 
         TEST_SELECT_QUERY: Final[str] = "SELECT * FROM test_table WHERE id = :id"
@@ -55,7 +79,7 @@ class TestsConstants(FlextDbOracleConstants):
         )
         TEST_DELETE_QUERY: Final[str] = "DELETE FROM test_table WHERE id = :id"
 
-    class Data:
+    class TestData:
         """Data test constants."""
 
         TEST_DATA_TYPE: Final[str] = "VARCHAR2"
@@ -63,6 +87,12 @@ class TestsConstants(FlextDbOracleConstants):
         TEST_NULLABLE: Final[bool] = True
 
 
-# Standardized short name for use in tests
-c = TestsConstants
-__all__ = ["TestsConstants", "c"]
+# Short aliases per FLEXT convention
+tc = TestsFlextDbOracleConstants  # Primary test constants alias
+c = TestsFlextDbOracleConstants   # Alternative alias for compatibility
+
+__all__ = [
+    "TestsFlextDbOracleConstants",
+    "c",
+    "tc",
+]

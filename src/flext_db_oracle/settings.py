@@ -12,17 +12,17 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from flext_core import c as c_core, r
 from flext_core.settings import FlextSettings
 from pydantic import (
     Field,
     SecretStr,
-    SettingsConfigDict,
     ValidationInfo,
     computed_field,
     field_validator,
 )
+from pydantic_settings import SettingsConfigDict
 
+from flext import c as c_core, r
 from flext_db_oracle.constants import c
 
 

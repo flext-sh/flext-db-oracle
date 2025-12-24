@@ -15,11 +15,13 @@
 **Python**: 3.13+
 
 **Key Architecture**:
+
 - Single consolidated API class: `FlextDbOracleApi`
 - Wraps SQLAlchemy 2.0 and oracledb driver internally
 - Uses flext-core patterns: `FlextResult[T]` railway pattern, `FlextService` base class
 
 **CRITICAL CONSTRAINT - ZERO TOLERANCE**:
+
 - **api.py** is the ONLY file that may import SQLAlchemy directly
 - **All other code must use the FlextDbOracleApi abstraction**
 - Breaking this constraint violates the foundation library's core purpose
@@ -66,12 +68,14 @@ if result.is_success:
 ### ZERO TOLERANCE Policies
 
 **ABSOLUTELY FORBIDDEN**:
+
 - ❌ Direct SQLAlchemy imports outside api.py
 - ❌ Exception-based error handling (use FlextResult)
 - ❌ Type ignores or `Any` types
 - ❌ Mockpatch in tests
 
 **MANDATORY**:
+
 - ✅ Use `FlextResult[T]` for all operations
 - ✅ Use FlextDbOracleApi abstraction for all database operations
 - ✅ Complete type annotations
@@ -80,6 +84,7 @@ if result.is_success:
 ---
 
 **See Also**:
+
 - [Workspace Standards](../CLAUDE.md)
 - [flext-core Patterns](../flext-core/CLAUDE.md)
 - [flext-oracle-wms Patterns](../flext-oracle-wms/CLAUDE.md)

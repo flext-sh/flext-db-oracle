@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from flext_core import (
-    FlextDispatcher,
+from flext import FlextDispatcher,
     FlextRegistry,
     s,
-    t,
-)
+    t
 
 from flext_db_oracle.services import FlextDbOracleServices
 

@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextTypes, c as c_core, m as m_core
 from flext_core.utilities import u as flext_u
 from pydantic import (
     BaseModel,
@@ -23,6 +22,7 @@ from pydantic import (
     model_validator,
 )
 
+from flext import FlextTypes, c as c_core, m as m_core
 from flext_db_oracle.constants import c
 
 
