@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext import FlextExceptions
+from flext_core import FlextExceptions
 
 
 class FlextDbOracleExceptions(FlextExceptions):

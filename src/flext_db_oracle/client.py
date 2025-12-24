@@ -14,9 +14,9 @@ import json
 from collections.abc import Callable
 from typing import ClassVar, cast
 
+from flext_core import r, s
 from flext_core.container import FlextContainer
 
-from flext import r, s
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
@@ -227,7 +227,8 @@ class FlextDbOracleClient(s):
             params_dict_raw if isinstance(params_dict_raw, dict) else {}
         )
         query_result: r[list[dict[str, object]]] = self.current_connection.query(
-            sql, params_dict,
+            sql,
+            params_dict,
         )
         if query_result.is_success:
             return r[dict[str, object]].ok({

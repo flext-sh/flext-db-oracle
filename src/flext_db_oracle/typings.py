@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext import FlextTypes
+from flext_core import FlextTypes
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -68,7 +68,8 @@ class FlextDbOracleTypes(FlextTypes):
         type QueryMetadata = dict[str, str | int | dict[str, FlextTypes.JsonValue]]
         type PreparedStatement = dict[str, str | dict[str, FlextTypes.JsonValue]]
         type QueryExecution = dict[
-            str, str | int | bool | dict[str, FlextTypes.JsonValue],
+            str,
+            str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
 
     # =========================================================================
@@ -101,10 +102,12 @@ class FlextDbOracleTypes(FlextTypes):
         type SchemaDefinition = dict[str, str | list[dict[str, FlextTypes.JsonValue]]]
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
         type ColumnDefinition = dict[
-            str, str | int | bool | dict[str, FlextTypes.JsonValue],
+            str,
+            str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
         type IndexDefinition = dict[
-            str, str | list[str] | dict[str, FlextTypes.JsonValue],
+            str,
+            str | list[str] | dict[str, FlextTypes.JsonValue],
         ]
         type ConstraintDefinition = dict[str, str | list[str] | bool]
         type ViewDefinition = dict[str, str | dict[str, FlextTypes.JsonValue]]
@@ -124,12 +127,14 @@ class FlextDbOracleTypes(FlextTypes):
             str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
         type SessionState = dict[
-            str, FlextTypes.JsonValue | dict[str, FlextTypes.JsonValue],
+            str,
+            FlextTypes.JsonValue | dict[str, FlextTypes.JsonValue],
         ]
         type SessionVariables = dict[str, FlextTypes.JsonValue]
         type SessionMetrics = dict[str, int | float | str]
         type SessionPooling = dict[
-            str, int | bool | str | dict[str, FlextTypes.JsonValue],
+            str,
+            int | bool | str | dict[str, FlextTypes.JsonValue],
         ]
         type SessionTimeout = dict[str, int | str]
 
@@ -144,11 +149,13 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         type PerformanceMetrics = dict[
-            str, int | float | dict[str, FlextTypes.JsonValue],
+            str,
+            int | float | dict[str, FlextTypes.JsonValue],
         ]
         type QueryPlan = dict[str, str | int | list[dict[str, FlextTypes.JsonValue]]]
         type ExecutionStats = dict[
-            str, int | float | str | dict[str, FlextTypes.JsonValue],
+            str,
+            int | float | str | dict[str, FlextTypes.JsonValue],
         ]
         type IndexUsage = dict[str, str | int | bool | dict[str, FlextTypes.JsonValue]]
         type CacheConfiguration = dict[str, int | str | bool]
@@ -166,7 +173,8 @@ class FlextDbOracleTypes(FlextTypes):
 
         type UserPermissions = dict[str, list[str] | dict[str, bool]]
         type RoleDefinition = dict[
-            str, str | list[str] | dict[str, FlextTypes.JsonValue],
+            str,
+            str | list[str] | dict[str, FlextTypes.JsonValue],
         ]
         type PrivilegeConfiguration = dict[
             str,
@@ -175,7 +183,8 @@ class FlextDbOracleTypes(FlextTypes):
         type AccessPolicy = dict[str, str | bool | dict[str, FlextTypes.JsonValue]]
         type EncryptionConfig = dict[str, str | bool | dict[str, FlextTypes.JsonValue]]
         type AuditConfiguration = dict[
-            str, bool | str | dict[str, FlextTypes.JsonValue],
+            str,
+            bool | str | dict[str, FlextTypes.JsonValue],
         ]
 
     # =========================================================================

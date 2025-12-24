@@ -14,9 +14,9 @@ import contextlib
 from collections.abc import Sequence
 from typing import Self, override
 
+from flext_core import r, s
 from flext_core.container import FlextContainer
 
-from flext import r, s
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels

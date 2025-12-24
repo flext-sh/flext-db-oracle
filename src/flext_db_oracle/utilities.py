@@ -5,9 +5,8 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import Annotated
 
+from flext_core import u as u_core
 from pydantic import BeforeValidator
-
-from flext import u as u_core
 
 
 class FlextDbOracleUtilities(u_core):

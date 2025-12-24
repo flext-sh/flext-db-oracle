@@ -15,7 +15,7 @@ import os
 from enum import StrEnum
 from typing import ClassVar, Final, Literal
 
-from flext import c as c_core
+from flext_core import c as c_core
 
 
 class FlextDbOracleConstants(c_core):

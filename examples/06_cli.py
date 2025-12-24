@@ -13,7 +13,7 @@ import os
 import sys
 from pathlib import Path
 
-from flext import u
+from flext_core import u
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3

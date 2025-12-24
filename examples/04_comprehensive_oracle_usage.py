@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext import FlextLogger, FlextResult, FlextService, t
+from flext_core import FlextLogger, FlextResult, FlextService, t
 
 logger = FlextLogger(__name__)
 

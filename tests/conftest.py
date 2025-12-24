@@ -16,9 +16,9 @@ from typing import Any
 
 import oracledb
 import pytest
+from flext_core import FlextLogger
 from flext_tests import FlextTestsDocker, FlextTestsDomains
 
-from flext import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger = FlextLogger(__name__)

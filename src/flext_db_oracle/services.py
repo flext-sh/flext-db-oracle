@@ -12,10 +12,10 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from urllib.parse import quote_plus
 
+from flext_core import r, s, t
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
-from flext import r, s, t
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
