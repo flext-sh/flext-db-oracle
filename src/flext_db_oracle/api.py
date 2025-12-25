@@ -41,6 +41,18 @@ class FlextDbOracleApi(s):
     - Optional FlextDispatcher integration for CQRS patterns
     """
 
+    def __new__(
+        cls,
+        config: FlextDbOracleSettings,  # noqa: ARG004
+        context_name: str | None = None,  # noqa: ARG004
+    ) -> Self:
+        """Create API instance with Oracle configuration.
+
+        Arguments are not used in __new__ - they're passed to __init__ separately.
+        This method signature exists to satisfy type checkers about constructor arguments.
+        """
+        return super().__new__(cls)
+
     @override
     def __init__(
         self,
@@ -62,7 +74,7 @@ class FlextDbOracleApi(s):
 
         # Complete flext-core ecosystem integration
         self._container = FlextContainer.get_global()
-        self._context = {}
+        self._context = None
         # Logger will be initialized lazily via the parent class property
 
         # Optional dispatcher for CQRS patterns
@@ -192,12 +204,12 @@ class FlextDbOracleApi(s):
     ) -> r[list[dict[str, object]]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        result = self._services.execute_query(sql, (parameters or {}))
+        result = self._services.execute_query(sql, parameters or {})
         if result.is_failure:
             return r.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
-        return r[list[dict[str, object]]].ok(
-            (result.value),
+        return r.ok(
+            result.value,
         )
 
     def query_one(
@@ -206,7 +218,7 @@ class FlextDbOracleApi(s):
         parameters: dict[str, object] | None = None,
     ) -> r[dict[str, object] | None]:
         """Execute a SELECT query and return first result or None."""
-        result = self._services.fetch_one(sql, (parameters or {}))
+        result = self._services.fetch_one(sql, parameters or {})
         if result.is_failure:
             return r.fail(result.error or "Query execution failed")
         # Simplify the return type by casting
