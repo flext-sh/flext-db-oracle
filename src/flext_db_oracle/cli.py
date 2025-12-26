@@ -44,28 +44,8 @@ class FlextDbOracleCli(FlextService[str]):
         """Initialize Oracle CLI Service."""
         super().__init__()
         self._container = FlextContainer.get_global()
-        # Initialize CLI components with explicit error handling
-        cli_result = self._initialize_cli_main()
-        if cli_result.is_failure:
-            self.logger.warning(f"CLI initialization failed: {cli_result.error}")
-            self._cli_main: FlextCliCommands | None = None
-        else:
-            self._cli_main = cli_result.value
-
-    def _initialize_cli_main(self) -> FlextResult[FlextCliCommands]:
-        """Initialize CLI main component with explicit error handling.
-
-        Returns:
-        FlextResult[FlextCliCommands]: CLI main component or error.
-
-        """
-        try:
-            cli_main = FlextCliCommands()
-            return FlextResult[FlextCliCommands].ok(cli_main)
-        except Exception as e:
-            return FlextResult[FlextCliCommands].fail(
-                f"FlextCliCommands initialization failed: {e}",
-            )
+        # CLI main component - initialized as None to avoid circular dependencies
+        self._cli_main: object | None = None
 
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""

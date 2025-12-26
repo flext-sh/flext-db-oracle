@@ -89,7 +89,7 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
 
 # Short aliases per FLEXT convention
 tc = TestsFlextDbOracleConstants  # Primary test constants alias
-c = TestsFlextDbOracleConstants   # Alternative alias for compatibility
+c = TestsFlextDbOracleConstants  # Alternative alias for compatibility
 
 __all__ = [
     "TestsFlextDbOracleConstants",

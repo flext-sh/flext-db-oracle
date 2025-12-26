@@ -43,8 +43,8 @@ class FlextDbOracleApi(s):
 
     def __new__(
         cls,
-        config: FlextDbOracleSettings,  # noqa: ARG004
-        context_name: str | None = None,  # noqa: ARG004
+        _config: FlextDbOracleSettings,
+        _context_name: str | None = None,
     ) -> Self:
         """Create API instance with Oracle configuration.
 

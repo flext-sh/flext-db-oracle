@@ -15,9 +15,9 @@ import threading
 import time
 
 import pytest
-from flext import FlextResult
 from flext_tests import FlextTestsDomains, tm
 
+from flext_core import FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,
@@ -30,6 +30,8 @@ from flext_db_oracle import (
 class TestFlextDbOracleApiRealFunctionality:
     """Comprehensive tests for Oracle API using ONLY real functionality - NO MOCKS."""
 
+    config = FlextDbOracleSettings
+
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
         self.config = FlextDbOracleSettings(
@@ -38,7 +40,6 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="TEST",
             username="test_user",
             password="test_password",
-            json_output=False,
         )
         self.api = FlextDbOracleApi(self.config)
 

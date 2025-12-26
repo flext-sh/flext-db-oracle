@@ -52,7 +52,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
 
 # Short aliases per FLEXT convention
 tm = TestsFlextDbOracleModels  # Primary test models alias
-m = TestsFlextDbOracleModels   # Alternative alias for production model access
+m = TestsFlextDbOracleModels  # Alternative alias for production model access
 
 __all__ = [
     "TestsFlextDbOracleModels",
