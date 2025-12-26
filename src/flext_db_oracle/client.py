@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar, cast
+from typing import ClassVar
 
 from flext_core import r, s
 from flext_core.container import FlextContainer
@@ -183,13 +183,8 @@ class FlextDbOracleClient(s):
         """Handle list schemas operation."""
         if self.current_connection is None:
             return r[dict[str, object]].fail("No active database connection")
-        schemas_result: r[list[str]] = self.current_connection.get_schemas()
-        if schemas_result.is_success:
-            return r[dict[str, object]].ok({
-                "schemas": list(schemas_result.value),
-            })
-        return r[dict[str, object]].fail(
-            schemas_result.error or "Schema listing failed",
+        return self.current_connection.get_schemas().map(
+            lambda schemas: {"schemas": list(schemas)},
         )
 
     def _handle_list_tables_operation(
@@ -200,15 +195,8 @@ class FlextDbOracleClient(s):
         if self.current_connection is None:
             return r[dict[str, object]].fail("No active database connection")
         schema = str(params.get("schema", ""))
-        tables_result: r[list[str]] = self.current_connection.get_tables(
-            schema or None,
-        )
-        if tables_result.is_success:
-            return r[dict[str, object]].ok({
-                "tables": list(tables_result.value),
-            })
-        return r[dict[str, object]].fail(
-            tables_result.error or "Table listing failed",
+        return self.current_connection.get_tables(schema or None).map(
+            lambda tables: {"tables": list(tables)},
         )
 
     def _handle_query_operation(
@@ -226,31 +214,18 @@ class FlextDbOracleClient(s):
         params_dict: dict[str, object] = (
             params_dict_raw if isinstance(params_dict_raw, dict) else {}
         )
-        query_result: r[list[dict[str, object]]] = self.current_connection.query(
-            sql,
-            params_dict,
-        )
-        if query_result.is_success:
-            return r[dict[str, object]].ok({
-                "rows": list(query_result.value),
-                "row_count": len(query_result.value) if query_result.value else 0,
-            })
-        return r[dict[str, object]].fail(
-            query_result.error or "Query execution failed",
+        return self.current_connection.query(sql, params_dict).map(
+            lambda rows: {
+                "rows": list(rows),
+                "row_count": len(rows) if rows else 0,
+            },
         )
 
     def _handle_health_check_operation(self) -> r[dict[str, object]]:
         """Handle health check operation."""
         if self.current_connection is None:
             return r[dict[str, object]].fail("No active database connection")
-        health_result: r[dict[str, object]] = (
-            self.current_connection.get_health_status()
-        )
-        if health_result.is_success:
-            return r[dict[str, object]].ok(health_result.value)
-        return r[dict[str, object]].fail(
-            health_result.error or "Health check failed",
-        )
+        return self.current_connection.get_health_status()
 
     def _format_and_display_result(
         self,
@@ -263,24 +238,13 @@ class FlextDbOracleClient(s):
         r[str]: Formatted result or error.
 
         """
-        if operation_result.is_failure:
-            return r[str].fail(operation_result.error or "Operation failed")
-
-        formatter_result: r[Callable[[t.Query.QueryResult], r[str]]] = (
-            self._get_formatter_strategy(format_type)
+        return self._get_formatter_strategy(format_type).flat_map(
+            lambda formatter: operation_result.flat_map(
+                lambda data: formatter(data)
+                if callable(formatter)
+                else r[str].fail("Invalid formatter strategy"),
+            ),
         )
-        if formatter_result.is_failure:
-            return r[str].fail(
-                formatter_result.error or "Formatter strategy failed",
-            )
-
-        formatter = formatter_result.value
-        if callable(formatter):
-            # Cast to QueryResult type for type checker
-            query_result = cast("t.Query.QueryResult", operation_result.value)
-            format_result: r[str] = formatter(query_result)
-            return format_result
-        return r[str].fail("Invalid formatter strategy")
 
     def _get_formatter_strategy(
         self,
@@ -325,30 +289,21 @@ class FlextDbOracleClient(s):
 
         """
         try:
-            # Adapt data for table display
-            adapted_result: r[list[dict[str, str]]] = self._adapt_data_for_table(data)
-            if adapted_result.is_failure:
-                return r[str].fail(
-                    adapted_result.error or "Data adaptation failed",
-                )
-
-            adapted_data = adapted_result.value
-
-            # Simple table formatting
-            if adapted_data:
-                headers: list[str] = list(adapted_data[0].keys())
-                rows: list[list[str]] = [
-                    [str(row[h]) for h in headers] for row in adapted_data
-                ]
-                result_str = (
-                    f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
-                )
-                result_str += "\n".join(["|".join(row) for row in rows])
-                return r[str].ok(result_str)
-
-            return r[str].ok(str(adapted_data))
+            return self._adapt_data_for_table(data).map(
+                lambda adapted_data: self._build_table_string(adapted_data)
+                if adapted_data
+                else str(adapted_data),
+            )
         except Exception as e:
             return r[str].fail(f"Table formatting failed: {e}")
+
+    def _build_table_string(self, adapted_data: list[dict[str, str]]) -> str:
+        """Build table string from adapted data."""
+        headers: list[str] = list(adapted_data[0].keys())
+        rows: list[list[str]] = [[str(row[h]) for h in headers] for row in adapted_data]
+        result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
+        result_str += "\n".join(["|".join(row) for row in rows])
+        return result_str
 
     def _format_as_json(
         self,

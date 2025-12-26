@@ -13,6 +13,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from flext_core import FlextTypes, c as c_core, m as m_core
+from flext_core.typings import t
 from flext_core.utilities import u as flext_u
 from pydantic import (
     BaseModel,
@@ -46,7 +47,7 @@ class FlextDbOracleModels(m_core):
     All types moved to typings.py.
     """
 
-    def __init_subclass__(cls, **kwargs: object) -> None:
+    def __init_subclass__(cls, **kwargs: t.GeneralValueType) -> None:
         """Warn when FlextDbOracleModels is subclassed directly."""
         super().__init_subclass__(**kwargs)
         flext_u.Deprecation.warn_once(

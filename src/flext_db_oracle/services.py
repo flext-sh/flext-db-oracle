@@ -175,21 +175,17 @@ class FlextDbOracleServices(s):
         params: dict[str, t.JsonValue] | None = None,
     ) -> r[dict[str, t.JsonValue] | None]:
         """Execute query and return first result."""
-        result = self.execute_query(sql, params)
-        if result.is_failure:
-            return r.fail(result.error or "Query execution failed")
-        rows = result.value
-        return r.ok(rows[0] if rows else None)
+        return self.execute_query(sql, params).map(
+            lambda rows: rows[0] if rows else None,
+        )
 
     # Schema Operations
     def get_schemas(self) -> r[list[str]]:
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
-        result = self.execute_query(sql)
-        if result.is_failure:
-            return r.fail(result.error or "Failed to execute query")
-        schemas = [str(row["schema_name"]) for row in result.value]
-        return r.ok(schemas)
+        return self.execute_query(sql).map(
+            lambda rows: [str(row["schema_name"]) for row in rows],
+        )
 
     def get_tables(self, schema: str | None = None) -> r[list[str]]:
         """Get list of tables in Oracle schema."""
@@ -199,11 +195,9 @@ class FlextDbOracleServices(s):
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
-        result = self.execute_query(sql, params)
-        if result.is_failure:
-            return r.fail(result.error or "Failed to execute query")
-        tables = [str(row["table_name"]) for row in result.value]
-        return r.ok(tables)
+        return self.execute_query(sql, params).map(
+            lambda rows: [str(row["table_name"]) for row in rows],
+        )
 
     def get_columns(
         self,
@@ -264,11 +258,9 @@ ORDER BY column_id
                 """
                 params = {"table_name": table_name}
 
-            result = self.execute_query(sql, params)
-            if result.is_failure:
-                return r.fail(result.error or "Failed to get primary keys")
-            primary_keys = [str(row["column_name"]) for row in result.value]
-            return r.ok(primary_keys)
+            return self.execute_query(sql, params).map(
+                lambda rows: [str(row["column_name"]) for row in rows],
+            )
         except Exception as e:
             return r.fail(f"Failed to get primary keys: {e}")
 
@@ -279,26 +271,21 @@ ORDER BY column_id
     ) -> r[dict[str, t.JsonValue]]:
         """Get complete table metadata."""
         try:
-            # Get table columns
-            columns_result = self.get_columns(table_name, schema)
-            if columns_result.is_failure:
-                return r.fail(columns_result.error or "Failed to get columns")
-            # Get primary keys
-            pk_result = self.get_primary_keys(table_name, schema)
-            if pk_result.is_failure:
-                return r.fail(pk_result.error or "Failed to get primary keys")
-            metadata: dict[str, t.JsonValue] = {
-                "table_name": table_name,
-                "schema": schema,
-                "columns": columns_result.value,
-                "primary_keys": pk_result.value,
-            }
-            return r.ok(metadata)
+            return self.get_columns(table_name, schema).flat_map(
+                lambda columns: self.get_primary_keys(table_name, schema).map(
+                    lambda pk: {
+                        "table_name": table_name,
+                        "schema": schema,
+                        "columns": columns,
+                        "primary_keys": pk,
+                    },
+                ),
+            )
         except Exception as e:
             return r.fail(f"Failed to get table metadata: {e}")
 
     # Service
-    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
@@ -367,7 +354,7 @@ ORDER BY column_id
         sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"
         return r.ok(sql)
 
-    def build_create_index_statement(self, _config: object) -> r[str]:
+    def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
         """Build CREATE INDEX statement - placeholder."""
         return r.ok("CREATE INDEX statement")
 
@@ -471,7 +458,7 @@ ORDER BY column_id
             "timestamp": "2025-01-01T00:00:00Z",
         })
 
-    def register_plugin(self, _name: str, _plugin: object) -> r[None]:
+    def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
         """Register plugin - placeholder."""
 
     def unregister_plugin(self, _name: str) -> r[None]:
@@ -480,7 +467,7 @@ ORDER BY column_id
     def list_plugins(self) -> r[dict[str, t.JsonValue]]:
         """List plugins - placeholder."""
 
-    def get_plugin(self, _name: str) -> r[object]:
+    def get_plugin(self, _name: str) -> r[t.JsonValue]:
         """Get plugin - placeholder implementation.
 
         Args:
@@ -508,16 +495,13 @@ ORDER BY column_id
             # Query builder pattern - inputs should be validated by caller
             # S608: Safe - uses column identifiers and bind parameters
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
-            result = self.execute_query(sql)
-            if result.is_failure:
-                return r.fail(result.error or "Failed to get count")
-            rows = result.value
-            if rows and "count" in rows[0]:
-                count_value = rows[0]["count"]
-                count = int(count_value) if isinstance(count_value, (int, str)) else 0
-            else:
-                count = 0
-            return r.ok(count)
+            return self.execute_query(sql).map(
+                lambda rows: int(rows[0]["count"])
+                if rows
+                and "count" in rows[0]
+                and isinstance(rows[0]["count"], (int, str))
+                else 0,
+            )
         except Exception as e:
             return r.fail(f"Failed to get row count: {e}")
 

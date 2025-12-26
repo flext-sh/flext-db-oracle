@@ -14,7 +14,7 @@ import contextlib
 from collections.abc import Sequence
 from typing import Self, override
 
-from flext_core import r, s
+from flext_core import r, s, t
 from flext_core.container import FlextContainer
 
 from flext_db_oracle.constants import c
@@ -81,7 +81,7 @@ class FlextDbOracleApi(s):
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
 
         # Plugin system
-        self._plugins: dict[str, object] = {}
+        self._plugins: dict[str, t.JsonValue] = {}
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
@@ -148,7 +148,7 @@ class FlextDbOracleApi(s):
                 f"API creation from URL failed: {e}",
             )
 
-    def to_dict(self) -> dict[str, object]:
+    def to_dict(self) -> dict[str, t.JsonValue]:
         """Convert API instance to dictionary representation."""
         return {
             "config": {
@@ -168,7 +168,7 @@ class FlextDbOracleApi(s):
         return self._services
 
     @property
-    def plugins(self) -> dict[str, object]:
+    def plugins(self) -> dict[str, t.JsonValue]:
         """Get the plugins dictionary."""
         return self._plugins
 
@@ -200,77 +200,47 @@ class FlextDbOracleApi(s):
     def query(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
-    ) -> r[list[dict[str, object]]]:
+        parameters: dict[str, t.JsonValue] | None = None,
+    ) -> r[list[dict[str, t.JsonValue]]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        result = self._services.execute_query(sql, parameters or {})
-        if result.is_failure:
-            return r.fail(result.error or "Query execution failed")
-        # Simplify the return type by casting
-        return r.ok(
-            result.value,
-        )
+        return self._services.execute_query(sql, parameters or {})
 
     def query_one(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
-    ) -> r[dict[str, object] | None]:
+        parameters: dict[str, t.JsonValue] | None = None,
+    ) -> r[dict[str, t.JsonValue] | None]:
         """Execute a SELECT query and return first result or None."""
-        result = self._services.fetch_one(sql, parameters or {})
-        if result.is_failure:
-            return r.fail(result.error or "Query execution failed")
-        # Simplify the return type by casting
-        return r[dict[str, object] | None].ok(
-            result.value,
-        )
+        return self._services.fetch_one(sql, parameters or {})
 
     def execute_sql(
         self,
         sql: str,
-        parameters: dict[str, object] | None = None,
+        parameters: dict[str, t.JsonValue] | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
-        result = self._services.execute_statement(
-            sql,
-            (parameters or {}),
-        )
-        if result.is_failure:
-            return r.fail(result.error or "SQL execution failed")
-        return r[int].ok(result.value)
+        return self._services.execute_statement(sql, parameters or {})
 
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[dict[str, object]],
+        parameters_list: Sequence[dict[str, t.JsonValue]],
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        result = self._services.execute_many(
-            sql,
-            list(parameters_list),
-        )
-        if result.is_failure:
-            return r.fail(result.error or "Bulk execution failed")
-        return r[int].ok(result.value)
+        return self._services.execute_many(sql, list(parameters_list))
 
     def execute_statement(
         self,
-        sql: str | object,
-        parameters: dict[str, object] | None = None,
+        sql: str | t.JsonValue,
+        parameters: dict[str, t.JsonValue] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
         try:
             sql_text = str(sql) if not isinstance(sql, str) else sql
-            result = self._services.execute_statement(
-                sql_text,
-                (parameters or {}),
-            )
-            if result.is_failure:
-                return r.fail(result.error or "Statement execution failed")
-            return r[int].ok(result.value)
+            return self._services.execute_statement(sql_text, parameters or {})
         except Exception as e:
             return r.fail(f"Statement execution failed: {e}")
 
@@ -287,41 +257,27 @@ class FlextDbOracleApi(s):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[list[dict[str, object]]]:
+    ) -> r[list[dict[str, t.JsonValue]]]:
         """Get column information for specified table."""
-        result = self._services.get_columns(table, schema)
-        if result.is_failure:
-            return r[list[dict[str, object]]].fail(
-                result.error or "Unknown error",
-            )
-
-        columns_data = [
-            {
-                "name": col.get("column_name", ""),
-                "data_type": col.get("data_type", ""),
-                "nullable": col.get("nullable", False),
-                "default_value": col.get("data_default", None),
-            }
-            for col in result.value
-        ]
-        # Cast to simplify return type
-        return r[list[dict[str, object]]].ok(
-            (columns_data),
+        return self._services.get_columns(table, schema).map(
+            lambda cols: [
+                {
+                    "name": col.get("column_name", ""),
+                    "data_type": col.get("data_type", ""),
+                    "nullable": col.get("nullable", False),
+                    "default_value": col.get("data_default", None),
+                }
+                for col in cols
+            ],
         )
 
     def get_table_metadata(
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[dict[str, object]]:
+    ) -> r[dict[str, t.JsonValue]]:
         """Get complete table metadata including columns and constraints."""
-        result = self._services.get_table_metadata(table, schema)
-        if result.is_failure:
-            return r.fail(result.error or "Metadata retrieval failed")
-        # Simplify return type by casting
-        return r[dict[str, object]].ok(
-            result.value,
-        )
+        return self._services.get_table_metadata(table, schema)
 
     def get_primary_keys(
         self,
@@ -341,17 +297,13 @@ class FlextDbOracleApi(s):
 
     def map_singer_schema(
         self,
-        schema: dict[str, object],
+        schema: dict[str, t.JsonValue],
     ) -> r[dict[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
-        result = self._services.map_singer_schema(schema)
-        if result.is_failure:
-            return r.fail(result.error or "Schema mapping failed")
-        # Simplify return type by casting
-        return r[dict[str, str]].ok(result.value)
+        return self._services.map_singer_schema(schema)
 
     # Transaction Management
-    def transaction(self) -> r[object]:
+    def transaction(self) -> r[t.JsonValue]:
         """Get a transaction context manager."""
         try:
             return r.ok(self._services.transaction())
@@ -366,18 +318,12 @@ class FlextDbOracleApi(s):
         except (AttributeError, ValueError, TypeError) as e:
             return r.fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> r[dict[str, object]]:
+    def get_observability_metrics(self) -> r[dict[str, t.JsonValue]]:
         """Get observability metrics for the connection."""
-        result = self._services.get_metrics()
-        if result.is_failure:
-            return r.fail(result.error or "Metrics retrieval failed")
-        # Simplify return type by casting
-        return r[dict[str, object]].ok(
-            result.value,
-        )
+        return self._services.get_metrics()
 
     # Plugin System
-    def register_plugin(self, name: str, plugin: object) -> r[None]:
+    def register_plugin(self, name: str, plugin: t.JsonValue) -> r[None]:
         """Register a plugin with the services layer."""
         try:
             self._plugins[name] = plugin
@@ -395,7 +341,7 @@ class FlextDbOracleApi(s):
         except (KeyError, AttributeError) as e:
             return r.fail(f"Failed to unregister plugin '{name}': {e}")
 
-    def get_plugin(self, name: str) -> r[object]:
+    def get_plugin(self, name: str) -> r[t.JsonValue]:
         """Get a registered plugin by name."""
         try:
             return (
@@ -419,43 +365,44 @@ class FlextDbOracleApi(s):
     ) -> r[FlextDbOracleModels.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:
-            result = self._services.execute_query(sql)
-            if result.is_failure:
-                return r.fail(result.error or "SQL execution failed")
-
-            data = result.value
-            if not isinstance(data, list) or not data:
-                return r.ok(
-                    FlextDbOracleModels.QueryResult(
-                        query=sql,
-                        columns=[],
-                        rows=[],
-                        row_count=0,
-                    ),
-                )
-
-            first_row = data[0]
-            if isinstance(first_row, dict):
-                columns = list(first_row.keys())
-                rows = [list(row.values()) for row in data]
-            else:
-                columns, rows = [], []
-
-            return r.ok(
-                FlextDbOracleModels.QueryResult(
-                    query=sql,
-                    columns=columns,
-                    rows=rows,
-                    row_count=len(data),
-                ),
+            return self._services.execute_query(sql).map(
+                lambda data: self._convert_to_query_result(sql, data),
             )
         except Exception as e:
             return r.fail(f"SQL execution error: {e}")
 
-    def get_health_status(self) -> r[dict[str, object]]:
+    def _convert_to_query_result(
+        self,
+        sql: str,
+        data: list[dict[str, t.JsonValue]],
+    ) -> FlextDbOracleModels.QueryResult:
+        """Convert raw query data to QueryResult model."""
+        if not isinstance(data, list) or not data:
+            return FlextDbOracleModels.QueryResult(
+                query=sql,
+                columns=[],
+                rows=[],
+                row_count=0,
+            )
+
+        first_row = data[0]
+        if isinstance(first_row, dict):
+            columns = list(first_row.keys())
+            rows = [list(row.values()) for row in data]
+        else:
+            columns, rows = [], []
+
+        return FlextDbOracleModels.QueryResult(
+            query=sql,
+            columns=columns,
+            rows=rows,
+            row_count=len(data),
+        )
+
+    def get_health_status(self) -> r[dict[str, t.JsonValue]]:
         """Get database connection health status."""
         try:
-            status: dict[str, object] = {
+            status: dict[str, t.JsonValue] = {
                 "connected": self.is_connected,
                 "host": self._oracle_config.host,
                 "port": self._oracle_config.port,
@@ -466,7 +413,7 @@ class FlextDbOracleApi(s):
             return r.fail(f"Health check failed: {e}")
 
     @property
-    def connection(self) -> object | None:
+    def connection(self) -> t.JsonValue | None:
         """Get connection object - public interface."""
         return self._services if self._services.is_connected() else None
 
@@ -479,14 +426,19 @@ class FlextDbOracleApi(s):
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    def __exit__(
+        self,
+        exc_type: t.JsonValue,
+        exc_val: t.JsonValue,
+        exc_tb: t.JsonValue,
+    ) -> None:
         """Context manager exit - cleanup resources."""
         if hasattr(self._services, "disconnect"):
             with contextlib.suppress(Exception):
                 self.logger.debug("Disconnecting on context exit")
                 self._services.disconnect()
 
-    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""
         try:
             return r.ok(self._oracle_config)

@@ -60,56 +60,57 @@ class FlextDbOracleDispatcher(s):
     def _create_connection_handlers(
         cls,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, t.Types.JsonDict | None]]:
         """Create connection-related handler functions."""
 
-        def connect_handler(_cmd: object) -> object:
+        def connect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
             return services.connect()
 
-        def disconnect_handler(_cmd: object) -> object:
+        def disconnect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
             return services.disconnect()
 
-        def connection_test_handler(_command_data: object) -> object:
+        def connection_test_handler(
+            _command_data: t.GeneralValueType,
+        ) -> t.GeneralValueType:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection()
 
-        return (
-            "dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]",
-            {
-                cls.ConnectCommand: (connect_handler, None),
-                cls.DisconnectCommand: (disconnect_handler, None),
-                cls.TestConnectionCommand: (connection_test_handler, None),
-            },
-        )
+        return {
+            cls.ConnectCommand: (connect_handler, None),
+            cls.DisconnectCommand: (disconnect_handler, None),
+            cls.TestConnectionCommand: (connection_test_handler, None),
+        }
 
     def _create_query_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, t.Types.JsonDict | None]]:
         """Create query-related handler functions."""
 
-        def execute_query_handler(command: object) -> object:
+        def execute_query_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_query(sql, parameters)
 
-        def fetch_one_handler(command: object) -> object:
+        def fetch_one_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.fetch_one(sql, parameters)
 
-        def execute_statement_handler(command: object) -> object:
+        def execute_statement_handler(
+            command: t.GeneralValueType,
+        ) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
             return services.execute_statement(sql, parameters)
 
-        def execute_many_handler(command: object) -> object:
+        def execute_many_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
             parameters_list: list[dict[str, t.JsonValue]] = getattr(
                 command,
@@ -128,17 +129,17 @@ class FlextDbOracleDispatcher(s):
     def _create_schema_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[t.MiddlewareType, dict[str, object] | None]]:
+    ) -> dict[type, tuple[t.MiddlewareType, t.Types.JsonDict | None]]:
         """Create schema/metadata handler functions."""
 
-        def get_schemas_handler(_cmd: object) -> object:
+        def get_schemas_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
             return services.get_schemas()
 
-        def get_tables_handler(command: object) -> object:
+        def get_tables_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             schema = getattr(command, "schema", None)
             return services.get_tables(schema)
 
-        def get_columns_handler(command: object) -> object:
+        def get_columns_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             table = getattr(command, "table", "")
             schema = getattr(command, "schema", None)
             return services.get_columns(table, schema)
