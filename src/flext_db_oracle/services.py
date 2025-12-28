@@ -496,11 +496,13 @@ ORDER BY column_id
             # S608: Safe - uses column identifiers and bind parameters
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
             return self.execute_query(sql).map(
-                lambda rows: int(rows[0]["count"])
-                if rows
-                and "count" in rows[0]
-                and isinstance(rows[0]["count"], (int, str))
-                else 0,
+                lambda rows: (
+                    int(rows[0]["count"])
+                    if rows
+                    and "count" in rows[0]
+                    and isinstance(rows[0]["count"], (int, str))
+                    else 0
+                ),
             )
         except Exception as e:
             return r.fail(f"Failed to get row count: {e}")

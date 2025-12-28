@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch
 
 import yaml
 
-from flext_core import FlextResult
+from flext_core import FlextTypes as t, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,
@@ -91,7 +91,7 @@ class TestFlextDbOracleClientReal:
         # Should succeed and add the new preferences (no validation in current implementation)
         assert result.is_success is True
         # New preferences are added to the original ones
-        expected_prefs: dict[str, str | int | bool | dict[str, object]] = {
+        expected_prefs: dict[str, str | int | bool | dict[str, t.GeneralValueType]] = {
             **original_prefs,
             "invalid_key": "value",
             "another_invalid": "test",
@@ -495,9 +495,9 @@ class TestOutputFormatter:
         assert "item2" in output
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with dict[str, object] items."""
+        """Test list output formatting with dict[str, t.GeneralValueType] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        items: list[dict[str, object]] = [
+        items: list[dict[str, t.GeneralValueType]] = [
             {"name": "table1", "type": "TABLE"},
             {"name": "table2", "type": "VIEW"},
             {"other": "value"},  # Test item without name
@@ -609,7 +609,7 @@ class TestCliServiceOperations:
             FlextDbOracleApi,
             "get_health_status",
         ) as mock_health:
-            mock_health.return_value = FlextResult[dict[str, object]].fail(
+            mock_health.return_value = FlextResult[dict[str, t.GeneralValueType]].fail(
                 "Database unreachable",
             )
 
@@ -764,7 +764,7 @@ class TestCliServiceOperations:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
 
-        mock_result: list[dict[str, object]] = [
+        mock_result: list[dict[str, t.GeneralValueType]] = [
             {"id": 1, "name": "test"},
             {"id": 2, "name": "test2"},
         ]
@@ -775,7 +775,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = FlextResult[list[dict[str, object]]].ok(
+            mock_query.return_value = FlextResult[list[dict[str, t.GeneralValueType]]].ok(
                 mock_result,
             )
 

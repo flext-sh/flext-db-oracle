@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from enum import StrEnum
 from typing import Annotated
 
@@ -90,6 +91,29 @@ class FlextDbOracleUtilities(u_core):
                     enum_cls,
                     BeforeValidator(u_core.Enum.coerce_validator(enum_cls)),
                 ]
+
+        # ═══════════════════════════════════════════════════════════════════
+        # FEATURE FLAGS: Environment-based feature toggles
+        # ═══════════════════════════════════════════════════════════════════
+
+        class FeatureFlags:
+            """Feature toggles for progressive dispatcher rollout.
+
+            Moved from constants.py to utilities.py to comply with
+            architecture rules (constants.py must contain only constants).
+            Access via u.Oracle.FeatureFlags.* pattern.
+            """
+
+            @staticmethod
+            def _env_enabled(flag_name: str, default: str = "0") -> bool:
+                """Check if environment flag is enabled."""
+                value = os.environ.get(flag_name, default)
+                return value.lower() not in {"0", "false", "no"}
+
+            @classmethod
+            def dispatcher_enabled(cls) -> bool:
+                """Return True when dispatcher integration should be used."""
+                return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
 
 __all__ = [

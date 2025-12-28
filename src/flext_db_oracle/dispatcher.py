@@ -161,7 +161,9 @@ class FlextDbOracleDispatcher(s):
         dispatcher = FlextDispatcher()
         registry = FlextRegistry(dispatcher)
         # Create handler functions grouped by functionality
-        function_map: dict[type, tuple[t.MiddlewareType, dict[str, object] | None]] = {}
+        function_map: dict[
+            type, tuple[t.MiddlewareType, dict[str, t.GeneralValueType] | None]
+        ] = {}
         # Add connection handlers
         function_map.update(cls._create_connection_handlers(services))
         # Add query handlers - need instance for these methods now

@@ -13,17 +13,17 @@ import os
 import sys
 from pathlib import Path
 
-from flext_core import u
+from flext_core import FlextTypes as t, u
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[dict[str, object]]:
+def _get_cli_examples() -> list[dict[str, t.GeneralValueType]]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[dict[str, object]]: List of CLI command examples with metadata.
+        list[dict[str, t.GeneralValueType]]: List of CLI command examples with metadata.
 
     """
     return [
@@ -87,7 +87,7 @@ def _get_cli_examples() -> list[dict[str, object]]:
     ]
 
 
-def _run_example_command(example: dict[str, object]) -> None:
+def _run_example_command(example: dict[str, t.GeneralValueType]) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return

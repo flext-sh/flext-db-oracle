@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+import types
 from collections.abc import Sequence
 from typing import Self, override
 
@@ -428,9 +429,9 @@ class FlextDbOracleApi(s):
 
     def __exit__(
         self,
-        exc_type: t.JsonValue,
-        exc_val: t.JsonValue,
-        exc_tb: t.JsonValue,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
     ) -> None:
         """Context manager exit - cleanup resources."""
         if hasattr(self._services, "disconnect"):

@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
-
-from typing import cast
+from flext_core import FlextTypes as t
 
 from pydantic import SecretStr
 
@@ -315,24 +314,22 @@ class TestRealOracleExceptionsAdvanced:
 
         for config_data in invalid_configs:
             try:
-                # Convert config_data to proper types
+                # Convert config_data to proper types with explicit type assertions
                 port_value = config_data.get("port", 1521)
-                typed_config: dict[str, object] = {
-                    "host": str(config_data.get("host", "")),
-                    "port": int(port_value),
-                    "user": str(config_data.get("user", "")),
-                    "password": SecretStr(str(config_data.get("password", ""))),
-                }
-                if "service_name" in config_data:
-                    typed_config["service_name"] = str(config_data["service_name"])
+                assert isinstance(port_value, int)
 
-                # Cast typed_config to specific types for FlextDbOracleSettings
+                host_value = str(config_data.get("host", ""))
+                user_value = str(config_data.get("user", ""))
+                password_value = str(config_data.get("password", ""))
+                service_name_value = str(config_data.get("service_name", "XE"))
+
+                # Create FlextDbOracleSettings with properly typed values
                 FlextDbOracleSettings(
-                    host=str(typed_config["host"]),
-                    port=cast("int", typed_config["port"]),
-                    username=str(typed_config["user"]),
-                    password=str(typed_config["password"]),
-                    service_name=str(typed_config.get("service_name", "XE")),
+                    host=host_value,
+                    port=port_value,
+                    username=user_value,
+                    password=password_value,
+                    service_name=service_name_value,
                 )
                 # Skip validate_business_rules check since method doesn't exist
                 # validation_result = (

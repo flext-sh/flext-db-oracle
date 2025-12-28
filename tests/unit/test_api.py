@@ -17,7 +17,7 @@ import time
 import pytest
 from flext_tests import FlextTestsDomains, tm
 
-from flext_core import FlextResult
+from flext_core import FlextTypes as t, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,
@@ -90,8 +90,8 @@ class TestFlextDbOracleApiRealFunctionality:
         # Verify config section with type casting
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
-        # Cast to proper dict[str, object] type for PyRight
-        config_dict: dict[str, object] = config_obj
+        # Cast to proper dict[str, t.GeneralValueType] type for PyRight
+        config_dict: dict[str, t.GeneralValueType] = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -257,7 +257,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.ok(result)
         metrics = result.value
         assert isinstance(metrics, dict)
-        # Current implementation returns empty dict[str, object] - test actual behavior
+        # Current implementation returns empty dict[str, t.GeneralValueType] - test actual behavior
         # This demonstrates the method works, even if metrics are not populated
 
     # Configuration Factory Methods Tests
@@ -535,7 +535,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         # Create test Singer schema
-        test_schema: dict[str, object] = {
+        test_schema: dict[str, t.GeneralValueType] = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -818,7 +818,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, object]:
+        def create_test_oracle_config() -> dict[str, t.GeneralValueType]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -838,7 +838,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[dict[str, object]]]:
+        def create_test_schema_data() -> dict[str, str | list[dict[str, t.GeneralValueType]]]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -928,7 +928,7 @@ class TestApiModule:
 
         # Test query execution if method exists
         if hasattr(api, "execute_query"):
-            result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
                 str(test_query["query"]),
                 test_query["params"],
             )
@@ -970,7 +970,7 @@ class TestApiModule:
 
         # Test metadata retrieval if method exists
         if hasattr(api, "get_table_metadata"):
-            result: FlextResult[dict[str, object]] = api.get_table_metadata(
+            result: FlextResult[dict[str, t.GeneralValueType]] = api.get_table_metadata(
                 str(test_schema["table_name"]),
             )
             assert isinstance(result, FlextResult)
@@ -1033,7 +1033,7 @@ class TestApiModule:
 
         # Test query operations
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
                 str(test_query["query"]),
                 test_query["params"],
             )
@@ -1072,7 +1072,7 @@ class TestApiModule:
 
         # Test query execution error handling
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
                 invalid_query,
                 {},
             )
@@ -1081,7 +1081,7 @@ class TestApiModule:
 
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
-            metadata_result: FlextResult[dict[str, object]] = api.get_table_metadata(
+            metadata_result: FlextResult[dict[str, t.GeneralValueType]] = api.get_table_metadata(
                 "non_existent_table",
             )
             assert isinstance(metadata_result, FlextResult)
@@ -1214,7 +1214,7 @@ class TestApiModule:
         # Test query execution with realistic queries
         if hasattr(api, "execute_query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[dict[str, object]]] = api.execute_query(
+                query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
                     str(query_data["query"]),
                     query_data["params"],
                 )
@@ -1305,7 +1305,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             query = f"SELECT {index} FROM dual"
             if hasattr(api, "execute_query"):
-                result: FlextResult[list[dict[str, object]]] = api.execute_query(
+                result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
                     query,
                     {},
                 )
@@ -1440,7 +1440,7 @@ class TestFlextDbOracleApiSafeMethods:
             )
 
         # Create a test plugin directly
-        plugin: dict[str, object] = {
+        plugin: dict[str, t.GeneralValueType] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1529,7 +1529,7 @@ class TestFlextDbOracleApiSafeMethods:
         assert result.is_success
         assert isinstance(result.value, dict)
 
-        # Metrics dict[str, object] should be valid (may be empty initially)
+        # Metrics dict[str, t.GeneralValueType] should be valid (may be empty initially)
         metrics = result.value
         assert isinstance(metrics, dict)
         # API should return metrics structure even if empty
@@ -1572,7 +1572,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         # Create a plugin for testing directly
-        plugin: dict[str, object] = {
+        plugin: dict[str, t.GeneralValueType] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1795,7 +1795,7 @@ class TestFlextDbOracleApiWorking:
         assert isinstance(api_from_config, FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, object] serialization methods."""
+        """Test dict[str, t.GeneralValueType] serialization methods."""
         # These should work without database
         as_dict = self.api.to_dict()
         assert isinstance(as_dict, dict)

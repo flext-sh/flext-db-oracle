@@ -132,7 +132,7 @@ class FlextDbOracleModels(m_core):
             """Connection performance information."""
             if not self.is_connected or self.connection_time <= 0:
                 return "No performance data"
-            thresholds = c.OraclePerformance
+            thresholds = c.DbOracle.OraclePerformance
             if self.connection_time < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS:
                 return f"Excellent ({self.connection_time:.3f}s)"
             if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS:
@@ -217,7 +217,7 @@ class FlextDbOracleModels(m_core):
         @computed_field
         def performance_rating(self) -> str:
             """Query performance rating."""
-            thresholds = c.OraclePerformance
+            thresholds = c.DbOracle.OraclePerformance
             return (
                 "Excellent"
                 if self.execution_time_ms < thresholds.QUERY_EXCELLENT_THRESHOLD_MS

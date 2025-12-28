@@ -31,6 +31,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
+from flext_core import FlextTypes as t
 
 # Configure logging
 logging.basicConfig(
@@ -63,7 +64,7 @@ class AuditResult:
 
     file_path: Path
     issues: list[dict[str, int | str]] = field(default_factory=list)
-    statistics: dict[str, object] = field(default_factory=dict)
+    statistics: dict[str, t.GeneralValueType] = field(default_factory=dict)
     score: float = 0.0
     severity_counts: dict[str, int] = field(default_factory=lambda: defaultdict(int))
 
@@ -105,7 +106,7 @@ class MaintenanceReport:
     critical_issues: int = 0
     average_score: float = 0.0
     file_results: list[AuditResult] = field(default_factory=list)
-    summary: dict[str, object] = field(default_factory=dict)
+    summary: dict[str, t.GeneralValueType] = field(default_factory=dict)
     recommendations: list[str] = field(default_factory=list)
 
 
@@ -175,7 +176,7 @@ class DocumentationAuditor:
         result.score = result.health_score
         return result
 
-    def _analyze_content(self, content: str) -> dict[str, object]:
+    def _analyze_content(self, content: str) -> dict[str, t.GeneralValueType]:
         """Analyze content statistics."""
         lines = content.split("\n")
         words = re.findall(r"\b\w+\b", content)
@@ -745,10 +746,12 @@ def load_config() -> MaintenanceConfig:
                 version=data.get("version", "1.0.0"),
                 project=data.get("project", "flext-db-oracle"),
                 audit_enabled=data.get("audit", {}).get("enabled", True),
-                max_age_days=data.get("audit", {})
+                max_age_days=data
+                .get("audit", {})
                 .get("thresholds", {})
                 .get("max_age_days", 90),
-                min_word_count=data.get("audit", {})
+                min_word_count=data
+                .get("audit", {})
                 .get("thresholds", {})
                 .get("min_word_count", 100),
                 validate_markdown=data.get("validation", {}).get(

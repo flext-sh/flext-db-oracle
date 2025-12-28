@@ -9,9 +9,9 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_core import FlextTypes as t
 
 import os
-from typing import cast
 
 import pytest
 
@@ -232,7 +232,7 @@ class TestOracleE2E:
                 )
 
             # Test schema mapping
-            singer_schema = {
+            singer_schema: dict[str, t.GeneralValueType] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},
@@ -243,8 +243,7 @@ class TestOracleE2E:
                 },
             }
 
-            typed_schema = cast("dict[str, object]", singer_schema)
-            schema_result = api.map_singer_schema(typed_schema)
+            schema_result = api.map_singer_schema(singer_schema)
             if schema_result.is_failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")
 

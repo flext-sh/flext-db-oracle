@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
 from enum import StrEnum
 from typing import ClassVar, Final, Literal
 
@@ -330,19 +329,8 @@ class FlextDbOracleConstants(c_core):
             DEFAULT_POOL_RECYCLE: Final[int] = 3600
             DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
 
-        class FeatureFlags:
-            """Feature toggles for progressive dispatcher rollout."""
-
-            @staticmethod
-            def _env_enabled(flag_name: str, default: str = "0") -> bool:
-                """Check if environment flag is enabled."""
-                value = os.environ.get(flag_name, default)
-                return value.lower() not in {"0", "false", "no"}
-
-            @classmethod
-            def dispatcher_enabled(cls) -> bool:
-                """Return True when dispatcher integration should be used."""
-                return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
+        # NOTE: FeatureFlags class moved to utilities.py
+        # Use: u.Oracle.FeatureFlags.dispatcher_enabled()
 
         class OracleEnums:
             """Oracle-specific enumerations."""

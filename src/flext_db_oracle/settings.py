@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 
 from flext_core import c as c_core, r
 from flext_core.settings import FlextSettings
-from flext_core.typings import t
 from pydantic import (
     Field,
     SecretStr,
@@ -328,7 +327,7 @@ class FlextDbOracleSettings(FlextSettings):
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
 
-    def get_connection_config(self) -> t.Types.JsonDict:
+    def get_connection_config(self) -> dict[str, object]:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.host,

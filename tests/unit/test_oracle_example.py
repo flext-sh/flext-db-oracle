@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
-from flext_core import FlextResult
+from flext_core import FlextTypes as t, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
@@ -107,7 +107,7 @@ class TestRealOracleConnection:
             # Success case - use modern .value access
             fetch_data = result.value
             if fetch_data:
-                # fetch_one returns Union[dict, None], so we know it's a dict[str, object] if not None
+                # fetch_one returns Union[dict, None], so we know it's a dict[str, t.GeneralValueType] if not None
                 assert isinstance(fetch_data, dict), (
                     f"Expected dict, got {type(fetch_data)}"
                 )
@@ -151,7 +151,7 @@ class TestRealOracleConnection:
             # Success case - table created successfully
 
             # Execute many inserts
-            params_list: list[dict[str, object]] = [
+            params_list: list[dict[str, t.GeneralValueType]] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
