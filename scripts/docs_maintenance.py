@@ -746,10 +746,12 @@ def load_config() -> MaintenanceConfig:
                 version=data.get("version", "1.0.0"),
                 project=data.get("project", "flext-db-oracle"),
                 audit_enabled=data.get("audit", {}).get("enabled", True),
-                max_age_days=data.get("audit", {})
+                max_age_days=data
+                .get("audit", {})
                 .get("thresholds", {})
                 .get("max_age_days", 90),
-                min_word_count=data.get("audit", {})
+                min_word_count=data
+                .get("audit", {})
                 .get("thresholds", {})
                 .get("min_word_count", 100),
                 validate_markdown=data.get("validation", {}).get(

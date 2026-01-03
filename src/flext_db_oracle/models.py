@@ -12,7 +12,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core import FlextTypes, c as c_core, m as m_core
+from flext_core.constants import c
+from flext_core.models import FlextModels, m
 from flext_core.typings import t
 from flext_core.utilities import u as flext_u
 from pydantic import (
@@ -23,8 +24,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
-from flext_db_oracle.constants import c
 
 
 class FlextDbOracleBaseModel(BaseModel):
@@ -38,7 +37,7 @@ class FlextDbOracleBaseModel(BaseModel):
     )
 
 
-class FlextDbOracleModels(m_core):
+class FlextDbOracleModels(FlextModels):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
@@ -55,7 +54,7 @@ class FlextDbOracleModels(m_core):
             "Subclassing FlextDbOracleModels is deprecated. Use FlextModels directly with composition instead.",
         )
 
-    class ConnectionStatus(m_core.Entity):
+    class ConnectionStatus(m.Entity):
         """Connection status using flext-core Entity."""
 
         is_connected: bool = False
@@ -167,7 +166,7 @@ class FlextDbOracleModels(m_core):
         @field_serializer("error_message")
         def serialize_error_message(self, value: str) -> str:
             """Truncate long error messages."""
-            max_error_length = 500
+            max_error_length = c.DbOracle.Error.MAX_ERROR_MESSAGE_LENGTH
             if len(value) > max_error_length:
                 return f"{value[:max_error_length]}... (truncated)"
             return value
@@ -182,17 +181,17 @@ class FlextDbOracleModels(m_core):
             """Format connection time with units."""
             return f"{value:.3f}s"
 
-    class QueryResult(m_core.Entity):
+    class QueryResult(m.Entity):
         """Query result using flext-core Entity."""
 
         query: str
-        result_data: list[dict[str, FlextTypes.JsonValue]] = Field(default_factory=list)
+        result_data: list[dict[str, t.Types.JsonValue]] = Field(default_factory=list)
         row_count: int = 0
         execution_time_ms: int = 0
 
         # Additional Oracle-specific query result details
         columns: list[str] = Field(default_factory=list, description="Column names")
-        rows: list[list[FlextTypes.JsonValue]] = Field(
+        rows: list[list[t.Types.JsonValue]] = Field(
             default_factory=list,
             description="Row data",
         )
@@ -272,14 +271,14 @@ class FlextDbOracleModels(m_core):
             threshold = c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
             return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
 
-    class Table(m_core.Entity):
+    class Table(m.Entity):
         """Table metadata using flext-core Entity."""
 
         name: str
         owner: str = Field(alias="schema")
         columns: list[FlextDbOracleModels.Column] = Field(default_factory=list)
 
-    class Column(m_core.Entity):
+    class Column(m.Entity):
         """Column metadata using flext-core Entity."""
 
         name: str
@@ -290,13 +289,13 @@ class FlextDbOracleModels(m_core):
             description="Default value for the column",
         )
 
-    class Schema(m_core.Entity):
+    class Schema(m.Entity):
         """Schema metadata using flext-core Entity."""
 
         name: str
         tables: list[FlextDbOracleModels.Table] = Field(default_factory=list)
 
-    class CreateIndexConfig(m_core.Entity):
+    class CreateIndexConfig(m.Entity):
         """Create index config using flext-core Entity."""
 
         table_name: str
@@ -310,7 +309,7 @@ class FlextDbOracleModels(m_core):
             description="Parallel degree for index creation",
         )
 
-    class MergeStatementConfig(m_core.Entity):
+    class MergeStatementConfig(m.Entity):
         """Merge statement config using flext-core Entity."""
 
         target_table: str

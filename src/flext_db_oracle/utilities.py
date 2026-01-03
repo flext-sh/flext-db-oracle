@@ -6,11 +6,11 @@ import os
 from enum import StrEnum
 from typing import Annotated
 
-from flext_core import u as u_core
+from flext_core.utilities import FlextUtilities, u
 from pydantic import BeforeValidator
 
 
-class FlextDbOracleUtilities(u_core):
+class FlextDbOracleUtilities(FlextUtilities):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
     Architecture: Advanced utilities with ZERO code bloat through:
@@ -37,7 +37,7 @@ class FlextDbOracleUtilities(u_core):
 
         """
 
-        class Collection(u_core.Collection):
+        class Collection(u.Collection):
             """Collection utilities extending u_core.Collection via inheritance.
 
             Exposes all flext-core Collection methods through inheritance hierarchy.
@@ -48,7 +48,7 @@ class FlextDbOracleUtilities(u_core):
         # ARGS UTILITIES: @validated, parse_kwargs - ZERO validation boilerplate
         # ═══════════════════════════════════════════════════════════════════
 
-        class Args(u_core.Args):
+        class Args(u.Args):
             """Args utilities extending u_core.Args via inheritance.
 
             Exposes all flext-core Args methods through inheritance hierarchy,
@@ -60,7 +60,7 @@ class FlextDbOracleUtilities(u_core):
         # MODEL UTILITIES: from_dict, merge_defaults, update - ZERO try/except
         # ═══════════════════════════════════════════════════════════════════
 
-        class Model(u_core.Model):
+        class Model(u.Model):
             """Model utilities extending u_core.Model via inheritance.
 
             Exposes all flext-core Model methods through inheritance hierarchy.
@@ -89,7 +89,7 @@ class FlextDbOracleUtilities(u_core):
                 """
                 return Annotated[
                     enum_cls,
-                    BeforeValidator(u_core.Enum.coerce_validator(enum_cls)),
+                    BeforeValidator(u.Enum.coerce_validator(enum_cls)),
                 ]
 
         # ═══════════════════════════════════════════════════════════════════

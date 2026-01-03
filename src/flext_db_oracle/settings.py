@@ -74,7 +74,7 @@ class FlextDbOracleSettings(FlextSettings):
     port: int = Field(
         default=c.DbOracle.Connection.DEFAULT_PORT,
         ge=1,
-        le=65535,
+        le=c.DbOracle.OracleNetwork.MAX_PORT,
         description="Oracle database port number",
     )
 
@@ -127,64 +127,64 @@ class FlextDbOracleSettings(FlextSettings):
     pool_min: int = Field(
         default=c.DbOracle.Connection.DEFAULT_POOL_MIN,
         ge=1,
-        le=100,
+        le=c.DbOracle.Query.DEFAULT_ARRAY_SIZE,
         description="Minimum number of connections in pool",
     )
 
     pool_max: int = Field(
         default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
         ge=1,
-        le=100,
+        le=c.DbOracle.Query.DEFAULT_ARRAY_SIZE,
         description="Maximum number of connections in pool",
     )
 
     pool_increment: int = Field(
         default=c.DbOracle.Connection.DEFAULT_POOL_INCREMENT,
         ge=1,
-        le=10,
+        le=c.DbOracle.Connection.DEFAULT_POOL_MAX // 2,  # Half of max pool size
         description="Number of connections to increment when pool grows",
     )
 
     pool_timeout: int = Field(
         default=c.DbOracle.Connection.DEFAULT_POOL_TIMEOUT,
         ge=1,
-        le=3600,
+        le=c.DbOracle.Query.MAX_QUERY_TIMEOUT,
         description="Connection pool timeout in seconds",
     )
 
     # Performance Configuration
     timeout: int = Field(
-        default=60,
+        default=c.DbOracle.Connection.DEFAULT_TIMEOUT,
         ge=1,
-        le=3600,
+        le=c.DbOracle.Query.MAX_QUERY_TIMEOUT,
         description="General timeout in seconds",
     )
 
     query_timeout: int = Field(
         default=c.DbOracle.OracleDefaults.DEFAULT_QUERY_TIMEOUT,
         ge=1,
-        le=3600,
+        le=c.DbOracle.Query.MAX_QUERY_TIMEOUT,
         description="Query timeout in seconds",
     )
 
     fetch_size: int = Field(
         default=c.DbOracle.Query.DEFAULT_ARRAY_SIZE,
         ge=1,
-        le=10000,
+        le=c.DbOracle.Query.MAX_QUERY_ROWS // 10,  # 1/10 of max query rows
         description="Default fetch size for queries",
     )
 
     max_retries: int = Field(
         default=c_core.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
-        le=10,
+        le=c.DbOracle.Connection.DEFAULT_POOL_MAX // 2,  # Half of max pool size
         description="Maximum number of retry attempts",
     )
 
     retry_delay: float = Field(
         default=c_core.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=0.1,
-        le=60.0,
+        le=c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS,
         description="Delay between retry attempts in seconds",
     )
 
@@ -233,19 +233,19 @@ class FlextDbOracleSettings(FlextSettings):
     performance_threshold_warning: float = Field(
         default=c.DbOracle.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
         ge=0.1,
-        le=60.0,
+        le=c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS,
         description="Performance warning threshold in seconds",
     )
 
     performance_threshold_critical: float = Field(
         default=float(c.DbOracle.Connection.DEFAULT_TIMEOUT),
         ge=0.1,
-        le=300.0,
+        le=300.0,  # 5 minutes max for performance threshold
         description="Performance critical threshold in seconds",
     )
 
     # Validation methods
-    @field_validator("service_name")
+    @field_validator("service_name", mode="before")
     @classmethod
     def validate_service_name(cls, v: str) -> str:
         """Validate Oracle service name (length check + uppercase transformation)."""
@@ -256,7 +256,7 @@ class FlextDbOracleSettings(FlextSettings):
 
         return v.strip().upper()
 
-    @field_validator("name")
+    @field_validator("name", mode="before")
     @classmethod
     def validate_database_name(cls, v: str) -> str:
         """Validate Oracle database name (length check + uppercase transformation)."""
@@ -267,7 +267,7 @@ class FlextDbOracleSettings(FlextSettings):
 
         return v.strip().upper()
 
-    @field_validator("sid")
+    @field_validator("sid", mode="before")
     @classmethod
     def validate_sid(cls, v: str) -> str:
         """Validate Oracle SID (length check + uppercase transformation)."""
@@ -278,7 +278,7 @@ class FlextDbOracleSettings(FlextSettings):
 
         return v.strip().upper()
 
-    @field_validator("pool_max")
+    @field_validator("pool_max", mode="before")
     @classmethod
     def validate_pool_max(cls, v: int, info: ValidationInfo) -> int:
         """Validate pool_max is greater than pool_min."""

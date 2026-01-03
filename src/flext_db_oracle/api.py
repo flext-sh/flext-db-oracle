@@ -15,8 +15,9 @@ import types
 from collections.abc import Sequence
 from typing import Self, override
 
-from flext_core import r, s, t
+from flext_core import r, t
 from flext_core.container import FlextContainer
+from flext_core.services import FlextServices
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -27,7 +28,7 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 # Simplified delegation - no complex decorators needed
 
 
-class FlextDbOracleApi(s):
+class FlextDbOracleApi(FlextServices):
     """Oracle Database API with complete flext-core integration.
 
     This API provides a unified interface to Oracle database operations,

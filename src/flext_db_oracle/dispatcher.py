@@ -8,12 +8,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from flext_core import FlextDispatcher, FlextRegistry, s, t
+from flext_core import FlextDispatcher, FlextRegistry, t
+from flext_core.services import FlextServices
 
 from flext_db_oracle.services import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(s):
+class FlextDbOracleDispatcher(FlextServices):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @dataclass(slots=True)

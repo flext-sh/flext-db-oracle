@@ -14,15 +14,16 @@ import json
 from collections.abc import Callable
 from typing import ClassVar
 
-from flext_core import r, s
+from flext_core import r
 from flext_core.container import FlextContainer
+from flext_core.services import FlextServices
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 
 
-class FlextDbOracleClient(s):
+class FlextDbOracleClient(FlextServices):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
@@ -117,7 +118,7 @@ class FlextDbOracleClient(s):
     def _execute_with_chain(
         self,
         operation: str,
-        **params: object,
+        **params: t.JsonValue,
     ) -> r[dict[str, t.GeneralValueType]]:
         """Execute operation with validation chain.
 
@@ -151,7 +152,7 @@ class FlextDbOracleClient(s):
     def _execute_operation(
         self,
         operation: str,
-        **params: object,
+        **params: t.JsonValue,
     ) -> r[dict[str, t.GeneralValueType]]:
         """Execute Oracle operation with error handling.
 
@@ -191,7 +192,7 @@ class FlextDbOracleClient(s):
 
     def _handle_list_tables_operation(
         self,
-        **params: object,
+        **params: t.JsonValue,
     ) -> r[dict[str, t.GeneralValueType]]:
         """Handle list tables operation."""
         if self.current_connection is None:
@@ -205,7 +206,7 @@ class FlextDbOracleClient(s):
 
     def _handle_query_operation(
         self,
-        **params: object,
+        **params: t.JsonValue,
     ) -> r[dict[str, t.GeneralValueType]]:
         """Handle query operation."""
         if self.current_connection is None:
@@ -263,7 +264,7 @@ class FlextDbOracleClient(s):
         """Get formatter strategy for output format.
 
         Returns:
-        r[object]: Formatter strategy or error.
+        r[t.JsonValue]: Formatter strategy or error.
 
         """
         try:
@@ -344,13 +345,13 @@ class FlextDbOracleClient(s):
         """
         try:
 
-            def adapt_schemas(r: object) -> list[dict[str, str]]:
+            def adapt_schemas(r: t.JsonValue) -> list[dict[str, str]]:
                 return [{"schema": str(s)} for s in r] if isinstance(r, list) else []
 
-            def adapt_tables(r: object) -> list[dict[str, str]]:
+            def adapt_tables(r: t.JsonValue) -> list[dict[str, str]]:
                 return [{"table": str(t)} for t in r] if isinstance(r, list) else []
 
-            def adapt_health(r: object) -> list[dict[str, str]]:
+            def adapt_health(r: t.JsonValue) -> list[dict[str, str]]:
                 return (
                     [{"key": str(k), "value": str(v)} for k, v in r.items()]
                     if isinstance(r, dict)
@@ -359,7 +360,7 @@ class FlextDbOracleClient(s):
 
             adaptation_strategies: dict[
                 str,
-                Callable[[object], list[dict[str, str]]],
+                Callable[[t.JsonValue], list[dict[str, str]]],
             ] = {
                 "schemas": adapt_schemas,
                 "tables": adapt_tables,
@@ -441,7 +442,7 @@ class FlextDbOracleClient(s):
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def execute(self, **_kwargs: object) -> r[object]:
+    def execute(self, **_kwargs: t.JsonValue) -> r[t.JsonValue]:
         """Execute the main domain operation for Oracle client.
 
         Returns:

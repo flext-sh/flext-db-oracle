@@ -12,14 +12,15 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from urllib.parse import quote_plus
 
-from flext_core import r, s, t
+from flext_core import r, t
+from flext_core.services import FlextServices
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
-class FlextDbOracleServices(s):
+class FlextDbOracleServices(FlextServices):
     """Generic Oracle database services using flext-core patterns."""
 
     def __init__(self, config: FlextDbOracleSettings) -> None:

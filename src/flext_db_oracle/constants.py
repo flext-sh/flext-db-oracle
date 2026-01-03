@@ -12,12 +12,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import ClassVar, Final, Literal
+from typing import ClassVar, Final
 
-from flext_core import c as c_core
+from flext_core.constants import FlextConstants, c as c_core
 
 
-class FlextDbOracleConstants(c_core):
+class FlextDbOracleConstants(FlextConstants):
     """Oracle database constants extending FlextConstants foundation.
 
     Usage:
@@ -383,38 +383,8 @@ class FlextDbOracleConstants(c_core):
         # ═══════════════════════════════════════════════════════════════════
         # LITERAL TYPES: PEP 695 strict type aliases (Python 3.13+)
         # ═══════════════════════════════════════════════════════════════════
-        # All Literal types reference StrEnum members - NO string duplication!
-        # Note: These are defined at DbOracle level to reference OracleEnums
-
-        type ConnectionTypeLiteral = Literal[
-            OracleEnums.ConnectionType.SERVICE_NAME,
-            OracleEnums.ConnectionType.SID,
-            OracleEnums.ConnectionType.TNS,
-        ]
-        """Oracle connection type literal - references ConnectionType StrEnum members."""
-
-        type QueryTypeLiteral = Literal[
-            OracleEnums.QueryType.SELECT,
-            OracleEnums.QueryType.INSERT,
-            OracleEnums.QueryType.UPDATE,
-            OracleEnums.QueryType.DELETE,
-            OracleEnums.QueryType.CREATE,
-            OracleEnums.QueryType.DROP,
-            OracleEnums.QueryType.ALTER,
-        ]
-        """Oracle query type literal - references QueryType StrEnum members."""
-
-        type DataTypeLiteral = Literal[
-            OracleEnums.DataType.VARCHAR2,
-            OracleEnums.DataType.NUMBER,
-            OracleEnums.DataType.DATE,
-            OracleEnums.DataType.TIMESTAMP,
-            OracleEnums.DataType.CLOB,
-            OracleEnums.DataType.BLOB,
-            OracleEnums.DataType.CHAR,
-            OracleEnums.DataType.RAW,
-        ]
-        """Oracle data type literal - references DataType StrEnum members."""
+        # Literal types moved to typings.py (t.* namespace) - NO string duplication!
+        # Access via: t.ConnectionTypeLiteral, t.QueryTypeLiteral, t.DataTypeLiteral
 
         class Literals:
             """Type-safe string literals for Oracle operations (deprecated - use direct access).
