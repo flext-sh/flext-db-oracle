@@ -24,7 +24,7 @@ class FlextDbOracleUtilities(FlextUtilities):
     # ORACLE NAMESPACE: Project-specific utilities
     # ═══════════════════════════════════════════════════════════════════
 
-    class Oracle:
+    class DbOracle:
         """Oracle-specific utility namespace.
 
         This namespace groups all Oracle-specific utilities for better organization

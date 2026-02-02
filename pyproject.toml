@@ -58,6 +58,51 @@
     [tool.deptry]
         known_first_party = [
             "flext_db_oracle",
+            "flext_core",
+            "flext_ldap",
+            "flext_meltano",
+        ]
+        pep621_dev_dependency_groups = [
+            "dev",
+            "test",
+            "typings",
+            "security",
+        ]
+
+    [tool.deptry.per_rule_ignores]
+        DEP002 = [
+            # CLI tools (invoked from command line, not imported)
+            "autoflake",
+            "bandit",
+            "black",
+            "codespell",
+            "commitizen",
+            "detect-secrets",
+            "isort",
+            "pip-audit",
+            "pre-commit",
+            "pylint",
+            "pyrefly",
+            "pyupgrade",
+            "radon",
+            "ruff",
+            "vulture",
+            # Type stubs
+            "types-psutil",
+            "types-python-dateutil",
+            "types-pyyaml",
+            "types-redis",
+            "types-requests",
+            "types-setuptools",
+            "types-toml",
+            # Runtime deps used indirectly (via oracledb, pydantic)
+            "faker",
+            "oracledb",
+            "psycopg",
+            "pydantic-core",
+            "pytest",
+            "pytest-cov",
+            "python-ldap",
         ]
 
     [tool.poetry]

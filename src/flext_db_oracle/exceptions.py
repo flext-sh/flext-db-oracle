@@ -93,7 +93,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             sql_text: str | None = None,
-            bind_variables: t.Types.JsonDict | None = None,
+            bind_variables: dict[str, t.JsonValue] | None = None,
             **_kwargs: t.GeneralValueType,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""

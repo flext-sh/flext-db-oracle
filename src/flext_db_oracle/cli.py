@@ -19,7 +19,6 @@ from typing import Protocol, override
 import yaml
 from flext_cli import FlextCliCommands
 from flext_core import (
-    FlextContainer,
     FlextResult,
     FlextService,
     FlextTypes as t,
@@ -44,9 +43,8 @@ class FlextDbOracleCli(FlextService[str]):
     def __init__(self) -> None:
         """Initialize Oracle CLI Service."""
         super().__init__()
-        self._container = FlextContainer.get_global()
         # CLI main component - initialized as None to avoid circular dependencies
-        self._cli_main: object | None = None
+        self._cli_main: FlextCliCommands | None = None
 
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""

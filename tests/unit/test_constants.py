@@ -14,8 +14,8 @@ from enum import StrEnum
 from typing import Literal
 
 import pytest
-
 from flext_core import FlextConstants
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,

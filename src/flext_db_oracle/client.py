@@ -15,15 +15,14 @@ from collections.abc import Callable
 from typing import ClassVar
 
 from flext_core import r
-from flext_core.container import FlextContainer
-from flext_core.services import FlextServices
+from flext_core.service import FlextService
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 
 
-class FlextDbOracleClient(FlextServices):
+class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
@@ -32,7 +31,7 @@ class FlextDbOracleClient(FlextServices):
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
-    user_preferences: ClassVar[t.Connection.ConnectionConfiguration] = {}
+    user_preferences: ClassVar[t.DbOracle.ConnectionConfiguration] = {}
 
     def __init__(self, *, debug: bool = False, **kwargs: t.GeneralValueType) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -41,9 +40,6 @@ class FlextDbOracleClient(FlextServices):
 
         # Initialize FlextService with remaining kwargs
         super().__init__(**kwargs)
-
-        # Core dependencies injected via composition
-        self._container = FlextContainer.get_global()
         # Logger will be initialized lazily via the parent class property
 
         # Application state - set debug value
@@ -442,17 +438,15 @@ class FlextDbOracleClient(FlextServices):
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)
 
-    def execute(self, **_kwargs: t.JsonValue) -> r[t.JsonValue]:
+    def execute(self) -> r[FlextDbOracleSettings]:
         """Execute the main domain operation for Oracle client.
 
         Returns:
-        r[object]: Success with operation result or failure with error
+        r[FlextDbOracleSettings]: Success with settings or failure with error
 
         """
-        # Default implementation - subclasses should override with specific logic
-        return r[object].fail(
-            "Execute method not implemented for Oracle client",
-        )
+        # Default implementation returns current configuration
+        return r[FlextDbOracleSettings].ok(self._oracle_config)
 
     def execute_query(
         self,

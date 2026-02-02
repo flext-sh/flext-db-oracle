@@ -16,8 +16,7 @@ from collections.abc import Sequence
 from typing import Self, override
 
 from flext_core import r, t
-from flext_core.container import FlextContainer
-from flext_core.services import FlextServices
+from flext_core.service import FlextService
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -28,7 +27,7 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 # Simplified delegation - no complex decorators needed
 
 
-class FlextDbOracleApi(FlextServices):
+class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     """Oracle Database API with complete flext-core integration.
 
     This API provides a unified interface to Oracle database operations,
@@ -38,22 +37,10 @@ class FlextDbOracleApi(FlextServices):
     Architecture:
     - Extends s for domain service patterns
     - Uses r railway pattern for error handling
-    - Integrates FlextContainer, FlextContext, FlextBus for enterprise features
+    - Integrates FlextContext, FlextBus for enterprise features
     - Delegates to FlextDbOracleServices for Oracle operations
     - Optional FlextDispatcher integration for CQRS patterns
     """
-
-    def __new__(
-        cls,
-        _config: FlextDbOracleSettings,
-        _context_name: str | None = None,
-    ) -> Self:
-        """Create API instance with Oracle configuration.
-
-        Arguments are not used in __new__ - they're passed to __init__ separately.
-        This method signature exists to satisfy type checkers about constructor arguments.
-        """
-        return super().__new__(cls)
 
     @override
     def __init__(
@@ -75,7 +62,7 @@ class FlextDbOracleApi(FlextServices):
         self._context_name = context_name or "oracle-api"
 
         # Complete flext-core ecosystem integration
-        self._container = FlextContainer.get_global()
+        # Container is accessible via FlextContainer.get_global() when needed
         self._context = None
         # Logger will be initialized lazily via the parent class property
 
@@ -305,12 +292,17 @@ class FlextDbOracleApi(FlextServices):
         return self._services.map_singer_schema(schema)
 
     # Transaction Management
-    def transaction(self) -> r[t.JsonValue]:
-        """Get a transaction context manager."""
+    def transaction(self) -> r[dict[str, t.JsonValue]]:
+        """Get transaction status information."""
         try:
-            return r.ok(self._services.transaction())
+            # Return transaction status rather than context manager
+            status: dict[str, t.JsonValue] = {
+                "connected": self._services.is_connected(),
+                "transaction_available": hasattr(self._services, "transaction"),
+            }
+            return r[dict[str, t.JsonValue]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
-            return r.fail(f"Transaction creation failed: {e}")
+            return r[dict[str, t.JsonValue]].fail(f"Transaction status check failed: {e}")
 
     # Utility Methods
     def optimize_query(self, sql: str) -> r[str]:
@@ -364,7 +356,7 @@ class FlextDbOracleApi(FlextServices):
     def _execute_query_sql(
         self,
         sql: str,
-    ) -> r[FlextDbOracleModels.QueryResult]:
+    ) -> r[FlextDbOracleModels.DbOracle.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:
             return self._services.execute_query(sql).map(
@@ -377,10 +369,10 @@ class FlextDbOracleApi(FlextServices):
         self,
         sql: str,
         data: list[dict[str, t.JsonValue]],
-    ) -> FlextDbOracleModels.QueryResult:
+    ) -> FlextDbOracleModels.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not isinstance(data, list) or not data:
-            return FlextDbOracleModels.QueryResult(
+            return FlextDbOracleModels.DbOracle.QueryResult(
                 query=sql,
                 columns=[],
                 rows=[],
@@ -394,7 +386,7 @@ class FlextDbOracleApi(FlextServices):
         else:
             columns, rows = [], []
 
-        return FlextDbOracleModels.QueryResult(
+        return FlextDbOracleModels.DbOracle.QueryResult(
             query=sql,
             columns=columns,
             rows=rows,
@@ -415,7 +407,7 @@ class FlextDbOracleApi(FlextServices):
             return r.fail(f"Health check failed: {e}")
 
     @property
-    def connection(self) -> t.JsonValue | None:
+    def connection(self) -> FlextDbOracleServices | None:
         """Get connection object - public interface."""
         return self._services if self._services.is_connected() else None
 

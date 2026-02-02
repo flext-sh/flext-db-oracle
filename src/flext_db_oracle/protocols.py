@@ -46,7 +46,7 @@ class FlextDbOracleProtocols(p):
     # ORACLE DATABASE-SPECIFIC PROTOCOLS - Domain extension for database operations
     # =========================================================================
 
-    class Database:
+    class DbOracle:
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable

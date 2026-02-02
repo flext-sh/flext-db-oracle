@@ -13,32 +13,32 @@ from contextlib import contextmanager
 from urllib.parse import quote_plus
 
 from flext_core import r, t
-from flext_core.services import FlextServices
+from flext_core.service import FlextService
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
 
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
-class FlextDbOracleServices(FlextServices):
+class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     """Generic Oracle database services using flext-core patterns."""
 
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize with configuration."""
         super().__init__()
-        self._config = config
+        self._db_config = config  # Use separate attribute for Oracle-specific config
         self._engine: Engine | None = None
         self._operations: list[dict[str, t.JsonValue]] = []
 
     def _build_connection_url(self) -> r[str]:
         """Build Oracle connection URL from configuration."""
         try:
-            password = self._config.password.get_secret_value()
+            password = self._db_config.password.get_secret_value()
             if not password:
                 return r.fail("Password is required for database connection")
             encoded_password = quote_plus(password)
-            db_id = self._config.sid or self._config.service_name
-            url = f"oracle+oracledb://{self._config.username}:{encoded_password}@{self._config.host}:{self._config.port}/{db_id}"
+            db_id = self._db_config.sid or self._db_config.service_name
+            url = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}/{db_id}"
             return r.ok(url)
         except Exception as e:
             return r.fail(f"Failed to build connection URL: {e}")
@@ -67,7 +67,7 @@ class FlextDbOracleServices(FlextServices):
         try:
             with self._engine.connect() as conn:
                 conn.execute(text("SELECT 1 FROM dual"))
-            self.logger.info(f"Connected to Oracle database: {self._config.host}")
+            self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
             return r.ok(self)
         except Exception as e:
             self.logger.exception("Oracle connection failed")
@@ -108,6 +108,9 @@ class FlextDbOracleServices(FlextServices):
 
     def transaction(self) -> Generator[Connection]:
         """Get transaction context for database operations."""
+        if not self._engine:
+            msg = "No database connection established"
+            raise RuntimeError(msg)
         with self._engine.begin() as transaction:
             yield transaction
 
@@ -290,7 +293,7 @@ ORDER BY column_id
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
-            return r.ok(self._config)
+            return r.ok(self._db_config)
         return r.fail(test_result.error or "Connection test failed")
 
     # Placeholder methods for compatibility - delegate to simpler implementations
@@ -435,9 +438,9 @@ ORDER BY column_id
         """Get connection status - simplified."""
         return r.ok({
             "connected": self.is_connected(),
-            "host": self._config.host,
-            "port": self._config.port,
-            "service_name": self._config.service_name,
+            "host": self._db_config.host,
+            "port": self._db_config.port,
+            "service_name": self._db_config.service_name,
         })
 
     def record_metric(
@@ -461,12 +464,15 @@ ORDER BY column_id
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
         """Register plugin - placeholder."""
+        return r[None].ok(None)
 
     def unregister_plugin(self, _name: str) -> r[None]:
         """Unregister plugin - placeholder."""
+        return r[None].ok(None)
 
     def list_plugins(self) -> r[dict[str, t.JsonValue]]:
         """List plugins - placeholder."""
+        return r[dict[str, t.JsonValue]].ok({})
 
     def get_plugin(self, _name: str) -> r[t.JsonValue]:
         """Get plugin - placeholder implementation.
@@ -518,7 +524,7 @@ ORDER BY column_id
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
-            operation = {
+            operation: dict[str, t.JsonValue] = {
                 "operation_type": operation_type,
                 "duration": duration,
                 "success": success,

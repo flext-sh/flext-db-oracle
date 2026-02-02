@@ -15,9 +15,9 @@ import threading
 import time
 
 import pytest
+from flext_core import FlextResult, FlextTypes as t
 from flext_tests import FlextTestsDomains, tm
 
-from flext_core import FlextTypes as t, FlextResult
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,

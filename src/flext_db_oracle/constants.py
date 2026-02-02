@@ -53,6 +53,13 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_POOL_TIMEOUT: Final[int] = 60
             DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
 
+        class Error:
+            """Oracle error handling constants."""
+
+            MAX_ERROR_MESSAGE_LENGTH: Final[int] = 500
+            MAX_STACK_TRACE_LENGTH: Final[int] = 2000
+            DEFAULT_ERROR_CODE: Final[str] = "ORA-99999"
+
         class OracleNetwork:
             """Oracle-specific network configuration constants."""
 

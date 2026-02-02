@@ -17,7 +17,6 @@ from __future__ import annotations
 from typing import Literal
 
 from flext_core import FlextTypes
-from flext_core.typings import t
 
 from flext_db_oracle.constants import c
 
@@ -39,7 +38,7 @@ class FlextDbOracleTypes(FlextTypes):
     # ORACLE CONNECTION TYPES - Database connection configuration
     # =========================================================================
 
-    class Connection:
+    class DbOracle:
         """Oracle connection complex types.
 
         Python 3.13+ best practice: Use TypeAlias for better type checking.
@@ -246,23 +245,6 @@ class FlextDbOracleTypes(FlextTypes):
         type SchemaConfig = dict[str, bool | str | dict[str, t.JsonValue]]
         type ConnectionConfig = dict[str, t.JsonValue]
 
-    class DbOracle:
-        """DbOracle types namespace for cross-project access.
-
-        Provides organized access to all DbOracle types for other FLEXT projects.
-        Usage: Other projects can reference `t.DbOracle.Connection.*`, `t.DbOracle.Query.*`, etc.
-        This enables consistent namespace patterns for cross-project type access.
-
-        Examples:
-            from flext_db_oracle.typings import t
-            config: t.DbOracle.Connection.ConnectionConfiguration = ...
-            query: t.DbOracle.Query.SqlQuery = ...
-
-        Note: Namespace composition via inheritance - no aliases needed.
-        Access parent namespaces directly through inheritance.
-
-        """
-
     # =========================================================================
     # ORACLE LITERAL TYPES - Type-safe string literals for Oracle operations
     # =========================================================================
@@ -307,5 +289,7 @@ class FlextDbOracleTypes(FlextTypes):
 # - t.DbOracle.* for DbOracle-specific types
 # - t.Project.* for project types
 # - t.Core.* for core types (inherited from parent)
+
+t = FlextDbOracleTypes
 
 __all__ = ["FlextDbOracleTypes", "t"]

@@ -181,10 +181,10 @@ class FlextDbOracleSettings(FlextSettings):
         description="Maximum number of retry attempts",
     )
 
-    retry_delay: float = Field(
+    retry_delay: int = Field(
         default=c_core.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
-        ge=0.1,
-        le=c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS,
+        ge=1,
+        le=int(c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS),
         description="Delay between retry attempts in seconds",
     )
 
