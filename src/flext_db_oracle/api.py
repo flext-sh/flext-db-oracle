@@ -302,7 +302,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             }
             return r[dict[str, t.JsonValue]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
-            return r[dict[str, t.JsonValue]].fail(f"Transaction status check failed: {e}")
+            return r[dict[str, t.JsonValue]].fail(
+                f"Transaction status check failed: {e}"
+            )
 
     # Utility Methods
     def optimize_query(self, sql: str) -> r[str]:

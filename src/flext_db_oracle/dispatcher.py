@@ -66,7 +66,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_connection_handlers(
         cls,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]]:
+    ) -> dict[
+        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+    ]:
         """Create connection-related handler functions."""
 
         def connect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
@@ -90,7 +92,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_query_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]]:
+    ) -> dict[
+        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+    ]:
         """Create query-related handler functions."""
 
         def execute_query_handler(command: t.GeneralValueType) -> t.GeneralValueType:
@@ -135,7 +139,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_schema_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]]:
+    ) -> dict[
+        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+    ]:
         """Create schema/metadata handler functions."""
 
         def get_schemas_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
@@ -168,7 +174,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[
-            type, tuple[Callable[..., t.GeneralValueType], dict[str, t.GeneralValueType] | None]
+            type,
+            tuple[
+                Callable[..., t.GeneralValueType], dict[str, t.GeneralValueType] | None
+            ],
         ] = {}
         # Add connection handlers
         function_map.update(cls._create_connection_handlers(services))

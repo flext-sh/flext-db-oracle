@@ -136,7 +136,10 @@ class FlextDbOracleModels(FlextModels):
                 if not self.is_connected or self.connection_time <= 0:
                     return "No performance data"
                 thresholds = c.DbOracle.OraclePerformance
-                if self.connection_time < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS:
+                if (
+                    self.connection_time
+                    < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+                ):
                     return f"Excellent ({self.connection_time:.3f}s)"
                 if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS:
                     return f"Good ({self.connection_time:.3f}s)"
@@ -156,7 +159,9 @@ class FlextDbOracleModels(FlextModels):
                     msg = "Connected status requires host information"
                     raise ValueError(msg)
                 if self.is_connected and not (
-                    c.DbOracle.OracleNetwork.MIN_PORT <= self.port <= c.DbOracle.OracleNetwork.MAX_PORT
+                    c.DbOracle.OracleNetwork.MIN_PORT
+                    <= self.port
+                    <= c.DbOracle.OracleNetwork.MAX_PORT
                 ):
                     msg = f"Invalid port number: {self.port}"
                     raise ValueError(msg)
@@ -255,7 +260,9 @@ class FlextDbOracleModels(FlextModels):
                 return data_size / (1024 * 1024)
 
             @model_validator(mode="after")
-            def validate_query_result_consistency(self) -> FlextDbOracleModels.DbOracle.QueryResult:
+            def validate_query_result_consistency(
+                self,
+            ) -> FlextDbOracleModels.DbOracle.QueryResult:
                 """Validate query result consistency."""
                 if len(self.rows) != self.row_count:
                     self.row_count = len(self.rows)
@@ -272,15 +279,21 @@ class FlextDbOracleModels(FlextModels):
             @field_serializer("execution_time_ms")
             def serialize_execution_time(self, value: int) -> str:
                 """Format execution time with appropriate units."""
-                threshold = c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
-                return f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
+                threshold = (
+                    c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
+                )
+                return (
+                    f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
+                )
 
         class Table(m.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
             owner: str = Field(alias="schema")
-            columns: list[FlextDbOracleModels.DbOracle.Column] = Field(default_factory=list)
+            columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
+                default_factory=list
+            )
 
         class Column(m.Entity):
             """Column metadata using flext-core Entity."""
@@ -297,7 +310,9 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: list[FlextDbOracleModels.DbOracle.Table] = Field(default_factory=list)
+            tables: list[FlextDbOracleModels.DbOracle.Table] = Field(
+                default_factory=list
+            )
 
         class CreateIndexConfig(m.Entity):
             """Create index config using flext-core Entity."""
