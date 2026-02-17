@@ -133,7 +133,7 @@ class FlextDbOracleApi(FlextService):
     def connect(self, config: OracleConfig) -> FlextResult[Connection]
     def execute_query(self, sql: str, params: dict[str, object] = None) -> FlextResult[QueryResult]
     def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
-    def close_connection(self) -> FlextResult[None]
+    def close_connection(self) -> FlextResult[bool]
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container

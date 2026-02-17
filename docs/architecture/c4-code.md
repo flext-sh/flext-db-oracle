@@ -187,8 +187,8 @@ def connect(self, config: OracleConfig) -> FlextResult[Connection]
 def execute_query(self, sql: str, params: dict[str, object] = None) -> FlextResult[QueryResult]
 def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
 def begin_transaction(self) -> FlextResult[Transaction]
-def commit_transaction(self) -> FlextResult[None]
-def rollback_transaction(self) -> FlextResult[None]
+def commit_transaction(self) -> FlextResult[bool]
+def rollback_transaction(self) -> FlextResult[bool]
 ```
 
 ### Service Layer

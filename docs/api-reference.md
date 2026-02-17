@@ -28,7 +28,7 @@ result = api.test_connection() -> FlextResult[bool]
 result = api.connect() -> FlextResult[Self]
 
 # Disconnect from database
-result = api.disconnect() -> FlextResult[None]
+result = api.disconnect() -> FlextResult[bool]
 
 # Check connection status
 status = api.is_connected() -> bool
