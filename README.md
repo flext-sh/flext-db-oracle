@@ -6,6 +6,8 @@
 
 **FLEXT-DB-Oracle** is the definitive Oracle Database integration library for the FLEXT ecosystem. Built on top of **SQLAlchemy 2.0** and **python-oracledb**, it provides enterprise-grade connectivity, robust connection pooling, and strict type safety for all Oracle interactions.
 
+Part of the [FLEXT](https://github.com/flext/flext) ecosystem.
+
 ## 🚀 Key Features
 
 - **Enterprise Connectivity**: High-performance connection pooling with automatic failover and reconnection strategies.
