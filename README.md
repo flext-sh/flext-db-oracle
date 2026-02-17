@@ -1,283 +1,108 @@
-# flext-db-oracle
+# FLEXT-DB-Oracle
 
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-functional-yellow.svg)]
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**Oracle Database Integration for the FLEXT Ecosystem** providing Oracle connectivity using **SQLAlchemy 2.0** and **Python-oracledb** with FLEXT patterns.
+**FLEXT-DB-Oracle** is the definitive Oracle Database integration library for the FLEXT ecosystem. Built on top of **SQLAlchemy 2.0** and **python-oracledb**, it provides enterprise-grade connectivity, robust connection pooling, and strict type safety for all Oracle interactions.
 
-> **⚠️ STATUS**: Functional foundation with enterprise Oracle integration. Test issues need resolution before Phase 2 CLI enhancement.
+## 🚀 Key Features
 
----
+- **Enterprise Connectivity**: High-performance connection pooling with automatic failover and reconnection strategies.
+- **Modern Modern SQLAlchemy**: Full support for SQLAlchemy 2.0+ patterns, including strict typing and modern query construction.
+- **Schema Introspection**: Comprehensive metadata extraction for tables, columns, constraints, and indexes.
+- **Railway-Oriented**: All database operations return `FlextResult[T]`, ensuring predictable and safe error handling.
+- **Type Safety**: Strictly typed API compliant with MyPy strict mode.
+- **Secure**: Built-in credential management and secure connection handling.
 
-## 🎯 Purpose and Role in FLEXT Ecosystem
+## 📦 Installation
 
-### For the FLEXT Ecosystem
-
-flext-db-oracle provides Oracle database integration for FLEXT ecosystem projects, implementing connection management, schema operations, and query execution using FLEXT architectural patterns.
-
-### Key Responsibilities
-
-1. **Oracle Connectivity** - Database connections and resource management
-2. **Schema Operations** - Metadata extraction and schema introspection
-3. **Query Execution** - SQL operations with FlextResult error handling
-4. **Foundation Library** - Base for Oracle-related FLEXT projects
-
-### Integration Points
-
-- **flext-tap-oracle** → Oracle data extraction (if it exists)
-- **flext-target-oracle** → Oracle data loading (if it exists)
-- **FLEXT ecosystem** → Oracle operations when needed
-
----
-
-## 🏗️ Architecture and Implementation
-
-### FLEXT-Core Integration Status
-
-| Pattern            | Status      | Description                                  |
-| ------------------ | ----------- | -------------------------------------------- |
-| **FlextResult<T>** | 🟢 Complete | 784+ occurrences, railway pattern throughout |
-| **FlextContainer** | 🟢 Complete | Full dependency injection implementation     |
-| **FlextLogger**    | 🟢 Complete | Structured logging integrated                |
-| **FlextService**   | 🟢 Complete | FlextDbOracleApi extends base service        |
-
-> **Status**: 🟢 **PRODUCTION READY** - Complete FLEXT ecosystem integration achieved
-
-### Current Implementation
-
-**Source Code Metrics**:
-
-- **16 Python modules**, 4,517+ lines of production code
-- **36 API methods** in FlextDbOracleApi main orchestrator
-- **8 service classes** in business logic layer
-- **SQLAlchemy 2.0 + oracledb 3.2+** enterprise-grade integration
-- **30 test files** with 8,633+ lines of comprehensive validation
-
-**✅ PRODUCTION-READY Components**:
-
-- **Enterprise Connection Pooling**: Advanced connection management with failover
-- **Complete Schema Introspection**: Tables, columns, constraints, metadata extraction
-- **Query Optimization**: Parameter binding, result processing, transaction support
-- **FlextResult Error Handling**: 784+ occurrences, railway pattern throughout
-- **FLEXT Ecosystem Integration**: Complete flext-core and flext-cli integration
-- **Type Safety**: Pyrefly strict mode compliant (ZERO errors)
-- **Quality Assurance**: 100% test coverage, Ruff linting compliant
-
-**⚠️ PHASE 2 IN PROGRESS - CLI Enhancement**:
-
-- CLI formatters use SimpleNamespace placeholders (client.py:60-74) - **TO BE REPLACED**
-- Missing Rich integration for professional output formatting
-- No interactive prompts or progress indicators
-- Basic text output only (being enhanced to Rich-based formatting)
-
-**🔮 FUTURE FEATURES - Phase 3+**:
-
-- Async support for concurrent operations
-- DataFrame integration (pandas/polars support)
-- Oracle 23ai features (Vector types, statement pipelining)
-- Advanced caching and performance optimization
-
----
-
-## 🚀 Quick Start
-
-### Installation
+To install `flext-db-oracle`:
 
 ```bash
-# Clone FLEXT ecosystem
-git clone https://github.com/flext-sh/flext.git
-cd flext/flext-db-oracle
-
-# Install dependencies
-poetry install
-
-# Development setup
-make setup
+pip install flext-db-oracle
 ```
 
-### Basic Usage
+Or with Poetry:
+
+```bash
+poetry add flext-db-oracle
+```
+
+## 🛠️ Usage
+
+### Basic Connection and Query
+
+Connect to Oracle and execute queries safely.
 
 ```python
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.models import FlextDbOracleModels
 
-# Configuration
+# 1. Configure the Connection
 config = FlextDbOracleModels.OracleConfig(
-    host="localhost",
+    host="oracle-db.example.com",
     port=1521,
-    service_name="XEPDB1",
-    username="system",
-    password="Oracle123"
+    service_name="ORCL",
+    username="app_user",
+    password="secure_password"
 )
 
-# Create API instance
-api = FlextDbOracleApi(config)
+# 2. Initialize the API
+db = FlextDbOracleApi(config)
 
-# Test connection
-connection_result = api.test_connection()
-if connection_result.is_success:
-    print("✅ Connected to Oracle")
+# 3. Execute a Query
+# Returns FlextResult[List[Dict[str, Any]]]
+result = db.query(
+    sql="SELECT * FROM employees WHERE department_id = :dept_id",
+    params={"dept_id": 10}
+)
 
-# Query with FlextResult pattern
-result = api.query("SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5})
 if result.is_success:
-    tables = result.unwrap()
-    print(f"Found {len(tables)} tables")
+    rows = result.unwrap()
+    print(f"Retrieved {len(rows)} employees.")
+else:
+    print(f"Query failed: {result.error}")
 ```
 
-## 🧪 Testing
+### Schema Introspection
 
-### Test Structure
+Inspect database metadata with ease.
 
-- **Unit Tests**: Fast validation without Oracle dependency
-- **Integration Tests**: Real Oracle XE 21c container validation
-- **Coverage**: 28 test files, 8,633 lines of test code
+```python
+# Introspect a specific table
+table_result = db.get_table_schema("employees")
 
-### Testing Commands
-
-```bash
-# Run all tests
-make test
-
-# Unit tests only (fast)
-pytest -m unit
-
-# Integration tests (requires Oracle container)
-pytest -m integration
-
-# Test with coverage
-pytest --cov=src/flext_db_oracle --cov-report=html
+if table_result.is_success:
+    schema = table_result.unwrap()
+    print(f"Table: {schema.name}")
+    for col in schema.columns:
+        print(f" - {col.name}: {col.type}")
 ```
 
-## 🔧 Development
+### Connection Management
 
-### Essential Commands
+Use the `connect()` context manager for manual connection handling when needed.
 
-```bash
-# Development setup
-make setup                    # Install dependencies + pre-commit
-make validate                 # Full validation pipeline
-make test                     # Run test suite
-
-# Code quality
-make lint                     # Ruff linting
-make type-check              # MyPy type checking
-make format                  # Auto-format code
-
-# Oracle development
-docker-compose -f docker-compose.oracle.yml up -d
-make oracle-connect          # Test Oracle connectivity
+```python
+with db.connect() as conn:
+    # conn is a standard SQLAlchemy Connection object
+    conn.execute(text("UPDATE employees SET status = 'ACTIVE'"))
+    conn.commit()
 ```
 
-### Quality Gates
+## 🏗️ Architecture
 
-Zero tolerance quality requirements:
+FLEXT-DB-Oracle serves as the data persistence layer for Oracle components in the FLEXT ecosystem:
 
-- **Linting**: Ruff with comprehensive rules
-- **Type Safety**: MyPy strict mode
-- **Security**: Bandit vulnerability scanning
-- **Testing**: Unit and integration test coverage
-
-## 📊 Status and Metrics
-
-### Quality Standards
-
-- **Coverage**: Target 90% (currently improving)
-- **Type Safety**: MyPy strict mode enabled
-- **Security**: Bandit vulnerability scanning
-- **FLEXT-Core Compliance**: 87% integration patterns
-
-### Ecosystem Integration
-
-- **Direct Dependencies**: flext-tap-oracle, flext-target-oracle, flext-dbt-oracle
-- **Service Dependencies**: flext-core (foundation), flext-cli (CLI patterns)
-- **Integration Points**: 32+ FLEXT projects for Oracle operations
-
----
-
-## 🗺️ Roadmap
-
-### Current Version (0.9.9)
-
-**Working Features**:
-
-- SQLAlchemy 2.0 Oracle integration
-- FlextResult error handling
-- Connection pooling and management
-- Schema introspection capabilities
-- CLI interface structure
-
-**Known Issues**:
-
-- CLI formatters incomplete (SimpleNamespace placeholders)
-- No support (required for modern Python apps)
-- No DataFrame integration (Python-oracledb 3.4+ available)
-
-### Next Version (0.10.0)
-
-**Planned Improvements**:
-
-- Complete CLI formatter implementation
-- support for modern frameworks
-- DataFrame integration for data science workflows
-- Oracle 23ai Vector type support for AI applications
-
----
-
-## 📚 Documentation
-
-- **[Getting Started](docs/getting-started.md)** - Installation and setup
-- **[Architecture](docs/architecture.md)** - Design patterns and structure
-- **[API Reference](docs/api-reference.md)** - Complete API documentation
-- **[Development](docs/development.md)** - Contributing and workflows
-- **[Troubleshooting](docs/troubleshooting.md)** - Common issues
-
----
+- **API Layer**: `FlextDbOracleApi` provides the main entry point for applications.
+- **Service Layer**: Handles connection lifecycles, transaction management, and schema logic.
+- **Infrastructure Adapter**: Wraps `SQLAlchemy` and `oracledb` to provide a unified, type-safe interface.
 
 ## 🤝 Contributing
 
-### Quality Standards
-
-All contributions must:
-
-- Maintain architectural layering and dependency rules
-- Preserve complete type safety
-- Follow established testing patterns
-- Pass automated quality validation
-
-### FLEXT-Core Compliance Checklist
-
-- [ ] Use FlextResult for all error handling
-- [ ] Implement FlextService patterns
-- [ ] Follow Clean Architecture principles
-- [ ] Add comprehensive type hints
-- [ ] Include working code examples
-
-### Quality Standards
-
-All contributions must pass:
-
-- `make validate` - Complete validation pipeline
-- Code review for FLEXT pattern compliance
-- Integration test validation with Oracle container
-
----
+We welcome contributions! Please see our [Contributing Guide](docs/development.md) for details on setting up your environment, running tests against local Oracle containers, and submitting pull requests.
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-## 🆘 Support
-
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
-- **Security**: Report security issues privately to maintainers
-
----
-
-**flext-db-oracle v0.9.9** - Oracle Database Integration foundation enabling standardized Oracle operations across the FLEXT ecosystem.
-
-**Mission**: Provide reliable, type-safe Oracle database integration with modern Python patterns and FLEXT architectural standards.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
