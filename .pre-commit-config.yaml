@@ -10,8 +10,8 @@ default_stages: [pre-commit, pre-push]
 default_language_version:
   python: python3.13
 
-repos: []  # DISABLED BY SCRIPT - All hooks disabled
-# 
+repos: [] # DISABLED BY SCRIPT - All hooks disabled
+#
 #   # ===== POETRY-MANAGED TOOLS VIA LOCAL REPO =====
 #   - repo: local
 #     hooks:
@@ -23,7 +23,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         require_serial: true
 #         args: [--check, --diff]
-# 
+#
 #       - id: ruff-format
 #         name: "⚡ Ruff Format"
 #         entry: poetry run ruff format
@@ -31,7 +31,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         require_serial: true
 #         args: [--check, --diff]
-# 
+#
 #       - id: ruff-lint
 #         name: "🔥 Ruff Lint"
 #         entry: poetry run ruff check
@@ -39,7 +39,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         require_serial: true
 #         args: [--fix, --exit-non-zero-on-fix]
-# 
+#
 #       # isort import sorting
 #       - id: isort
 #         name: "📦 Import Sort"
@@ -48,7 +48,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         require_serial: true
 #         args: [--check-only, --diff]
-# 
+#
 #       - id: pyrefly
 #         name: "🛡️ Pyrefly Unified Type Checking"
 #         entry: poetry run pyrefly
@@ -57,7 +57,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         require_serial: true
 #         pass_filenames: false
 #         args: [src/, tests/, --config-file=pyproject.toml]
-# 
+#
 #       # Bandit security
 #       - id: bandit
 #         name: "🔒 Bandit Security"
@@ -68,7 +68,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         pass_filenames: false
 #         args: [-r, src/, --severity-level=medium, --format=txt]
 #         exclude: tests/
-# 
+#
 #       # Vulture dead code detection
 #       - id: vulture
 #         name: "🦅 Dead Code Detection"
@@ -77,7 +77,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         pass_filenames: false
 #         args: [src/, --min-confidence=80]
-# 
+#
 #       # Radon complexity metrics
 #       - id: radon-cc
 #         name: "📊 Cyclomatic Complexity"
@@ -86,7 +86,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         pass_filenames: false
 #         args: [src/, -a, -nb, --total-average]
-# 
+#
 #       - id: radon-mi
 #         name: "📊 Maintainability Index"
 #         entry: poetry run radon mi
@@ -94,20 +94,20 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         types: [python]
 #         pass_filenames: false
 #         args: [src/, -nb]
-# 
+#
 #       # Poetry dependency checks
 #       - id: poetry-check
 #         name: "📋 Poetry Check"
 #         entry: poetry check
 #         language: system
 #         pass_filenames: false
-# 
+#
 #       - id: poetry-lock
 #         name: "🔒 Poetry Lock"
 #         entry: poetry lock
 #         language: system
 #         pass_filenames: false
-# 
+#
 #   # ===== FILE VALIDATION AND QUALITY =====
 #   - repo: https://github.com/pre-commit/pre-commit-hooks
 #     rev: v5.0.0
@@ -146,7 +146,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         name: "📜 Executable Shebang Check"
 #       - id: check-shebang-scripts-are-executable
 #         name: "⚡ Shebang Executable Check"
-# 
+#
 #   # ===== PYTHON-SPECIFIC CHECKS =====
 #   - repo: https://github.com/pre-commit/pygrep-hooks
 #     rev: v1.10.0
@@ -161,7 +161,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #         name: "⚠️ No log.warn Check"
 #       - id: python-use-type-annotations
 #         name: "📝 Type Annotations Check"
-# 
+#
 #   # ===== PYTHON VERSION UPGRADE =====
 #   - repo: https://github.com/asottile/pyupgrade
 #     rev: v3.20.0
@@ -169,7 +169,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #       - id: pyupgrade
 #         name: "⬆️ Python Upgrade"
 #         args: [--py313-plus]
-# 
+#
 #   # ===== AUTOFLAKE - REMOVE UNUSED IMPORTS =====
 #   - repo: https://github.com/PyCQA/autoflake
 #     rev: v2.3.1
@@ -183,7 +183,7 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #             "--in-place",
 #             "--recursive",
 #           ]
-# 
+#
 #   # ===== CODESPELL - SPELL CHECKING =====
 #   - repo: https://github.com/codespell-project/codespell
 #     rev: v2.4.1
@@ -195,14 +195,14 @@ repos: []  # DISABLED BY SCRIPT - All hooks disabled
 #             "--skip=*.json,*.lock,*.toml,*.yaml,*.yml,poetry.lock",
 #             "--ignore-words-list=flext,meltano,dbt,oracle,ldap,ldif,grpc,pydantic,jsonl",
 #           ]
-# 
+#
 #   # ===== VALIDATE PYPROJECT.TOML =====
 #   - repo: https://github.com/abravalheri/validate-pyproject
 #     rev: v0.16
 #     hooks:
 #       - id: validate-pyproject
 #         name: "📋 Validate pyproject.toml"
-# 
+#
 # ===== CI CONFIGURATION =====
 ci:
   autofix_prs: false # No automatic fixes - must be intentional
