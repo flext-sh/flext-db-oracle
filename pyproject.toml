@@ -213,6 +213,8 @@ factory-boy = ">=3.3.1"
 
     [tool.pyrefly]
         search-path = [
+            "../typings",
+            "../typings/generated",
             "src",
             "tests",
             "examples",
