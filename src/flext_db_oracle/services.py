@@ -79,7 +79,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self._engine.dispose()
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
-        return r.ok(None)
+        return r.ok(True)
 
     def is_connected(self) -> bool:
         """Check if connected to Oracle database."""
@@ -449,7 +449,7 @@ ORDER BY column_id
         _tags: dict[str, str] | None = None,
     ) -> r[None]:
         """Record metric - placeholder."""
-        return r.ok(None)
+        return r.ok(True)
 
     def get_metrics(self) -> r[dict[str, t.JsonValue]]:
         """Get metrics - placeholder."""
@@ -464,11 +464,11 @@ ORDER BY column_id
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
         """Register plugin - placeholder."""
-        return r[None].ok(None)
+        return r[None].ok(True)
 
     def unregister_plugin(self, _name: str) -> r[None]:
         """Unregister plugin - placeholder."""
-        return r[None].ok(None)
+        return r[None].ok(True)
 
     def list_plugins(self) -> r[dict[str, t.JsonValue]]:
         """List plugins - placeholder."""
@@ -481,7 +481,7 @@ ORDER BY column_id
             _name: Plugin name (reserved for future implementation)
 
         """
-        return r.ok(None)
+        return r.ok(True)
 
     def get_primary_key_columns(
         self,
@@ -532,7 +532,7 @@ ORDER BY column_id
                 "timestamp": self._get_current_timestamp(),
             }
             self._operations.append(operation)
-            return r.ok(None)
+            return r.ok(True)
         except Exception as e:
             return r.fail(f"Failed to track operation: {e}")
 

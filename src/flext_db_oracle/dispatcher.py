@@ -20,7 +20,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     def execute(self, **_kwargs: t.JsonValue) -> r[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
-        return r[None].ok(None)
+        return r[None].ok(True)
 
     @dataclass(slots=True)
     class ConnectCommand:

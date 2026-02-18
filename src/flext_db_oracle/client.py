@@ -143,7 +143,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if not self.current_connection.is_connected:
             return r[None].fail("Oracle connection not active")
 
-        return r[None].ok(None)
+        return r[None].ok(True)
 
     def _execute_operation(
         self,
@@ -487,7 +487,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             result: r[None] = self.current_connection.disconnect()
             self.current_connection = None
             return result
-        return r[None].ok(None)
+        return r[None].ok(True)
 
     def configure_preferences(
         self,
@@ -505,7 +505,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 "Client preferences updated",
                 extra={"preferences": "preferences"},
             )
-            return r[None].ok(None)
+            return r[None].ok(True)
         except Exception as e:
             return r[None].fail(f"Preference configuration failed: {e}")
 
