@@ -1,7 +1,7 @@
 # FLEXT DB Oracle - Source Code
 
-
 <!-- TOC START -->
+
 - [📁 Module Organization](#-module-organization)
   - [**Core Application Layer**](#core-application-layer)
   - [**Configuration and Infrastructure Layer**](#configuration-and-infrastructure-layer)
@@ -22,6 +22,7 @@
   - [**Adding New Modules**](#adding-new-modules)
   - [**Modifying Existing Modules**](#modifying-existing-modules)
   - [**Quality Gates**](#quality-gates)
+
 <!-- TOC END -->
 
 This directory contains the complete source code for FLEXT DB Oracle, an enterprise Oracle database integration library built on Clean Architecture principles.
@@ -151,18 +152,18 @@ from flext_db_oracle.types import TDbOracleQueryResult, TDbOracleConnectionStatu
 ### **Adding New Modules**
 
 1. Follow Clean Architecture layer placement
-2. Use appropriate `FlextDbOracle` prefix for public APIs
-3. Implement comprehensive type annotations
-4. Add module-specific README.md documentation
-5. Include enterprise-grade docstrings with examples
+1. Use appropriate `FlextDbOracle` prefix for public APIs
+1. Implement comprehensive type annotations
+1. Add module-specific README.md documentation
+1. Include enterprise-grade docstrings with examples
 
 ### **Modifying Existing Modules**
 
 1. Maintain backward compatibility for public APIs
-2. Update type annotations when changing signatures
-3. Preserve SOLID principles and architectural boundaries
-4. Update documentation and examples as needed
-5. Run full test suite to validate changes
+1. Update type annotations when changing signatures
+1. Preserve SOLID principles and architectural boundaries
+1. Update documentation and examples as needed
+1. Run full test suite to validate changes
 
 ### **Quality Gates**
 
@@ -173,6 +174,6 @@ All code must pass these validation steps:
 - `make test` - Test suite with 90%+ coverage requirement
 - `make security` - Security scanning with Bandit and pip-audit
 
----
+______________________________________________________________________
 
 This source code structure provides the foundation for enterprise Oracle database integration within the FLEXT ecosystem, following industry best practices and architectural patterns.

@@ -1,7 +1,7 @@
 # Getting Started with flext-db-oracle
 
-
 <!-- TOC START -->
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Quick Connection Test](#quick-connection-test)
@@ -17,6 +17,7 @@
 - [Next Steps](#next-steps)
 - [Need Help](#need-help)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.
@@ -183,9 +184,9 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 ## Next Steps
 
 1. **Architecture Overview** - Understand the design patterns
-2. **API Reference** - Complete API documentation
-3. **Configuration Guide** - Advanced configuration options
-4. **Development Guide** - Contributing to the project
+1. **API Reference** - Complete API documentation
+1. **Configuration Guide** - Advanced configuration options
+1. **Development Guide** - Contributing to the project
 
 ## Need Help
 
@@ -193,7 +194,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
 - **Troubleshooting**: See troubleshooting.md
 
----
+______________________________________________________________________
 
 **Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Part of**: FLEXT Ecosystem - Oracle Database Integration Foundation

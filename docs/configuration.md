@@ -1,13 +1,14 @@
 # Configuration
 
-
 <!-- TOC START -->
+
 - [Basic Configuration](#basic-configuration)
   - [Environment Variables](#environment-variables)
   - [Code Configuration](#code-configuration)
 - [Connection Parameters](#connection-parameters)
 - [Testing Connection](#testing-connection)
 - [CLI Configuration](#cli-configuration)
+
 <!-- TOC END -->
 
 Oracle database connection configuration for flext-db-oracle.
@@ -83,6 +84,6 @@ python -m flext_db_oracle.cli health
 
 For advanced configuration patterns, see the FLEXT workspace documentation.
 
----
+______________________________________________________________________
 
 Updated: September 17, 2025 | Version: 0.9.9

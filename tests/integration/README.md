@@ -1,7 +1,7 @@
 # Integration Tests
 
-
 <!-- TOC START -->
+
 - [🎯 Integration Test Principles](#-integration-test-principles)
   - [**Real System Integration**](#real-system-integration)
   - [**Test Scope**](#test-scope)
@@ -21,6 +21,7 @@
   - [**Test Database Schema**](#test-database-schema)
   - [**Docker Integration**](#docker-integration)
   - [**Continuous Integration**](#continuous-integration)
+
 <!-- TOC END -->
 
 This directory contains integration tests for FLEXT DB Oracle that require actual Oracle database connectivity. These tests validate component interactions, database operations, and real-world scenarios with live Oracle instances.

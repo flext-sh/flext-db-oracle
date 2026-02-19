@@ -1,7 +1,7 @@
 # Architecture Decision Record: ADR-002
 
-
 <!-- TOC START -->
+
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -30,6 +30,7 @@
   - [Future Enhancements](#future-enhancements)
   - [Migration Strategy](#migration-strategy)
   - [Related Decisions](#related-decisions)
+
 <!-- TOC END -->
 
 **ADR Number**: 002
@@ -55,9 +56,9 @@ The FLEXT ecosystem already uses various database integrations, and there's a ne
 Implement a single-entry-point SQLAlchemy abstraction where:
 
 1. **Only `api.py` imports SQLAlchemy** - Complete encapsulation of ORM dependencies
-2. **Domain models remain ORM-agnostic** - No SQLAlchemy imports in business logic
-3. **Clean interface abstraction** - All database operations through FlextDbOracleApi
-4. **Version management isolation** - SQLAlchemy updates don't affect consuming code
+1. **Domain models remain ORM-agnostic** - No SQLAlchemy imports in business logic
+1. **Clean interface abstraction** - All database operations through FlextDbOracleApi
+1. **Version management isolation** - SQLAlchemy updates don't affect consuming code
 
 **Key Implementation Details:**
 
@@ -202,24 +203,24 @@ This abstraction strategy provides the best balance of encapsulation, performanc
 ### Phase 1: Foundation Setup (Completed)
 
 1. ✅ Create FlextDbOracleApi as single SQLAlchemy entry point
-2. ✅ Implement domain models with Pydantic v2 (no SQLAlchemy dependencies)
-3. ✅ Set up error translation layer for domain-specific exceptions
-4. ✅ Create connection management wrapper around SQLAlchemy engine
+1. ✅ Implement domain models with Pydantic v2 (no SQLAlchemy dependencies)
+1. ✅ Set up error translation layer for domain-specific exceptions
+1. ✅ Create connection management wrapper around SQLAlchemy engine
 
 ### Phase 2: Core Implementation (In Progress)
 
 1. ✅ Implement query execution through abstraction layer
-2. ✅ Add schema introspection capabilities
-3. ✅ Set up transaction management
-4. ⚠️ CLI integration (60% complete - Rich placeholders)
-5. ⏳ Comprehensive testing and error handling
+1. ✅ Add schema introspection capabilities
+1. ✅ Set up transaction management
+1. ⚠️ CLI integration (60% complete - Rich placeholders)
+1. ⏳ Comprehensive testing and error handling
 
 ### Phase 3: Advanced Features (Planned)
 
 1. ⏳ Async support for concurrent operations
-2. ⏳ Bulk operations optimization
-3. ⏳ Query result streaming for large datasets
-4. ⏳ Advanced SQLAlchemy features integration
+1. ⏳ Bulk operations optimization
+1. ⏳ Query result streaming for large datasets
+1. ⏳ Advanced SQLAlchemy features integration
 
 ## Validation Criteria
 

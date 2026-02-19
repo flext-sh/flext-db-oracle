@@ -1,7 +1,7 @@
 # End-to-End Tests
 
-
 <!-- TOC START -->
+
 - [🎯 End-to-End Test Principles](#-end-to-end-test-principles)
   - [**Complete System Integration**](#complete-system-integration)
   - [**Test Scope**](#test-scope)
@@ -21,6 +21,7 @@
   - [**Docker Compose Setup**](#docker-compose-setup)
   - [**Test Data Management**](#test-data-management)
   - [**Continuous Integration**](#continuous-integration)
+
 <!-- TOC END -->
 
 This directory contains end-to-end (E2E) tests for FLEXT DB Oracle that validate complete user workflows and system integration scenarios. These tests use real systems without mocks to ensure the entire application works correctly in production-like environments.

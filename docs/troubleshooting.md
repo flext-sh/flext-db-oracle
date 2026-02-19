@@ -1,7 +1,7 @@
 # Troubleshooting
 
-
 <!-- TOC START -->
+
 - [Connection Issues](#connection-issues)
   - ["Connection failed"](#connection-failed)
   - ["Invalid username/password"](#invalid-usernamepassword)
@@ -18,6 +18,7 @@
   - [No DataFrame support](#no-dataframe-support)
 - [Testing](#testing)
   - [Oracle XE container](#oracle-xe-container)
+
 <!-- TOC END -->
 
 Common issues and solutions for flext-db-oracle.
@@ -113,6 +114,6 @@ make oracle-start
 # Username: system, Password: Oracle123
 ```
 
----
+______________________________________________________________________
 
 Updated: September 17, 2025 | Version: 0.9.9

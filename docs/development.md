@@ -1,14 +1,14 @@
 # Development
 
-
 <!-- TOC START -->
+
 - [Setup](#setup)
 - [Quality Commands](#quality-commands)
 - [Implementation Status](#implementation-status)
-  - [✅ COMPLETED - Foundation Layer (100%)](#-completed-foundation-layer-100)
-  - [🚨 BLOCKED - Testing & Quality Assurance (85%)](#-blocked-testing-quality-assurance-85)
-  - [⚠️ PARTIAL - CLI Layer (60%)](#-partial-cli-layer-60)
-  - [❌ NOT IMPLEMENTED - Advanced Features (0%)](#-not-implemented-advanced-features-0)
+  - [✅ COMPLETED - Foundation Layer (100%)](#completed-foundation-layer-100)
+  - [🚨 BLOCKED - Testing & Quality Assurance (85%)](#blocked-testing-quality-assurance-85)
+  - [⚠️ PARTIAL - CLI Layer (60%)](#partial-cli-layer-60)
+  - [❌ NOT IMPLEMENTED - Advanced Features (0%)](#not-implemented-advanced-features-0)
 - [Testing Strategy](#testing-strategy)
   - [Test Categories](#test-categories)
   - [Test Infrastructure](#test-infrastructure)
@@ -28,6 +28,7 @@
   - [Performance Issues](#performance-issues)
   - [Architecture Issues](#architecture-issues)
   - [Current Test Issues Troubleshooting](#current-test-issues-troubleshooting)
+
 <!-- TOC END -->
 
 Development workflow and guidelines for flext-db-oracle.
@@ -489,6 +490,6 @@ PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
 PYTHONPATH=src python -c "import flext_core; print(flext_core.__version__)"
 ```
 
----
+______________________________________________________________________
 
 Updated: October 10, 2025 | Version: 0.9.0

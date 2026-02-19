@@ -1,7 +1,7 @@
 # FLEXT DB Oracle Examples
 
-
 <!-- TOC START -->
+
 - [📋 Example Categories](#-example-categories)
   - [**Core Integration Examples**](#core-integration-examples)
   - [**CLI and Tooling Examples**](#cli-and-tooling-examples)
@@ -22,6 +22,7 @@
 - [🧭 Integration Patterns](#-integration-patterns)
   - [**FLEXT Ecosystem Integration**](#flext-ecosystem-integration)
   - [**External System Integration**](#external-system-integration)
+
 <!-- TOC END -->
 
 This directory contains examples demonstrating real-world usage patterns for FLEXT DB Oracle. Each example follows practices and showcases different integration scenarios within the FLEXT ecosystem.
@@ -398,10 +399,10 @@ def setup_ha_environment():
 ### **Creating New Examples**
 
 1. **Follow naming convention**: `##_descriptive_name.py`
-2. **Include comprehensive docstrings**: Explain purpose and key concepts
-3. **Handle errors gracefully**: Use FlextResult patterns throughout
-4. **Demonstrate best practices**: Show production patterns
-5. **Include cleanup code**: Proper resource management
+1. **Include comprehensive docstrings**: Explain purpose and key concepts
+1. **Handle errors gracefully**: Use FlextResult patterns throughout
+1. **Demonstrate best practices**: Show production patterns
+1. **Include cleanup code**: Proper resource management
 
 ### **Example Structure Template**
 
@@ -503,6 +504,6 @@ Examples show integration with:
 - **Rich**: Terminal formatting and user experience
 - **Docker**: Containerized Oracle environments
 
----
+______________________________________________________________________
 
 These examples provide practical, production-ready patterns for integrating FLEXT DB Oracle into real-world applications while maintaining enterprise-grade quality standards.

@@ -1,7 +1,7 @@
 # C4 Container Diagram - flext-db-oracle
 
-
 <!-- TOC START -->
+
 - [Container Overview](#container-overview)
 - [Container Descriptions](#container-descriptions)
   - [Primary Container: flext-db-oracle Library](#primary-container-flext-db-oracle-library)
@@ -33,6 +33,7 @@
 - [Evolution Planning](#evolution-planning)
   - [Version 1.0.0 (Current Target)](#version-100-current-target)
   - [Future Enhancements](#future-enhancements)
+
 <!-- TOC END -->
 
 **Container Architecture for Oracle Database Integration**
@@ -360,7 +361,7 @@ graph TB
 - **Oracle 23ai Features**: Vector operations and AI capabilities
 - **Multi-Database Support**: Extended database compatibility
 
----
+______________________________________________________________________
 
 **C4 Container Diagram - flext-db-oracle v0.9.0**
 **Generated**: 2025-10-10

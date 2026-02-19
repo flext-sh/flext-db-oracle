@@ -1,7 +1,7 @@
 # API Reference
 
-
 <!-- TOC START -->
+
 - [Core Imports](#core-imports)
 - [FlextDbOracleApi](#flextdboracleapi)
   - [Connection Methods](#connection-methods)
@@ -13,6 +13,7 @@
 - [Error Handling](#error-handling)
 - [Limitations](#limitations)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
@@ -143,7 +144,7 @@ else:
 - CLI uses SimpleNamespace placeholders (client.py:60-67)
 - Only SQLAlchemy abstraction (no direct Python-oracledb)
 
----
+______________________________________________________________________
 
 Updated: September 17, 2025 | Version: 0.9.9
 

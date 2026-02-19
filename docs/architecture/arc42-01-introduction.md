@@ -1,7 +1,7 @@
 # Arc42 Documentation: 1. Introduction and Goals
 
-
 <!-- TOC START -->
+
 - [1.1 Purpose and Scope](#11-purpose-and-scope)
   - [Business Context](#business-context)
   - [Scope and Responsibilities](#scope-and-responsibilities)
@@ -28,6 +28,7 @@
   - [Architecture Terms](#architecture-terms)
   - [Oracle Database Terms](#oracle-database-terms)
   - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
+
 <!-- TOC END -->
 
 **flext-db-oracle - Enterprise Oracle Database Integration**
@@ -74,7 +75,7 @@
 
 | Quality Goal        | Target                       | Measurement                 |
 | ------------------- | ---------------------------- | --------------------------- |
-| **Performance**     | <100ms simple queries        | Response time monitoring    |
+| **Performance**     | \<100ms simple queries       | Response time monitoring    |
 | **Scalability**     | 1000+ concurrent connections | Connection pool utilization |
 | **Testability**     | 95%+ code coverage           | pytest coverage reports     |
 | **Maintainability** | Pyrefly strict compliance    | Type checking validation    |
@@ -319,9 +320,9 @@ result = (
 
 #### Performance Requirements
 
-- [x] <100ms response time for simple database operations
+- [x] \<100ms response time for simple database operations
 - [x] Support for 1000+ concurrent connections
-- [x] Memory usage <100MB for typical workloads
+- [x] Memory usage \<100MB for typical workloads
 - [ ] Sub-50ms response time for cached operations (planned)
 
 #### Security Requirements
@@ -377,7 +378,7 @@ result = (
 
 **FlextLogger**: Structured logging implementation with JSON formatting.
 
----
+______________________________________________________________________
 
 **Arc42 Section 1: Introduction and Goals**
 **flext-db-oracle v0.9.0**

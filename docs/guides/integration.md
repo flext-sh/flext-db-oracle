@@ -1,7 +1,7 @@
 # Integration
 
-
 <!-- TOC START -->
+
 - [FLEXT Core Integration](#flext-core-integration)
 - [Singer Ecosystem](#singer-ecosystem)
   - [flext-tap-oracle](#flext-tap-oracle)
@@ -10,6 +10,7 @@
 - [CLI Integration](#cli-integration)
 - [Connection Patterns](#connection-patterns)
 - [Available Operations](#available-operations)
+
 <!-- TOC END -->
 
 FLEXT ecosystem integration patterns for flext-db-oracle.
@@ -102,6 +103,6 @@ api = FlextDbOracleApi(config)
 - Connection management (connect, disconnect, test_connection)
 - Configuration from environment or URLs
 
----
+______________________________________________________________________
 
 Updated: September 17, 2025 | Version: 0.9.9

@@ -1,45 +1,46 @@
 # Testing Plan & Strategy - flext-db-oracle v0.9.0
 
-
 <!-- TOC START -->
-- [📊 Testing Overview](#-testing-overview)
+
+- [📊 Testing Overview](#testing-overview)
   - [Test Infrastructure Status](#test-infrastructure-status)
-- [🚨 Current Test Issues & Blockers](#-current-test-issues-blockers)
+- [🚨 Current Test Issues & Blockers](#current-test-issues-blockers)
   - [Critical Test Failures](#critical-test-failures)
   - [Resolution Strategy](#resolution-strategy)
-- [📊 Current Test Results & Issues](#-current-test-results-issues)
+- [📊 Current Test Results & Issues](#current-test-results-issues)
   - [Test Execution Status (2025-10-10)](#test-execution-status-2025-10-10)
   - [Known Test Issues](#known-test-issues)
-- [🧪 Test Coverage by Component](#-test-coverage-by-component)
+- [🧪 Test Coverage by Component](#test-coverage-by-component)
   - [Core API Layer (`api.py`)](#core-api-layer-apipy)
   - [Models Layer (`models.py`)](#models-layer-modelspy)
   - [Services Layer (`services.py`)](#services-layer-servicespy)
   - [CLI Layer (Incomplete - 60%)](#cli-layer-incomplete-60)
   - [Integration Testing (Oracle Container)](#integration-testing-oracle-container)
-- [🧪 Test Quality Standards](#-test-quality-standards)
+- [🧪 Test Quality Standards](#test-quality-standards)
   - [Code Coverage Requirements](#code-coverage-requirements)
   - [Test Quality Metrics](#test-quality-metrics)
-- [🚀 Testing Strategy & Best Practices](#-testing-strategy-best-practices)
+- [🚀 Testing Strategy & Best Practices](#testing-strategy-best-practices)
   - [1. Railway Pattern Testing](#1-railway-pattern-testing)
   - [2. Fixture-Based Testing](#2-fixture-based-testing)
   - [3. Parametrized Testing](#3-parametrized-testing)
   - [4. Mock Strategy](#4-mock-strategy)
-- [📊 Current Test Results & Issues](#-current-test-results-issues)
+- [📊 Current Test Results & Issues](#current-test-results-issues)
   - [Test Execution Status](#test-execution-status)
   - [Known Test Issues](#known-test-issues)
   - [Test Performance Metrics](#test-performance-metrics)
-- [🔧 Test Infrastructure & Tools](#-test-infrastructure-tools)
+- [🔧 Test Infrastructure & Tools](#test-infrastructure-tools)
   - [Testing Tools Configuration](#testing-tools-configuration)
   - [CI/CD Integration](#cicd-integration)
-- [🎯 Testing Roadmap](#-testing-roadmap)
+- [🎯 Testing Roadmap](#testing-roadmap)
   - [Phase 2 Testing Priorities](#phase-2-testing-priorities)
   - [Testing Best Practices Established](#testing-best-practices-established)
-- [📈 Testing Quality Metrics](#-testing-quality-metrics)
+- [📈 Testing Quality Metrics](#testing-quality-metrics)
   - [Coverage Quality Indicators](#coverage-quality-indicators)
   - [Performance Benchmarks](#performance-benchmarks)
-- [🔍 Test Maintenance & Evolution](#-test-maintenance-evolution)
+- [🔍 Test Maintenance & Evolution](#test-maintenance-evolution)
   - [Test Refactoring Guidelines](#test-refactoring-guidelines)
   - [Continuous Improvement](#continuous-improvement)
+
 <!-- TOC END -->
 
 **Last Updated**: 2025-10-10 | **Coverage Target**: 100% | **Test Files**: 30 | **Current Status**: Issues Detected
@@ -62,7 +63,7 @@
 - ⚠️ **E2E Tests**: Complete workflow validation (`tests/e2e/`) - blocked by import issues
 - ✅ **Performance Tests**: Benchmarking capabilities (not yet validated)
 
----
+______________________________________________________________________
 
 ## 🚨 Current Test Issues & Blockers
 
@@ -94,18 +95,18 @@
 #### Immediate Actions Required
 
 1. **Fix flext-core Test Imports**: Update test files to use correct flext-core test utilities
-2. **Update Pydantic Configuration**: Migrate from deprecated class-based config to ConfigDict
-3. **Validate Constants**: Ensure test expectations match actual constant values
-4. **Test Framework Audit**: Verify all test dependencies and imports
+1. **Update Pydantic Configuration**: Migrate from deprecated class-based config to ConfigDict
+1. **Validate Constants**: Ensure test expectations match actual constant values
+1. **Test Framework Audit**: Verify all test dependencies and imports
 
 #### Medium-term Goals
 
 1. **Achieve 100% Test Pass Rate**: All tests passing without errors
-2. **Resolve Deprecation Warnings**: Update to modern Pydantic patterns
-3. **CI/CD Pipeline Stability**: Automated testing working reliably
-4. **Coverage Validation**: Actual 100% coverage confirmed
+1. **Resolve Deprecation Warnings**: Update to modern Pydantic patterns
+1. **CI/CD Pipeline Stability**: Automated testing working reliably
+1. **Coverage Validation**: Actual 100% coverage confirmed
 
----
+______________________________________________________________________
 
 ## 📊 Current Test Results & Issues
 
@@ -149,7 +150,7 @@ collected 11 items / 1 error
 **Files**: `tests/unit/test_constants.py`
 **Severity**: **MEDIUM** - Indicates potential constant configuration issues
 
----
+______________________________________________________________________
 
 ## 🧪 Test Coverage by Component
 
@@ -287,7 +288,7 @@ make oracle-stop          # Clean up container
 - **Performance Testing**: Query performance under load
 - **Error Scenarios**: Network failures, connection timeouts, invalid SQL
 
----
+______________________________________________________________________
 
 ## 🧪 Test Quality Standards
 
@@ -329,7 +330,7 @@ exclude_lines = [
 - **Fixture Reuse**: Common fixtures for consistent testing
 - **Mock Usage**: Minimal mocking, prefer real implementations
 
----
+______________________________________________________________________
 
 ## 🚀 Testing Strategy & Best Practices
 
@@ -411,7 +412,7 @@ def test_connection_timeout(mock_oracle_connection):
         execute_with_timeout(mock_oracle_connection)
 ```
 
----
+______________________________________________________________________
 
 ## 📊 Current Test Results & Issues
 
@@ -468,7 +469,7 @@ src/flext_db_oracle/cli.py      856     45     95%   # CLI gaps
 TOTAL                          4517     45     99%
 ```
 
----
+______________________________________________________________________
 
 ## 🔧 Test Infrastructure & Tools
 
@@ -537,7 +538,7 @@ source = [src]
     # Upload coverage reports
 ```
 
----
+______________________________________________________________________
 
 ## 🎯 Testing Roadmap
 
@@ -607,7 +608,7 @@ def test_with_mocked_connection(mock_connection):
     assert result == 42
 ```
 
----
+______________________________________________________________________
 
 ## 📈 Testing Quality Metrics
 
@@ -639,7 +640,7 @@ def test_with_mocked_connection(mock_connection):
 - **CPU**: Minimal impact on CI/CD resources
 - **Disk**: < 50MB for test artifacts
 
----
+______________________________________________________________________
 
 ## 🔍 Test Maintenance & Evolution
 
@@ -648,16 +649,16 @@ def test_with_mocked_connection(mock_connection):
 #### When to Refactor Tests
 
 1. **Code Changes**: Update tests when implementation changes
-2. **New Features**: Add tests for new functionality
-3. **Bug Fixes**: Add regression tests for fixed bugs
-4. **Performance**: Update benchmarks when optimizations implemented
+1. **New Features**: Add tests for new functionality
+1. **Bug Fixes**: Add regression tests for fixed bugs
+1. **Performance**: Update benchmarks when optimizations implemented
 
 #### Test Organization Principles
 
 1. **Single Responsibility**: One test, one assertion focus
-2. **Descriptive Names**: `test_query_execution_returns_correct_results`
-3. **Fixture Usage**: Reuse fixtures for common setup
-4. **Marker Usage**: Use pytest markers for categorization
+1. **Descriptive Names**: `test_query_execution_returns_correct_results`
+1. **Fixture Usage**: Reuse fixtures for common setup
+1. **Marker Usage**: Use pytest markers for categorization
 
 ### Continuous Improvement
 
@@ -674,7 +675,7 @@ def test_with_mocked_connection(mock_connection):
 - ✅ **Quality Gate**: No linting violations in test code
 - ✅ **Integration Gate**: Oracle container tests passing
 
----
+______________________________________________________________________
 
 **Testing Status**: Comprehensive test suite implemented, 100% coverage achieved for core functionality
 **Next Phase**: Complete CLI formatter testing with Rich integration

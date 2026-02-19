@@ -1,7 +1,7 @@
 # Architecture Overview
 
-
 <!-- TOC START -->
+
 - [Architecture Principles](#architecture-principles)
   - [Clean Architecture Layers](#clean-architecture-layers)
   - [FLEXT Pattern Integration](#flext-pattern-integration)
@@ -28,6 +28,7 @@
 - [Future Architecture Evolution](#future-architecture-evolution)
   - [Planned Improvements](#planned-improvements)
 - [Related Documentation](#related-documentation)
+
 <!-- TOC END -->
 
 Clean Architecture implementation for Oracle Database integration in the FLEXT ecosystem.
@@ -50,12 +51,12 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 ### FLEXT Pattern Integration
 
-| Pattern              | Implementation         | Status      |
-| -------------------- | ---------------------- | ----------- |
-| **FlextResult\<T\>** | Monadic error handling | Complete    |
-| **FlextService**     | Base service patterns  | Implemented |
-| **FlextContainer**   | Dependency injection   | Partial     |
-| **FlextLogger**      | Structured logging     | Integrated  |
+| Pattern             | Implementation         | Status      |
+| ------------------- | ---------------------- | ----------- |
+| **FlextResult\<T>** | Monadic error handling | Complete    |
+| **FlextService**    | Base service patterns  | Implemented |
+| **FlextContainer**  | Dependency injection   | Partial     |
+| **FlextLogger**     | Structured logging     | Integrated  |
 
 ## Module Architecture
 
@@ -320,7 +321,7 @@ class OraclePlugin(ABC):
 - Statement pipelining for performance
 - Enhanced DRCP multi-pool configuration
 
----
+______________________________________________________________________
 
 **Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Pattern**: Clean Architecture + Domain-Driven Design

@@ -1,7 +1,7 @@
 # Architecture Decision Record: ADR-003
 
-
 <!-- TOC START -->
+
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -30,6 +30,7 @@
   - [Migration Strategy](#migration-strategy)
   - [Future Considerations](#future-considerations)
   - [Related Decisions](#related-decisions)
+
 <!-- TOC END -->
 
 **ADR Number**: 003
@@ -52,7 +53,7 @@ Traditional exception-based error handling becomes complex in enterprise applica
 
 ## Decision
 
-Implement Railway Pattern error handling throughout flext-db-oracle using FlextResult[T]:
+Implement Railway Pattern error handling throughout flext-db-oracle using FlextResult\[T\]:
 
 **Core Pattern:**
 
@@ -216,23 +217,23 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 ### Phase 1: Foundation Setup (Completed)
 
 1. ✅ Adopt FlextResult[T] as the standard error handling pattern
-2. ✅ Update all core APIs to return FlextResult instead of throwing exceptions
-3. ✅ Implement error translation from SQLAlchemy exceptions to domain errors
-4. ✅ Create comprehensive error hierarchy with context preservation
+1. ✅ Update all core APIs to return FlextResult instead of throwing exceptions
+1. ✅ Implement error translation from SQLAlchemy exceptions to domain errors
+1. ✅ Create comprehensive error hierarchy with context preservation
 
 ### Phase 2: Ecosystem Migration (In Progress)
 
 1. ✅ Update all internal service methods to use Railway Pattern
-2. ⚠️ CLI error handling integration (60% complete)
-3. ⏳ Documentation updates with Railway Pattern examples
-4. ⏳ Testing coverage for error paths
+1. ⚠️ CLI error handling integration (60% complete)
+1. ⏳ Documentation updates with Railway Pattern examples
+1. ⏳ Testing coverage for error paths
 
 ### Phase 3: Advanced Features (Planned)
 
 1. ⏳ Async operation error handling with asyncio
-2. ⏳ Error recovery and retry mechanisms
-3. ⏳ Error monitoring and alerting integration
-4. ⏳ Performance optimization for error handling paths
+1. ⏳ Error recovery and retry mechanisms
+1. ⏳ Error monitoring and alerting integration
+1. ⏳ Performance optimization for error handling paths
 
 ## Validation Criteria
 
@@ -269,10 +270,10 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 ### Best Practices Established
 
 1. **Always Return FlextResult**: No exceptions thrown from business logic
-2. **Chain Operations**: Use `flat_map()` and `map()` for composability
-3. **Enrich Errors**: Use `map_error()` to add context and logging
-4. **Test Both Paths**: Always test both success and failure scenarios
-5. **Preserve Context**: Error chains should maintain operation history
+1. **Chain Operations**: Use `flat_map()` and `map()` for composability
+1. **Enrich Errors**: Use `map_error()` to add context and logging
+1. **Test Both Paths**: Always test both success and failure scenarios
+1. **Preserve Context**: Error chains should maintain operation history
 
 ### Migration Strategy
 
