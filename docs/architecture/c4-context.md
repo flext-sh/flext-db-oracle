@@ -12,7 +12,7 @@ graph TB
         TAP[flext-tap-oracle<br/>Data Extraction]
         TARGET[flext-target-oracle<br/>Data Loading]
         DBT[flext-dbt-oracle<br/>Data Transformation]
-        client-a[client-a-oud-mig<br/>Migration Tools]
+        FLEXT[flext-oud-mig<br/>Migration Tools]
     end
 
     subgraph "External Systems"
@@ -43,7 +43,7 @@ graph TB
     TAP --> LIB
     TARGET --> LIB
     DBT --> LIB
-    client-a --> LIB
+    FLEXT --> LIB
 
     LIB --> ORACLE
     LIB --> OIC
@@ -67,7 +67,7 @@ graph TB
     classDef infra fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
     classDef core fill:#fff8e1,stroke:#f57c00,stroke-width:3px
 
-    class TAP,TARGET,DBT,client-a ecosystem
+    class TAP,TARGET,DBT,FLEXT ecosystem
     class ORACLE,OIC,WMS,AD,OPENLDAP external
     class POETRY,PYTEST,RUFF,PYREFLY tools
     class DOCKER,GITHUB,PYPI infra

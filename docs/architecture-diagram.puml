@@ -23,7 +23,7 @@ package "FLEXT Ecosystem Applications" as ecosystem #LightYellow {
     rectangle "flext-tap-oracle\nData Extraction" as tap
     rectangle "flext-target-oracle\nData Loading" as target
     rectangle "flext-dbt-oracle\nData Transformation" as dbt
-    rectangle "client-a-oud-mig\nMigration Tools" as client-a
+    rectangle "flext-oud-mig\nMigration Tools" as flext
 }
 
 ' === CORE LIBRARY ===
@@ -67,7 +67,7 @@ package "flext-db-oracle Library" as library #White {
 tap --> api : imports
 target --> api : imports
 dbt --> api : imports
-client-a --> api : imports
+flext --> api : imports
 
 ' Library Internal Dependencies (Clean Architecture)
 api --> services : orchestrates

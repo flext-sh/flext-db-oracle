@@ -709,7 +709,7 @@ def run_optimization(config: MaintenanceConfig) -> None:
 
     for file_path in files:
         logger.info("Optimizing %s", file_path)
-        # TODO(marlonsc): Implement optimization logic - https://github.com/client-a-telecom/flext/issues/XXXX
+        # TODO(marlonsc): Implement optimization logic - https://github.com/flext-telecom/flext/issues/XXXX
         logger.info("Optimization suggestions for %s: (not implemented yet)", file_path)
 
 
