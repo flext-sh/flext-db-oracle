@@ -1,5 +1,37 @@
 # Architecture Decision Record: ADR-003
 
+
+<!-- TOC START -->
+- [Context](#context)
+- [Decision](#decision)
+- [Rationale](#rationale)
+  - [Benefits Achieved](#benefits-achieved)
+  - [Quality Attributes Addressed](#quality-attributes-addressed)
+- [Alternatives Considered](#alternatives-considered)
+  - [Option 1: Traditional Exception Handling](#option-1-traditional-exception-handling)
+  - [Option 2: Result Pattern with Custom Classes](#option-2-result-pattern-with-custom-classes)
+  - [Option 3: Optional Pattern with None Checks](#option-3-optional-pattern-with-none-checks)
+  - [Option 4: Error Monad Pattern](#option-4-error-monad-pattern)
+  - [Option 5: Callback-Based Error Handling](#option-5-callback-based-error-handling)
+- [Consequences](#consequences)
+  - [Positive Consequences](#positive-consequences)
+  - [Negative Consequences](#negative-consequences)
+- [Implementation Plan](#implementation-plan)
+  - [Phase 1: Foundation Setup (Completed)](#phase-1-foundation-setup-completed)
+  - [Phase 2: Ecosystem Migration (In Progress)](#phase-2-ecosystem-migration-in-progress)
+  - [Phase 3: Advanced Features (Planned)](#phase-3-advanced-features-planned)
+- [Validation Criteria](#validation-criteria)
+  - [Functional Validation](#functional-validation)
+  - [Quality Validation](#quality-validation)
+  - [Performance Validation](#performance-validation)
+- [References](#references)
+- [Notes](#notes)
+  - [Best Practices Established](#best-practices-established)
+  - [Migration Strategy](#migration-strategy)
+  - [Future Considerations](#future-considerations)
+  - [Related Decisions](#related-decisions)
+<!-- TOC END -->
+
 **ADR Number**: 003
 **Title**: Railway Pattern Implementation with FlextResult[T]
 **Date**: 2025-01-25

@@ -1,5 +1,29 @@
 # FLEXT DB Oracle Examples
 
+
+<!-- TOC START -->
+- [📋 Example Categories](#-example-categories)
+  - [**Core Integration Examples**](#core-integration-examples)
+  - [**CLI and Tooling Examples**](#cli-and-tooling-examples)
+- [🚀 Running Examples](#-running-examples)
+  - [**Prerequisites**](#prerequisites)
+  - [**Example Execution**](#example-execution)
+- [🎯 Example Details](#-example-details)
+  - [**Comprehensive Oracle Usage Example**](#comprehensive-oracle-usage-example)
+  - [**SQLAlchemy 2 Integration Example**](#sqlalchemy-2-integration-example)
+  - [**CLI Usage Examples**](#cli-usage-examples)
+- [📊 Example Use Cases](#-example-use-cases)
+  - [**Development Scenarios**](#development-scenarios)
+  - [**Production Scenarios**](#production-scenarios)
+- [🔧 Development Guidelines](#-development-guidelines)
+  - [**Creating New Examples**](#creating-new-examples)
+  - [**Example Structure Template**](#example-structure-template)
+  - [**Testing Examples**](#testing-examples)
+- [🧭 Integration Patterns](#-integration-patterns)
+  - [**FLEXT Ecosystem Integration**](#flext-ecosystem-integration)
+  - [**External System Integration**](#external-system-integration)
+<!-- TOC END -->
+
 This directory contains examples demonstrating real-world usage patterns for FLEXT DB Oracle. Each example follows practices and showcases different integration scenarios within the FLEXT ecosystem.
 
 ## 📋 Example Categories

@@ -1,5 +1,24 @@
 # Getting Started with flext-db-oracle
 
+
+<!-- TOC START -->
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Connection Test](#quick-connection-test)
+- [Basic Operations](#basic-operations)
+  - [Query Execution](#query-execution)
+  - [Schema Operations](#schema-operations)
+- [Oracle XE Development Container](#oracle-xe-development-container)
+- [Configuration Options](#configuration-options)
+  - [Environment Variables](#environment-variables)
+  - [Configuration from Environment](#configuration-from-environment)
+- [CLI Interface](#cli-interface)
+- [Current Capabilities](#current-capabilities)
+- [Next Steps](#next-steps)
+- [Need Help](#need-help)
+- [Related Documentation](#related-documentation)
+<!-- TOC END -->
+
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.
 
 ## Prerequisites

@@ -1,5 +1,28 @@
 # Integration Tests
 
+
+<!-- TOC START -->
+- [🎯 Integration Test Principles](#-integration-test-principles)
+  - [**Real System Integration**](#real-system-integration)
+  - [**Test Scope**](#test-scope)
+- [📁 Test Organization](#-test-organization)
+  - [**Core Integration Tests**](#core-integration-tests)
+  - [**Test Categories**](#test-categories)
+- [🚀 Running Integration Tests](#-running-integration-tests)
+  - [**Prerequisites**](#prerequisites)
+  - [**Test Execution**](#test-execution)
+  - [**Test Data Management**](#test-data-management)
+- [🧪 Test Examples](#-test-examples)
+  - [**Database Connection Testing**](#database-connection-testing)
+  - [**Query Execution Testing**](#query-execution-testing)
+  - [**Schema Integration Testing**](#schema-integration-testing)
+- [📊 Performance Benchmarking](#-performance-benchmarking)
+- [🔧 Test Environment Management](#-test-environment-management)
+  - [**Test Database Schema**](#test-database-schema)
+  - [**Docker Integration**](#docker-integration)
+  - [**Continuous Integration**](#continuous-integration)
+<!-- TOC END -->
+
 This directory contains integration tests for FLEXT DB Oracle that require actual Oracle database connectivity. These tests validate component interactions, database operations, and real-world scenarios with live Oracle instances.
 
 ## 🎯 Integration Test Principles

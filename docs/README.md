@@ -1,5 +1,12 @@
 # flext-db-oracle Documentation
 
+
+<!-- TOC START -->
+- [📚 Documentation Structure](#-documentation-structure)
+- [🎯 Purpose](#-purpose)
+- [🔗 Integration](#-integration)
+<!-- TOC END -->
+
 **Professional documentation for the FLEXT Oracle Database Integration library.**
 
 ## 📚 Documentation Structure

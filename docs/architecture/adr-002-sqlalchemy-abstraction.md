@@ -1,5 +1,37 @@
 # Architecture Decision Record: ADR-002
 
+
+<!-- TOC START -->
+- [Context](#context)
+- [Decision](#decision)
+- [Rationale](#rationale)
+  - [Benefits Achieved](#benefits-achieved)
+  - [Quality Attributes Addressed](#quality-attributes-addressed)
+- [Alternatives Considered](#alternatives-considered)
+  - [Option 1: Repository Pattern with Full Abstraction](#option-1-repository-pattern-with-full-abstraction)
+  - [Option 2: Direct SQLAlchemy Usage Throughout](#option-2-direct-sqlalchemy-usage-throughout)
+  - [Option 3: Query Object Pattern](#option-3-query-object-pattern)
+  - [Option 4: CQRS with Separate Read/Write Models](#option-4-cqrs-with-separate-readwrite-models)
+  - [Option 5: Data Mapper Pattern](#option-5-data-mapper-pattern)
+- [Consequences](#consequences)
+  - [Positive Consequences](#positive-consequences)
+  - [Negative Consequences](#negative-consequences)
+- [Implementation Plan](#implementation-plan)
+  - [Phase 1: Foundation Setup (Completed)](#phase-1-foundation-setup-completed)
+  - [Phase 2: Core Implementation (In Progress)](#phase-2-core-implementation-in-progress)
+  - [Phase 3: Advanced Features (Planned)](#phase-3-advanced-features-planned)
+- [Validation Criteria](#validation-criteria)
+  - [Functional Validation](#functional-validation)
+  - [Quality Validation](#quality-validation)
+  - [Performance Validation](#performance-validation)
+- [References](#references)
+- [Notes](#notes)
+  - [Technical Debt Considerations](#technical-debt-considerations)
+  - [Future Enhancements](#future-enhancements)
+  - [Migration Strategy](#migration-strategy)
+  - [Related Decisions](#related-decisions)
+<!-- TOC END -->
+
 **ADR Number**: 002
 **Title**: SQLAlchemy Abstraction Strategy for Oracle Integration
 **Date**: 2025-01-20

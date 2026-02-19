@@ -1,5 +1,37 @@
 # Implementation Status - flext-db-oracle v0.9.0
 
+
+<!-- TOC START -->
+- [📊 Overall Project Status](#-overall-project-status)
+  - [Phase Completion Summary](#phase-completion-summary)
+  - [Implementation Metrics](#implementation-metrics)
+- [🏗️ Architecture Implementation Status](#-architecture-implementation-status)
+  - [✅ **COMPLETED - Foundation Layer (100%)**](#-completed-foundation-layer-100)
+  - [⚠️ **PARTIAL - CLI Layer (60%)**](#-partial-cli-layer-60)
+  - [❌ **NOT STARTED - Advanced Features (0%)**](#-not-started-advanced-features-0)
+- [🧪 Testing Implementation Status](#-testing-implementation-status)
+  - [✅ **COMPLETED - Test Infrastructure (100%)**](#-completed-test-infrastructure-100)
+  - [Test Coverage by Module](#test-coverage-by-module)
+- [📚 Documentation Status](#-documentation-status)
+  - [✅ **COMPLETED - Core Documentation (100%)**](#-completed-core-documentation-100)
+  - [⚠️ **PARTIAL - Implementation Documentation (40%)**](#-partial-implementation-documentation-40)
+- [🔄 Implementation Challenges & Solutions](#-implementation-challenges-solutions)
+  - [Major Challenges Overcome](#major-challenges-overcome)
+  - [Best Practices Established](#best-practices-established)
+- [🎯 Current Phase Focus (CLI Enhancement)](#-current-phase-focus-cli-enhancement)
+  - [Phase 2 Goals](#phase-2-goals)
+  - [Implementation Approach](#implementation-approach)
+  - [Success Criteria](#success-criteria)
+- [📈 Project Health Metrics](#-project-health-metrics)
+  - [Quality Metrics](#quality-metrics)
+  - [Performance Metrics](#performance-metrics)
+  - [Ecosystem Impact](#ecosystem-impact)
+- [🚀 Next Steps](#-next-steps)
+  - [Immediate Priorities (Phase 2)](#immediate-priorities-phase-2)
+  - [Future Phases (Phase 3+)](#future-phases-phase-3)
+  - [Documentation Updates Needed](#documentation-updates-needed)
+<!-- TOC END -->
+
 **Last Updated**: 2025-10-10 | **Status**: Functional Foundation with Test Issues | **Coverage**: ~95% (Test Failures)
 
 ## 📊 Overall Project Status

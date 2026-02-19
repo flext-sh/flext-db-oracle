@@ -17,9 +17,8 @@ from typing import Any
 import oracledb
 import pytest
 from flext_core import FlextLogger
-from flext_tests import FlextTestsDocker, FlextTestsDomains
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_tests import FlextTestsDocker, FlextTestsDomains
 
 logger = FlextLogger(__name__)
 
@@ -218,9 +217,7 @@ def shared_oracle_container(
     compose_file = str(compose_file_value)
     if not compose_file.startswith("/"):
         # Relative path, make it absolute from workspace root
-        # Workspace root is /home/marlonsc/flext
-        # compose_file from SHARED_CONTAINERS is "docker/docker-compose.oracle-db.yml"
-        workspace_root = Path("/home/marlonsc/flext")
+        workspace_root = Path(__file__).resolve().parents[3]
         compose_file = str(workspace_root / compose_file)
 
     # REGRA: Só recriar se estiver dirty, senão apenas iniciar se não estiver rodando

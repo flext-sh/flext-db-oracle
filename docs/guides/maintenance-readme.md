@@ -1,10 +1,57 @@
 # Documentation Maintenance & Quality Assurance
 
+
+<!-- TOC START -->
+- [📊 System Overview](#-system-overview)
+  - [Current Documentation Health](#current-documentation-health)
+  - [Quick Health Check](#quick-health-check)
+- [🚀 Quick Start](#-quick-start)
+  - [Automated Maintenance](#automated-maintenance)
+  - [Manual Operation](#manual-operation)
+- [📋 Maintenance Framework](#-maintenance-framework)
+  - [Core Components](#core-components)
+  - [Configuration System](#configuration-system)
+- [📈 Quality Metrics & KPIs](#-quality-metrics-kpis)
+  - [Health Score Components](#health-score-components)
+  - [Key Performance Indicators](#key-performance-indicators)
+- [🔧 Integration & Automation](#-integration-automation)
+  - [CI/CD Pipeline Integration](#cicd-pipeline-integration)
+  - [Pre-commit Hook Integration](#pre-commit-hook-integration)
+  - [Project Management Integration](#project-management-integration)
+- [📋 Maintenance Procedures](#-maintenance-procedures)
+  - [Daily Maintenance (Automated)](#daily-maintenance-automated)
+  - [Weekly Review Process](#weekly-review-process)
+  - [Monthly Comprehensive Review](#monthly-comprehensive-review)
+- [🚨 Issue Classification & Response](#-issue-classification-response)
+  - [Severity Levels](#severity-levels)
+  - [Common Issues & Solutions](#common-issues-solutions)
+- [🛠️ Customization & Extension](#-customization-extension)
+  - [Adding New Validation Rules](#adding-new-validation-rules)
+  - [Custom Quality Metrics](#custom-quality-metrics)
+  - [Extending Reports](#extending-reports)
+- [📊 Monitoring & Analytics](#-monitoring-analytics)
+  - [Real-time Dashboards](#real-time-dashboards)
+  - [Automated Notifications](#automated-notifications)
+- [🎯 Best Practices](#-best-practices)
+  - [Documentation Standards](#documentation-standards)
+  - [Quality Assurance](#quality-assurance)
+- [🔍 Troubleshooting](#-troubleshooting)
+  - [Common Issues](#common-issues)
+- [📈 Success Metrics](#-success-metrics)
+  - [Quality Improvements Tracked](#quality-improvements-tracked)
+  - [Process Efficiency](#process-efficiency)
+- [📚 Resources](#-resources)
+- [🤝 Contributing](#-contributing)
+  - [Adding New Validation Rules](#adding-new-validation-rules)
+  - [Improving Reports](#improving-reports)
+  - [System Extensions](#system-extensions)
+<!-- TOC END -->
+
 **Automated documentation maintenance system for flext-db-oracle with comprehensive quality assurance, validation, and continuous improvement.**
 
 [![Documentation Health](https://img.shields.io/badge/docs-health-83.4%25-orange)](docs/reports/)
 [![Files Audited](https://img.shields.io/badge/files-21-blue)](.)
-[![Maintenance](https://img.shields.io/badge/maintenance-automated-green)](scripts/docs_maintenance.py)
+[![Maintenance](https://img.shields.io/badge/maintenance-automated-green)](scripts/documentation/audit.py)
 
 ## 📊 System Overview
 
@@ -22,7 +69,7 @@
 
 ```bash
 # Run comprehensive health check
-make docs-health
+make docs DOCS_PHASE=audit
 
 # Output:
 # Documentation Health Check:
@@ -39,22 +86,22 @@ make docs-health
 
 ```bash
 # Complete maintenance suite
-make docs-maintenance
+make docs
 
 # Individual operations
-make docs-audit      # Comprehensive audit with report
-make docs-validate   # Quick validation checks
-make docs-optimize   # Content optimization
+make docs DOCS_PHASE=audit      # Comprehensive audit with report
+make docs DOCS_PHASE=validate   # Quick validation checks
+make docs DOCS_PHASE=fix FIX=1  # Content optimization
 ```
 
 ### Manual Operation
 
 ```bash
 # Run specific maintenance tasks
-python scripts/docs_maintenance.py --comprehensive
-python scripts/docs_maintenance.py --audit
-python scripts/docs_maintenance.py --validate
-python scripts/docs_maintenance.py --optimize
+make docs DOCS_PHASE=all PROJECT=flext-db-oracle
+make docs DOCS_PHASE=audit
+make docs DOCS_PHASE=validate
+make docs DOCS_PHASE=fix FIX=1
 ```
 
 ## 📋 Maintenance Framework
@@ -66,7 +113,7 @@ python scripts/docs_maintenance.py --optimize
 Automated analysis of documentation quality, freshness, and completeness.
 
 ```bash
-python scripts/docs_maintenance.py --audit
+make docs DOCS_PHASE=audit
 # Generates: docs/reports/maintenance_report_YYYYMMDD_HHMMSS.md
 ```
 
@@ -83,7 +130,7 @@ python scripts/docs_maintenance.py --audit
 Comprehensive validation of markdown syntax, links, and references.
 
 ```bash
-python scripts/docs_maintenance.py --validate
+make docs DOCS_PHASE=validate
 # Returns: 0 (success) or 1 (validation failed)
 ```
 
@@ -100,7 +147,7 @@ python scripts/docs_maintenance.py --validate
 Intelligent content enhancement and formatting improvements.
 
 ```bash
-python scripts/docs_maintenance.py --optimize
+make docs DOCS_PHASE=fix FIX=1
 # Note: Currently generates suggestions only (auto_correct: false)
 ```
 
@@ -210,7 +257,7 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev
       - name: Run documentation audit
-        run: make docs-audit
+run: make docs DOCS_PHASE=audit
       - name: Upload reports
         uses: actions/upload-artifact@v4
         with:
@@ -249,10 +296,10 @@ chmod +x .git/hooks/pre-commit
 
 ```bash
 # Automated daily audit (CI/CD scheduled)
-make docs-audit
+make docs DOCS_PHASE=audit
 
 # Quick validation for development
-make docs-validate
+make docs DOCS_PHASE=validate
 ```
 
 ### Weekly Review Process
@@ -285,7 +332,7 @@ cat docs/reports/$(ls docs/reports/ | tail -1)
 
 ```bash
 # Run comprehensive maintenance
-make docs-maintenance
+make docs
 
 # Review all metrics and trends
 # Update configuration if needed
@@ -316,7 +363,7 @@ make docs-maintenance
 
 ```bash
 # Identify stale files
-python scripts/docs_maintenance.py --audit | grep "stale_content"
+make docs DOCS_PHASE=audit | grep "stale_content"
 
 # Update with current information
 # Add version numbers and dates
@@ -327,7 +374,7 @@ python scripts/docs_maintenance.py --audit | grep "stale_content"
 
 ```bash
 # Find broken links
-python scripts/docs_maintenance.py --audit | grep "broken_link"
+make docs DOCS_PHASE=audit | grep "broken_link"
 
 # Update URLs or remove dead links
 # Replace with working alternatives
@@ -338,7 +385,7 @@ python scripts/docs_maintenance.py --audit | grep "broken_link"
 
 ```bash
 # Check style problems
-python scripts/docs_maintenance.py --audit | grep "emphasis_inconsistency\|list_consistency"
+make docs DOCS_PHASE=audit | grep "broken_link\|forbidden_term"
 
 # Standardize formatting
 # Use consistent markers and styles
@@ -480,7 +527,7 @@ poetry env info
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
 # Debug execution
-PYTHONPATH=src python -m py_compile scripts/docs_maintenance.py
+PYTHONPATH=src python -m compileall scripts/documentation
 ```
 
 #### Configuration Problems
@@ -500,10 +547,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time make docs-audit
+time make docs DOCS_PHASE=audit
 
 # Debug slow files
-python scripts/docs_maintenance.py --audit 2>&1 | grep -E "(ERROR|slow|timeout)"
+make docs DOCS_PHASE=audit 2>&1 | grep -E "(ERROR|FAIL|timeout)"
 ```
 
 #### Report Generation Issues
@@ -552,7 +599,7 @@ df -h docs/reports/
 
 ### Adding New Validation Rules
 
-1. Extend the `DocumentationAuditor` class in `scripts/docs_maintenance.py`
+1. Extend `scripts/documentation/audit.py` and `scripts/documentation/validate.py`
 2. Add configuration options to `docs/maintenance_config.yaml`
 3. Update documentation in `docs/maintenance_procedures.md`
 4. Add test cases for the new validation

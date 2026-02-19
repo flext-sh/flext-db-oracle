@@ -1,5 +1,33 @@
 # C4 Context Diagram - flext-db-oracle
 
+
+<!-- TOC START -->
+- [Context Overview](#context-overview)
+- [System Purpose](#system-purpose)
+- [External System Interactions](#external-system-interactions)
+  - [Database Systems](#database-systems)
+  - [Development Ecosystem](#development-ecosystem)
+  - [Infrastructure](#infrastructure)
+- [User Personas](#user-personas)
+  - [Primary Users](#primary-users)
+  - [Secondary Stakeholders](#secondary-stakeholders)
+- [Quality Attributes](#quality-attributes)
+  - [Performance](#performance)
+  - [Reliability](#reliability)
+  - [Security](#security)
+  - [Maintainability](#maintainability)
+- [Constraints and Assumptions](#constraints-and-assumptions)
+  - [Technical Constraints](#technical-constraints)
+  - [Business Constraints](#business-constraints)
+  - [Assumptions](#assumptions)
+- [System Boundaries](#system-boundaries)
+  - [In Scope](#in-scope)
+  - [Out of Scope](#out-of-scope)
+- [Evolution and Roadmap](#evolution-and-roadmap)
+  - [Current Version (0.9.0)](#current-version-090)
+  - [Future Versions](#future-versions)
+<!-- TOC END -->
+
 **System Context for Oracle Database Integration in FLEXT Ecosystem**
 
 ## Context Overview

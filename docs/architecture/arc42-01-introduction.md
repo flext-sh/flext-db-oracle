@@ -1,5 +1,35 @@
 # Arc42 Documentation: 1. Introduction and Goals
 
+
+<!-- TOC START -->
+- [1.1 Purpose and Scope](#11-purpose-and-scope)
+  - [Business Context](#business-context)
+  - [Scope and Responsibilities](#scope-and-responsibilities)
+  - [Quality Goals](#quality-goals)
+- [1.2 Stakeholders and Concerns](#12-stakeholders-and-concerns)
+  - [Primary Stakeholders](#primary-stakeholders)
+  - [Secondary Stakeholders](#secondary-stakeholders)
+- [1.3 Architecture Constraints](#13-architecture-constraints)
+  - [Technical Constraints](#technical-constraints)
+  - [Business Constraints](#business-constraints)
+  - [Organizational Constraints](#organizational-constraints)
+- [1.4 Architecture Principles](#14-architecture-principles)
+  - [Clean Architecture Foundation](#clean-architecture-foundation)
+  - [Railway Pattern Error Handling](#railway-pattern-error-handling)
+  - [Type Safety Mandate](#type-safety-mandate)
+  - [Testability First Approach](#testability-first-approach)
+- [1.5 Architecture Decisions Overview](#15-architecture-decisions-overview)
+  - [Key Architectural Decisions](#key-architectural-decisions)
+  - [Decision Tracking](#decision-tracking)
+- [1.6 Quality Requirements](#16-quality-requirements)
+  - [Functional Requirements](#functional-requirements)
+  - [Non-Functional Requirements](#non-functional-requirements)
+- [1.7 Glossary](#17-glossary)
+  - [Architecture Terms](#architecture-terms)
+  - [Oracle Database Terms](#oracle-database-terms)
+  - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
+<!-- TOC END -->
+
 **flext-db-oracle - Enterprise Oracle Database Integration**
 **Arc42 Section 1: Introduction and Goals**
 

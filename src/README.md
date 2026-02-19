@@ -1,5 +1,29 @@
 # FLEXT DB Oracle - Source Code
 
+
+<!-- TOC START -->
+- [📁 Module Organization](#-module-organization)
+  - [**Core Application Layer**](#core-application-layer)
+  - [**Configuration and Infrastructure Layer**](#configuration-and-infrastructure-layer)
+  - [**Domain and Metadata Layer**](#domain-and-metadata-layer)
+  - [**Foundation Layer**](#foundation-layer)
+- [🏗️ Architecture Patterns](#-architecture-patterns)
+  - [**Clean Architecture Implementation**](#clean-architecture-implementation)
+  - [**SOLID Principles Implementation**](#solid-principles-implementation)
+  - [**FLEXT Core Integration**](#flext-core-integration)
+- [🎯 Module Naming Conventions](#-module-naming-conventions)
+  - [**Public API Naming**](#public-api-naming)
+  - [**Import Patterns**](#import-patterns)
+- [📊 Code Quality Standards](#-code-quality-standards)
+  - [**Type Safety Requirements**](#type-safety-requirements)
+  - [**Documentation Standards**](#documentation-standards)
+  - [**Testing Integration**](#testing-integration)
+- [🔧 Development Guidelines](#-development-guidelines)
+  - [**Adding New Modules**](#adding-new-modules)
+  - [**Modifying Existing Modules**](#modifying-existing-modules)
+  - [**Quality Gates**](#quality-gates)
+<!-- TOC END -->
+
 This directory contains the complete source code for FLEXT DB Oracle, an enterprise Oracle database integration library built on Clean Architecture principles.
 
 ## 📁 Module Organization

@@ -1,5 +1,20 @@
 # API Reference
 
+
+<!-- TOC START -->
+- [Core Imports](#core-imports)
+- [FlextDbOracleApi](#flextdboracleapi)
+  - [Connection Methods](#connection-methods)
+  - [Query Methods](#query-methods)
+  - [Schema Methods](#schema-methods)
+  - [Configuration Methods](#configuration-methods)
+- [OracleConfig](#oracleconfig)
+- [CLI Interface](#cli-interface)
+- [Error Handling](#error-handling)
+- [Limitations](#limitations)
+- [Related Documentation](#related-documentation)
+<!-- TOC END -->
+
 Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 
 ## Core Imports

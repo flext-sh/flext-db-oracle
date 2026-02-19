@@ -4,22 +4,22 @@
 
 echo "🔍 Running documentation validation..."
 
-# Check if we're in the right directory
-if [ ! -f "scripts/docs_maintenance.py" ]; then
-    echo "❌ Documentation maintenance script not found"
+# Check if docs Make target is available
+if ! make -n docs >/dev/null 2>&1; then
+    echo "❌ make docs is not available"
     exit 1
 fi
 
 # Run validation checks
 echo "Running validation checks..."
-if PYTHONPATH=src poetry run python scripts/docs_maintenance.py --validate > /dev/null 2>&1; then
+if make docs DOCS_PHASE=validate > /dev/null 2>&1; then
     echo "✅ Documentation validation passed"
 else
     echo "❌ Documentation validation failed"
     echo ""
     echo "Please fix the documentation issues before committing:"
-    echo "  python scripts/docs_maintenance.py --validate"
-    echo "  python scripts/docs_maintenance.py --audit"
+    echo "  make docs DOCS_PHASE=validate"
+    echo "  make docs DOCS_PHASE=audit"
     echo ""
     exit 1
 fi

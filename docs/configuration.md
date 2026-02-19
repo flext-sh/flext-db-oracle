@@ -1,5 +1,15 @@
 # Configuration
 
+
+<!-- TOC START -->
+- [Basic Configuration](#basic-configuration)
+  - [Environment Variables](#environment-variables)
+  - [Code Configuration](#code-configuration)
+- [Connection Parameters](#connection-parameters)
+- [Testing Connection](#testing-connection)
+- [CLI Configuration](#cli-configuration)
+<!-- TOC END -->
+
 Oracle database connection configuration for flext-db-oracle.
 
 ## Basic Configuration

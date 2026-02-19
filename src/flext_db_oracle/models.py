@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from flext_core.models import FlextModels, m
 from flext_core.typings import t
 from flext_core.utilities import u as flext_u
+from flext_db_oracle.constants import c
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -23,8 +24,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
-from flext_db_oracle.constants import c
 
 
 class FlextDbOracleBaseModel(BaseModel):

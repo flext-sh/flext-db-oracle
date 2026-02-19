@@ -1,5 +1,28 @@
 # End-to-End Tests
 
+
+<!-- TOC START -->
+- [🎯 End-to-End Test Principles](#-end-to-end-test-principles)
+  - [**Complete System Integration**](#complete-system-integration)
+  - [**Test Scope**](#test-scope)
+- [📁 Test Organization](#-test-organization)
+  - [**Core E2E Tests**](#core-e2e-tests)
+  - [**Test Categories**](#test-categories)
+- [🚀 Running End-to-End Tests](#-running-end-to-end-tests)
+  - [**Prerequisites**](#prerequisites)
+  - [**Test Execution**](#test-execution)
+  - [**Test Data Setup**](#test-data-setup)
+- [🧪 Test Examples](#-test-examples)
+  - [**Complete CLI Workflow Test**](#complete-cli-workflow-test)
+  - [**API Integration Workflow Test**](#api-integration-workflow-test)
+  - [**Data Pipeline Workflow Test**](#data-pipeline-workflow-test)
+- [📊 Performance and Load Testing](#-performance-and-load-testing)
+- [🔧 Test Environment Management](#-test-environment-management)
+  - [**Docker Compose Setup**](#docker-compose-setup)
+  - [**Test Data Management**](#test-data-management)
+  - [**Continuous Integration**](#continuous-integration)
+<!-- TOC END -->
+
 This directory contains end-to-end (E2E) tests for FLEXT DB Oracle that validate complete user workflows and system integration scenarios. These tests use real systems without mocks to ensure the entire application works correctly in production-like environments.
 
 ## 🎯 End-to-End Test Principles

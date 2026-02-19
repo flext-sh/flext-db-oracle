@@ -1,5 +1,47 @@
 # Testing Plan & Strategy - flext-db-oracle v0.9.0
 
+
+<!-- TOC START -->
+- [📊 Testing Overview](#-testing-overview)
+  - [Test Infrastructure Status](#test-infrastructure-status)
+- [🚨 Current Test Issues & Blockers](#-current-test-issues-blockers)
+  - [Critical Test Failures](#critical-test-failures)
+  - [Resolution Strategy](#resolution-strategy)
+- [📊 Current Test Results & Issues](#-current-test-results-issues)
+  - [Test Execution Status (2025-10-10)](#test-execution-status-2025-10-10)
+  - [Known Test Issues](#known-test-issues)
+- [🧪 Test Coverage by Component](#-test-coverage-by-component)
+  - [Core API Layer (`api.py`)](#core-api-layer-apipy)
+  - [Models Layer (`models.py`)](#models-layer-modelspy)
+  - [Services Layer (`services.py`)](#services-layer-servicespy)
+  - [CLI Layer (Incomplete - 60%)](#cli-layer-incomplete-60)
+  - [Integration Testing (Oracle Container)](#integration-testing-oracle-container)
+- [🧪 Test Quality Standards](#-test-quality-standards)
+  - [Code Coverage Requirements](#code-coverage-requirements)
+  - [Test Quality Metrics](#test-quality-metrics)
+- [🚀 Testing Strategy & Best Practices](#-testing-strategy-best-practices)
+  - [1. Railway Pattern Testing](#1-railway-pattern-testing)
+  - [2. Fixture-Based Testing](#2-fixture-based-testing)
+  - [3. Parametrized Testing](#3-parametrized-testing)
+  - [4. Mock Strategy](#4-mock-strategy)
+- [📊 Current Test Results & Issues](#-current-test-results-issues)
+  - [Test Execution Status](#test-execution-status)
+  - [Known Test Issues](#known-test-issues)
+  - [Test Performance Metrics](#test-performance-metrics)
+- [🔧 Test Infrastructure & Tools](#-test-infrastructure-tools)
+  - [Testing Tools Configuration](#testing-tools-configuration)
+  - [CI/CD Integration](#cicd-integration)
+- [🎯 Testing Roadmap](#-testing-roadmap)
+  - [Phase 2 Testing Priorities](#phase-2-testing-priorities)
+  - [Testing Best Practices Established](#testing-best-practices-established)
+- [📈 Testing Quality Metrics](#-testing-quality-metrics)
+  - [Coverage Quality Indicators](#coverage-quality-indicators)
+  - [Performance Benchmarks](#performance-benchmarks)
+- [🔍 Test Maintenance & Evolution](#-test-maintenance-evolution)
+  - [Test Refactoring Guidelines](#test-refactoring-guidelines)
+  - [Continuous Improvement](#continuous-improvement)
+<!-- TOC END -->
+
 **Last Updated**: 2025-10-10 | **Coverage Target**: 100% | **Test Files**: 30 | **Current Status**: Issues Detected
 
 ## 📊 Testing Overview

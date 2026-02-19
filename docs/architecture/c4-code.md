@@ -1,5 +1,32 @@
 # C4 Code Diagram - flext-db-oracle Implementation
 
+
+<!-- TOC START -->
+- [Code Structure Overview](#code-structure-overview)
+- [Code Module Details](#code-module-details)
+  - [Entry Points](#entry-points)
+  - [Core API Layer](#core-api-layer)
+  - [Service Layer](#service-layer)
+  - [Domain Model Layer](#domain-model-layer)
+  - [Infrastructure Layer](#infrastructure-layer)
+  - [Supporting Modules](#supporting-modules)
+- [Code Quality Metrics](#code-quality-metrics)
+  - [Size and Complexity](#size-and-complexity)
+  - [Type Safety Coverage](#type-safety-coverage)
+  - [Code Quality Standards](#code-quality-standards)
+- [Test Infrastructure](#test-infrastructure)
+  - [Test Organization](#test-organization)
+  - [Test Coverage Areas](#test-coverage-areas)
+  - [Test Quality Metrics](#test-quality-metrics)
+- [Code Evolution and Maintenance](#code-evolution-and-maintenance)
+  - [Current Development Phase](#current-development-phase)
+  - [Code Maintenance Practices](#code-maintenance-practices)
+- [Performance Characteristics](#performance-characteristics)
+  - [Memory and CPU Usage](#memory-and-cpu-usage)
+  - [Scalability Metrics](#scalability-metrics)
+  - [Optimization Opportunities](#optimization-opportunities)
+<!-- TOC END -->
+
 **Code-Level Architecture for Oracle Database Integration**
 
 ## Code Structure Overview
@@ -440,7 +467,7 @@ tests/
 
 - **Pre-commit Hooks**: Documentation and code quality validation
 - **CI/CD Integration**: Automated testing and quality gates
-- **Maintenance Scripts**: `scripts/docs_maintenance.py` for documentation
+- **Maintenance Scripts**: `scripts/documentation/audit.py` and `scripts/documentation/validate.py` for documentation
 - **Type Checking**: Pyrefly strict mode enforcement
 
 #### Code Review Standards

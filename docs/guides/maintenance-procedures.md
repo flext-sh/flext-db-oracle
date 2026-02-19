@@ -1,5 +1,42 @@
 # Documentation Maintenance Procedures
 
+
+<!-- TOC START -->
+- [Overview](#overview)
+- [Maintenance Framework](#maintenance-framework)
+  - [Automated Maintenance System](#automated-maintenance-system)
+  - [Key Components](#key-components)
+- [Daily Maintenance Procedures](#daily-maintenance-procedures)
+  - [Automated Quality Checks](#automated-quality-checks)
+  - [Quality Gates](#quality-gates)
+- [Weekly Maintenance Tasks](#weekly-maintenance-tasks)
+  - [Content Review and Updates](#content-review-and-updates)
+  - [Quality Improvement](#quality-improvement)
+- [Monthly Comprehensive Review](#monthly-comprehensive-review)
+  - [Documentation Audit](#documentation-audit)
+  - [Quality Metrics Review](#quality-metrics-review)
+- [Emergency Maintenance](#emergency-maintenance)
+  - [Critical Issue Response](#critical-issue-response)
+  - [System Failure Recovery](#system-failure-recovery)
+- [Configuration Management](#configuration-management)
+  - [Maintenance Configuration](#maintenance-configuration)
+  - [Customization Guidelines](#customization-guidelines)
+- [Team Collaboration](#team-collaboration)
+  - [Review Process](#review-process)
+  - [Communication Channels](#communication-channels)
+- [Tool Integration](#tool-integration)
+  - [Development Workflow Integration](#development-workflow-integration)
+  - [External Tool Integration](#external-tool-integration)
+- [Best Practices](#best-practices)
+  - [Documentation Standards](#documentation-standards)
+  - [Quality Assurance](#quality-assurance)
+- [Troubleshooting](#troubleshooting)
+  - [Common Issues](#common-issues)
+- [Success Metrics](#success-metrics)
+  - [Quality Metrics](#quality-metrics)
+  - [Process Metrics](#process-metrics)
+<!-- TOC END -->
+
 **Comprehensive maintenance framework for flext-db-oracle documentation quality assurance.**
 
 ## Overview
@@ -22,21 +59,21 @@ The documentation maintenance system consists of several integrated components:
 
 ### Key Components
 
-#### 1. Content Quality Audit (`scripts/docs_maintenance.py --audit`)
+#### 1. Content Quality Audit (`scripts/documentation/audit.py`)
 
 - **File Discovery**: Automatically finds all documentation files
 - **Content Analysis**: Word count, structure, readability metrics
 - **Freshness Tracking**: Identifies stale content (>90 days old)
 - **Issue Classification**: Critical, High, Medium, Low severity levels
 
-#### 2. Validation Engine (`scripts/docs_maintenance.py --validate`)
+#### 2. Validation Engine (`scripts/documentation/validate.py`)
 
 - **Markdown Syntax**: Heading hierarchy, list consistency, code blocks
 - **Link Validation**: External links, internal references, broken links
 - **Reference Integrity**: Cross-document references and citations
 - **Accessibility**: Alt text, descriptive links, semantic structure
 
-#### 3. Optimization Tools (`scripts/docs_maintenance.py --optimize`)
+#### 3. Optimization Tools (`scripts/documentation/fix.py --apply`)
 
 - **Content Enhancement**: Table of contents, metadata updates
 - **Style Consistency**: Emphasis styles, formatting standardization
@@ -58,13 +95,13 @@ Run daily automated checks using the maintenance script:
 
 ```bash
 # Complete audit and validation
-python scripts/docs_maintenance.py --comprehensive
+make docs DOCS_PHASE=all PROJECT=flext-db-oracle
 
 # Quick validation only
-python scripts/docs_maintenance.py --validate
+make docs DOCS_PHASE=validate
 
 # Generate audit report
-python scripts/docs_maintenance.py --audit
+make docs DOCS_PHASE=audit
 ```
 
 ### Quality Gates
@@ -73,11 +110,11 @@ python scripts/docs_maintenance.py --audit
 
 ```bash
 # Pre-commit quality check
-make docs-validate
+make docs DOCS_PHASE=validate
 
 # Include in CI/CD pipeline
 - name: Validate Documentation
-  run: python scripts/docs_maintenance.py --validate
+  run: make docs DOCS_PHASE=validate
 ```
 
 ## Weekly Maintenance Tasks
@@ -88,7 +125,7 @@ make docs-validate
 
 ```bash
 # Check for stale content (>90 days)
-python scripts/docs_maintenance.py --audit | grep "stale_content"
+make docs DOCS_PHASE=audit | grep "stale_content"
 
 # Review and update outdated information
 # Priority: README.md, API docs, implementation guides
@@ -98,7 +135,7 @@ python scripts/docs_maintenance.py --audit | grep "stale_content"
 
 ```bash
 # Validate all external links
-python scripts/docs_maintenance.py --audit | grep "broken_link\|unreachable_link"
+make docs DOCS_PHASE=audit | grep "broken_link"
 
 # Update or remove broken references
 # Priority: External documentation, API references
@@ -108,7 +145,7 @@ python scripts/docs_maintenance.py --audit | grep "broken_link\|unreachable_link
 
 ```bash
 # Check internal document references
-python scripts/docs_maintenance.py --audit | grep "broken_internal_link"
+make docs DOCS_PHASE=audit | grep "broken_link"
 
 # Fix relative paths and anchor links
 # Update changed file locations
@@ -145,7 +182,7 @@ python scripts/docs_maintenance.py --audit | grep "broken_internal_link"
 
 ```bash
 # Generate comprehensive audit report
-python scripts/docs_maintenance.py --comprehensive
+make docs DOCS_PHASE=all PROJECT=flext-db-oracle
 
 # Review all files with issues
 # Focus on critical and high-severity items first
@@ -312,13 +349,13 @@ chmod +x .git/hooks/pre-commit
 ```yaml
 # .github/workflows/docs.yml
 - name: Documentation Quality
-  run: python scripts/docs_maintenance.py --validate
+ run: make docs DOCS_PHASE=validate
 
 - name: Documentation Audit
-  run: python scripts/docs_maintenance.py --audit
+ run: make docs DOCS_PHASE=audit
 
 - name: Generate Report
-  run: python scripts/docs_maintenance.py --comprehensive
+ run: make docs DOCS_PHASE=all PROJECT=flext-db-oracle
 ```
 
 ### External Tool Integration
@@ -384,7 +421,7 @@ pip list | grep PyYAML
 python -c "import yaml; yaml.safe_load(open('docs/maintenance_config.yaml'))"
 
 # Debug script execution
-python -m py_compile scripts/docs_maintenance.py
+python -m compileall scripts/documentation
 ```
 
 #### Configuration Issues
@@ -404,10 +441,10 @@ ls docs/ scripts/
 
 ```bash
 # Monitor execution time
-time python scripts/docs_maintenance.py --audit
+time make docs DOCS_PHASE=audit
 
 # Reduce scope for debugging
-python scripts/docs_maintenance.py --validate --files "README.md"
+make docs DOCS_PHASE=validate
 
 # Check system resources
 df -h  # Disk space

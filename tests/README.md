@@ -1,5 +1,34 @@
 # FLEXT DB Oracle Test Suite
 
+
+<!-- TOC START -->
+- [🧪 Test Structure](#-test-structure)
+  - [**Test Organization**](#test-organization)
+  - [**Testing Layers**](#testing-layers)
+- [📋 Test Categories](#-test-categories)
+  - [**Core Module Tests**](#core-module-tests)
+  - [**Infrastructure Tests**](#infrastructure-tests)
+- [🏗️ Test Architecture](#-test-architecture)
+  - [**Clean Architecture Testing Patterns**](#clean-architecture-testing-patterns)
+  - [**Testing Principles**](#testing-principles)
+- [🚀 Running Tests](#-running-tests)
+  - [**Quick Test Commands**](#quick-test-commands)
+  - [**Test Configuration**](#test-configuration)
+  - [**Coverage Requirements**](#coverage-requirements)
+- [📊 Test Quality Standards](#-test-quality-standards)
+  - [**Test Quality Gates**](#test-quality-gates)
+  - [**Test Naming Conventions**](#test-naming-conventions)
+  - [**Test Documentation Standards**](#test-documentation-standards)
+  - [**Assertion Patterns**](#assertion-patterns)
+- [🔧 Test Development Guidelines](#-test-development-guidelines)
+  - [**Adding New Tests**](#adding-new-tests)
+  - [**Test Maintenance**](#test-maintenance)
+  - [**Mock Strategy**](#mock-strategy)
+- [🧭 Test Execution Strategy](#-test-execution-strategy)
+  - [**Development Workflow**](#development-workflow)
+  - [**CI/CD Integration**](#cicd-integration)
+<!-- TOC END -->
+
 This directory contains the comprehensive test suite for FLEXT DB Oracle, implementing a layered testing strategy with unit, integration, and end-to-end tests following Clean Architecture principles and enterprise testing standards.
 
 ## 🧪 Test Structure
@@ -196,11 +225,13 @@ All tests must maintain high coverage standards:
 
 ```bash
 # Generate coverage report
-pytest --cov=src/flext_db_oracle --cov-report=html --cov-report=term
+make test
 
-# Coverage requirements
---cov-fail-under=90           # Minimum 90% coverage required
+# Detailed coverage report
+pytest --cov --cov-report=html --cov-report=term
 ```
+
+> Coverage thresholds are configured in `pyproject.toml` under `[tool.coverage.report]`.
 
 ## 📊 Test Quality Standards
 

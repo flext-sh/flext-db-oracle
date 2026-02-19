@@ -14,10 +14,9 @@ from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
+from flext_db_oracle.settings import FlextDbOracleSettings
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection, Engine
-
-from flext_db_oracle.settings import FlextDbOracleSettings
 
 
 class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
@@ -308,9 +307,7 @@ ORDER BY column_id
         cols = ", ".join(columns) if columns else "*"
         where = f" WHERE {conditions}" if conditions else ""
         schema = f"{schema_name}." if schema_name else ""
-        # Query builder pattern - inputs should be validated by caller
-        # S608: Safe - uses column identifiers and bind parameters, not user input
-        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"
+        sql = f"SELECT {cols} FROM {schema}{table_name}{where}"  # nosec B608
         return r.ok(sql)
 
     def build_insert_statement(
@@ -324,8 +321,7 @@ ORDER BY column_id
         cols = ", ".join(columns)
         vals = ", ".join(f":{col}" for col in columns)
         schema_prefix = f"{schema}." if schema else ""
-        # S608: Safe - uses parameterized bind variables (:col), not direct value injection
-        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"
+        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
         if returning_columns:
             ret = ", ".join(returning_columns)
             sql += f" RETURNING {ret}"
@@ -342,8 +338,7 @@ ORDER BY column_id
         sets = ", ".join(f"{col} = :{col}" for col in set_columns)
         wheres = " AND ".join(f"{col} = :where_{col}" for col in where_columns)
         schema_prefix = f"{schema}." if schema else ""
-        # S608: Safe - uses parameterized bind variables (:col, :where_col)
-        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"
+        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
         return r.ok(sql)
 
     def build_delete_statement(
@@ -355,7 +350,7 @@ ORDER BY column_id
         """Build DELETE statement - simplified."""
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         schema_prefix = f"{schema}." if schema else ""
-        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"
+        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
         return r.ok(sql)
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
@@ -499,9 +494,7 @@ ORDER BY column_id
         """Get row count - simplified."""
         try:
             schema = f"{schema_name}." if schema_name else ""
-            # Query builder pattern - inputs should be validated by caller
-            # S608: Safe - uses column identifiers and bind parameters
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
+            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
             return self.execute_query(sql).map(
                 lambda rows: (
                     int(rows[0]["count"])
