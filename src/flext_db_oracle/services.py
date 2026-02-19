@@ -11,20 +11,11 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Protocol
 from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
 from flext_db_oracle.settings import FlextDbOracleSettings
-
-
-class _DbContextManager(Protocol):
-    """Protocol for context-managed DB connection/transaction objects."""
-
-    def __enter__(self) -> object: ...
-
-    def __exit__(self, exc_type: object, exc: object, tb: object) -> bool | None: ...
 
 
 def _sqlalchemy_create_engine(url: str) -> object:
@@ -33,14 +24,13 @@ def _sqlalchemy_create_engine(url: str) -> object:
     create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
     if not callable(create_engine_func):
         msg = "sqlalchemy.create_engine unavailable"
-        raise RuntimeError(msg)
-    engine_obj = create_engine_func(
+        raise TypeError(msg)
+    return create_engine_func(
         url,
         pool_pre_ping=True,
         pool_recycle=3600,
         echo=False,
     )
-    return engine_obj
 
 
 def _sqlalchemy_text(statement: str) -> object:
@@ -49,7 +39,7 @@ def _sqlalchemy_text(statement: str) -> object:
     text_func = getattr(sqlalchemy_module, "text", None)
     if not callable(text_func):
         msg = "sqlalchemy.text unavailable"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return text_func(statement)
 
 
@@ -58,7 +48,7 @@ def _engine_connect(engine: object) -> object:
     connect_method = getattr(engine, "connect", None)
     if not callable(connect_method):
         msg = "Database engine does not expose connect()"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return connect_method()
 
 
@@ -67,7 +57,7 @@ def _engine_begin(engine: object) -> object:
     begin_method = getattr(engine, "begin", None)
     if not callable(begin_method):
         msg = "Database engine does not expose begin()"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return begin_method()
 
 
@@ -76,7 +66,7 @@ def _context_enter(context_manager: object) -> object:
     enter_method = getattr(context_manager, "__enter__", None)
     if not callable(enter_method):
         msg = "Context manager does not expose __enter__()"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return enter_method()
 
 
@@ -103,7 +93,7 @@ def _connection_execute(
     execute_method = getattr(connection, "execute", None)
     if not callable(execute_method):
         msg = "Database connection does not expose execute()"
-        raise RuntimeError(msg)
+        raise TypeError(msg)
     return execute_method(statement, parameters or {})
 
 
@@ -234,9 +224,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
                 rows: list[dict[str, t.JsonValue]] = []
                 if isinstance(result, list):
-                    for row in result:
-                        if isinstance(row, dict):
-                            rows.append(row)
+                    rows.extend(row for row in result if isinstance(row, dict))
                 return r.ok(rows)
             finally:
                 _context_exit(connect_ctx)
@@ -639,12 +627,12 @@ ORDER BY column_id
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
-            metadata_value: dict[str, t.JsonValue] = metadata if metadata else {}
+            metadata_value: dict[str, t.JsonValue] = metadata or {}
             operation: dict[str, t.JsonValue] = {
                 "operation_type": operation_type,
                 "duration": duration,
                 "success": success,
-                "metadata": metadata_value,
+                "metadata": str(metadata_value),
                 "timestamp": self._get_current_timestamp(),
             }
             self._operations.append(operation)

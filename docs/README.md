@@ -2,9 +2,9 @@
 
 
 <!-- TOC START -->
-- 📚 Documentation Structure
-- 🎯 Purpose
-- 🔗 Integration
+- [📚 Documentation Structure](#-documentation-structure)
+- [🎯 Purpose](#-purpose)
+- [🔗 Integration](#-integration)
 <!-- TOC END -->
 
 **Professional documentation for the FLEXT Oracle Database Integration library.**

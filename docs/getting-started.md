@@ -2,21 +2,21 @@
 
 
 <!-- TOC START -->
-- Prerequisites
-- Installation
-- Quick Connection Test
-- Basic Operations
-  - Query Execution
-  - Schema Operations
-- Oracle XE Development Container
-- Configuration Options
-  - Environment Variables
-  - Configuration from Environment
-- CLI Interface
-- Current Capabilities
-- Next Steps
-- Need Help
-- Related Documentation
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Connection Test](#quick-connection-test)
+- [Basic Operations](#basic-operations)
+  - [Query Execution](#query-execution)
+  - [Schema Operations](#schema-operations)
+- [Oracle XE Development Container](#oracle-xe-development-container)
+- [Configuration Options](#configuration-options)
+  - [Environment Variables](#environment-variables)
+  - [Configuration from Environment](#configuration-from-environment)
+- [CLI Interface](#cli-interface)
+- [Current Capabilities](#current-capabilities)
+- [Next Steps](#next-steps)
+- [Need Help](#need-help)
+- [Related Documentation](#related-documentation)
 <!-- TOC END -->
 
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.

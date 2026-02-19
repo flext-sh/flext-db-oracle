@@ -2,24 +2,24 @@
 
 
 <!-- TOC START -->
-- Component Overview
-- Component Descriptions
-  - Application Layer Components
-  - Domain Layer Components
-  - Infrastructure Layer Components
-  - Cross-Cutting Components
-- Component Interaction Patterns
-  - Request Flow (API Usage)
-  - Error Handling Flow
-  - Connection Management Flow
-- Component Quality Attributes
-  - Reliability
-  - Performance
-  - Maintainability
-  - Security
-- Component Evolution
-  - Current State (v0.9.0)
-  - Future Enhancements
+- [Component Overview](#component-overview)
+- [Component Descriptions](#component-descriptions)
+  - [Application Layer Components](#application-layer-components)
+  - [Domain Layer Components](#domain-layer-components)
+  - [Infrastructure Layer Components](#infrastructure-layer-components)
+  - [Cross-Cutting Components](#cross-cutting-components)
+- [Component Interaction Patterns](#component-interaction-patterns)
+  - [Request Flow (API Usage)](#request-flow-api-usage)
+  - [Error Handling Flow](#error-handling-flow)
+  - [Connection Management Flow](#connection-management-flow)
+- [Component Quality Attributes](#component-quality-attributes)
+  - [Reliability](#reliability)
+  - [Performance](#performance)
+  - [Maintainability](#maintainability)
+  - [Security](#security)
+- [Component Evolution](#component-evolution)
+  - [Current State (v0.9.0)](#current-state-v090)
+  - [Future Enhancements](#future-enhancements)
 <!-- TOC END -->
 
 **Component Architecture for flext-db-oracle Library**

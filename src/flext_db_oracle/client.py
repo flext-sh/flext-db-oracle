@@ -124,7 +124,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     def _execute_with_chain(
         self,
         operation: str,
-        **params: t.JsonValue,
+        **params: t.GeneralValueType,
     ) -> r[dict[str, t.JsonValue]]:
         """Execute operation with validation chain.
 
@@ -158,7 +158,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     def _execute_operation(
         self,
         operation: str,
-        **params: t.JsonValue,
+        **params: t.GeneralValueType,
     ) -> r[dict[str, t.JsonValue]]:
         """Execute Oracle operation with error handling.
 
@@ -196,7 +196,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     def _handle_list_tables_operation(
         self,
-        **params: t.JsonValue,
+        **params: t.GeneralValueType,
     ) -> r[dict[str, t.JsonValue]]:
         """Handle list tables operation."""
         if self.current_connection is None:
@@ -208,7 +208,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     def _handle_query_operation(
         self,
-        **params: t.JsonValue,
+        **params: t.GeneralValueType,
     ) -> r[dict[str, t.JsonValue]]:
         """Handle query operation."""
         if self.current_connection is None:
@@ -465,10 +465,17 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: Formatted query results or error.
 
         """
+        query_params: dict[str, t.JsonValue] = {}
+        if params is not None:
+            query_params = {
+                k: v
+                for k, v in params.items()
+                if isinstance(k, str) and _is_json_value(v)
+            }
         operation_result = self._execute_with_chain(
             "query",
             sql=sql,
-            params=params if params is not None else {},
+            params=query_params,
         )
         format_type = str(self.user_preferences.get("default_output_format", "table"))
         return self._format_and_display_result(operation_result, format_type)

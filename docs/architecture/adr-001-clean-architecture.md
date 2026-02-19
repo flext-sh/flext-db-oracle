@@ -2,33 +2,33 @@
 
 
 <!-- TOC START -->
-- Context
-- Decision
-- Rationale
-  - Benefits Achieved
-  - Quality Attributes Addressed
-  - FLEXT Ecosystem Alignment
-- Alternatives Considered
-  - Option 1: Traditional Three-Tier Architecture
-  - Option 2: Hexagonal Architecture (Ports & Adapters)
-  - Option 3: Layered Architecture with DIP
-  - Option 4: Microservices with Database per Service
-- Consequences
-  - Positive Consequences
-  - Negative Consequences
-- Implementation Plan
-  - Phase 1: Foundation Setup (Completed)
-  - Phase 2: Core Implementation (In Progress)
-  - Phase 3: Advanced Features (Planned)
-- Validation Criteria
-  - Functional Validation
-  - Quality Validation
-  - Performance Validation
-- References
-- Notes
-  - Open Questions
-  - Future Considerations
-  - Related Decisions
+- [Context](#context)
+- [Decision](#decision)
+- [Rationale](#rationale)
+  - [Benefits Achieved](#benefits-achieved)
+  - [Quality Attributes Addressed](#quality-attributes-addressed)
+  - [FLEXT Ecosystem Alignment](#flext-ecosystem-alignment)
+- [Alternatives Considered](#alternatives-considered)
+  - [Option 1: Traditional Three-Tier Architecture](#option-1-traditional-three-tier-architecture)
+  - [Option 2: Hexagonal Architecture (Ports & Adapters)](#option-2-hexagonal-architecture-ports-adapters)
+  - [Option 3: Layered Architecture with DIP](#option-3-layered-architecture-with-dip)
+  - [Option 4: Microservices with Database per Service](#option-4-microservices-with-database-per-service)
+- [Consequences](#consequences)
+  - [Positive Consequences](#positive-consequences)
+  - [Negative Consequences](#negative-consequences)
+- [Implementation Plan](#implementation-plan)
+  - [Phase 1: Foundation Setup (Completed)](#phase-1-foundation-setup-completed)
+  - [Phase 2: Core Implementation (In Progress)](#phase-2-core-implementation-in-progress)
+  - [Phase 3: Advanced Features (Planned)](#phase-3-advanced-features-planned)
+- [Validation Criteria](#validation-criteria)
+  - [Functional Validation](#functional-validation)
+  - [Quality Validation](#quality-validation)
+  - [Performance Validation](#performance-validation)
+- [References](#references)
+- [Notes](#notes)
+  - [Open Questions](#open-questions)
+  - [Future Considerations](#future-considerations)
+  - [Related Decisions](#related-decisions)
 <!-- TOC END -->
 
 **ADR Number**: 001

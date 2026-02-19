@@ -2,37 +2,37 @@
 
 
 <!-- TOC START -->
-- Container Overview
-- Container Descriptions
-  - Primary Container: flext-db-oracle Library
-  - Supporting Applications
-  - External Systems
-  - Development & Testing Infrastructure
-- Technology Choices
-  - Programming Language
-  - Core Dependencies
-  - FLEXT Ecosystem
-  - Development Tools
-  - Quality Assurance
-- Deployment & Runtime
-  - Library Distribution
-  - Runtime Requirements
-  - Configuration Management
-- Security Architecture
-  - Authentication & Authorization
-  - Data Protection
-  - Audit & Monitoring
-- Scalability & Performance
-  - Connection Management
-  - Query Optimization
-  - Resource Management
-- Monitoring & Observability
-  - Metrics Collection
-  - Logging Integration
-  - Health Checks
-- Evolution Planning
-  - Version 1.0.0 (Current Target)
-  - Future Enhancements
+- [Container Overview](#container-overview)
+- [Container Descriptions](#container-descriptions)
+  - [Primary Container: flext-db-oracle Library](#primary-container-flext-db-oracle-library)
+  - [Supporting Applications](#supporting-applications)
+  - [External Systems](#external-systems)
+  - [Development & Testing Infrastructure](#development-testing-infrastructure)
+- [Technology Choices](#technology-choices)
+  - [Programming Language](#programming-language)
+  - [Core Dependencies](#core-dependencies)
+  - [FLEXT Ecosystem](#flext-ecosystem)
+  - [Development Tools](#development-tools)
+  - [Quality Assurance](#quality-assurance)
+- [Deployment & Runtime](#deployment-runtime)
+  - [Library Distribution](#library-distribution)
+  - [Runtime Requirements](#runtime-requirements)
+  - [Configuration Management](#configuration-management)
+- [Security Architecture](#security-architecture)
+  - [Authentication & Authorization](#authentication-authorization)
+  - [Data Protection](#data-protection)
+  - [Audit & Monitoring](#audit-monitoring)
+- [Scalability & Performance](#scalability-performance)
+  - [Connection Management](#connection-management)
+  - [Query Optimization](#query-optimization)
+  - [Resource Management](#resource-management)
+- [Monitoring & Observability](#monitoring-observability)
+  - [Metrics Collection](#metrics-collection)
+  - [Logging Integration](#logging-integration)
+  - [Health Checks](#health-checks)
+- [Evolution Planning](#evolution-planning)
+  - [Version 1.0.0 (Current Target)](#version-100-current-target)
+  - [Future Enhancements](#future-enhancements)
 <!-- TOC END -->
 
 **Container Architecture for Oracle Database Integration**

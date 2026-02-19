@@ -2,17 +2,17 @@
 
 
 <!-- TOC START -->
-- Context
-- Decision
-- Rationale
-- Alternatives Considered
-- Consequences
-  - Positive Consequences
-  - Negative Consequences
-- Implementation Plan
-- Validation Criteria
-- References
-- Notes
+- [Context](#context)
+- [Decision](#decision)
+- [Rationale](#rationale)
+- [Alternatives Considered](#alternatives-considered)
+- [Consequences](#consequences)
+  - [Positive Consequences](#positive-consequences)
+  - [Negative Consequences](#negative-consequences)
+- [Implementation Plan](#implementation-plan)
+- [Validation Criteria](#validation-criteria)
+- [References](#references)
+- [Notes](#notes)
 <!-- TOC END -->
 
 **ADR Number**: [NNN]
