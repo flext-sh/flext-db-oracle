@@ -2,21 +2,21 @@
 
 
 <!-- TOC START -->
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Quick Connection Test](#quick-connection-test)
-- [Basic Operations](#basic-operations)
-  - [Query Execution](#query-execution)
-  - [Schema Operations](#schema-operations)
-- [Oracle XE Development Container](#oracle-xe-development-container)
-- [Configuration Options](#configuration-options)
-  - [Environment Variables](#environment-variables)
-  - [Configuration from Environment](#configuration-from-environment)
-- [CLI Interface](#cli-interface)
-- [Current Capabilities](#current-capabilities)
-- [Next Steps](#next-steps)
-- [Need Help](#need-help)
-- [Related Documentation](#related-documentation)
+- Prerequisites
+- Installation
+- Quick Connection Test
+- Basic Operations
+  - Query Execution
+  - Schema Operations
+- Oracle XE Development Container
+- Configuration Options
+  - Environment Variables
+  - Configuration from Environment
+- CLI Interface
+- Current Capabilities
+- Next Steps
+- Need Help
+- Related Documentation
 <!-- TOC END -->
 
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.
@@ -182,29 +182,29 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 
 ## Next Steps
 
-1. **[Architecture Overview](architecture.md)** - Understand the design patterns
-2. **[API Reference](api-reference.md)** - Complete API documentation
-3. **[Configuration Guide](configuration.md)** - Advanced configuration options
-4. **[Development Guide](development.md)** - Contributing to the project
+1. **Architecture Overview** - Understand the design patterns
+2. **API Reference** - Complete API documentation
+3. **Configuration Guide** - Advanced configuration options
+4. **Development Guide** - Contributing to the project
 
 ## Need Help
 
-- **Documentation**: Check the [docs/](.) directory
+- **Documentation**: Check the docs/ directory
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
-- **Troubleshooting**: See [troubleshooting.md](troubleshooting.md)
+- **Troubleshooting**: See troubleshooting.md
 
 ---
 
 **Version**: 0.9.9 RC | **Updated**: September 17, 2025
-**Part of**: [FLEXT Ecosystem](../README.md) - Oracle Database Integration Foundation
+**Part of**: FLEXT Ecosystem - Oracle Database Integration Foundation
 
 ## Related Documentation
 
 **Within Project**:
 
-- [Architecture](architecture.md) - Architecture and design patterns
-- [API Reference](api-reference.md) - Complete API documentation
-- [Troubleshooting](troubleshooting.md) - Common issues and solutions
+- Architecture - Architecture and design patterns
+- API Reference - Complete API documentation
+- Troubleshooting - Common issues and solutions
 
 **Across Projects**:
 

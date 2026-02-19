@@ -2,32 +2,32 @@
 
 
 <!-- TOC START -->
-- [Setup](#setup)
-- [Quality Commands](#quality-commands)
-- [Implementation Status](#implementation-status)
-  - [✅ COMPLETED - Foundation Layer (100%)](#-completed-foundation-layer-100)
-  - [🚨 BLOCKED - Testing & Quality Assurance (85%)](#-blocked-testing-quality-assurance-85)
-  - [⚠️ PARTIAL - CLI Layer (60%)](#-partial-cli-layer-60)
-  - [❌ NOT IMPLEMENTED - Advanced Features (0%)](#-not-implemented-advanced-features-0)
-- [Testing Strategy](#testing-strategy)
-  - [Test Categories](#test-categories)
-  - [Test Infrastructure](#test-infrastructure)
-  - [Test Environment Setup](#test-environment-setup)
-- [Lessons Learned & Best Practices](#lessons-learned-best-practices)
-  - [1. **FLEXT-Core Integration Success**](#1-flext-core-integration-success)
-  - [2. **SQLAlchemy Abstraction Excellence**](#2-sqlalchemy-abstraction-excellence)
-  - [3. **Testing Infrastructure Maturity**](#3-testing-infrastructure-maturity)
-  - [4. **Type Safety Achievement**](#4-type-safety-achievement)
-  - [5. **Clean Architecture Validation**](#5-clean-architecture-validation)
-  - [6. **CLI Architecture Evolution**](#6-cli-architecture-evolution)
-- [Development Workflow](#development-workflow)
-  - [Daily Development Cycle](#daily-development-cycle)
-  - [Code Quality Standards](#code-quality-standards)
-- [Troubleshooting](#troubleshooting)
-  - [Common Development Issues](#common-development-issues)
-  - [Performance Issues](#performance-issues)
-  - [Architecture Issues](#architecture-issues)
-  - [Current Test Issues Troubleshooting](#current-test-issues-troubleshooting)
+- Setup
+- Quality Commands
+- Implementation Status
+  - ✅ COMPLETED - Foundation Layer (100%)
+  - 🚨 BLOCKED - Testing & Quality Assurance (85%)
+  - ⚠️ PARTIAL - CLI Layer (60%)
+  - ❌ NOT IMPLEMENTED - Advanced Features (0%)
+- Testing Strategy
+  - Test Categories
+  - Test Infrastructure
+  - Test Environment Setup
+- Lessons Learned & Best Practices
+  - 1. **FLEXT-Core Integration Success**
+  - 2. **SQLAlchemy Abstraction Excellence**
+  - 3. **Testing Infrastructure Maturity**
+  - 4. **Type Safety Achievement**
+  - 5. **Clean Architecture Validation**
+  - 6. **CLI Architecture Evolution**
+- Development Workflow
+  - Daily Development Cycle
+  - Code Quality Standards
+- Troubleshooting
+  - Common Development Issues
+  - Performance Issues
+  - Architecture Issues
+  - Current Test Issues Troubleshooting
 <!-- TOC END -->
 
 Development workflow and guidelines for flext-db-oracle.

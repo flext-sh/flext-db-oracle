@@ -10,13 +10,101 @@ import hashlib
 import time
 from collections.abc import Generator
 from contextlib import contextmanager
+from importlib import import_module
+from typing import Protocol
 from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
 from flext_db_oracle.settings import FlextDbOracleSettings
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Connection, Engine
+
+
+class _DbContextManager(Protocol):
+    """Protocol for context-managed DB connection/transaction objects."""
+
+    def __enter__(self) -> object: ...
+
+    def __exit__(self, exc_type: object, exc: object, tb: object) -> bool | None: ...
+
+
+def _sqlalchemy_create_engine(url: str) -> object:
+    """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
+    sqlalchemy_module = import_module("sqlalchemy")
+    create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
+    if not callable(create_engine_func):
+        msg = "sqlalchemy.create_engine unavailable"
+        raise RuntimeError(msg)
+    engine_obj = create_engine_func(
+        url,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        echo=False,
+    )
+    return engine_obj
+
+
+def _sqlalchemy_text(statement: str) -> object:
+    """Build SQL text object via runtime import."""
+    sqlalchemy_module = import_module("sqlalchemy")
+    text_func = getattr(sqlalchemy_module, "text", None)
+    if not callable(text_func):
+        msg = "sqlalchemy.text unavailable"
+        raise RuntimeError(msg)
+    return text_func(statement)
+
+
+def _engine_connect(engine: object) -> object:
+    """Open connection context manager from engine."""
+    connect_method = getattr(engine, "connect", None)
+    if not callable(connect_method):
+        msg = "Database engine does not expose connect()"
+        raise RuntimeError(msg)
+    return connect_method()
+
+
+def _engine_begin(engine: object) -> object:
+    """Open transaction context manager from engine."""
+    begin_method = getattr(engine, "begin", None)
+    if not callable(begin_method):
+        msg = "Database engine does not expose begin()"
+        raise RuntimeError(msg)
+    return begin_method()
+
+
+def _context_enter(context_manager: object) -> object:
+    """Enter dynamic context manager and return inner object."""
+    enter_method = getattr(context_manager, "__enter__", None)
+    if not callable(enter_method):
+        msg = "Context manager does not expose __enter__()"
+        raise RuntimeError(msg)
+    return enter_method()
+
+
+def _context_exit(context_manager: object) -> None:
+    """Exit dynamic context manager safely."""
+    exit_method = getattr(context_manager, "__exit__", None)
+    if callable(exit_method):
+        _ = exit_method(None, None, None)
+
+
+def _engine_dispose(engine: object) -> None:
+    """Dispose engine resources through dynamic method lookup."""
+    dispose_method = getattr(engine, "dispose", None)
+    if callable(dispose_method):
+        dispose_method()
+
+
+def _connection_execute(
+    connection: object,
+    statement: object,
+    parameters: dict[str, t.JsonValue] | None = None,
+) -> object:
+    """Execute statement on dynamic SQL connection."""
+    execute_method = getattr(connection, "execute", None)
+    if not callable(execute_method):
+        msg = "Database connection does not expose execute()"
+        raise RuntimeError(msg)
+    return execute_method(statement, parameters or {})
 
 
 class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
@@ -26,7 +114,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Initialize with configuration."""
         super().__init__()
         self._db_config = config  # Use separate attribute for Oracle-specific config
-        self._engine: Engine | None = None
+        self._engine: object | None = None
         self._operations: list[dict[str, t.JsonValue]] = []
 
     def _build_connection_url(self) -> r[str]:
@@ -42,7 +130,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         except Exception as e:
             return r.fail(f"Failed to build connection URL: {e}")
 
-    def _get_engine(self) -> r[Engine]:
+    def _get_engine(self) -> r[object]:
         """Get database engine."""
         if not self._engine or not self.is_connected():
             return r.fail("Not connected to database")
@@ -56,16 +144,15 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             return r.fail(
                 url_result.error or "Failed to build connection URL",
             )
-        self._engine = create_engine(
-            url_result.value,
-            pool_pre_ping=True,
-            pool_recycle=3600,  # 1 hour
-            echo=False,
-        )
+        self._engine = _sqlalchemy_create_engine(url_result.value)
         # Test connection
         try:
-            with self._engine.connect() as conn:
-                conn.execute(text("SELECT 1 FROM dual"))
+            connect_ctx = _engine_connect(self._engine)
+            conn = _context_enter(connect_ctx)
+            try:
+                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+            finally:
+                _context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
             return r.ok(self)
         except Exception as e:
@@ -74,11 +161,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
 
     def disconnect(self) -> r[None]:
         """Disconnect from Oracle database."""
-        if self._engine:
-            self._engine.dispose()
+        engine = self._engine
+        if engine is not None:
+            _engine_dispose(engine)
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
-        return r.ok(True)
+        return r[None].ok(None)
 
     def is_connected(self) -> bool:
         """Check if connected to Oracle database."""
@@ -90,28 +178,42 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         if engine_result.is_failure:
             return r.fail("Not connected to database")
         try:
-            with engine_result.value.connect() as conn:
-                conn.execute(text("SELECT 1 FROM dual"))
+            connect_ctx = _engine_connect(engine_result.value)
+            conn = _context_enter(connect_ctx)
+            try:
+                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+            finally:
+                _context_exit(connect_ctx)
             return r.ok(True)
         except Exception as e:
             return r.fail(f"Connection test failed: {e}")
 
     @contextmanager
-    def get_connection(self) -> Generator[Connection]:
+    def get_connection(self) -> Generator[object]:
         """Get database connection context manager."""
-        if not self._engine:
+        engine = self._engine
+        if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        with self._engine.connect() as connection:
+        connect_ctx = _engine_connect(engine)
+        connection = _context_enter(connect_ctx)
+        try:
             yield connection
+        finally:
+            _context_exit(connect_ctx)
 
-    def transaction(self) -> Generator[Connection]:
+    def transaction(self) -> Generator[object]:
         """Get transaction context for database operations."""
-        if not self._engine:
+        engine = self._engine
+        if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        with self._engine.begin() as transaction:
+        transaction_ctx = _engine_begin(engine)
+        transaction = _context_enter(transaction_ctx)
+        try:
             yield transaction
+        finally:
+            _context_exit(transaction_ctx)
 
     # Query Operations
     def execute_query(
@@ -126,10 +228,18 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 engine_result.error or "Failed to get database engine",
             )
         try:
-            with engine_result.value.connect() as conn:
-                result = conn.execute(text(sql), params or {})
-                rows = [dict(row) for row in result]
+            connect_ctx = _engine_connect(engine_result.value)
+            conn = _context_enter(connect_ctx)
+            try:
+                result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
+                rows: list[dict[str, t.JsonValue]] = []
+                if isinstance(result, list):
+                    for row in result:
+                        if isinstance(row, dict):
+                            rows.append(row)
                 return r.ok(rows)
+            finally:
+                _context_exit(connect_ctx)
         except Exception as e:
             return r.fail(f"Query execution failed: {e}")
 
@@ -145,9 +255,15 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 engine_result.error or "Failed to get database engine",
             )
         try:
-            with engine_result.value.connect() as conn:
-                result = conn.execute(text(sql), params or {})
-                return r.ok(result.rowcount)
+            connect_ctx = _engine_connect(engine_result.value)
+            conn = _context_enter(connect_ctx)
+            try:
+                result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
+                rowcount_raw = getattr(result, "rowcount", 0)
+                rowcount = rowcount_raw if isinstance(rowcount_raw, int) else 0
+                return r.ok(rowcount)
+            finally:
+                _context_exit(connect_ctx)
         except Exception as e:
             return r.fail(f"Statement execution failed: {e}")
 
@@ -163,12 +279,18 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 engine_result.error or "Failed to get database engine",
             )
         try:
-            with engine_result.value.connect() as conn:
+            connect_ctx = _engine_connect(engine_result.value)
+            conn = _context_enter(connect_ctx)
+            try:
                 total_affected = 0
                 for params in params_list:
-                    result = conn.execute(text(sql), params)
-                    total_affected += result.rowcount
-            return r.ok(total_affected)
+                    result = _connection_execute(conn, _sqlalchemy_text(sql), params)
+                    rowcount_raw = getattr(result, "rowcount", 0)
+                    if isinstance(rowcount_raw, int):
+                        total_affected += rowcount_raw
+                return r.ok(total_affected)
+            finally:
+                _context_exit(connect_ctx)
         except Exception as e:
             return r.fail(f"Bulk execution failed: {e}")
 
@@ -444,7 +566,7 @@ ORDER BY column_id
         _tags: dict[str, str] | None = None,
     ) -> r[None]:
         """Record metric - placeholder."""
-        return r.ok(True)
+        return r[None].ok(None)
 
     def get_metrics(self) -> r[dict[str, t.JsonValue]]:
         """Get metrics - placeholder."""
@@ -459,11 +581,11 @@ ORDER BY column_id
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
         """Register plugin - placeholder."""
-        return r[None].ok(True)
+        return r[None].ok(None)
 
     def unregister_plugin(self, _name: str) -> r[None]:
         """Unregister plugin - placeholder."""
-        return r[None].ok(True)
+        return r[None].ok(None)
 
     def list_plugins(self) -> r[dict[str, t.JsonValue]]:
         """List plugins - placeholder."""
@@ -476,7 +598,7 @@ ORDER BY column_id
             _name: Plugin name (reserved for future implementation)
 
         """
-        return r.ok(True)
+        return r[t.JsonValue].ok(True)
 
     def get_primary_key_columns(
         self,
@@ -517,15 +639,16 @@ ORDER BY column_id
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
+            metadata_value: dict[str, t.JsonValue] = metadata if metadata else {}
             operation: dict[str, t.JsonValue] = {
                 "operation_type": operation_type,
                 "duration": duration,
                 "success": success,
-                "metadata": metadata or {},
+                "metadata": metadata_value,
                 "timestamp": self._get_current_timestamp(),
             }
             self._operations.append(operation)
-            return r.ok(True)
+            return r[None].ok(None)
         except Exception as e:
             return r.fail(f"Failed to track operation: {e}")
 

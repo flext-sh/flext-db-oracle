@@ -2,34 +2,34 @@
 
 
 <!-- TOC START -->
-- [Context](#context)
-- [Decision](#decision)
-- [Rationale](#rationale)
-  - [Benefits Achieved](#benefits-achieved)
-  - [Quality Attributes Addressed](#quality-attributes-addressed)
-- [Alternatives Considered](#alternatives-considered)
-  - [Option 1: Traditional Exception Handling](#option-1-traditional-exception-handling)
-  - [Option 2: Result Pattern with Custom Classes](#option-2-result-pattern-with-custom-classes)
-  - [Option 3: Optional Pattern with None Checks](#option-3-optional-pattern-with-none-checks)
-  - [Option 4: Error Monad Pattern](#option-4-error-monad-pattern)
-  - [Option 5: Callback-Based Error Handling](#option-5-callback-based-error-handling)
-- [Consequences](#consequences)
-  - [Positive Consequences](#positive-consequences)
-  - [Negative Consequences](#negative-consequences)
-- [Implementation Plan](#implementation-plan)
-  - [Phase 1: Foundation Setup (Completed)](#phase-1-foundation-setup-completed)
-  - [Phase 2: Ecosystem Migration (In Progress)](#phase-2-ecosystem-migration-in-progress)
-  - [Phase 3: Advanced Features (Planned)](#phase-3-advanced-features-planned)
-- [Validation Criteria](#validation-criteria)
-  - [Functional Validation](#functional-validation)
-  - [Quality Validation](#quality-validation)
-  - [Performance Validation](#performance-validation)
-- [References](#references)
-- [Notes](#notes)
-  - [Best Practices Established](#best-practices-established)
-  - [Migration Strategy](#migration-strategy)
-  - [Future Considerations](#future-considerations)
-  - [Related Decisions](#related-decisions)
+- Context
+- Decision
+- Rationale
+  - Benefits Achieved
+  - Quality Attributes Addressed
+- Alternatives Considered
+  - Option 1: Traditional Exception Handling
+  - Option 2: Result Pattern with Custom Classes
+  - Option 3: Optional Pattern with None Checks
+  - Option 4: Error Monad Pattern
+  - Option 5: Callback-Based Error Handling
+- Consequences
+  - Positive Consequences
+  - Negative Consequences
+- Implementation Plan
+  - Phase 1: Foundation Setup (Completed)
+  - Phase 2: Ecosystem Migration (In Progress)
+  - Phase 3: Advanced Features (Planned)
+- Validation Criteria
+  - Functional Validation
+  - Quality Validation
+  - Performance Validation
+- References
+- Notes
+  - Best Practices Established
+  - Migration Strategy
+  - Future Considerations
+  - Related Decisions
 <!-- TOC END -->
 
 **ADR Number**: 003

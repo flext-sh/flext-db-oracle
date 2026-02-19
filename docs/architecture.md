@@ -2,32 +2,32 @@
 
 
 <!-- TOC START -->
-- [Architecture Principles](#architecture-principles)
-  - [Clean Architecture Layers](#clean-architecture-layers)
-  - [FLEXT Pattern Integration](#flext-pattern-integration)
-- [Module Architecture](#module-architecture)
-  - [Core Components](#core-components)
-  - [Data Flow Architecture](#data-flow-architecture)
-- [Domain-Driven Design](#domain-driven-design)
-  - [Bounded Context](#bounded-context)
-  - [Aggregates](#aggregates)
-- [Error Handling Strategy](#error-handling-strategy)
-  - [FlextResult Pattern](#flextresult-pattern)
-  - [Exception Hierarchy](#exception-hierarchy)
-- [Technology Stack](#technology-stack)
-  - [Current Implementation](#current-implementation)
-  - [Technology Gaps (2025 Standards)](#technology-gaps-2025-standards)
-- [Connection Management](#connection-management)
-  - [SQLAlchemy Integration](#sqlalchemy-integration)
-  - [Pool Configuration](#pool-configuration)
-- [Plugin Architecture](#plugin-architecture)
-  - [Extension Points](#extension-points)
-- [Quality Architecture](#quality-architecture)
-  - [Testing Strategy](#testing-strategy)
-  - [Development Standards](#development-standards)
-- [Future Architecture Evolution](#future-architecture-evolution)
-  - [Planned Improvements](#planned-improvements)
-- [Related Documentation](#related-documentation)
+- Architecture Principles
+  - Clean Architecture Layers
+  - FLEXT Pattern Integration
+- Module Architecture
+  - Core Components
+  - Data Flow Architecture
+- Domain-Driven Design
+  - Bounded Context
+  - Aggregates
+- Error Handling Strategy
+  - FlextResult Pattern
+  - Exception Hierarchy
+- Technology Stack
+  - Current Implementation
+  - Technology Gaps (2025 Standards)
+- Connection Management
+  - SQLAlchemy Integration
+  - Pool Configuration
+- Plugin Architecture
+  - Extension Points
+- Quality Architecture
+  - Testing Strategy
+  - Development Standards
+- Future Architecture Evolution
+  - Planned Improvements
+- Related Documentation
 <!-- TOC END -->
 
 Clean Architecture implementation for Oracle Database integration in the FLEXT ecosystem.
@@ -330,9 +330,9 @@ class OraclePlugin(ABC):
 
 **Within Project**:
 
-- [Getting Started](getting-started.md) - Installation and basic usage
-- [API Reference](api-reference.md) - Complete API documentation
-- [Troubleshooting](troubleshooting.md) - Common issues and solutions
+- Getting Started - Installation and basic usage
+- API Reference - Complete API documentation
+- Troubleshooting - Common issues and solutions
 
 **Across Projects**:
 

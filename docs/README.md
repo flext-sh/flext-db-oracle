@@ -2,9 +2,9 @@
 
 
 <!-- TOC START -->
-- [📚 Documentation Structure](#-documentation-structure)
-- [🎯 Purpose](#-purpose)
-- [🔗 Integration](#-integration)
+- 📚 Documentation Structure
+- 🎯 Purpose
+- 🔗 Integration
 <!-- TOC END -->
 
 **Professional documentation for the FLEXT Oracle Database Integration library.**
@@ -13,13 +13,13 @@
 
 This directory contains the complete professional documentation for flext-db-oracle:
 
-- **[Getting Started](getting-started.md)** - Installation, setup, and quick start guide
-- **[API Reference](api-reference.md)** - Complete API documentation and usage examples
-- **[Architecture](architecture.md)** - System design and architectural patterns
-- **[Configuration](configuration.md)** - Configuration options and settings
-- **[Integration Guide](integration.md)** - Integration with other FLEXT components
-- **[Development](development.md)** - Contributing guidelines and development workflow
-- **[Troubleshooting](troubleshooting.md)** - Common issues and solutions
+- **Getting Started** - Installation, setup, and quick start guide
+- **API Reference** - Complete API documentation and usage examples
+- **Architecture** - System design and architectural patterns
+- **Configuration** - Configuration options and settings
+- **Integration Guide** - Integration with other FLEXT components
+- **Development** - Contributing guidelines and development workflow
+- **Troubleshooting** - Common issues and solutions
 
 ## 🎯 Purpose
 
@@ -33,7 +33,7 @@ flext-db-oracle provides **enterprise-grade Oracle database connectivity** for t
 
 ## 🔗 Integration
 
-This documentation is part of the larger [FLEXT Ecosystem Documentation](../../docs/) hub. For comprehensive information about the entire platform, visit the main documentation site.
+This documentation is part of the larger FLEXT Ecosystem Documentation hub. For comprehensive information about the entire platform, visit the main documentation site.
 
 ---
 

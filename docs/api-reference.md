@@ -2,17 +2,17 @@
 
 
 <!-- TOC START -->
-- [Core Imports](#core-imports)
-- [FlextDbOracleApi](#flextdboracleapi)
-  - [Connection Methods](#connection-methods)
-  - [Query Methods](#query-methods)
-  - [Schema Methods](#schema-methods)
-  - [Configuration Methods](#configuration-methods)
-- [OracleConfig](#oracleconfig)
-- [CLI Interface](#cli-interface)
-- [Error Handling](#error-handling)
-- [Limitations](#limitations)
-- [Related Documentation](#related-documentation)
+- Core Imports
+- FlextDbOracleApi
+  - Connection Methods
+  - Query Methods
+  - Schema Methods
+  - Configuration Methods
+- OracleConfig
+- CLI Interface
+- Error Handling
+- Limitations
+- Related Documentation
 <!-- TOC END -->
 
 Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
@@ -151,9 +151,9 @@ Updated: September 17, 2025 | Version: 0.9.9
 
 **Within Project**:
 
-- [Getting Started](getting-started.md) - Installation and basic usage
-- [Architecture](architecture.md) - Architecture and design patterns
-- [Troubleshooting](troubleshooting.md) - Common issues and solutions
+- Getting Started - Installation and basic usage
+- Architecture - Architecture and design patterns
+- Troubleshooting - Common issues and solutions
 
 **Across Projects**:
 

@@ -106,7 +106,7 @@ class FlextDbOracleModels(FlextModels):
                 """Connection health status."""
                 if not self.is_connected:
                     return False
-                age_seconds = self.connection_age_seconds()
+                age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
                 return (
                     age_seconds
                     <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS

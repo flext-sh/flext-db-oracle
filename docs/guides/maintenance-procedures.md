@@ -2,39 +2,39 @@
 
 
 <!-- TOC START -->
-- [Overview](#overview)
-- [Maintenance Framework](#maintenance-framework)
-  - [Automated Maintenance System](#automated-maintenance-system)
-  - [Key Components](#key-components)
-- [Daily Maintenance Procedures](#daily-maintenance-procedures)
-  - [Automated Quality Checks](#automated-quality-checks)
-  - [Quality Gates](#quality-gates)
-- [Weekly Maintenance Tasks](#weekly-maintenance-tasks)
-  - [Content Review and Updates](#content-review-and-updates)
-  - [Quality Improvement](#quality-improvement)
-- [Monthly Comprehensive Review](#monthly-comprehensive-review)
-  - [Documentation Audit](#documentation-audit)
-  - [Quality Metrics Review](#quality-metrics-review)
-- [Emergency Maintenance](#emergency-maintenance)
-  - [Critical Issue Response](#critical-issue-response)
-  - [System Failure Recovery](#system-failure-recovery)
-- [Configuration Management](#configuration-management)
-  - [Maintenance Configuration](#maintenance-configuration)
-  - [Customization Guidelines](#customization-guidelines)
-- [Team Collaboration](#team-collaboration)
-  - [Review Process](#review-process)
-  - [Communication Channels](#communication-channels)
-- [Tool Integration](#tool-integration)
-  - [Development Workflow Integration](#development-workflow-integration)
-  - [External Tool Integration](#external-tool-integration)
-- [Best Practices](#best-practices)
-  - [Documentation Standards](#documentation-standards)
-  - [Quality Assurance](#quality-assurance)
-- [Troubleshooting](#troubleshooting)
-  - [Common Issues](#common-issues)
-- [Success Metrics](#success-metrics)
-  - [Quality Metrics](#quality-metrics)
-  - [Process Metrics](#process-metrics)
+- Overview
+- Maintenance Framework
+  - Automated Maintenance System
+  - Key Components
+- Daily Maintenance Procedures
+  - Automated Quality Checks
+  - Quality Gates
+- Weekly Maintenance Tasks
+  - Content Review and Updates
+  - Quality Improvement
+- Monthly Comprehensive Review
+  - Documentation Audit
+  - Quality Metrics Review
+- Emergency Maintenance
+  - Critical Issue Response
+  - System Failure Recovery
+- Configuration Management
+  - Maintenance Configuration
+  - Customization Guidelines
+- Team Collaboration
+  - Review Process
+  - Communication Channels
+- Tool Integration
+  - Development Workflow Integration
+  - External Tool Integration
+- Best Practices
+  - Documentation Standards
+  - Quality Assurance
+- Troubleshooting
+  - Common Issues
+- Success Metrics
+  - Quality Metrics
+  - Process Metrics
 <!-- TOC END -->
 
 **Comprehensive maintenance framework for flext-db-oracle documentation quality assurance.**
@@ -59,21 +59,21 @@ The documentation maintenance system consists of several integrated components:
 
 ### Key Components
 
-#### 1. Content Quality Audit (`scripts/documentation/audit.py`)
+#### 1. Content Quality Audit (`make docs DOCS_PHASE=audit`)
 
 - **File Discovery**: Automatically finds all documentation files
 - **Content Analysis**: Word count, structure, readability metrics
 - **Freshness Tracking**: Identifies stale content (>90 days old)
 - **Issue Classification**: Critical, High, Medium, Low severity levels
 
-#### 2. Validation Engine (`scripts/documentation/validate.py`)
+#### 2. Validation Engine (`make docs DOCS_PHASE=validate`)
 
 - **Markdown Syntax**: Heading hierarchy, list consistency, code blocks
 - **Link Validation**: External links, internal references, broken links
 - **Reference Integrity**: Cross-document references and citations
 - **Accessibility**: Alt text, descriptive links, semantic structure
 
-#### 3. Optimization Tools (`scripts/documentation/fix.py --apply`)
+#### 3. Optimization Tools (`make docs DOCS_PHASE=fix FIX=1`)
 
 - **Content Enhancement**: Table of contents, metadata updates
 - **Style Consistency**: Emphasis styles, formatting standardization

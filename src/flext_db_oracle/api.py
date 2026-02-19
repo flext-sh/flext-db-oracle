@@ -322,7 +322,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Register a plugin with the services layer."""
         try:
             self._plugins[name] = plugin
-            return r.ok(True)
+            return r[None].ok(None)
         except (KeyError, AttributeError, TypeError) as e:
             return r.fail(f"Failed to register plugin '{name}': {e}")
 
@@ -331,7 +331,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             if name in self._plugins:
                 del self._plugins[name]
-                return r.ok(True)
+                return r[None].ok(None)
             return r.fail(f"Plugin '{name}' not found")
         except (KeyError, AttributeError) as e:
             return r.fail(f"Failed to unregister plugin '{name}': {e}")

@@ -316,7 +316,7 @@ class FlextDbOracleSettings(FlextSettings):
                     "SSL cert file is required when SSL key file is provided",
                 )
 
-        return r[None].ok(True)
+        return r[None].ok(None)
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""

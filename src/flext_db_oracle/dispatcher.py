@@ -19,7 +19,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     def execute(self, **_kwargs: t.JsonValue) -> r[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
-        return r[None].ok(True)
+        return r[None].ok(None)
 
     @dataclass(slots=True)
     class ConnectCommand:
@@ -66,21 +66,25 @@ class FlextDbOracleDispatcher(FlextService[None]):
         cls,
         services: FlextDbOracleServices,
     ) -> dict[
-        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+        type,
+        tuple[
+            Callable[[t.GeneralValueType], t.GeneralValueType],
+            dict[str, t.JsonValue] | None,
+        ],
     ]:
         """Create connection-related handler functions."""
 
         def connect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
-            return services.connect()
+            return services.connect().is_success
 
         def disconnect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
-            return services.disconnect()
+            return services.disconnect().is_success
 
         def connection_test_handler(
             _command_data: t.GeneralValueType,
         ) -> t.GeneralValueType:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
-            return services.test_connection()
+            return services.test_connection().map_or(False)
 
         return {
             cls.ConnectCommand: (connect_handler, None),
@@ -92,7 +96,11 @@ class FlextDbOracleDispatcher(FlextService[None]):
         self,
         services: FlextDbOracleServices,
     ) -> dict[
-        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+        type,
+        tuple[
+            Callable[[t.GeneralValueType], t.GeneralValueType],
+            dict[str, t.JsonValue] | None,
+        ],
     ]:
         """Create query-related handler functions."""
 
@@ -101,14 +109,14 @@ class FlextDbOracleDispatcher(FlextService[None]):
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
-            return services.execute_query(sql, parameters)
+            return services.execute_query(sql, parameters).map_or([])
 
         def fetch_one_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
-            return services.fetch_one(sql, parameters)
+            return services.fetch_one(sql, parameters).map_or(None)
 
         def execute_statement_handler(
             command: t.GeneralValueType,
@@ -117,7 +125,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             parameters: dict[str, t.JsonValue] = (
                 getattr(command, "parameters", None) or {}
             )
-            return services.execute_statement(sql, parameters)
+            return services.execute_statement(sql, parameters).map_or(0)
 
         def execute_many_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             sql = getattr(command, "sql", "")
@@ -126,7 +134,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 "parameters_list",
                 [],
             )
-            return services.execute_many(sql, parameters_list)
+            return services.execute_many(sql, parameters_list).map_or(0)
 
         return {
             self.ExecuteQueryCommand: (execute_query_handler, None),
@@ -139,21 +147,25 @@ class FlextDbOracleDispatcher(FlextService[None]):
         self,
         services: FlextDbOracleServices,
     ) -> dict[
-        type, tuple[Callable[..., t.GeneralValueType], dict[str, t.JsonValue] | None]
+        type,
+        tuple[
+            Callable[[t.GeneralValueType], t.GeneralValueType],
+            dict[str, t.JsonValue] | None,
+        ],
     ]:
         """Create schema/metadata handler functions."""
 
         def get_schemas_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
-            return services.get_schemas()
+            return services.get_schemas().map_or([])
 
         def get_tables_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             schema = getattr(command, "schema", None)
-            return services.get_tables(schema)
+            return services.get_tables(schema).map_or([])
 
         def get_columns_handler(command: t.GeneralValueType) -> t.GeneralValueType:
             table = getattr(command, "table", "")
             schema = getattr(command, "schema", None)
-            return services.get_columns(table, schema)
+            return services.get_columns(table, schema).map_or([])
 
         return {
             self.GetSchemasCommand: (get_schemas_handler, None),
@@ -175,7 +187,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
         function_map: dict[
             type,
             tuple[
-                Callable[..., t.GeneralValueType], dict[str, t.GeneralValueType] | None
+                Callable[[t.GeneralValueType], t.GeneralValueType],
+                dict[str, t.JsonValue] | None,
             ],
         ] = {}
         # Add connection handlers
