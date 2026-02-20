@@ -1,12 +1,10 @@
 [build-system]
 build-backend = "poetry.core.masonry.api"
-requires = [
-  "poetry-core>=2",
-]
+requires = [ "poetry-core>=2.0", "poetry-core>=2" ]
 
 [project]
 name = "flext-db-oracle"
-version = "0.10.0-dev"
+version = "0.10.0"
 description = "FLEXT DB Oracle - Enterprise Oracle Database Operations Library"
 readme = "README.md"
 keywords = [
@@ -18,18 +16,19 @@ keywords = [
   "typed",
 ]
 license = "MIT"
-maintainers = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
-authors = [ { email = "team@flext.sh", name = "FLEXT Team" } ]
+maintainers = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
+authors = [ {email = "team@flext.sh", name = "FLEXT Team"} ]
 requires-python = ">=3.13,<3.14"
 classifiers = [
-  "Development Status :: 5 - Production/Stable",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
-  "Topic :: Database",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
+  "Development Status :: 5 - Production/Stable",
+  "Topic :: Database",
 ]
 dependencies = [
   "oracledb>=2",
@@ -91,7 +90,7 @@ group.typings.dependencies.types-redis = ">=4.6.0"
 group.typings.dependencies.types-requests = ">=2.32.4"
 group.typings.dependencies.types-setuptools = ">=80.9.0"
 group.typings.dependencies.types-toml = ">=0.10.8.20240310"
-packages = [ { from = "src", include = "flext_db_oracle" } ]
+packages = [ {from = "src", include = "flext_db_oracle"} ]
 
 [tool.ruff]
 extend = "../ruff-shared.toml"
@@ -179,11 +178,12 @@ ini_options.testpaths = [
 ]
 
 [tool.coverage]
-run.source = [ "src/flext_db_oracle" ]
 report.fail_under = 100
 report.precision = 2
+run.source = [ "src/flext_db_oracle" ]
 
 [tool.pyrefly]
+project-excludes = [ "**/*_pb2*.py", "**/*_pb2_grpc*.py" ]
 search-path = [
   "../typings",
   "../typings/generated",
