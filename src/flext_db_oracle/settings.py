@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from flext_core import c, r
+from flext_core import r
 from flext_core.settings import FlextSettings
 from flext_db_oracle.constants import c
 from pydantic import (

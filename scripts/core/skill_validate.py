@@ -13,7 +13,6 @@ import time
 from pathlib import Path
 
 import yaml
-
 from scripts.libs.discovery import (
     discover_projects as ssot_discover_projects,
 )
