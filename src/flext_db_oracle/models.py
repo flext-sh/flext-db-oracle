@@ -45,10 +45,6 @@ class FlextDbOracleModels(FlextModels):
     All types moved to typings.py.
     """
 
-    def __init_subclass__(cls, **kwargs: t.GeneralValueType) -> None:
-        """Allow downstream projects to inherit FlextDbOracleModels for namespace composition."""
-        super().__init_subclass__(**kwargs)
-
     class DbOracle:
         """DbOracle domain namespace."""
 
