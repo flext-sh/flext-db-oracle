@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
-from flext_core import c as c_core, r
+from flext_core import c, r
 from flext_core.settings import FlextSettings
 from flext_db_oracle.constants import c
 from pydantic import (
@@ -174,16 +174,16 @@ class FlextDbOracleSettings(FlextSettings):
     )
 
     max_retries: int = Field(
-        default=c_core.Reliability.MAX_RETRY_ATTEMPTS,
+        default=c.Reliability.MAX_RETRY_ATTEMPTS,
         ge=0,
         le=c.DbOracle.Connection.DEFAULT_POOL_MAX // 2,  # Half of max pool size
         description="Maximum number of retry attempts",
     )
 
     retry_delay: int = Field(
-        default=c_core.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
+        default=c.Reliability.DEFAULT_RETRY_DELAY_SECONDS,
         ge=1,
-        le=int(c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS),
+        le=int(c.Reliability.DEFAULT_MAX_DELAY_SECONDS),
         description="Delay between retry attempts in seconds",
     )
 
@@ -232,7 +232,7 @@ class FlextDbOracleSettings(FlextSettings):
     performance_threshold_warning: float = Field(
         default=c.DbOracle.OraclePerformance.PERFORMANCE_WARNING_THRESHOLD_SECONDS,
         ge=0.1,
-        le=c_core.Reliability.DEFAULT_MAX_DELAY_SECONDS,
+        le=c.Reliability.DEFAULT_MAX_DELAY_SECONDS,
         description="Performance warning threshold in seconds",
     )
 

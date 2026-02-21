@@ -21,7 +21,7 @@ from flext_cli import FlextCliCommands
 from flext_core import (
     FlextResult,
     FlextService,
-    FlextTypes as t,
+    t,
 )
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants

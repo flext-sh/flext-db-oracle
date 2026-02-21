@@ -14,7 +14,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import ClassVar, Final
 
-from flext_core.constants import FlextConstants, c as c_core
+from flext_core.constants import FlextConstants, c
 
 
 class FlextDbOracleConstants(FlextConstants):
@@ -234,10 +234,10 @@ class FlextDbOracleConstants(FlextConstants):
             MAX_DISPLAY_ROWS: Final[int] = 1000
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
             DEFAULT_BATCH_SIZE: Final[int] = (
-                c_core.Performance.BatchProcessing.DEFAULT_SIZE
+                c.Performance.BatchProcessing.DEFAULT_SIZE
             )  # Reference FlextConstants
             MAX_BATCH_SIZE: Final[int] = (
-                c_core.Performance.BatchProcessing.MAX_ITEMS
+                c.Performance.BatchProcessing.MAX_ITEMS
             )  # Reference FlextConstants
             DEFAULT_POOL_RECYCLE: Final[int] = 3600  # 1 hour
 
@@ -321,14 +321,14 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_POOL_MAX: Final[int] = 20
             DEFAULT_POOL_TIMEOUT: Final[int] = 60
             DEFAULT_CONNECTION_TIMEOUT: Final[int] = (
-                c_core.Network.DEFAULT_TIMEOUT
+                c.Network.DEFAULT_TIMEOUT
             )  # Reference FlextConstants
 
             # Query defaults
             DEFAULT_QUERY_TIMEOUT: Final[int] = 60
             DEFAULT_QUERY_LIMIT: Final[int] = 1000
             DEFAULT_BATCH_SIZE: Final[int] = (
-                c_core.Performance.BatchProcessing.DEFAULT_SIZE
+                c.Performance.BatchProcessing.DEFAULT_SIZE
             )  # Reference FlextConstants
 
             # Performance defaults
@@ -402,11 +402,11 @@ class FlextDbOracleConstants(FlextConstants):
             """
 
             # Environment literals - reuse from flext-core Settings.Environment StrEnum
-            type EnvironmentLiteral = c_core.Settings.Environment
+            type EnvironmentLiteral = c.Settings.Environment
             """Environment type literal - references flext-core Settings.Environment StrEnum."""
 
             # Log level literals - reuse from flext-core Settings.LogLevel StrEnum
-            type LogLevelLiteral = c_core.Settings.LogLevel
+            type LogLevelLiteral = c.Settings.LogLevel
             """Log level literal - references flext-core Settings.LogLevel StrEnum."""
 
         class Lists:
@@ -484,7 +484,7 @@ class FlextDbOracleConstants(FlextConstants):
                 "USER",
             ]
 
-        class Platform(c_core.Platform):
+        class Platform(c.Platform):
             """Oracle-specific platform constants extending base Platform."""
 
             # Network constants

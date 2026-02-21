@@ -13,7 +13,7 @@ import os
 from unittest.mock import MagicMock
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_db_oracle import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,

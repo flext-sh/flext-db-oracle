@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 
 import pytest
-from flext_core import FlextTypes as t
+from flext_db_oracle import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,

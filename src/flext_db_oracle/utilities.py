@@ -38,7 +38,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         """
 
         class Collection(u.Collection):
-            """Collection utilities extending u_core.Collection via inheritance.
+            """Collection utilities extending u.Collection via inheritance.
 
             Exposes all flext-core Collection methods through inheritance hierarchy.
             Access via u.Oracle.Collection.* pattern.
@@ -49,7 +49,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         # ═══════════════════════════════════════════════════════════════════
 
         class Args(u.Args):
-            """Args utilities extending u_core.Args via inheritance.
+            """Args utilities extending u.Args via inheritance.
 
             Exposes all flext-core Args methods through inheritance hierarchy,
             including validated, validated_with_result, parse_kwargs, and get_enum_params.
@@ -61,7 +61,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         # ═══════════════════════════════════════════════════════════════════
 
         class Model(u.Model):
-            """Model utilities extending u_core.Model via inheritance.
+            """Model utilities extending u.Model via inheritance.
 
             Exposes all flext-core Model methods through inheritance hierarchy.
             Access via u.Oracle.Model.* pattern.

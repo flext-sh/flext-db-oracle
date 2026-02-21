@@ -16,7 +16,8 @@ import os
 from unittest.mock import Mock, patch
 
 import yaml
-from flext_core import FlextResult, FlextTypes as t
+from flext_core import FlextResult
+from flext_db_oracle import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -775,7 +776,9 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = FlextResult[list[dict[str, t.GeneralValueType]]].ok(
+            mock_query.return_value = FlextResult[
+                list[dict[str, t.GeneralValueType]]
+            ].ok(
                 mock_result,
             )
 

@@ -31,7 +31,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yaml
-from flext_core import FlextTypes as t
+from flext_core import t
 
 # Configure logging
 logging.basicConfig(

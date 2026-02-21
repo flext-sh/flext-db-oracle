@@ -18,7 +18,7 @@ from flext_db_oracle.models import FlextDbOracleModels, m, m_db_oracle
 from flext_db_oracle.protocols import FlextDbOracleProtocols, p
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes
+from flext_db_oracle.typings import FlextDbOracleTypes, t
 from flext_db_oracle.utilities import FlextDbOracleUtilities
 
 # NO ALIASES - STRICT RULE: only use direct imports from respective modules
@@ -43,4 +43,5 @@ __all__ = [
     "m",
     "m_db_oracle",
     "p",
+    "t",
 ]

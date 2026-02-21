@@ -15,7 +15,8 @@ import threading
 import time
 
 import pytest
-from flext_core import FlextResult, FlextTypes as t
+from flext_core import FlextResult
+from flext_db_oracle import t
 from flext_tests import FlextTestsDomains, tm
 
 from flext_db_oracle import (
@@ -838,7 +839,9 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[dict[str, t.GeneralValueType]]]:
+        def create_test_schema_data() -> dict[
+            str, str | list[dict[str, t.GeneralValueType]]
+        ]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -928,9 +931,11 @@ class TestApiModule:
 
         # Test query execution if method exists
         if hasattr(api, "execute_query"):
-            result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
-                str(test_query["query"]),
-                test_query["params"],
+            result: FlextResult[list[dict[str, t.GeneralValueType]]] = (
+                api.execute_query(
+                    str(test_query["query"]),
+                    test_query["params"],
+                )
             )
             assert isinstance(result, FlextResult)
 
@@ -1033,9 +1038,11 @@ class TestApiModule:
 
         # Test query operations
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
-                str(test_query["query"]),
-                test_query["params"],
+            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = (
+                api.execute_query(
+                    str(test_query["query"]),
+                    test_query["params"],
+                )
             )
             assert isinstance(query_result, FlextResult)
 
@@ -1072,17 +1079,21 @@ class TestApiModule:
 
         # Test query execution error handling
         if hasattr(api, "execute_query"):
-            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
-                invalid_query,
-                {},
+            query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = (
+                api.execute_query(
+                    invalid_query,
+                    {},
+                )
             )
             assert isinstance(query_result, FlextResult)
             # Should handle invalid query gracefully
 
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
-            metadata_result: FlextResult[dict[str, t.GeneralValueType]] = api.get_table_metadata(
-                "non_existent_table",
+            metadata_result: FlextResult[dict[str, t.GeneralValueType]] = (
+                api.get_table_metadata(
+                    "non_existent_table",
+                )
             )
             assert isinstance(metadata_result, FlextResult)
             # Should handle non-existent table gracefully
@@ -1214,9 +1225,11 @@ class TestApiModule:
         # Test query execution with realistic queries
         if hasattr(api, "execute_query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
-                    str(query_data["query"]),
-                    query_data["params"],
+                query_result: FlextResult[list[dict[str, t.GeneralValueType]]] = (
+                    api.execute_query(
+                        str(query_data["query"]),
+                        query_data["params"],
+                    )
                 )
                 assert isinstance(query_result, FlextResult)
 
@@ -1305,9 +1318,11 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             query = f"SELECT {index} FROM dual"
             if hasattr(api, "execute_query"):
-                result: FlextResult[list[dict[str, t.GeneralValueType]]] = api.execute_query(
-                    query,
-                    {},
+                result: FlextResult[list[dict[str, t.GeneralValueType]]] = (
+                    api.execute_query(
+                        query,
+                        {},
+                    )
                 )
                 results.append(result)
 
