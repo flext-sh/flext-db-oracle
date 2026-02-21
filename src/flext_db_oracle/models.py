@@ -375,11 +375,9 @@ class FlextDbOracleModels(FlextModels):
 # Zero Tolerance: No compatibility aliases - use FlextDbOracleModels.ClassName directly
 
 m = FlextDbOracleModels
-m_db_oracle = FlextDbOracleModels
 
 __all__ = [
     "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
     "m",
-    "m_db_oracle",
 ]

@@ -27,11 +27,11 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
     2. FlextDbOracleConstants - for domain constants (.Oracle.*)
 
     Access patterns:
-    - tc.Tests.Docker.* (container testing)
-    - tc.Tests.Matcher.* (assertion messages)
-    - tc.Tests.Factory.* (test data generation)
-    - tc.Oracle.* (domain constants from production)
-    - tc.TestConnection.* (project-specific test data)
+    - c.Tests.Docker.* (container testing)
+    - c.Tests.Matcher.* (assertion messages)
+    - c.Tests.Factory.* (test data generation)
+    - c.Oracle.* (domain constants from production)
+    - c.TestConnection.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextDbOracleConstants
