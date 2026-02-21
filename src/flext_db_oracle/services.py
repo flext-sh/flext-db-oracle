@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
+from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
@@ -105,7 +106,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         super().__init__()
         self._db_config = config  # Use separate attribute for Oracle-specific config
         self._engine: object | None = None
-        self._operations: list[dict[str, t.JsonValue]] = []
+        self._operations: list[m_db_oracle.DbOracle.OperationRecord] = []
 
     def _build_connection_url(self) -> r[str]:
         """Build Oracle connection URL from configuration."""
@@ -210,7 +211,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         params: dict[str, t.JsonValue] | None = None,
-    ) -> r[list[dict[str, t.JsonValue]]]:
+    ) -> r[list[t.Dict]]:
         """Execute SQL query and return results."""
         engine_result = self._get_engine()
         if engine_result.is_failure:
@@ -222,9 +223,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             conn = _context_enter(connect_ctx)
             try:
                 result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
-                rows: list[dict[str, t.JsonValue]] = []
-                if isinstance(result, list):
-                    rows.extend(row for row in result if isinstance(row, dict))
+                rows: list[t.Dict] = self._normalize_query_rows(result)
                 return r.ok(rows)
             finally:
                 _context_exit(connect_ctx)
@@ -286,7 +285,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         params: dict[str, t.JsonValue] | None = None,
-    ) -> r[dict[str, t.JsonValue] | None]:
+    ) -> r[t.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
@@ -297,7 +296,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
         return self.execute_query(sql).map(
-            lambda rows: [str(row["schema_name"]) for row in rows],
+            lambda rows: [str(row.root["schema_name"]) for row in rows],
         )
 
     def get_tables(self, schema: str | None = None) -> r[list[str]]:
@@ -309,14 +308,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
         return self.execute_query(sql, params).map(
-            lambda rows: [str(row["table_name"]) for row in rows],
+            lambda rows: [str(row.root["table_name"]) for row in rows],
         )
 
     def get_columns(
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[list[dict[str, t.JsonValue]]]:
+    ) -> r[list[m_db_oracle.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = """
@@ -337,7 +336,17 @@ WHERE table_name = UPPER(:table_name)
 ORDER BY column_id
 """
             params = {"table_name": table_name}
-        return self.execute_query(sql, params)
+        return self.execute_query(sql, params).map(
+            lambda rows: [
+                m_db_oracle.DbOracle.Column(
+                    name=str(row.root.get("column_name", "")),
+                    data_type=str(row.root.get("data_type", "")),
+                    nullable=str(row.root.get("nullable", "Y")) == "Y",
+                    default_value=str(row.root.get("data_default", "")),
+                )
+                for row in rows
+            ]
+        )
 
     def get_primary_keys(
         self,
@@ -372,7 +381,7 @@ ORDER BY column_id
                 params = {"table_name": table_name}
 
             return self.execute_query(sql, params).map(
-                lambda rows: [str(row["column_name"]) for row in rows],
+                lambda rows: [str(row.root["column_name"]) for row in rows],
             )
         except Exception as e:
             return r.fail(f"Failed to get primary keys: {e}")
@@ -381,17 +390,25 @@ ORDER BY column_id
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[m_db_oracle.DbOracle.TableMetadata]:
         """Get complete table metadata."""
         try:
             return self.get_columns(table_name, schema).flat_map(
                 lambda columns: self.get_primary_keys(table_name, schema).map(
-                    lambda pk: {
-                        "table_name": table_name,
-                        "schema": schema,
-                        "columns": columns,
-                        "primary_keys": pk,
-                    },
+                    lambda pk: m_db_oracle.DbOracle.TableMetadata(
+                        table_name=table_name,
+                        schema_name=schema or "",
+                        columns=[
+                            {
+                                "name": column.name,
+                                "data_type": column.data_type,
+                                "nullable": column.nullable,
+                                "default_value": column.default_value,
+                            }
+                            for column in columns
+                        ],
+                        primary_keys=pk,
+                    ),
                 ),
             )
         except Exception as e:
@@ -470,15 +487,15 @@ ORDER BY column_id
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[dict[str, t.JsonValue]],
+        columns: list[m_db_oracle.DbOracle.Column],
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
         col_defs: list[str] = []
         for col in columns:
-            name = col.get("name", "unknown")
-            data_type = col.get("data_type", "VARCHAR2(255)")
-            nullable = "" if col.get("nullable", True) else " NOT NULL"
+            name = col.name or "unknown"
+            data_type = col.data_type or "VARCHAR2(255)"
+            nullable = "" if col.nullable else " NOT NULL"
             col_defs.append(f"{name} {data_type}{nullable}")
         schema_prefix = f"{schema}." if schema else ""
         ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
@@ -513,19 +530,15 @@ ORDER BY column_id
 
     def map_singer_schema(
         self,
-        singer_schema: dict[str, t.JsonValue],
-    ) -> r[dict[str, str]]:
+        singer_schema: m_db_oracle.DbOracle.SingerSchema,
+    ) -> r[m_db_oracle.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        mapping = {}
-        properties = singer_schema.get("properties", {})
-        if isinstance(properties, dict):
-            for field_name, field_def in properties.items():
-                if isinstance(field_def, dict):
-                    field_type = field_def.get("type", "string")
-                    conversion = self.convert_singer_type(field_type)
-                    if conversion.is_success:
-                        mapping[field_name] = conversion.value
-        return r.ok(mapping)
+        mapping: dict[str, str] = {}
+        for field_name, field_def in singer_schema.properties.items():
+            conversion = self.convert_singer_type(field_def.type)
+            if conversion.is_success:
+                mapping[field_name] = conversion.value
+        return r.ok(m_db_oracle.DbOracle.TypeMapping(mapping=mapping))
 
     # Placeholder methods for compatibility
     def generate_query_hash(
@@ -539,15 +552,20 @@ ORDER BY column_id
 
     def get_connection_status(
         self,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[m_db_oracle.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
-        return r.ok({
-            "connected": self.is_connected(),
-            "host": self._db_config.host,
-            "port": self._db_config.port,
-            "service_name": self._db_config.service_name,
-        })
+        return r.ok(
+            m_db_oracle.DbOracle.ConnectionStatus(
+                is_connected=self.is_connected(),
+                host=self._db_config.host,
+                port=self._db_config.port,
+                service_name=self._db_config.service_name,
+                username=self._db_config.username,
+                error_message="" if self.is_connected() else "Connection unavailable",
+            )
+        )
 
+    @staticmethod
     def record_metric(
         _name: str,
         _value: float,
@@ -556,16 +574,23 @@ ORDER BY column_id
         """Record metric - placeholder."""
         return r[None].ok(None)
 
-    def get_metrics(self) -> r[dict[str, t.JsonValue]]:
+    def get_metrics(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
         """Get metrics - placeholder."""
-        return r.ok({})
+        return r.ok(
+            m_db_oracle.DbOracle.HealthStatus(
+                status="connected" if self.is_connected() else "disconnected",
+                timestamp=self._get_current_timestamp(),
+            )
+        )
 
-    def health_check(self) -> r[dict[str, t.JsonValue]]:
+    def health_check(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
         """Perform health check."""
-        return r.ok({
-            "status": "healthy" if self.is_connected() else "unhealthy",
-            "timestamp": "2025-01-01T00:00:00Z",
-        })
+        return r.ok(
+            m_db_oracle.DbOracle.HealthStatus(
+                status="healthy" if self.is_connected() else "unhealthy",
+                timestamp=self._get_current_timestamp(),
+            )
+        )
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
         """Register plugin - placeholder."""
@@ -575,9 +600,9 @@ ORDER BY column_id
         """Unregister plugin - placeholder."""
         return r[None].ok(None)
 
-    def list_plugins(self) -> r[dict[str, t.JsonValue]]:
+    def list_plugins(self) -> r[t.ConfigMap]:
         """List plugins - placeholder."""
-        return r[dict[str, t.JsonValue]].ok({})
+        return r[t.ConfigMap].ok(t.ConfigMap(root={}))
 
     def get_plugin(self, _name: str) -> r[t.JsonValue]:
         """Get plugin - placeholder implementation.
@@ -607,10 +632,10 @@ ORDER BY column_id
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
             return self.execute_query(sql).map(
                 lambda rows: (
-                    int(rows[0]["count"])
+                    int(rows[0].root["count"])
                     if rows
-                    and "count" in rows[0]
-                    and isinstance(rows[0]["count"], (int, str))
+                    and "count" in rows[0].root
+                    and isinstance(rows[0].root["count"], (int, str))
                     else 0
                 ),
             )
@@ -627,22 +652,48 @@ ORDER BY column_id
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
-            metadata_value: dict[str, t.JsonValue] = metadata or {}
-            operation: dict[str, t.JsonValue] = {
-                "operation_type": operation_type,
-                "duration": duration,
-                "success": success,
-                "metadata": str(metadata_value),
-                "timestamp": self._get_current_timestamp(),
-            }
+            metadata_value = metadata or {}
+            operation = m_db_oracle.DbOracle.OperationRecord(
+                operation_type=operation_type,
+                duration=duration,
+                success=success,
+                metadata_info=str(metadata_value),
+                timestamp=self._get_current_timestamp(),
+            )
             self._operations.append(operation)
             return r[None].ok(None)
         except Exception as e:
             return r.fail(f"Failed to track operation: {e}")
 
-    def get_operations(self) -> r[list[dict[str, t.JsonValue]]]:
+    def get_operations(self) -> r[list[m_db_oracle.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r.ok(self._operations.copy())
+
+    def _normalize_query_rows(self, query_result: object) -> list[t.Dict]:
+        """Normalize SQLAlchemy query result rows into typed mapping models."""
+        mappings_method = getattr(query_result, "mappings", None)
+        if not callable(mappings_method):
+            return []
+        mapping_result = mappings_method()
+        return [
+            self._normalize_row(row)
+            for row in self._extract_mapping_rows(mapping_result)
+        ]
+
+    def _extract_mapping_rows(self, mapping_result: object) -> list[object]:
+        """Extract all SQLAlchemy mapping rows from a mapping result."""
+        all_method = getattr(mapping_result, "all", None)
+        if not callable(all_method):
+            return []
+        rows = all_method()
+        return rows if isinstance(rows, list) else []
+
+    def _normalize_row(self, row: object) -> t.Dict:
+        """Normalize a single SQLAlchemy mapping row into a typed map."""
+        mapping = getattr(row, "_mapping", None)
+        if not isinstance(mapping, dict):
+            return t.Dict(root={})
+        return t.Dict(root={str(k): v for k, v in mapping.items()})
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""

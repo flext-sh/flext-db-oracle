@@ -19,7 +19,7 @@ from flext_core import r, t
 from flext_core.service import FlextService
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, m as m_db_oracle
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 
@@ -189,7 +189,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: dict[str, t.JsonValue] | None = None,
-    ) -> r[list[dict[str, t.JsonValue]]]:
+    ) -> r[list[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         return self._services.execute_query(sql, parameters or {})
@@ -198,7 +198,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: dict[str, t.JsonValue] | None = None,
-    ) -> r[dict[str, t.JsonValue] | None]:
+    ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._services.fetch_one(sql, parameters or {})
 
@@ -245,25 +245,15 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[list[dict[str, t.JsonValue]]]:
+    ) -> r[list[m_db_oracle.DbOracle.Column]]:
         """Get column information for specified table."""
-        return self._services.get_columns(table, schema).map(
-            lambda cols: [
-                {
-                    "name": col.get("column_name", ""),
-                    "data_type": col.get("data_type", ""),
-                    "nullable": col.get("nullable", False),
-                    "default_value": col.get("data_default", None),
-                }
-                for col in cols
-            ],
-        )
+        return self._services.get_columns(table, schema)
 
     def get_table_metadata(
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[dict[str, t.JsonValue]]:
+    ) -> r[m_db_oracle.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
@@ -286,9 +276,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def map_singer_schema(
         self,
         schema: dict[str, t.JsonValue],
-    ) -> r[dict[str, str]]:
+    ) -> r[m_db_oracle.DbOracle.TypeMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
-        return self._services.map_singer_schema(schema)
+        schema_model = m_db_oracle.DbOracle.SingerSchema.model_validate(schema)
+        return self._services.map_singer_schema(schema_model)
 
     # Transaction Management
     def transaction(self) -> r[dict[str, t.JsonValue]]:
@@ -313,7 +304,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         except (AttributeError, ValueError, TypeError) as e:
             return r.fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> r[dict[str, t.JsonValue]]:
+    def get_observability_metrics(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
 
@@ -369,10 +360,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: list[dict[str, t.JsonValue]],
+        data: list[t.Dict],
     ) -> FlextDbOracleModels.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
-        if not isinstance(data, list) or not data:
+        if not data:
             return FlextDbOracleModels.DbOracle.QueryResult(
                 query=sql,
                 columns=[],
@@ -380,12 +371,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 row_count=0,
             )
 
-        first_row = data[0]
-        if isinstance(first_row, dict):
-            columns = list(first_row.keys())
-            rows = [list(row.values()) for row in data]
-        else:
-            columns, rows = [], []
+        first_row = data[0].root
+        columns = list(first_row.keys())
+        rows = [list(row.root.values()) for row in data]
 
         return FlextDbOracleModels.DbOracle.QueryResult(
             query=sql,
@@ -394,18 +382,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             row_count=len(data),
         )
 
-    def get_health_status(self) -> r[dict[str, t.JsonValue]]:
+    def get_health_status(self) -> r[m_db_oracle.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
-        try:
-            status: dict[str, t.JsonValue] = {
-                "connected": self.is_connected,
-                "host": self._oracle_config.host,
-                "port": self._oracle_config.port,
-                "service_name": self._oracle_config.service_name,
-            }
-            return r.ok(status)
-        except Exception as e:
-            return r.fail(f"Health check failed: {e}")
+        return self._services.get_connection_status()
 
     @property
     def connection(self) -> FlextDbOracleServices | None:

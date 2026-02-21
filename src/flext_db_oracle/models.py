@@ -12,9 +12,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from flext_core.models import FlextModels, m
+from flext_core.models import FlextModels, m as core_models
 from flext_core.typings import t
-from flext_core.utilities import u as flext_u
 from flext_db_oracle.constants import c
 from pydantic import (
     BaseModel,
@@ -47,17 +46,13 @@ class FlextDbOracleModels(FlextModels):
     """
 
     def __init_subclass__(cls, **kwargs: t.GeneralValueType) -> None:
-        """Warn when FlextDbOracleModels is subclassed directly."""
+        """Allow downstream projects to inherit FlextDbOracleModels for namespace composition."""
         super().__init_subclass__(**kwargs)
-        flext_u.Deprecation.warn_once(
-            f"subclass:{cls.__name__}",
-            "Subclassing FlextDbOracleModels is deprecated. Use FlextModels directly with composition instead.",
-        )
 
     class DbOracle:
         """DbOracle domain namespace."""
 
-        class ConnectionStatus(m.Entity):
+        class ConnectionStatus(core_models.Entity):
             """Connection status using flext-core Entity."""
 
             is_connected: bool = False
@@ -189,7 +184,7 @@ class FlextDbOracleModels(FlextModels):
                 """Format connection time with units."""
                 return f"{value:.3f}s"
 
-        class QueryResult(m.Entity):
+        class QueryResult(core_models.Entity):
             """Query result using flext-core Entity."""
 
             query: str
@@ -199,7 +194,7 @@ class FlextDbOracleModels(FlextModels):
 
             # Additional Oracle-specific query result details
             columns: list[str] = Field(default_factory=list, description="Column names")
-            rows: list[list[t.JsonValue]] = Field(
+            rows: list[list[t.GeneralValueType]] = Field(
                 default_factory=list,
                 description="Row data",
             )
@@ -285,7 +280,47 @@ class FlextDbOracleModels(FlextModels):
                     f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
                 )
 
-        class Table(m.Entity):
+        class OperationRecord(core_models.Entity):
+            """Operation tracking record for observability workflows."""
+
+            operation_type: str
+            duration: float
+            success: bool
+            metadata_info: str = Field(default="", description="Operation metadata")
+            timestamp: str
+
+        class HealthStatus(core_models.Entity):
+            """Service health status record."""
+
+            status: str
+            timestamp: str
+
+        class TableMetadata(core_models.Entity):
+            """Complete table metadata for Oracle introspection."""
+
+            table_name: str
+            schema_name: str = ""
+            columns: list[dict[str, t.JsonValue]] = Field(default_factory=list)
+            primary_keys: list[str] = Field(default_factory=list)
+
+        class TypeMapping(core_models.Entity):
+            """Singer-to-Oracle type mapping."""
+
+            mapping: dict[str, str] = Field(default_factory=dict)
+
+        class SingerField(core_models.Entity):
+            """Singer field definition."""
+
+            type: str | list[str] = "string"
+
+        class SingerSchema(core_models.Entity):
+            """Singer schema container with typed properties."""
+
+            properties: dict[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
+                default_factory=dict
+            )
+
+        class Table(core_models.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
@@ -294,7 +329,7 @@ class FlextDbOracleModels(FlextModels):
                 default_factory=list
             )
 
-        class Column(m.Entity):
+        class Column(core_models.Entity):
             """Column metadata using flext-core Entity."""
 
             name: str
@@ -305,7 +340,7 @@ class FlextDbOracleModels(FlextModels):
                 description="Default value for the column",
             )
 
-        class Schema(m.Entity):
+        class Schema(core_models.Entity):
             """Schema metadata using flext-core Entity."""
 
             name: str
@@ -313,7 +348,7 @@ class FlextDbOracleModels(FlextModels):
                 default_factory=list
             )
 
-        class CreateIndexConfig(m.Entity):
+        class CreateIndexConfig(core_models.Entity):
             """Create index config using flext-core Entity."""
 
             table_name: str
@@ -327,7 +362,7 @@ class FlextDbOracleModels(FlextModels):
                 description="Parallel degree for index creation",
             )
 
-        class MergeStatementConfig(m.Entity):
+        class MergeStatementConfig(core_models.Entity):
             """Merge statement config using flext-core Entity."""
 
             target_table: str

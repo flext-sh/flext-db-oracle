@@ -18,6 +18,7 @@ from typing import Literal
 
 from flext_core import FlextTypes
 from flext_db_oracle.constants import c
+from flext_db_oracle.models import m as m_db_oracle
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -43,11 +44,8 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type ConnectionConfiguration = dict[
-            str,
-            str | int | bool | dict[str, t.JsonValue],
-        ]
-        type ConnectionPool = dict[str, int | bool | str]
+        type ConnectionConfiguration = m_db_oracle.DbOracle.ConnectionStatus
+        type ConnectionPool = t.ConfigMap
         type ConnectionString = str
         type ConnectionParams = dict[str, str | int | bool]
         type SslConfiguration = dict[str, str | bool | dict[str, t.JsonValue]]
@@ -64,8 +62,8 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         type SqlQuery = str
-        type QueryParameters = dict[str, t.JsonValue]
-        type QueryResult = dict[str, t.JsonValue | list[t.JsonValue]]
+        type QueryParameters = t.ConfigMap
+        type QueryResult = m_db_oracle.DbOracle.QueryResult
         type QueryMetadata = dict[str, str | int | dict[str, t.JsonValue]]
         type PreparedStatement = dict[str, str | dict[str, t.JsonValue]]
         type QueryExecution = dict[
@@ -100,7 +98,7 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SchemaDefinition = dict[str, str | list[dict[str, t.JsonValue]]]
+        type SchemaDefinition = m_db_oracle.DbOracle.TableMetadata
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
         type ColumnDefinition = dict[
             str,
@@ -200,7 +198,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type OracleDataType = str
         type PythonDataType = type[object]
-        type TypeMapping = dict[str, str | type[object]]
+        type TypeMapping = m_db_oracle.DbOracle.TypeMapping
         type DataConversion = dict[str, t.JsonValue | object]
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | t.JsonValue]
