@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 import yaml
+
 from scripts.libs.config import DEFAULT_ENCODING, STATUS_FAIL, STATUS_PASS
 from scripts.libs.discovery import (
     discover_projects as ssot_discover_projects,

@@ -28,6 +28,12 @@ from pathlib import Path
 from typing import cast
 
 import tomlkit
+from tomlkit.items import Table
+
+from scripts.dependencies.sync_extra_paths_from_deps import (
+    PYRIGHT_BASE_PROJECT,
+    get_dep_paths,
+)
 from scripts.libs.config import (
     DEFAULT_ENCODING,
     MAKEFILE_FILENAME,
@@ -43,7 +49,6 @@ from scripts.libs.toml_io import (
     sync_section,
     write_toml_document,
 )
-from tomlkit.items import Table
 
 _TableLike = Table | MutableMapping[str, object]
 
@@ -128,9 +133,7 @@ def _read_min_coverage(project_dir: Path) -> int:
     pyproject = project_dir / PYPROJECT_FILENAME
     if pyproject.exists():
         doc = read_toml_document(pyproject)
-        if doc is None:
-            doc = tomlkit.parse(pyproject.read_text())
-        tool = doc.get("tool")
+        tool = doc.get("tool") if doc is not None else None
         if tool:
             cov = tool.get("coverage")
             if cov:
@@ -233,7 +236,9 @@ class SSOTRule:
 
 SSOT_RULES: dict[str, SSOTRule] = {
     "bandit": SSOTRule(),
-    "pyright": SSOTRule(root_only=frozenset({"executionEnvironments"})),
+    "pyright": SSOTRule(
+        root_only=frozenset({"executionEnvironments", "extraPaths"}),
+    ),
     "coverage": SSOTRule(
         from_root=False,
         prune_extras=False,
@@ -247,8 +252,7 @@ SSOT_RULES: dict[str, SSOTRule] = {
     "pytest": SSOTRule(entry_point="ini_options"),
     "pyrefly": SSOTRule(
         prune_extras=False,
-        root_only=frozenset({"sub-config"}),
-        per_project={"search-path": "pyrefly_sub_path"},
+        root_only=frozenset({"sub-config", "search-path"}),
     ),
     "ruff": SSOTRule(
         per_project={
@@ -328,6 +332,18 @@ def _enforce_one(
                 target[p] = nxt
             target = nxt
         target[parts[-1]] = value
+
+    # Per-project paths from path deps (SSOT: do not copy from root; mass sync safe)
+    if tool_name == "pyright":
+        canonical["extraPaths"] = PYRIGHT_BASE_PROJECT + get_dep_paths(
+            doc, is_root=False
+        )
+    if tool_name == "pyrefly":
+        canonical["search-path"] = [
+            "..",
+            *get_dep_paths(doc, is_root=False),
+            *_PYREFLY_SUB_PATH,
+        ]
 
     tool = _ensure_tool(doc)
     section = tool.get(tool_name)
