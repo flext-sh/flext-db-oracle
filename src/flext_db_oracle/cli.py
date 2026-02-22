@@ -23,6 +23,7 @@ from flext_core import (
     FlextService,
     t,
 )
+
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings

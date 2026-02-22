@@ -15,6 +15,7 @@ from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
+
 from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.settings import FlextDbOracleSettings
 

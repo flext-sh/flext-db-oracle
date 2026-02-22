@@ -17,6 +17,7 @@ from typing import Self, override
 
 from flext_core import r, t
 from flext_core.service import FlextService
+
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels, m as m_db_oracle
