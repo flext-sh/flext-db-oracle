@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
 from flext_core.protocols import p
@@ -105,7 +106,7 @@ class FlextDbOracleProtocols(p):
             def execute_query(
                 self,
                 sql: str,
-                params: dict[str, t.JsonValue] | None = None,
+                params: Mapping[str, t.JsonValue] | None = None,
             ) -> p.Result[t.JsonValue]:
                 """Execute Oracle SQL query.
 
@@ -122,7 +123,7 @@ class FlextDbOracleProtocols(p):
             def execute_statement(
                 self,
                 sql: str,
-                params: dict[str, t.JsonValue] | None = None,
+                params: Mapping[str, t.JsonValue] | None = None,
             ) -> p.Result[bool]:
                 """Execute Oracle SQL statement.
 
@@ -139,7 +140,7 @@ class FlextDbOracleProtocols(p):
             def execute_many(
                 self,
                 sql: str,
-                params_list: list[dict[str, t.JsonValue]],
+                params_list: list[Mapping[str, t.JsonValue]],
             ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -156,7 +157,7 @@ class FlextDbOracleProtocols(p):
             def fetch_one(
                 self,
                 sql: str,
-                params: dict[str, t.JsonValue] | None = None,
+                params: Mapping[str, t.JsonValue] | None = None,
             ) -> p.Result[t.JsonValue | None]:
                 """Fetch single result from Oracle query.
 
@@ -279,8 +280,8 @@ class FlextDbOracleProtocols(p):
             def build_insert_statement(
                 self,
                 table: str,
-                data: dict[str, t.JsonValue],
-            ) -> p.Result[tuple[str, dict[str, t.JsonValue]]]:
+                data: Mapping[str, t.JsonValue],
+            ) -> p.Result[tuple[str, Mapping[str, t.JsonValue]]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -296,9 +297,9 @@ class FlextDbOracleProtocols(p):
             def build_update_statement(
                 self,
                 table: str,
-                data: dict[str, t.JsonValue],
+                data: Mapping[str, t.JsonValue],
                 where_clause: str,
-            ) -> p.Result[tuple[str, dict[str, t.JsonValue]]]:
+            ) -> p.Result[tuple[str, Mapping[str, t.JsonValue]]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -399,7 +400,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 name: str,
                 value: float,
-                tags: dict[str, str] | None = None,
+                tags: Mapping[str, str] | None = None,
             ) -> p.Result[bool]:
                 """Record Oracle database metric.
 

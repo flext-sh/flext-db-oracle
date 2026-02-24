@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import contextlib
 import types
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Self, override
 
 from flext_core import r, t
@@ -136,7 +136,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
-    def to_dict(self) -> dict[str, t.JsonValue]:
+    def to_dict(self) -> Mapping[str, t.JsonValue]:
         """Convert API instance to dictionary representation."""
         return {
             "config": {
@@ -156,7 +156,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services
 
     @property
-    def plugins(self) -> dict[str, t.JsonValue]:
+    def plugins(self) -> Mapping[str, t.JsonValue]:
         """Get the plugins dictionary."""
         return self._plugins
 
@@ -188,7 +188,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query(
         self,
         sql: str,
-        parameters: dict[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.JsonValue] | None = None,
     ) -> r[list[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
@@ -197,7 +197,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query_one(
         self,
         sql: str,
-        parameters: dict[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.JsonValue] | None = None,
     ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._services.fetch_one(sql, parameters or {})
@@ -205,7 +205,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_sql(
         self,
         sql: str,
-        parameters: dict[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.JsonValue] | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
@@ -214,7 +214,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[dict[str, t.JsonValue]],
+        parameters_list: Sequence[Mapping[str, t.JsonValue]],
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
@@ -223,11 +223,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_statement(
         self,
         sql: str | t.JsonValue,
-        parameters: dict[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.JsonValue] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
         try:
-            sql_text = str(sql) if not isinstance(sql, str) else sql
+            sql_text = str(sql)
             return self._services.execute_statement(sql_text, parameters or {})
         except Exception as e:
             return r.fail(f"Statement execution failed: {e}")
@@ -275,24 +275,23 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def map_singer_schema(
         self,
-        schema: dict[str, t.JsonValue],
+        schema: Mapping[str, t.JsonValue],
     ) -> r[m_db_oracle.DbOracle.TypeMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         schema_model = m_db_oracle.DbOracle.SingerSchema.model_validate(schema)
         return self._services.map_singer_schema(schema_model)
 
     # Transaction Management
-    def transaction(self) -> r[dict[str, t.JsonValue]]:
+    def transaction(self) -> r[Mapping[str, t.JsonValue]]:
         """Get transaction status information."""
         try:
-            # Return transaction status rather than context manager
             status: dict[str, t.JsonValue] = {
                 "connected": self._services.is_connected(),
-                "transaction_available": hasattr(self._services, "transaction"),
+                "transaction_available": True,
             }
-            return r[dict[str, t.JsonValue]].ok(status)
+            return r[Mapping[str, t.JsonValue]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
-            return r[dict[str, t.JsonValue]].fail(
+            return r[Mapping[str, t.JsonValue]].fail(
                 f"Transaction status check failed: {e}"
             )
 
@@ -407,10 +406,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         exc_tb: types.TracebackType | None,
     ) -> None:
         """Context manager exit - cleanup resources."""
-        if hasattr(self._services, "disconnect"):
-            with contextlib.suppress(Exception):
-                self.logger.debug("Disconnecting on context exit")
-                self._services.disconnect()
+        with contextlib.suppress(Exception):
+            self.logger.debug("Disconnecting on context exit")
+            self._services.disconnect()
 
     def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""

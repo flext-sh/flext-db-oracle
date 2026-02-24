@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from urllib.parse import urlparse
 
 from flext_core import r
@@ -326,7 +327,7 @@ class FlextDbOracleSettings(FlextSettings):
             return f"{self.host}:{self.port}:{self.sid}"
         return f"{self.host}:{self.port}"
 
-    def get_connection_config(self) -> dict[str, object]:
+    def get_connection_config(self) -> Mapping[str, object]:
         """Get connection configuration (without exposing secrets)."""
         return {
             "host": self.host,

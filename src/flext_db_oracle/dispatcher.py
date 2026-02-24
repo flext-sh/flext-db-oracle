@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 from flext_core import FlextDispatcher, FlextRegistry, r, t
@@ -69,7 +69,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.GeneralValueType], t.GeneralValueType],
-            dict[str, t.JsonValue] | None,
+            Mapping[str, t.JsonValue] | None,
         ],
     ]:
         """Create connection-related handler functions."""
@@ -99,7 +99,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.GeneralValueType], t.GeneralValueType],
-            dict[str, t.JsonValue] | None,
+            Mapping[str, t.JsonValue] | None,
         ],
     ]:
         """Create query-related handler functions."""
@@ -150,7 +150,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.GeneralValueType], t.GeneralValueType],
-            dict[str, t.JsonValue] | None,
+            Mapping[str, t.JsonValue] | None,
         ],
     ]:
         """Create schema/metadata handler functions."""
@@ -188,7 +188,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             type,
             tuple[
                 Callable[[t.GeneralValueType], t.GeneralValueType],
-                dict[str, t.JsonValue] | None,
+                Mapping[str, t.JsonValue] | None,
             ],
         ] = {}
         # Add connection handlers
