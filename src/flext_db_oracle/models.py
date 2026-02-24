@@ -10,10 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from flext_core.models import FlextModels, m
 from flext_core.typings import t
+from flext_db_oracle.constants import c
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -22,8 +24,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
-from flext_db_oracle.constants import c
 
 
 class FlextDbOracleBaseModel(BaseModel):
@@ -48,6 +48,24 @@ class FlextDbOracleModels(FlextModels):
 
     class DbOracle:
         """DbOracle domain namespace."""
+
+        class RowData(FlextDbOracleBaseModel):
+            """Typed row payload for query results."""
+
+            values: list[t.JsonValue] = Field(default_factory=list)
+
+        class ColumnMetadata(FlextDbOracleBaseModel):
+            """Typed column metadata payload."""
+
+            name: str
+            data_type: str
+            nullable: bool = True
+
+        class SingerSchemaField(FlextDbOracleBaseModel):
+            """Typed singer schema field."""
+
+            name: str
+            definition: FlextDbOracleModels.DbOracle.SingerField
 
         class ConnectionStatus(m.Entity):
             """Connection status using flext-core Entity."""
@@ -185,13 +203,13 @@ class FlextDbOracleModels(FlextModels):
             """Query result using flext-core Entity."""
 
             query: str
-            result_data: list[dict[str, t.JsonValue]] = Field(default_factory=list)
+            result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
             columns: list[str] = Field(default_factory=list, description="Column names")
-            rows: list[list[t.GeneralValueType]] = Field(
+            rows: list[FlextDbOracleModels.DbOracle.RowData] = Field(
                 default_factory=list,
                 description="Row data",
             )
@@ -259,8 +277,8 @@ class FlextDbOracleModels(FlextModels):
                     self.row_count = len(self.rows)
                 if self.rows and len(self.columns) > 0:
                     for row in self.rows:
-                        if len(row) != len(self.columns):
-                            msg = f"Row length {len(row)} doesn't match column count {len(self.columns)}"
+                        if len(row.values) != len(self.columns):
+                            msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
                             raise ValueError(msg)
                 if self.execution_time_ms < 0:
                     msg = "Execution time cannot be negative"
@@ -297,13 +315,15 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: list[dict[str, t.JsonValue]] = Field(default_factory=list)
+            columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
+                default_factory=list
+            )
             primary_keys: list[str] = Field(default_factory=list)
 
         class TypeMapping(m.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: dict[str, str] = Field(default_factory=dict)
+            mapping: Mapping[str, str] = Field(default_factory=dict)
 
         class SingerField(m.Entity):
             """Singer field definition."""
@@ -313,8 +333,8 @@ class FlextDbOracleModels(FlextModels):
         class SingerSchema(m.Entity):
             """Singer schema container with typed properties."""
 
-            properties: dict[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
-                default_factory=dict
+            properties: list[FlextDbOracleModels.DbOracle.SingerSchemaField] = Field(
+                default_factory=list
             )
 
         class Table(m.Entity):
@@ -369,7 +389,7 @@ class FlextDbOracleModels(FlextModels):
             insert_columns: list[str] = Field(default_factory=list)
 
 
-# Zero Tolerance: No compatibility aliases - use FlextDbOracleModels.ClassName directly
+# Zero Tolerance: use FlextDbOracleModels.ClassName directly
 
 m = FlextDbOracleModels
 

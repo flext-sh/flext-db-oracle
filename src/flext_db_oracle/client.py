@@ -12,25 +12,55 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar, TypeGuard
+from typing import ClassVar
 
 from flext_core import r
 from flext_core.service import FlextService
-
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
+from pydantic import TypeAdapter, ValidationError
+
+_JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
+_GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])
 
 
-def _is_json_value(value: object) -> TypeGuard[t.JsonValue]:
-    """Check whether value matches JSON-compatible typing contract."""
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return True
-    if isinstance(value, list):
-        return all(_is_json_value(item) for item in value)
-    if isinstance(value, dict):
-        return all(isinstance(k, str) and _is_json_value(v) for k, v in value.items())
-    return False
+def _validate_json_value(value: object) -> t.JsonValue | None:
+    """Validate JSON-compatible value with Pydantic."""
+    try:
+        return _JSON_VALUE_ADAPTER.validate_python(value)
+    except ValidationError:
+        return None
+
+
+def _validate_config_map(value: object) -> t.ConfigMap | None:
+    """Validate generic mapping payload with Pydantic."""
+    try:
+        return t.ConfigMap.model_validate(value)
+    except ValidationError:
+        return None
+
+
+def _validate_general_list(value: object) -> list[t.GeneralValueType] | None:
+    """Validate list payload with Pydantic."""
+    try:
+        return _GENERAL_LIST_ADAPTER.validate_python(value)
+    except ValidationError:
+        return None
+
+
+def _collect_json_params(value: object) -> t.JsonDict:
+    """Collect JSON-safe parameters from dynamic input."""
+    validated_params = _validate_config_map(value)
+    if validated_params is None:
+        return {}
+
+    json_params: t.JsonDict = {}
+    for key, raw_value in validated_params.items():
+        json_value = _validate_json_value(raw_value)
+        if json_value is not None:
+            json_params[key] = json_value
+    return json_params
 
 
 class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
@@ -218,14 +248,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if not sql:
             return r[t.ConfigMap].fail("SQL query required")
 
-        params_dict_raw = params.get("params", {})
-        params_dict: dict[str, t.JsonValue] = {}
-        if isinstance(params_dict_raw, dict):
-            params_dict = {
-                str(k): v
-                for k, v in params_dict_raw.items()
-                if isinstance(k, str) and _is_json_value(v)
-            }
+        params_dict = _collect_json_params(params.get("params", t.ConfigMap(root={})))
         return self.current_connection.query(sql, params_dict).map(
             lambda rows: t.ConfigMap(
                 root={
@@ -275,19 +298,15 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         try:
-            formatter_strategies: dict[
-                str,
-                Callable[[t.ConfigMap], r[str]],
-            ] = {
-                "table": self._format_as_table,
-                "json": self._format_as_json,
-                "plain": lambda data: r[str].ok(str(data)),
-            }
+            formatter_strategies: list[tuple[str, Callable[[t.ConfigMap], r[str]]]] = [
+                ("table", self._format_as_table),
+                ("json", self._format_as_json),
+                ("plain", lambda data: r[str].ok(str(data))),
+            ]
 
-            if format_type in formatter_strategies:
-                return r[Callable[[t.ConfigMap], r[str]]].ok(
-                    formatter_strategies[format_type],
-                )
+            for supported_format, formatter in formatter_strategies:
+                if format_type == supported_format:
+                    return r[Callable[[t.ConfigMap], r[str]]].ok(formatter)
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
@@ -317,7 +336,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except Exception as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
-    def _build_table_string(self, adapted_data: list[dict[str, str]]) -> str:
+    def _build_table_string(self, adapted_data: list[t.ConfigMap]) -> str:
         """Build table string from adapted data."""
         headers: list[str] = list(adapted_data[0].keys())
         rows: list[list[str]] = [[str(row[h]) for h in headers] for row in adapted_data]
@@ -343,50 +362,58 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     def _adapt_data_for_table(
         self,
         data: t.ConfigMap,
-    ) -> r[list[dict[str, str]]]:
+    ) -> r[list[t.ConfigMap]]:
         """Adapt data for table display.
 
         Returns:
-        r[list[dict[str, str]]]: Adapted data or error.
+        r[list[t.ConfigMap]]: Adapted data or error.
 
         """
         try:
 
-            def adapt_schemas(r: t.GeneralValueType) -> list[dict[str, str]]:
-                return [{"schema": str(s)} for s in r] if isinstance(r, list) else []
+            def adapt_schemas(raw_value: t.GeneralValueType) -> list[t.ConfigMap]:
+                schemas = _validate_general_list(raw_value)
+                if schemas is None:
+                    return []
+                return [t.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
 
-            def adapt_tables(r: t.GeneralValueType) -> list[dict[str, str]]:
-                return [{"table": str(t)} for t in r] if isinstance(r, list) else []
+            def adapt_tables(raw_value: t.GeneralValueType) -> list[t.ConfigMap]:
+                tables = _validate_general_list(raw_value)
+                if tables is None:
+                    return []
+                return [t.ConfigMap(root={"table": str(table)}) for table in tables]
 
-            def adapt_health(r: t.GeneralValueType) -> list[dict[str, str]]:
-                return (
-                    [{"key": str(k), "value": str(v)} for k, v in r.items()]
-                    if isinstance(r, dict)
-                    else []
-                )
+            def adapt_health(raw_value: t.GeneralValueType) -> list[t.ConfigMap]:
+                health = _validate_config_map(raw_value)
+                if health is None:
+                    return []
+                return [
+                    t.ConfigMap(root={"key": str(key), "value": str(value)})
+                    for key, value in health.items()
+                ]
 
-            adaptation_strategies: dict[
-                str,
-                Callable[[t.GeneralValueType], list[dict[str, str]]],
-            ] = {
-                "schemas": adapt_schemas,
-                "tables": adapt_tables,
-                "health": adapt_health,
-            }
+            adaptation_strategies: list[
+                tuple[str, Callable[[t.GeneralValueType], list[t.ConfigMap]]]
+            ] = [
+                ("schemas", adapt_schemas),
+                ("tables", adapt_tables),
+                ("health", adapt_health),
+            ]
 
             data_root = data.root
-            for key, strategy in adaptation_strategies.items():
+            for key, strategy in adaptation_strategies:
                 if key in data_root:
-                    adapted_data: list[dict[str, str]] = strategy(data_root[key])
-                    return r[list[dict[str, str]]].ok(adapted_data)
+                    adapted_data = strategy(data_root[key])
+                    return r[list[t.ConfigMap]].ok(adapted_data)
 
             # Default: convert to list of key-value pairs
-            result: list[dict[str, str]] = [
-                {"key": str(k), "value": str(v)} for k, v in data_root.items()
+            result = [
+                t.ConfigMap(root={"key": str(key), "value": str(value)})
+                for key, value in data_root.items()
             ]
-            return r[list[dict[str, str]]].ok(result)
+            return r[list[t.ConfigMap]].ok(result)
         except Exception as e:
-            return r[list[dict[str, str]]].fail(
+            return r[list[t.ConfigMap]].fail(
                 f"Data adaptation failed: {e}",
             )
 
@@ -409,17 +436,19 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             if not self.current_connection:
                 return r[t.ConfigMap].fail("No connection available")
 
-            health_data: dict[str, t.GeneralValueType] = {
-                "connection_status": "active"
-                if self.current_connection.is_connected
-                else "inactive",
-                "host": self.current_connection.oracle_config.host,
-                "port": self.current_connection.oracle_config.port,
-                "service_name": self.current_connection.oracle_config.service_name,
-                "timestamp": "now",  # Could use actual timestamp
-            }
+            health_data = t.ConfigMap(
+                root={
+                    "connection_status": "active"
+                    if self.current_connection.is_connected
+                    else "inactive",
+                    "host": self.current_connection.oracle_config.host,
+                    "port": self.current_connection.oracle_config.port,
+                    "service_name": self.current_connection.oracle_config.service_name,
+                    "timestamp": "now",  # Could use actual timestamp
+                }
+            )
 
-            return r[t.ConfigMap].ok(t.ConfigMap(root=health_data))
+            return r[t.ConfigMap].ok(health_data)
         except Exception as e:
             return r[t.ConfigMap].fail(f"Health check failed: {e}")
 
@@ -475,13 +504,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: Formatted query results or error.
 
         """
-        query_params: dict[str, t.JsonValue] = {}
-        if params is not None:
-            query_params = {
-                k: v
-                for k, v in params.root.items()
-                if isinstance(k, str) and _is_json_value(v)
-            }
+        query_params_source = params if params is not None else t.ConfigMap(root={})
+        query_params = _collect_json_params(query_params_source)
         operation_result = self._execute_with_chain(
             "query",
             sql=sql,

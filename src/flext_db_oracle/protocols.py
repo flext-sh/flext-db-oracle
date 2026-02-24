@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 from flext_core.protocols import p
-
 from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.typings import t
 

@@ -14,6 +14,7 @@ from urllib.parse import urlparse
 
 from flext_core import r
 from flext_core.settings import FlextSettings
+from flext_db_oracle.constants import c
 from pydantic import (
     Field,
     SecretStr,
@@ -22,8 +23,6 @@ from pydantic import (
     field_validator,
 )
 from pydantic_settings import SettingsConfigDict
-
-from flext_db_oracle.constants import c
 
 
 @FlextSettings.auto_register("db_oracle")

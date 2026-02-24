@@ -15,9 +15,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_tests.constants import FlextTestsConstants
-
 from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_tests.constants import FlextTestsConstants
 
 
 class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):

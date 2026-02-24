@@ -11,13 +11,89 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from importlib import import_module
+from typing import Self
 from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
-
 from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.settings import FlextDbOracleSettings
+from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
+
+
+class _StrictIntValue(BaseModel):
+    """Strict integer payload model."""
+
+    model_config = ConfigDict(strict=True)
+    value: int
+
+
+class _CountValue(BaseModel):
+    """Count payload accepting integer or numeric string."""
+
+    value: int | str
+
+
+class _ObjectRows(RootModel[list[object]]):
+    """Pydantic root model for generic list payloads."""
+
+    root: list[object]
+
+
+_STRING_LIST_ADAPTER = TypeAdapter(list[str])
+
+
+def _validate_config_map(value: object) -> t.ConfigMap | None:
+    """Validate arbitrary mapping input as ConfigMap."""
+    try:
+        return t.ConfigMap.model_validate(value)
+    except ValidationError:
+        return None
+
+
+def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
+    """Normalize optional parameters into ConfigMap."""
+    if params is not None:
+        return params
+    return t.ConfigMap(root={})
+
+
+def _parse_rowcount(value: object) -> int:
+    """Parse strict integer rowcount via Pydantic."""
+    try:
+        return _StrictIntValue.model_validate({"value": value}).value
+    except ValidationError:
+        return 0
+
+
+def _parse_count_value(value: object) -> int:
+    """Parse row count value accepting int or numeric string."""
+    try:
+        validated = _CountValue.model_validate({"value": value}).value
+    except ValidationError:
+        return 0
+
+    try:
+        return int(validated)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _normalize_singer_type(value: str | list[str]) -> str:
+    """Normalize Singer type input to a single string value."""
+    try:
+        values = _STRING_LIST_ADAPTER.validate_python(value)
+    except ValidationError:
+        return str(value)
+    return values[0] if values else "string"
+
+
+def _extract_object_rows(value: object) -> list[object]:
+    """Extract list payload using Pydantic validation."""
+    try:
+        return _ObjectRows.model_validate(value).root
+    except ValidationError:
+        return []
 
 
 def _sqlalchemy_create_engine(url: str) -> object:
@@ -89,14 +165,15 @@ def _engine_dispose(engine: object) -> None:
 def _connection_execute(
     connection: object,
     statement: object,
-    parameters: dict[str, t.JsonValue] | None = None,
+    parameters: t.ConfigMap | None = None,
 ) -> object:
     """Execute statement on dynamic SQL connection."""
     execute_method = getattr(connection, "execute", None)
     if not callable(execute_method):
         msg = "Database connection does not expose execute()"
         raise TypeError(msg)
-    return execute_method(statement, parameters or {})
+    normalized_params = _normalize_params(parameters)
+    return execute_method(statement, normalized_params.root)
 
 
 class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
@@ -129,7 +206,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         return r.ok(self._engine)
 
     # Connection Management
-    def connect(self) -> r[FlextDbOracleServices]:
+    def connect(self) -> r[Self]:
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
@@ -211,7 +288,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_query(
         self,
         sql: str,
-        params: dict[str, t.JsonValue] | None = None,
+        params: t.ConfigMap | None = None,
     ) -> r[list[t.Dict]]:
         """Execute SQL query and return results."""
         engine_result = self._get_engine()
@@ -223,7 +300,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             connect_ctx = _engine_connect(engine_result.value)
             conn = _context_enter(connect_ctx)
             try:
-                result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
+                result = _connection_execute(conn, _sqlalchemy_text(sql), params)
                 rows: list[t.Dict] = self._normalize_query_rows(result)
                 return r.ok(rows)
             finally:
@@ -234,7 +311,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_statement(
         self,
         sql: str,
-        params: dict[str, t.JsonValue] | None = None,
+        params: t.ConfigMap | None = None,
     ) -> r[int]:
         """Execute SQL statement and return affected rows."""
         engine_result = self._get_engine()
@@ -246,9 +323,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             connect_ctx = _engine_connect(engine_result.value)
             conn = _context_enter(connect_ctx)
             try:
-                result = _connection_execute(conn, _sqlalchemy_text(sql), params or {})
+                result = _connection_execute(conn, _sqlalchemy_text(sql), params)
                 rowcount_raw = getattr(result, "rowcount", 0)
-                rowcount = rowcount_raw if isinstance(rowcount_raw, int) else 0
+                rowcount = _parse_rowcount(rowcount_raw)
                 return r.ok(rowcount)
             finally:
                 _context_exit(connect_ctx)
@@ -258,7 +335,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        params_list: list[dict[str, t.JsonValue]],
+        params_list: list[t.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
         engine_result = self._get_engine()
@@ -274,8 +351,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 for params in params_list:
                     result = _connection_execute(conn, _sqlalchemy_text(sql), params)
                     rowcount_raw = getattr(result, "rowcount", 0)
-                    if isinstance(rowcount_raw, int):
-                        total_affected += rowcount_raw
+                    total_affected += _parse_rowcount(rowcount_raw)
                 return r.ok(total_affected)
             finally:
                 _context_exit(connect_ctx)
@@ -285,7 +361,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def fetch_one(
         self,
         sql: str,
-        params: dict[str, t.JsonValue] | None = None,
+        params: t.ConfigMap | None = None,
     ) -> r[t.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
@@ -304,7 +380,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Get list of tables in Oracle schema."""
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-            params: dict[str, t.JsonValue] | None = {"schema_name": schema}
+            params: t.ConfigMap | None = t.ConfigMap(root={"schema_name": schema})
         else:
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
@@ -325,10 +401,12 @@ FROM all_tab_columns
 WHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)
 ORDER BY column_id
 """
-            params: dict[str, t.JsonValue] = {
-                "table_name": table_name,
-                "schema_name": schema_name,
-            }
+            params = t.ConfigMap(
+                root={
+                    "table_name": table_name,
+                    "schema_name": schema_name,
+                }
+            )
         else:
             sql = """
 SELECT column_name, data_type, data_length, data_precision, data_scale, nullable
@@ -336,7 +414,7 @@ FROM user_tab_columns
 WHERE table_name = UPPER(:table_name)
 ORDER BY column_id
 """
-            params = {"table_name": table_name}
+            params = t.ConfigMap(root={"table_name": table_name})
         return self.execute_query(sql, params).map(
             lambda rows: [
                 m_db_oracle.DbOracle.Column(
@@ -366,10 +444,12 @@ ORDER BY column_id
                 AND c.owner = UPPER(:schema)
                 ORDER BY cc.position
                 """
-                params: dict[str, t.JsonValue] = {
-                    "table_name": table_name,
-                    "schema": schema,
-                }
+                params = t.ConfigMap(
+                    root={
+                        "table_name": table_name,
+                        "schema": schema,
+                    }
+                )
             else:
                 sql = """
                 SELECT column_name
@@ -379,7 +459,7 @@ ORDER BY column_id
                 AND c.table_name = UPPER(:table_name)
                 ORDER BY cc.position
                 """
-                params = {"table_name": table_name}
+                params = t.ConfigMap(root={"table_name": table_name})
 
             return self.execute_query(sql, params).map(
                 lambda rows: [str(row.root["column_name"]) for row in rows],
@@ -429,7 +509,7 @@ ORDER BY column_id
         table_name: str,
         schema_name: str | None = None,
         columns: list[str] | None = None,
-        conditions: dict[str, t.JsonValue] | None = None,
+        conditions: t.ConfigMap | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
         cols = ", ".join(columns) if columns else "*"
@@ -518,8 +598,7 @@ ORDER BY column_id
         _format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
-        if isinstance(singer_type, list):
-            singer_type = singer_type[0] if singer_type else "string"
+        singer_type = _normalize_singer_type(singer_type)
         type_map = {
             "string": "VARCHAR2(255)",
             "integer": "NUMBER",
@@ -534,18 +613,19 @@ ORDER BY column_id
         singer_schema: m_db_oracle.DbOracle.SingerSchema,
     ) -> r[m_db_oracle.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        mapping: dict[str, str] = {}
+        mapping = t.ConfigMap(root={})
         for field_name, field_def in singer_schema.properties.items():
             conversion = self.convert_singer_type(field_def.type)
             if conversion.is_success:
-                mapping[field_name] = conversion.value
-        return r.ok(m_db_oracle.DbOracle.TypeMapping(mapping=mapping))
+                mapping.root[field_name] = conversion.value
+        normalized_mapping = {key: str(value) for key, value in mapping.items()}
+        return r.ok(m_db_oracle.DbOracle.TypeMapping(mapping=normalized_mapping))
 
     # Placeholder methods for compatibility
     def generate_query_hash(
         self,
         sql: str = "",
-        params: dict[str, t.JsonValue] | None = None,
+        params: t.ConfigMap | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
         hash_input = f"{sql}_{params!s}"
@@ -570,7 +650,7 @@ ORDER BY column_id
     def record_metric(
         _name: str,
         _value: float,
-        _tags: dict[str, str] | None = None,
+        _tags: t.ConfigMap | None = None,
     ) -> r[None]:
         """Record metric - placeholder."""
         return r[None].ok(None)
@@ -632,13 +712,7 @@ ORDER BY column_id
             schema = f"{schema_name}." if schema_name else ""
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
             return self.execute_query(sql).map(
-                lambda rows: (
-                    int(rows[0].root["count"])
-                    if rows
-                    and "count" in rows[0].root
-                    and isinstance(rows[0].root["count"], (int, str))
-                    else 0
-                ),
+                self._parse_count_from_rows,
             )
         except Exception as e:
             return r.fail(f"Failed to get row count: {e}")
@@ -649,11 +723,11 @@ ORDER BY column_id
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: dict[str, t.JsonValue] | None = None,
+        metadata: t.ConfigMap | None = None,
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
-            metadata_value = metadata or {}
+            metadata_value = metadata or t.ConfigMap(root={})
             operation = m_db_oracle.DbOracle.OperationRecord(
                 operation_type=operation_type,
                 duration=duration,
@@ -687,14 +761,26 @@ ORDER BY column_id
         if not callable(all_method):
             return []
         rows = all_method()
-        return rows if isinstance(rows, list) else []
+        return _extract_object_rows(rows)
 
     def _normalize_row(self, row: object) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         mapping = getattr(row, "_mapping", None)
-        if not isinstance(mapping, dict):
+        validated_mapping = _validate_config_map(mapping)
+        if validated_mapping is None:
             return t.Dict(root={})
-        return t.Dict(root={str(k): v for k, v in mapping.items()})
+        return t.Dict(
+            root={str(key): value for key, value in validated_mapping.items()}
+        )
+
+    def _parse_count_from_rows(self, rows: list[t.Dict]) -> int:
+        """Parse COUNT(*) value from normalized query rows."""
+        if not rows:
+            return 0
+        count_value = rows[0].root.get("count")
+        if count_value is None:
+            return 0
+        return _parse_count_value(count_value)
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""

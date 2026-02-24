@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Protocol, override
 
@@ -23,10 +24,38 @@ from flext_core import (
     FlextService,
     t,
 )
-
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
+from pydantic import BaseModel, ValidationError
+
+type CliScalar = str | int | float | bool | None
+
+
+class NamedItem(BaseModel):
+    """Typed named item for CLI list rendering."""
+
+    name: str
+
+
+class OutputPayload(BaseModel):
+    """Typed output payload for json/yaml formatting."""
+
+    title: str
+    items: list[str]
+
+
+class HealthCheckReport(BaseModel):
+    """Typed health check output."""
+
+    status: str
+    host: str
+    port: int
+    service_name: str
+    response_time_ms: float
+    details: Mapping[str, t.JsonValue] | None = None
+    error: str | None = None
+    timestamp: str
 
 
 class FlextDbOracleCli(FlextService[str]):
@@ -49,7 +78,12 @@ class FlextDbOracleCli(FlextService[str]):
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""
 
-        def dump(self, data: object, *, default_flow_style: bool = True) -> str:
+        def dump(
+            self,
+            data: OutputPayload | HealthCheckReport | list[str] | str,
+            *,
+            default_flow_style: bool = True,
+        ) -> str:
             """Dump data as YAML string."""
             ...
 
@@ -141,7 +175,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: list[str] | list[dict[str, t.GeneralValueType]],
+            items: list[str] | list[NamedItem],
             title: str,
             output_format: str = "table",
         ) -> FlextResult[str]:
@@ -151,15 +185,17 @@ class FlextDbOracleCli(FlextService[str]):
             FlextResult[str]: Formatted list output.
 
             """
-            # Convert dict[str, t.GeneralValueType] items to string representation
-            if items and isinstance(items[0], dict):
-                string_items = [
-                    str(item.get("name", item))
-                    for item in items
-                    if isinstance(item, dict)
-                ]
-            else:
-                string_items = [str(item) for item in items]
+            string_items: list[str] = []
+            for item in items:
+                match item:
+                    case str() as item_text:
+                        string_items.append(item_text)
+                    case _:
+                        try:
+                            parsed_item = NamedItem.model_validate(item)
+                            string_items.append(parsed_item.name)
+                        except ValidationError:
+                            string_items.append(str(item))
 
             if output_format == "table":
                 # Simple table formatting
@@ -168,28 +204,49 @@ class FlextDbOracleCli(FlextService[str]):
                 return FlextResult[str].ok("\n".join(output_lines))
             if output_format == "json":
                 # Simple JSON formatting
-                data = {"title": title, "items": string_items}
-                return FlextResult[str].ok(json.dumps(data, indent=2))
+                data = OutputPayload(title=title, items=string_items)
+                return FlextResult[str].ok(data.model_dump_json(indent=2))
             if output_format == "yaml":
                 # Simple YAML formatting - yaml is always available since imported
-                data = {"title": title, "items": string_items}
-                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+                data = OutputPayload(title=title, items=string_items)
+                return FlextResult[str].ok(
+                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False)
+                )
             # Plain format
             output_lines = [title, *string_items]
             return FlextResult[str].ok("\n".join(output_lines))
 
-        def format_data(self, data: object, output_format: str) -> FlextResult[str]:
-            """Format any data object using simple formatters.
+        def format_data(
+            self,
+            data: OutputPayload
+            | HealthCheckReport
+            | Mapping[str, CliScalar]
+            | list[str]
+            | str,
+            output_format: str,
+        ) -> FlextResult[str]:
+            """Format any data payload using simple formatters.
 
             Returns:
             FlextResult[str]: Formatted data.
 
             """
             if output_format == "json":
-                return FlextResult[str].ok(json.dumps(data, indent=2, default=str))
+                match data:
+                    case OutputPayload() | HealthCheckReport():
+                        return FlextResult[str].ok(data.model_dump_json(indent=2))
+                    case _:
+                        return FlextResult[str].ok(
+                            json.dumps(data, indent=2, default=str)
+                        )
             if output_format == "yaml":
                 # YAML is always available since imported at module level
-                return FlextResult[str].ok(yaml.dump(data, default_flow_style=False))
+                match data:
+                    case OutputPayload() | HealthCheckReport():
+                        payload = data.model_dump(mode="python")
+                    case _:
+                        payload = data
+                return FlextResult[str].ok(yaml.dump(payload, default_flow_style=False))
             return FlextResult[str].ok(str(data))
 
         def display_message(self, message: str) -> None:
@@ -206,7 +263,7 @@ class FlextDbOracleCli(FlextService[str]):
         username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_TIMEOUT,
-    ) -> FlextResult[dict[str, t.GeneralValueType]]:
+    ) -> FlextResult[HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
         Args:
@@ -218,7 +275,7 @@ class FlextDbOracleCli(FlextService[str]):
         timeout: Connection timeout in seconds
 
         Returns:
-        FlextResult[dict[str, t.GeneralValueType]]: Health check results with status and timing
+        FlextResult[HealthCheckReport]: Health check results with status and timing
 
         """
         start_time = time.time()
@@ -240,38 +297,38 @@ class FlextDbOracleCli(FlextService[str]):
             # Test connection
             health_result = api.get_health_status()
             if health_result.is_failure:
-                return FlextResult[dict[str, t.GeneralValueType]].fail(
+                return FlextResult[HealthCheckReport].fail(
                     f"Health check failed: {health_result.error}",
                 )
 
             elapsed_time = time.time() - start_time
             health_data = health_result.value
 
-            result: dict[str, t.GeneralValueType] = {
-                "status": "healthy",
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "response_time_ms": round(elapsed_time * 1000, 2),
-                "details": health_data,
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+            result = HealthCheckReport(
+                status="healthy",
+                host=host,
+                port=port,
+                service_name=service_name,
+                response_time_ms=round(elapsed_time * 1000, 2),
+                details=health_data,
+                timestamp=datetime.now(UTC).isoformat(),
+            )
 
-            return FlextResult[dict[str, t.GeneralValueType]].ok(result)
+            return FlextResult[HealthCheckReport].ok(result)
 
         except Exception as e:
             elapsed_time = time.time() - start_time
-            error_result: dict[str, t.GeneralValueType] = {
-                "status": "unhealthy",
-                "host": host,
-                "port": port,
-                "service_name": service_name,
-                "response_time_ms": round(elapsed_time * 1000, 2),
-                "error": str(e),
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+            error_result = HealthCheckReport(
+                status="unhealthy",
+                host=host,
+                port=port,
+                service_name=service_name,
+                response_time_ms=round(elapsed_time * 1000, 2),
+                error=str(e),
+                timestamp=datetime.now(UTC).isoformat(),
+            )
 
-            return FlextResult[dict[str, t.GeneralValueType]].ok(error_result)
+            return FlextResult[HealthCheckReport].ok(error_result)
 
     def execute_list_schemas(
         self,
@@ -512,8 +569,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
-    @override
-    def execute(self, **_kwargs: object) -> FlextResult[str]:
+    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
         Returns:
