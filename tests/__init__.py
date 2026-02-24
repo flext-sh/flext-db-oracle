@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests.constants import TestsFlextDbOracleConstants, c, tc
+from tests.constants import TestsFlextDbOracleConstants, c
 from tests.models import TestsFlextDbOracleModels, m, tm
 
 __all__ = [
@@ -16,6 +16,5 @@ __all__ = [
     "TestsFlextDbOracleModels",
     "c",
     "m",
-    "tc",
     "tm",
 ]
