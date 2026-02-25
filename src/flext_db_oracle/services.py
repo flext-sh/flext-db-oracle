@@ -20,6 +20,14 @@ from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
 
+try:
+    _oracledb_module = __import__("oracledb")
+    OracleDatabaseError = _oracledb_module.DatabaseError
+    OracleInterfaceError = _oracledb_module.InterfaceError
+except (ImportError, AttributeError):
+    OracleDatabaseError = ConnectionError
+    OracleInterfaceError = ConnectionError
+
 
 class _StrictIntValue(BaseModel):
     """Strict integer payload model."""
@@ -185,6 +193,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._db_config = config  # Use separate attribute for Oracle-specific config
         self._engine: object | None = None
         self._operations: list[m_db_oracle.DbOracle.OperationRecord] = []
+        self._plugins: dict[str, t.JsonValue] = {}
 
     def _build_connection_url(self) -> r[str]:
         """Build Oracle connection URL from configuration."""
@@ -196,7 +205,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             db_id = self._db_config.sid or self._db_config.service_name
             url = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}/{db_id}"
             return r.ok(url)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to build connection URL: {e}")
 
     def _get_engine(self) -> r[object]:
@@ -224,7 +233,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 _context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
             return r.ok(self)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
@@ -254,7 +263,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 _context_exit(connect_ctx)
             return r.ok(True)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Connection test failed: {e}")
 
     @contextmanager
@@ -305,7 +314,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(rows)
             finally:
                 _context_exit(connect_ctx)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Query execution failed: {e}")
 
     def execute_statement(
@@ -329,7 +338,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(rowcount)
             finally:
                 _context_exit(connect_ctx)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Statement execution failed: {e}")
 
     def execute_many(
@@ -355,7 +364,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(total_affected)
             finally:
                 _context_exit(connect_ctx)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Bulk execution failed: {e}")
 
     def fetch_one(
@@ -464,7 +473,7 @@ ORDER BY column_id
             return self.execute_query(sql, params).map(
                 lambda rows: [str(row.root["column_name"]) for row in rows],
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to get primary keys: {e}")
 
     def get_table_metadata(
@@ -492,7 +501,7 @@ ORDER BY column_id
                     ),
                 ),
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to get table metadata: {e}")
 
     # Service
@@ -503,7 +512,6 @@ ORDER BY column_id
             return r.ok(self._db_config)
         return r.fail(test_result.error or "Connection test failed")
 
-    # Placeholder methods for compatibility - delegate to simpler implementations
     def build_select(
         self,
         table_name: str,
@@ -562,8 +570,26 @@ ORDER BY column_id
         return r.ok(sql)
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
-        """Build CREATE INDEX statement - placeholder."""
-        return r.ok("CREATE INDEX statement")
+        try:
+            config = m_db_oracle.DbOracle.CreateIndexConfig.model_validate(_config)
+            if not config.columns:
+                return r.fail("Index definition requires at least one column")
+
+            schema_prefix = f"{config.schema_name}." if config.schema_name else ""
+            unique_prefix = "UNIQUE " if config.unique else ""
+            columns = ", ".join(config.columns)
+            sql = (
+                f"CREATE {unique_prefix}INDEX {config.index_name} "
+                f"ON {schema_prefix}{config.table_name} ({columns})"
+            )
+
+            if config.tablespace:
+                sql = f"{sql} TABLESPACE {config.tablespace}"
+            if config.parallel > 1:
+                sql = f"{sql} PARALLEL {config.parallel}"
+            return r.ok(sql)
+        except ValidationError as e:
+            return r.fail(f"Invalid CREATE INDEX config: {e}")
 
     def create_table_ddl(
         self,
@@ -621,7 +647,6 @@ ORDER BY column_id
         normalized_mapping = {key: str(value) for key, value in mapping.items()}
         return r.ok(m_db_oracle.DbOracle.TypeMapping(mapping=normalized_mapping))
 
-    # Placeholder methods for compatibility
     def generate_query_hash(
         self,
         sql: str = "",
@@ -652,14 +677,52 @@ ORDER BY column_id
         _value: float,
         _tags: t.ConfigMap | None = None,
     ) -> r[None]:
-        """Record metric - placeholder."""
+        """Record metric through flext-observability when available."""
+        if not _name:
+            return r.fail("Metric name is required")
+
+        try:
+            observability_module = import_module("flext_observability")
+        except ModuleNotFoundError:
+            return r.fail(
+                "flext-observability integration unavailable; install flext-observability"
+            )
+
+        metric_factory = getattr(observability_module, "flext_metric", None)
+        if not callable(metric_factory):
+            return r.fail("flext-observability does not expose flext_metric")
+
+        tags_payload = _tags.root if _tags is not None else {}
+        metric_result = metric_factory(
+            name=_name,
+            value=_value,
+            tags=t.Dict.model_validate(tags_payload),
+        )
+        if getattr(metric_result, "is_failure", False):
+            return r.fail(
+                getattr(
+                    metric_result, "error", "Metric recording failed in observability"
+                )
+            )
         return r[None].ok(None)
 
     def get_metrics(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
-        """Get metrics - placeholder."""
+        """Get metrics status with explicit observability integration check."""
+        try:
+            observability_module = import_module("flext_observability")
+        except ModuleNotFoundError:
+            return r.fail(
+                "flext-observability integration unavailable; install flext-observability"
+            )
+
+        metric_factory = getattr(observability_module, "flext_metric", None)
+        if not callable(metric_factory):
+            return r.fail("flext-observability does not expose flext_metric")
+
+        status = "connected" if self.is_connected() else "disconnected"
         return r.ok(
             m_db_oracle.DbOracle.HealthStatus(
-                status="connected" if self.is_connected() else "disconnected",
+                status=f"{status}_with_observability",
                 timestamp=self._get_current_timestamp(),
             )
         )
@@ -674,25 +737,126 @@ ORDER BY column_id
         )
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
-        """Register plugin - placeholder."""
+        """Register plugin via flext-plugin when available."""
+        if not _name:
+            return r.fail("Plugin name is required")
+
+        plugin_payload = _validate_config_map(_plugin)
+        if plugin_payload is None:
+            return r.fail("Plugin payload must be a mapping")
+
+        try:
+            plugin_api_module = import_module("flext_plugin.api")
+            plugin_models_module = import_module("flext_plugin.models")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+
+        plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
+        plugin_models = getattr(plugin_models_module, "FlextPluginModels", None)
+        plugin_namespace = getattr(plugin_models, "Plugin", None)
+        plugin_entity_cls = getattr(plugin_namespace, "Plugin", None)
+        if not callable(plugin_api_cls) or plugin_entity_cls is None:
+            return r.fail("flext-plugin API/model contracts unavailable")
+
+        plugin_entity = plugin_entity_cls.create(
+            name=_name,
+            plugin_version=str(plugin_payload.root.get("version", "1.0.0")),
+            description=str(plugin_payload.root.get("description", "")),
+            author=str(plugin_payload.root.get("author", "")),
+            plugin_type=str(plugin_payload.root.get("plugin_type", "utility")),
+            metadata=plugin_payload.root,
+        )
+        api = plugin_api_cls()
+        register_result = api.register_plugin(plugin_entity)
+        if getattr(register_result, "is_failure", False):
+            return r.fail(
+                getattr(register_result, "error", "Plugin registration failed")
+            )
+
+        self._plugins[_name] = _plugin
         return r[None].ok(None)
 
     def unregister_plugin(self, _name: str) -> r[None]:
-        """Unregister plugin - placeholder."""
+        """Unregister plugin via flext-plugin when available."""
+        if not _name:
+            return r.fail("Plugin name is required")
+
+        try:
+            plugin_api_module = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+
+        plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
+        if not callable(plugin_api_cls):
+            return r.fail("flext-plugin API contracts unavailable")
+
+        api = plugin_api_cls()
+        unregister_result = api.unregister_plugin(_name)
+        if getattr(unregister_result, "is_failure", False):
+            return r.fail(
+                getattr(unregister_result, "error", f"Plugin '{_name}' not found")
+            )
+
+        self._plugins.pop(_name, None)
         return r[None].ok(None)
 
     def list_plugins(self) -> r[t.ConfigMap]:
-        """List plugins - placeholder."""
-        return r[t.ConfigMap].ok(t.ConfigMap(root={}))
+        """List plugin names via flext-plugin when available."""
+        try:
+            plugin_api_module = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+
+        plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
+        if not callable(plugin_api_cls):
+            return r.fail("flext-plugin API contracts unavailable")
+
+        api = plugin_api_cls()
+        plugins = api.list_plugins()
+        plugin_names = [
+            str(getattr(plugin, "name", ""))
+            for plugin in plugins
+            if str(getattr(plugin, "name", ""))
+        ]
+        return r[t.ConfigMap].ok(
+            t.ConfigMap(root={name: True for name in plugin_names})
+        )
 
     def get_plugin(self, _name: str) -> r[t.JsonValue]:
-        """Get plugin - placeholder implementation.
+        """Get plugin data via flext-plugin when available."""
+        if not _name:
+            return r.fail("Plugin name is required")
 
-        Args:
-            _name: Plugin name (reserved for future implementation)
+        try:
+            plugin_api_module = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
 
-        """
-        return r[t.JsonValue].ok(True)
+        plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
+        if not callable(plugin_api_cls):
+            return r.fail("flext-plugin API contracts unavailable")
+
+        api = plugin_api_cls()
+        plugin = api.get_plugin(_name)
+        if plugin is None:
+            return r.fail(f"Plugin '{_name}' not found")
+
+        model_dump = getattr(plugin, "model_dump", None)
+        if callable(model_dump):
+            plugin_payload = model_dump()
+        else:
+            plugin_payload = {
+                "name": str(getattr(plugin, "name", _name)),
+                "version": str(getattr(plugin, "plugin_version", "")),
+                "description": str(getattr(plugin, "description", "")),
+                "author": str(getattr(plugin, "author", "")),
+                "plugin_type": str(getattr(plugin, "plugin_type", "")),
+            }
+
+        validated_payload = _validate_config_map(plugin_payload)
+        if validated_payload is None:
+            return r.fail("Plugin payload cannot be represented as JSON mapping")
+        return r[t.JsonValue].ok(validated_payload.root)
 
     def get_primary_key_columns(
         self,
@@ -714,7 +878,7 @@ ORDER BY column_id
             return self.execute_query(sql).map(
                 self._parse_count_from_rows,
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to get row count: {e}")
 
     def track_operation(
@@ -737,7 +901,7 @@ ORDER BY column_id
             )
             self._operations.append(operation)
             return r[None].ok(None)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to track operation: {e}")
 
     def get_operations(self) -> r[list[m_db_oracle.DbOracle.OperationRecord]]:

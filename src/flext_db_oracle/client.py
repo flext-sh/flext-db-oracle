@@ -21,6 +21,14 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 from pydantic import TypeAdapter, ValidationError
 
+try:
+    _oracledb_module = __import__("oracledb")
+    OracleDatabaseError = _oracledb_module.DatabaseError
+    OracleInterfaceError = _oracledb_module.InterfaceError
+except (ImportError, AttributeError):
+    OracleDatabaseError = ConnectionError
+    OracleInterfaceError = ConnectionError
+
 _JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
 _GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])
 
@@ -149,7 +157,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Oracle connection failed: {connect_result.error}",
             )
 
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(
@@ -214,7 +222,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Unknown operation: {operation}",
             )
 
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Operation failed: {e}")
 
     def _handle_list_schemas_operation(self) -> r[t.ConfigMap]:
@@ -310,7 +318,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Formatter strategy error: {e}",
             )
@@ -333,7 +341,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     else str(adapted_data)
                 ),
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     def _build_table_string(self, adapted_data: list[t.ConfigMap]) -> str:
@@ -356,7 +364,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """
         try:
             return r[str].ok(json.dumps(data.root, indent=2, default=str))
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"JSON formatting failed: {e}")
 
     def _adapt_data_for_table(
@@ -412,7 +420,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 for key, value in data_root.items()
             ]
             return r[list[t.ConfigMap]].ok(result)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[list[t.ConfigMap]].fail(
                 f"Data adaptation failed: {e}",
             )
@@ -449,7 +457,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             )
 
             return r[t.ConfigMap].ok(health_data)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Health check failed: {e}")
 
     def list_schemas(self) -> r[str]:
@@ -555,7 +563,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 extra={"preferences": "preferences"},
             )
             return r[None].ok(None)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[None].fail(f"Preference configuration failed: {e}")
 
     @classmethod
@@ -594,7 +602,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 )
 
             return r[str].fail(f"Unknown CLI operation: {operation}")
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"CLI command failed: {e}")
 
 

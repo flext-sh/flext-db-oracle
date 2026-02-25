@@ -23,6 +23,14 @@ from flext_db_oracle.models import FlextDbOracleModels, m as m_db_oracle
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 
+try:
+    _oracledb_module = __import__("oracledb")
+    OracleDatabaseError = _oracledb_module.DatabaseError
+    OracleInterfaceError = _oracledb_module.InterfaceError
+except (ImportError, AttributeError):
+    OracleDatabaseError = ConnectionError
+    OracleInterfaceError = ConnectionError
+
 # Simplified delegation - no complex decorators needed
 
 
@@ -106,7 +114,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
             config = config_result.value
             return r[FlextDbOracleApi].ok(cls(config=config))
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleApi].fail(
                 f"API creation from environment failed: {e}",
             )
@@ -131,7 +139,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
             config = config_result.value
             return r[FlextDbOracleApi].ok(cls(config=config))
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleApi].fail(
                 f"API creation from URL failed: {e}",
             )
@@ -229,7 +237,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             sql_text = str(sql)
             return self._services.execute_statement(sql_text, parameters or {})
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Statement execution failed: {e}")
 
     # Schema Introspection
@@ -353,7 +361,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return self._services.execute_query(sql).map(
                 lambda data: self._convert_to_query_result(sql, data),
             )
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"SQL execution error: {e}")
 
     def _convert_to_query_result(
@@ -414,7 +422,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute default domain service operation - return config."""
         try:
             return r.ok(self._oracle_config)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"API execution failed: {e}")
 
     @override

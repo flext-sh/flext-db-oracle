@@ -10,6 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -22,6 +23,90 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
+
+
+class _StubResult:
+    """Minimal result stub for dynamic integration tests."""
+
+    def __init__(self, *, is_failure: bool = False, error: str = "") -> None:
+        self.is_failure = is_failure
+        self.error = error
+
+
+class _StubPluginEntity:
+    """Stub plugin entity compatible with db-oracle service integration."""
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        plugin_version: str,
+        description: str,
+        author: str,
+        plugin_type: str,
+        metadata: dict[str, t.GeneralValueType],
+    ) -> None:
+        self.name = name
+        self.plugin_version = plugin_version
+        self.description = description
+        self.author = author
+        self.plugin_type = plugin_type
+        self.metadata = metadata
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        name: str,
+        plugin_version: str,
+        description: str,
+        author: str,
+        plugin_type: str,
+        metadata: dict[str, t.GeneralValueType],
+    ) -> "_StubPluginEntity":
+        return cls(
+            name=name,
+            plugin_version=plugin_version,
+            description=description,
+            author=author,
+            plugin_type=plugin_type,
+            metadata=metadata,
+        )
+
+    def model_dump(self) -> dict[str, t.GeneralValueType]:
+        return {
+            "name": self.name,
+            "version": self.plugin_version,
+            "description": self.description,
+            "author": self.author,
+            "plugin_type": self.plugin_type,
+            "metadata": self.metadata,
+        }
+
+
+class _StubPluginApi:
+    """In-memory plugin API stub used by service integration tests."""
+
+    _registry: dict[str, _StubPluginEntity] = {}
+
+    def register_plugin(self, plugin: _StubPluginEntity) -> _StubResult:
+        self._registry[plugin.name] = plugin
+        return _StubResult()
+
+    def unregister_plugin(self, plugin_name: str) -> _StubResult:
+        if plugin_name not in self._registry:
+            return _StubResult(
+                is_failure=True, error=f"Plugin '{plugin_name}' not found"
+            )
+        del self._registry[plugin_name]
+        return _StubResult()
+
+    def list_plugins(self) -> list[_StubPluginEntity]:
+        return list(self._registry.values())
+
+    def get_plugin(self, plugin_name: str) -> _StubPluginEntity | None:
+        return self._registry.get(plugin_name)
+
 
 # Removed flext_tests.domains import - using direct object creation
 
@@ -500,26 +585,175 @@ class TestServiceErrorHandling:
         assert select_result.is_success
         # Should default to SELECT * when columns are empty
 
-    def test_invalid_singer_schema_handling(self) -> None:
-        """Test handling of invalid Singer schemas."""
-        config = FlextDbOracleSettings(
-            host="localhost",
-            port=1521,
-            service_name="TEST",
-            username="testuser",
-            password="testpass",
+
+class TestFlextDbOracleServicesPlaceholderRemovals:
+    @staticmethod
+    def _make_service() -> FlextDbOracleServices:
+        return FlextDbOracleServices(
+            config=FlextDbOracleSettings(
+                host="localhost",
+                port=1521,
+                service_name="TEST",
+                username="testuser",
+                password="testpass",
+            )
         )
-        service = FlextDbOracleServices(config=config)
 
-        # Test with invalid schema structure
-        invalid_schema: dict[str, t.GeneralValueType] = {"properties": "not_a_dict"}
-        mapping_result = service.map_singer_schema(invalid_schema)
-        assert mapping_result.is_failure
+    def test_build_create_index_statement_builds_real_sql(self) -> None:
+        service = self._make_service()
+        result = service.build_create_index_statement({
+            "table_name": "USERS",
+            "index_name": "IDX_USERS_EMAIL",
+            "columns": ["email"],
+            "schema_name": "APP",
+            "unique": True,
+            "tablespace": "USERS_TS",
+            "parallel": 2,
+        })
+        assert result.is_success
+        assert result.value == (
+            "CREATE UNIQUE INDEX IDX_USERS_EMAIL ON APP.USERS (email) "
+            "TABLESPACE USERS_TS PARALLEL 2"
+        )
 
-        # Test with missing properties
-        missing_props_schema: dict[str, t.GeneralValueType] = {}
-        mapping_result = service.map_singer_schema(missing_props_schema)
-        assert mapping_result.is_failure or len(mapping_result.value) == 0
+    def test_build_create_index_statement_fails_for_empty_columns(self) -> None:
+        service = self._make_service()
+        result = service.build_create_index_statement({
+            "table_name": "USERS",
+            "index_name": "IDX_USERS_EMPTY",
+            "columns": [],
+        })
+        assert result.is_failure
+        assert "at least one column" in (result.error or "")
+
+    def test_record_metric_fails_when_observability_missing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+
+        def fake_import(name: str) -> object:
+            if name == "flext_observability":
+                raise ModuleNotFoundError(name)
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        result = service.record_metric("db_query_duration", 12.5)
+        assert result.is_failure
+        assert "flext-observability integration unavailable" in (result.error or "")
+
+    def test_record_metric_uses_observability_when_available(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+        calls: list[dict[str, object]] = []
+
+        def fake_flext_metric(*, name: str, value: float, tags: object) -> _StubResult:
+            calls.append({"name": name, "value": value, "tags": tags})
+            return _StubResult()
+
+        def fake_import(name: str) -> object:
+            if name == "flext_observability":
+                return SimpleNamespace(flext_metric=fake_flext_metric)
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        result = service.record_metric(
+            "db_query_duration", 12.5, t.ConfigMap(root={"k": "v"})
+        )
+        assert result.is_success
+        assert len(calls) == 1
+        assert calls[0]["name"] == "db_query_duration"
+
+    def test_get_metrics_fails_when_observability_missing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+
+        def fake_import(name: str) -> object:
+            if name == "flext_observability":
+                raise ModuleNotFoundError(name)
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        result = service.get_metrics()
+        assert result.is_failure
+        assert "flext-observability integration unavailable" in (result.error or "")
+
+    def test_get_metrics_returns_health_status_when_observability_available(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+
+        def fake_import(name: str) -> object:
+            if name == "flext_observability":
+                return SimpleNamespace(flext_metric=lambda **_: _StubResult())
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        result = service.get_metrics()
+        assert result.is_success
+        assert result.value.status.endswith("_with_observability")
+
+    def test_plugin_methods_fail_when_plugin_integration_missing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+
+        def fake_import(name: str) -> object:
+            if name in {"flext_plugin.api", "flext_plugin.models"}:
+                raise ModuleNotFoundError(name)
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        assert service.register_plugin("sample", {"version": "1.0.0"}).is_failure
+        assert service.unregister_plugin("sample").is_failure
+        assert service.list_plugins().is_failure
+        assert service.get_plugin("sample").is_failure
+
+    def test_plugin_methods_wire_to_flext_plugin_when_available(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = self._make_service()
+        _StubPluginApi._registry = {}
+
+        plugin_models = SimpleNamespace(
+            FlextPluginModels=SimpleNamespace(
+                Plugin=SimpleNamespace(Plugin=_StubPluginEntity)
+            )
+        )
+        plugin_api = SimpleNamespace(FlextPluginApi=_StubPluginApi)
+
+        def fake_import(name: str) -> object:
+            if name == "flext_plugin.models":
+                return plugin_models
+            if name == "flext_plugin.api":
+                return plugin_api
+            raise AssertionError(f"Unexpected module import: {name}")
+
+        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        register_result = service.register_plugin(
+            "sample",
+            {"version": "1.2.3", "description": "demo", "plugin_type": "utility"},
+        )
+        assert register_result.is_success
+
+        list_result = service.list_plugins()
+        assert list_result.is_success
+        assert list_result.value.root == {"sample": True}
+
+        get_result = service.get_plugin("sample")
+        assert get_result.is_success
+        assert isinstance(get_result.value, dict)
+        assert get_result.value.get("name") == "sample"
+
+        unregister_result = service.unregister_plugin("sample")
+        assert unregister_result.is_success
 
 
 """Direct Coverage Boost Tests - Target specific missed lines.

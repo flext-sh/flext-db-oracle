@@ -27,6 +27,14 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
+try:
+    _oracledb_module = __import__("oracledb")
+    OracleDatabaseError = _oracledb_module.DatabaseError
+    OracleInterfaceError = _oracledb_module.InterfaceError
+except (ImportError, AttributeError):
+    OracleDatabaseError = ConnectionError
+    OracleInterfaceError = ConnectionError
+
 
 def _validate_oracle_identifier(v: str) -> str:
     """Validate Oracle identifier: length check + strip + uppercase."""
@@ -37,6 +45,7 @@ def _validate_oracle_identifier(v: str) -> str:
 
 
 OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
+
 
 @FlextSettings.auto_register("db_oracle")
 class FlextDbOracleSettings(FlextSettings):
@@ -338,7 +347,7 @@ class FlextDbOracleSettings(FlextSettings):
             # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
             config = cls.get_global_instance()
             return r[FlextDbOracleSettings].ok(config)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from environment: {e}",
             )
@@ -396,7 +405,7 @@ class FlextDbOracleSettings(FlextSettings):
             )
 
             return r[FlextDbOracleSettings].ok(config)
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from URL: {e}",
             )

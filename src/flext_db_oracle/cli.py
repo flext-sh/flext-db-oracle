@@ -29,6 +29,14 @@ from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ValidationError
 
+try:
+    _oracledb_module = __import__("oracledb")
+    OracleDatabaseError = _oracledb_module.DatabaseError
+    OracleInterfaceError = _oracledb_module.InterfaceError
+except (ImportError, AttributeError):
+    OracleDatabaseError = ConnectionError
+    OracleInterfaceError = ConnectionError
+
 type CliScalar = str | int | float | bool | None
 
 
@@ -118,7 +126,7 @@ class FlextDbOracleCli(FlextService[str]):
                     password=password,
                 )
                 return FlextResult[FlextDbOracleSettings].ok(config)
-            except Exception as e:
+            except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
                 return FlextResult[FlextDbOracleSettings].fail(
                     f"Configuration creation failed: {e}",
                 )
@@ -316,7 +324,7 @@ class FlextDbOracleCli(FlextService[str]):
 
             return FlextResult[HealthCheckReport].ok(result)
 
-        except Exception as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
             error_result = HealthCheckReport(
                 status="unhealthy",
