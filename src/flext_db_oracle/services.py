@@ -818,9 +818,7 @@ ORDER BY column_id
             for plugin in plugins
             if str(getattr(plugin, "name", ""))
         ]
-        return r[t.ConfigMap].ok(
-            t.ConfigMap(root={name: True for name in plugin_names})
-        )
+        return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def get_plugin(self, _name: str) -> r[t.JsonValue]:
         """Get plugin data via flext-plugin when available."""
