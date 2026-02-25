@@ -11,12 +11,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Annotated
 from urllib.parse import urlparse
 
 from flext_core import r
 from flext_core.settings import FlextSettings
 from flext_db_oracle.constants import c
 from pydantic import (
+    BeforeValidator,
     Field,
     SecretStr,
     ValidationInfo,
@@ -25,6 +27,16 @@ from pydantic import (
 )
 from pydantic_settings import SettingsConfigDict
 
+
+def _validate_oracle_identifier(v: str) -> str:
+    """Validate Oracle identifier: length check + strip + uppercase."""
+    if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+        msg = f"Oracle identifier too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+        raise ValueError(msg)
+    return v.strip().upper()
+
+
+OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
 
 @FlextSettings.auto_register("db_oracle")
 class FlextDbOracleSettings(FlextSettings):
@@ -78,19 +90,19 @@ class FlextDbOracleSettings(FlextSettings):
         description="Oracle database port number",
     )
 
-    service_name: str = Field(
+    service_name: OracleIdentifier = Field(
         default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         min_length=1,
         description="Oracle service name",
     )
 
-    name: str = Field(
+    name: OracleIdentifier = Field(
         default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
         min_length=1,
         description="Oracle database name",
     )
 
-    sid: str = Field(
+    sid: OracleIdentifier = Field(
         default=c.DbOracle.Connection.DEFAULT_SID,
         min_length=1,
         description="Oracle SID (System Identifier)",
@@ -245,39 +257,6 @@ class FlextDbOracleSettings(FlextSettings):
     )
 
     # Validation methods
-    @field_validator("service_name", mode="before")
-    @classmethod
-    def validate_service_name(cls, v: str) -> str:
-        """Validate Oracle service name (length check + uppercase transformation)."""
-        # Check length
-        if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle service name too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-            raise ValueError(msg)
-
-        return v.strip().upper()
-
-    @field_validator("name", mode="before")
-    @classmethod
-    def validate_database_name(cls, v: str) -> str:
-        """Validate Oracle database name (length check + uppercase transformation)."""
-        # Check length
-        if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle database name too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-            raise ValueError(msg)
-
-        return v.strip().upper()
-
-    @field_validator("sid", mode="before")
-    @classmethod
-    def validate_sid(cls, v: str) -> str:
-        """Validate Oracle SID (length check + uppercase transformation)."""
-        # Check length
-        if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle SID too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-            raise ValueError(msg)
-
-        return v.strip().upper()
-
     @field_validator("pool_max", mode="before")
     @classmethod
     def validate_pool_max(cls, v: int, info: ValidationInfo) -> int:
