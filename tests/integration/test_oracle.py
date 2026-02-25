@@ -354,5 +354,20 @@ class TestOracleIntegration:
         if real_oracle_config is None:
             pytest.skip("Oracle container not available - skipping performance test")
 
-        # Test health check - method not implemented yet
-        pytest.skip("get_health_check method not implemented")
+        api = FlextDbOracleApi(config=real_oracle_config)
+        connect_result = api.connect()
+        if connect_result.is_failure:
+            pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
+
+        connected_api = connect_result.value
+        health_result = connected_api.get_health_status()
+        assert health_result.is_success, f"Health status failed: {health_result.error}"
+
+        status = health_result.value
+        assert status.is_connected is True
+        assert status.is_healthy is True
+        assert status.status_description == "Connected"
+        assert status.connection_age_seconds >= 0
+
+        disconnect_result = connected_api.disconnect()
+        assert disconnect_result.is_success
