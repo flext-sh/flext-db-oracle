@@ -301,7 +301,7 @@ def shared_oracle_container(
             f"Container {container_name} did not become ready within {max_wait}s",
         )
 
-    return container_name
+    yield container_name
 
     # Keep container running after tests for future test runs
     # Only stop if explicitly requested or if there were infrastructure failures
