@@ -378,7 +378,7 @@ result = (
 
 **FlextLogger**: Structured logging implementation with JSON formatting.
 
----
+______________________________________________________________________
 
 **Arc42 Section 1: Introduction and Goals**
 **flext-db-oracle v0.9.0**

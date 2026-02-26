@@ -144,7 +144,7 @@ else:
 - CLI uses SimpleNamespace placeholders (client.py:60-67)
 - Only SQLAlchemy abstraction (no direct Python-oracledb)
 
----
+______________________________________________________________________
 
 Updated: September 17, 2025 | Version: 0.9.9
 

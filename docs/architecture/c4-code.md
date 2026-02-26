@@ -520,7 +520,7 @@ tests/
 - **Memory Usage**: Per-operation memory profiling
 - **Test Performance**: Execution time tracking and optimization
 
----
+______________________________________________________________________
 
 **C4 Code Diagram - flext-db-oracle v0.9.0**
 **Generated**: 2025-10-10

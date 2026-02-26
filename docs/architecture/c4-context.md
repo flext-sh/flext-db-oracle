@@ -258,7 +258,7 @@ graph TB
 - **v1.2.0**: DataFrame integration and advanced analytics
 - **v2.0.0**: Oracle 23ai features and AI/ML integration
 
----
+______________________________________________________________________
 
 **C4 Context Diagram - flext-db-oracle v0.9.0**
 **Generated**: 2025-10-10
