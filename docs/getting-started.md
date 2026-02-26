@@ -194,7 +194,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext/issues)
 - **Troubleshooting**: See troubleshooting.md
 
-______________________________________________________________________
+---
 
 **Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Part of**: FLEXT Ecosystem - Oracle Database Integration Foundation

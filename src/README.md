@@ -174,6 +174,6 @@ All code must pass these validation steps:
 - `make test` - Test suite with 90%+ coverage requirement
 - `make security` - Security scanning with Bandit and pip-audit
 
-______________________________________________________________________
+---
 
 This source code structure provides the foundation for enterprise Oracle database integration within the FLEXT ecosystem, following industry best practices and architectural patterns.

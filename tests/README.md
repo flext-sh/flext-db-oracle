@@ -350,6 +350,6 @@ Tests are integrated into CI/CD pipelines with:
 - **Failure analysis** with logs and stack traces
 - **Performance regression detection** through benchmarks
 
-______________________________________________________________________
+---
 
 This test suite ensures FLEXT DB Oracle maintains quality standards while providing fast feedback for development and reliable validation for production deployments.

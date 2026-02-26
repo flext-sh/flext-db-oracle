@@ -587,7 +587,7 @@ df -h docs/reports/
 | Automation Coverage | 85%     | >90%   | 🟡 Improving |
 | False Positives     | 3%      | \<5%   | ✅ Good      |
 
-______________________________________________________________________
+---
 
 ## 📚 Resources
 
@@ -619,7 +619,7 @@ ______________________________________________________________________
 1. Add integration with external documentation platforms
 1. Develop automated content generation features
 
-______________________________________________________________________
+---
 
 **Documentation Maintenance System v1.0.0**
 **Automated Quality Assurance Framework**

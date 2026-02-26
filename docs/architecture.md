@@ -321,7 +321,7 @@ class OraclePlugin(ABC):
 - Statement pipelining for performance
 - Enhanced DRCP multi-pool configuration
 
-______________________________________________________________________
+---
 
 **Version**: 0.9.9 RC | **Updated**: September 17, 2025
 **Pattern**: Clean Architecture + Domain-Driven Design

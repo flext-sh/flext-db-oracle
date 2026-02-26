@@ -103,6 +103,6 @@ api = FlextDbOracleApi(config)
 - Connection management (connect, disconnect, test_connection)
 - Configuration from environment or URLs
 
-______________________________________________________________________
+---
 
 Updated: September 17, 2025 | Version: 0.9.9

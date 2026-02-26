@@ -115,7 +115,7 @@ Include:
 - Future considerations
 - Related decisions\]
 
-______________________________________________________________________
+---
 
 **ADR Template v1.0 - flext-db-oracle**
 **Based on Michael Nygard's ADR format**

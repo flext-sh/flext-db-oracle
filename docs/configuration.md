@@ -84,6 +84,6 @@ python -m flext_db_oracle.cli health
 
 For advanced configuration patterns, see the FLEXT workspace documentation.
 
-______________________________________________________________________
+---
 
 Updated: September 17, 2025 | Version: 0.9.9

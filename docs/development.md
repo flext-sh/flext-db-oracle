@@ -490,6 +490,6 @@ PYTHONPATH=src python -c "import tests.unit.test_api" 2>&1
 PYTHONPATH=src python -c "import flext_core; print(flext_core.__version__)"
 ```
 
-______________________________________________________________________
+---
 
 Updated: October 10, 2025 | Version: 0.9.0

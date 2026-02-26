@@ -504,6 +504,6 @@ Examples show integration with:
 - **Rich**: Terminal formatting and user experience
 - **Docker**: Containerized Oracle environments
 
-______________________________________________________________________
+---
 
 These examples provide practical, production-ready patterns for integrating FLEXT DB Oracle into real-world applications while maintaining enterprise-grade quality standards.
