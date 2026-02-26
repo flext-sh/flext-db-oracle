@@ -314,9 +314,11 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
 
             def __contains__(self, key: str) -> bool:
+                """Check if key is in health status."""
                 return key in self.model_dump()
 
             def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from health status."""
                 return self.model_dump().get(key)
 
         class TableMetadata(m.Entity):
@@ -330,9 +332,11 @@ class FlextDbOracleModels(FlextModels):
             primary_keys: list[str] = Field(default_factory=list)
 
             def __contains__(self, key: str) -> bool:
+                """Check if key is in table metadata."""
                 return key in self.model_dump()
 
             def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from table metadata."""
                 return self.model_dump().get(key)
 
         class TypeMapping(m.Entity):
@@ -341,12 +345,15 @@ class FlextDbOracleModels(FlextModels):
             mapping: Mapping[str, str] = Field(default_factory=dict)
 
             def __contains__(self, key: str) -> bool:
+                """Check if key is in type mapping."""
                 return key in self.mapping
 
             def __getitem__(self, key: str) -> str:
+                """Get mapped type for key."""
                 return self.mapping[key]
 
             def __len__(self) -> int:
+                """Get number of type mappings."""
                 return len(self.mapping)
 
         class SingerField(m.Entity):
@@ -382,6 +389,7 @@ class FlextDbOracleModels(FlextModels):
             )
 
             def __contains__(self, key: str) -> bool:
+                """Check if key is in column metadata."""
                 return key in {
                     "name",
                     "column_name",
@@ -391,6 +399,7 @@ class FlextDbOracleModels(FlextModels):
                 }
 
             def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from column metadata."""
                 key_map = {
                     "column_name": self.name,
                     "name": self.name,

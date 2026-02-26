@@ -122,8 +122,11 @@ class FlextDbOracleUtilities(FlextUtilities):
                 return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
     class OracleValidation:
+        """Oracle validation grouping class."""
+
         @staticmethod
         def validate_identifier(identifier: str) -> r[bool]:
+            """Validate an Oracle identifier."""
             if not identifier:
                 return r[bool].fail("Empty Oracle identifier")
             if len(identifier) > c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH:
@@ -134,6 +137,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> r[str]:
+        """Escape and validate an Oracle identifier for safe use."""
         if not identifier.strip():
             return r[str].fail("Empty Oracle identifier")
         if not identifier.replace("_", "").isalnum():
@@ -146,6 +150,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         result: object,
         format_type: str = "table",
     ) -> r[str]:
+        """Format a query result to string or JSON."""
         if format_type == "json":
             return r[str].ok(json.dumps(result, default=str))
         return r[str].ok(str(result))
@@ -155,17 +160,20 @@ class FlextDbOracleUtilities(FlextUtilities):
         query: str,
         params: Mapping[str, object] | None,
     ) -> r[str]:
+        """Generate a SHA-256 hash for a query and its parameters."""
         serialized = json.dumps(params or {}, sort_keys=True, default=str)
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
     @staticmethod
     def format_sql_for_oracle(sql: str) -> r[str]:
+        """Normalize SQL string formatting for Oracle execution."""
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
     @staticmethod
     def create_config_from_env() -> r[FlextDbOracleSettings]:
+        """Create Oracle settings directly from the environment variables."""
         config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
         if config_result.is_failure:
             return r[FlextDbOracleSettings].fail(config_result.error)

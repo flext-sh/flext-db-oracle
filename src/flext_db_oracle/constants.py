@@ -486,8 +486,11 @@ class FlextDbOracleConstants(FlextConstants):
         DataTypeLiteral: Final[tuple[str, ...]] = tuple(Lists.VALID_DATA_TYPES)
 
         class FeatureFlags:
+            """Internal feature flags for the connection pool."""
+
             @staticmethod
             def dispatcher_enabled() -> bool:
+                """Return whether the dispatcher feature is enabled."""
                 return False
 
         class Platform(c.Platform):

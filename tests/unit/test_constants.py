@@ -15,7 +15,6 @@ from typing import Literal
 
 import pytest
 from flext_core import FlextConstants
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,
@@ -201,14 +200,14 @@ class TestFlextDbOracleConstants:
         perf = FlextDbOracleConstants.OraclePerformance
 
         assert perf.DEFAULT_COMMIT_SIZE == 1000
-        assert perf.PERFORMANCE_WARNING_THRESHOLD_SECONDS == 5.0
+        assert pytest.approx(5.0) == perf.PERFORMANCE_WARNING_THRESHOLD_SECONDS
         assert perf.MAX_DISPLAY_ROWS == 1000
         assert perf.MILLISECONDS_TO_SECONDS_THRESHOLD == 1000
         assert perf.DEFAULT_POOL_RECYCLE == 3600
         assert perf.CONNECTION_IDLE_TIMEOUT_SECONDS == 3600
-        assert perf.CONNECTION_EXCELLENT_THRESHOLD_SECONDS == 0.1
-        assert perf.CONNECTION_GOOD_THRESHOLD_SECONDS == 0.5
-        assert perf.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS == 2.0
+        assert pytest.approx(0.1) == perf.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+        assert pytest.approx(0.5) == perf.CONNECTION_GOOD_THRESHOLD_SECONDS
+        assert pytest.approx(2.0) == perf.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
         assert perf.QUERY_EXCELLENT_THRESHOLD_MS == 100
         assert perf.QUERY_GOOD_THRESHOLD_MS == 500
         assert perf.QUERY_ACCEPTABLE_THRESHOLD_MS == 2000
@@ -299,7 +298,7 @@ class TestFlextDbOracleConstants:
         # Performance defaults
         assert defaults.DEFAULT_COMMIT_SIZE == 1000
         assert defaults.DEFAULT_POOL_RECYCLE == 3600
-        assert defaults.DEFAULT_SLOW_QUERY_THRESHOLD == 2.0
+        assert pytest.approx(2.0) == defaults.DEFAULT_SLOW_QUERY_THRESHOLD
 
     # =============================================================================
     # Literals constants tests

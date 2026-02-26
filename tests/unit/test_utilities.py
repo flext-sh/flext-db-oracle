@@ -10,7 +10,6 @@ import contextlib
 import json
 
 import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
 from flext_db_oracle.constants import FlextDbOracleConstants
 

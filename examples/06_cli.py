@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess
+import subprocess  # noqa: S404
 import sys
 from pathlib import Path
 
@@ -141,7 +141,7 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            process = subprocess.run(
+            process = subprocess.run(  # noqa: S603
                 cmd,
                 capture_output=True,
                 check=False,

@@ -9,7 +9,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
 
@@ -27,7 +26,7 @@ class TestFlextDbOracleModels:
         status = FlextDbOracleModels.ConnectionStatus()
         assert not status.is_connected
         assert status.error_message == ""
-        assert status.connection_time == 0.0
+        assert status.connection_time == pytest.approx(0.0)
         assert status.session_id == ""
         assert status.host == ""
         assert status.port == FlextDbOracleConstants.Connection.DEFAULT_PORT
@@ -51,7 +50,7 @@ class TestFlextDbOracleModels:
             db_version="19.3.0.0.0",
         )
         assert status.is_connected
-        assert status.connection_time == 0.5
+        assert status.connection_time == pytest.approx(0.5)
         assert status.session_id == "ABC123"
         assert status.host == "localhost"
         assert status.service_name == "XEPDB1"
@@ -172,7 +171,7 @@ class TestFlextDbOracleModels:
         assert len(status.error_message) <= 500 + len("... (truncated)")
 
         # Test connection time formatting
-        assert status.connection_time == 1.23456
+        assert status.connection_time == pytest.approx(1.23456)
 
     # =============================================================================
     # QueryResult tests
@@ -218,7 +217,7 @@ class TestFlextDbOracleModels:
         )
 
         # Test execution_time_seconds
-        assert result.execution_time_seconds == 2.5
+        assert result.execution_time_seconds == pytest.approx(2.5)
 
         # Test has_results
         assert result.has_results

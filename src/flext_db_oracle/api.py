@@ -86,6 +86,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @property
     def config(self) -> FlextDbOracleSettings:
+        """Get the configuration."""
         return self._oracle_config
 
     def is_valid(self) -> bool:
@@ -150,18 +151,19 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @staticmethod
     def to_dict(obj: object | None = None) -> m_core.ConfigMap:
+        """Convert API instance to dictionary representation."""
         if isinstance(obj, FlextDbOracleApi):
             return m_core.ConfigMap(
                 root={
                     "config": {
-                        "host": obj._oracle_config.host,
-                        "port": obj._oracle_config.port,
-                        "service_name": obj._oracle_config.service_name,
-                        "username": obj._oracle_config.username,
+                        "host": obj.config.host,
+                        "port": obj.config.port,
+                        "service_name": obj.config.service_name,
+                        "username": obj.config.username,
                     },
                     "connected": obj.is_connected,
-                    "plugin_count": len(obj._plugins),
-                    "dispatcher_enabled": obj._dispatcher is not None,
+                    "plugin_count": len(obj.plugins),
+                    "dispatcher_enabled": obj._dispatcher is not None,  # noqa: SLF001
                 }
             )
         return (

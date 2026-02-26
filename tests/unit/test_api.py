@@ -17,16 +17,15 @@ from typing import cast
 
 import pytest
 from flext_core import FlextResult
-from flext_db_oracle import t
-from flext_tests import FlextTestsDomains, tm
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    t,
 )
+from flext_tests import FlextTestsDomains, tm
 
 
 class TestFlextDbOracleApiRealFunctionality:

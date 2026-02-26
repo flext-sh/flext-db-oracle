@@ -11,17 +11,17 @@ from __future__ import annotations
 
 import os
 from types import SimpleNamespace
+from typing import ClassVar
 from unittest.mock import MagicMock
 
 import pytest
-from flext_db_oracle import t
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleConstants,
     FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    t,
 )
 
 
@@ -63,7 +63,7 @@ class _StubPluginEntity:
         author: str,
         plugin_type: str,
         metadata: dict[str, t.GeneralValueType],
-    ) -> "_StubPluginEntity":
+    ) -> _StubPluginEntity:
         return cls(
             name=name,
             plugin_version=plugin_version,
@@ -77,7 +77,7 @@ class _StubPluginEntity:
 class _StubPluginApi:
     """In-memory plugin API stub used by service integration tests."""
 
-    _registry: dict[str, _StubPluginEntity] = {}
+    _registry: ClassVar[dict[str, _StubPluginEntity]] = {}
 
     def register_plugin(self, plugin: _StubPluginEntity) -> _StubResult:
         self._registry[plugin.name] = plugin
@@ -577,6 +577,8 @@ class TestServiceErrorHandling:
 
 
 class TestFlextDbOracleServicesPlaceholderRemovals:
+    """Test removals of temporary placeholder logic."""
+
     @staticmethod
     def _make_service() -> FlextDbOracleServices:
         return FlextDbOracleServices(

@@ -591,6 +591,7 @@ ORDER BY column_id
         return r.ok(sql)
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
+        """Build Oracle CREATE INDEX statement from configuration."""
         try:
             config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
                 _config

@@ -10,12 +10,11 @@ from __future__ import annotations
 import contextlib
 
 from flext_core import FlextResult
-from flext_db_oracle import t
-
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    t,
 )
 
 
