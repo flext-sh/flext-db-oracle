@@ -8,15 +8,15 @@ from __future__ import annotations
 
 import hashlib
 import time
-from collections.abc import Generator
+from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Self
+from typing import Protocol, Self, cast
 from urllib.parse import quote_plus
 
 from flext_core import r, t
 from flext_core.service import FlextService
-from flext_db_oracle.models import m as m_db_oracle
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
 
@@ -49,6 +49,16 @@ class _ObjectRows(RootModel[list[object]]):
 
 
 _STRING_LIST_ADAPTER = TypeAdapter(list[str])
+
+
+class _PluginApiProtocol(Protocol):
+    def register_plugin(self, plugin: object) -> object: ...
+
+    def unregister_plugin(self, name: str) -> object: ...
+
+    def list_plugins(self) -> list[object]: ...
+
+    def get_plugin(self, name: str) -> object | None: ...
 
 
 def _validate_config_map(value: object) -> t.ConfigMap | None:
@@ -192,7 +202,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         super().__init__()
         self._db_config = config  # Use separate attribute for Oracle-specific config
         self._engine: object | None = None
-        self._operations: list[m_db_oracle.DbOracle.OperationRecord] = []
+        self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.JsonValue] = {}
 
     def _build_connection_url(self) -> r[str]:
@@ -344,7 +354,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        params_list: list[t.ConfigMap],
+        params_list: Sequence[Mapping[str, t.GeneralValueType] | t.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
         engine_result = self._get_engine()
@@ -358,7 +368,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             try:
                 total_affected = 0
                 for params in params_list:
-                    result = _connection_execute(conn, _sqlalchemy_text(sql), params)
+                    typed_params = (
+                        params
+                        if isinstance(params, t.ConfigMap)
+                        else t.ConfigMap.model_validate(params)
+                    )
+                    result = _connection_execute(
+                        conn, _sqlalchemy_text(sql), typed_params
+                    )
                     rowcount_raw = getattr(result, "rowcount", 0)
                     total_affected += _parse_rowcount(rowcount_raw)
                 return r.ok(total_affected)
@@ -401,7 +418,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[list[m_db_oracle.DbOracle.Column]]:
+    ) -> r[list[FlextDbOracleModels.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = """
@@ -426,7 +443,7 @@ ORDER BY column_id
             params = t.ConfigMap(root={"table_name": table_name})
         return self.execute_query(sql, params).map(
             lambda rows: [
-                m_db_oracle.DbOracle.Column(
+                FlextDbOracleModels.DbOracle.Column(
                     name=str(row.root.get("column_name", "")),
                     data_type=str(row.root.get("data_type", "")),
                     nullable=str(row.root.get("nullable", "Y")) == "Y",
@@ -480,21 +497,20 @@ ORDER BY column_id
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> r[m_db_oracle.DbOracle.TableMetadata]:
+    ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
         """Get complete table metadata."""
         try:
             return self.get_columns(table_name, schema).flat_map(
                 lambda columns: self.get_primary_keys(table_name, schema).map(
-                    lambda pk: m_db_oracle.DbOracle.TableMetadata(
+                    lambda pk: FlextDbOracleModels.DbOracle.TableMetadata(
                         table_name=table_name,
                         schema_name=schema or "",
                         columns=[
-                            {
-                                "name": column.name,
-                                "data_type": column.data_type,
-                                "nullable": column.nullable,
-                                "default_value": column.default_value,
-                            }
+                            FlextDbOracleModels.DbOracle.ColumnMetadata(
+                                name=column.name,
+                                data_type=column.data_type,
+                                nullable=column.nullable,
+                            )
                             for column in columns
                         ],
                         primary_keys=pk,
@@ -515,13 +531,18 @@ ORDER BY column_id
     def build_select(
         self,
         table_name: str,
-        schema_name: str | None = None,
         columns: list[str] | None = None,
-        conditions: t.ConfigMap | None = None,
+        conditions: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
+        schema_name: str | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
+        typed_conditions = (
+            conditions
+            if isinstance(conditions, t.ConfigMap) or conditions is None
+            else t.ConfigMap.model_validate(conditions)
+        )
         cols = ", ".join(columns) if columns else "*"
-        where = f" WHERE {conditions}" if conditions else ""
+        where = f" WHERE {typed_conditions}" if typed_conditions else ""
         schema = f"{schema_name}." if schema_name else ""
         sql = f"SELECT {cols} FROM {schema}{table_name}{where}"  # nosec B608
         return r.ok(sql)
@@ -571,7 +592,9 @@ ORDER BY column_id
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
         try:
-            config = m_db_oracle.DbOracle.CreateIndexConfig.model_validate(_config)
+            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
+                _config
+            )
             if not config.columns:
                 return r.fail("Index definition requires at least one column")
 
@@ -594,15 +617,22 @@ ORDER BY column_id
     def create_table_ddl(
         self,
         table_name: str,
-        columns: list[m_db_oracle.DbOracle.Column],
+        columns: Sequence[
+            FlextDbOracleModels.DbOracle.Column | Mapping[str, t.GeneralValueType]
+        ],
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
         col_defs: list[str] = []
         for col in columns:
-            name = col.name or "unknown"
-            data_type = col.data_type or "VARCHAR2(255)"
-            nullable = "" if col.nullable else " NOT NULL"
+            column = (
+                col
+                if isinstance(col, FlextDbOracleModels.DbOracle.Column)
+                else FlextDbOracleModels.DbOracle.Column.model_validate(col)
+            )
+            name = column.name or "unknown"
+            data_type = column.data_type or "VARCHAR2(255)"
+            nullable = "" if column.nullable else " NOT NULL"
             col_defs.append(f"{name} {data_type}{nullable}")
         schema_prefix = f"{schema}." if schema else ""
         ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
@@ -636,32 +666,46 @@ ORDER BY column_id
 
     def map_singer_schema(
         self,
-        singer_schema: m_db_oracle.DbOracle.SingerSchema,
-    ) -> r[m_db_oracle.DbOracle.TypeMapping]:
+        singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
+        | Mapping[str, t.GeneralValueType],
+    ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
+        schema_model = (
+            singer_schema
+            if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema)
+            else FlextDbOracleModels.DbOracle.SingerSchema.model_validate(singer_schema)
+        )
         mapping = t.ConfigMap(root={})
-        for field_name, field_def in singer_schema.properties.items():
+        for field_name, field_def in schema_model.properties.items():
             conversion = self.convert_singer_type(field_def.type)
             if conversion.is_success:
                 mapping.root[field_name] = conversion.value
-        normalized_mapping = {key: str(value) for key, value in mapping.items()}
-        return r.ok(m_db_oracle.DbOracle.TypeMapping(mapping=normalized_mapping))
+        normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
+        type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
+            "mapping": normalized_mapping
+        })
+        return r.ok(type_mapping)
 
     def generate_query_hash(
         self,
         sql: str = "",
-        params: t.ConfigMap | None = None,
+        params: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
-        hash_input = f"{sql}_{params!s}"
+        typed_params = (
+            params
+            if isinstance(params, t.ConfigMap) or params is None
+            else t.ConfigMap.model_validate(params)
+        )
+        hash_input = f"{sql}_{typed_params!s}"
         return r.ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
 
     def get_connection_status(
         self,
-    ) -> r[m_db_oracle.DbOracle.ConnectionStatus]:
+    ) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         return r.ok(
-            m_db_oracle.DbOracle.ConnectionStatus(
+            FlextDbOracleModels.DbOracle.ConnectionStatus(
                 is_connected=self.is_connected(),
                 host=self._db_config.host,
                 port=self._db_config.port,
@@ -675,7 +719,7 @@ ORDER BY column_id
     def record_metric(
         _name: str,
         _value: float,
-        _tags: t.ConfigMap | None = None,
+        _tags: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[None]:
         """Record metric through flext-observability when available."""
         if not _name:
@@ -692,7 +736,12 @@ ORDER BY column_id
         if not callable(metric_factory):
             return r.fail("flext-observability does not expose flext_metric")
 
-        tags_payload = _tags.root if _tags is not None else {}
+        typed_tags = (
+            _tags
+            if isinstance(_tags, t.ConfigMap) or _tags is None
+            else t.ConfigMap.model_validate(_tags)
+        )
+        tags_payload = typed_tags.root if typed_tags is not None else {}
         metric_result = metric_factory(
             name=_name,
             value=_value,
@@ -706,7 +755,7 @@ ORDER BY column_id
             )
         return r[None].ok(None)
 
-    def get_metrics(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
+    def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
         """Get metrics status with explicit observability integration check."""
         try:
             observability_module = import_module("flext_observability")
@@ -721,16 +770,16 @@ ORDER BY column_id
 
         status = "connected" if self.is_connected() else "disconnected"
         return r.ok(
-            m_db_oracle.DbOracle.HealthStatus(
+            FlextDbOracleModels.DbOracle.HealthStatus(
                 status=f"{status}_with_observability",
                 timestamp=self._get_current_timestamp(),
             )
         )
 
-    def health_check(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
+    def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
         """Perform health check."""
         return r.ok(
-            m_db_oracle.DbOracle.HealthStatus(
+            FlextDbOracleModels.DbOracle.HealthStatus(
                 status="healthy" if self.is_connected() else "unhealthy",
                 timestamp=self._get_current_timestamp(),
             )
@@ -766,7 +815,7 @@ ORDER BY column_id
             plugin_type=str(plugin_payload.root.get("plugin_type", "utility")),
             metadata=plugin_payload.root,
         )
-        api = plugin_api_cls()
+        api = cast(_PluginApiProtocol, plugin_api_cls())
         register_result = api.register_plugin(plugin_entity)
         if getattr(register_result, "is_failure", False):
             return r.fail(
@@ -790,7 +839,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = plugin_api_cls()
+        api = cast(_PluginApiProtocol, plugin_api_cls())
         unregister_result = api.unregister_plugin(_name)
         if getattr(unregister_result, "is_failure", False):
             return r.fail(
@@ -811,7 +860,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = plugin_api_cls()
+        api = cast(_PluginApiProtocol, plugin_api_cls())
         plugins = api.list_plugins()
         plugin_names = [
             str(getattr(plugin, "name", ""))
@@ -834,7 +883,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = plugin_api_cls()
+        api = cast(_PluginApiProtocol, plugin_api_cls())
         plugin = api.get_plugin(_name)
         if plugin is None:
             return r.fail(f"Plugin '{_name}' not found")
@@ -885,12 +934,16 @@ ORDER BY column_id
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: t.ConfigMap | None = None,
+        metadata: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[None]:
         """Track database operation for monitoring."""
         try:
-            metadata_value = metadata or t.ConfigMap(root={})
-            operation = m_db_oracle.DbOracle.OperationRecord(
+            metadata_value = (
+                metadata
+                if isinstance(metadata, t.ConfigMap)
+                else t.ConfigMap.model_validate(metadata or {})
+            )
+            operation = FlextDbOracleModels.DbOracle.OperationRecord(
                 operation_type=operation_type,
                 duration=duration,
                 success=success,
@@ -902,7 +955,7 @@ ORDER BY column_id
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to track operation: {e}")
 
-    def get_operations(self) -> r[list[m_db_oracle.DbOracle.OperationRecord]]:
+    def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r.ok(self._operations.copy())
 

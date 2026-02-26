@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
+from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
+from flext_core import r
 from flext_core.utilities import FlextUtilities, u
+from flext_db_oracle.constants import c
+from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BeforeValidator
 
 
@@ -114,6 +120,56 @@ class FlextDbOracleUtilities(FlextUtilities):
             def dispatcher_enabled(cls) -> bool:
                 """Return True when dispatcher integration should be used."""
                 return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
+
+    class OracleValidation:
+        @staticmethod
+        def validate_identifier(identifier: str) -> r[bool]:
+            if not identifier:
+                return r[bool].fail("Empty Oracle identifier")
+            if len(identifier) > c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH:
+                return r[bool].fail("Oracle identifier too long")
+            if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
+                return r[bool].fail("Oracle identifier is reserved word")
+            return r[bool].ok(True)
+
+    @staticmethod
+    def escape_oracle_identifier(identifier: str) -> r[str]:
+        if not identifier.strip():
+            return r[str].fail("Empty Oracle identifier")
+        if not identifier.replace("_", "").isalnum():
+            return r[str].fail("Invalid Oracle identifier")
+        max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        return r[str].ok(identifier[:max_len])
+
+    @staticmethod
+    def format_query_result(
+        result: object,
+        format_type: str = "table",
+    ) -> r[str]:
+        if format_type == "json":
+            return r[str].ok(json.dumps(result, default=str))
+        return r[str].ok(str(result))
+
+    @staticmethod
+    def generate_query_hash(
+        query: str,
+        params: Mapping[str, object] | None,
+    ) -> r[str]:
+        serialized = json.dumps(params or {}, sort_keys=True, default=str)
+        payload = f"{query}|{serialized}".encode()
+        return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
+
+    @staticmethod
+    def format_sql_for_oracle(sql: str) -> r[str]:
+        normalized = " ".join(sql.split())
+        return r[str].ok(normalized)
+
+    @staticmethod
+    def create_config_from_env() -> r[FlextDbOracleSettings]:
+        config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
+        if config_result.is_failure:
+            return r[FlextDbOracleSettings].fail(config_result.error)
+        return r[FlextDbOracleSettings].ok(config_result.value)
 
 
 __all__ = [

@@ -83,6 +83,9 @@ class FlextDbOracleCli(FlextService[str]):
         # CLI main component - initialized as None to avoid circular dependencies
         self._cli_main: FlextCliCommands | None = None
 
+    def _initialize_cli_main(self) -> FlextResult[FlextCliCommands | None]:
+        return FlextResult[FlextCliCommands | None].ok(self._cli_main)
+
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""
 
@@ -312,15 +315,15 @@ class FlextDbOracleCli(FlextService[str]):
             elapsed_time = time.time() - start_time
             health_data = health_result.value
 
-            result = HealthCheckReport(
-                status="healthy",
-                host=host,
-                port=port,
-                service_name=service_name,
-                response_time_ms=round(elapsed_time * 1000, 2),
-                details=health_data,
-                timestamp=datetime.now(UTC).isoformat(),
-            )
+            result = HealthCheckReport.model_validate({
+                "status": "healthy",
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "response_time_ms": round(elapsed_time * 1000, 2),
+                "details": health_data.model_dump(),
+                "timestamp": datetime.now(UTC).isoformat(),
+            })
 
             return FlextResult[HealthCheckReport].ok(result)
 

@@ -401,13 +401,8 @@ class FlextDbOracleConstants(FlextConstants):
             Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
             """
 
-            # Environment literals - reuse from flext-core Settings.Environment StrEnum
-            type EnvironmentLiteral = c.Settings.Environment
-            """Environment type literal - references flext-core Settings.Environment StrEnum."""
-
-            # Log level literals - reuse from flext-core Settings.LogLevel StrEnum
-            type LogLevelLiteral = c.Settings.LogLevel
-            """Log level literal - references flext-core Settings.LogLevel StrEnum."""
+            EnvironmentLiteral = FlextConstants.Settings.Environment
+            LogLevelLiteral = FlextConstants.Settings.LogLevel
 
         class Lists:
             """Lists of constants for validation and iteration.
@@ -484,6 +479,17 @@ class FlextDbOracleConstants(FlextConstants):
                 "USER",
             ]
 
+        ConnectionTypeLiteral: Final[tuple[str, ...]] = tuple(
+            Lists.VALID_CONNECTION_TYPES
+        )
+        QueryTypeLiteral: Final[tuple[str, ...]] = tuple(Lists.VALID_QUERY_TYPES)
+        DataTypeLiteral: Final[tuple[str, ...]] = tuple(Lists.VALID_DATA_TYPES)
+
+        class FeatureFlags:
+            @staticmethod
+            def dispatcher_enabled() -> bool:
+                return False
+
         class Platform(c.Platform):
             """Oracle-specific platform constants extending base Platform."""
 
@@ -500,6 +506,27 @@ class FlextDbOracleConstants(FlextConstants):
 
 
 # No compatibility aliases - use direct imports only
+
+FlextDbOracleConstants.Connection = FlextDbOracleConstants.DbOracle.Connection
+FlextDbOracleConstants.OracleNetwork = FlextDbOracleConstants.DbOracle.OracleNetwork
+FlextDbOracleConstants.Query = FlextDbOracleConstants.DbOracle.Query
+FlextDbOracleConstants.DataTypes = FlextDbOracleConstants.DbOracle.DataTypes
+FlextDbOracleConstants.OracleValidation = (
+    FlextDbOracleConstants.DbOracle.OracleValidation
+)
+FlextDbOracleConstants.ErrorMessages = FlextDbOracleConstants.DbOracle.ErrorMessages
+FlextDbOracleConstants.OraclePerformance = (
+    FlextDbOracleConstants.DbOracle.OraclePerformance
+)
+FlextDbOracleConstants.IsolationLevels = FlextDbOracleConstants.DbOracle.IsolationLevels
+FlextDbOracleConstants.OracleEnvironment = (
+    FlextDbOracleConstants.DbOracle.OracleEnvironment
+)
+FlextDbOracleConstants.OracleDefaults = FlextDbOracleConstants.DbOracle.OracleDefaults
+FlextDbOracleConstants.OracleEnums = FlextDbOracleConstants.DbOracle.OracleEnums
+FlextDbOracleConstants.Lists = FlextDbOracleConstants.DbOracle.Lists
+FlextDbOracleConstants.FeatureFlags = FlextDbOracleConstants.DbOracle.FeatureFlags
+FlextDbOracleConstants.Platform = FlextDbOracleConstants.DbOracle.Platform
 
 c = FlextDbOracleConstants
 

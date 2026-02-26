@@ -20,7 +20,6 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    computed_field,
     field_serializer,
     model_validator,
 )
@@ -70,6 +69,8 @@ class FlextDbOracleModels(FlextModels):
         class ConnectionStatus(m.Entity):
             """Connection status using flext-core Entity."""
 
+            model_config = ConfigDict(frozen=False)
+
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
             error_message: str = Field(
@@ -93,7 +94,7 @@ class FlextDbOracleModels(FlextModels):
             username: str = Field(default="", description="Database username")
             db_version: str = Field(default="", description="Oracle database version")
 
-            @computed_field
+            @property
             def status_description(self) -> str:
                 """Human-readable status description."""
                 if self.is_connected:
@@ -104,14 +105,14 @@ class FlextDbOracleModels(FlextModels):
                     else "Disconnected"
                 )
 
-            @computed_field
+            @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
                 if self.is_connected:
                     return (datetime.now(UTC) - self.last_activity).total_seconds()
                 return 0.0
 
-            @computed_field
+            @property
             def is_healthy(self) -> bool:
                 """Connection health status."""
                 if not self.is_connected:
@@ -122,7 +123,7 @@ class FlextDbOracleModels(FlextModels):
                     <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
                 )
 
-            @computed_field
+            @property
             def connection_info(self) -> str:
                 """Connection information summary."""
                 if not self.is_connected:
@@ -139,7 +140,7 @@ class FlextDbOracleModels(FlextModels):
                 ]
                 return ", ".join(parts) or "Connected"
 
-            @computed_field
+            @property
             def performance_info(self) -> str:
                 """Connection performance information."""
                 if not self.is_connected or self.connection_time <= 0:
@@ -202,6 +203,8 @@ class FlextDbOracleModels(FlextModels):
         class QueryResult(m.Entity):
             """Query result using flext-core Entity."""
 
+            model_config = ConfigDict(frozen=False)
+
             query: str
             result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
             row_count: int = 0
@@ -216,22 +219,22 @@ class FlextDbOracleModels(FlextModels):
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
 
-            @computed_field
+            @property
             def execution_time_seconds(self) -> float:
                 """Execution time in seconds."""
                 return self.execution_time_ms / 1000.0
 
-            @computed_field
+            @property
             def has_results(self) -> bool:
                 """Whether query returned results."""
                 return self.row_count > 0
 
-            @computed_field
+            @property
             def column_count(self) -> int:
                 """Number of columns."""
                 return len(self.columns)
 
-            @computed_field
+            @property
             def performance_rating(self) -> str:
                 """Query performance rating."""
                 thresholds = c.DbOracle.OraclePerformance
@@ -245,7 +248,7 @@ class FlextDbOracleModels(FlextModels):
                     else "Slow"
                 )
 
-            @computed_field
+            @property
             def data_size_bytes(self) -> int:
                 """Estimated data size in bytes."""
                 return (
@@ -256,7 +259,7 @@ class FlextDbOracleModels(FlextModels):
                     else 0
                 )
 
-            @computed_field
+            @property
             def memory_usage_mb(self) -> float:
                 """Estimated memory usage in MB."""
                 data_size = (
@@ -310,6 +313,12 @@ class FlextDbOracleModels(FlextModels):
             status: str
             timestamp: str
 
+            def __contains__(self, key: str) -> bool:
+                return key in self.model_dump()
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                return self.model_dump().get(key)
+
         class TableMetadata(m.Entity):
             """Complete table metadata for Oracle introspection."""
 
@@ -320,10 +329,25 @@ class FlextDbOracleModels(FlextModels):
             )
             primary_keys: list[str] = Field(default_factory=list)
 
+            def __contains__(self, key: str) -> bool:
+                return key in self.model_dump()
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                return self.model_dump().get(key)
+
         class TypeMapping(m.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: Mapping[str, str] = Field(default_factory=dict)
+
+            def __contains__(self, key: str) -> bool:
+                return key in self.mapping
+
+            def __getitem__(self, key: str) -> str:
+                return self.mapping[key]
+
+            def __len__(self) -> int:
+                return len(self.mapping)
 
         class SingerField(m.Entity):
             """Singer field definition."""
@@ -333,15 +357,15 @@ class FlextDbOracleModels(FlextModels):
         class SingerSchema(m.Entity):
             """Singer schema container with typed properties."""
 
-            properties: list[FlextDbOracleModels.DbOracle.SingerSchemaField] = Field(
-                default_factory=list
+            properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
+                default_factory=dict
             )
 
         class Table(m.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
-            owner: str = Field(alias="schema")
+            owner: str = ""
             columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
                 default_factory=list
             )
@@ -356,6 +380,25 @@ class FlextDbOracleModels(FlextModels):
                 default="",
                 description="Default value for the column",
             )
+
+            def __contains__(self, key: str) -> bool:
+                return key in {
+                    "name",
+                    "column_name",
+                    "data_type",
+                    "nullable",
+                    "default_value",
+                }
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                key_map = {
+                    "column_name": self.name,
+                    "name": self.name,
+                    "data_type": self.data_type,
+                    "nullable": self.nullable,
+                    "default_value": self.default_value,
+                }
+                return key_map.get(key)
 
         class Schema(m.Entity):
             """Schema metadata using flext-core Entity."""
@@ -388,13 +431,43 @@ class FlextDbOracleModels(FlextModels):
             update_columns: list[str] = Field(default_factory=list)
             insert_columns: list[str] = Field(default_factory=list)
 
+    ConnectionStatus = DbOracle.ConnectionStatus
+    QueryResult = DbOracle.QueryResult
+    TableMetadata = DbOracle.TableMetadata
+    TypeMapping = DbOracle.TypeMapping
+    SingerField = DbOracle.SingerField
+    SingerSchema = DbOracle.SingerSchema
+    Table = DbOracle.Table
+    Column = DbOracle.Column
+    Schema = DbOracle.Schema
+    CreateIndexConfig = DbOracle.CreateIndexConfig
+    MergeStatementConfig = DbOracle.MergeStatementConfig
+
 
 # Zero Tolerance: use FlextDbOracleModels.ClassName directly
 
 m = FlextDbOracleModels
+ConnectionStatus = FlextDbOracleModels.DbOracle.ConnectionStatus
+QueryResult = FlextDbOracleModels.DbOracle.QueryResult
+TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
+TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
+SingerSchema = FlextDbOracleModels.DbOracle.SingerSchema
+SingerField = FlextDbOracleModels.DbOracle.SingerField
+Table = FlextDbOracleModels.DbOracle.Table
+Column = FlextDbOracleModels.DbOracle.Column
+Schema = FlextDbOracleModels.DbOracle.Schema
 
 __all__ = [
     "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
+    "Column",
+    "ConnectionStatus",
     "m",
+    "QueryResult",
+    "Schema",
+    "SingerField",
+    "SingerSchema",
+    "Table",
+    "TableMetadata",
+    "TypeMapping",
 ]

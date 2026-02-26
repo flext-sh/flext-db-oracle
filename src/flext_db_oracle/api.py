@@ -13,13 +13,14 @@ from __future__ import annotations
 import contextlib
 import types
 from collections.abc import Mapping, Sequence
-from typing import Self, override
+from typing import Self, cast, override
 
+from flext_core import m as m_core
 from flext_core import r, t
 from flext_core.service import FlextService
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels, m as m_db_oracle
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 
@@ -84,6 +85,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get the Oracle configuration."""
         return self._oracle_config
 
+    @property
+    def config(self) -> FlextDbOracleSettings:
+        return self._oracle_config
+
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
@@ -144,19 +149,27 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
-    def to_dict(self) -> Mapping[str, t.JsonValue]:
-        """Convert API instance to dictionary representation."""
-        return {
-            "config": {
-                "host": self._oracle_config.host,
-                "port": self._oracle_config.port,
-                "service_name": self._oracle_config.service_name,
-                "username": self._oracle_config.username,
-            },
-            "connected": self.is_connected,
-            "plugin_count": len(self._plugins),
-            "dispatcher_enabled": self._dispatcher is not None,
-        }
+    @staticmethod
+    def to_dict(obj: object | None = None) -> m_core.ConfigMap:
+        if isinstance(obj, FlextDbOracleApi):
+            return m_core.ConfigMap(
+                root={
+                    "config": {
+                        "host": obj._oracle_config.host,
+                        "port": obj._oracle_config.port,
+                        "service_name": obj._oracle_config.service_name,
+                        "username": obj._oracle_config.username,
+                    },
+                    "connected": obj.is_connected,
+                    "plugin_count": len(obj._plugins),
+                    "dispatcher_enabled": obj._dispatcher is not None,
+                }
+            )
+        return (
+            m_core.ConfigMap(root={})
+            if obj is None
+            else m_core.ConfigMap(root={"value": str(obj)})
+        )
 
     @property
     def services(self) -> FlextDbOracleServices:
@@ -164,7 +177,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services
 
     @property
-    def plugins(self) -> Mapping[str, t.JsonValue]:
+    def plugins(self) -> dict[str, t.JsonValue]:
         """Get the plugins dictionary."""
         return self._plugins
 
@@ -196,47 +209,70 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query(
         self,
         sql: str,
-        parameters: Mapping[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[list[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        return self._services.execute_query(sql, parameters or {})
+        query_params = (
+            t.ConfigMap.model_validate(parameters)
+            if parameters is not None
+            else t.ConfigMap(root={})
+        )
+        return self._services.execute_query(sql, query_params)
 
     def query_one(
         self,
         sql: str,
-        parameters: Mapping[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
-        return self._services.fetch_one(sql, parameters or {})
+        query_params = (
+            t.ConfigMap.model_validate(parameters)
+            if parameters is not None
+            else t.ConfigMap(root={})
+        )
+        return self._services.fetch_one(sql, query_params)
 
     def execute_sql(
         self,
         sql: str,
-        parameters: Mapping[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
-        return self._services.execute_statement(sql, parameters or {})
+        query_params = (
+            t.ConfigMap.model_validate(parameters)
+            if parameters is not None
+            else t.ConfigMap(root={})
+        )
+        return self._services.execute_statement(sql, query_params)
 
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[Mapping[str, t.JsonValue]],
+        parameters_list: Sequence[Mapping[str, t.GeneralValueType]],
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        return self._services.execute_many(sql, list(parameters_list))
+        typed_params_list = [
+            t.ConfigMap.model_validate(params) for params in parameters_list
+        ]
+        return self._services.execute_many(sql, typed_params_list)
 
     def execute_statement(
         self,
         sql: str | t.JsonValue,
-        parameters: Mapping[str, t.JsonValue] | None = None,
+        parameters: Mapping[str, t.GeneralValueType] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
         try:
             sql_text = str(sql)
-            return self._services.execute_statement(sql_text, parameters or {})
+            query_params = (
+                t.ConfigMap.model_validate(parameters)
+                if parameters is not None
+                else t.ConfigMap(root={})
+            )
+            return self._services.execute_statement(sql_text, query_params)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Statement execution failed: {e}")
 
@@ -253,7 +289,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[list[m_db_oracle.DbOracle.Column]]:
+    ) -> r[list[FlextDbOracleModels.DbOracle.Column]]:
         """Get column information for specified table."""
         return self._services.get_columns(table, schema)
 
@@ -261,7 +297,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[m_db_oracle.DbOracle.TableMetadata]:
+    ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
@@ -283,10 +319,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def map_singer_schema(
         self,
-        schema: Mapping[str, t.JsonValue],
-    ) -> r[m_db_oracle.DbOracle.TypeMapping]:
+        schema: Mapping[str, t.GeneralValueType],
+    ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
-        schema_model = m_db_oracle.DbOracle.SingerSchema.model_validate(schema)
+        schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate(schema)
         return self._services.map_singer_schema(schema_model)
 
     # Transaction Management
@@ -311,7 +347,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         except (AttributeError, ValueError, TypeError) as e:
             return r.fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> r[m_db_oracle.DbOracle.HealthStatus]:
+    def get_observability_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
 
@@ -380,7 +416,12 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
         first_row = data[0].root
         columns = list(first_row.keys())
-        rows = [list(row.root.values()) for row in data]
+        rows = [
+            FlextDbOracleModels.DbOracle.RowData(
+                values=cast("list[t.JsonValue]", list(row.root.values()))
+            )
+            for row in data
+        ]
 
         return FlextDbOracleModels.DbOracle.QueryResult(
             query=sql,
@@ -389,7 +430,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             row_count=len(data),
         )
 
-    def get_health_status(self) -> r[m_db_oracle.DbOracle.ConnectionStatus]:
+    def get_health_status(self) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
         return self._services.get_connection_status()
 

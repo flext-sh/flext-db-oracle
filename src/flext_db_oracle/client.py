@@ -63,7 +63,7 @@ def _collect_json_params(value: object) -> t.JsonDict:
     if validated_params is None:
         return {}
 
-    json_params: t.JsonDict = {}
+    json_params: dict[str, t.JsonValue] = {}
     for key, raw_value in validated_params.items():
         json_value = _validate_json_value(raw_value)
         if json_value is not None:
