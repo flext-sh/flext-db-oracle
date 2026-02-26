@@ -105,35 +105,41 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Create query-related handler functions."""
 
         def execute_query_handler(command: t.GeneralValueType) -> t.GeneralValueType:
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, t.JsonValue] = (
-                getattr(command, "parameters", None) or {}
-            )
+            if isinstance(command, self.ExecuteQueryCommand):
+                sql = command.sql
+                parameters = command.parameters or {}
+            else:
+                sql = ""
+                parameters = {}
             return services.execute_query(sql, parameters).map_or([])
 
         def fetch_one_handler(command: t.GeneralValueType) -> t.GeneralValueType:
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, t.JsonValue] = (
-                getattr(command, "parameters", None) or {}
-            )
+            if isinstance(command, self.FetchOneCommand):
+                sql = command.sql
+                parameters = command.parameters or {}
+            else:
+                sql = ""
+                parameters = {}
             return services.fetch_one(sql, parameters).map_or(None)
 
         def execute_statement_handler(
             command: t.GeneralValueType,
         ) -> t.GeneralValueType:
-            sql = getattr(command, "sql", "")
-            parameters: dict[str, t.JsonValue] = (
-                getattr(command, "parameters", None) or {}
-            )
+            if isinstance(command, self.ExecuteStatementCommand):
+                sql = command.sql
+                parameters = command.parameters or {}
+            else:
+                sql = ""
+                parameters = {}
             return services.execute_statement(sql, parameters).map_or(0)
 
         def execute_many_handler(command: t.GeneralValueType) -> t.GeneralValueType:
-            sql = getattr(command, "sql", "")
-            parameters_list: list[dict[str, t.JsonValue]] = getattr(
-                command,
-                "parameters_list",
-                [],
-            )
+            if isinstance(command, self.ExecuteManyCommand):
+                sql = command.sql
+                parameters_list = command.parameters_list
+            else:
+                sql = ""
+                parameters_list = []
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {
@@ -159,12 +165,18 @@ class FlextDbOracleDispatcher(FlextService[None]):
             return services.get_schemas().map_or([])
 
         def get_tables_handler(command: t.GeneralValueType) -> t.GeneralValueType:
-            schema = getattr(command, "schema", None)
+            schema = (
+                command.schema if isinstance(command, self.GetTablesCommand) else None
+            )
             return services.get_tables(schema).map_or([])
 
         def get_columns_handler(command: t.GeneralValueType) -> t.GeneralValueType:
-            table = getattr(command, "table", "")
-            schema = getattr(command, "schema", None)
+            if isinstance(command, self.GetColumnsCommand):
+                table = command.table
+                schema = command.schema
+            else:
+                table = ""
+                schema = None
             return services.get_columns(table, schema).map_or([])
 
         return {

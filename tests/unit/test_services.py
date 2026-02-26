@@ -73,15 +73,6 @@ class _StubPluginEntity:
             metadata=metadata,
         )
 
-    def model_dump(self) -> dict[str, t.GeneralValueType]:
-        return {
-            "name": self.name,
-            "version": self.plugin_version,
-            "description": self.description,
-            "author": self.author,
-            "plugin_type": self.plugin_type,
-            "metadata": self.metadata,
-        }
 
 
 class _StubPluginApi:
