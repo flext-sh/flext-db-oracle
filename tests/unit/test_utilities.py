@@ -246,25 +246,25 @@ class TestFlextDbOracleUtilities:
         """Test empty identifier."""
         result = FlextDbOracleUtilities.escape_oracle_identifier("")
         assert result.is_failure
-        assert "Empty Oracle identifier" in result.error
+        assert result.error is not None and "Empty Oracle identifier" in result.error
 
     def test_escape_oracle_identifier_whitespace_only(self) -> None:
         """Test whitespace-only identifier."""
         result = FlextDbOracleUtilities.escape_oracle_identifier("   ")
         assert result.is_failure
-        assert "Empty Oracle identifier" in result.error
+        assert result.error is not None and "Empty Oracle identifier" in result.error
 
     def test_escape_oracle_identifier_invalid_chars(self) -> None:
         """Test identifier with invalid characters."""
         result = FlextDbOracleUtilities.escape_oracle_identifier("user@table")
         assert result.is_failure
-        assert "Invalid Oracle identifier" in result.error
+        assert result.error is not None and "Invalid Oracle identifier" in result.error
 
     def test_escape_oracle_identifier_with_spaces(self) -> None:
         """Test identifier with spaces."""
         result = FlextDbOracleUtilities.escape_oracle_identifier("user table")
         assert result.is_failure
-        assert "Invalid Oracle identifier" in result.error
+        assert result.error is not None and "Invalid Oracle identifier" in result.error
 
     def test_escape_oracle_identifier_max_length(self) -> None:
         """Test identifier at max length."""
@@ -350,7 +350,7 @@ class TestFlextDbOracleUtilities:
         """Test formatting with None data."""
         result = FlextDbOracleUtilities.format_query_result(None, "json")
         assert result.is_failure
-        assert "Query result is None" in result.error
+        assert result.error is not None and "Query result is None" in result.error
 
     def test_format_query_result_case_insensitive_format(self) -> None:
         """Test format parameter is case insensitive."""
@@ -403,11 +403,12 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
-        assert config["host"] == "test-host"
-        assert config["port"] == "1522"
-        assert config["username"] == "testuser"
-        assert config["password"] == "testpass"
-        assert config["service_name"] == "testservice"
+        config_dict = dict(config) if not isinstance(config, dict) else config
+        assert config_dict["host"] == "test-host"
+        assert config_dict["port"] == "1522"
+        assert config_dict["username"] == "testuser"
+        assert config_dict["password"] == "testpass"
+        assert config_dict["service_name"] == "testservice"
 
     def test_create_config_from_env_flext_prefix(
         self,
@@ -420,8 +421,9 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
-        assert config["host"] == "flext-host"
-        assert config["username"] == "flext-user"
+        config_dict = dict(config) if not isinstance(config, dict) else config
+        assert config_dict["host"] == "flext-host"
+        assert config_dict["username"] == "flext-user"
 
     def test_create_config_from_env_mixed_prefixes(
         self,
@@ -434,8 +436,8 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
-        # Both should be present since they map to the same key
-        assert "host" in config
+        config_dict = dict(config) if not isinstance(config, dict) else config
+        assert "host" in config_dict
 
     # =============================================================================
     # OracleValidation tests
@@ -453,7 +455,7 @@ class TestFlextDbOracleUtilities:
         """Test empty identifier validation."""
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier("")
         assert result.is_failure
-        assert "cannot be empty" in result.error
+        assert result.error is not None and "cannot be empty" in result.error
 
     def test_oracle_validation_validate_identifier_too_long(self) -> None:
         """Test identifier too long validation."""
@@ -464,7 +466,7 @@ class TestFlextDbOracleUtilities:
             long_identifier,
         )
         assert result.is_failure
-        assert "too long" in result.error
+        assert result.error is not None and "too long" in result.error
 
     def test_oracle_validation_validate_identifier_invalid_pattern(self) -> None:
         """Test invalid pattern identifier validation."""
@@ -472,13 +474,13 @@ class TestFlextDbOracleUtilities:
             "invalid@name",
         )
         assert result.is_failure
-        assert "does not match" in result.error
+        assert result.error is not None and "does not match" in result.error
 
     def test_oracle_validation_validate_identifier_reserved_word(self) -> None:
         """Test reserved word identifier validation."""
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier("SELECT")
         assert result.is_failure
-        assert "reserved word" in result.error
+        assert result.error is not None and "reserved word" in result.error
 
     def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
         """Test lowercase identifier conversion to uppercase."""

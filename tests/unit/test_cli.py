@@ -81,7 +81,7 @@ class TestFlextDbOracleClientReal:
     def test_configure_preferences_invalid_keys(self) -> None:
         """Test configuring preferences with invalid keys."""
         client = FlextDbOracleClient()
-        original_prefs = client.user_preferences.copy()
+        original_prefs = client.user_preferences.model_copy()
 
         # Test with invalid preference keys
         result = client.configure_preferences(
@@ -92,12 +92,14 @@ class TestFlextDbOracleClientReal:
         # Should succeed and add the new preferences (no validation in current implementation)
         assert result.is_success is True
         # New preferences are added to the original ones
-        expected_prefs: dict[str, str | int | bool | dict[str, t.GeneralValueType]] = {
-            **original_prefs,
-            "invalid_key": "value",
-            "another_invalid": "test",
-        }
-        assert client.user_preferences == expected_prefs
+        original_dict: dict[str, t.GeneralValueType] = (
+            original_prefs.model_dump()
+            if hasattr(original_prefs, "model_dump")
+            else dict(original_prefs)
+        )
+        original_dict["invalid_key"] = "value"
+        original_dict["another_invalid"] = "test"
+        assert client.user_preferences == original_dict
 
     def test_connection_without_config(self) -> None:
         """Test connection methods without active connection."""
@@ -504,7 +506,7 @@ class TestOutputFormatter:
             {"other": "value"},  # Test item without name
         ]
 
-        result = formatter.format_list_output(items, "Database Objects", "table")
+        result = formatter.format_list_output(items, "Database Objects", "table")  # type: ignore[arg-type]
 
         assert result.is_success
         output = result.value

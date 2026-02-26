@@ -38,7 +38,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     - All production models come from FlextDbOracleModels
     """
 
-    class Tests:
+    class Tests(FlextTestsModels.Tests):
         """Project-specific test fixtures namespace.
 
         Provides test fixtures for flext-db-oracle testing.

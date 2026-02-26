@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from typing import cast
 
 import pytest
 from flext_core import FlextResult
@@ -31,7 +32,7 @@ from flext_db_oracle import (
 class TestFlextDbOracleApiRealFunctionality:
     """Comprehensive tests for Oracle API using ONLY real functionality - NO MOCKS."""
 
-    config = FlextDbOracleSettings
+    config: FlextDbOracleSettings
 
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
@@ -956,7 +957,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                test_query["params"],
+                cast("dict[str, t.GeneralValueType]", test_query["params"]),
             )
             assert isinstance(result, FlextResult)
 
@@ -975,7 +976,7 @@ class TestApiModule:
 
         # Test metadata retrieval if method exists
         if hasattr(api, "get_table_metadata"):
-            result: FlextResult[dict[str, t.GeneralValueType]] = api.get_table_metadata(
+            result = api.get_table_metadata(
                 str(test_schema["table_name"]),
             )
             assert isinstance(result, FlextResult)
@@ -1090,10 +1091,8 @@ class TestApiModule:
 
         # Test metadata retrieval with invalid table
         if hasattr(api, "get_table_metadata"):
-            metadata_result: FlextResult[dict[str, t.GeneralValueType]] = (
-                api.get_table_metadata(
-                    "non_existent_table",
-                )
+            metadata_result = api.get_table_metadata(
+                "non_existent_table",
             )
             assert isinstance(metadata_result, FlextResult)
             # Should handle non-existent table gracefully

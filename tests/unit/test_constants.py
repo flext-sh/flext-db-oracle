@@ -350,9 +350,9 @@ class TestFlextDbOracleConstants:
 
         # Backward compatibility - Literals class forwards to DbOracle level
         lit = c.DbOracle.Literals
-        assert lit.ConnectionTypeLiteral == c.DbOracle.ConnectionTypeLiteral
-        assert lit.QueryTypeLiteral == c.DbOracle.QueryTypeLiteral
-        assert lit.DataTypeLiteral == c.DbOracle.DataTypeLiteral
+        assert getattr(lit, "ConnectionTypeLiteral") == c.DbOracle.ConnectionTypeLiteral
+        assert getattr(lit, "QueryTypeLiteral") == c.DbOracle.QueryTypeLiteral
+        assert getattr(lit, "DataTypeLiteral") == c.DbOracle.DataTypeLiteral
 
         # Environment and LogLevel types now reference StrEnums (single source of truth)
         # EnvironmentLiteral references Settings.Environment StrEnum
@@ -450,27 +450,27 @@ class TestFlextDbOracleConstants:
         conn_type = enums.ConnectionType
         assert isinstance(conn_type, type)
         assert issubclass(conn_type, StrEnum)
-        assert conn_type.SERVICE_NAME == "service_name"
-        assert conn_type.SID == "sid"
-        assert conn_type.TNS == "tns"
+        assert getattr(conn_type, "SERVICE_NAME") == "service_name"
+        assert getattr(conn_type, "SID") == "sid"
+        assert getattr(conn_type, "TNS") == "tns"
 
         # QueryType enum
         query_type = enums.QueryType
         assert isinstance(query_type, type)
         assert issubclass(query_type, StrEnum)
-        assert query_type.SELECT == "SELECT"
-        assert query_type.INSERT == "INSERT"
-        assert query_type.UPDATE == "UPDATE"
-        assert query_type.DELETE == "DELETE"
+        assert getattr(query_type, "SELECT") == "SELECT"
+        assert getattr(query_type, "INSERT") == "INSERT"
+        assert getattr(query_type, "UPDATE") == "UPDATE"
+        assert getattr(query_type, "DELETE") == "DELETE"
 
         # DataType enum
         data_type = enums.DataType
         assert isinstance(data_type, type)
         assert issubclass(data_type, StrEnum)
-        assert data_type.VARCHAR2 == "VARCHAR2"
-        assert data_type.NUMBER == "NUMBER"
-        assert data_type.DATE == "DATE"
-        assert data_type.TIMESTAMP == "TIMESTAMP"
+        assert getattr(data_type, "VARCHAR2") == "VARCHAR2"
+        assert getattr(data_type, "NUMBER") == "NUMBER"
+        assert getattr(data_type, "DATE") == "DATE"
+        assert getattr(data_type, "TIMESTAMP") == "TIMESTAMP"
 
     # =============================================================================
     # Platform extension tests
@@ -489,11 +489,11 @@ class TestFlextDbOracleConstants:
         assert platform.LOCALHOST_IP == "127.0.0.1"
 
         # HTTP methods (from extended Platform)
-        assert platform.HTTP_METHOD_DELETE == "DELETE"
-        assert platform.HTTP_METHOD_GET == "GET"
-        assert platform.HTTP_METHOD_POST == "POST"
-        assert platform.HTTP_METHOD_PUT == "PUT"
-        assert platform.HTTP_METHOD_PATCH == "PATCH"
+        assert getattr(platform, "HTTP_METHOD_DELETE") == "DELETE"
+        assert getattr(platform, "HTTP_METHOD_GET") == "GET"
+        assert getattr(platform, "HTTP_METHOD_POST") == "POST"
+        assert getattr(platform, "HTTP_METHOD_PUT") == "PUT"
+        assert getattr(platform, "HTTP_METHOD_PATCH") == "PATCH"
 
     # =============================================================================
     # Integration tests with real Oracle when available
@@ -654,4 +654,4 @@ class TestFlextDbOracleConstants:
         for word in test_words[:3]:  # Test just a few
             result = FlextDbOracleUtilities.OracleValidation.validate_identifier(word)
             assert result.is_failure, f"{word} should fail validation as reserved word"
-            assert "reserved word" in result.error
+            assert result.error is not None and "reserved word" in result.error

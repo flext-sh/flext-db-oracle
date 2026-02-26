@@ -10,10 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
-from flext_core import t, u
+from flext_core import t
 
 # Constants for CLI examples
 MAX_OUTPUT_LINES = 3
@@ -140,16 +141,14 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
 
     def _run() -> tuple[int, str, str]:
         try:
-            result = u.run_external_command(
+            process = subprocess.run(
                 cmd,
                 capture_output=True,
                 check=False,
                 timeout=30.0,
+                text=True,
             )
-            if result.is_success:
-                process = result.value
-                return process.returncode, process.stdout, process.stderr
-            return 1, "", f"Command failed: {result.error}"
+            return process.returncode, process.stdout, process.stderr
         except Exception as e:
             return 1, "", f"Command failed: {e}"
 

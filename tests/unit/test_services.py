@@ -74,7 +74,6 @@ class _StubPluginEntity:
         )
 
 
-
 class _StubPluginApi:
     """In-memory plugin API stub used by service integration tests."""
 
@@ -768,7 +767,7 @@ class TestDirectCoverageBoostAPI:
         """Test API connection error handling paths (lines 571-610)."""
         # Create API with invalid config to trigger error paths
         bad_config = FlextDbOracleSettings(
-            host=FlextDbOracleConstants.Platform.LOOPBACK_IP,  # Invalid but quick to fail
+            host=getattr(FlextDbOracleConstants.Platform, "LOOPBACK_IP"),
             port=9999,
             username="invalid",
             password="invalid",
@@ -1316,7 +1315,7 @@ class TestDirectCoverageBoostServices:
                     assert "UPDATE" in sql_text.upper()
                 elif method_name.startswith("build_delete"):
                     assert (
-                        FlextDbOracleConstants.Platform.HTTP_METHOD_DELETE
+                        getattr(FlextDbOracleConstants.Platform, "HTTP_METHOD_DELETE")
                         in sql_text.upper()
                     )
 

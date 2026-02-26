@@ -7,12 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
 from typing import cast
 
 from flext_core import FlextDispatcher, FlextRegistry, r, t
 from flext_core.service import FlextService
 from flext_db_oracle.services import FlextDbOracleServices
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FlextDbOracleDispatcher(FlextService[None]):
@@ -22,62 +22,82 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Execute dispatcher operation - returns None as this is a factory class."""
         return r[None].ok(None)
 
-    @dataclass(slots=True)
-    class ConnectCommand:
+    class ConnectCommand(BaseModel):
         """Command to establish an Oracle database connection."""
 
-    @dataclass(slots=True)
-    class DisconnectCommand:
+        model_config = ConfigDict(extra="forbid")
+
+    class DisconnectCommand(BaseModel):
         """Command to close the Oracle database connection."""
 
-    @dataclass(slots=True)
-    class TestConnectionCommand:
+        model_config = ConfigDict(extra="forbid")
+
+    class TestConnectionCommand(BaseModel):
         """Command to validate the Oracle database connectivity."""
 
-    @dataclass(slots=True)
-    class ExecuteQueryCommand:
+        model_config = ConfigDict(extra="forbid")
+
+    class ExecuteQueryCommand(BaseModel):
         """Command to execute a SQL query and return rows."""
 
-        sql: str
-        parameters: t.ConfigMap | None = None
+        model_config = ConfigDict(extra="forbid")
 
-    @dataclass(slots=True)
-    class FetchOneCommand:
+        sql: str = Field(description="SQL query to execute")
+        parameters: t.ConfigMap | None = Field(
+            default=None, description="Query parameters"
+        )
+
+    class FetchOneCommand(BaseModel):
         """Command to execute a SQL query and fetch a single row."""
 
-        sql: str
-        parameters: t.ConfigMap | None = None
+        model_config = ConfigDict(extra="forbid")
 
-    @dataclass(slots=True)
-    class ExecuteStatementCommand:
+        sql: str = Field(description="SQL query to execute")
+        parameters: t.ConfigMap | None = Field(
+            default=None, description="Query parameters"
+        )
+
+    class ExecuteStatementCommand(BaseModel):
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
-        sql: str
-        parameters: t.ConfigMap | None = None
+        model_config = ConfigDict(extra="forbid")
 
-    @dataclass(slots=True)
-    class ExecuteManyCommand:
+        sql: str = Field(description="SQL statement to execute")
+        parameters: t.ConfigMap | None = Field(
+            default=None, description="Statement parameters"
+        )
+
+    class ExecuteManyCommand(BaseModel):
         """Command to execute a SQL statement multiple times."""
 
-        sql: str
-        parameters_list: list[t.ConfigMap]
+        model_config = ConfigDict(extra="forbid")
 
-    @dataclass(slots=True)
-    class GetSchemasCommand:
+        sql: str = Field(description="SQL statement to execute")
+        parameters_list: list[t.ConfigMap] = Field(description="List of parameter sets")
+
+    class GetSchemasCommand(BaseModel):
         """Command to retrieve available database schemas."""
 
-    @dataclass(slots=True)
-    class GetTablesCommand:
+        model_config = ConfigDict(extra="forbid")
+
+    class GetTablesCommand(BaseModel):
         """Command to list tables for an optional schema."""
 
-        schema: str | None = None
+        model_config = ConfigDict(extra="forbid")
 
-    @dataclass(slots=True)
-    class GetColumnsCommand:
+        schema_name: str | None = Field(
+            default=None, description="Optional schema name"
+        )
+
+    class GetColumnsCommand(BaseModel):
         """Command to list column metadata for a table."""
 
-        table: str
-        schema: str | None = None
+        model_config = ConfigDict(extra="forbid")
+
+        table: str = Field(description="Table name")
+        schema_name: str | None = Field(
+            default=None, description="Optional schema name"
+        )
 
     @classmethod
     def _create_connection_handlers(
@@ -181,13 +201,13 @@ class FlextDbOracleDispatcher(FlextService[None]):
         def get_tables_handler(command: object) -> t.GeneralValueType:
             schema: str | None = None
             if isinstance(command, FlextDbOracleDispatcher.GetTablesCommand):
-                schema = command.schema
+                schema = command.schema_name
             return services.get_tables(schema).map_or([])
 
         def get_columns_handler(command: object) -> t.GeneralValueType:
             if isinstance(command, FlextDbOracleDispatcher.GetColumnsCommand):
                 table = command.table
-                schema = command.schema
+                schema = command.schema_name
             else:
                 table = ""
                 schema = None

@@ -504,29 +504,21 @@ class FlextDbOracleConstants(FlextConstants):
             HTTP_METHOD_PUT: Final[str] = "PUT"
             HTTP_METHOD_PATCH: Final[str] = "PATCH"
 
+    Connection = DbOracle.Connection
+    OracleNetwork = DbOracle.OracleNetwork
+    Query = DbOracle.Query
+    DataTypes = DbOracle.DataTypes
+    OracleValidation = DbOracle.OracleValidation
+    ErrorMessages = DbOracle.ErrorMessages
+    OraclePerformance = DbOracle.OraclePerformance
+    IsolationLevels = DbOracle.IsolationLevels
+    OracleEnvironment = DbOracle.OracleEnvironment
+    OracleDefaults = DbOracle.OracleDefaults
+    OracleEnums = DbOracle.OracleEnums
+    Lists = DbOracle.Lists
+    FeatureFlags = DbOracle.FeatureFlags
+    Platform = DbOracle.Platform
 
-# No compatibility aliases - use direct imports only
-
-FlextDbOracleConstants.Connection = FlextDbOracleConstants.DbOracle.Connection
-FlextDbOracleConstants.OracleNetwork = FlextDbOracleConstants.DbOracle.OracleNetwork
-FlextDbOracleConstants.Query = FlextDbOracleConstants.DbOracle.Query
-FlextDbOracleConstants.DataTypes = FlextDbOracleConstants.DbOracle.DataTypes
-FlextDbOracleConstants.OracleValidation = (
-    FlextDbOracleConstants.DbOracle.OracleValidation
-)
-FlextDbOracleConstants.ErrorMessages = FlextDbOracleConstants.DbOracle.ErrorMessages
-FlextDbOracleConstants.OraclePerformance = (
-    FlextDbOracleConstants.DbOracle.OraclePerformance
-)
-FlextDbOracleConstants.IsolationLevels = FlextDbOracleConstants.DbOracle.IsolationLevels
-FlextDbOracleConstants.OracleEnvironment = (
-    FlextDbOracleConstants.DbOracle.OracleEnvironment
-)
-FlextDbOracleConstants.OracleDefaults = FlextDbOracleConstants.DbOracle.OracleDefaults
-FlextDbOracleConstants.OracleEnums = FlextDbOracleConstants.DbOracle.OracleEnums
-FlextDbOracleConstants.Lists = FlextDbOracleConstants.DbOracle.Lists
-FlextDbOracleConstants.FeatureFlags = FlextDbOracleConstants.DbOracle.FeatureFlags
-FlextDbOracleConstants.Platform = FlextDbOracleConstants.DbOracle.Platform
 
 c = FlextDbOracleConstants
 

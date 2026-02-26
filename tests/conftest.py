@@ -308,12 +308,11 @@ def shared_oracle_container(
 
 
 @pytest.fixture(scope="session")
-def oracle_container(shared_oracle_container: object) -> str:
+def oracle_container(shared_oracle_container: str) -> str:
     """Provide Oracle container name for all tests.
 
     This fixture ensures the Oracle container is running and provides its name.
     """
-    # Return the container name
     return shared_oracle_container
 
 
