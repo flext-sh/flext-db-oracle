@@ -30,7 +30,7 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "flext-core  @ file:../flext-core",
+  "flext-core @ ../flext-core",
   "oracledb>=2",
   "pydantic>=2.12.3",
   "pydantic-core>=2.41.4",
