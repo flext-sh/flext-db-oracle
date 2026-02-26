@@ -815,7 +815,7 @@ ORDER BY column_id
             plugin_type=str(plugin_payload.root.get("plugin_type", "utility")),
             metadata=plugin_payload.root,
         )
-        api = cast(_PluginApiProtocol, plugin_api_cls())
+        api = cast("_PluginApiProtocol", plugin_api_cls())
         register_result = api.register_plugin(plugin_entity)
         if getattr(register_result, "is_failure", False):
             return r.fail(
@@ -839,7 +839,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast(_PluginApiProtocol, plugin_api_cls())
+        api = cast("_PluginApiProtocol", plugin_api_cls())
         unregister_result = api.unregister_plugin(_name)
         if getattr(unregister_result, "is_failure", False):
             return r.fail(
@@ -860,7 +860,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast(_PluginApiProtocol, plugin_api_cls())
+        api = cast("_PluginApiProtocol", plugin_api_cls())
         plugins = api.list_plugins()
         plugin_names = [
             str(getattr(plugin, "name", ""))
@@ -883,7 +883,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast(_PluginApiProtocol, plugin_api_cls())
+        api = cast("_PluginApiProtocol", plugin_api_cls())
         plugin = api.get_plugin(_name)
         if plugin is None:
             return r.fail(f"Plugin '{_name}' not found")

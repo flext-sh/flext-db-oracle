@@ -227,7 +227,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         # Register each handler from the function map
         for command_type, (handler_fn, _metadata) in function_map.items():
             # Register handler with dispatcher
-            dispatcher.register_handler(command_type, cast(t.HandlerType, handler_fn))
+            dispatcher.register_handler(command_type, cast("t.HandlerType", handler_fn))
         return dispatcher
 
 

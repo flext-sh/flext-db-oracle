@@ -458,11 +458,10 @@ Column = FlextDbOracleModels.DbOracle.Column
 Schema = FlextDbOracleModels.DbOracle.Schema
 
 __all__ = [
-    "FlextDbOracleBaseModel",
-    "FlextDbOracleModels",
     "Column",
     "ConnectionStatus",
-    "m",
+    "FlextDbOracleBaseModel",
+    "FlextDbOracleModels",
     "QueryResult",
     "Schema",
     "SingerField",
@@ -470,4 +469,5 @@ __all__ = [
     "Table",
     "TableMetadata",
     "TypeMapping",
+    "m",
 ]
