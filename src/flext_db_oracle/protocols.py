@@ -81,6 +81,21 @@ class FlextDbOracleProtocols(p):
                 """
                 ...  # INTERFACE  # INTERFACE
 
+        @runtime_checkable
+        class OraclePlugin(p.Registrable, Protocol):
+            """Protocol for Oracle database plugins.
+
+            All plugins registered with the FlextDbOracle plugin system
+            must satisfy this protocol."""
+
+            def initialize(self) -> p.Result[bool]:
+                """Initialize the plugin."""
+                ...
+
+            def shutdown(self) -> p.Result[bool]:
+                """Shutdown the plugin."""
+                ...
+
             def test_connection(self) -> p.Result[bool]:
                 """Test Oracle database connectivity.
 
