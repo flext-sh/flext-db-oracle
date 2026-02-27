@@ -62,7 +62,7 @@ ______________________________________________________________________
 
 #### Flext-Core Integration
 
-- ✅ **FlextResult<T>**: 784+ occurrences across codebase
+- ✅ **`FlextResult[T]`**: 784+ occurrences across codebase
 - ✅ **FlextService**: FlextDbOracleApi extends base service
 - ✅ **FlextContainer**: Dependency injection implemented
 - ✅ **FlextLogger**: Structured logging integrated
