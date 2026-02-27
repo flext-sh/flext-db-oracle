@@ -17,6 +17,7 @@ from typing import Self, cast, override
 
 from flext_core import m as m_core, r, t
 from flext_core.service import FlextService
+from flext_core.registry import FlextRegistry
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels
@@ -75,9 +76,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
         # Optional dispatcher for CQRS patterns
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
-
         # Plugin system
-        self._plugins: dict[str, t.JsonValue] = {}
+        # Plugin system via FlextRegistry
+        self._registry = FlextRegistry(dispatcher=None)
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
@@ -177,10 +178,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get the services instance."""
         return self._services
 
-    @property
-    def plugins(self) -> dict[str, t.JsonValue]:
-        """Get the plugins dictionary."""
-        return self._plugins
+
 
     # Connection Management
     def connect(self) -> r[FlextDbOracleApi]:
@@ -354,40 +352,42 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     # Plugin System
     def register_plugin(self, name: str, plugin: t.JsonValue) -> r[None]:
-        """Register a plugin with the services layer."""
-        try:
-            self._plugins[name] = plugin
-            return r[None].ok(None)
-        except (KeyError, AttributeError, TypeError) as e:
-            return r.fail(f"Failed to register plugin '{name}': {e}")
+        """Register a plugin via FlextRegistry."""
+        # Wrap plugin in Protocol-conformant object
+        plugin_wrapper = type('OraclePluginWrapper', (), {
+            '_protocol_name': lambda self: "oracle_plugin",
+            'data': plugin
+        })()
+        result = self._registry.register_plugin("oracle_plugins", name, plugin_wrapper)
+        if result.is_failure:
+            return r[None].fail(result.error or f"Failed to register plugin '{name}'")
+        return r[None].ok(None)
 
     def unregister_plugin(self, name: str) -> r[None]:
-        """Unregister a plugin from the services layer."""
-        try:
-            if name in self._plugins:
-                del self._plugins[name]
-                return r[None].ok(None)
-            return r.fail(f"Plugin '{name}' not found")
-        except (KeyError, AttributeError) as e:
-            return r.fail(f"Failed to unregister plugin '{name}': {e}")
+        """Unregister a plugin from FlextRegistry."""
+        result = self._registry.unregister_plugin("oracle_plugins", name)
+        if result.is_failure:
+            return r[None].fail(result.error or f"Plugin '{name}' not found")
+        return r[None].ok(None)
 
     def get_plugin(self, name: str) -> r[t.JsonValue]:
         """Get a registered plugin by name."""
-        try:
-            return (
-                r.ok(self._plugins[name])
-                if name in self._plugins
-                else r.fail(f"Plugin '{name}' not found")
-            )
-        except (KeyError, AttributeError) as e:
-            return r.fail(f"Failed to get plugin '{name}': {e}")
+        result = self._registry.get_plugin("oracle_plugins", name)
+        if result.is_failure:
+            return r[t.JsonValue].fail(result.error or f"Plugin '{name}' not found")
+        # Extract data from wrapper
+        wrapper = result.value
+        data = getattr(wrapper, 'data', None)
+        if data is None:
+            return r[t.JsonValue].fail(f"Invalid plugin format for '{name}'")
+        return r[t.JsonValue].ok(data)
 
     def list_plugins(self) -> r[list[str]]:
         """List all registered plugin names."""
-        try:
-            return r.ok(list(self._plugins.keys()))
-        except (AttributeError, TypeError) as e:
-            return r.fail(f"Failed to list plugins: {e}")
+        result = self._registry.list_plugins("oracle_plugins")
+        if result.is_failure:
+            return r[list[str]].fail(result.error or "Failed to list plugins")
+        return r[list[str]].ok(result.value if result.value else [])
 
     def _execute_query_sql(
         self,
