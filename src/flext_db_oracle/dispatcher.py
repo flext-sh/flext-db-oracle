@@ -10,10 +10,10 @@ from collections.abc import Callable, Mapping
 from typing import cast, override
 
 from flext_core import FlextContainer, FlextRegistry, r, t
+from flext_core.models import FlextModels as m
 from flext_core.protocols import p
 from flext_core.service import FlextService
 from flext_db_oracle.services import FlextDbOracleServices
-from flext_core.models import FlextModels as m
 from pydantic import Field
 
 
@@ -28,18 +28,14 @@ class FlextDbOracleDispatcher(FlextService[None]):
     class ConnectCommand(m.Command):
         """Command to establish an Oracle database connection."""
 
-
     class DisconnectCommand(m.Command):
         """Command to close the Oracle database connection."""
-
 
     class TestConnectionCommand(m.Command):
         """Command to validate the Oracle database connectivity."""
 
-
     class ExecuteQueryCommand(m.Command):
         """Command to execute a SQL query and return rows."""
-
 
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
@@ -49,7 +45,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
     class FetchOneCommand(m.Command):
         """Command to execute a SQL query and fetch a single row."""
 
-
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
             default=None, description="Query parameters"
@@ -57,7 +52,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     class ExecuteStatementCommand(m.Command):
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
-
 
         sql: str = Field(description="SQL statement to execute")
         parameters: t.ConfigMap | None = Field(
@@ -67,17 +61,14 @@ class FlextDbOracleDispatcher(FlextService[None]):
     class ExecuteManyCommand(m.Command):
         """Command to execute a SQL statement multiple times."""
 
-
         sql: str = Field(description="SQL statement to execute")
         parameters_list: list[t.ConfigMap] = Field(description="List of parameter sets")
 
     class GetSchemasCommand(m.Command):
         """Command to retrieve available database schemas."""
 
-
     class GetTablesCommand(m.Command):
         """Command to list tables for an optional schema."""
-
 
         schema_name: str | None = Field(
             default=None, description="Optional schema name"
@@ -85,7 +76,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     class GetColumnsCommand(m.Command):
         """Command to list column metadata for a table."""
-
 
         table: str = Field(description="Table name")
         schema_name: str | None = Field(
@@ -238,7 +228,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         # Add schema handlers
         function_map.update(instance._create_schema_handlers(services))
         # Register each handler with strict API (handler must expose message_type)
-        for command_type, (handler_fn, _metadata) in function_map.items():
+        for handler_fn, _metadata in function_map.values():
             # Set message_type on handler for strict route discovery
             dispatcher.register_handler(cast("t.HandlerType", handler_fn))
         return dispatcher
