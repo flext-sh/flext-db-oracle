@@ -14,10 +14,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from flext_core import FlextTypes
-from flext_core.typings import JsonValue, t as _core_t
 from flext_db_oracle.models import FlextDbOracleModels
 
 # Direct model class imports for type alias use (FlextDbOracleModels.X.Y not valid in type expressions)
@@ -25,7 +24,6 @@ _ConnectionStatus = FlextDbOracleModels.DbOracle.ConnectionStatus
 _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
-_ConfigMap = _core_t.ConfigMap
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -51,12 +49,18 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type ConnectionConfiguration = _ConnectionStatus
-        type ConnectionPool = _ConfigMap
-        type ConnectionString = str
-        type ConnectionParams = dict[str, str | int | bool]
-        type SslConfiguration = dict[str, str | bool | dict[str, JsonValue]]
-        type AuthenticationConfig = dict[str, str | dict[str, JsonValue]]
+        ConnectionConfiguration: TypeAlias = (
+            FlextDbOracleModels.DbOracle.ConnectionStatus
+        )
+        ConnectionPool: TypeAlias = FlextTypes.ConfigMap
+        ConnectionString: TypeAlias = str
+        ConnectionParams: TypeAlias = dict[str, str | int | bool]
+        SslConfiguration: TypeAlias = dict[
+            str, str | bool | dict[str, FlextTypes.JsonValue]
+        ]
+        AuthenticationConfig: TypeAlias = dict[
+            str, str | dict[str, FlextTypes.JsonValue]
+        ]
 
     # =========================================================================
     # ORACLE QUERY TYPES - SQL query and execution types
@@ -68,14 +72,16 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SqlQuery = str
-        type QueryParameters = _ConfigMap
-        type QueryResult = _QueryResult
-        type QueryMetadata = dict[str, str | int | dict[str, JsonValue]]
-        type PreparedStatement = dict[str, str | dict[str, JsonValue]]
-        type QueryExecution = dict[
+        SqlQuery: TypeAlias = str
+        QueryParameters: TypeAlias = FlextTypes.ConfigMap
+        QueryResult: TypeAlias = FlextDbOracleModels.DbOracle.QueryResult
+        QueryMetadata: TypeAlias = dict[
+            str, str | int | dict[str, FlextTypes.JsonValue]
+        ]
+        PreparedStatement: TypeAlias = dict[str, str | dict[str, FlextTypes.JsonValue]]
+        QueryExecution: TypeAlias = dict[
             str,
-            str | int | bool | dict[str, JsonValue],
+            str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
 
     # =========================================================================
@@ -88,12 +94,16 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type TransactionConfiguration = dict[str, str | int | bool]
-        type TransactionState = dict[str, str | bool | dict[str, JsonValue]]
-        type IsolationLevel = str
-        type TransactionBlock = list[dict[str, str | dict[str, JsonValue]]]
-        type SavepointConfig = dict[str, str | int]
-        type RollbackConfig = dict[str, str | bool | list[str]]
+        TransactionConfiguration: TypeAlias = dict[str, str | int | bool]
+        TransactionState: TypeAlias = dict[
+            str, str | bool | dict[str, FlextTypes.JsonValue]
+        ]
+        IsolationLevel: TypeAlias = str
+        TransactionBlock: TypeAlias = list[
+            dict[str, str | dict[str, FlextTypes.JsonValue]]
+        ]
+        SavepointConfig: TypeAlias = dict[str, str | int]
+        RollbackConfig: TypeAlias = dict[str, str | bool | list[str]]
 
     # =========================================================================
     # ORACLE SCHEMA TYPES - Database schema and structure types
@@ -105,18 +115,18 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SchemaDefinition = _TableMetadata
-        type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
-        type ColumnDefinition = dict[
+        SchemaDefinition: TypeAlias = FlextDbOracleModels.DbOracle.TableMetadata
+        TableDefinition: TypeAlias = dict[str, str | list[dict[str, str | bool | int]]]
+        ColumnDefinition: TypeAlias = dict[
             str,
-            str | int | bool | dict[str, JsonValue],
+            str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
-        type IndexDefinition = dict[
+        IndexDefinition: TypeAlias = dict[
             str,
-            str | list[str] | dict[str, JsonValue],
+            str | list[str] | dict[str, FlextTypes.JsonValue],
         ]
-        type ConstraintDefinition = dict[str, str | list[str] | bool]
-        type ViewDefinition = dict[str, str | dict[str, JsonValue]]
+        ConstraintDefinition: TypeAlias = dict[str, str | list[str] | bool]
+        ViewDefinition: TypeAlias = dict[str, str | dict[str, FlextTypes.JsonValue]]
 
     # =========================================================================
     # ORACLE SESSION TYPES - Database session management types
@@ -128,21 +138,21 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SessionConfiguration = dict[
+        SessionConfiguration: TypeAlias = dict[
             str,
-            str | int | bool | dict[str, JsonValue],
+            str | int | bool | dict[str, FlextTypes.JsonValue],
         ]
-        type SessionState = dict[
+        SessionState: TypeAlias = dict[
             str,
-            JsonValue | dict[str, JsonValue],
+            FlextTypes.JsonValue | dict[str, FlextTypes.JsonValue],
         ]
-        type SessionVariables = dict[str, JsonValue]
-        type SessionMetrics = dict[str, int | float | str]
-        type SessionPooling = dict[
+        SessionVariables: TypeAlias = dict[str, FlextTypes.JsonValue]
+        SessionMetrics: TypeAlias = dict[str, int | float | str]
+        SessionPooling: TypeAlias = dict[
             str,
-            int | bool | str | dict[str, JsonValue],
+            int | bool | str | dict[str, FlextTypes.JsonValue],
         ]
-        type SessionTimeout = dict[str, int | str]
+        SessionTimeout: TypeAlias = dict[str, int | str]
 
     # =========================================================================
     # ORACLE PERFORMANCE TYPES - Performance monitoring and optimization types
@@ -154,18 +164,22 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type PerformanceMetrics = dict[
+        PerformanceMetrics: TypeAlias = dict[
             str,
-            int | float | dict[str, JsonValue],
+            int | float | dict[str, FlextTypes.JsonValue],
         ]
-        type QueryPlan = dict[str, str | int | list[dict[str, JsonValue]]]
-        type ExecutionStats = dict[
+        QueryPlan: TypeAlias = dict[
+            str, str | int | list[dict[str, FlextTypes.JsonValue]]
+        ]
+        ExecutionStats: TypeAlias = dict[
             str,
-            int | float | str | dict[str, JsonValue],
+            int | float | str | dict[str, FlextTypes.JsonValue],
         ]
-        type IndexUsage = dict[str, str | int | bool | dict[str, JsonValue]]
-        type CacheConfiguration = dict[str, int | str | bool]
-        type OptimizationHints = dict[str, str | list[str]]
+        IndexUsage: TypeAlias = dict[
+            str, str | int | bool | dict[str, FlextTypes.JsonValue]
+        ]
+        CacheConfiguration: TypeAlias = dict[str, int | str | bool]
+        OptimizationHints: TypeAlias = dict[str, str | list[str]]
 
     # =========================================================================
     # ORACLE SECURITY TYPES - Database security and access control types
@@ -177,20 +191,24 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type UserPermissions = dict[str, list[str] | dict[str, bool]]
-        type RoleDefinition = dict[
+        UserPermissions: TypeAlias = dict[str, list[str] | dict[str, bool]]
+        RoleDefinition: TypeAlias = dict[
             str,
-            str | list[str] | dict[str, JsonValue],
+            str | list[str] | dict[str, FlextTypes.JsonValue],
         ]
-        type PrivilegeConfiguration = dict[
+        PrivilegeConfiguration: TypeAlias = dict[
             str,
-            bool | list[str] | dict[str, JsonValue],
+            bool | list[str] | dict[str, FlextTypes.JsonValue],
         ]
-        type AccessPolicy = dict[str, str | bool | dict[str, JsonValue]]
-        type EncryptionConfig = dict[str, str | bool | dict[str, JsonValue]]
-        type AuditConfiguration = dict[
+        AccessPolicy: TypeAlias = dict[
+            str, str | bool | dict[str, FlextTypes.JsonValue]
+        ]
+        EncryptionConfig: TypeAlias = dict[
+            str, str | bool | dict[str, FlextTypes.JsonValue]
+        ]
+        AuditConfiguration: TypeAlias = dict[
             str,
-            bool | str | dict[str, JsonValue],
+            bool | str | dict[str, FlextTypes.JsonValue],
         ]
 
     # =========================================================================
@@ -203,12 +221,12 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type OracleDataType = str
-        type PythonDataType = type[object]
-        type TypeMapping = _TypeMapping
-        type DataConversion = dict[str, JsonValue | object]
-        type TypeValidation = dict[str, bool | str | list[str]]
-        type NullHandling = dict[str, bool | JsonValue]
+        OracleDataType: TypeAlias = str
+        PythonDataType: TypeAlias = type[object]
+        TypeMapping: TypeAlias = FlextDbOracleModels.DbOracle.TypeMapping
+        DataConversion: TypeAlias = dict[str, FlextTypes.JsonValue | object]
+        TypeValidation: TypeAlias = dict[str, bool | str | list[str]]
+        NullHandling: TypeAlias = dict[str, bool | FlextTypes.JsonValue]
 
     # =========================================================================
     # ORACLE PROJECT TYPES - Domain-specific project types extending t
@@ -223,7 +241,7 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         # Oracle-specific project types
-        type ProjectType = Literal[
+        ProjectType: TypeAlias = Literal[
             # Generic types inherited from t
             "library",
             "application",
@@ -244,17 +262,19 @@ class FlextDbOracleTypes(FlextTypes):
         ]
 
         # Oracle-specific project configurations
-        type OracleProjectConfig = dict[str, JsonValue]
-        type DatabaseConfig = dict[str, str | int | bool | list[str]]
-        type SchemaConfig = dict[str, bool | str | dict[str, JsonValue]]
-        type ConnectionConfig = dict[str, JsonValue]
+        OracleProjectConfig: TypeAlias = dict[str, FlextTypes.JsonValue]
+        DatabaseConfig: TypeAlias = dict[str, str | int | bool | list[str]]
+        SchemaConfig: TypeAlias = dict[
+            str, bool | str | dict[str, FlextTypes.JsonValue]
+        ]
+        ConnectionConfig: TypeAlias = dict[str, FlextTypes.JsonValue]
 
     # =========================================================================
     # ORACLE LITERAL TYPES - Type-safe string literals for Oracle operations
     # =========================================================================
 
     # Connection type literals - references StrEnum members from constants
-    type ConnectionTypeLiteral = Literal[
+    ConnectionTypeLiteral: TypeAlias = Literal[
         "service_name",
         "sid",
         "tns",
@@ -262,7 +282,7 @@ class FlextDbOracleTypes(FlextTypes):
     """Oracle connection type literal - references ConnectionType StrEnum members."""
 
     # Query type literals - references StrEnum members from constants
-    type QueryTypeLiteral = Literal[
+    QueryTypeLiteral: TypeAlias = Literal[
         "SELECT",
         "INSERT",
         "UPDATE",
@@ -274,7 +294,7 @@ class FlextDbOracleTypes(FlextTypes):
     """Oracle query type literal - references QueryType StrEnum members."""
 
     # Data type literals - references StrEnum members from constants
-    type DataTypeLiteral = Literal[
+    DataTypeLiteral: TypeAlias = Literal[
         "VARCHAR2",
         "NUMBER",
         "DATE",

@@ -66,7 +66,7 @@ def _collect_json_params(value: object) -> t.JsonDict:
     """Collect JSON-safe parameters from dynamic input."""
     validated_params = _validate_config_map(value)
     if validated_params is None:
-        return {}
+        return dict[str, t.JsonValue]()
 
     json_params: dict[str, t.JsonValue] = {}
     for key, raw_value in validated_params.items():

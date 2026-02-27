@@ -153,6 +153,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
+    @override
     def to_dict(self, obj: object | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
         target = obj if obj is not None else self

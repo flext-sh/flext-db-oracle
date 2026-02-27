@@ -596,7 +596,6 @@ class FlextDbOracleCli(FlextService[str]):
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
-    @override
     def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
