@@ -51,7 +51,7 @@ class FlextDbOracleProtocols(p):
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
-        class ConnectionProtocol(p.Service, Protocol):
+        class ConnectionProtocol(p.Service[None], Protocol):
             """Protocol for Oracle database connection operations."""
 
             def connect(self) -> p.Result[bool]:
@@ -116,7 +116,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE  # INTERFACE
 
         @runtime_checkable
-        class QueryExecutorProtocol(p.Service, Protocol):
+        class QueryExecutorProtocol(p.Service[None], Protocol):
             """Protocol for Oracle query execution operations."""
 
             def execute_query(
@@ -188,7 +188,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class SchemaIntrospectorProtocol(p.Service, Protocol):
+        class SchemaIntrospectorProtocol(p.Service[None], Protocol):
             """Protocol for Oracle schema introspection operations."""
 
             def get_schemas(self) -> p.Result[list[str]]:
@@ -267,7 +267,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class SqlBuilderProtocol(p.Service, Protocol):
+        class SqlBuilderProtocol(p.Service[None], Protocol):
             """Protocol for Oracle SQL statement building operations."""
 
             def build_select(
@@ -347,7 +347,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class DdlGeneratorProtocol(p.Service, Protocol):
+        class DdlGeneratorProtocol(p.Service[None], Protocol):
             """Protocol for Oracle DDL generation operations."""
 
             def create_table_ddl(
@@ -409,7 +409,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class MetricsCollectorProtocol(p.Service, Protocol):
+        class MetricsCollectorProtocol(p.Service[None], Protocol):
             """Protocol for Oracle database metrics collection."""
 
             def record_metric(
@@ -463,7 +463,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class PluginRegistryProtocol(p.Service, Protocol):
+        class PluginRegistryProtocol(p.Service[None], Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
             def register_plugin(
@@ -517,7 +517,7 @@ class FlextDbOracleProtocols(p):
                 ...  # INTERFACE
 
         @runtime_checkable
-        class HealthCheckProtocol(p.Service, Protocol):
+        class HealthCheckProtocol(p.Service[None], Protocol):
             """Protocol for Oracle database health check operations."""
 
             def health_check(
