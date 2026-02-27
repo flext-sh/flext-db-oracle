@@ -744,7 +744,7 @@ ORDER BY column_id
             if isinstance(_tags, t.ConfigMap) or _tags is None
             else t.ConfigMap.model_validate(_tags)
         )
-        tags_payload = typed_tags.root if typed_tags is not None else {}
+        tags_payload = typed_tags.root if typed_tags is not None else cast(dict[str, t.JsonValue], {})
         metric_result = metric_factory(
             name=_name,
             value=_value,
