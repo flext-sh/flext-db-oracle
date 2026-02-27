@@ -150,6 +150,7 @@ class TestFlextDbOracleClientReal:
         assert (
             "Connection failed" in result.error
             or "Oracle connection failed" in result.error
+            or "Connection error" in result.error
         )
 
     def test_get_global_client_real(self) -> None:
@@ -321,7 +322,7 @@ class TestOracleConnectionHelper:
         assert config.port == 1522
         assert config.service_name == "TEST_SERVICE"
         assert config.username == "test_user"
-        assert config.password == "test_password"
+        assert config.password.get_secret_value() == "test_password"
 
     def test_create_config_from_params_defaults(self) -> None:
         """Test config creation with default parameters."""
@@ -503,7 +504,7 @@ class TestOutputFormatter:
         items: list[NamedItem] = [
             NamedItem.model_validate({"name": "table1", "type": "TABLE"}),
             NamedItem.model_validate({"name": "table2", "type": "VIEW"}),
-            NamedItem.model_validate({"other": "value"}),  # Test item without name
+            NamedItem(name="unnamed"),  # Test item without type field
         ]
 
         result = formatter.format_list_output(items, "Database Objects", "table")

@@ -210,7 +210,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
         _bus: object | None = None,
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = cast("p.CommandBus", FlextContainer.get_global().get("command_bus").unwrap())
+        dispatcher = cast(
+            "p.CommandBus", FlextContainer.get_global().get("command_bus").unwrap()
+        )
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[

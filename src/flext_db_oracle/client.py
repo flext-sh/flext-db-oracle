@@ -29,6 +29,11 @@ except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
 
+try:
+    from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
+except ImportError:
+    SQLAlchemyOperationalError = OSError  # type: ignore[assignment,misc]
+
 _JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
 _GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])
 
@@ -176,7 +181,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Oracle connection failed: {connect_result.error}",
             )
 
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError, OSError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            OSError,
+            SQLAlchemyOperationalError,
+        ) as e:
             return r[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(

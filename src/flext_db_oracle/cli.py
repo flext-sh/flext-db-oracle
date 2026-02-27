@@ -139,7 +139,13 @@ class FlextDbOracleCli(FlextService[str]):
                     password=password,
                 )
                 return FlextResult[FlextDbOracleSettings].ok(config)
-            except (OracleDatabaseError, OracleInterfaceError, ConnectionError, ValidationError, ValueError) as e:
+            except (
+                OracleDatabaseError,
+                OracleInterfaceError,
+                ConnectionError,
+                ValidationError,
+                ValueError,
+            ) as e:
                 return FlextResult[FlextDbOracleSettings].fail(
                     f"Configuration creation failed: {e}",
                 )
