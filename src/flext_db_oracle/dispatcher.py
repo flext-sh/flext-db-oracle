@@ -9,7 +9,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import cast, override
 
-from flext_core import FlextDispatcher, FlextRegistry, r, t
+from flext_core import FlextContainer, FlextRegistry, r, t
+from flext_core.protocols import p
 from flext_core.service import FlextService
 from flext_db_oracle.services import FlextDbOracleServices
 from pydantic import BaseModel, ConfigDict, Field
@@ -226,9 +227,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
         services: FlextDbOracleServices,
         *,
         _bus: object | None = None,
-    ) -> FlextDispatcher:
+    ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = FlextDispatcher()
+        dispatcher = FlextContainer.get_global().get("command_bus").unwrap()
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[
