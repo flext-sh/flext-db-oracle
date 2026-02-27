@@ -137,7 +137,9 @@ class FlextDbOracleSettings(FlextSettings):
         port = self.port
         service = self.service_name
 
-        return f"oracle+oracledb://{user}:{password}@{host}:{port}/{service}"
+        return (
+            f"oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service}"
+        )
 
     charset: str = Field(
         default=c.DbOracle.Connection.DEFAULT_CHARSET,
@@ -275,37 +277,37 @@ class FlextDbOracleSettings(FlextSettings):
             raise ValueError(msg)
         return v
 
-    def validate_connection_config(self) -> r[None]:
+    def validate_connection_config(self) -> r[bool]:
         """Validate the complete connection configuration."""
         # Validate required fields
         if not self.host:
-            return r[None].fail("Oracle host is required")
+            return r[bool].fail("Oracle host is required")
 
         if not self.username:
-            return r[None].fail("Oracle username is required")
+            return r[bool].fail("Oracle username is required")
 
         if not self.password.get_secret_value():
-            return r[None].fail("Oracle password is required")
+            return r[bool].fail("Oracle password is required")
 
         # Validate pool configuration
         if self.pool_max < self.pool_min:
-            return r[None].fail(
+            return r[bool].fail(
                 "pool_max must be greater than or equal to pool_min",
             )
 
         # Validate SSL configuration
         if self.use_ssl:
             if self.ssl_cert_file and not self.ssl_key_file:
-                return r[None].fail(
+                return r[bool].fail(
                     "SSL key file is required when SSL cert file is provided",
                 )
 
             if self.ssl_key_file and not self.ssl_cert_file:
-                return r[None].fail(
+                return r[bool].fail(
                     "SSL cert file is required when SSL key file is provided",
                 )
 
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def get_connection_string(self) -> str:
         """Generate Oracle connection string."""

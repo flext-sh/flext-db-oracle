@@ -21,9 +21,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @override
-    def execute(self, **_kwargs: t.JsonValue) -> r[None]:
+    def execute(self, **_kwargs: t.JsonValue) -> r[bool]:
         """Execute dispatcher operation - returns None as this is a factory class."""
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     class ConnectCommand(m.Command):
         """Command to establish an Oracle database connection."""

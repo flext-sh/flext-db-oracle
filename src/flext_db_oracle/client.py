@@ -171,7 +171,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[t.ConfigMap]: Operation result or error.
 
         """
-        validation_result: r[None] = self._validate_connection()
+        validation_result: r[bool] = self._validate_connection()
         if validation_result.is_failure:
             return r[t.ConfigMap].fail(
                 validation_result.error or "Validation failed",
@@ -179,20 +179,20 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         return self._execute_operation(operation, **params)
 
-    def _validate_connection(self) -> r[None]:
+    def _validate_connection(self) -> r[bool]:
         """Validate current Oracle connection.
 
         Returns:
-        r[None]: Success or error.
+        r[bool]: Success or error.
 
         """
         if not self.current_connection:
-            return r[None].fail("No active Oracle connection")
+            return r[bool].fail("No active Oracle connection")
 
         if not self.current_connection.is_connected:
-            return r[None].fail("Oracle connection not active")
+            return r[bool].fail("Oracle connection not active")
 
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def _execute_operation(
         self,
@@ -435,7 +435,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         try:
-            validation_result: r[None] = self._validate_connection()
+            validation_result: r[bool] = self._validate_connection()
             if validation_result.is_failure:
                 return r[t.ConfigMap].fail(
                     validation_result.error or "Connection validation failed",
@@ -533,27 +533,27 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """
         return self._execute_health_check()
 
-    def disconnect(self) -> r[None]:
+    def disconnect(self) -> r[bool]:
         """Disconnect from Oracle database.
 
         Returns:
-        r[None]: Success or error.
+        r[bool]: Success or error.
 
         """
         if self.current_connection:
-            result: r[None] = self.current_connection.disconnect()
+            result: r[bool] = self.current_connection.disconnect()
             self.current_connection = None
             return result
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def configure_preferences(
         self,
         **preferences: str | int | bool,
-    ) -> r[None]:
+    ) -> r[bool]:
         """Configure client preferences.
 
         Returns:
-        r[None]: Success or error.
+        r[bool]: Success or error.
 
         """
         try:
@@ -562,9 +562,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 "Client preferences updated",
                 extra={"preferences": "preferences"},
             )
-            return r[None].ok(None)
+            return r[bool].ok(True)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r[None].fail(f"Preference configuration failed: {e}")
+            return r[bool].fail(f"Preference configuration failed: {e}")
 
     @classmethod
     def run_cli_command(

@@ -212,8 +212,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             if not password:
                 return r.fail("Password is required for database connection")
             encoded_password = quote_plus(password)
-            db_id = self._db_config.sid or self._db_config.service_name
-            url = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}/{db_id}"
+            service_name = self._db_config.service_name
+            base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
+            url = f"{base}/?service_name={service_name}"
             return r.ok(url)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to build connection URL: {e}")
@@ -247,14 +248,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
-    def disconnect(self) -> r[None]:
+    def disconnect(self) -> r[bool]:
         """Disconnect from Oracle database."""
         engine = self._engine
         if engine is not None:
             _engine_dispose(engine)
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def is_connected(self) -> bool:
         """Check if connected to Oracle database."""
@@ -721,7 +722,7 @@ ORDER BY column_id
         _name: str,
         _value: float,
         _tags: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
-    ) -> r[None]:
+    ) -> r[bool]:
         """Record metric through flext-observability when available."""
         if not _name:
             return r.fail("Metric name is required")
@@ -754,7 +755,7 @@ ORDER BY column_id
                     metric_result, "error", "Metric recording failed in observability"
                 )
             )
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
         """Get metrics status with explicit observability integration check."""
@@ -786,7 +787,7 @@ ORDER BY column_id
             )
         )
 
-    def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[None]:
+    def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[bool]:
         """Register plugin via flext-plugin when available."""
         if not _name:
             return r.fail("Plugin name is required")
@@ -824,9 +825,9 @@ ORDER BY column_id
             )
 
         self._plugins[_name] = _plugin
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
-    def unregister_plugin(self, _name: str) -> r[None]:
+    def unregister_plugin(self, _name: str) -> r[bool]:
         """Unregister plugin via flext-plugin when available."""
         if not _name:
             return r.fail("Plugin name is required")
@@ -848,7 +849,7 @@ ORDER BY column_id
             )
 
         self._plugins.pop(_name, None)
-        return r[None].ok(None)
+        return r[bool].ok(True)
 
     def list_plugins(self) -> r[t.ConfigMap]:
         """List plugin names via flext-plugin when available."""
@@ -936,7 +937,7 @@ ORDER BY column_id
         *,
         success: bool = True,
         metadata: t.ConfigMap | Mapping[str, t.GeneralValueType] | None = None,
-    ) -> r[None]:
+    ) -> r[bool]:
         """Track database operation for monitoring."""
         try:
             metadata_value = (
@@ -952,7 +953,7 @@ ORDER BY column_id
                 timestamp=self._get_current_timestamp(),
             )
             self._operations.append(operation)
-            return r[None].ok(None)
+            return r[bool].ok(True)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r.fail(f"Failed to track operation: {e}")
 

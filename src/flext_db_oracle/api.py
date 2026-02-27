@@ -196,7 +196,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
         return self._services.connect().map(lambda _: self)
 
-    def disconnect(self) -> r[None]:
+    def disconnect(self) -> r[bool]:
         """Disconnect from Oracle database."""
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
@@ -357,7 +357,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services.get_metrics()
 
     # Plugin System
-    def register_plugin(self, name: str, plugin: t.JsonValue) -> r[None]:
+    def register_plugin(self, name: str, plugin: t.JsonValue) -> r[bool]:
         """Register a plugin via FlextRegistry."""
 
         # Wrap plugin in Protocol-conformant object
@@ -373,15 +373,15 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         wrapper = _PluginWrapper(plugin)
         result = self._registry.register_plugin("oracle_plugins", name, wrapper)
         if result.is_failure:
-            return r[None].fail(result.error or f"Failed to register plugin '{name}'")
-        return r[None].ok(None)
+            return r[bool].fail(result.error or f"Failed to register plugin '{name}'")
+        return r[bool].ok(True)
 
-    def unregister_plugin(self, name: str) -> r[None]:
+    def unregister_plugin(self, name: str) -> r[bool]:
         """Unregister a plugin from FlextRegistry."""
         result = self._registry.unregister_plugin("oracle_plugins", name)
         if result.is_failure:
-            return r[None].fail(result.error or f"Plugin '{name}' not found")
-        return r[None].ok(None)
+            return r[bool].fail(result.error or f"Plugin '{name}' not found")
+        return r[bool].ok(True)
 
     def get_plugin(self, name: str) -> r[t.JsonValue]:
         """Get a registered plugin by name."""
