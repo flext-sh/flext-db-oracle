@@ -110,7 +110,7 @@ class TestFlextDbOracleServices:
         )
         service = FlextDbOracleServices(config=config)
         assert service is not None
-        assert service.config == config
+        assert service._db_config == config
 
     def test_service_is_not_connected_initially(self) -> None:
         """Test service is not connected when created."""

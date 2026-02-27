@@ -28,6 +28,13 @@ except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
 
+try:
+    from sqlalchemy.exc import OperationalError as _SQLAlchemyOperationalError
+
+    SQLAlchemyOperationalError: type[Exception] = _SQLAlchemyOperationalError
+except ImportError:
+    SQLAlchemyOperationalError = OSError  # type: ignore[assignment,misc]
+
 
 class _StrictIntValue(BaseModel):
     """Strict integer payload model."""
@@ -216,7 +223,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
             url = f"{base}/?service_name={service_name}"
             return r.ok(url)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Failed to build connection URL: {e}")
 
     def _get_engine(self) -> r[object]:
@@ -244,7 +257,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 _context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
             return r.ok(self)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
@@ -274,7 +293,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 _context_exit(connect_ctx)
             return r.ok(True)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Connection test failed: {e}")
 
     @contextmanager
@@ -325,7 +350,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(rows)
             finally:
                 _context_exit(connect_ctx)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Query execution failed: {e}")
 
     def execute_statement(
@@ -349,7 +380,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(rowcount)
             finally:
                 _context_exit(connect_ctx)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Statement execution failed: {e}")
 
     def execute_many(
@@ -382,7 +419,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 return r.ok(total_affected)
             finally:
                 _context_exit(connect_ctx)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Bulk execution failed: {e}")
 
     def fetch_one(
@@ -491,7 +534,13 @@ ORDER BY column_id
             return self.execute_query(sql, params).map(
                 lambda rows: [str(row.root["column_name"]) for row in rows],
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Failed to get primary keys: {e}")
 
     def get_table_metadata(
@@ -518,7 +567,13 @@ ORDER BY column_id
                     ),
                 ),
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Failed to get table metadata: {e}")
 
     # Service
@@ -932,7 +987,13 @@ ORDER BY column_id
             return self.execute_query(sql).map(
                 self._parse_count_from_rows,
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Failed to get row count: {e}")
 
     def track_operation(
@@ -959,7 +1020,13 @@ ORDER BY column_id
             )
             self._operations.append(operation)
             return r[bool].ok(True)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
             return r.fail(f"Failed to track operation: {e}")
 
     def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
