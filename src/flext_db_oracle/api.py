@@ -86,11 +86,13 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get the Oracle configuration."""
         return self._oracle_config
 
+    @override
     @property
     def config(self) -> FlextDbOracleSettings:
         """Get the configuration."""
         return self._oracle_config
 
+    @override
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
         try:
@@ -151,6 +153,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
+    @override
     @staticmethod
     def to_dict(obj: object | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
@@ -473,6 +476,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             self.logger.debug("Disconnecting on context exit")
             self._services.disconnect()
 
+    @override
     def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""
         try:

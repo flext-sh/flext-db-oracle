@@ -11,7 +11,7 @@ import time
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Protocol, Self, cast
+from typing import Protocol, Self, cast, override
 from urllib.parse import quote_plus
 
 from flext_core import r, t
@@ -522,6 +522,7 @@ ORDER BY column_id
             return r.fail(f"Failed to get table metadata: {e}")
 
     # Service
+    @override
     def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()

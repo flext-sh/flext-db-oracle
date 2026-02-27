@@ -25,6 +25,7 @@ from flext_db_oracle import (
     FlextDbOracleUtilities,
     t,
 )
+from flext_db_oracle.cli import HealthCheckReport
 
 
 class TestFlextDbOracleClientReal:
@@ -599,8 +600,8 @@ class TestCliServiceOperations:
 
         assert result.is_success  # Health check succeeds even with empty password
         output = result.value
-        assert isinstance(output, dict)
-        assert "status" in output or "host" in output
+        assert isinstance(output, HealthCheckReport)
+        assert hasattr(output, "status") and output.status is not None
 
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""

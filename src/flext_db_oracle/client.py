@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar
+from typing import ClassVar, override
 
 from flext_core import r
 from flext_core.service import FlextService
@@ -491,6 +491,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         )
         return self._format_and_display_result(operation_result, format_type)
 
+    @override
     def execute(self) -> r[FlextDbOracleSettings]:
         """Execute the main domain operation for Oracle client.
 

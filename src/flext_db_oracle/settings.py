@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Annotated
+from typing import Annotated, override
 from urllib.parse import urlparse
 
 from flext_core import r
@@ -413,6 +413,7 @@ class FlextDbOracleSettings(FlextSettings):
             )
 
     @classmethod
+    @override
     def reset_global_instance(cls) -> None:
         """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
         # Clear any cached instances
