@@ -24,9 +24,6 @@ logger = FlextLogger(__name__)
 
 # FlextTestsDocker fixtures are now auto-registered via pytest hooks
 
-# Test constants - NOT PRODUCTION PASSWORDS
-TEST_ORACLE_PASSWORD = "FlextTest123"
-
 
 class OperationTestError(Exception):
     """Custom exception for test operations to avoid TRY003 lint warnings."""
@@ -36,87 +33,6 @@ class OperationTestError(Exception):
         super().__init__(f"{operation} failed: {error}")
         self.operation = operation
         self.error = error
-
-
-# Removed unused function _docker_connectivity_safe
-
-
-class DockerCommandExecutor:
-    """Execute Docker commands safely with proper error handling - DEPRECATED.
-
-    This class is kept for backwards compatibility but should not be used directly.
-    Use FlextTestsDocker instead for consistent container management.
-    """
-
-    def __init__(self, compose_file: Path) -> None:
-        """Initialize with compose file path."""
-        super().__init__()
-        self.compose_file = compose_file
-
-    def check_docker_availability(self) -> None:
-        """Check if Docker is available - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-    def check_container_status(self) -> bool:
-        """Check container status - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-    def check_container_health(self) -> bool:
-        """Check container health - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-    def start_container(self) -> None:
-        """Start container - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-    def run_setup_script(self) -> bool:
-        """Run setup script - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-    def is_setup_completed(self) -> bool:
-        """Check setup completion - use FlextTestsDocker instead."""
-        msg = "DockerCommandExecutor is deprecated. Use FlextTestsDocker instead."
-        raise DeprecationWarning(msg)
-
-
-class OracleContainerManager:
-    """Manage Oracle container lifecycle for testing - DEPRECATED.
-
-    This class is kept for backwards compatibility but should not be used directly.
-    Use FlextTestsDocker fixtures instead for consistent container management.
-    """
-
-    def __init__(self, compose_file: Path) -> None:
-        """Initialize with compose file path."""
-        super().__init__()
-        self.compose_file = compose_file
-        self.max_health_attempts = 120
-        self.health_check_interval = 5
-
-    def ensure_container_ready(self) -> None:
-        """Ensure container is ready - use FlextTestsDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
-        raise DeprecationWarning(msg)
-
-    def _start_and_wait_for_health(self) -> None:
-        """Start and wait for health - use FlextTestsDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
-        raise DeprecationWarning(msg)
-
-    def _wait_for_healthy_status(self) -> None:
-        """Wait for healthy status - use FlextTestsDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
-        raise DeprecationWarning(msg)
-
-    def _wait_for_setup_completion(self) -> None:
-        """Wait for setup completion - use FlextTestsDocker instead."""
-        msg = "OracleContainerManager is deprecated. Use FlextTestsDocker fixtures instead."
-        raise DeprecationWarning(msg)
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -149,7 +65,7 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
-    docker = FlextTestsDocker()
+    docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
     cleanup_result = docker.cleanup_dirty_containers()
     if cleanup_result.is_failure:
         logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
@@ -184,7 +100,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
     )
 
     if is_service_failure:
-        docker = FlextTestsDocker()
+        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
         docker.mark_container_dirty("flext-oracle-db-test")
         logger.error(
             f"ORACLE SERVICE FAILURE detected in {item.nodeid}, "
@@ -195,7 +111,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
 @pytest.fixture(scope="session")
 def docker_control() -> FlextTestsDocker:
     """Provide FlextTestsDocker instance for container management."""
-    return FlextTestsDocker()
+    return FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
 
 
 @pytest.fixture(scope="session")
@@ -217,7 +133,7 @@ def shared_oracle_container(
     compose_file = str(compose_file_value)
     if not compose_file.startswith("/"):
         # Relative path, make it absolute from workspace root
-        workspace_root = Path(__file__).resolve().parents[3]
+        workspace_root = Path(__file__).resolve().parents[2]
         compose_file = str(workspace_root / compose_file)
 
     # REGRA: Só recriar se estiver dirty, senão apenas iniciar se não estiver rodando
@@ -340,11 +256,11 @@ def real_oracle_config(
         return None
     return FlextDbOracleSettings(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
-        port=int(os.getenv("TEST_ORACLE_PORT", "1521")),
-        name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
-        username=os.getenv("TEST_ORACLE_USER", "flexttest"),
-        password=os.getenv("TEST_ORACLE_PASSWORD", TEST_ORACLE_PASSWORD),
-        service_name=os.getenv("TEST_ORACLE_SERVICE", "XEPDB1"),
+        port=int(os.getenv("TEST_ORACLE_PORT", "1522")),
+        name=os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
+        username=os.getenv("TEST_ORACLE_USER", "flext_test"),
+        password=os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password"),
+        service_name=os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
         ssl_server_cert_dn=None,
     )
 
