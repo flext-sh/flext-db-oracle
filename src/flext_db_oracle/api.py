@@ -154,6 +154,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def to_dict(obj: object | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
         if isinstance(obj, FlextDbOracleApi):
+            plugins_result = obj.list_plugins()
+            plugin_count = len(plugins_result.value) if plugins_result.is_success and plugins_result.value else 0
             return m_core.ConfigMap(
                 root={
                     "config": {
@@ -163,7 +165,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                         "username": obj.config.username,
                     },
                     "connected": obj.is_connected,
-                    "plugin_count": len(obj.plugins),
+                    "plugin_count": plugin_count,
                     "dispatcher_enabled": obj._dispatcher is not None,
                 }
             )

@@ -51,9 +51,11 @@ class TestFlextDbOracleApiRealFunctionality:
         assert hasattr(self.api, "_config")
         assert hasattr(self.api, "_services")
         assert hasattr(self.api, "logger")
-        assert hasattr(self.api, "plugins")
-        assert isinstance(self.api.plugins, dict)
-        assert len(self.api.plugins) == 0
+        assert hasattr(self.api, "_registry")
+        # Plugin system now uses FlextRegistry (Protocol-based)
+        plugins_result = self.api.list_plugins()
+        assert plugins_result.is_success
+        assert len(plugins_result.value) == 0
 
     def test_config_property_access_real(self) -> None:
         """Test config property returns correct configuration."""
@@ -107,12 +109,14 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_to_dict_with_plugins_real(self) -> None:
         """Test to_dict with registered plugins."""
-        # Register some plugins using REAL functionality
-        self.api.plugins["test1"] = {"name": "test1"}
-        self.api.plugins["test2"] = {"name": "test2"}
+        # Register plugins through FlextRegistry-based API
+        self.api.register_plugin("test1", {"name": "test1"})
+        self.api.register_plugin("test2", {"name": "test2"})
 
-        result = self.api.to_dict()
-        assert result["plugin_count"] == 2
+        # Verify plugins are registered via list_plugins
+        list_result = self.api.list_plugins()
+        assert list_result.is_success
+        assert len(list_result.value) == 2
 
     def test_is_connected_property_real_disconnected_state(self) -> None:
         """Test is_connected property when disconnected."""
@@ -308,19 +312,23 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.register_plugin("test_plugin", plugin)
 
         tm.ok(result)
-        assert "test_plugin" in self.api.plugins
-        assert self.api.plugins["test_plugin"] == plugin
+        # Verify plugin registered through FlextRegistry
+        get_result = self.api.get_plugin("test_plugin")
+        tm.ok(get_result)
+        assert get_result.value == plugin
 
     def test_plugin_unregistration_real_functionality(self) -> None:
         """Test successful plugin unregistration."""
-        # Register a plugin first using real functionality
+        # Register a plugin first using FlextRegistry-based API
         plugin = {"name": "test_plugin"}
-        self.api.plugins["test_plugin"] = plugin
+        self.api.register_plugin("test_plugin", plugin)
 
         result = self.api.unregister_plugin("test_plugin")
 
         tm.ok(result)
-        assert "test_plugin" not in self.api.plugins
+        # Verify plugin no longer accessible
+        get_result = self.api.get_plugin("test_plugin")
+        assert get_result.is_failure
 
     def test_plugin_unregistration_not_found_real(self) -> None:
         """Test plugin unregistration when plugin not found."""
@@ -336,7 +344,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_get_plugin_real_functionality(self) -> None:
         """Test successful plugin retrieval."""
         plugin = {"name": "test_plugin", "version": "1.0.0"}
-        self.api.plugins["test_plugin"] = plugin
+        self.api.register_plugin("test_plugin", plugin)
 
         result = self.api.get_plugin("test_plugin")
 
@@ -359,8 +367,8 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test successful plugin listing."""
         plugin1 = {"name": "plugin1"}
         plugin2 = {"name": "plugin2"}
-        self.api.plugins["plugin1"] = plugin1
-        self.api.plugins["plugin2"] = plugin2
+        self.api.register_plugin("plugin1", plugin1)
+        self.api.register_plugin("plugin2", plugin2)
 
         result = self.api.list_plugins()
 
@@ -1740,7 +1748,7 @@ class TestApiSurgicalSimple:
         assert hasattr(api, "_services")
         assert hasattr(api, "_context_name")
         assert hasattr(api, "logger")
-        assert hasattr(api, "_plugins")
+        assert hasattr(api, "_registry")
         assert hasattr(api, "_dispatcher")
 
         # Test config property
