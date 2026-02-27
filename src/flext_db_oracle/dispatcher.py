@@ -13,7 +13,8 @@ from flext_core import FlextContainer, FlextRegistry, r, t
 from flext_core.protocols import p
 from flext_core.service import FlextService
 from flext_db_oracle.services import FlextDbOracleServices
-from pydantic import BaseModel, ConfigDict, Field
+from flext_core.models import FlextModels as m
+from pydantic import Field
 
 
 class FlextDbOracleDispatcher(FlextService[None]):
@@ -24,77 +25,67 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Execute dispatcher operation - returns None as this is a factory class."""
         return r[None].ok(None)
 
-    class ConnectCommand(BaseModel):
+    class ConnectCommand(m.Command):
         """Command to establish an Oracle database connection."""
 
-        model_config = ConfigDict(extra="forbid")
 
-    class DisconnectCommand(BaseModel):
+    class DisconnectCommand(m.Command):
         """Command to close the Oracle database connection."""
 
-        model_config = ConfigDict(extra="forbid")
 
-    class TestConnectionCommand(BaseModel):
+    class TestConnectionCommand(m.Command):
         """Command to validate the Oracle database connectivity."""
 
-        model_config = ConfigDict(extra="forbid")
 
-    class ExecuteQueryCommand(BaseModel):
+    class ExecuteQueryCommand(m.Command):
         """Command to execute a SQL query and return rows."""
 
-        model_config = ConfigDict(extra="forbid")
 
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
             default=None, description="Query parameters"
         )
 
-    class FetchOneCommand(BaseModel):
+    class FetchOneCommand(m.Command):
         """Command to execute a SQL query and fetch a single row."""
 
-        model_config = ConfigDict(extra="forbid")
 
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
             default=None, description="Query parameters"
         )
 
-    class ExecuteStatementCommand(BaseModel):
+    class ExecuteStatementCommand(m.Command):
         """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
 
-        model_config = ConfigDict(extra="forbid")
 
         sql: str = Field(description="SQL statement to execute")
         parameters: t.ConfigMap | None = Field(
             default=None, description="Statement parameters"
         )
 
-    class ExecuteManyCommand(BaseModel):
+    class ExecuteManyCommand(m.Command):
         """Command to execute a SQL statement multiple times."""
 
-        model_config = ConfigDict(extra="forbid")
 
         sql: str = Field(description="SQL statement to execute")
         parameters_list: list[t.ConfigMap] = Field(description="List of parameter sets")
 
-    class GetSchemasCommand(BaseModel):
+    class GetSchemasCommand(m.Command):
         """Command to retrieve available database schemas."""
 
-        model_config = ConfigDict(extra="forbid")
 
-    class GetTablesCommand(BaseModel):
+    class GetTablesCommand(m.Command):
         """Command to list tables for an optional schema."""
 
-        model_config = ConfigDict(extra="forbid")
 
         schema_name: str | None = Field(
             default=None, description="Optional schema name"
         )
 
-    class GetColumnsCommand(BaseModel):
+    class GetColumnsCommand(m.Command):
         """Command to list column metadata for a table."""
 
-        model_config = ConfigDict(extra="forbid")
 
         table: str = Field(description="Table name")
         schema_name: str | None = Field(
@@ -249,7 +240,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
         # Register each handler with strict API (handler must expose message_type)
         for command_type, (handler_fn, _metadata) in function_map.items():
             # Set message_type on handler for strict route discovery
-            setattr(handler_fn, "message_type", command_type.__name__)
             dispatcher.register_handler(cast("t.HandlerType", handler_fn))
         return dispatcher
 
