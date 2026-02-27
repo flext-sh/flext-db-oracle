@@ -321,7 +321,7 @@ class FlextDbOracleCli(FlextService[str]):
                 "port": port,
                 "service_name": service_name,
                 "response_time_ms": round(elapsed_time * 1000, 2),
-                "details": health_data.model_dump(),
+                "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
             })
 

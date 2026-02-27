@@ -98,7 +98,7 @@ class TestFlextDbOracleClientReal:
         )
         original_dict["invalid_key"] = "value"
         original_dict["another_invalid"] = "test"
-        assert client.user_preferences == original_dict
+        assert client.user_preferences.model_dump() == original_dict
 
     def test_connection_without_config(self) -> None:
         """Test connection methods without active connection."""
