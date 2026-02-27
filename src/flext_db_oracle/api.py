@@ -156,7 +156,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Convert API instance to dictionary representation."""
         if isinstance(obj, FlextDbOracleApi):
             plugins_result = obj.list_plugins()
-            plugin_count = len(plugins_result.value) if plugins_result.is_success and plugins_result.value else 0
+            plugin_count = (
+                len(plugins_result.value)
+                if plugins_result.is_success and plugins_result.value
+                else 0
+            )
             return m_core.ConfigMap(
                 root={
                     "config": {
@@ -167,7 +171,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                     },
                     "connected": obj.is_connected,
                     "plugin_count": plugin_count,
-                    "dispatcher_enabled": obj._dispatcher is not None,
+                    "dispatcher_enabled": hasattr(obj, "_dispatcher")
+                    and getattr(obj, "_dispatcher") is not None,
                 }
             )
         return (
@@ -354,6 +359,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     # Plugin System
     def register_plugin(self, name: str, plugin: t.JsonValue) -> r[None]:
         """Register a plugin via FlextRegistry."""
+
         # Wrap plugin in Protocol-conformant object
         @dataclass
         class _PluginWrapper:
@@ -384,7 +390,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return r[t.JsonValue].fail(result.error or f"Plugin '{name}' not found")
         # Extract data from wrapper
         wrapper = result.value
-        data = getattr(wrapper, 'data', None)
+        data = getattr(wrapper, "data", None)
         if data is None:
             return r[t.JsonValue].fail(f"Invalid plugin format for '{name}'")
         return r[t.JsonValue].ok(data)
