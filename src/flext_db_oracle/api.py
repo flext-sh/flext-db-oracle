@@ -13,11 +13,12 @@ from __future__ import annotations
 import contextlib
 import types
 from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
 from typing import Self, cast, override
 
 from flext_core import m as m_core, r, t
-from flext_core.service import FlextService
 from flext_core.registry import FlextRegistry
+from flext_core.service import FlextService
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels
@@ -179,8 +180,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def services(self) -> FlextDbOracleServices:
         """Get the services instance."""
         return self._services
-
-
 
     # Connection Management
     def connect(self) -> r[FlextDbOracleApi]:
@@ -356,11 +355,17 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def register_plugin(self, name: str, plugin: t.JsonValue) -> r[None]:
         """Register a plugin via FlextRegistry."""
         # Wrap plugin in Protocol-conformant object
-        plugin_wrapper = type('OraclePluginWrapper', (), {
-            '_protocol_name': lambda self: "oracle_plugin",
-            'data': plugin
-        })()
-        result = self._registry.register_plugin("oracle_plugins", name, plugin_wrapper)
+        @dataclass
+        class _PluginWrapper:
+            """Wrapper that satisfies p.Registrable Protocol."""
+
+            data: t.JsonValue
+
+            def _protocol_name(self) -> str:
+                return "oracle_plugin"
+
+        wrapper = _PluginWrapper(plugin)
+        result = self._registry.register_plugin("oracle_plugins", name, wrapper)
         if result.is_failure:
             return r[None].fail(result.error or f"Failed to register plugin '{name}'")
         return r[None].ok(None)
@@ -389,7 +394,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         result = self._registry.list_plugins("oracle_plugins")
         if result.is_failure:
             return r[list[str]].fail(result.error or "Failed to list plugins")
-        return r[list[str]].ok(result.value if result.value else [])
+        return r[list[str]].ok(result.value or [])
 
     def _execute_query_sql(
         self,
