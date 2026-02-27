@@ -125,6 +125,7 @@ markers = [
 
 # [CUSTOM] poetry dev extensions
 # [MANAGED] pyrefly
+enable_assertion_pass_hook = true
 [tool.pyrefly]
 
 ignore-errors-in-generated-code = true
