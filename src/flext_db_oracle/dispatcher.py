@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import cast
+from typing import cast, override
 
 from flext_core import FlextDispatcher, FlextRegistry, r, t
 from flext_core.service import FlextService
@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
+    @override
     def execute(self, **_kwargs: t.JsonValue) -> r[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
         return r[None].ok(None)
@@ -244,10 +245,11 @@ class FlextDbOracleDispatcher(FlextService[None]):
         function_map.update(instance._create_query_handlers(services))
         # Add schema handlers
         function_map.update(instance._create_schema_handlers(services))
-        # Register each handler from the function map
+        # Register each handler with strict API (handler must expose message_type)
         for command_type, (handler_fn, _metadata) in function_map.items():
-            # Register handler with dispatcher
-            dispatcher.register_handler(command_type, cast("t.HandlerType", handler_fn))
+            # Set message_type on handler for strict route discovery
+            setattr(handler_fn, "message_type", command_type.__name__)
+            dispatcher.register_handler(cast("t.HandlerType", handler_fn))
         return dispatcher
 
 

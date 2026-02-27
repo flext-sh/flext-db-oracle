@@ -505,8 +505,7 @@ class TestOutputFormatter:
             {"other": "value"},  # Test item without name
         ]
 
-        result = formatter.format_list_output(items, "Database Objects", "table")  # type: ignore[arg-type]
-
+        result = formatter.format_list_output(items, "Database Objects", "table")
         assert result.is_success
         output = result.value
         assert "table1" in output

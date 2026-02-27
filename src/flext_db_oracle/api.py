@@ -163,7 +163,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                     },
                     "connected": obj.is_connected,
                     "plugin_count": len(obj.plugins),
-                    "dispatcher_enabled": obj._dispatcher is not None,  # noqa: SLF001
+                    "dispatcher_enabled": obj._dispatcher is not None,
                 }
             )
         return (
