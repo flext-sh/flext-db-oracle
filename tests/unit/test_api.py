@@ -32,6 +32,7 @@ class TestFlextDbOracleApiRealFunctionality:
     """Comprehensive tests for Oracle API using ONLY real functionality - NO MOCKS."""
 
     config: FlextDbOracleSettings
+    api: FlextDbOracleApi
 
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
@@ -1061,7 +1062,7 @@ class TestApiModule:
 
         # Test disconnection
         if hasattr(api, "disconnect"):
-            disconnect_result: FlextResult[None] = api.disconnect()
+            disconnect_result: FlextResult[bool] = api.disconnect()
             assert isinstance(disconnect_result, FlextResult)
 
     def test_flext_db_oracle_api_error_handling(self) -> None:
@@ -1780,6 +1781,9 @@ SPDX-License-Identifier: MIT
 
 class TestFlextDbOracleApiWorking:
     """Test FlextDbOracleApi using only methods that work without hanging."""
+
+    config: FlextDbOracleSettings
+    api: FlextDbOracleApi
 
     def setup_method(self) -> None:
         """Setup test configuration."""

@@ -84,7 +84,17 @@ class FlextDbOracleCli(FlextService[str]):
         self._cli_main: FlextCliCommands | None = None
 
     def _initialize_cli_main(self) -> FlextResult[FlextCliCommands | None]:
-        return FlextResult[FlextCliCommands | None].ok(self._cli_main)
+        """Initialize FlextCliCommands, returning success or failure."""
+        try:
+            if self._cli_main is not None:
+                return FlextResult[FlextCliCommands].ok(self._cli_main)
+            cli_main = FlextCliCommands()
+            self._cli_main = cli_main
+            return FlextResult[FlextCliCommands].ok(cli_main)
+        except Exception as e:
+            return FlextResult[FlextCliCommands | None].fail(
+                f"FlextCliCommands initialization failed: {e}",
+            )
 
     class _YamlModule(Protocol):
         """Protocol for YAML module interface."""
@@ -129,7 +139,7 @@ class FlextDbOracleCli(FlextService[str]):
                     password=password,
                 )
                 return FlextResult[FlextDbOracleSettings].ok(config)
-            except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+            except (OracleDatabaseError, OracleInterfaceError, ConnectionError, ValidationError, ValueError) as e:
                 return FlextResult[FlextDbOracleSettings].fail(
                     f"Configuration creation failed: {e}",
                 )
@@ -171,7 +181,7 @@ class FlextDbOracleCli(FlextService[str]):
             FlextResult[str]: Formatted success message.
 
             """
-            formatted_msg = f"{message}"
+            formatted_msg = f"✅ {message}"
             return FlextResult[str].ok(formatted_msg)
 
         def format_error_message(self, error: str) -> FlextResult[str]:
@@ -181,7 +191,7 @@ class FlextDbOracleCli(FlextService[str]):
             FlextResult[str]: Formatted error message.
 
             """
-            formatted_msg = f"{error}"
+            formatted_msg = f"❌ {error}"
             return FlextResult[str].ok(formatted_msg)
 
         def format_list_output(
@@ -300,7 +310,7 @@ class FlextDbOracleCli(FlextService[str]):
                 port=port,
                 service_name=service_name,
                 username=username,
-                password=password,
+                password=password or "",
                 timeout=timeout,
             )
             api = FlextDbOracleApi(config=config)

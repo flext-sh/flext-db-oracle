@@ -11,7 +11,7 @@ from typing import Protocol, runtime_checkable
 
 from flext_core import FlextResult
 from flext_core.protocols import p
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import m as m_db_oracle
 from flext_db_oracle.typings import t
 
 
@@ -220,7 +220,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> FlextResult[list[FlextDbOracleModels.DbOracle.Column]]:
+            ) -> FlextResult[list[m_db_oracle.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -237,7 +237,7 @@ class FlextDbOracleProtocols(p):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> FlextResult[FlextDbOracleModels.DbOracle.TableMetadata]:
+            ) -> FlextResult[m_db_oracle.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
                 Args:
@@ -354,7 +354,7 @@ class FlextDbOracleProtocols(p):
             def create_table_ddl(
                 self,
                 table: str,
-                columns: list[FlextDbOracleModels.DbOracle.Column],
+                columns: list[m_db_oracle.DbOracle.Column],
                 schema: str | None = None,
             ) -> FlextResult[str]:
                 """Generate Oracle CREATE TABLE DDL.
@@ -434,7 +434,7 @@ class FlextDbOracleProtocols(p):
 
             def get_metrics(
                 self,
-            ) -> FlextResult[FlextDbOracleModels.DbOracle.HealthStatus]:
+            ) -> FlextResult[m_db_oracle.DbOracle.HealthStatus]:
                 """Get collected Oracle metrics.
 
                 Returns:
@@ -523,7 +523,7 @@ class FlextDbOracleProtocols(p):
 
             def health_check(
                 self,
-            ) -> FlextResult[FlextDbOracleModels.DbOracle.HealthStatus]:
+            ) -> FlextResult[m_db_oracle.DbOracle.HealthStatus]:
                 """Perform Oracle database health check.
 
                 Returns:
@@ -534,7 +534,7 @@ class FlextDbOracleProtocols(p):
 
             def get_connection_status(
                 self,
-            ) -> FlextResult[FlextDbOracleModels.DbOracle.ConnectionStatus]:
+            ) -> FlextResult[m_db_oracle.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:

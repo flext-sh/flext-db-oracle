@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from typing import ClassVar, override
+from typing import override
 
 from flext_core import r
 from flext_core.service import FlextService
@@ -80,7 +80,15 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
-    user_preferences: ClassVar[t.DbOracle.ConnectionPool] = t.ConfigMap(root={})
+    user_preferences: t.ConfigMap = t.ConfigMap(
+        root={
+            "default_output_format": "table",
+            "show_execution_time": "True",
+            "auto_confirm_operations": "False",
+            "connection_timeout": 30,
+            "query_limit": 1000,
+        }
+    )
 
     def __init__(self, *, debug: bool = False, **kwargs: t.GeneralValueType) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -93,6 +101,17 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         # Application state - set debug value
         self.debug = debug
+
+        # Per-instance preferences (override class default with fresh instance)
+        self.user_preferences = t.ConfigMap(
+            root={
+                "default_output_format": "table",
+                "show_execution_time": "True",
+                "auto_confirm_operations": "False",
+                "connection_timeout": 30,
+                "query_limit": 1000,
+            }
+        )
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
@@ -157,7 +176,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Oracle connection failed: {connect_result.error}",
             )
 
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError, OSError) as e:
             return r[FlextDbOracleApi].fail(f"Connection error: {e}")
 
     def _execute_with_chain(

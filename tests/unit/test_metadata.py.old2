@@ -8,8 +8,6 @@ SPDX-License-Identifier: MIT
 
 """
 
-from typing import cast
-
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
@@ -145,8 +143,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test consistent error handling patterns across methods."""
         # All methods should return FlextResult and handle disconnected state gracefully
         methods_to_test = [
-            ("get_schemas", cast("list[str]", [])),
-            ("get_tables", cast("list[str]", [])),
+            ("get_schemas", cast(list[str], [])),
+            ("get_tables", cast(list[str], [])),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
 

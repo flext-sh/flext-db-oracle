@@ -86,8 +86,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get the Oracle configuration."""
         return self._oracle_config
 
-    @override
     @property
+    @override
     def config(self) -> FlextDbOracleSettings:
         """Get the configuration."""
         return self._oracle_config

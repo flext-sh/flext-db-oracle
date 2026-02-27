@@ -305,7 +305,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_json_empty(self) -> None:
         """Test JSON formatting with empty data."""
-        data = []
+        data: list[object] = []
         result = FlextDbOracleUtilities.format_query_result(data, "json")
         assert result.is_success
         formatted = result.value
@@ -331,7 +331,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
-        data = []
+        data: list[object] = []
         result = FlextDbOracleUtilities.format_query_result(data, "table")
         assert result.is_success
         formatted = result.value

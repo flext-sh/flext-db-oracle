@@ -21,9 +21,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @override
-    def execute(self, **_kwargs: t.JsonValue) -> r[bool]:
+    def execute(self) -> r[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
-        return r[bool].ok(True)
+        return r[None].ok(None)
 
     class ConnectCommand(m.Command):
         """Command to establish an Oracle database connection."""
@@ -210,7 +210,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         _bus: object | None = None,
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = FlextContainer.get_global().get("command_bus").unwrap()
+        dispatcher = cast("p.CommandBus", FlextContainer.get_global().get("command_bus").unwrap())
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[

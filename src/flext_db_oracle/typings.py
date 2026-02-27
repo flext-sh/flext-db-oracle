@@ -17,8 +17,7 @@ from __future__ import annotations
 from typing import Literal
 
 from flext_core import FlextTypes
-from flext_db_oracle.constants import c
-from flext_db_oracle.models import m as m_db_oracle
+from flext_db_oracle.models import FlextDbOracleModels
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations
@@ -44,7 +43,7 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type ConnectionConfiguration = m_db_oracle.DbOracle.ConnectionStatus
+        type ConnectionConfiguration = FlextDbOracleModels.DbOracle.ConnectionStatus
         type ConnectionPool = t.ConfigMap
         type ConnectionString = str
         type ConnectionParams = dict[str, str | int | bool]
@@ -63,7 +62,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type SqlQuery = str
         type QueryParameters = t.ConfigMap
-        type QueryResult = m_db_oracle.DbOracle.QueryResult
+        type QueryResult = FlextDbOracleModels.DbOracle.QueryResult
         type QueryMetadata = dict[str, str | int | dict[str, t.JsonValue]]
         type PreparedStatement = dict[str, str | dict[str, t.JsonValue]]
         type QueryExecution = dict[
@@ -98,7 +97,7 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SchemaDefinition = m_db_oracle.DbOracle.TableMetadata
+        type SchemaDefinition = FlextDbOracleModels.DbOracle.TableMetadata
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
         type ColumnDefinition = dict[
             str,
@@ -198,7 +197,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type OracleDataType = str
         type PythonDataType = type[object]
-        type TypeMapping = m_db_oracle.DbOracle.TypeMapping
+        type TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
         type DataConversion = dict[str, t.JsonValue | object]
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | t.JsonValue]
@@ -248,34 +247,34 @@ class FlextDbOracleTypes(FlextTypes):
 
     # Connection type literals - references StrEnum members from constants
     type ConnectionTypeLiteral = Literal[
-        c.DbOracle.OracleEnums.ConnectionType.SERVICE_NAME,
-        c.DbOracle.OracleEnums.ConnectionType.SID,
-        c.DbOracle.OracleEnums.ConnectionType.TNS,
+        "service_name",
+        "sid",
+        "tns",
     ]
     """Oracle connection type literal - references ConnectionType StrEnum members."""
 
     # Query type literals - references StrEnum members from constants
     type QueryTypeLiteral = Literal[
-        c.DbOracle.OracleEnums.QueryType.SELECT,
-        c.DbOracle.OracleEnums.QueryType.INSERT,
-        c.DbOracle.OracleEnums.QueryType.UPDATE,
-        c.DbOracle.OracleEnums.QueryType.DELETE,
-        c.DbOracle.OracleEnums.QueryType.CREATE,
-        c.DbOracle.OracleEnums.QueryType.DROP,
-        c.DbOracle.OracleEnums.QueryType.ALTER,
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE",
+        "CREATE",
+        "DROP",
+        "ALTER",
     ]
     """Oracle query type literal - references QueryType StrEnum members."""
 
     # Data type literals - references StrEnum members from constants
     type DataTypeLiteral = Literal[
-        c.DbOracle.OracleEnums.DataType.VARCHAR2,
-        c.DbOracle.OracleEnums.DataType.NUMBER,
-        c.DbOracle.OracleEnums.DataType.DATE,
-        c.DbOracle.OracleEnums.DataType.TIMESTAMP,
-        c.DbOracle.OracleEnums.DataType.CLOB,
-        c.DbOracle.OracleEnums.DataType.BLOB,
-        c.DbOracle.OracleEnums.DataType.CHAR,
-        c.DbOracle.OracleEnums.DataType.RAW,
+        "VARCHAR2",
+        "NUMBER",
+        "DATE",
+        "TIMESTAMP",
+        "CLOB",
+        "BLOB",
+        "CHAR",
+        "RAW",
     ]
     """Oracle data type literal - references DataType StrEnum members."""
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import os
 from types import SimpleNamespace
-from typing import ClassVar
+from typing import ClassVar, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -1345,6 +1345,10 @@ SPDX-License-Identifier: MIT
 class TestFlextDbOracleMetadataManagerComprehensive:
     """Comprehensive tests for metadata manager using real code paths."""
 
+    config: FlextDbOracleSettings
+    services: FlextDbOracleServices
+    manager: FlextDbOracleServices
+
     def setup_method(self) -> None:
         """Setup test configuration."""
         self.config = FlextDbOracleSettings(
@@ -1466,8 +1470,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test consistent error handling patterns across methods."""
         # All methods should return FlextResult and handle disconnected state gracefully
         methods_to_test = [
-            ("get_schemas", []),
-            ("get_tables", []),
+            ("get_schemas", cast("list[str]", [])),
+            ("get_tables", cast("list[str]", [])),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
 
@@ -1578,6 +1582,9 @@ SPDX-License-Identifier: MIT
 
 class TestFlextDbOracleConnectionSimple:
     """Simplified tests for Oracle connection using real code paths."""
+
+    config: FlextDbOracleSettings
+    connection: FlextDbOracleServices
 
     def setup_method(self) -> None:
         """Setup test configuration."""
