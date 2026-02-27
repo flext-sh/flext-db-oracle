@@ -86,7 +86,8 @@ class FlextDbOracleProtocols(p):
             """Protocol for Oracle database plugins.
 
             All plugins registered with the FlextDbOracle plugin system
-            must satisfy this protocol."""
+            must satisfy this protocol.
+            """
 
             def initialize(self) -> p.Result[bool]:
                 """Initialize the plugin."""
