@@ -488,10 +488,7 @@ class FlextDbOracleConstants(FlextConstants):
         class FeatureFlags:
             """Internal feature flags for the connection pool."""
 
-            @staticmethod
-            def dispatcher_enabled() -> bool:
-                """Return whether the dispatcher feature is enabled."""
-                return False
+            DISPATCHER_ENABLED: Final[bool] = False
 
         class Platform(c.Platform):
             """Oracle-specific platform constants extending base Platform."""
