@@ -508,7 +508,6 @@ class FlextDbOracleConstants(FlextConstants):
             HTTP_METHOD_PATCH: Final[str] = "PATCH"
 
 
-
 c = FlextDbOracleConstants
 
 __all__: list[str] = [
