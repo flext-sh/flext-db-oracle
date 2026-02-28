@@ -41,27 +41,21 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
     "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
-    "FlextDbOracleDispatcher": (
-        "flext_db_oracle.dispatcher",
-        "FlextDbOracleDispatcher",
-    ),
-    "FlextDbOracleExceptions": (
-        "flext_db_oracle.exceptions",
-        "FlextDbOracleExceptions",
-    ),
+    "FlextDbOracleDispatcher": ("flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"),
+    "FlextDbOracleExceptions": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
     "FlextDbOracleModels": ("flext_db_oracle.models", "FlextDbOracleModels"),
     "FlextDbOracleProtocols": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "FlextDbOracleServices": ("flext_db_oracle.services", "FlextDbOracleServices"),
     "FlextDbOracleSettings": ("flext_db_oracle.settings", "FlextDbOracleSettings"),
     "FlextDbOracleTypes": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
     "FlextDbOracleUtilities": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
-    "u": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
     "__version__": ("flext_db_oracle.__version__", "__version__"),
     "__version_info__": ("flext_db_oracle.__version__", "__version_info__"),
     "c": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
     "m": ("flext_db_oracle.models", "FlextDbOracleModels"),
     "p": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "t": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
+    "u": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
 }
 
 __all__ = [
