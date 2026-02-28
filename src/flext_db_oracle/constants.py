@@ -507,20 +507,6 @@ class FlextDbOracleConstants(FlextConstants):
             HTTP_METHOD_PUT: Final[str] = "PUT"
             HTTP_METHOD_PATCH: Final[str] = "PATCH"
 
-    Connection = DbOracle.Connection
-    OracleNetwork = DbOracle.OracleNetwork
-    Query = DbOracle.Query
-    DataTypes = DbOracle.DataTypes
-    OracleValidation = DbOracle.OracleValidation
-    ErrorMessages = DbOracle.ErrorMessages
-    OraclePerformance = DbOracle.OraclePerformance
-    IsolationLevels = DbOracle.IsolationLevels
-    OracleEnvironment = DbOracle.OracleEnvironment
-    OracleDefaults = DbOracle.OracleDefaults
-    OracleEnums = DbOracle.OracleEnums
-    Lists = DbOracle.Lists
-    FeatureFlags = DbOracle.FeatureFlags
-    Platform = DbOracle.Platform
 
 
 c = FlextDbOracleConstants
