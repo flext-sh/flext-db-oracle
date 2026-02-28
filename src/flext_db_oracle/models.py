@@ -12,8 +12,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from typing import ClassVar
 
-from flext_core import FlextModels, m, t
+from flext_core import FlextModels, t
 from flext_db_oracle.constants import c
 from pydantic import (
     BaseModel,
@@ -27,7 +28,7 @@ from pydantic import (
 class FlextDbOracleBaseModel(BaseModel):
     """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-    model_config = ConfigDict(
+    model_config: ClassVar[ConfigDict] = ConfigDict(
         use_enum_values=True,
         validate_default=True,
         str_strip_whitespace=True,
@@ -65,10 +66,10 @@ class FlextDbOracleModels(FlextModels):
             name: str
             definition: FlextDbOracleModels.DbOracle.SingerField
 
-        class ConnectionStatus(m.Entity):
+        class ConnectionStatus(FlextModels.Entity):
             """Connection status using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False)
+            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False)
 
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -199,10 +200,10 @@ class FlextDbOracleModels(FlextModels):
                 """Format connection time with units."""
                 return f"{value:.3f}s"
 
-        class QueryResult(m.Entity):
+        class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False)
+            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False)
 
             query: str
             result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
@@ -297,7 +298,7 @@ class FlextDbOracleModels(FlextModels):
                     f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
                 )
 
-        class OperationRecord(m.Entity):
+        class OperationRecord(FlextModels.Entity):
             """Operation tracking record for observability workflows."""
 
             operation_type: str
@@ -306,7 +307,7 @@ class FlextDbOracleModels(FlextModels):
             metadata_info: str = Field(default="", description="Operation metadata")
             timestamp: str
 
-        class HealthStatus(m.Entity):
+        class HealthStatus(FlextModels.Entity):
             """Service health status record."""
 
             status: str
@@ -320,7 +321,7 @@ class FlextDbOracleModels(FlextModels):
                 """Get item from health status."""
                 return self.model_dump().get(key)
 
-        class TableMetadata(m.Entity):
+        class TableMetadata(FlextModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
             table_name: str
@@ -338,7 +339,7 @@ class FlextDbOracleModels(FlextModels):
                 """Get item from table metadata."""
                 return self.model_dump().get(key)
 
-        class TypeMapping(m.Entity):
+        class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: Mapping[str, str] = Field(default_factory=dict)
@@ -355,19 +356,19 @@ class FlextDbOracleModels(FlextModels):
                 """Get number of type mappings."""
                 return len(self.mapping)
 
-        class SingerField(m.Entity):
+        class SingerField(FlextModels.Entity):
             """Singer field definition."""
 
             type: str | list[str] = "string"
 
-        class SingerSchema(m.Entity):
+        class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
 
             properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
                 default_factory=dict
             )
 
-        class Table(m.Entity):
+        class Table(FlextModels.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
@@ -376,7 +377,7 @@ class FlextDbOracleModels(FlextModels):
                 default_factory=list
             )
 
-        class Column(m.Entity):
+        class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
 
             name: str
@@ -408,7 +409,7 @@ class FlextDbOracleModels(FlextModels):
                 }
                 return key_map.get(key)
 
-        class Schema(m.Entity):
+        class Schema(FlextModels.Entity):
             """Schema metadata using flext-core Entity."""
 
             name: str
@@ -416,7 +417,7 @@ class FlextDbOracleModels(FlextModels):
                 default_factory=list
             )
 
-        class CreateIndexConfig(m.Entity):
+        class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
 
             table_name: str
@@ -430,7 +431,7 @@ class FlextDbOracleModels(FlextModels):
                 description="Parallel degree for index creation",
             )
 
-        class MergeStatementConfig(m.Entity):
+        class MergeStatementConfig(FlextModels.Entity):
             """Merge statement config using flext-core Entity."""
 
             target_table: str
@@ -439,43 +440,25 @@ class FlextDbOracleModels(FlextModels):
             update_columns: list[str] = Field(default_factory=list)
             insert_columns: list[str] = Field(default_factory=list)
 
-    ConnectionStatus = DbOracle.ConnectionStatus
-    QueryResult = DbOracle.QueryResult
-    TableMetadata = DbOracle.TableMetadata
-    TypeMapping = DbOracle.TypeMapping
-    SingerField = DbOracle.SingerField
-    SingerSchema = DbOracle.SingerSchema
-    Table = DbOracle.Table
-    Column = DbOracle.Column
-    Schema = DbOracle.Schema
-    CreateIndexConfig = DbOracle.CreateIndexConfig
-    MergeStatementConfig = DbOracle.MergeStatementConfig
+    ConnectionStatus: type[DbOracle.ConnectionStatus] = DbOracle.ConnectionStatus
+    QueryResult: type[DbOracle.QueryResult] = DbOracle.QueryResult
+    TableMetadata: type[DbOracle.TableMetadata] = DbOracle.TableMetadata
+    TypeMapping: type[DbOracle.TypeMapping] = DbOracle.TypeMapping
+    SingerField: type[DbOracle.SingerField] = DbOracle.SingerField
+    SingerSchema: type[DbOracle.SingerSchema] = DbOracle.SingerSchema
+    Table: type[DbOracle.Table] = DbOracle.Table
+    Column: type[DbOracle.Column] = DbOracle.Column
+    Schema: type[DbOracle.Schema] = DbOracle.Schema
+    CreateIndexConfig: type[DbOracle.CreateIndexConfig] = DbOracle.CreateIndexConfig
+    MergeStatementConfig: type[DbOracle.MergeStatementConfig] = (
+        DbOracle.MergeStatementConfig
+    )
 
-
-# Zero Tolerance: use FlextDbOracleModels.ClassName directly
 
 m = FlextDbOracleModels
-ConnectionStatus = FlextDbOracleModels.DbOracle.ConnectionStatus
-QueryResult = FlextDbOracleModels.DbOracle.QueryResult
-TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
-TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
-SingerSchema = FlextDbOracleModels.DbOracle.SingerSchema
-SingerField = FlextDbOracleModels.DbOracle.SingerField
-Table = FlextDbOracleModels.DbOracle.Table
-Column = FlextDbOracleModels.DbOracle.Column
-Schema = FlextDbOracleModels.DbOracle.Schema
 
 __all__ = [
-    "Column",
-    "ConnectionStatus",
     "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
-    "QueryResult",
-    "Schema",
-    "SingerField",
-    "SingerSchema",
-    "Table",
-    "TableMetadata",
-    "TypeMapping",
     "m",
 ]
