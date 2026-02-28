@@ -184,4 +184,5 @@ u = FlextDbOracleUtilities
 
 __all__ = [
     "FlextDbOracleUtilities",
+    "u",
 ]
