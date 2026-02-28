@@ -393,6 +393,17 @@ class FlextDbOracleConstants(FlextConstants):
         # Literal types moved to typings.py (t.* namespace) - NO string duplication!
         # Access via: t.ConnectionTypeLiteral, t.QueryTypeLiteral, t.DataTypeLiteral
 
+        class Literals:
+            """Type-safe string literals for Oracle operations (deprecated - use direct access).
+
+            Python 3.13+ best practice: Use type keyword for type aliases.
+            All Literal types are now at DbOracle level for direct access.
+            Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
+            """
+
+            EnvironmentLiteral = FlextConstants.Settings.Environment
+            LogLevelLiteral = FlextConstants.Settings.LogLevel
+
         class Lists:
             """Lists of constants for validation and iteration.
 
@@ -402,6 +413,7 @@ class FlextDbOracleConstants(FlextConstants):
 
             DRY Pattern: To avoid duplication, prefer using OracleEnums.DataType.VARCHAR2.value
             or OracleEnums.DataType.VARCHAR2 directly instead of Lists.VALID_DATA_TYPES.
+            These lists are kept for backward compatibility and validation convenience.
             """
 
             # NOTE: Values must match OracleEnums.DataType StrEnum exactly!

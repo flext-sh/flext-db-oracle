@@ -227,7 +227,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                FlextResult[list[t.ConfigMap]]: Column metadata or error
+                FlextResult[list[dict[str, t.JsonValue]]]: Column metadata or error
 
                 """
                 ...  # INTERFACE
@@ -244,7 +244,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                FlextResult[t.ConfigMap]: Table metadata or error
+                FlextResult[dict[str, t.JsonValue]]: Table metadata or error
 
                 """
                 ...  # INTERFACE
@@ -305,7 +305,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 data: Column data
 
                 Returns:
-                FlextResult[tuple[str, t.ConfigMap]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
 
                 """
                 ...  # INTERFACE
@@ -324,7 +324,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 where_clause: WHERE condition
 
                 Returns:
-                FlextResult[tuple[str, t.ConfigMap]]: SQL and parameters or error
+                FlextResult[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
 
                 """
                 ...  # INTERFACE
@@ -437,7 +437,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get collected Oracle metrics.
 
                 Returns:
-                FlextResult[t.ConfigMap]: Metrics data or error
+                FlextResult[dict[str, t.JsonValue]]: Metrics data or error
 
                 """
                 ...  # INTERFACE
@@ -526,7 +526,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Perform Oracle database health check.
 
                 Returns:
-                FlextResult[t.ConfigMap]: Health status or error
+                FlextResult[dict[str, t.JsonValue]]: Health status or error
 
                 """
                 ...  # INTERFACE
@@ -537,7 +537,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle connection status information.
 
                 Returns:
-                FlextResult[t.ConfigMap]: Connection status or error
+                FlextResult[dict[str, t.JsonValue]]: Connection status or error
 
                 """
                 ...  # INTERFACE

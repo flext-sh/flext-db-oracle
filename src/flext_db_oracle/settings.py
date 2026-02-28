@@ -330,6 +330,30 @@ class FlextDbOracleSettings(FlextSettings):
         }
 
     @classmethod
+    def from_env(cls, _prefix: str = "ORACLE_") -> r[FlextDbOracleSettings]:
+        """Create OracleConfig from environment variables.
+
+        **DEPRECATED**: Use `FlextDbOracleSettings.get_global_instance()` instead.
+        AutoConfig automatically loads from FLEXT_DB_ORACLE_* environment variables.
+
+        This method is kept for backward compatibility but uses Pydantic Settings
+        automatically via AutoConfig pattern.
+
+        Returns:
+            r[FlextDbOracleSettings]: Configuration or error.
+
+        """
+        try:
+            # Use AutoConfig singleton which automatically loads from environment
+            # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
+            config = cls.get_global_instance()
+            return r[FlextDbOracleSettings].ok(config)
+        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+            return r[FlextDbOracleSettings].fail(
+                f"Failed to create config from environment: {e}",
+            )
+
+    @classmethod
     def from_url(cls, url: str) -> r[FlextDbOracleSettings]:
         """Create OracleConfig from Oracle URL string.
 
