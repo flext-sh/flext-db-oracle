@@ -51,6 +51,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
 
 # Short aliases per FLEXT convention
 tm = TestsFlextDbOracleModels  # Primary test models alias
+m = TestsFlextDbOracleModels  # Production alias (for from tests.models import m)
 
 __all__ = [
     "TestsFlextDbOracleModels",

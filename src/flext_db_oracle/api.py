@@ -169,8 +169,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                     },
                     "connected": target.is_connected,
                     "plugin_count": plugin_count,
-                    "dispatcher_enabled": hasattr(target, "_dispatcher")
-                    and target._dispatcher is not None,
+                    "dispatcher_enabled": getattr(target, "_dispatcher", None)
+                    is not None,
                 },
             )
         return (

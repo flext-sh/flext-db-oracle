@@ -175,7 +175,6 @@ class FlextDbOracleCli(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
-        @override
         def __init__(self, cli_main: FlextCliCommands | None = None) -> None:
             """Initialize output formatter without external dependencies."""
             self._cli_main = cli_main
@@ -596,7 +595,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
-    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
+    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:  # type: ignore[override]
         """Execute domain service - required by FlextService.
 
         Returns:

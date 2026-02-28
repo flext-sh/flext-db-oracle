@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from flext_core import cleanup_submodule_namespace, lazy_getattr
 
@@ -41,14 +41,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
     "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
-    "FlextDbOracleDispatcher": (
-        "flext_db_oracle.dispatcher",
-        "FlextDbOracleDispatcher",
-    ),
-    "FlextDbOracleExceptions": (
-        "flext_db_oracle.exceptions",
-        "FlextDbOracleExceptions",
-    ),
+    "FlextDbOracleDispatcher": ("flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"),
+    "FlextDbOracleExceptions": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
     "FlextDbOracleModels": ("flext_db_oracle.models", "FlextDbOracleModels"),
     "FlextDbOracleProtocols": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "FlextDbOracleServices": ("flext_db_oracle.services", "FlextDbOracleServices"),
@@ -87,7 +81,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> t.GeneralValueType:
+def __getattr__(name: str) -> Any:  # noqa: ANN401
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 
