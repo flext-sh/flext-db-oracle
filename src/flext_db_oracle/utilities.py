@@ -9,7 +9,7 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
-from flext_core import FlextUtilities, r, u
+from flext_core import FlextUtilities, r, t, u
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BeforeValidator
@@ -82,7 +82,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             @staticmethod
             def coerced_enum[E: StrEnum](
                 enum_cls: type[E],
-            ) -> object:
+            ) -> Annotated[type[E], "Annotated StrEnum type"]:
                 """Create an Annotated StrEnum type with automatic coercion.
 
                 Args:
@@ -146,7 +146,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def format_query_result(
-        result: object,
+        result: t.GeneralValueType,
         format_type: str = "table",
     ) -> r[str]:
         """Format a query result to string or JSON."""
@@ -157,7 +157,7 @@ class FlextDbOracleUtilities(FlextUtilities):
     @staticmethod
     def generate_query_hash(
         query: str,
-        params: Mapping[str, object] | None,
+        params: Mapping[str, t.GeneralValueType] | None,
     ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         serialized = json.dumps(params or {}, sort_keys=True, default=str)

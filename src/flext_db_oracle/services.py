@@ -11,7 +11,7 @@ import time
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from importlib import import_module
-from typing import Protocol, Self, cast, override
+from typing import Self, override
 from urllib.parse import quote_plus
 
 from flext_core import FlextService, r, t
@@ -48,26 +48,16 @@ class _CountValue(BaseModel):
     value: int | str
 
 
-class _ObjectRows(RootModel[list[object]]):
+class _ObjectRows(RootModel[list[t.GeneralValueType]]):
     """Pydantic root model for generic list payloads."""
 
-    root: list[object]
+    root: list[t.GeneralValueType]
 
 
 _STRING_LIST_ADAPTER = TypeAdapter(list[str])
 
 
-class _PluginApiProtocol(Protocol):
-    def register_plugin(self, plugin: object) -> object: ...
-
-    def unregister_plugin(self, name: str) -> object: ...
-
-    def list_plugins(self) -> list[object]: ...
-
-    def get_plugin(self, name: str) -> object | None: ...
-
-
-def _validate_config_map(value: object) -> t.ConfigMap | None:
+def _validate_config_map(value: t.GeneralValueType) -> t.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
     try:
         return t.ConfigMap.model_validate(value)
@@ -82,7 +72,7 @@ def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
     return t.ConfigMap(root={})
 
 
-def _parse_rowcount(value: object) -> int:
+def _parse_rowcount(value: t.GeneralValueType) -> int:
     """Parse strict integer rowcount via Pydantic."""
     try:
         return _StrictIntValue.model_validate({"value": value}).value
@@ -90,7 +80,7 @@ def _parse_rowcount(value: object) -> int:
         return 0
 
 
-def _parse_count_value(value: object) -> int:
+def _parse_count_value(value: t.GeneralValueType) -> int:
     """Parse row count value accepting int or numeric string."""
     try:
         validated = _CountValue.model_validate({"value": value}).value
@@ -112,7 +102,7 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: object) -> list[object]:
+def _extract_object_rows(value: t.GeneralValueType) -> list[t.GeneralValueType]:
     """Extract list payload using Pydantic validation."""
     try:
         return _ObjectRows.model_validate(value).root
@@ -120,7 +110,7 @@ def _extract_object_rows(value: object) -> list[object]:
         return []
 
 
-def _sqlalchemy_create_engine(url: str) -> object:
+def _sqlalchemy_create_engine(url: str) -> t.GeneralValueType:
     """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
     sqlalchemy_module = import_module("sqlalchemy")
     create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
@@ -135,7 +125,7 @@ def _sqlalchemy_create_engine(url: str) -> object:
     )
 
 
-def _sqlalchemy_text(statement: str) -> object:
+def _sqlalchemy_text(statement: str) -> t.GeneralValueType:
     """Build SQL text object via runtime import."""
     sqlalchemy_module = import_module("sqlalchemy")
     text_func = getattr(sqlalchemy_module, "text", None)
@@ -145,7 +135,7 @@ def _sqlalchemy_text(statement: str) -> object:
     return text_func(statement)
 
 
-def _engine_connect(engine: object) -> object:
+def _engine_connect(engine: t.GeneralValueType) -> t.GeneralValueType:
     """Open connection context manager from engine."""
     connect_method = getattr(engine, "connect", None)
     if not callable(connect_method):
@@ -154,7 +144,7 @@ def _engine_connect(engine: object) -> object:
     return connect_method()
 
 
-def _engine_begin(engine: object) -> object:
+def _engine_begin(engine: t.GeneralValueType) -> t.GeneralValueType:
     """Open transaction context manager from engine."""
     begin_method = getattr(engine, "begin", None)
     if not callable(begin_method):
@@ -163,7 +153,7 @@ def _engine_begin(engine: object) -> object:
     return begin_method()
 
 
-def _context_enter(context_manager: object) -> object:
+def _context_enter(context_manager: t.GeneralValueType) -> t.GeneralValueType:
     """Enter dynamic context manager and return inner object."""
     enter_method = getattr(context_manager, "__enter__", None)
     if not callable(enter_method):
@@ -172,14 +162,14 @@ def _context_enter(context_manager: object) -> object:
     return enter_method()
 
 
-def _context_exit(context_manager: object) -> None:
+def _context_exit(context_manager: t.GeneralValueType) -> None:
     """Exit dynamic context manager safely."""
     exit_method = getattr(context_manager, "__exit__", None)
     if callable(exit_method):
         _ = exit_method(None, None, None)
 
 
-def _engine_dispose(engine: object) -> None:
+def _engine_dispose(engine: t.GeneralValueType) -> None:
     """Dispose engine resources through dynamic method lookup."""
     dispose_method = getattr(engine, "dispose", None)
     if callable(dispose_method):
@@ -187,10 +177,10 @@ def _engine_dispose(engine: object) -> None:
 
 
 def _connection_execute(
-    connection: object,
-    statement: object,
+    connection: t.GeneralValueType,
+    statement: t.GeneralValueType,
     parameters: t.ConfigMap | None = None,
-) -> object:
+) -> t.GeneralValueType:
     """Execute statement on dynamic SQL connection."""
     execute_method = getattr(connection, "execute", None)
     if not callable(execute_method):
@@ -207,7 +197,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Initialize with configuration."""
         super().__init__()
         self._db_config = config  # Use separate attribute for Oracle-specific config
-        self._engine: object | None = None
+        self._engine: t.GeneralValueType | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.JsonValue] = {}
 
@@ -801,7 +791,7 @@ ORDER BY column_id
         tags_payload = (
             typed_tags.root
             if typed_tags is not None
-            else cast("dict[str, t.JsonValue]", {})
+            else dict[str, t.JsonValue]()
         )
         metric_result = metric_factory(
             name=_name,
@@ -876,7 +866,7 @@ ORDER BY column_id
             plugin_type=str(plugin_payload.root.get("plugin_type", "utility")),
             metadata=plugin_payload.root,
         )
-        api = cast("_PluginApiProtocol", plugin_api_cls())
+        api = plugin_api_cls()
         register_result = api.register_plugin(plugin_entity)
         if getattr(register_result, "is_failure", False):
             return r.fail(
@@ -900,7 +890,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast("_PluginApiProtocol", plugin_api_cls())
+        api = plugin_api_cls()
         unregister_result = api.unregister_plugin(_name)
         if getattr(unregister_result, "is_failure", False):
             return r.fail(
@@ -921,7 +911,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast("_PluginApiProtocol", plugin_api_cls())
+        api = plugin_api_cls()
         plugins = api.list_plugins()
         plugin_names = [
             str(getattr(plugin, "name", ""))
@@ -944,7 +934,7 @@ ORDER BY column_id
         if not callable(plugin_api_cls):
             return r.fail("flext-plugin API contracts unavailable")
 
-        api = cast("_PluginApiProtocol", plugin_api_cls())
+        api = plugin_api_cls()
         plugin = api.get_plugin(_name)
         if plugin is None:
             return r.fail(f"Plugin '{_name}' not found")

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import cast, override
+from typing import override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
 from flext_db_oracle.services import FlextDbOracleServices
@@ -204,12 +204,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
         cls,
         services: FlextDbOracleServices,
         *,
-        _bus: object | None = None,
+        _bus: t.GeneralValueType | None = None,
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = cast(
-            "p.CommandBus", FlextContainer.get_global().get("command_bus").unwrap()
-        )
+        dispatcher = FlextContainer.get_global().get("command_bus").unwrap()
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[
@@ -229,7 +227,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         # Register each handler with strict API (handler must expose message_type)
         for handler_fn, _metadata in function_map.values():
             # Set message_type on handler for strict route discovery
-            dispatcher.register_handler(cast("t.HandlerType", handler_fn))
+            dispatcher.register_handler(handler_fn)
         return dispatcher
 
 

@@ -14,7 +14,7 @@ import contextlib
 import types
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Self, cast, override
+from typing import Self, override
 
 from flext_core import FlextRegistry, FlextService, m as m_core, r, t
 from flext_db_oracle.constants import c
@@ -152,7 +152,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             )
 
     @override
-    def to_dict(self, obj: object | None = None) -> m_core.ConfigMap:
+    def to_dict(self, obj: t.GeneralValueType | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
         target = obj if obj is not None else self
         if isinstance(target, FlextDbOracleApi):
@@ -433,7 +433,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         columns = list(first_row.keys())
         rows = [
             FlextDbOracleModels.DbOracle.RowData(
-                values=cast("list[t.JsonValue]", list(row.root.values()))
+                values=list(row.root.values())
             )
             for row in data
         ]

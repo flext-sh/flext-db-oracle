@@ -37,7 +37,7 @@ _JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
 _GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])
 
 
-def _validate_json_value(value: object) -> t.JsonValue | None:
+def _validate_json_value(value: t.GeneralValueType) -> t.JsonValue | None:
     """Validate JSON-compatible value with Pydantic."""
     try:
         return _JSON_VALUE_ADAPTER.validate_python(value)
@@ -45,7 +45,7 @@ def _validate_json_value(value: object) -> t.JsonValue | None:
         return None
 
 
-def _validate_config_map(value: object) -> t.ConfigMap | None:
+def _validate_config_map(value: t.GeneralValueType) -> t.ConfigMap | None:
     """Validate generic mapping payload with Pydantic."""
     try:
         return t.ConfigMap.model_validate(value)
@@ -53,7 +53,7 @@ def _validate_config_map(value: object) -> t.ConfigMap | None:
         return None
 
 
-def _validate_general_list(value: object) -> list[t.GeneralValueType] | None:
+def _validate_general_list(value: t.GeneralValueType) -> list[t.GeneralValueType] | None:
     """Validate list payload with Pydantic."""
     try:
         return _GENERAL_LIST_ADAPTER.validate_python(value)
@@ -61,7 +61,7 @@ def _validate_general_list(value: object) -> list[t.GeneralValueType] | None:
         return None
 
 
-def _collect_json_params(value: object) -> t.JsonDict:
+def _collect_json_params(value: t.GeneralValueType) -> t.JsonDict:
     """Collect JSON-safe parameters from dynamic input."""
     validated_params = _validate_config_map(value)
     if validated_params is None:
