@@ -9,8 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextResult
-from flext_core.protocols import p
+from flext_core import FlextResult, p
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.typings import t
 

@@ -9,8 +9,7 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
-from flext_core import r
-from flext_core.utilities import FlextUtilities, u
+from flext_core import FlextUtilities, r, u
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BeforeValidator

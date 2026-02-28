@@ -14,8 +14,7 @@ import json
 from collections.abc import Callable
 from typing import override
 
-from flext_core import r
-from flext_core.service import FlextService
+from flext_core import FlextService, r
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t

@@ -14,8 +14,7 @@ from importlib import import_module
 from typing import Protocol, Self, cast, override
 from urllib.parse import quote_plus
 
-from flext_core import r, t
-from flext_core.service import FlextService
+from flext_core import FlextService, r, t
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError

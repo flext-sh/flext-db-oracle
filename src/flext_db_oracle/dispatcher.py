@@ -9,10 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import cast, override
 
-from flext_core import FlextContainer, FlextRegistry, r, t
-from flext_core.models import m
-from flext_core.protocols import p
-from flext_core.service import FlextService
+from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
 from flext_db_oracle.services import FlextDbOracleServices
 from pydantic import Field
 

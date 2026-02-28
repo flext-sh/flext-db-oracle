@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core.exceptions import FlextExceptions
-from flext_core.typings import t
+from flext_core import FlextExceptions, t
 
 
 class FlextDbOracleExceptions(FlextExceptions):

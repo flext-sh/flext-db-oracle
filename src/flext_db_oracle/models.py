@@ -13,8 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from datetime import UTC, datetime
 
-from flext_core.models import FlextModels, m
-from flext_core.typings import t
+from flext_core import FlextModels, m, t
 from flext_db_oracle.constants import c
 from pydantic import (
     BaseModel,

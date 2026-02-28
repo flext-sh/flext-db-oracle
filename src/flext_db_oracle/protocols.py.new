@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
 from flext_core import FlextResult
-from flext_core.protocols import p
+from flext_core import p
 from flext_db_oracle.models import FlextDbOracleModels
 
 # Direct model class imports for type expressions

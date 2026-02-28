@@ -16,9 +16,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Self, cast, override
 
-from flext_core import m as m_core, r, t
-from flext_core.registry import FlextRegistry
-from flext_core.service import FlextService
+from flext_core import FlextRegistry, FlextService, m as m_core, r, t
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels

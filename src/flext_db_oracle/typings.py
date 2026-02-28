@@ -16,8 +16,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_core import FlextTypes
-from flext_core.typings import JsonValue, t as _core_t
+from flext_core import FlextTypes, t, t as _core_t
 from flext_db_oracle.models import FlextDbOracleModels
 
 # Direct model class imports for type alias use (FlextDbOracleModels.X.Y not valid in type expressions)

@@ -14,7 +14,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import ClassVar, Final
 
-from flext_core.constants import FlextConstants, c
+from flext_core import FlextConstants, c
 
 
 class FlextDbOracleConstants(FlextConstants):
