@@ -14,24 +14,16 @@ import json
 from collections.abc import Callable
 from typing import override
 
+import oracledb
 from flext_core import FlextService, r
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 from pydantic import TypeAdapter, ValidationError
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-try:
-    _oracledb_module = __import__("oracledb")
-    OracleDatabaseError = _oracledb_module.DatabaseError
-    OracleInterfaceError = _oracledb_module.InterfaceError
-except (ImportError, AttributeError):
-    OracleDatabaseError = ConnectionError
-    OracleInterfaceError = ConnectionError
-
-try:
-    from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
-except ImportError:
-    SQLAlchemyOperationalError = OSError  # type: ignore[assignment,misc]
+OracleDatabaseError = oracledb.DatabaseError
+OracleInterfaceError = oracledb.InterfaceError
 
 _JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
 _GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])

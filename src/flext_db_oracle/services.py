@@ -14,25 +14,15 @@ from importlib import import_module
 from typing import Self, override
 from urllib.parse import quote_plus
 
+import oracledb
 from flext_core import FlextService, r, t
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-try:
-    _oracledb_module = __import__("oracledb")
-    OracleDatabaseError = _oracledb_module.DatabaseError
-    OracleInterfaceError = _oracledb_module.InterfaceError
-except (ImportError, AttributeError):
-    OracleDatabaseError = ConnectionError
-    OracleInterfaceError = ConnectionError
-
-try:
-    from sqlalchemy.exc import OperationalError as _SQLAlchemyOperationalError
-
-    SQLAlchemyOperationalError: type[Exception] = _SQLAlchemyOperationalError
-except ImportError:
-    SQLAlchemyOperationalError = OSError  # type: ignore[assignment,misc]
+OracleDatabaseError = oracledb.DatabaseError
+OracleInterfaceError = oracledb.InterfaceError
 
 
 class _StrictIntValue(BaseModel):
@@ -221,7 +211,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r.fail(f"Failed to build connection URL: {e}")
 
-    def _get_engine(self) -> r[object]:
+    def _get_engine(self) -> r[t.GeneralValueType]:
         """Get database engine."""
         if not self._engine or not self.is_connected():
             return r.fail("Not connected to database")

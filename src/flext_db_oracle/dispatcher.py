@@ -213,7 +213,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         function_map: dict[
             type,
             tuple[
-                Callable[[object], t.GeneralValueType],
+                Callable[[t.GeneralValueType], t.GeneralValueType],
                 Mapping[str, t.JsonValue] | None,
             ],
         ] = {}
