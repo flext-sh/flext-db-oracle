@@ -313,14 +313,6 @@ class FlextDbOracleModels(FlextModels):
             status: str
             timestamp: str
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in health status."""
-                return key in self.model_dump()
-
-            def __getitem__(self, key: str) -> t.GeneralValueType:
-                """Get item from health status."""
-                return self.model_dump().get(key)
-
         class TableMetadata(FlextModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
@@ -331,30 +323,10 @@ class FlextDbOracleModels(FlextModels):
             )
             primary_keys: list[str] = Field(default_factory=list)
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in table metadata."""
-                return key in self.model_dump()
-
-            def __getitem__(self, key: str) -> t.GeneralValueType:
-                """Get item from table metadata."""
-                return self.model_dump().get(key)
-
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: Mapping[str, str] = Field(default_factory=dict)
-
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in type mapping."""
-                return key in self.mapping
-
-            def __getitem__(self, key: str) -> str:
-                """Get mapped type for key."""
-                return self.mapping[key]
-
-            def __len__(self) -> int:
-                """Get number of type mappings."""
-                return len(self.mapping)
 
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
@@ -388,27 +360,6 @@ class FlextDbOracleModels(FlextModels):
                 description="Default value for the column",
             )
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in column metadata."""
-                return key in {
-                    "name",
-                    "column_name",
-                    "data_type",
-                    "nullable",
-                    "default_value",
-                }
-
-            def __getitem__(self, key: str) -> t.GeneralValueType:
-                """Get item from column metadata."""
-                key_map = {
-                    "column_name": self.name,
-                    "name": self.name,
-                    "data_type": self.data_type,
-                    "nullable": self.nullable,
-                    "default_value": self.default_value,
-                }
-                return key_map.get(key)
-
         class Schema(FlextModels.Entity):
             """Schema metadata using flext-core Entity."""
 
@@ -439,20 +390,6 @@ class FlextDbOracleModels(FlextModels):
             merge_conditions: list[str]
             update_columns: list[str] = Field(default_factory=list)
             insert_columns: list[str] = Field(default_factory=list)
-
-    ConnectionStatus: type[DbOracle.ConnectionStatus] = DbOracle.ConnectionStatus
-    QueryResult: type[DbOracle.QueryResult] = DbOracle.QueryResult
-    TableMetadata: type[DbOracle.TableMetadata] = DbOracle.TableMetadata
-    TypeMapping: type[DbOracle.TypeMapping] = DbOracle.TypeMapping
-    SingerField: type[DbOracle.SingerField] = DbOracle.SingerField
-    SingerSchema: type[DbOracle.SingerSchema] = DbOracle.SingerSchema
-    Table: type[DbOracle.Table] = DbOracle.Table
-    Column: type[DbOracle.Column] = DbOracle.Column
-    Schema: type[DbOracle.Schema] = DbOracle.Schema
-    CreateIndexConfig: type[DbOracle.CreateIndexConfig] = DbOracle.CreateIndexConfig
-    MergeStatementConfig: type[DbOracle.MergeStatementConfig] = (
-        DbOracle.MergeStatementConfig
-    )
 
 
 m = FlextDbOracleModels

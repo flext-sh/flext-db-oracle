@@ -51,8 +51,8 @@ def _validate_config_map(value: t.GeneralValueType) -> t.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
     try:
         return t.ConfigMap.model_validate(value)
-    except ValidationError:
-        return None
+    except ValidationError as exc:
+        raise exc
 
 
 def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
@@ -67,6 +67,7 @@ def _parse_rowcount(value: t.GeneralValueType) -> int:
     try:
         return _StrictIntValue.model_validate({"value": value}).value
     except ValidationError:
+    except ValidationError:
         return 0
 
 
@@ -75,10 +76,12 @@ def _parse_count_value(value: t.GeneralValueType) -> int:
     try:
         validated = _CountValue.model_validate({"value": value}).value
     except ValidationError:
+    except ValidationError:
         return 0
 
     try:
         return int(validated)
+    except (TypeError, ValueError):
     except (TypeError, ValueError):
         return 0
 
@@ -88,6 +91,7 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     try:
         values = _STRING_LIST_ADAPTER.validate_python(value)
     except ValidationError:
+    except ValidationError:
         return str(value)
     return values[0] if values else "string"
 
@@ -96,8 +100,8 @@ def _extract_object_rows(value: t.GeneralValueType) -> list[t.GeneralValueType]:
     """Extract list payload using Pydantic validation."""
     try:
         return _ObjectRows.model_validate(value).root
-    except ValidationError:
-        return []
+    except ValidationError as exc:
+        raise exc
 
 
 def _sqlalchemy_create_engine(url: str) -> t.GeneralValueType:
@@ -649,6 +653,7 @@ ORDER BY column_id
                 sql = f"{sql} PARALLEL {config.parallel}"
             return r.ok(sql)
         except ValidationError as e:
+        except ValidationError as e:
             return r.fail(f"Invalid CREATE INDEX config: {e}")
 
     def create_table_ddl(
@@ -765,6 +770,7 @@ ORDER BY column_id
         try:
             observability_module = import_module("flext_observability")
         except ModuleNotFoundError:
+        except ModuleNotFoundError:
             return r.fail(
                 "flext-observability integration unavailable; install flext-observability"
             )
@@ -800,6 +806,7 @@ ORDER BY column_id
         """Get metrics status with explicit observability integration check."""
         try:
             observability_module = import_module("flext_observability")
+        except ModuleNotFoundError:
         except ModuleNotFoundError:
             return r.fail(
                 "flext-observability integration unavailable; install flext-observability"
@@ -839,6 +846,7 @@ ORDER BY column_id
             plugin_api_module = import_module("flext_plugin.api")
             plugin_models_module = import_module("flext_plugin.models")
         except ModuleNotFoundError:
+        except ModuleNotFoundError:
             return r.fail("flext-plugin integration unavailable; install flext-plugin")
 
         plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
@@ -874,6 +882,7 @@ ORDER BY column_id
         try:
             plugin_api_module = import_module("flext_plugin.api")
         except ModuleNotFoundError:
+        except ModuleNotFoundError:
             return r.fail("flext-plugin integration unavailable; install flext-plugin")
 
         plugin_api_cls = getattr(plugin_api_module, "FlextPluginApi", None)
@@ -894,6 +903,7 @@ ORDER BY column_id
         """List plugin names via flext-plugin when available."""
         try:
             plugin_api_module = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
         except ModuleNotFoundError:
             return r.fail("flext-plugin integration unavailable; install flext-plugin")
 
@@ -917,6 +927,7 @@ ORDER BY column_id
 
         try:
             plugin_api_module = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
         except ModuleNotFoundError:
             return r.fail("flext-plugin integration unavailable; install flext-plugin")
 
