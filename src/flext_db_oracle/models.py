@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import ClassVar
 
 from flext_core import FlextModels, t
 from flext_db_oracle.constants import c
@@ -23,17 +22,6 @@ from pydantic import (
     field_serializer,
     model_validator,
 )
-
-
-class FlextDbOracleBaseModel(BaseModel):
-    """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
-
-    model_config: ClassVar[ConfigDict] = ConfigDict(
-        use_enum_values=True,
-        validate_default=True,
-        str_strip_whitespace=True,
-        extra="forbid",
-    )
 
 
 class FlextDbOracleModels(FlextModels):
@@ -47,6 +35,16 @@ class FlextDbOracleModels(FlextModels):
 
     class DbOracle:
         """DbOracle domain namespace."""
+
+        class FlextDbOracleBaseModel(BaseModel):
+            """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
+
+            model_config = ConfigDict(
+                use_enum_values=True,
+                validate_default=True,
+                str_strip_whitespace=True,
+                extra="forbid",
+            )
 
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
@@ -69,7 +67,7 @@ class FlextDbOracleModels(FlextModels):
         class ConnectionStatus(FlextModels.Entity):
             """Connection status using flext-core Entity."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False)
+            model_config: ConfigDict = ConfigDict(frozen=False)
 
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -203,7 +201,7 @@ class FlextDbOracleModels(FlextModels):
         class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
 
-            model_config: ClassVar[ConfigDict] = ConfigDict(frozen=False)
+            model_config: ConfigDict = ConfigDict(frozen=False)
 
             query: str
             result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
@@ -313,20 +311,48 @@ class FlextDbOracleModels(FlextModels):
             status: str
             timestamp: str
 
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in health status."""
+                return key in self.model_dump()
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from health status."""
+                return self.model_dump().get(key)
+
         class TableMetadata(FlextModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
             table_name: str
             schema_name: str = ""
             columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=list,
+                default_factory=list
             )
             primary_keys: list[str] = Field(default_factory=list)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in table metadata."""
+                return key in self.model_dump()
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from table metadata."""
+                return self.model_dump().get(key)
 
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: Mapping[str, str] = Field(default_factory=dict)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in type mapping."""
+                return key in self.mapping
+
+            def __getitem__(self, key: str) -> str:
+                """Get mapped type for key."""
+                return self.mapping[key]
+
+            def __len__(self) -> int:
+                """Get number of type mappings."""
+                return len(self.mapping)
 
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
@@ -337,7 +363,7 @@ class FlextDbOracleModels(FlextModels):
             """Singer schema container with typed properties."""
 
             properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
-                default_factory=dict,
+                default_factory=dict
             )
 
         class Table(FlextModels.Entity):
@@ -346,7 +372,7 @@ class FlextDbOracleModels(FlextModels):
             name: str
             owner: str = ""
             columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
-                default_factory=list,
+                default_factory=list
             )
 
         class Column(FlextModels.Entity):
@@ -360,12 +386,33 @@ class FlextDbOracleModels(FlextModels):
                 description="Default value for the column",
             )
 
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in column metadata."""
+                return key in {
+                    "name",
+                    "column_name",
+                    "data_type",
+                    "nullable",
+                    "default_value",
+                }
+
+            def __getitem__(self, key: str) -> t.GeneralValueType:
+                """Get item from column metadata."""
+                key_map = {
+                    "column_name": self.name,
+                    "name": self.name,
+                    "data_type": self.data_type,
+                    "nullable": self.nullable,
+                    "default_value": self.default_value,
+                }
+                return key_map.get(key)
+
         class Schema(FlextModels.Entity):
             """Schema metadata using flext-core Entity."""
 
             name: str
             tables: list[FlextDbOracleModels.DbOracle.Table] = Field(
-                default_factory=list,
+                default_factory=list
             )
 
         class CreateIndexConfig(FlextModels.Entity):
@@ -395,7 +442,6 @@ class FlextDbOracleModels(FlextModels):
 m = FlextDbOracleModels
 
 __all__ = [
-    "FlextDbOracleBaseModel",
     "FlextDbOracleModels",
     "m",
 ]
