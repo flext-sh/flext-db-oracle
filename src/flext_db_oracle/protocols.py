@@ -9,21 +9,20 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextResult, p
+from flext_core import FlextProtocols, FlextResult
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.typings import t
 
 
-class FlextDbOracleProtocols(p):
-    """Oracle database protocols extending p.
+class FlextDbOracleProtocols(FlextProtocols):
+    """Oracle database protocols extending FlextProtocols.
 
-    Extends p to inherit all foundation protocols (Result, Service, etc.)
-    and adds Oracle-specific protocols in the Database namespace.
+    Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
+    and adds Oracle-specific protocols in the DbOracle namespace.
 
     Architecture:
-    - EXTENDS: p (inherits Foundation, Domain, Application, etc.)
-    - ADDS: Oracle-specific protocols in Database namespace
-    - PROVIDES: Root-level alias `p` for convenient access
+    - EXTENDS: FlextProtocols (inherits Foundation, Domain, Application, etc.)
+    - ADDS: Oracle-specific protocols in DbOracle namespace
 
     Usage:
     from flext_db_oracle.protocols import p

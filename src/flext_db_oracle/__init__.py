@@ -30,7 +30,10 @@ if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices
     from flext_db_oracle.settings import FlextDbOracleSettings
     from flext_db_oracle.typings import FlextDbOracleTypes, FlextDbOracleTypes as t
-    from flext_db_oracle.utilities import FlextDbOracleUtilities, FlextDbOracleUtilities as u
+    from flext_db_oracle.utilities import (
+        FlextDbOracleUtilities,
+        FlextDbOracleUtilities as u,
+    )
 
 # Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
@@ -38,8 +41,14 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
     "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
-    "FlextDbOracleDispatcher": ("flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"),
-    "FlextDbOracleExceptions": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
+    "FlextDbOracleDispatcher": (
+        "flext_db_oracle.dispatcher",
+        "FlextDbOracleDispatcher",
+    ),
+    "FlextDbOracleExceptions": (
+        "flext_db_oracle.exceptions",
+        "FlextDbOracleExceptions",
+    ),
     "FlextDbOracleModels": ("flext_db_oracle.models", "FlextDbOracleModels"),
     "FlextDbOracleProtocols": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "FlextDbOracleServices": ("flext_db_oracle.services", "FlextDbOracleServices"),
