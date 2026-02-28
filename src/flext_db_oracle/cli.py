@@ -34,7 +34,6 @@ try:
     OracleDatabaseError = _oracledb_module.DatabaseError
     OracleInterfaceError = _oracledb_module.InterfaceError
 except (ImportError, AttributeError):
-except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
 
@@ -92,7 +91,6 @@ class FlextDbOracleCli(FlextService[str]):
             cli_main = FlextCliCommands()
             self._cli_main = cli_main
             return FlextResult[FlextCliCommands].ok(cli_main)
-        except Exception as e:
         except Exception as e:
             return FlextResult[FlextCliCommands | None].fail(
                 f"FlextCliCommands initialization failed: {e}",
@@ -224,7 +222,6 @@ class FlextDbOracleCli(FlextService[str]):
                             parsed_item = NamedItem.model_validate(item)
                             string_items.append(parsed_item.name)
                         except ValidationError:
-                        except ValidationError:
                             string_items.append(str(item))
 
             if output_format == "table":
@@ -346,7 +343,6 @@ class FlextDbOracleCli(FlextService[str]):
 
             return FlextResult[HealthCheckReport].ok(result)
 
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
             error_result = HealthCheckReport(

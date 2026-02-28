@@ -19,7 +19,7 @@ from flext_core import FlextService, r
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
-from pydantic import TypeAdapter, ValidationError
+from pydantic import TypeAdapter
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 OracleDatabaseError = oracledb.DatabaseError
@@ -31,26 +31,19 @@ _GENERAL_LIST_ADAPTER = TypeAdapter(list[t.GeneralValueType])
 
 def _validate_json_value(value: t.GeneralValueType) -> t.JsonValue | None:
     """Validate JSON-compatible value with Pydantic."""
-    try:
-        return _JSON_VALUE_ADAPTER.validate_python(value)
-    except ValidationError as exc:
-        raise exc
+    return _JSON_VALUE_ADAPTER.validate_python(value)
 
 
 def _validate_config_map(value: t.GeneralValueType) -> t.ConfigMap | None:
     """Validate generic mapping payload with Pydantic."""
-    try:
-        return t.ConfigMap.model_validate(value)
-    except ValidationError as exc:
-        raise exc
+    return t.ConfigMap.model_validate(value)
 
 
-def _validate_general_list(value: t.GeneralValueType) -> list[t.GeneralValueType] | None:
+def _validate_general_list(
+    value: t.GeneralValueType,
+) -> list[t.GeneralValueType] | None:
     """Validate list payload with Pydantic."""
-    try:
-        return _GENERAL_LIST_ADAPTER.validate_python(value)
-    except ValidationError as exc:
-        raise exc
+    return _GENERAL_LIST_ADAPTER.validate_python(value)
 
 
 def _collect_json_params(value: t.GeneralValueType) -> t.JsonDict:
@@ -244,7 +237,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             )
 
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Operation failed: {e}")
 
     def _handle_list_schemas_operation(self) -> r[t.ConfigMap]:
@@ -341,7 +333,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Unsupported format: {format_type}",
             )
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Formatter strategy error: {e}",
             )
@@ -365,7 +356,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 ),
             )
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     def _build_table_string(self, adapted_data: list[t.ConfigMap]) -> str:
@@ -388,7 +378,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """
         try:
             return r[str].ok(json.dumps(data.root, indent=2, default=str))
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"JSON formatting failed: {e}")
 
@@ -446,7 +435,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             ]
             return r[list[t.ConfigMap]].ok(result)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[list[t.ConfigMap]].fail(
                 f"Data adaptation failed: {e}",
             )
@@ -483,7 +471,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             )
 
             return r[t.ConfigMap].ok(health_data)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Health check failed: {e}")
 
@@ -592,7 +579,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             )
             return r[bool].ok(True)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[bool].fail(f"Preference configuration failed: {e}")
 
     @classmethod
@@ -631,7 +617,6 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 )
 
             return r[str].fail(f"Unknown CLI operation: {operation}")
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"CLI command failed: {e}")
 

@@ -31,7 +31,6 @@ try:
     OracleDatabaseError = _oracledb_module.DatabaseError
     OracleInterfaceError = _oracledb_module.InterfaceError
 except (ImportError, AttributeError):
-except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
 
@@ -350,7 +349,6 @@ class FlextDbOracleSettings(FlextSettings):
             config = cls.get_global_instance()
             return r[FlextDbOracleSettings].ok(config)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from environment: {e}",
             )
@@ -408,7 +406,6 @@ class FlextDbOracleSettings(FlextSettings):
             )
 
             return r[FlextDbOracleSettings].ok(config)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from URL: {e}",

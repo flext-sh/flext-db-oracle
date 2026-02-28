@@ -438,11 +438,11 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 
 ```bash
 # Check what's available in flext-core test utilities
-PYTHONPATH=src python -c "from flext_tests.matchers import *; print(dir())"
+PYTHONPATH=src python -c "from flext_tests import *; print(dir())"
 
 # Fix: Update test imports to use correct flext-core utilities
-# Replace: from flext_tests.matchers import FlextTestsBuilders
-# With: from flext_tests.matchers import FlextTestsMatchers  # or correct import
+# Replace: from flext_tests import FlextTestsBuilders
+# With: from flext_tests import FlextTestsMatchers  # or correct import
 ```
 
 #### Pydantic Deprecation Warnings

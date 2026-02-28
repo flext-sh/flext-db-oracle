@@ -86,7 +86,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], t.GeneralValueType],
+            Callable[[t.GeneralValueType], t.GeneralValueType],
             Mapping[str, t.JsonValue] | None,
         ],
     ]:
@@ -98,7 +98,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
         def disconnect_handler(_cmd: t.GeneralValueType) -> t.GeneralValueType:
             return services.disconnect().is_success
 
-        def connection_test_handler(_command_data: t.GeneralValueType) -> t.GeneralValueType:
+        def connection_test_handler(
+            _command_data: t.GeneralValueType,
+        ) -> t.GeneralValueType:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection().map_or(False)
 
@@ -114,7 +116,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], t.GeneralValueType],
+            Callable[[t.GeneralValueType], t.GeneralValueType],
             Mapping[str, t.JsonValue] | None,
         ],
     ]:
@@ -138,7 +140,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = t.ConfigMap(root={})
             return services.fetch_one(sql, parameters).map_or(None)
 
-        def execute_statement_handler(command: t.GeneralValueType) -> t.GeneralValueType:
+        def execute_statement_handler(
+            command: t.GeneralValueType,
+        ) -> t.GeneralValueType:
             if isinstance(command, self.ExecuteStatementCommand):
                 sql = command.sql
                 parameters = command.parameters or t.ConfigMap(root={})
@@ -169,7 +173,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], t.GeneralValueType],
+            Callable[[t.GeneralValueType], t.GeneralValueType],
             Mapping[str, t.JsonValue] | None,
         ],
     ]:
@@ -207,7 +211,11 @@ class FlextDbOracleDispatcher(FlextService[None]):
         _bus: t.GeneralValueType | None = None,
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
-        dispatcher = FlextContainer.get_global().get("command_bus").unwrap()
+        disp = FlextContainer.get_global().get("command_bus").unwrap()
+        if not isinstance(disp, p.CommandBus):
+            msg = "command_bus is not CommandBus"
+            raise TypeError(msg)
+        dispatcher = disp
         _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
         # Create handler functions grouped by functionality
         function_map: dict[
