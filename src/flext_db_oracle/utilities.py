@@ -179,6 +179,10 @@ class FlextDbOracleUtilities(FlextUtilities):
         return r[FlextDbOracleSettings].ok(config_result.value)
 
 
+
+u = FlextDbOracleUtilities
+
+
 __all__ = [
     "FlextDbOracleUtilities",
 ]
