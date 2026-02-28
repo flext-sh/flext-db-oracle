@@ -956,14 +956,6 @@ ORDER BY column_id
             return r.fail("Plugin payload cannot be represented as JSON mapping")
         return r[t.JsonValue].ok(validated_payload.root)
 
-    def get_primary_key_columns(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
-    ) -> r[list[str]]:
-        """Alias for get_primary_keys."""
-        return self.get_primary_keys(table_name, schema_name)
-
     def get_table_row_count(
         self,
         table_name: str,
@@ -1022,7 +1014,7 @@ ORDER BY column_id
         """Get tracked operations."""
         return r.ok(self._operations.copy())
 
-    def _normalize_query_rows(self, query_result: object) -> list[t.Dict]:
+    def _normalize_query_rows(self, query_result: t.GeneralValueType) -> list[t.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mappings_method = getattr(query_result, "mappings", None)
         if not callable(mappings_method):
@@ -1033,7 +1025,7 @@ ORDER BY column_id
             for row in self._extract_mapping_rows(mapping_result)
         ]
 
-    def _extract_mapping_rows(self, mapping_result: object) -> list[object]:
+    def _extract_mapping_rows(self, mapping_result: t.GeneralValueType) -> list[t.GeneralValueType]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
@@ -1041,7 +1033,7 @@ ORDER BY column_id
         rows = all_method()
         return _extract_object_rows(rows)
 
-    def _normalize_row(self, row: object) -> t.Dict:
+    def _normalize_row(self, row: t.GeneralValueType) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         mapping = getattr(row, "_mapping", None)
         validated_mapping = _validate_config_map(mapping)
