@@ -76,7 +76,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             "auto_confirm_operations": "False",
             "connection_timeout": 30,
             "query_limit": 1000,
-        }
+        },
     )
 
     def __init__(self, *, debug: bool = False, **kwargs: t.GeneralValueType) -> None:
@@ -99,7 +99,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 "auto_confirm_operations": "False",
                 "connection_timeout": 30,
                 "query_limit": 1000,
-            }
+            },
         )
 
     @property
@@ -276,7 +276,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 root={
                     "rows": [row.root for row in rows],
                     "row_count": len(rows),
-                }
+                },
             ),
         )
 
@@ -467,7 +467,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     "port": self.current_connection.oracle_config.port,
                     "service_name": self.current_connection.oracle_config.service_name,
                     "timestamp": "now",  # Could use actual timestamp
-                }
+                },
             )
 
             return r[t.ConfigMap].ok(health_data)
@@ -485,7 +485,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             "list_schemas",
         )
         format_type = str(
-            self.user_preferences.root.get("default_output_format", "table")
+            self.user_preferences.root.get("default_output_format", "table"),
         )
         return self._format_and_display_result(operation_result, format_type)
 
@@ -501,7 +501,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             schema=schema or "",
         )
         format_type = str(
-            self.user_preferences.root.get("default_output_format", "table")
+            self.user_preferences.root.get("default_output_format", "table"),
         )
         return self._format_and_display_result(operation_result, format_type)
 
@@ -535,7 +535,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             params=query_params,
         )
         format_type = str(
-            self.user_preferences.root.get("default_output_format", "table")
+            self.user_preferences.root.get("default_output_format", "table"),
         )
         return self._format_and_display_result(operation_result, format_type)
 

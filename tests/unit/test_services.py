@@ -86,7 +86,8 @@ class _StubPluginApi:
     def unregister_plugin(self, plugin_name: str) -> _StubResult:
         if plugin_name not in self._registry:
             return _StubResult(
-                is_failure=True, error=f"Plugin '{plugin_name}' not found"
+                is_failure=True,
+                error=f"Plugin '{plugin_name}' not found",
             )
         del self._registry[plugin_name]
         return _StubResult()
@@ -588,7 +589,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 service_name="TEST",
                 username="testuser",
                 password="testpass",
-            )
+            ),
         )
 
     def test_build_create_index_statement_builds_real_sql(self) -> None:
@@ -652,7 +653,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.record_metric(
-            "db_query_duration", 12.5, t.ConfigMap(root={"k": "v"})
+            "db_query_duration",
+            12.5,
+            t.ConfigMap(root={"k": "v"}),
         )
         assert result.is_success
         assert len(calls) == 1
@@ -716,8 +719,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         plugin_models = SimpleNamespace(
             FlextPluginModels=SimpleNamespace(
-                Plugin=SimpleNamespace(Plugin=_StubPluginEntity)
-            )
+                Plugin=SimpleNamespace(Plugin=_StubPluginEntity),
+            ),
         )
         plugin_api = SimpleNamespace(FlextPluginApi=_StubPluginApi)
 

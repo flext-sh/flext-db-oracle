@@ -385,7 +385,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         else t.ConfigMap.model_validate(params)
                     )
                     result = _connection_execute(
-                        conn, _sqlalchemy_text(sql), typed_params
+                        conn,
+                        _sqlalchemy_text(sql),
+                        typed_params,
                     )
                     rowcount_raw = getattr(result, "rowcount", 0)
                     total_affected += _parse_rowcount(rowcount_raw)
@@ -448,7 +450,7 @@ ORDER BY column_id
                 root={
                     "table_name": table_name,
                     "schema_name": schema_name,
-                }
+                },
             )
         else:
             sql = """
@@ -467,7 +469,7 @@ ORDER BY column_id
                     default_value=str(row.root.get("data_default", "")),
                 )
                 for row in rows
-            ]
+            ],
         )
 
     def get_primary_keys(
@@ -491,7 +493,7 @@ ORDER BY column_id
                     root={
                         "table_name": table_name,
                         "schema": schema,
-                    }
+                    },
                 )
             else:
                 sql = """
@@ -624,7 +626,7 @@ ORDER BY column_id
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
-                _config
+                _config,
             )
             if not config.columns:
                 return r.fail("Index definition requires at least one column")
@@ -713,7 +715,7 @@ ORDER BY column_id
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
-            "mapping": normalized_mapping
+            "mapping": normalized_mapping,
         })
         return r.ok(type_mapping)
 
@@ -743,7 +745,7 @@ ORDER BY column_id
                 service_name=self._db_config.service_name,
                 username=self._db_config.username,
                 error_message="" if self.is_connected() else "Connection unavailable",
-            )
+            ),
         )
 
     @staticmethod
@@ -760,7 +762,7 @@ ORDER BY column_id
             observability_module = import_module("flext_observability")
         except ModuleNotFoundError:
             return r.fail(
-                "flext-observability integration unavailable; install flext-observability"
+                "flext-observability integration unavailable; install flext-observability",
             )
 
         metric_factory = getattr(observability_module, "flext_metric", None)
@@ -783,8 +785,10 @@ ORDER BY column_id
         if getattr(metric_result, "is_failure", False):
             return r.fail(
                 getattr(
-                    metric_result, "error", "Metric recording failed in observability"
-                )
+                    metric_result,
+                    "error",
+                    "Metric recording failed in observability",
+                ),
             )
         return r[bool].ok(True)
 
@@ -794,7 +798,7 @@ ORDER BY column_id
             observability_module = import_module("flext_observability")
         except ModuleNotFoundError:
             return r.fail(
-                "flext-observability integration unavailable; install flext-observability"
+                "flext-observability integration unavailable; install flext-observability",
             )
 
         metric_factory = getattr(observability_module, "flext_metric", None)
@@ -806,7 +810,7 @@ ORDER BY column_id
             FlextDbOracleModels.DbOracle.HealthStatus(
                 status=f"{status}_with_observability",
                 timestamp=self._get_current_timestamp(),
-            )
+            ),
         )
 
     def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
@@ -815,7 +819,7 @@ ORDER BY column_id
             FlextDbOracleModels.DbOracle.HealthStatus(
                 status="healthy" if self.is_connected() else "unhealthy",
                 timestamp=self._get_current_timestamp(),
-            )
+            ),
         )
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[bool]:
@@ -852,7 +856,7 @@ ORDER BY column_id
         register_result = api.register_plugin(plugin_entity)
         if getattr(register_result, "is_failure", False):
             return r.fail(
-                getattr(register_result, "error", "Plugin registration failed")
+                getattr(register_result, "error", "Plugin registration failed"),
             )
 
         self._plugins[_name] = _plugin
@@ -876,7 +880,7 @@ ORDER BY column_id
         unregister_result = api.unregister_plugin(_name)
         if getattr(unregister_result, "is_failure", False):
             return r.fail(
-                getattr(unregister_result, "error", f"Plugin '{_name}' not found")
+                getattr(unregister_result, "error", f"Plugin '{_name}' not found"),
             )
 
         self._plugins.pop(_name, None)
@@ -1030,7 +1034,7 @@ ORDER BY column_id
         if validated_mapping is None:
             return t.Dict(root={})
         return t.Dict(
-            root={str(key): value for key, value in validated_mapping.items()}
+            root={str(key): value for key, value in validated_mapping.items()},
         )
 
     def _parse_count_from_rows(self, rows: list[t.Dict]) -> int:

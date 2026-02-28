@@ -237,7 +237,7 @@ class FlextDbOracleCli(FlextService[str]):
                 # Simple YAML formatting - yaml is always available since imported
                 data = OutputPayload(title=title, items=string_items)
                 return FlextResult[str].ok(
-                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False)
+                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False),
                 )
             # Plain format
             output_lines = [title, *string_items]
@@ -264,7 +264,7 @@ class FlextDbOracleCli(FlextService[str]):
                         return FlextResult[str].ok(data.model_dump_json(indent=2))
                     case _:
                         return FlextResult[str].ok(
-                            json.dumps(data, indent=2, default=str)
+                            json.dumps(data, indent=2, default=str),
                         )
             if output_format == "yaml":
                 # YAML is always available since imported at module level

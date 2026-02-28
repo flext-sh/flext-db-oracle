@@ -319,7 +319,7 @@ class FlextDbOracleModels(FlextModels):
             table_name: str
             schema_name: str = ""
             columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=list
+                default_factory=list,
             )
             primary_keys: list[str] = Field(default_factory=list)
 
@@ -337,7 +337,7 @@ class FlextDbOracleModels(FlextModels):
             """Singer schema container with typed properties."""
 
             properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
-                default_factory=dict
+                default_factory=dict,
             )
 
         class Table(FlextModels.Entity):
@@ -346,7 +346,7 @@ class FlextDbOracleModels(FlextModels):
             name: str
             owner: str = ""
             columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
-                default_factory=list
+                default_factory=list,
             )
 
         class Column(FlextModels.Entity):
@@ -365,7 +365,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             tables: list[FlextDbOracleModels.DbOracle.Table] = Field(
-                default_factory=list
+                default_factory=list,
             )
 
         class CreateIndexConfig(FlextModels.Entity):

@@ -36,7 +36,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
-            default=None, description="Query parameters"
+            default=None,
+            description="Query parameters",
         )
 
     class FetchOneCommand(m.Command):
@@ -44,7 +45,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
         sql: str = Field(description="SQL query to execute")
         parameters: t.ConfigMap | None = Field(
-            default=None, description="Query parameters"
+            default=None,
+            description="Query parameters",
         )
 
     class ExecuteStatementCommand(m.Command):
@@ -52,7 +54,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
         sql: str = Field(description="SQL statement to execute")
         parameters: t.ConfigMap | None = Field(
-            default=None, description="Statement parameters"
+            default=None,
+            description="Statement parameters",
         )
 
     class ExecuteManyCommand(m.Command):
@@ -68,7 +71,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Command to list tables for an optional schema."""
 
         schema_name: str | None = Field(
-            default=None, description="Optional schema name"
+            default=None,
+            description="Optional schema name",
         )
 
     class GetColumnsCommand(m.Command):
@@ -76,7 +80,8 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
         table: str = Field(description="Table name")
         schema_name: str | None = Field(
-            default=None, description="Optional schema name"
+            default=None,
+            description="Optional schema name",
         )
 
     @classmethod

@@ -480,7 +480,7 @@ class FlextDbOracleConstants(FlextConstants):
             ]
 
         ConnectionTypeLiteral: Final[tuple[str, ...]] = tuple(
-            Lists.VALID_CONNECTION_TYPES
+            Lists.VALID_CONNECTION_TYPES,
         )
         QueryTypeLiteral: Final[tuple[str, ...]] = tuple(Lists.VALID_QUERY_TYPES)
         DataTypeLiteral: Final[tuple[str, ...]] = tuple(Lists.VALID_DATA_TYPES)

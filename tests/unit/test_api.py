@@ -850,7 +850,8 @@ class TestApiModule:
 
         @staticmethod
         def create_test_schema_data() -> dict[
-            str, str | list[dict[str, t.GeneralValueType]]
+            str,
+            str | list[dict[str, t.GeneralValueType]],
         ]:
             """Create test schema data."""
             return {

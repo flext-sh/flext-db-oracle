@@ -170,8 +170,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                     "connected": target.is_connected,
                     "plugin_count": plugin_count,
                     "dispatcher_enabled": hasattr(target, "_dispatcher")
-                    and getattr(target, "_dispatcher") is not None,
-                }
+                    and target._dispatcher is not None,
+                },
             )
         return (
             m_core.ConfigMap(root={})
@@ -339,7 +339,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return r[Mapping[str, t.JsonValue]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
             return r[Mapping[str, t.JsonValue]].fail(
-                f"Transaction status check failed: {e}"
+                f"Transaction status check failed: {e}",
             )
 
     # Utility Methods
