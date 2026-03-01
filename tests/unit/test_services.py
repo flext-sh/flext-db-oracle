@@ -1003,7 +1003,7 @@ class TestDirectCoverageBoostTypes:
         # Test various type validation scenarios
         # Column validation edge cases
         try:
-            column = FlextDbOracleModels.Column(
+            column = FlextDbOracleModels.DbOracle.Column(
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -1015,7 +1015,7 @@ class TestDirectCoverageBoostTypes:
 
         # Table validation edge cases
         try:
-            table = FlextDbOracleModels.Table(
+            table = FlextDbOracleModels.DbOracle.Table(
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[],  # Empty columns
@@ -1028,7 +1028,7 @@ class TestDirectCoverageBoostTypes:
         # Schema validation through valid column/table creation
         try:
             # Test edge case column properties
-            column2 = FlextDbOracleModels.Column(
+            column2 = FlextDbOracleModels.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
@@ -1043,7 +1043,7 @@ class TestDirectCoverageBoostTypes:
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
         # Test property methods that might not be covered
-        column = FlextDbOracleModels.Column(
+        column = FlextDbOracleModels.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -1062,7 +1062,7 @@ class TestDirectCoverageBoostTypes:
         assert repr_str is not None
 
         # Test with default value
-        column_with_default = FlextDbOracleModels.Column(
+        column_with_default = FlextDbOracleModels.DbOracle.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,
@@ -1436,12 +1436,12 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
         # Create columns
         columns = [
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -1449,7 +1449,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         ]
 
         # Create table
-        _ = FlextDbOracleModels.Table(
+        _ = FlextDbOracleModels.DbOracle.Table(
             name="TEST_TABLE",
             owner="TEST_SCHEMA",
             columns=columns,
@@ -1517,29 +1517,29 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test comprehensive DDL generation functionality using model methods."""
         # Test with various column types
         columns = [
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="CODE",
                 data_type="VARCHAR2",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="CREATED_DATE",
                 data_type="DATE",
                 nullable=True,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="AMOUNT",
                 data_type="NUMBER",
                 nullable=True,
             ),
         ]
 
-        table = FlextDbOracleModels.Table(
+        table = FlextDbOracleModels.DbOracle.Table(
             name="COMPLEX_TABLE",
             owner="APP_SCHEMA",
             columns=columns,

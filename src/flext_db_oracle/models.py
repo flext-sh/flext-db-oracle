@@ -67,7 +67,7 @@ class FlextDbOracleModels(FlextModels):
         class ConnectionStatus(FlextModels.Entity):
             """Connection status using flext-core Entity."""
 
-            model_config: ConfigDict = ConfigDict(frozen=False)
+            model_config = ConfigDict(frozen=False)
 
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -201,7 +201,7 @@ class FlextDbOracleModels(FlextModels):
         class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
 
-            model_config: ConfigDict = ConfigDict(frozen=False)
+            model_config = ConfigDict(frozen=False)
 
             query: str
             result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)

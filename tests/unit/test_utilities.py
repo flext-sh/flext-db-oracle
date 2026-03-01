@@ -269,21 +269,24 @@ class TestFlextDbOracleUtilities:
         """Test identifier at max length."""
         # Create identifier at max length (30 chars for Oracle)
         long_identifier = (
-            "a" * FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            "a"
+            * FlextDbOracleConstants.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
         )
         result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
         assert result.is_success
         escaped = result.value
         assert (
             len(escaped)
-            == FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 2
+            == FlextDbOracleConstants.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            + 2
         )  # quotes
 
     def test_escape_oracle_identifier_too_long(self) -> None:
         """Test identifier exceeding max length."""
         # This should still work since we just escape, validation happens elsewhere
         long_identifier = "a" * (
-            FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 1
+            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            + 1
         )
         result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
         assert result.is_success  # escaping doesn't validate length
@@ -459,7 +462,8 @@ class TestFlextDbOracleUtilities:
     def test_oracle_validation_validate_identifier_too_long(self) -> None:
         """Test identifier too long validation."""
         long_identifier = "A" * (
-            FlextDbOracleConstants.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH + 1
+            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+            + 1
         )
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
             long_identifier,

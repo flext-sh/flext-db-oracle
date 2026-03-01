@@ -23,13 +23,13 @@ class TestFlextDbOracleModels:
 
     def test_connection_status_creation_defaults(self) -> None:
         """Test ConnectionStatus creation with defaults."""
-        status = FlextDbOracleModels.ConnectionStatus()
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus()
         assert not status.is_connected
         assert status.error_message == ""
         assert status.connection_time == pytest.approx(0.0)
         assert status.session_id == ""
         assert status.host == ""
-        assert status.port == FlextDbOracleConstants.Connection.DEFAULT_PORT
+        assert status.port == FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         assert status.service_name == ""
         assert status.username == ""
         assert status.db_version == ""
@@ -37,7 +37,7 @@ class TestFlextDbOracleModels:
     def test_connection_status_creation_with_values(self) -> None:
         """Test ConnectionStatus creation with custom values."""
         now = datetime.now(UTC)
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             error_message="",
             connection_time=0.5,
@@ -59,7 +59,7 @@ class TestFlextDbOracleModels:
     def test_connection_status_computed_fields(self) -> None:
         """Test ConnectionStatus computed fields."""
         now = datetime.now(UTC)
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             last_activity=now,
             host="localhost",
@@ -94,7 +94,7 @@ class TestFlextDbOracleModels:
     def test_connection_status_performance_info(self) -> None:
         """Test ConnectionStatus performance rating."""
         # Excellent performance
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             connection_time=0.05,  # 50ms
         )
@@ -119,7 +119,7 @@ class TestFlextDbOracleModels:
     def test_connection_status_validation(self) -> None:
         """Test ConnectionStatus validation."""
         # Valid connected status
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             host="localhost",
             port=1521,
@@ -133,7 +133,7 @@ class TestFlextDbOracleModels:
             ValueError,
             match="Connected status requires host information",
         ):
-            FlextDbOracleModels.ConnectionStatus(
+            FlextDbOracleModels.DbOracle.ConnectionStatus(
                 is_connected=True,
                 host="",  # Empty host when connected
                 port=1521,
@@ -141,7 +141,7 @@ class TestFlextDbOracleModels:
 
         # Invalid port number
         with pytest.raises(ValueError, match="Invalid port number"):
-            FlextDbOracleModels.ConnectionStatus(
+            FlextDbOracleModels.DbOracle.ConnectionStatus(
                 is_connected=True,
                 host="localhost",
                 port=99999,  # Invalid port
@@ -149,12 +149,12 @@ class TestFlextDbOracleModels:
 
         # Invalid negative connection time
         with pytest.raises(ValueError, match="Connection time cannot be negative"):
-            FlextDbOracleModels.ConnectionStatus(connection_time=-1.0)
+            FlextDbOracleModels.DbOracle.ConnectionStatus(connection_time=-1.0)
 
     def test_connection_status_serialization(self) -> None:
         """Test ConnectionStatus field serialization."""
         now = datetime.now(UTC)
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             last_check=now,
             last_activity=now,
@@ -179,7 +179,7 @@ class TestFlextDbOracleModels:
 
     def test_query_result_creation_minimal(self) -> None:
         """Test QueryResult creation with minimal data."""
-        result = FlextDbOracleModels.QueryResult(query="SELECT 1")
+        result = FlextDbOracleModels.DbOracle.QueryResult(query="SELECT 1")
         assert result.query == "SELECT 1"
         assert result.row_count == 0
         assert result.execution_time_ms == 0
@@ -191,7 +191,7 @@ class TestFlextDbOracleModels:
 
     def test_query_result_creation_with_data(self) -> None:
         """Test QueryResult creation with full data."""
-        result = FlextDbOracleModels.QueryResult(
+        result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT id, name FROM users",
             columns=["id", "name"],
             rows=[[1, "John"], [2, "Jane"]],
@@ -209,7 +209,7 @@ class TestFlextDbOracleModels:
 
     def test_query_result_computed_fields(self) -> None:
         """Test QueryResult computed fields."""
-        result = FlextDbOracleModels.QueryResult(
+        result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1",
             execution_time_ms=2500,  # 2.5 seconds
             columns=["col1"],
@@ -239,7 +239,9 @@ class TestFlextDbOracleModels:
     def test_query_result_performance_ratings(self) -> None:
         """Test QueryResult performance rating categories."""
         # Excellent
-        result = FlextDbOracleModels.QueryResult(query="SELECT 1", execution_time_ms=50)
+        result = FlextDbOracleModels.DbOracle.QueryResult(
+            query="SELECT 1", execution_time_ms=50
+        )
         assert result.performance_rating == "Excellent"
 
         # Good
@@ -257,7 +259,7 @@ class TestFlextDbOracleModels:
     def test_query_result_validation(self) -> None:
         """Test QueryResult validation."""
         # Valid result
-        result = FlextDbOracleModels.QueryResult(
+        result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["id"],
             rows=[[1], [2]],
@@ -268,11 +270,13 @@ class TestFlextDbOracleModels:
 
         # Invalid: negative execution time
         with pytest.raises(ValueError, match="Execution time cannot be negative"):
-            FlextDbOracleModels.QueryResult(query="SELECT 1", execution_time_ms=-100)
+            FlextDbOracleModels.DbOracle.QueryResult(
+                query="SELECT 1", execution_time_ms=-100
+            )
 
         # Invalid: row/column mismatch (this should be caught)
         with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
-            FlextDbOracleModels.QueryResult(
+            FlextDbOracleModels.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],  # 2 columns
                 rows=[[1], [2]],  # 1 value per row
@@ -280,7 +284,7 @@ class TestFlextDbOracleModels:
 
     def test_query_result_serialization(self) -> None:
         """Test QueryResult field serialization."""
-        result = FlextDbOracleModels.QueryResult(
+        result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1",
             execution_time_ms=1500,  # 1.5 seconds
         )
@@ -298,7 +302,7 @@ class TestFlextDbOracleModels:
 
     def test_table_creation(self) -> None:
         """Test Table model creation."""
-        table = FlextDbOracleModels.Table(name="users", owner="hr")
+        table = FlextDbOracleModels.DbOracle.Table(name="users", owner="hr")
         assert table.name == "users"
         assert table.owner == "hr"
         assert table.columns == []
@@ -306,10 +310,14 @@ class TestFlextDbOracleModels:
     def test_table_with_columns(self) -> None:
         """Test Table with columns."""
         columns = [
-            FlextDbOracleModels.Column(name="id", data_type="NUMBER", nullable=False),
-            FlextDbOracleModels.Column(name="name", data_type="VARCHAR2(100)"),
+            FlextDbOracleModels.DbOracle.Column(
+                name="id", data_type="NUMBER", nullable=False
+            ),
+            FlextDbOracleModels.DbOracle.Column(name="name", data_type="VARCHAR2(100)"),
         ]
-        table = FlextDbOracleModels.Table(name="users", owner="hr", columns=columns)
+        table = FlextDbOracleModels.DbOracle.Table(
+            name="users", owner="hr", columns=columns
+        )
         assert len(table.columns) == 2
         assert table.columns[0].name == "id"
         assert table.columns[0].nullable is False
@@ -318,7 +326,7 @@ class TestFlextDbOracleModels:
 
     def test_column_creation(self) -> None:
         """Test Column model creation."""
-        column = FlextDbOracleModels.Column(
+        column = FlextDbOracleModels.DbOracle.Column(
             name="user_id",
             data_type="NUMBER(38)",
             nullable=False,
@@ -331,17 +339,17 @@ class TestFlextDbOracleModels:
 
     def test_schema_creation(self) -> None:
         """Test Schema model creation."""
-        schema = FlextDbOracleModels.Schema(name="hr")
+        schema = FlextDbOracleModels.DbOracle.Schema(name="hr")
         assert schema.name == "hr"
         assert schema.tables == []
 
     def test_schema_with_tables(self) -> None:
         """Test Schema with tables."""
         tables = [
-            FlextDbOracleModels.Table(name="users", owner="hr"),
-            FlextDbOracleModels.Table(name="orders", owner="hr"),
+            FlextDbOracleModels.DbOracle.Table(name="users", owner="hr"),
+            FlextDbOracleModels.DbOracle.Table(name="orders", owner="hr"),
         ]
-        schema = FlextDbOracleModels.Schema(name="hr", tables=tables)
+        schema = FlextDbOracleModels.DbOracle.Schema(name="hr", tables=tables)
         assert len(schema.tables) == 2
         assert schema.tables[0].name == "users"
         assert schema.tables[1].name == "orders"
@@ -352,7 +360,7 @@ class TestFlextDbOracleModels:
 
     def test_create_index_config_creation(self) -> None:
         """Test CreateIndexConfig creation."""
-        config = FlextDbOracleModels.CreateIndexConfig(
+        config = FlextDbOracleModels.DbOracle.CreateIndexConfig(
             table_name="users",
             index_name="idx_users_email",
             columns=["email"],
@@ -375,7 +383,7 @@ class TestFlextDbOracleModels:
 
     def test_merge_statement_config_creation(self) -> None:
         """Test MergeStatementConfig creation."""
-        config = FlextDbOracleModels.MergeStatementConfig(
+        config = FlextDbOracleModels.DbOracle.MergeStatementConfig(
             target_table="users",
             source_query="SELECT id, name FROM temp_users",
             merge_conditions=["t.id = s.id"],
@@ -402,7 +410,7 @@ class TestFlextDbOracleModels:
             pytest.skip("Oracle not available for integration test")
 
         # Create a connection status from real connection
-        status = FlextDbOracleModels.ConnectionStatus(
+        status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
             host="localhost",
             port=1521,
@@ -445,7 +453,7 @@ class TestFlextDbOracleModels:
         assert data[0]["name"] == "test"
 
         # Create QueryResult model from real data
-        result_model = FlextDbOracleModels.QueryResult(
+        result_model = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1 as id, 'test' as name FROM DUAL",
             columns=["id", "name"],
             rows=[[1, "test"]],
@@ -477,7 +485,7 @@ class TestFlextDbOracleModels:
             schemas = schemas_result.value
             if schemas:
                 # Create a table model representing real schema data
-                table = FlextDbOracleModels.Table(
+                table = FlextDbOracleModels.DbOracle.Table(
                     name="dual",  # DUAL table exists in Oracle
                     owner="SYS",
                 )

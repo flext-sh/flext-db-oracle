@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, TypeAlias
 
 from flext_core import FlextTypes, t as _core_t
 from flext_db_oracle.models import FlextDbOracleModels
@@ -25,7 +25,7 @@ _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
 _ConfigMap = _core_t.ConfigMap
-JsonValue = _core_t.JsonValue
+JsonValue: TypeAlias = _core_t.JsonValue
 
 # =============================================================================
 # DB ORACLE-SPECIFIC TYPE VARIABLES - Domain-specific TypeVars for Oracle operations

@@ -33,9 +33,9 @@ class TestFlextDbOracleConstants:
         assert hasattr(FlextDbOracleConstants, "Platform")
 
         # Should have Oracle-specific constants
-        assert hasattr(FlextDbOracleConstants, "Connection")
-        assert hasattr(FlextDbOracleConstants, "Query")
-        assert hasattr(FlextDbOracleConstants, "DataTypes")
+        assert hasattr(FlextDbOracleConstants.DbOracle, "Connection")
+        assert hasattr(FlextDbOracleConstants.DbOracle, "Query")
+        assert hasattr(FlextDbOracleConstants.DbOracle, "DataTypes")
 
     # =============================================================================
     # Connection constants tests
@@ -43,7 +43,7 @@ class TestFlextDbOracleConstants:
 
     def test_connection_constants(self) -> None:
         """Test connection-related constants."""
-        conn = FlextDbOracleConstants.Connection
+        conn = FlextDbOracleConstants.DbOracle.Connection
 
         # Default values
         assert conn.DEFAULT_CHARSET == "UTF8"
@@ -67,7 +67,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_network_constants(self) -> None:
         """Test Oracle-specific network constants."""
-        net = FlextDbOracleConstants.OracleNetwork
+        net = FlextDbOracleConstants.DbOracle.OracleNetwork
 
         assert net.MIN_PORT == 1
         assert net.MAX_PORT == 65535
@@ -81,7 +81,7 @@ class TestFlextDbOracleConstants:
 
     def test_query_constants(self) -> None:
         """Test query-related constants."""
-        query = FlextDbOracleConstants.Query
+        query = FlextDbOracleConstants.DbOracle.Query
 
         assert query.TEST_QUERY == "SELECT 1 FROM DUAL"
         assert query.DUAL_TABLE == "DUAL"
@@ -97,7 +97,7 @@ class TestFlextDbOracleConstants:
 
     def test_data_types_constants(self) -> None:
         """Test Oracle data type constants."""
-        dt = FlextDbOracleConstants.DataTypes
+        dt = FlextDbOracleConstants.DbOracle.DataTypes
 
         # Native Oracle types
         assert dt.DATE_TYPE == "DATE"
@@ -126,7 +126,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_validation_constants(self) -> None:
         """Test Oracle validation constants."""
-        val = FlextDbOracleConstants.OracleValidation
+        val = FlextDbOracleConstants.DbOracle.OracleValidation
 
         # Length limits
         assert val.MAX_ORACLE_IDENTIFIER_LENGTH == 30
@@ -171,7 +171,7 @@ class TestFlextDbOracleConstants:
 
     def test_error_messages_constants(self) -> None:
         """Test error message constants."""
-        err = FlextDbOracleConstants.ErrorMessages
+        err = FlextDbOracleConstants.DbOracle.ErrorMessages
 
         assert err.HOST_EMPTY == "Host cannot be empty"
         assert err.USERNAME_EMPTY == "Username cannot be empty"
@@ -197,7 +197,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_performance_constants(self) -> None:
         """Test Oracle performance constants."""
-        perf = FlextDbOracleConstants.OraclePerformance
+        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
 
         assert perf.DEFAULT_COMMIT_SIZE == 1000
         assert pytest.approx(5.0) == perf.PERFORMANCE_WARNING_THRESHOLD_SECONDS
@@ -224,7 +224,7 @@ class TestFlextDbOracleConstants:
 
     def test_isolation_levels_constants(self) -> None:
         """Test transaction isolation level constants."""
-        iso = FlextDbOracleConstants.IsolationLevels
+        iso = FlextDbOracleConstants.DbOracle.IsolationLevels
 
         assert iso.READ_UNCOMMITTED == "READ_UNCOMMITTED"
         assert iso.READ_COMMITTED == "READ_COMMITTED"
@@ -242,7 +242,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_environment_constants(self) -> None:
         """Test Oracle environment variable constants."""
-        env = FlextDbOracleConstants.OracleEnvironment
+        env = FlextDbOracleConstants.DbOracle.OracleEnvironment
 
         # Prefixes
         assert env.PREFIX_ORACLE == "ORACLE_"
@@ -276,7 +276,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_defaults_constants(self) -> None:
         """Test Oracle default configuration constants."""
-        defaults = FlextDbOracleConstants.OracleDefaults
+        defaults = FlextDbOracleConstants.DbOracle.OracleDefaults
 
         # Connection defaults
         assert defaults.DEFAULT_HOST == "localhost"
@@ -365,7 +365,7 @@ class TestFlextDbOracleConstants:
 
     def test_lists_constants(self) -> None:
         """Test list-type constants."""
-        lists = FlextDbOracleConstants.Lists
+        lists = FlextDbOracleConstants.DbOracle.Lists
 
         # Valid data types
         valid_types = lists.VALID_DATA_TYPES
@@ -410,7 +410,7 @@ class TestFlextDbOracleConstants:
 
     def test_feature_flags_functionality(self) -> None:
         """Test feature flag functionality."""
-        flags = FlextDbOracleConstants.FeatureFlags
+        flags = FlextDbOracleConstants.DbOracle.FeatureFlags
 
         # Test default behavior (flag not set)
         assert not flags.dispatcher_enabled()
@@ -443,7 +443,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_enums(self) -> None:
         """Test Oracle enumeration classes."""
-        enums = FlextDbOracleConstants.OracleEnums
+        enums = FlextDbOracleConstants.DbOracle.OracleEnums
 
         # ConnectionType enum
         conn_type = enums.ConnectionType
@@ -509,7 +509,7 @@ class TestFlextDbOracleConstants:
             pytest.skip("Oracle not available for integration test")
 
         # Test that TEST_QUERY actually works
-        test_query = FlextDbOracleConstants.Query.TEST_QUERY
+        test_query = FlextDbOracleConstants.DbOracle.Query.TEST_QUERY
         result = connected_oracle_api.query(test_query)
         assert result.is_success, f"TEST_QUERY failed: {result.error}"
 
@@ -517,7 +517,7 @@ class TestFlextDbOracleConstants:
         assert len(data) == 1, "TEST_QUERY should return exactly one row"
 
         # Test that DUAL_TABLE constant is valid
-        dual_query = f"SELECT 1 FROM {FlextDbOracleConstants.Query.DUAL_TABLE}"
+        dual_query = f"SELECT 1 FROM {FlextDbOracleConstants.DbOracle.Query.DUAL_TABLE}"
         result = connected_oracle_api.query(dual_query)
         assert result.is_success, f"DUAL_TABLE query failed: {result.error}"
 
@@ -532,12 +532,14 @@ class TestFlextDbOracleConstants:
             pytest.skip("Oracle not available for integration test")
 
         # Test DEFAULT_SERVICE_NAME
-        default_service = FlextDbOracleConstants.Connection.DEFAULT_SERVICE_NAME
+        default_service = (
+            FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
+        )
         assert isinstance(default_service, str)
         assert len(default_service) > 0
 
         # Test DEFAULT_PORT is valid
-        default_port = FlextDbOracleConstants.Connection.DEFAULT_PORT
+        default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         assert isinstance(default_port, int)
         assert (
             FlextConstants.Network.MIN_PORT
@@ -556,7 +558,7 @@ class TestFlextDbOracleConstants:
             pytest.skip("Oracle not available for integration test")
 
         # Test that we can create a table with the defined data types
-        dt = FlextDbOracleConstants.DataTypes
+        dt = FlextDbOracleConstants.DbOracle.DataTypes
 
         # Create a test table with various Oracle data types
         create_sql = f"""
@@ -589,7 +591,9 @@ class TestFlextDbOracleConstants:
             pytest.skip("Oracle not available for integration test")
 
         # Test MAX_IDENTIFIER_LENGTH
-        max_length = FlextDbOracleConstants.OracleValidation.MAX_IDENTIFIER_LENGTH
+        max_length = (
+            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
+        )
         assert isinstance(max_length, int)
         assert max_length > 0
 
@@ -599,7 +603,9 @@ class TestFlextDbOracleConstants:
         assert escaped.is_success
 
         # Test MAX_VARCHAR_LENGTH
-        max_varchar = FlextDbOracleConstants.OracleValidation.MAX_VARCHAR_LENGTH
+        max_varchar = (
+            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_VARCHAR_LENGTH
+        )
         assert max_varchar == 4000  # Oracle's VARCHAR2 limit
 
     @pytest.mark.unit_integration
@@ -622,7 +628,7 @@ class TestFlextDbOracleConstants:
         execution_ms = (end_time - start_time) * 1000
 
         # Test performance thresholds
-        perf = FlextDbOracleConstants.OraclePerformance
+        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
 
         if execution_ms < perf.QUERY_EXCELLENT_THRESHOLD_MS:
             assert execution_ms < 100
@@ -642,7 +648,7 @@ class TestFlextDbOracleConstants:
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
 
-        reserved = FlextDbOracleConstants.OracleValidation.ORACLE_RESERVED
+        reserved = FlextDbOracleConstants.DbOracle.OracleValidation.ORACLE_RESERVED
 
         # Test a few reserved words
         test_words = ["SELECT", "FROM", "WHERE", "TABLE", "INDEX"]

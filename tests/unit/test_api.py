@@ -167,7 +167,7 @@ class TestFlextDbOracleApiRealFunctionality:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
 
             # Verify feature flag is enabled
-            assert FlextDbOracleConstants.FeatureFlags.dispatcher_enabled()
+            assert FlextDbOracleConstants.DbOracle.FeatureFlags.dispatcher_enabled()
 
             # Test API creation with dispatcher enabled
             api = FlextDbOracleApi(self.config)
@@ -2081,7 +2081,7 @@ class TestDirectCoverageBoostTypes:
         # Test various type validation scenarios
         # Column validation edge cases
         try:
-            column = FlextDbOracleModels.Column(
+            column = FlextDbOracleModels.DbOracle.Column(
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -2093,7 +2093,7 @@ class TestDirectCoverageBoostTypes:
 
         # Table validation edge cases
         try:
-            table = FlextDbOracleModels.Table(
+            table = FlextDbOracleModels.DbOracle.Table(
                 name="TEST_TABLE",
                 schema="TEST_SCHEMA",
                 columns=[],  # Empty columns
@@ -2106,7 +2106,7 @@ class TestDirectCoverageBoostTypes:
         # Schema validation through valid column/table creation
         try:
             # Test edge case column properties
-            column2 = FlextDbOracleModels.Column(
+            column2 = FlextDbOracleModels.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
@@ -2121,7 +2121,7 @@ class TestDirectCoverageBoostTypes:
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
         # Test property methods that might not be covered
-        column = FlextDbOracleModels.Column(
+        column = FlextDbOracleModels.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -2140,7 +2140,7 @@ class TestDirectCoverageBoostTypes:
         assert repr_str is not None
 
         # Test with default value
-        column_with_default = FlextDbOracleModels.Column(
+        column_with_default = FlextDbOracleModels.DbOracle.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,

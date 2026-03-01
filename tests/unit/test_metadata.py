@@ -108,12 +108,12 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
         # Create columns
         columns = [
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -121,7 +121,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         ]
 
         # Create table
-        _ = FlextDbOracleModels.Table(
+        _ = FlextDbOracleModels.DbOracle.Table(
             name="TEST_TABLE",
             owner="TEST_SCHEMA",
             columns=columns,
@@ -189,29 +189,29 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test comprehensive DDL generation functionality using model methods."""
         # Test with various column types
         columns = [
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="CODE",
                 data_type="VARCHAR2",
                 nullable=False,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="CREATED_DATE",
                 data_type="DATE",
                 nullable=True,
             ),
-            FlextDbOracleModels.Column(
+            FlextDbOracleModels.DbOracle.Column(
                 name="AMOUNT",
                 data_type="NUMBER",
                 nullable=True,
             ),
         ]
 
-        table = FlextDbOracleModels.Table(
+        table = FlextDbOracleModels.DbOracle.Table(
             name="COMPLEX_TABLE",
             owner="APP_SCHEMA",
             columns=columns,

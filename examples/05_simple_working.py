@@ -38,11 +38,7 @@ def demonstrate_real_functionality() -> None:
         logger.info(f"📋 Host: {config.host}")
         logger.info(f"📋 Port: {config.port}")
         logger.info(f"📋 Service: {config.service_name}")
-        username_display = (
-            config.username.get_secret_value()[:3]
-            if hasattr(config.username, "get_secret_value")
-            else str(config.username)[:3]
-        )
+        username_display = str(config.username)[:3]
         logger.info("📋 Username: %s***", username_display)
 
         # 3. Demonstrate config validation
