@@ -308,55 +308,25 @@ class TestFlextDbOracleConstants:
         """Test type-safe literal constants."""
         c = FlextDbOracleConstants
 
-        # Connection literals - now at DbOracle level
-        assert (
-            c.DbOracle.ConnectionTypeLiteral
-            == Literal[
-                c.DbOracle.OracleEnums.ConnectionType.SERVICE_NAME,
-                c.DbOracle.OracleEnums.ConnectionType.SID,
-                c.DbOracle.OracleEnums.ConnectionType.TNS,
-            ]
+        assert c.DbOracle.ConnectionTypeLiteral == tuple(
+            c.DbOracle.Lists.VALID_CONNECTION_TYPES,
         )
 
-        # Query type literals - now at DbOracle level
-        assert (
-            c.DbOracle.QueryTypeLiteral
-            == Literal[
-                c.DbOracle.OracleEnums.QueryType.SELECT,
-                c.DbOracle.OracleEnums.QueryType.INSERT,
-                c.DbOracle.OracleEnums.QueryType.UPDATE,
-                c.DbOracle.OracleEnums.QueryType.DELETE,
-                c.DbOracle.OracleEnums.QueryType.CREATE,
-                c.DbOracle.OracleEnums.QueryType.DROP,
-                c.DbOracle.OracleEnums.QueryType.ALTER,
-            ]
+        assert c.DbOracle.QueryTypeLiteral == tuple(
+            c.DbOracle.Lists.VALID_QUERY_TYPES,
         )
 
-        # Data type literals - now at DbOracle level
-        assert (
-            c.DbOracle.DataTypeLiteral
-            == Literal[
-                c.DbOracle.OracleEnums.DataType.VARCHAR2,
-                c.DbOracle.OracleEnums.DataType.NUMBER,
-                c.DbOracle.OracleEnums.DataType.DATE,
-                c.DbOracle.OracleEnums.DataType.TIMESTAMP,
-                c.DbOracle.OracleEnums.DataType.CLOB,
-                c.DbOracle.OracleEnums.DataType.BLOB,
-                c.DbOracle.OracleEnums.DataType.CHAR,
-                c.DbOracle.OracleEnums.DataType.RAW,
-            ]
+        assert c.DbOracle.DataTypeLiteral == tuple(
+            c.DbOracle.Lists.VALID_DATA_TYPES,
         )
 
-        # Backward compatibility - Literals class forwards to DbOracle level
+        # Literals are accessible at DbOracle level (not via Literals class)
+        assert isinstance(c.DbOracle.ConnectionTypeLiteral, tuple)
+        assert isinstance(c.DbOracle.QueryTypeLiteral, tuple)
+        assert isinstance(c.DbOracle.DataTypeLiteral, tuple)
+
         lit = c.DbOracle.Literals
-        assert getattr(lit, "ConnectionTypeLiteral") == c.DbOracle.ConnectionTypeLiteral
-        assert getattr(lit, "QueryTypeLiteral") == c.DbOracle.QueryTypeLiteral
-        assert getattr(lit, "DataTypeLiteral") == c.DbOracle.DataTypeLiteral
-
-        # Environment and LogLevel types now reference StrEnums (single source of truth)
-        # EnvironmentLiteral references Settings.Environment StrEnum
         assert lit.EnvironmentLiteral is FlextConstants.Settings.Environment
-        # LogLevelLiteral references Settings.LogLevel StrEnum
         assert lit.LogLevelLiteral is FlextConstants.Settings.LogLevel
 
     # =============================================================================

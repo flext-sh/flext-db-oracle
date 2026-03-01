@@ -4,8 +4,11 @@ Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 
 Unit tests run in complete isolation. All Docker/Oracle-dependent
-fixtures from the root conftest are overridden here to return None
-or no-op, so unit tests never attempt Docker compose or Oracle connections.
+fixtures from the root conftest are overridden here so unit tests
+never attempt Docker compose or Oracle connections.
+
+Fixtures that return None: tests using them get mock fallbacks.
+Fixtures that pytest.skip: tests requiring real Oracle are auto-skipped.
 """
 
 from __future__ import annotations
@@ -13,62 +16,70 @@ from __future__ import annotations
 from collections.abc import Generator
 
 import pytest
+from flext_db_oracle import FlextDbOracleSettings
 
 
 @pytest.fixture(scope="session")
 def shared_oracle_container() -> str | None:
-    """Override: unit tests don't need Docker containers."""
     return None
 
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_shared_docker_container() -> None:
-    """Override: skip Docker container startup for unit tests."""
+    pass
 
 
 @pytest.fixture(scope="session")
 def docker_control() -> None:
-    """Override: no Docker control for unit tests."""
     return None
 
 
 @pytest.fixture(scope="session")
 def oracle_container() -> str | None:
-    """Override: no Oracle container for unit tests."""
     return None
 
 
 @pytest.fixture
-def real_oracle_config() -> None:
-    """Override: no real Oracle config for unit tests."""
-    return None
+def real_oracle_config() -> FlextDbOracleSettings:
+    pytest.skip("Oracle not available in unit tests")
 
 
 @pytest.fixture
 def oracle_api() -> None:
-    """Override: no Oracle API for unit tests."""
-    return None
+    pytest.skip("Oracle not available in unit tests")
 
 
 @pytest.fixture
 def connected_oracle_api() -> Generator[None]:
-    """Override: no connected Oracle API for unit tests."""
-    yield None
+    pytest.skip("Oracle not available in unit tests")
+
+
+@pytest.fixture
+def mock_oracle_config() -> FlextDbOracleSettings:
+    return FlextDbOracleSettings(
+        host="mock-host",
+        port=1521,
+        service_name="MOCK_SERVICE",
+        username="mock-user",
+        password="mock-pass",
+    )
+
+
+@pytest.fixture
+def oracle_config(mock_oracle_config: FlextDbOracleSettings) -> FlextDbOracleSettings:
+    return mock_oracle_config
 
 
 @pytest.fixture(autouse=True)
 def test_cleanup() -> Generator[None]:
-    """Override: no Oracle cleanup needed for unit tests."""
     yield
 
 
 @pytest.fixture
 def oracle_available() -> bool:
-    """Override: Oracle is never available in unit tests."""
     return False
 
 
 @pytest.fixture
 def test_database_setup() -> Generator[None]:
-    """Override: no database setup for unit tests."""
     yield None
