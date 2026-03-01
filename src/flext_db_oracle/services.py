@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import time
-from collections.abc import Generator, Mapping, Sequence
+from collections.abc import Generator, Iterable, Mapping, Sequence
 from contextlib import contextmanager
 from importlib import import_module
 from typing import Self, override
@@ -47,7 +47,7 @@ class _ObjectRows(RootModel[list[t.GeneralValueType]]):
 _STRING_LIST_ADAPTER = TypeAdapter(list[str])
 
 
-def _validate_config_map(value: t.GeneralValueType) -> t.ConfigMap | None:
+def _validate_config_map(value: object) -> t.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
     return t.ConfigMap.model_validate(value)
 
@@ -59,7 +59,7 @@ def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
     return t.ConfigMap(root={})
 
 
-def _parse_rowcount(value: t.GeneralValueType) -> int:
+def _parse_rowcount(value: object) -> int:
     """Parse strict integer rowcount via Pydantic."""
     try:
         return _StrictIntValue.model_validate({"value": value}).value
@@ -67,7 +67,7 @@ def _parse_rowcount(value: t.GeneralValueType) -> int:
         return 0
 
 
-def _parse_count_value(value: t.GeneralValueType) -> int:
+def _parse_count_value(value: object) -> int:
     """Parse row count value accepting int or numeric string."""
     try:
         validated = _CountValue.model_validate({"value": value}).value
@@ -89,12 +89,12 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: t.GeneralValueType) -> list[t.GeneralValueType]:
+def _extract_object_rows(value: object) -> list[t.GeneralValueType]:
     """Extract list payload using Pydantic validation."""
     return _ObjectRows.model_validate(value).root
 
 
-def _sqlalchemy_create_engine(url: str) -> t.GeneralValueType:
+def _sqlalchemy_create_engine(url: str) -> object:
     """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
     sqlalchemy_module = import_module("sqlalchemy")
     create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
@@ -109,7 +109,7 @@ def _sqlalchemy_create_engine(url: str) -> t.GeneralValueType:
     )
 
 
-def _sqlalchemy_text(statement: str) -> t.GeneralValueType:
+def _sqlalchemy_text(statement: str) -> object:
     """Build SQL text object via runtime import."""
     sqlalchemy_module = import_module("sqlalchemy")
     text_func = getattr(sqlalchemy_module, "text", None)
@@ -119,7 +119,7 @@ def _sqlalchemy_text(statement: str) -> t.GeneralValueType:
     return text_func(statement)
 
 
-def _engine_connect(engine: t.GeneralValueType) -> t.GeneralValueType:
+def _engine_connect(engine: object) -> object:
     """Open connection context manager from engine."""
     connect_method = getattr(engine, "connect", None)
     if not callable(connect_method):
@@ -128,7 +128,7 @@ def _engine_connect(engine: t.GeneralValueType) -> t.GeneralValueType:
     return connect_method()
 
 
-def _engine_begin(engine: t.GeneralValueType) -> t.GeneralValueType:
+def _engine_begin(engine: object) -> object:
     """Open transaction context manager from engine."""
     begin_method = getattr(engine, "begin", None)
     if not callable(begin_method):
@@ -137,7 +137,7 @@ def _engine_begin(engine: t.GeneralValueType) -> t.GeneralValueType:
     return begin_method()
 
 
-def _context_enter(context_manager: t.GeneralValueType) -> t.GeneralValueType:
+def _context_enter(context_manager: object) -> object:
     """Enter dynamic context manager and return inner object."""
     enter_method = getattr(context_manager, "__enter__", None)
     if not callable(enter_method):
@@ -146,14 +146,14 @@ def _context_enter(context_manager: t.GeneralValueType) -> t.GeneralValueType:
     return enter_method()
 
 
-def _context_exit(context_manager: t.GeneralValueType) -> None:
+def _context_exit(context_manager: object) -> None:
     """Exit dynamic context manager safely."""
     exit_method = getattr(context_manager, "__exit__", None)
     if callable(exit_method):
         _ = exit_method(None, None, None)
 
 
-def _engine_dispose(engine: t.GeneralValueType) -> None:
+def _engine_dispose(engine: object) -> None:
     """Dispose engine resources through dynamic method lookup."""
     dispose_method = getattr(engine, "dispose", None)
     if callable(dispose_method):
@@ -161,10 +161,10 @@ def _engine_dispose(engine: t.GeneralValueType) -> None:
 
 
 def _connection_execute(
-    connection: t.GeneralValueType,
-    statement: t.GeneralValueType,
+    connection: object,
+    statement: object,
     parameters: t.ConfigMap | None = None,
-) -> t.GeneralValueType:
+) -> object:
     """Execute statement on dynamic SQL connection."""
     execute_method = getattr(connection, "execute", None)
     if not callable(execute_method):
@@ -181,7 +181,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Initialize with configuration."""
         super().__init__()
         self._db_config = config  # Use separate attribute for Oracle-specific config
-        self._engine: t.GeneralValueType | None = None
+        self._engine: object | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.JsonValue] = {}
 
@@ -205,7 +205,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r.fail(f"Failed to build connection URL: {e}")
 
-    def _get_engine(self) -> r[t.GeneralValueType]:
+    def _get_engine(self) -> r[object]:
         """Get database engine."""
         if not self._engine or not self.is_connected():
             return r.fail("Not connected to database")
@@ -853,7 +853,10 @@ ORDER BY column_id
             metadata=plugin_payload.root,
         )
         api = plugin_api_cls()
-        register_result = api.register_plugin(plugin_entity)
+        register_method = getattr(api, "register_plugin", None)
+        if not callable(register_method):
+            return r.fail("Plugin API does not expose register_plugin()")
+        register_result = register_method(plugin_entity)
         if getattr(register_result, "is_failure", False):
             return r.fail(
                 getattr(register_result, "error", "Plugin registration failed"),
@@ -877,7 +880,10 @@ ORDER BY column_id
             return r.fail("flext-plugin API contracts unavailable")
 
         api = plugin_api_cls()
-        unregister_result = api.unregister_plugin(_name)
+        unregister_method = getattr(api, "unregister_plugin", None)
+        if not callable(unregister_method):
+            return r.fail("Plugin API does not expose unregister_plugin()")
+        unregister_result = unregister_method(_name)
         if getattr(unregister_result, "is_failure", False):
             return r.fail(
                 getattr(unregister_result, "error", f"Plugin '{_name}' not found"),
@@ -898,10 +904,16 @@ ORDER BY column_id
             return r.fail("flext-plugin API contracts unavailable")
 
         api = plugin_api_cls()
-        plugins = api.list_plugins()
+        list_plugins_method = getattr(api, "list_plugins", None)
+        if not callable(list_plugins_method):
+            return r.fail("Plugin API does not expose list_plugins()")
+        plugins_raw = list_plugins_method()
+        if not isinstance(plugins_raw, Iterable):
+            return r[t.ConfigMap].ok(t.ConfigMap(root={}))
+        plugins_list: list[object] = list(plugins_raw)
         plugin_names = [
             str(getattr(plugin, "name", ""))
-            for plugin in plugins
+            for plugin in plugins_list
             if str(getattr(plugin, "name", ""))
         ]
         return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
@@ -921,7 +933,10 @@ ORDER BY column_id
             return r.fail("flext-plugin API contracts unavailable")
 
         api = plugin_api_cls()
-        plugin = api.get_plugin(_name)
+        get_plugin_method = getattr(api, "get_plugin", None)
+        if not callable(get_plugin_method):
+            return r.fail("Plugin API does not expose get_plugin()")
+        plugin = get_plugin_method(_name)
         if plugin is None:
             return r.fail(f"Plugin '{_name}' not found")
 
@@ -1008,7 +1023,7 @@ ORDER BY column_id
         """Get tracked operations."""
         return r.ok(self._operations.copy())
 
-    def _normalize_query_rows(self, query_result: t.GeneralValueType) -> list[t.Dict]:
+    def _normalize_query_rows(self, query_result: object) -> list[t.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mappings_method = getattr(query_result, "mappings", None)
         if not callable(mappings_method):
@@ -1019,7 +1034,7 @@ ORDER BY column_id
             for row in self._extract_mapping_rows(mapping_result)
         ]
 
-    def _extract_mapping_rows(self, mapping_result: t.GeneralValueType) -> list[object]:
+    def _extract_mapping_rows(self, mapping_result: object) -> list[t.GeneralValueType]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
@@ -1027,7 +1042,7 @@ ORDER BY column_id
         rows = all_method()
         return _extract_object_rows(rows)
 
-    def _normalize_row(self, row: t.GeneralValueType) -> t.Dict:
+    def _normalize_row(self, row: object) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         mapping = getattr(row, "_mapping", None)
         validated_mapping = _validate_config_map(mapping)

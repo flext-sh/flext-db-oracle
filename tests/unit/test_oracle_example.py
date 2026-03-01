@@ -401,12 +401,9 @@ class TestRealOracleApi:
                 raise AssertionError(msg)
             # Success case - use modern .value access
             metadata = metadata_result.value
-            # Handle metadata as list of tables
+            # get_tables returns list[str] - compare directly
             if len(metadata) > 0:
-                table_info = metadata[0]
-                if isinstance(table_info, dict) and "table_name" in table_info:
-                    table_name_value = table_info["table_name"]
-                    assert str(table_name_value).upper() == table_name.upper()
+                assert str(metadata[0]).upper() == table_name.upper()
 
         finally:
             # Cleanup - drop table

@@ -207,14 +207,8 @@ class TestOracleIntegration:
             # If tables exist, test column information
             tables = tables_result.value
             if tables:
-                first_table = tables[0]
-                table_name = (
-                    first_table["name"]
-                    if isinstance(first_table, dict)
-                    else str(first_table)
-                )
-                # Cast table_name to string for type safety
-                table_name_str = str(table_name)
+                # get_tables returns list[str] - use directly
+                table_name_str = str(tables[0])
                 columns_result = connected_api.get_columns(table_name_str)
                 if columns_result.is_failure:
                     msg = f"Get columns failed: {columns_result.error}"

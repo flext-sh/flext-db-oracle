@@ -194,7 +194,10 @@ class TestFlextDbOracleModels:
         result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT id, name FROM users",
             columns=["id", "name"],
-            rows=[[1, "John"], [2, "Jane"]],
+            rows=[
+                FlextDbOracleModels.DbOracle.RowData(values=[1, "John"]),
+                FlextDbOracleModels.DbOracle.RowData(values=[2, "Jane"]),
+            ],
             execution_time_ms=150,
             query_hash="abc123",
             explain_plan="TABLE ACCESS FULL",
@@ -203,7 +206,10 @@ class TestFlextDbOracleModels:
         assert result.row_count == 2  # Should be auto-calculated
         assert result.execution_time_ms == 150
         assert result.columns == ["id", "name"]
-        assert result.rows == [[1, "John"], [2, "Jane"]]
+        assert result.rows == [
+            FlextDbOracleModels.DbOracle.RowData(values=[1, "John"]),
+            FlextDbOracleModels.DbOracle.RowData(values=[2, "Jane"]),
+        ]
         assert result.query_hash == "abc123"
         assert result.explain_plan == "TABLE ACCESS FULL"
 
@@ -213,7 +219,11 @@ class TestFlextDbOracleModels:
             query="SELECT 1",
             execution_time_ms=2500,  # 2.5 seconds
             columns=["col1"],
-            rows=[[1], [2], [3]],
+            rows=[
+                FlextDbOracleModels.DbOracle.RowData(values=[1]),
+                FlextDbOracleModels.DbOracle.RowData(values=[2]),
+                FlextDbOracleModels.DbOracle.RowData(values=[3]),
+            ],
         )
 
         # Test execution_time_seconds
@@ -262,7 +272,10 @@ class TestFlextDbOracleModels:
         result = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1",
             columns=["id"],
-            rows=[[1], [2]],
+            rows=[
+                FlextDbOracleModels.DbOracle.RowData(values=[1]),
+                FlextDbOracleModels.DbOracle.RowData(values=[2]),
+            ],
             execution_time_ms=100,
         )
         validated = result.model_validate(result.model_dump())
@@ -279,7 +292,10 @@ class TestFlextDbOracleModels:
             FlextDbOracleModels.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],  # 2 columns
-                rows=[[1], [2]],  # 1 value per row
+                rows=[
+                    FlextDbOracleModels.DbOracle.RowData(values=[1]),
+                    FlextDbOracleModels.DbOracle.RowData(values=[2]),
+                ],  # 1 value per row
             )
 
     def test_query_result_serialization(self) -> None:
@@ -456,7 +472,7 @@ class TestFlextDbOracleModels:
         result_model = FlextDbOracleModels.DbOracle.QueryResult(
             query="SELECT 1 as id, 'test' as name FROM DUAL",
             columns=["id", "name"],
-            rows=[[1, "test"]],
+            rows=[FlextDbOracleModels.DbOracle.RowData(values=[1, "test"])],
             execution_time_ms=50,
         )
 

@@ -148,12 +148,12 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
+    @staticmethod
     @override
-    def to_dict(self, obj: t.GeneralValueType | None = None) -> m_core.ConfigMap:
+    def to_dict(obj: t.GeneralValueType | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
-        target = obj if obj is not None else self
-        if isinstance(target, FlextDbOracleApi):
-            plugins_result = target.list_plugins()
+        if isinstance(obj, FlextDbOracleApi):
+            plugins_result = obj.list_plugins()
             plugin_count = (
                 len(plugins_result.value)
                 if plugins_result.is_success and plugins_result.value
@@ -162,21 +162,20 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return m_core.ConfigMap(
                 root={
                     "config": {
-                        "host": target.config.host,
-                        "port": target.config.port,
-                        "service_name": target.config.service_name,
-                        "username": target.config.username,
+                        "host": obj.config.host,
+                        "port": obj.config.port,
+                        "service_name": obj.config.service_name,
+                        "username": obj.config.username,
                     },
-                    "connected": target.is_connected,
+                    "connected": obj.is_connected,
                     "plugin_count": plugin_count,
-                    "dispatcher_enabled": getattr(target, "_dispatcher", None)
-                    is not None,
+                    "dispatcher_enabled": getattr(obj, "_dispatcher", None) is not None,
                 },
             )
         return (
             m_core.ConfigMap(root={})
-            if target is None
-            else m_core.ConfigMap(root={"value": str(target)})
+            if obj is None
+            else m_core.ConfigMap(root={"value": str(obj)})
         )
 
     @property

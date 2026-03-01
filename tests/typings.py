@@ -9,5 +9,5 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 
-class TestsFlextDbOracleTypes(FlextTestsTypes):
+class TestsFlextDbOracleTypes:
     """Test type aliases for flextdboracle."""

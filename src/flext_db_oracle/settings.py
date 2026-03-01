@@ -415,4 +415,4 @@ class FlextDbOracleSettings(FlextSettings):
     @override
     def reset_global_instance(cls) -> None:
         """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
-        # Clear any cached instances
+        super().reset_global_instance()

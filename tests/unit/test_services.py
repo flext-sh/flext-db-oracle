@@ -1196,42 +1196,25 @@ class TestDirectCoverageBoostServices:
         """Test services configuration and connection paths for complete coverage."""
         # Test all configuration scenarios
         configs = [
-            # Valid config
-            type("MockResponse", (), {"with_success_data": lambda self, data: data})()
-            .with_success_data(
-                FlextDbOracleSettings(
-                    host="test_host",
-                    port=1521,
-                    service_name="TEST",
-                    username="user",
-                    password="pass",
-                    ssl_server_cert_dn=None,
-                ),
-            )
-            .build(),
-            # Edge case config
-            type("MockResponse", (), {"with_success_data": lambda self, data: data})()
-            .with_success_data(
-                FlextDbOracleSettings(
-                    host="localhost",
-                    port=1,  # Edge case port
-                    service_name="X",  # Minimal service name
-                    username="a",  # Minimal user
-                    password="b",  # Minimal password
-                    ssl_server_cert_dn="test_dn",  # With SSL
-                ),
-            )
-            .build(),
+            FlextDbOracleSettings(
+                host="test_host",
+                port=1521,
+                service_name="TEST",
+                username="user",
+                password="pass",
+                ssl_server_cert_dn=None,
+            ),
+            FlextDbOracleSettings(
+                host="localhost",
+                port=1,
+                service_name="X",
+                username="a",
+                password="b",
+                ssl_server_cert_dn="test_dn",
+            ),
         ]
 
-        for config_result in configs:
-            # Type guard: ensure we have a FlextResult before passing to assert_result_success
-            if not hasattr(config_result, "is_success"):
-                continue  # Skip non-FlextResult items
-            assert config_result.is_success
-            # Use the result for accessing value
-            config = config_result.value
-
+        for config in configs:
             services = FlextDbOracleServices(config=config)
 
             # Test services initialization

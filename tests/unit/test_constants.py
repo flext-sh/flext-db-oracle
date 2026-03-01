@@ -410,7 +410,7 @@ class TestFlextDbOracleConstants:
 
     def test_feature_flags_functionality(self) -> None:
         """Test feature flag functionality."""
-        flags = FlextDbOracleConstants.DbOracle.FeatureFlags
+        flags = FlextDbOracleUtilities.DbOracle.FeatureFlags
 
         # Test default behavior (flag not set)
         assert not flags.dispatcher_enabled()
@@ -477,7 +477,7 @@ class TestFlextDbOracleConstants:
 
     def test_platform_extension(self) -> None:
         """Test Oracle-specific platform constants extending base Platform."""
-        platform = FlextDbOracleConstants.Platform
+        platform = FlextDbOracleConstants.DbOracle.Platform
 
         # Should have base Platform constants
         assert hasattr(platform, "LOOPBACK_IP")

@@ -65,48 +65,51 @@ def pytest_configure(config: pytest.Config) -> None:
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
-    docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
-    cleanup_result = docker.cleanup_dirty_containers()
-    if cleanup_result.is_failure:
-        logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
-    else:
-        cleaned = cleanup_result.value
-        if cleaned:
-            logger.info("Recreated dirty containers: %s", cleaned)
+    try:
+        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+        cleanup_result = docker.cleanup_dirty_containers()
+        if cleanup_result.is_failure:
+            logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
         else:
-            logger.debug("No dirty containers to clean")
-
+            cleaned = cleanup_result.value
+            if cleaned:
+                logger.info("Recreated dirty containers: %s", cleaned)
+            else:
+                logger.debug("No dirty containers to clean")
+    except Exception as e:
+        logger.warning(f"Docker cleanup skipped (unavailable): {e}")
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
     """Mark container dirty on Oracle service failures."""
     if call.excinfo is None:
         return
 
-    exc_type = call.excinfo.type
-    exc_msg = str(call.excinfo.value).lower()
+    try:
+        exc_type = call.excinfo.type
+        exc_msg = str(call.excinfo.value).lower()
 
-    # Lista de erros que indicam FALHA REAL DO SERVIÇO ORACLE
-    oracle_service_errors = [
-        "ora-",  # Oracle error codes
-        "connection refused",
-        "connection reset by peer",
-        "broken pipe",
-        "database not available",
-        "tns:",  # TNS errors
-    ]
+        oracle_service_errors = [
+            "ora-",
+            "connection refused",
+            "connection reset by peer",
+            "broken pipe",
+            "database not available",
+            "tns:",
+        ]
 
-    is_service_failure = any(
-        err in str(exc_type).lower() or err in exc_msg for err in oracle_service_errors
-    )
-
-    if is_service_failure:
-        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
-        docker.mark_container_dirty("flext-oracle-db-test")
-        logger.error(
-            f"ORACLE SERVICE FAILURE detected in {item.nodeid}, "
-            f"container marked DIRTY for recreation: {exc_msg}",
+        is_service_failure = any(
+            err in str(exc_type).lower() or err in exc_msg for err in oracle_service_errors
         )
 
+        if is_service_failure:
+            docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+            docker.mark_container_dirty("flext-oracle-db-test")
+            logger.error(
+                f"ORACLE SERVICE FAILURE detected in {item.nodeid}, "
+                f"container marked DIRTY for recreation: {exc_msg}",
+            )
+    except Exception:
+        pass
 
 @pytest.fixture(scope="session")
 def docker_control() -> FlextTestsDocker:
@@ -217,7 +220,7 @@ def shared_oracle_container(
             f"Container {container_name} did not become ready within {max_wait}s",
         )
 
-    yield container_name
+    return container_name
 
     # Keep container running after tests for future test runs
     # Only stop if explicitly requested or if there were infrastructure failures

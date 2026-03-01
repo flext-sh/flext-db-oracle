@@ -84,7 +84,7 @@ class TestBasicModelCreation:
 
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
-        column = Models.Column(
+        column = Models.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
