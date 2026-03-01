@@ -72,7 +72,7 @@ def oracle_config(mock_oracle_config: FlextDbOracleSettings) -> FlextDbOracleSet
 
 @pytest.fixture(autouse=True)
 def test_cleanup() -> Generator[None]:
-    yield
+    return
 
 
 @pytest.fixture
@@ -82,4 +82,4 @@ def oracle_available() -> bool:
 
 @pytest.fixture
 def test_database_setup() -> Generator[None]:
-    yield None
+    return None

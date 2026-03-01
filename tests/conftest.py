@@ -79,6 +79,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     except Exception as e:
         logger.warning(f"Docker cleanup skipped (unavailable): {e}")
 
+
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
     """Mark container dirty on Oracle service failures."""
     if call.excinfo is None:
@@ -98,11 +99,14 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
         ]
 
         is_service_failure = any(
-            err in str(exc_type).lower() or err in exc_msg for err in oracle_service_errors
+            err in str(exc_type).lower() or err in exc_msg
+            for err in oracle_service_errors
         )
 
         if is_service_failure:
-            docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+            docker = FlextTestsDocker(
+                workspace_root=Path(__file__).resolve().parents[2]
+            )
             docker.mark_container_dirty("flext-oracle-db-test")
             logger.error(
                 f"ORACLE SERVICE FAILURE detected in {item.nodeid}, "
@@ -110,6 +114,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             )
     except Exception:
         pass
+
 
 @pytest.fixture(scope="session")
 def docker_control() -> FlextTestsDocker:

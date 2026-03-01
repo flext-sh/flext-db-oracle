@@ -200,7 +200,9 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.escape_oracle_identifier("users")
         assert result.is_success
         escaped = result.value
-        assert escaped == "users"  # escape_oracle_identifier returns identifier[:max_len]
+        assert (
+            escaped == "users"
+        )  # escape_oracle_identifier returns identifier[:max_len]
 
     def test_escape_oracle_identifier_with_quotes(self) -> None:
         """Test identifier with quotes fails (non-alnum chars)."""
@@ -449,8 +451,7 @@ class TestFlextDbOracleUtilities:
     def test_oracle_validation_validate_identifier_too_long(self) -> None:
         """Test identifier too long validation."""
         long_identifier = "A" * (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
-            + 1
+            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1
         )
         result = FlextDbOracleUtilities.OracleValidation.validate_identifier(
             long_identifier,

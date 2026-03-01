@@ -11,7 +11,6 @@ import contextlib
 import os
 import time
 from enum import StrEnum
-from typing import Literal
 
 import pytest
 from flext_core import FlextConstants
