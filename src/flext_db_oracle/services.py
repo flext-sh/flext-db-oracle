@@ -19,7 +19,7 @@ from flext_core import FlextService, r, t
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 OracleDatabaseError = oracledb.DatabaseError

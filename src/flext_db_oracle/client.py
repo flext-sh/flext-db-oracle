@@ -20,6 +20,7 @@ from pydantic import TypeAdapter
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.models import m
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 

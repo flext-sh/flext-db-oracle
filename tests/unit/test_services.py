@@ -22,6 +22,7 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    m,
     t,
 )
 

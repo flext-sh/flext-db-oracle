@@ -20,7 +20,7 @@ from flext_core import FlextRegistry, FlextService, m as m_core, r, t
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 
