@@ -16,11 +16,12 @@ from typing import override
 
 import oracledb
 from flext_core import FlextService, r
+from pydantic import TypeAdapter
+from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
+
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
-from pydantic import TypeAdapter
-from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError

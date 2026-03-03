@@ -16,10 +16,11 @@ from urllib.parse import quote_plus
 
 import oracledb
 from flext_core import FlextService, r, t
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.settings import FlextDbOracleSettings
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
+
+from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError

@@ -16,6 +16,7 @@ from __future__ import annotations
 from collections.abc import Generator
 
 import pytest
+
 from flext_db_oracle import FlextDbOracleSettings
 
 

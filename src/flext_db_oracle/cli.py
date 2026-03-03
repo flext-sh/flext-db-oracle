@@ -24,10 +24,11 @@ from flext_core import (
     FlextService,
     t,
 )
+from pydantic import BaseModel, ValidationError
+
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
-from pydantic import BaseModel, ValidationError
 
 try:
     _oracledb_module = __import__("oracledb")

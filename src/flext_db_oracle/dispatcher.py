@@ -10,8 +10,9 @@ from collections.abc import Callable, Mapping
 from typing import override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
-from flext_db_oracle.services import FlextDbOracleServices
 from pydantic import Field
+
+from flext_db_oracle.services import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(FlextService[None]):

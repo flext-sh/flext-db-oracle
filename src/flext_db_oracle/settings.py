@@ -15,7 +15,6 @@ from typing import Annotated, override
 from urllib.parse import urlparse
 
 from flext_core import FlextSettings, r
-from flext_db_oracle.constants import c
 from pydantic import (
     BeforeValidator,
     Field,
@@ -25,6 +24,8 @@ from pydantic import (
     field_validator,
 )
 from pydantic_settings import SettingsConfigDict
+
+from flext_db_oracle.constants import c
 
 try:
     _oracledb_module = __import__("oracledb")

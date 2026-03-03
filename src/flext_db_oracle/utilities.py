@@ -10,9 +10,10 @@ from enum import StrEnum
 from typing import Annotated
 
 from flext_core import FlextUtilities, r, t, u
+from pydantic import BeforeValidator
+
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
-from pydantic import BeforeValidator
 
 
 class FlextDbOracleUtilities(FlextUtilities):

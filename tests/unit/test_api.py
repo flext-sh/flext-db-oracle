@@ -17,6 +17,8 @@ from typing import cast
 
 import pytest
 from flext_core import FlextResult
+from flext_tests import FlextTestsDomains, tm
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleModels,
@@ -25,7 +27,6 @@ from flext_db_oracle import (
     FlextDbOracleUtilities,
     t,
 )
-from flext_tests import FlextTestsDomains, tm
 
 
 class TestFlextDbOracleApiRealFunctionality:

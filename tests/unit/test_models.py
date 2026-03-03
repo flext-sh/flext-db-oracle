@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, FlextDbOracleSettings
 from flext_db_oracle.constants import FlextDbOracleConstants
 
