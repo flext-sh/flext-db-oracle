@@ -232,7 +232,7 @@ class TestOracleE2E:
                 )
 
             # Test schema mapping
-            singer_schema: dict[str, t.GeneralValueType] = {
+            singer_schema: dict[str, t.ContainerValue] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

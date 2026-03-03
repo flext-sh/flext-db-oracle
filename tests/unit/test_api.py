@@ -95,8 +95,8 @@ class TestFlextDbOracleApiRealFunctionality:
         # Verify config section with type casting
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
-        # Cast to proper dict[str, t.GeneralValueType] type for PyRight
-        config_dict: dict[str, t.GeneralValueType] = config_obj
+        # Cast to proper dict[str, t.ContainerValue] type for PyRight
+        config_dict: dict[str, t.ContainerValue] = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -266,7 +266,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert (
             metrics is not None
         )  # HealthStatus model from get_observability_metrics()
-        # Current implementation returns empty dict[str, t.GeneralValueType] - test actual behavior
+        # Current implementation returns empty dict[str, t.ContainerValue] - test actual behavior
         # This demonstrates the method works, even if metrics are not populated
 
     # Configuration Factory Methods Tests
@@ -545,7 +545,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         # Create test Singer schema
-        test_schema: dict[str, t.GeneralValueType] = {
+        test_schema: dict[str, t.ContainerValue] = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -830,7 +830,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, t.GeneralValueType]:
+        def create_test_oracle_config() -> dict[str, t.ContainerValue]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -852,7 +852,7 @@ class TestApiModule:
         @staticmethod
         def create_test_schema_data() -> dict[
             str,
-            str | list[dict[str, t.GeneralValueType]],
+            str | list[dict[str, t.ContainerValue]],
         ]:
             """Create test schema data."""
             return {
@@ -943,7 +943,7 @@ class TestApiModule:
 
         # Test query execution if method exists
         if hasattr(api, "query"):
-            result: FlextResult[list[t.Dict]] = api.query(
+            result: FlextResult[list[m.Dict]] = api.query(
                 str(test_query["query"]),
             )
             assert isinstance(result, FlextResult)
@@ -965,7 +965,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: FlextResult[int] = api.execute_sql(
                 str(test_query["query"]),
-                cast("dict[str, t.GeneralValueType]", test_query["params"]),
+                cast("dict[str, t.ContainerValue]", test_query["params"]),
             )
             assert isinstance(result, FlextResult)
 
@@ -1047,7 +1047,7 @@ class TestApiModule:
 
         # Test query operations
         if hasattr(api, "query"):
-            query_result: FlextResult[list[t.Dict]] = api.query(
+            query_result: FlextResult[list[m.Dict]] = api.query(
                 str(test_query["query"]),
             )
             assert isinstance(query_result, FlextResult)
@@ -1085,7 +1085,7 @@ class TestApiModule:
 
         # Test query execution error handling
         if hasattr(api, "query"):
-            query_result: FlextResult[list[t.Dict]] = api.query(
+            query_result: FlextResult[list[m.Dict]] = api.query(
                 invalid_query,
             )
             assert isinstance(query_result, FlextResult)
@@ -1226,7 +1226,7 @@ class TestApiModule:
         # Test query execution with realistic queries
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[t.Dict]] = api.query(
+                query_result: FlextResult[list[m.Dict]] = api.query(
                     str(query_data["query"]),
                 )
                 assert isinstance(query_result, FlextResult)
@@ -1316,7 +1316,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                result: FlextResult[list[t.Dict]] = api.query(
+                result: FlextResult[list[m.Dict]] = api.query(
                     sql,
                 )
                 results.append(result)
@@ -1450,7 +1450,7 @@ class TestFlextDbOracleApiSafeMethods:
             )
 
         # Create a test plugin directly
-        plugin: dict[str, t.GeneralValueType] = {
+        plugin: dict[str, t.ContainerValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1583,7 +1583,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config)
 
         # Create a plugin for testing directly
-        plugin: dict[str, t.GeneralValueType] = {
+        plugin: dict[str, t.ContainerValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1809,7 +1809,7 @@ class TestFlextDbOracleApiWorking:
         assert isinstance(api_from_config, FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, t.GeneralValueType] serialization methods."""
+        """Test dict[str, t.ContainerValue] serialization methods."""
         # These should work without database
         as_dict = self.api.to_dict()
         assert as_dict is not None  # ConfigMap from to_dict()

@@ -38,7 +38,7 @@ except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
 
-type CliScalar = str | int | float | bool | None
+type CliScalar = t.JsonPrimitive | None
 
 
 class NamedItem(BaseModel):

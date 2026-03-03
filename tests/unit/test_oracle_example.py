@@ -109,7 +109,7 @@ class TestRealOracleConnection:
             # Success case - use modern .value access
             fetch_data = result.value
             if fetch_data:
-                # fetch_one returns Union[dict, None], so we know it's a dict[str, t.GeneralValueType] if not None
+                # fetch_one returns Union[dict, None], so we know it's a dict[str, t.ContainerValue] if not None
                 assert isinstance(fetch_data, dict), (
                     f"Expected dict, got {type(fetch_data)}"
                 )
@@ -153,7 +153,7 @@ class TestRealOracleConnection:
             # Success case - table created successfully
 
             # Execute many inserts
-            params_list: list[dict[str, t.GeneralValueType]] = [
+            params_list: list[dict[str, t.ContainerValue]] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

@@ -20,11 +20,11 @@ from flext_core import t
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> list[dict[str, t.GeneralValueType]]:
+def _get_cli_examples() -> list[dict[str, t.ContainerValue]]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        list[dict[str, t.GeneralValueType]]: List of CLI command examples with metadata.
+        list[dict[str, t.ContainerValue]]: List of CLI command examples with metadata.
 
     """
     return [
@@ -88,7 +88,7 @@ def _get_cli_examples() -> list[dict[str, t.GeneralValueType]]:
     ]
 
 
-def _run_example_command(example: dict[str, t.GeneralValueType]) -> None:
+def _run_example_command(example: dict[str, t.ContainerValue]) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and not _check_oracle_env():
         return

@@ -93,7 +93,7 @@ class TestFlextDbOracleClientReal:
         # Should succeed and add the new preferences (no validation in current implementation)
         assert result.is_success is True
         # New preferences are added to the original ones
-        original_dict: dict[str, t.GeneralValueType] = (
+        original_dict: dict[str, t.ContainerValue] = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
             else dict(original_prefs)
@@ -500,7 +500,7 @@ class TestOutputFormatter:
         assert "item2" in output
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with dict[str, t.GeneralValueType] items."""
+        """Test list output formatting with dict[str, t.ContainerValue] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: list[NamedItem] = [
             NamedItem.model_validate({"name": "table1", "type": "TABLE"}),
@@ -613,7 +613,7 @@ class TestCliServiceOperations:
             FlextDbOracleApi,
             "get_health_status",
         ) as mock_health:
-            mock_health.return_value = FlextResult[dict[str, t.GeneralValueType]].fail(
+            mock_health.return_value = FlextResult[dict[str, t.ContainerValue]].fail(
                 "Database unreachable",
             )
 
@@ -768,7 +768,7 @@ class TestCliServiceOperations:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
 
-        mock_result: list[dict[str, t.GeneralValueType]] = [
+        mock_result: list[dict[str, t.ContainerValue]] = [
             {"id": 1, "name": "test"},
             {"id": 2, "name": "test2"},
         ]
@@ -780,7 +780,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
             mock_query.return_value = FlextResult[
-                list[dict[str, t.GeneralValueType]]
+                list[dict[str, t.ContainerValue]]
             ].ok(
                 mock_result,
             )

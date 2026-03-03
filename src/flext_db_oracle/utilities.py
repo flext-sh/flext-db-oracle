@@ -147,7 +147,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def format_query_result(
-        result: t.GeneralValueType,
+        result: t.ContainerValue,
         format_type: str = "table",
     ) -> r[str]:
         """Format a query result to string or JSON."""
@@ -158,7 +158,7 @@ class FlextDbOracleUtilities(FlextUtilities):
     @staticmethod
     def generate_query_hash(
         query: str,
-        params: Mapping[str, t.GeneralValueType] | None,
+        params: Mapping[str, t.ContainerValue] | None,
     ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         serialized = json.dumps(params or {}, sort_keys=True, default=str)

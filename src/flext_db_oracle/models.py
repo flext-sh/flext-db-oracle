@@ -316,7 +316,7 @@ class FlextDbOracleModels(FlextModels):
                 """Check if key is in health status."""
                 return key in self.model_dump()
 
-            def __getitem__(self, key: str) -> t.GeneralValueType:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
                 return self.model_dump().get(key)
 
@@ -334,7 +334,7 @@ class FlextDbOracleModels(FlextModels):
                 """Check if key is in table metadata."""
                 return key in self.model_dump()
 
-            def __getitem__(self, key: str) -> t.GeneralValueType:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
                 return self.model_dump().get(key)
 
@@ -397,7 +397,7 @@ class FlextDbOracleModels(FlextModels):
                     "default_value",
                 }
 
-            def __getitem__(self, key: str) -> t.GeneralValueType:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
                 key_map = {
                     "column_name": self.name,

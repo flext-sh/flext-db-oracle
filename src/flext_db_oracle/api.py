@@ -151,7 +151,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @staticmethod
     @override
-    def to_dict(obj: t.GeneralValueType | None = None) -> m_core.ConfigMap:
+    def to_dict(obj: t.ContainerValue | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
         if isinstance(obj, FlextDbOracleApi):
             plugins_result = obj.list_plugins()
@@ -212,68 +212,68 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query(
         self,
         sql: str,
-        parameters: Mapping[str, t.GeneralValueType] | None = None,
-    ) -> r[list[t.Dict]]:
+        parameters: Mapping[str, t.ContainerValue] | None = None,
+    ) -> r[list[m.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
-            t.ConfigMap.model_validate(parameters)
+            m.ConfigMap.model_validate(parameters)
             if parameters is not None
-            else t.ConfigMap(root={})
+            else m.ConfigMap(root={})
         )
         return self._services.execute_query(sql, query_params)
 
     def query_one(
         self,
         sql: str,
-        parameters: Mapping[str, t.GeneralValueType] | None = None,
-    ) -> r[t.Dict | None]:
+        parameters: Mapping[str, t.ContainerValue] | None = None,
+    ) -> r[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
-            t.ConfigMap.model_validate(parameters)
+            m.ConfigMap.model_validate(parameters)
             if parameters is not None
-            else t.ConfigMap(root={})
+            else m.ConfigMap(root={})
         )
         return self._services.fetch_one(sql, query_params)
 
     def execute_sql(
         self,
         sql: str,
-        parameters: Mapping[str, t.GeneralValueType] | None = None,
+        parameters: Mapping[str, t.ContainerValue] | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         query_params = (
-            t.ConfigMap.model_validate(parameters)
+            m.ConfigMap.model_validate(parameters)
             if parameters is not None
-            else t.ConfigMap(root={})
+            else m.ConfigMap(root={})
         )
         return self._services.execute_statement(sql, query_params)
 
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[Mapping[str, t.GeneralValueType]],
+        parameters_list: Sequence[Mapping[str, t.ContainerValue]],
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         typed_params_list = [
-            t.ConfigMap.model_validate(params) for params in parameters_list
+            m.ConfigMap.model_validate(params) for params in parameters_list
         ]
         return self._services.execute_many(sql, typed_params_list)
 
     def execute_statement(
         self,
         sql: str | t.JsonValue,
-        parameters: Mapping[str, t.GeneralValueType] | None = None,
+        parameters: Mapping[str, t.ContainerValue] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
         try:
             sql_text = str(sql)
             query_params = (
-                t.ConfigMap.model_validate(parameters)
+                m.ConfigMap.model_validate(parameters)
                 if parameters is not None
-                else t.ConfigMap(root={})
+                else m.ConfigMap(root={})
             )
             return self._services.execute_statement(sql_text, query_params)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
@@ -322,7 +322,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def map_singer_schema(
         self,
-        schema: Mapping[str, t.GeneralValueType],
+        schema: Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate(schema)
@@ -415,7 +415,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: list[t.Dict],
+        data: list[m.Dict],
     ) -> FlextDbOracleModels.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:
