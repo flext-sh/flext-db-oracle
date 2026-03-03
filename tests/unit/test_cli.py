@@ -613,7 +613,7 @@ class TestCliServiceOperations:
             FlextDbOracleApi,
             "get_health_status",
         ) as mock_health:
-            mock_health.return_value = FlextResult[dict[str, t.ContainerValue]].fail(
+            mock_health.return_value = FlextResult[t.ConfigurationMapping].fail(
                 "Database unreachable",
             )
 
@@ -780,7 +780,7 @@ class TestCliServiceOperations:
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
             mock_query.return_value = FlextResult[
-                list[dict[str, t.ContainerValue]]
+                list[t.ConfigurationMapping]
             ].ok(
                 mock_result,
             )
