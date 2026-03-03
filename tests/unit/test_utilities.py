@@ -13,6 +13,7 @@ import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
 from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle.settings import FlextDbOracleSettings
 
 
 @pytest.mark.unit_pure
@@ -364,8 +365,6 @@ class TestFlextDbOracleUtilities:
         """Test config creation returns FlextDbOracleSettings (not dict)."""
         # create_config_from_env uses FlextDbOracleSettings.from_env() which uses singleton
         # It returns r[FlextDbOracleSettings], not r[dict]
-        from flext_db_oracle.settings import FlextDbOracleSettings
-
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
@@ -376,8 +375,6 @@ class TestFlextDbOracleUtilities:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT_DB_ORACLE_* environment variables."""
-        from flext_db_oracle.settings import FlextDbOracleSettings
-
         # Settings reads FLEXT_DB_ORACLE_* prefix, not ORACLE_*
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
@@ -399,8 +396,6 @@ class TestFlextDbOracleUtilities:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT_DB_ORACLE prefix."""
-        from flext_db_oracle.settings import FlextDbOracleSettings
-
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "flext-user")
         FlextDbOracleSettings.reset_global_instance()
@@ -417,8 +412,6 @@ class TestFlextDbOracleUtilities:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation reads FLEXT_DB_ORACLE_ prefix only."""
-        from flext_db_oracle.settings import FlextDbOracleSettings
-
         # ORACLE_HOST is NOT the same as FLEXT_DB_ORACLE_HOST
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
