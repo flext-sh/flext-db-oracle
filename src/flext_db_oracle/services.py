@@ -651,9 +651,7 @@ ORDER BY column_id
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[
-            FlextDbOracleModels.DbOracle.Column | t.ConfigurationMapping
-        ],
+        columns: Sequence[FlextDbOracleModels.DbOracle.Column | t.ConfigurationMapping],
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""

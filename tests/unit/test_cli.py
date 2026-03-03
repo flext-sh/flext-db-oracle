@@ -779,9 +779,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = FlextResult[
-                list[t.ConfigurationMapping]
-            ].ok(
+            mock_query.return_value = FlextResult[list[t.ConfigurationMapping]].ok(
                 mock_result,
             )
 
