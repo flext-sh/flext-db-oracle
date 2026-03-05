@@ -97,7 +97,7 @@ class FlextDbOracleConstants(FlextConstants):
             SINGER_TYPE_MAP: ClassVar[dict[str, str]] = {
                 "string": "VARCHAR2(4000)",
                 "integer": "NUMBER(38)",
-                "number": "NUMBER",
+                "number": "NUMBER(38)",
                 "boolean": "NUMBER(1)",
                 "array": "CLOB",
                 "object": "CLOB",

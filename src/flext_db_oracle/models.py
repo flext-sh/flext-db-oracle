@@ -382,6 +382,10 @@ class FlextDbOracleModels(FlextModels):
             name: str
             data_type: str
             nullable: bool = True
+            primary_key: bool = Field(
+                default=False,
+                description="Whether this column is a primary key",
+            )
             default_value: str = Field(
                 default="",
                 description="Default value for the column",
@@ -394,6 +398,7 @@ class FlextDbOracleModels(FlextModels):
                     "column_name",
                     "data_type",
                     "nullable",
+                    "primary_key",
                     "default_value",
                 }
 
@@ -404,6 +409,7 @@ class FlextDbOracleModels(FlextModels):
                     "name": self.name,
                     "data_type": self.data_type,
                     "nullable": self.nullable,
+                    "primary_key": self.primary_key,
                     "default_value": self.default_value,
                 }
                 return key_map.get(key)

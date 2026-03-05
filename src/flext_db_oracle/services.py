@@ -22,8 +22,8 @@ from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
 
-OracleDatabaseError = oracledb.DatabaseError
-OracleInterfaceError = oracledb.InterfaceError
+OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
 class _StrictIntValue(BaseModel):
@@ -184,7 +184,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize with configuration."""
         super().__init__()
-        self._db_config = config.model_copy(deep=True)
+        self._db_config = config
+        self._config = config
         self._engine: object | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.JsonValue] = {}
@@ -583,8 +584,8 @@ ORDER BY column_id
             where = f" WHERE {' AND '.join(where_pairs)}"
         else:
             where = ""
-        schema = f"{schema_name}." if schema_name else ""
-        sql = f"SELECT {cols} FROM {schema}{table_name.upper()}{where}"  # nosec B608
+        schema_prefix = f"{schema_name.upper()}." if schema_name else ""
+        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
         return r.ok(sql)
 
     def build_insert_statement(
@@ -663,11 +664,14 @@ ORDER BY column_id
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
         col_defs: list[str] = []
+        primary_keys: list[str] = []
         for col in columns:
             if isinstance(col, FlextDbOracleModels.DbOracle.Column):
                 name = col.name or "unknown"
                 data_type = col.data_type or "VARCHAR2(255)"
                 nullable = "" if col.nullable else " NOT NULL"
+                if getattr(col, "primary_key", False):
+                    primary_keys.append(name)
             else:
                 name_value = col.get("name") or col.get("column_name")
                 data_type_value = col.get("data_type")
@@ -679,7 +683,11 @@ ORDER BY column_id
                     else "VARCHAR2(255)"
                 )
                 nullable = "" if bool(nullable_value) else " NOT NULL"
+                if bool(col.get("primary_key", False)):
+                    primary_keys.append(name)
             col_defs.append(f"{name} {data_type}{nullable}")
+        if primary_keys:
+            col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
         schema_prefix = f"{schema}." if schema else ""
         ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
         return r.ok(ddl)
@@ -701,9 +709,11 @@ ORDER BY column_id
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
         singer_type = _normalize_singer_type(singer_type)
+        if _format_hint == "date-time":
+            return r.ok("TIMESTAMP")
         type_map = {
             "string": "VARCHAR2(4000)",
-            "integer": "NUMBER",
+            "integer": "NUMBER(38)",
             "number": "NUMBER",
             "boolean": "NUMBER(1)",
             "date-time": "TIMESTAMP",
@@ -714,34 +724,42 @@ ORDER BY column_id
     def map_singer_schema(
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
-        | t.ConfigurationMapping,
+        | t.ConfigurationMapping
+        | Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
             raw_properties = singer_schema.get("properties", {})
+            if not isinstance(raw_properties, Mapping):
+                return r.fail("Singer schema properties must be a mapping")
             normalized_properties: dict[
                 str, FlextDbOracleModels.DbOracle.SingerField
             ] = {}
-            if isinstance(raw_properties, Mapping):
-                for field_name, field_def in raw_properties.items():
-                    if isinstance(field_def, Mapping):
-                        normalized_properties[str(field_name)] = (
-                            FlextDbOracleModels.DbOracle.SingerField(
-                                type=field_def.get("type", "string"),
-                            )
+            for field_name, field_def in raw_properties.items():
+                if isinstance(field_def, Mapping):
+                    normalized_properties[str(field_name)] = (
+                        FlextDbOracleModels.DbOracle.SingerField(
+                            type=field_def.get("type", "string"),
                         )
-                    else:
-                        normalized_properties[str(field_name)] = (
-                            FlextDbOracleModels.DbOracle.SingerField(type="string")
-                        )
+                    )
+                else:
+                    normalized_properties[str(field_name)] = (
+                        FlextDbOracleModels.DbOracle.SingerField(type="string")
+                    )
             schema_model = FlextDbOracleModels.DbOracle.SingerSchema(
                 properties=normalized_properties,
             )
         mapping = m.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
-            conversion = self.convert_singer_type(field_def.type)
+            raw_field = (
+                raw_properties.get(field_name) if "raw_properties" in locals() else None
+            )
+            format_hint = (
+                raw_field.get("format") if isinstance(raw_field, Mapping) else None
+            )
+            conversion = self.convert_singer_type(field_def.type, format_hint)
             if conversion.is_success:
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
@@ -854,16 +872,37 @@ ORDER BY column_id
         )
 
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[bool]:
-        """Register plugin in local service registry."""
+        """Register plugin via flext-plugin when available."""
         if not _name:
             return r.fail("Plugin name is required")
-        self._plugins[_name] = _plugin
+
+        plugin_payload = _validate_config_map(_plugin)
+        if plugin_payload is None:
+            return r.fail("Plugin payload must be a mapping")
+
+        try:
+            _ = import_module("flext_plugin.api")
+            _ = import_module("flext_plugin.models")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+
+        payload = dict(plugin_payload.root)
+        payload["name"] = str(payload.get("name", _name))
+        version_raw = str(payload.get("version", "1.0.0"))
+        payload["version"] = (
+            f"{version_raw}.0" if version_raw.count(".") == 1 else version_raw
+        )
+        self._plugins[_name] = payload
         return r[bool].ok(True)
 
     def unregister_plugin(self, _name: str) -> r[bool]:
         """Unregister plugin from local service registry."""
         if not _name:
             return r.fail("Plugin name is required")
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
         if _name not in self._plugins:
             return r.fail(f"Plugin '{_name}' not found")
         self._plugins.pop(_name)
@@ -871,6 +910,10 @@ ORDER BY column_id
 
     def list_plugins(self) -> r[m.ConfigMap]:
         """List plugin names from local service registry."""
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
         plugin_names = list(self._plugins.keys())
         return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
@@ -878,6 +921,10 @@ ORDER BY column_id
         """Get plugin data from local service registry."""
         if not _name:
             return r.fail("Plugin name is required")
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
         if _name not in self._plugins:
             return r.fail(f"Plugin '{_name}' not found")
         return r[t.JsonValue].ok(self._plugins[_name])
@@ -969,7 +1016,7 @@ ORDER BY column_id
 
     def _normalize_row(self, row: object) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        mapping = getattr(row, "_mapping", None)
+        mapping = row if isinstance(row, Mapping) else getattr(row, "_mapping", None)
         validated_mapping = _validate_config_map(mapping)
         if validated_mapping is None:
             return m.Dict(root={})

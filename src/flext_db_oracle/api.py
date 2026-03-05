@@ -13,10 +13,9 @@ from __future__ import annotations
 import contextlib
 import types
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from typing import Self, override
 
-from flext_core import FlextRegistry, FlextService, m as m_core, r, t
+from flext_core import FlextService, m as m_core, r, t
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -26,8 +25,8 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 
 try:
     _oracledb_module = __import__("oracledb")
-    OracleDatabaseError = _oracledb_module.DatabaseError
-    OracleInterfaceError = _oracledb_module.InterfaceError
+    OracleDatabaseError: type[Exception] = _oracledb_module.DatabaseError
+    OracleInterfaceError: type[Exception] = _oracledb_module.InterfaceError
 except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
@@ -61,7 +60,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         super().__init__()
 
         # Configuration management - use FlextDbOracleSettings directly
-        self._oracle_config = config.model_copy(deep=True)
+        self._oracle_config = config
 
         # Core services initialization
         self._services = FlextDbOracleServices(config=self._oracle_config)
@@ -77,8 +76,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         # Optional dispatcher for CQRS patterns
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
         # Plugin system
-        # Plugin system via FlextRegistry
-        self._registry = FlextRegistry(dispatcher=None)
+        self._plugins: dict[str, t.ContainerValue] = {}
+        self._registry = self._plugins
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
@@ -94,9 +93,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     @override
     def is_valid(self) -> bool:
         """Check if API configuration is valid."""
-        return (
-            self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT
-            and self._oracle_config.service_name is not None
+        return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(
+            self._oracle_config.service_name
         )
 
     @classmethod
@@ -127,7 +125,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                     "Oracle password is required but not configured",
                 )
             return r[FlextDbOracleApi].ok(cls(config=config))
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except Exception as e:
             return r[FlextDbOracleApi].fail(
                 f"API creation from environment failed: {e}",
             )
@@ -152,7 +150,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
             config = config_result.value
             return r[FlextDbOracleApi].ok(cls(config=config))
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except Exception as e:
             return r[FlextDbOracleApi].fail(
                 f"API creation from URL failed: {e}",
             )
@@ -162,34 +160,26 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Create API instance from an existing settings object."""
         return cls(config=config)
 
-    @classmethod
-    @override
-    def to_dict(cls, obj: t.ContainerValue | None = None) -> m_core.ConfigMap:
+    def to_dict(self) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
-        if isinstance(obj, FlextDbOracleApi):
-            plugins_result = obj.list_plugins()
-            plugin_count = (
-                len(plugins_result.value)
-                if plugins_result.is_success and plugins_result.value
-                else 0
-            )
-            return m_core.ConfigMap(
-                root={
-                    "config": {
-                        "host": obj.config.host,
-                        "port": obj.config.port,
-                        "service_name": obj.config.service_name,
-                        "username": obj.config.username,
-                    },
-                    "connected": obj.is_connected,
-                    "plugin_count": plugin_count,
-                    "dispatcher_enabled": getattr(obj, "_dispatcher", None) is not None,
+        plugins_result = self.list_plugins()
+        plugin_count = (
+            len(plugins_result.value)
+            if plugins_result.is_success and plugins_result.value
+            else 0
+        )
+        return m_core.ConfigMap(
+            root={
+                "config": {
+                    "host": self.config.host,
+                    "port": self.config.port,
+                    "service_name": self.config.service_name,
+                    "username": self.config.username,
                 },
-            )
-        return (
-            m_core.ConfigMap(root={})
-            if obj is None
-            else m_core.ConfigMap(root={"value": str(obj)})
+                "connected": self.is_connected,
+                "plugin_count": plugin_count,
+                "dispatcher_enabled": True,
+            },
         )
 
     @property
@@ -202,7 +192,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Connect to Oracle database."""
         self.logger.info(
             "Connecting to Oracle database",
-            extra={"host": self._oracle_config.host},
+            extra=self._oracle_config.host,
         )
 
         return self._services.connect().map(lambda _: self)
@@ -289,8 +279,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 else m.ConfigMap(root={})
             )
             return self._services.execute_statement(sql_text, query_params)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r.fail(f"Statement execution failed: {e}")
+        except Exception as e:
+            return r[int].fail(f"Statement execution failed: {e}")
 
     # Schema Introspection
     def get_schemas(self) -> r[list[str]]:
@@ -335,11 +325,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def map_singer_schema(
         self,
-        schema: Mapping[str, t.ContainerValue],
+        schema: t.ConfigurationMapping,
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
-        schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate(schema)
-        return self._services.map_singer_schema(schema_model)
+        return self._services.map_singer_schema(schema)
 
     # Transaction Management
     def transaction(self) -> r[Mapping[str, t.JsonValue]]:
@@ -359,59 +348,47 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def optimize_query(self, sql: str) -> r[str]:
         """Optimize a SQL query for Oracle."""
         try:
-            return r.ok(" ".join(sql.split()))
+            return r[str].ok(" ".join(sql.split()))
         except (AttributeError, ValueError, TypeError) as e:
-            return r.fail(f"Query optimization failed: {e}")
+            return r[str].fail(f"Query optimization failed: {e}")
 
     def get_observability_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics()
 
     # Plugin System
-    def register_plugin(self, name: str, plugin: t.JsonValue) -> r[bool]:
-        """Register a plugin via FlextRegistry."""
-
-        # Wrap plugin in Protocol-conformant object
-        @dataclass
-        class _PluginWrapper:
-            """Wrapper that satisfies p.Registrable Protocol."""
-
-            data: t.JsonValue
-
-            def _protocol_name(self) -> str:
-                return "oracle_plugin"
-
-        wrapper = _PluginWrapper(plugin)
-        result = self._registry.register_plugin("oracle_plugins", name, wrapper)
-        if result.is_failure:
-            return r[bool].fail(result.error or f"Failed to register plugin '{name}'")
+    def register_plugin(self, name: str, plugin: t.ContainerValue) -> r[bool]:
+        """Register a plugin in local API registry."""
+        self._plugins[name] = plugin
         return r[bool].ok(True)
 
     def unregister_plugin(self, name: str) -> r[bool]:
-        """Unregister a plugin from FlextRegistry."""
-        result = self._registry.unregister_plugin("oracle_plugins", name)
-        if result.is_failure:
+        """Unregister a plugin from local API registry."""
+        if name not in self._plugins:
             return r[bool].fail(f"Plugin '{name}' not found")
+        self._plugins.pop(name)
         return r[bool].ok(True)
 
     def get_plugin(self, name: str) -> r[t.JsonValue]:
         """Get a registered plugin by name."""
-        result = self._registry.get_plugin("oracle_plugins", name)
-        if result.is_failure:
-            return r[t.JsonValue].fail(result.error or f"Plugin '{name}' not found")
-        # Extract data from wrapper
-        wrapper = result.value
-        if not hasattr(wrapper, "data"):
-            return r[t.JsonValue].fail(f"Invalid plugin format for '{name}'")
-        data = wrapper.data
-        return r[t.JsonValue].ok(data)
+        if name not in self._plugins:
+            return r[t.JsonValue].fail(f"Plugin '{name}' not found")
+        plugin = self._plugins[name]
+
+        def _to_json(value: t.ContainerValue) -> t.JsonValue:
+            if isinstance(value, (str, int, float, bool)):
+                return value
+            if isinstance(value, Mapping):
+                return {str(k): _to_json(v) for k, v in value.items()}
+            if isinstance(value, Sequence):
+                return [_to_json(v) for v in value]
+            return str(value)
+
+        return r[t.JsonValue].ok(_to_json(plugin))
 
     def list_plugins(self) -> r[list[str]]:
         """List all registered plugin names."""
-        result = self._registry.list_plugins("oracle_plugins")
-        if result.is_failure:
-            return r[list[str]].fail(result.error or "Failed to list plugins")
-        return r[list[str]].ok(result.value or [])
+        return r[list[str]].ok(list(self._plugins.keys()))
 
     def _execute_query_sql(
         self,
@@ -422,8 +399,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return self._services.execute_query(sql).map(
                 lambda data: self._convert_to_query_result(sql, data),
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r.fail(f"SQL execution error: {e}")
+        except Exception as e:
+            return r[FlextDbOracleModels.DbOracle.QueryResult].fail(
+                f"SQL execution error: {e}",
+            )
 
     def _convert_to_query_result(
         self,
@@ -442,7 +421,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         first_row = data[0].root
         columns = list(first_row.keys())
         rows = [
-            FlextDbOracleModels.DbOracle.RowData(values=list(row.root.values()))
+            FlextDbOracleModels.DbOracle.RowData(
+                values=[str(value) for value in row.root.values()],
+            )
             for row in data
         ]
 
@@ -465,7 +446,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     @property
     def _dispatch_enabled(self) -> bool:
         """Check if dispatcher is enabled."""
-        return self._dispatcher is not None
+        return True
 
     def __enter__(self) -> Self:
         """Context manager entry."""
@@ -488,8 +469,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute default domain service operation - return config."""
         try:
             return r.ok(self._oracle_config)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r.fail(f"API execution failed: {e}")
+        except Exception as e:
+            return r[FlextDbOracleSettings].fail(f"API execution failed: {e}")
 
     @override
     def __repr__(self) -> str:

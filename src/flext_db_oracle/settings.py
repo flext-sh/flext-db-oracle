@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from collections.abc import Mapping
 from typing import Annotated, override
 from urllib.parse import urlparse
@@ -345,11 +346,39 @@ class FlextDbOracleSettings(FlextSettings):
 
         """
         try:
-            # Use AutoConfig singleton which automatically loads from environment
-            # Pydantic Settings handles FLEXT_DB_ORACLE_* variables automatically
-            config = cls.get_global_instance()
+
+            def _env_value(name: str) -> str | None:
+                flext_key = f"FLEXT_TARGET_ORACLE_{name}"
+                oracle_key = f"{_prefix}{name}"
+                return os.environ.get(oracle_key) or os.environ.get(flext_key)
+
+            host = _env_value("HOST")
+            port_raw = _env_value("PORT")
+            service_name = _env_value("SERVICE_NAME")
+            username = _env_value("USERNAME")
+            password = _env_value("PASSWORD")
+            name = _env_value("DATABASE_NAME")
+            sid = _env_value("SID")
+
+            payload: dict[str, str | int] = {}
+            if host:
+                payload["host"] = host
+            if port_raw and port_raw.isdigit():
+                payload["port"] = int(port_raw)
+            if service_name:
+                payload["service_name"] = service_name
+            if username:
+                payload["username"] = username
+            if password:
+                payload["password"] = password
+            if name:
+                payload["name"] = name
+            if sid:
+                payload["sid"] = sid
+
+            config = cls(**payload)
             return r[FlextDbOracleSettings].ok(config)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except Exception as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from environment: {e}",
             )
@@ -407,7 +436,7 @@ class FlextDbOracleSettings(FlextSettings):
             )
 
             return r[FlextDbOracleSettings].ok(config)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except Exception as e:
             return r[FlextDbOracleSettings].fail(
                 f"Failed to create config from URL: {e}",
             )
@@ -417,3 +446,7 @@ class FlextDbOracleSettings(FlextSettings):
     def reset_global_instance(cls) -> None:
         """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
         super().reset_global_instance()
+
+    def __new__(cls, **_kwargs: object) -> FlextDbOracleSettings:
+        """Create non-singleton instances for project/test isolation."""
+        return object.__new__(cls)
