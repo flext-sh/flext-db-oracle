@@ -436,6 +436,18 @@ def test_database_setup(
         "test_sequence": "CREATE SEQUENCE test_seq START WITH 1 INCREMENT BY 1",
     }
 
+    cleanup_ddl = [
+        "DROP TABLE test_table PURGE",
+        "DROP SEQUENCE test_seq",
+    ]
+
+    # Limpar schema anterior se existir
+    for ddl in cleanup_ddl:
+        try:
+            connected_oracle_api.execute_statement(ddl)
+        except Exception:
+            pass
+
     # Create test schema
     for ddl in test_schema.values():
         try:

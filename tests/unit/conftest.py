@@ -179,9 +179,3 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
 def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
     """Check if Oracle is available for testing."""
     return connected_oracle_api is not None
-
-
-@pytest.fixture
-def test_database_setup() -> Generator[None]:
-    """Setup test database if Oracle available."""
-    yield None
