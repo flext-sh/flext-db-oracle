@@ -180,15 +180,44 @@ class FlextDbOracleCli(FlextService[str]):
             """Initialize output formatter without external dependencies."""
             self._cli_main = cli_main
 
-        def format_success_message(self, message: str) -> FlextResult[str]:
-            """Format success message using simple formatting.
+        def display_message(self, message: str) -> None:
+            """Display message to user - direct output for CLI."""
+            # Use sys.stdout for CLI output instead of print
+            sys.stdout.write(f"{message}\n")
+            sys.stdout.flush()
+
+        def format_data(
+            self,
+            data: OutputPayload
+            | HealthCheckReport
+            | Mapping[str, CliScalar]
+            | list[str]
+            | str,
+            output_format: str,
+        ) -> FlextResult[str]:
+            """Format any data payload using simple formatters.
 
             Returns:
-            FlextResult[str]: Formatted success message.
+            FlextResult[str]: Formatted data.
 
             """
-            formatted_msg = f"✅ {message}"
-            return FlextResult[str].ok(formatted_msg)
+            if output_format == "json":
+                match data:
+                    case OutputPayload() | HealthCheckReport():
+                        return FlextResult[str].ok(data.model_dump_json(indent=2))
+                    case _:
+                        return FlextResult[str].ok(
+                            json.dumps(data, indent=2, default=str),
+                        )
+            if output_format == "yaml":
+                # YAML is always available since imported at module level
+                match data:
+                    case OutputPayload() | HealthCheckReport():
+                        payload = data.model_dump(mode="python")
+                    case _:
+                        payload = data
+                return FlextResult[str].ok(yaml.dump(payload, default_flow_style=False))
+            return FlextResult[str].ok(str(data))
 
         def format_error_message(self, error: str) -> FlextResult[str]:
             """Format error message using simple formatting.
@@ -243,44 +272,39 @@ class FlextDbOracleCli(FlextService[str]):
             output_lines = [title, *string_items]
             return FlextResult[str].ok("\n".join(output_lines))
 
-        def format_data(
-            self,
-            data: OutputPayload
-            | HealthCheckReport
-            | Mapping[str, CliScalar]
-            | list[str]
-            | str,
-            output_format: str,
-        ) -> FlextResult[str]:
-            """Format any data payload using simple formatters.
+        def format_success_message(self, message: str) -> FlextResult[str]:
+            """Format success message using simple formatting.
 
             Returns:
-            FlextResult[str]: Formatted data.
+            FlextResult[str]: Formatted success message.
 
             """
-            if output_format == "json":
-                match data:
-                    case OutputPayload() | HealthCheckReport():
-                        return FlextResult[str].ok(data.model_dump_json(indent=2))
-                    case _:
-                        return FlextResult[str].ok(
-                            json.dumps(data, indent=2, default=str),
-                        )
-            if output_format == "yaml":
-                # YAML is always available since imported at module level
-                match data:
-                    case OutputPayload() | HealthCheckReport():
-                        payload = data.model_dump(mode="python")
-                    case _:
-                        payload = data
-                return FlextResult[str].ok(yaml.dump(payload, default_flow_style=False))
-            return FlextResult[str].ok(str(data))
+            formatted_msg = f"✅ {message}"
+            return FlextResult[str].ok(formatted_msg)
 
-        def display_message(self, message: str) -> None:
-            """Display message to user - direct output for CLI."""
-            # Use sys.stdout for CLI output instead of print
-            sys.stdout.write(f"{message}\n")
-            sys.stdout.flush()
+    @classmethod
+    def main(cls) -> None:
+        """Execute main CLI entry point using flext-cli exclusively."""
+        cli_service = cls()
+        result = cli_service.run_cli()
+
+        if result.is_failure:
+            sys.exit(1)
+
+    @classmethod
+    def run_main(cls) -> None:
+        """Module-level main entry point."""
+        cls.main()
+
+    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:  # type: ignore[override]
+        """Execute domain service - required by FlextService.
+
+        Returns:
+        FlextResult[str]: Service status.
+
+        """
+        self.logger.info("Oracle CLI service initialized")
+        return FlextResult[str].ok("Oracle CLI service ready")
 
     def execute_health_check(
         self,
@@ -502,19 +526,6 @@ class FlextDbOracleCli(FlextService[str]):
             f"Listed {len(tables)} tables in schema {schema} successfully",
         )
 
-    def _handle_error_and_fail(
-        self,
-        formatter: _OutputFormatter,
-        error_message: str,
-        display_message: str | None = None,
-    ) -> FlextResult[str]:
-        """Handle error by displaying message and returning failure result."""
-        if display_message:
-            error_msg = formatter.format_error_message(display_message)
-            if error_msg.is_success:
-                formatter.display_message(error_msg.value)
-        return FlextResult[str].fail(error_message)
-
     def execute_query(
         self,
         sql: str,
@@ -596,16 +607,6 @@ class FlextDbOracleCli(FlextService[str]):
 
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
-    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:  # type: ignore[override]
-        """Execute domain service - required by FlextService.
-
-        Returns:
-        FlextResult[str]: Service status.
-
-        """
-        self.logger.info("Oracle CLI service initialized")
-        return FlextResult[str].ok("Oracle CLI service ready")
-
     def run_cli(self, args: list[str] | None = None) -> FlextResult[str]:
         """Run CLI with command line arguments simulation.
 
@@ -655,19 +656,18 @@ Use --help with any command for detailed options.
         self._OutputFormatter(self._cli_main).display_message(f"{error_msg}")
         return FlextResult[str].fail(error_msg)
 
-    @classmethod
-    def main(cls) -> None:
-        """Execute main CLI entry point using flext-cli exclusively."""
-        cli_service = cls()
-        result = cli_service.run_cli()
-
-        if result.is_failure:
-            sys.exit(1)
-
-    @classmethod
-    def run_main(cls) -> None:
-        """Module-level main entry point."""
-        cls.main()
+    def _handle_error_and_fail(
+        self,
+        formatter: _OutputFormatter,
+        error_message: str,
+        display_message: str | None = None,
+    ) -> FlextResult[str]:
+        """Handle error by displaying message and returning failure result."""
+        if display_message:
+            error_msg = formatter.format_error_message(display_message)
+            if error_msg.is_success:
+                formatter.display_message(error_msg.value)
+        return FlextResult[str].fail(error_message)
 
 
 if __name__ == "__main__":

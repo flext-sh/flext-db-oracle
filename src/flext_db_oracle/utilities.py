@@ -110,16 +110,16 @@ class FlextDbOracleUtilities(FlextUtilities):
             Access via u.Oracle.FeatureFlags.* pattern.
             """
 
+            @classmethod
+            def dispatcher_enabled(cls) -> bool:
+                """Return True when dispatcher integration should be used."""
+                return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
+
             @staticmethod
             def _env_enabled(flag_name: str, default: str = "0") -> bool:
                 """Check if environment flag is enabled."""
                 value = os.environ.get(flag_name, default)
                 return value.lower() not in {"0", "false", "no"}
-
-            @classmethod
-            def dispatcher_enabled(cls) -> bool:
-                """Return True when dispatcher integration should be used."""
-                return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
 
     class OracleValidation:
         """Oracle validation grouping class."""
@@ -134,6 +134,14 @@ class FlextDbOracleUtilities(FlextUtilities):
             if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
                 return r[bool].fail("Oracle identifier is reserved word")
             return r[bool].ok(True)
+
+    @staticmethod
+    def create_config_from_env() -> r[FlextDbOracleSettings]:
+        """Create Oracle settings directly from the environment variables."""
+        config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
+        if config_result.is_failure:
+            return r[FlextDbOracleSettings].fail(config_result.error)
+        return r[FlextDbOracleSettings].ok(config_result.value)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> r[str]:
@@ -156,6 +164,12 @@ class FlextDbOracleUtilities(FlextUtilities):
         return r[str].ok(str(result))
 
     @staticmethod
+    def format_sql_for_oracle(sql: str) -> r[str]:
+        """Normalize SQL string formatting for Oracle execution."""
+        normalized = " ".join(sql.split())
+        return r[str].ok(normalized)
+
+    @staticmethod
     def generate_query_hash(
         query: str,
         params: Mapping[str, t.ContainerValue] | None,
@@ -164,20 +178,6 @@ class FlextDbOracleUtilities(FlextUtilities):
         serialized = json.dumps(params or {}, sort_keys=True, default=str)
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
-
-    @staticmethod
-    def format_sql_for_oracle(sql: str) -> r[str]:
-        """Normalize SQL string formatting for Oracle execution."""
-        normalized = " ".join(sql.split())
-        return r[str].ok(normalized)
-
-    @staticmethod
-    def create_config_from_env() -> r[FlextDbOracleSettings]:
-        """Create Oracle settings directly from the environment variables."""
-        config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
-        if config_result.is_failure:
-            return r[FlextDbOracleSettings].fail(config_result.error)
-        return r[FlextDbOracleSettings].ok(config_result.value)
 
 
 u = FlextDbOracleUtilities

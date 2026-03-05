@@ -195,33 +195,96 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._plugins: dict[str, t.JsonValue] = {}
         self._metrics: dict[str, t.JsonValue] = {}
 
-    def _build_connection_url(self) -> r[str]:
-        """Build Oracle connection URL from configuration."""
+    def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
+        """Build Oracle CREATE INDEX statement from configuration."""
         try:
-            password = self._db_config.password
-            if not password:
-                return r.fail("Password is required for database connection")
-            encoded_password = quote_plus(str(password).encode())
-            service_name = self._db_config.service_name
-            base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
-            url = f"{base}/?service_name={service_name}"
-            return r.ok(url)
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
-            return r.fail(f"Failed to build connection URL: {e}")
+            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
+                _config,
+            )
+            if not config.columns:
+                return r.fail("Index definition requires at least one column")
 
-    def _get_engine(self) -> r[object]:
-        """Get database engine."""
-        if not self._engine or not self.is_connected():
-            return r.fail("Not connected to database")
-        return r.ok(self._engine)
+            schema_prefix = f"{config.schema_name}." if config.schema_name else ""
+            unique_prefix = "UNIQUE " if config.unique else ""
+            columns = ", ".join(config.columns)
+            sql = (
+                f"CREATE {unique_prefix}INDEX {config.index_name} "
+                f"ON {schema_prefix}{config.table_name} ({columns})"
+            )
+
+            if config.tablespace:
+                sql = f"{sql} TABLESPACE {config.tablespace}"
+            if config.parallel > 1:
+                sql = f"{sql} PARALLEL {config.parallel}"
+            return r.ok(sql)
+        except ValidationError as e:
+            return r.fail(f"Invalid CREATE INDEX config: {e}")
+
+    def build_delete_statement(
+        self,
+        table_name: str,
+        where_columns: list[str],
+        schema: str | None = None,
+    ) -> r[str]:
+        """Build DELETE statement - simplified."""
+        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
+        return r.ok(sql)
+
+    def build_insert_statement(
+        self,
+        table_name: str,
+        columns: list[str],
+        schema: str | None = None,
+        returning_columns: list[str] | None = None,
+    ) -> r[str]:
+        """Build INSERT statement - simplified."""
+        cols = ", ".join(columns)
+        vals = ", ".join(f":{col}" for col in columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
+        if returning_columns:
+            ret = ", ".join(returning_columns)
+            sql += f" RETURNING {ret}"
+        return r.ok(sql)
+
+    def build_select(
+        self,
+        table_name: str,
+        columns: list[str] | None = None,
+        conditions: m.ConfigMap | t.ConfigurationMapping | None = None,
+        schema_name: str | None = None,
+    ) -> r[str]:
+        """Build SELECT query - simplified implementation."""
+        typed_conditions = (
+            conditions
+            if isinstance(conditions, m.ConfigMap) or conditions is None
+            else m.ConfigMap.model_validate(conditions)
+        )
+        cols = ", ".join(columns) if columns else "*"
+        if typed_conditions and typed_conditions.root:
+            where_pairs = [f"{k} = :{k}" for k in typed_conditions.root]
+            where = f" WHERE {' AND '.join(where_pairs)}"
+        else:
+            where = ""
+        schema_prefix = f"{schema_name.upper()}." if schema_name else ""
+        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
+        return r.ok(sql)
+
+    def build_update_statement(
+        self,
+        table_name: str,
+        set_columns: list[str],
+        where_columns: list[str],
+        schema: str | None = None,
+    ) -> r[str]:
+        """Build UPDATE statement - simplified."""
+        sets = ", ".join(f"{col}=:{col}" for col in set_columns)
+        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
+        schema_prefix = f"{schema}." if schema else ""
+        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
+        return r.ok(sql)
 
     # Connection Management
     def connect(self) -> r[Self]:
@@ -255,6 +318,61 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
+    def convert_singer_type(
+        self,
+        singer_type: str | list[str] = "string",
+        _format_hint: str | None = None,
+    ) -> r[str]:
+        """Convert Singer type to Oracle type - simplified."""
+        singer_type = _normalize_singer_type(singer_type)
+        if _format_hint == "date-time":
+            return r.ok("TIMESTAMP")
+        type_map = {
+            "string": "VARCHAR2(4000)",
+            "integer": "NUMBER(38)",
+            "number": "NUMBER",
+            "boolean": "NUMBER(1)",
+            "date-time": "TIMESTAMP",
+        }
+        oracle_type = type_map.get(singer_type, "VARCHAR2(255)")
+        return r.ok(oracle_type)
+
+    def create_table_ddl(
+        self,
+        table_name: str,
+        columns: Sequence[FlextDbOracleModels.DbOracle.Column | t.ConfigurationMapping],
+        schema: str | None = None,
+    ) -> r[str]:
+        """Generate CREATE TABLE DDL - simplified."""
+        col_defs: list[str] = []
+        primary_keys: list[str] = []
+        for col in columns:
+            if isinstance(col, FlextDbOracleModels.DbOracle.Column):
+                name = col.name or "unknown"
+                data_type = col.data_type or "VARCHAR2(255)"
+                nullable = "" if col.nullable else " NOT NULL"
+                if getattr(col, "primary_key", False):
+                    primary_keys.append(name)
+            else:
+                name_value = col.get("name") or col.get("column_name")
+                data_type_value = col.get("data_type")
+                nullable_value = col.get("nullable", True)
+                name = str(name_value) if name_value is not None else "unknown"
+                data_type = (
+                    str(data_type_value)
+                    if data_type_value is not None
+                    else "VARCHAR2(255)"
+                )
+                nullable = "" if bool(nullable_value) else " NOT NULL"
+                if bool(col.get("primary_key", False)):
+                    primary_keys.append(name)
+            col_defs.append(f"{name} {data_type}{nullable}")
+        if primary_keys:
+            col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
+        return r.ok(ddl)
+
     def disconnect(self) -> r[bool]:
         """Disconnect from Oracle database."""
         engine = self._engine
@@ -264,23 +382,59 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self.logger.info("Disconnected from Oracle database")
         return r[bool].ok(True)
 
-    def is_connected(self) -> bool:
-        """Check if connected to Oracle database."""
-        return self._engine is not None
+    def drop_table_ddl(
+        self,
+        table_name: str,
+        schema: str | None = None,
+    ) -> r[str]:
+        """Generate DROP TABLE DDL."""
+        schema_prefix = f"{schema}." if schema else ""
+        ddl = f"DROP TABLE {schema_prefix}{table_name}"
+        return r.ok(ddl)
 
-    def test_connection(self) -> r[bool]:
-        """Test Oracle database connection."""
+    # Service
+    @override
+    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
+        """Execute main domain service operation - return config."""
+        test_result = self.test_connection()
+        if test_result.is_success:
+            return r.ok(self._db_config)
+        return r.fail(test_result.error or "Connection test failed")
+
+    def execute_many(
+        self,
+        sql: str,
+        params_list: Sequence[Mapping[str, t.ContainerValue] | m.ConfigMap],
+    ) -> r[int]:
+        """Execute SQL statement multiple times."""
+        if not self.is_connected():
+            return r.fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.is_failure:
-            return r.fail("Not connected to database")
+            return r.fail(
+                engine_result.error or "Failed to get database engine",
+            )
         try:
             connect_ctx = _engine_connect(engine_result.value)
             conn = _context_enter(connect_ctx)
             try:
-                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+                total_affected = 0
+                for params in params_list:
+                    typed_params = (
+                        params
+                        if isinstance(params, m.ConfigMap)
+                        else m.ConfigMap.model_validate(params)
+                    )
+                    result = _connection_execute(
+                        conn,
+                        _sqlalchemy_text(sql),
+                        typed_params,
+                    )
+                    rowcount_raw = getattr(result, "rowcount", 0)
+                    total_affected += _parse_rowcount(rowcount_raw)
+                return r.ok(total_affected)
             finally:
                 _context_exit(connect_ctx)
-            return r.ok(True)
         except (
             OracleDatabaseError,
             OracleInterfaceError,
@@ -290,34 +444,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             SQLAlchemyError,
             OSError,
         ) as e:
-            return r.fail(f"Connection test failed: {e}")
-
-    @contextmanager
-    def get_connection(self) -> Generator[object]:
-        """Get database connection context manager."""
-        engine = self._engine
-        if engine is None:
-            msg = "No database connection established"
-            raise RuntimeError(msg)
-        connect_ctx = _engine_connect(engine)
-        connection = _context_enter(connect_ctx)
-        try:
-            yield connection
-        finally:
-            _context_exit(connect_ctx)
-
-    def transaction(self) -> Generator[object]:
-        """Get transaction context for database operations."""
-        engine = self._engine
-        if engine is None:
-            msg = "No database connection established"
-            raise RuntimeError(msg)
-        transaction_ctx = _engine_begin(engine)
-        transaction = _context_enter(transaction_ctx)
-        try:
-            yield transaction
-        finally:
-            _context_exit(transaction_ctx)
+            return r.fail(f"Bulk execution failed: {e}")
 
     # Query Operations
     def execute_query(
@@ -387,51 +514,6 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r.fail(f"Statement execution failed: {e}")
 
-    def execute_many(
-        self,
-        sql: str,
-        params_list: Sequence[Mapping[str, t.ContainerValue] | m.ConfigMap],
-    ) -> r[int]:
-        """Execute SQL statement multiple times."""
-        if not self.is_connected():
-            return r.fail("Not connected to database")
-        engine_result = self._get_engine()
-        if engine_result.is_failure:
-            return r.fail(
-                engine_result.error or "Failed to get database engine",
-            )
-        try:
-            connect_ctx = _engine_connect(engine_result.value)
-            conn = _context_enter(connect_ctx)
-            try:
-                total_affected = 0
-                for params in params_list:
-                    typed_params = (
-                        params
-                        if isinstance(params, m.ConfigMap)
-                        else m.ConfigMap.model_validate(params)
-                    )
-                    result = _connection_execute(
-                        conn,
-                        _sqlalchemy_text(sql),
-                        typed_params,
-                    )
-                    rowcount_raw = getattr(result, "rowcount", 0)
-                    total_affected += _parse_rowcount(rowcount_raw)
-                return r.ok(total_affected)
-            finally:
-                _context_exit(connect_ctx)
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
-            return r.fail(f"Bulk execution failed: {e}")
-
     def fetch_one(
         self,
         sql: str,
@@ -442,25 +524,19 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             lambda rows: rows[0] if rows else None,
         )
 
-    # Schema Operations
-    def get_schemas(self) -> r[list[str]]:
-        """Get list of Oracle schemas."""
-        sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
-        return self.execute_query(sql).map(
-            lambda rows: [str(row.root["schema_name"]) for row in rows],
+    def generate_query_hash(
+        self,
+        sql: str = "",
+        params: m.ConfigMap | t.ConfigurationMapping | None = None,
+    ) -> r[str]:
+        """Generate query hash - simplified."""
+        typed_params = (
+            params
+            if isinstance(params, m.ConfigMap) or params is None
+            else m.ConfigMap.model_validate(params)
         )
-
-    def get_tables(self, schema: str | None = None) -> r[list[str]]:
-        """Get list of tables in Oracle schema."""
-        if schema:
-            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
-            params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
-        else:
-            sql = "SELECT table_name FROM user_tables ORDER BY table_name"
-            params = None
-        return self.execute_query(sql, params).map(
-            lambda rows: [str(row.root["table_name"]) for row in rows],
-        )
+        hash_input = f"{sql}_{typed_params!s}"
+        return r.ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
 
     def get_columns(
         self,
@@ -500,6 +576,83 @@ ORDER BY column_id
                 for row in rows
             ],
         )
+
+    @contextmanager
+    def get_connection(self) -> Generator[object]:
+        """Get database connection context manager."""
+        engine = self._engine
+        if engine is None:
+            msg = "No database connection established"
+            raise RuntimeError(msg)
+        connect_ctx = _engine_connect(engine)
+        connection = _context_enter(connect_ctx)
+        try:
+            yield connection
+        finally:
+            _context_exit(connect_ctx)
+
+    def get_connection_status(
+        self,
+    ) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
+        """Get connection status - simplified."""
+        return r.ok(
+            FlextDbOracleModels.DbOracle.ConnectionStatus(
+                is_connected=self.is_connected(),
+                host=self._db_config.host,
+                port=self._db_config.port,
+                service_name=self._db_config.service_name,
+                username=self._db_config.username,
+                error_message="" if self.is_connected() else "Connection unavailable",
+            ),
+        )
+
+    def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
+        """Get metrics status with explicit observability integration check."""
+        try:
+            observability_module = import_module("flext_observability")
+        except ModuleNotFoundError:
+            return r.fail(
+                "flext-observability integration unavailable; install flext-observability",
+            )
+
+        metric_factory = getattr(observability_module, "flext_metric", None)
+        if not callable(metric_factory):
+            return r.fail("flext-observability does not expose flext_metric")
+
+        status = "connected" if self.is_connected() else "disconnected"
+        return r.ok(
+            FlextDbOracleModels.DbOracle.HealthStatus(
+                status=f"{status}_with_observability",
+                timestamp=self._get_current_timestamp(),
+                service="oracle",
+                database=self._db_config.service_name,
+                metrics=dict(self._metrics),
+            ),
+        )
+
+    def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
+        """Get tracked operations."""
+        return r.ok(self._operations.copy())
+
+    def get_plugin(self, _name: str) -> r[t.JsonValue]:
+        """Get plugin data from local service registry."""
+        if not _name:
+            return r.fail("Plugin name is required")
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+        if _name not in self._plugins:
+            return r.fail(f"Plugin '{_name}' not found")
+        return r[t.JsonValue].ok(self._plugins[_name])
+
+    def get_primary_key_columns(
+        self,
+        table_name: str,
+        schema_name: str | None = None,
+    ) -> r[list[str]]:
+        """Alias for get_primary_keys."""
+        return self.get_primary_keys(table_name, schema_name)
 
     def get_primary_keys(
         self,
@@ -549,6 +702,14 @@ ORDER BY column_id
         ) as e:
             return r.fail(f"Failed to get primary keys: {e}")
 
+    # Schema Operations
+    def get_schemas(self) -> r[list[str]]:
+        """Get list of Oracle schemas."""
+        sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
+        return self.execute_query(sql).map(
+            lambda rows: [str(row.root["schema_name"]) for row in rows],
+        )
+
     def get_table_metadata(
         self,
         table_name: str,
@@ -582,170 +743,67 @@ ORDER BY column_id
         ) as e:
             return r.fail(f"Failed to get table metadata: {e}")
 
-    # Service
-    @override
-    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
-        """Execute main domain service operation - return config."""
-        test_result = self.test_connection()
-        if test_result.is_success:
-            return r.ok(self._db_config)
-        return r.fail(test_result.error or "Connection test failed")
-
-    def build_select(
+    def get_table_row_count(
         self,
         table_name: str,
-        columns: list[str] | None = None,
-        conditions: m.ConfigMap | t.ConfigurationMapping | None = None,
         schema_name: str | None = None,
-    ) -> r[str]:
-        """Build SELECT query - simplified implementation."""
-        typed_conditions = (
-            conditions
-            if isinstance(conditions, m.ConfigMap) or conditions is None
-            else m.ConfigMap.model_validate(conditions)
-        )
-        cols = ", ".join(columns) if columns else "*"
-        if typed_conditions and typed_conditions.root:
-            where_pairs = [f"{k} = :{k}" for k in typed_conditions.root]
-            where = f" WHERE {' AND '.join(where_pairs)}"
-        else:
-            where = ""
-        schema_prefix = f"{schema_name.upper()}." if schema_name else ""
-        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
-        return r.ok(sql)
-
-    def build_insert_statement(
-        self,
-        table_name: str,
-        columns: list[str],
-        schema: str | None = None,
-        returning_columns: list[str] | None = None,
-    ) -> r[str]:
-        """Build INSERT statement - simplified."""
-        cols = ", ".join(columns)
-        vals = ", ".join(f":{col}" for col in columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
-        if returning_columns:
-            ret = ", ".join(returning_columns)
-            sql += f" RETURNING {ret}"
-        return r.ok(sql)
-
-    def build_update_statement(
-        self,
-        table_name: str,
-        set_columns: list[str],
-        where_columns: list[str],
-        schema: str | None = None,
-    ) -> r[str]:
-        """Build UPDATE statement - simplified."""
-        sets = ", ".join(f"{col}=:{col}" for col in set_columns)
-        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
-        return r.ok(sql)
-
-    def build_delete_statement(
-        self,
-        table_name: str,
-        where_columns: list[str],
-        schema: str | None = None,
-    ) -> r[str]:
-        """Build DELETE statement - simplified."""
-        wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
-        schema_prefix = f"{schema}." if schema else ""
-        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
-        return r.ok(sql)
-
-    def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
-        """Build Oracle CREATE INDEX statement from configuration."""
+    ) -> r[int]:
+        """Get row count - simplified."""
         try:
-            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
-                _config,
+            schema = f"{schema_name}." if schema_name else ""
+            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
+            return self.execute_query(sql).map(
+                self._parse_count_from_rows,
             )
-            if not config.columns:
-                return r.fail("Index definition requires at least one column")
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyOperationalError,
+            OSError,
+        ) as e:
+            return r.fail(f"Failed to get row count: {e}")
 
-            schema_prefix = f"{config.schema_name}." if config.schema_name else ""
-            unique_prefix = "UNIQUE " if config.unique else ""
-            columns = ", ".join(config.columns)
-            sql = (
-                f"CREATE {unique_prefix}INDEX {config.index_name} "
-                f"ON {schema_prefix}{config.table_name} ({columns})"
-            )
+    def get_tables(self, schema: str | None = None) -> r[list[str]]:
+        """Get list of tables in Oracle schema."""
+        if schema:
+            sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
+            params: m.ConfigMap | None = m.ConfigMap(root={"schema_name": schema})
+        else:
+            sql = "SELECT table_name FROM user_tables ORDER BY table_name"
+            params = None
+        return self.execute_query(sql, params).map(
+            lambda rows: [str(row.root["table_name"]) for row in rows],
+        )
 
-            if config.tablespace:
-                sql = f"{sql} TABLESPACE {config.tablespace}"
-            if config.parallel > 1:
-                sql = f"{sql} PARALLEL {config.parallel}"
-            return r.ok(sql)
-        except ValidationError as e:
-            return r.fail(f"Invalid CREATE INDEX config: {e}")
+    def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
+        """Perform health check."""
+        return r.ok(
+            FlextDbOracleModels.DbOracle.HealthStatus(
+                status="healthy" if self.is_connected() else "unhealthy",
+                timestamp=self._get_current_timestamp(),
+                service="oracle",
+                database=self._db_config.service_name,
+                metrics={
+                    "connected": self.is_connected(),
+                    "host": self._db_config.host,
+                    "port": self._db_config.port,
+                },
+            ),
+        )
 
-    def create_table_ddl(
-        self,
-        table_name: str,
-        columns: Sequence[FlextDbOracleModels.DbOracle.Column | t.ConfigurationMapping],
-        schema: str | None = None,
-    ) -> r[str]:
-        """Generate CREATE TABLE DDL - simplified."""
-        col_defs: list[str] = []
-        primary_keys: list[str] = []
-        for col in columns:
-            if isinstance(col, FlextDbOracleModels.DbOracle.Column):
-                name = col.name or "unknown"
-                data_type = col.data_type or "VARCHAR2(255)"
-                nullable = "" if col.nullable else " NOT NULL"
-                if getattr(col, "primary_key", False):
-                    primary_keys.append(name)
-            else:
-                name_value = col.get("name") or col.get("column_name")
-                data_type_value = col.get("data_type")
-                nullable_value = col.get("nullable", True)
-                name = str(name_value) if name_value is not None else "unknown"
-                data_type = (
-                    str(data_type_value)
-                    if data_type_value is not None
-                    else "VARCHAR2(255)"
-                )
-                nullable = "" if bool(nullable_value) else " NOT NULL"
-                if bool(col.get("primary_key", False)):
-                    primary_keys.append(name)
-            col_defs.append(f"{name} {data_type}{nullable}")
-        if primary_keys:
-            col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
-        schema_prefix = f"{schema}." if schema else ""
-        ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
-        return r.ok(ddl)
+    def is_connected(self) -> bool:
+        """Check if connected to Oracle database."""
+        return self._engine is not None
 
-    def drop_table_ddl(
-        self,
-        table_name: str,
-        schema: str | None = None,
-    ) -> r[str]:
-        """Generate DROP TABLE DDL."""
-        schema_prefix = f"{schema}." if schema else ""
-        ddl = f"DROP TABLE {schema_prefix}{table_name}"
-        return r.ok(ddl)
-
-    def convert_singer_type(
-        self,
-        singer_type: str | list[str] = "string",
-        _format_hint: str | None = None,
-    ) -> r[str]:
-        """Convert Singer type to Oracle type - simplified."""
-        singer_type = _normalize_singer_type(singer_type)
-        if _format_hint == "date-time":
-            return r.ok("TIMESTAMP")
-        type_map = {
-            "string": "VARCHAR2(4000)",
-            "integer": "NUMBER(38)",
-            "number": "NUMBER",
-            "boolean": "NUMBER(1)",
-            "date-time": "TIMESTAMP",
-        }
-        oracle_type = type_map.get(singer_type, "VARCHAR2(255)")
-        return r.ok(oracle_type)
+    def list_plugins(self) -> r[m.ConfigMap]:
+        """List plugin names from local service registry."""
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+        plugin_names = list(self._plugins.keys())
+        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
     def map_singer_schema(
         self,
@@ -793,35 +851,6 @@ ORDER BY column_id
             "mapping": normalized_mapping,
         })
         return r.ok(type_mapping)
-
-    def generate_query_hash(
-        self,
-        sql: str = "",
-        params: m.ConfigMap | t.ConfigurationMapping | None = None,
-    ) -> r[str]:
-        """Generate query hash - simplified."""
-        typed_params = (
-            params
-            if isinstance(params, m.ConfigMap) or params is None
-            else m.ConfigMap.model_validate(params)
-        )
-        hash_input = f"{sql}_{typed_params!s}"
-        return r.ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
-
-    def get_connection_status(
-        self,
-    ) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
-        """Get connection status - simplified."""
-        return r.ok(
-            FlextDbOracleModels.DbOracle.ConnectionStatus(
-                is_connected=self.is_connected(),
-                host=self._db_config.host,
-                port=self._db_config.port,
-                service_name=self._db_config.service_name,
-                username=self._db_config.username,
-                error_message="" if self.is_connected() else "Connection unavailable",
-            ),
-        )
 
     def record_metric(
         self,
@@ -872,46 +901,6 @@ ORDER BY column_id
         }
         return r[bool].ok(True)
 
-    def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
-        """Get metrics status with explicit observability integration check."""
-        try:
-            observability_module = import_module("flext_observability")
-        except ModuleNotFoundError:
-            return r.fail(
-                "flext-observability integration unavailable; install flext-observability",
-            )
-
-        metric_factory = getattr(observability_module, "flext_metric", None)
-        if not callable(metric_factory):
-            return r.fail("flext-observability does not expose flext_metric")
-
-        status = "connected" if self.is_connected() else "disconnected"
-        return r.ok(
-            FlextDbOracleModels.DbOracle.HealthStatus(
-                status=f"{status}_with_observability",
-                timestamp=self._get_current_timestamp(),
-                service="oracle",
-                database=self._db_config.service_name,
-                metrics=dict(self._metrics),
-            ),
-        )
-
-    def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
-        """Perform health check."""
-        return r.ok(
-            FlextDbOracleModels.DbOracle.HealthStatus(
-                status="healthy" if self.is_connected() else "unhealthy",
-                timestamp=self._get_current_timestamp(),
-                service="oracle",
-                database=self._db_config.service_name,
-                metrics={
-                    "connected": self.is_connected(),
-                    "host": self._db_config.host,
-                    "port": self._db_config.port,
-                },
-            ),
-        )
-
     def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[bool]:
         """Register plugin via flext-plugin when available."""
         if not _name:
@@ -932,68 +921,29 @@ ORDER BY column_id
         self._plugins[_name] = payload
         return r[bool].ok(True)
 
-    def unregister_plugin(self, _name: str) -> r[bool]:
-        """Unregister plugin from local service registry."""
-        if not _name:
-            return r.fail("Plugin name is required")
+    def test_connection(self) -> r[bool]:
+        """Test Oracle database connection."""
+        engine_result = self._get_engine()
+        if engine_result.is_failure:
+            return r.fail("Not connected to database")
         try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r.fail("flext-plugin integration unavailable; install flext-plugin")
-        if _name not in self._plugins:
-            return r.fail(f"Plugin '{_name}' not found")
-        self._plugins.pop(_name)
-        return r[bool].ok(True)
-
-    def list_plugins(self) -> r[m.ConfigMap]:
-        """List plugin names from local service registry."""
-        try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r.fail("flext-plugin integration unavailable; install flext-plugin")
-        plugin_names = list(self._plugins.keys())
-        return r[m.ConfigMap].ok(m.ConfigMap(root=dict.fromkeys(plugin_names, True)))
-
-    def get_plugin(self, _name: str) -> r[t.JsonValue]:
-        """Get plugin data from local service registry."""
-        if not _name:
-            return r.fail("Plugin name is required")
-        try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r.fail("flext-plugin integration unavailable; install flext-plugin")
-        if _name not in self._plugins:
-            return r.fail(f"Plugin '{_name}' not found")
-        return r[t.JsonValue].ok(self._plugins[_name])
-
-    def get_primary_key_columns(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
-    ) -> r[list[str]]:
-        """Alias for get_primary_keys."""
-        return self.get_primary_keys(table_name, schema_name)
-
-    def get_table_row_count(
-        self,
-        table_name: str,
-        schema_name: str | None = None,
-    ) -> r[int]:
-        """Get row count - simplified."""
-        try:
-            schema = f"{schema_name}." if schema_name else ""
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
-            return self.execute_query(sql).map(
-                self._parse_count_from_rows,
-            )
+            connect_ctx = _engine_connect(engine_result.value)
+            conn = _context_enter(connect_ctx)
+            try:
+                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+            finally:
+                _context_exit(connect_ctx)
+            return r.ok(True)
         except (
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
-            return r.fail(f"Failed to get row count: {e}")
+            return r.fail(f"Connection test failed: {e}")
 
     def track_operation(
         self,
@@ -1028,9 +978,71 @@ ORDER BY column_id
         ) as e:
             return r.fail(f"Failed to track operation: {e}")
 
-    def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
-        """Get tracked operations."""
-        return r.ok(self._operations.copy())
+    def transaction(self) -> Generator[object]:
+        """Get transaction context for database operations."""
+        engine = self._engine
+        if engine is None:
+            msg = "No database connection established"
+            raise RuntimeError(msg)
+        transaction_ctx = _engine_begin(engine)
+        transaction = _context_enter(transaction_ctx)
+        try:
+            yield transaction
+        finally:
+            _context_exit(transaction_ctx)
+
+    def unregister_plugin(self, _name: str) -> r[bool]:
+        """Unregister plugin from local service registry."""
+        if not _name:
+            return r.fail("Plugin name is required")
+        try:
+            _ = import_module("flext_plugin.api")
+        except ModuleNotFoundError:
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+        if _name not in self._plugins:
+            return r.fail(f"Plugin '{_name}' not found")
+        self._plugins.pop(_name)
+        return r[bool].ok(True)
+
+    def _build_connection_url(self) -> r[str]:
+        """Build Oracle connection URL from configuration."""
+        try:
+            password = self._db_config.password
+            if not password:
+                return r.fail("Password is required for database connection")
+            encoded_password = quote_plus(str(password).encode())
+            service_name = self._db_config.service_name
+            base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
+            url = f"{base}/?service_name={service_name}"
+            return r.ok(url)
+        except (
+            OracleDatabaseError,
+            OracleInterfaceError,
+            ConnectionError,
+            SQLAlchemyDatabaseError,
+            SQLAlchemyOperationalError,
+            SQLAlchemyError,
+            OSError,
+        ) as e:
+            return r.fail(f"Failed to build connection URL: {e}")
+
+    def _extract_mapping_rows(self, mapping_result: object) -> list[t.ContainerValue]:
+        """Extract all SQLAlchemy mapping rows from a mapping result."""
+        all_method = getattr(mapping_result, "all", None)
+        if not callable(all_method):
+            return []
+        rows = all_method()
+        return _extract_object_rows(rows)
+
+    def _get_current_timestamp(self) -> str:
+        """Get current timestamp for operation tracking."""
+        return str(int(time.time()))
+
+    def _get_engine(self) -> r[object]:
+        """Get database engine."""
+        if not self._engine or not self.is_connected():
+            return r.fail("Not connected to database")
+        return r.ok(self._engine)
 
     def _normalize_query_rows(self, query_result: object) -> list[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
@@ -1042,14 +1054,6 @@ ORDER BY column_id
             self._normalize_row(row)
             for row in self._extract_mapping_rows(mapping_result)
         ]
-
-    def _extract_mapping_rows(self, mapping_result: object) -> list[t.ContainerValue]:
-        """Extract all SQLAlchemy mapping rows from a mapping result."""
-        all_method = getattr(mapping_result, "all", None)
-        if not callable(all_method):
-            return []
-        rows = all_method()
-        return _extract_object_rows(rows)
 
     def _normalize_row(self, row: object) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
@@ -1069,10 +1073,6 @@ ORDER BY column_id
         if count_value is None:
             return 0
         return _parse_count_value(count_value)
-
-    def _get_current_timestamp(self) -> str:
-        """Get current timestamp for operation tracking."""
-        return str(int(time.time()))
 
 
 # Export the single refactored class following flext-core pattern

@@ -116,6 +116,41 @@ class FlextDbOracleDispatcher(FlextService[None]):
             cls.TestConnectionCommand: (connection_test_handler, None),
         }
 
+    @classmethod
+    def build_dispatcher(
+        cls,
+        services: FlextDbOracleServices,
+        *,
+        _bus: t.ContainerValue | None = None,
+    ) -> p.CommandBus:
+        """Create a dispatcher instance wired to Oracle services."""
+        disp = FlextContainer.get_global().get("command_bus").unwrap()
+        if not isinstance(disp, p.CommandBus):
+            msg = "command_bus is not CommandBus"
+            raise TypeError(msg)
+        dispatcher = disp
+        _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
+        # Create handler functions grouped by functionality
+        function_map: dict[
+            type,
+            tuple[
+                Callable[[t.ContainerValue], t.ContainerValue],
+                Mapping[str, t.JsonValue] | None,
+            ],
+        ] = {}
+        # Add connection handlers
+        function_map.update(cls._create_connection_handlers(services))
+        # Add query handlers - need instance for these methods now
+        instance = cls()
+        function_map.update(instance._create_query_handlers(services))
+        # Add schema handlers
+        function_map.update(instance._create_schema_handlers(services))
+        # Register each handler with strict API (handler must expose message_type)
+        for handler_fn, _metadata in function_map.values():
+            # Set message_type on handler for strict route discovery
+            dispatcher.register_handler(handler_fn)
+        return dispatcher
+
     def _create_query_handlers(
         self,
         services: FlextDbOracleServices,
@@ -208,41 +243,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
             self.GetTablesCommand: (get_tables_handler, None),
             self.GetColumnsCommand: (get_columns_handler, None),
         }
-
-    @classmethod
-    def build_dispatcher(
-        cls,
-        services: FlextDbOracleServices,
-        *,
-        _bus: t.ContainerValue | None = None,
-    ) -> p.CommandBus:
-        """Create a dispatcher instance wired to Oracle services."""
-        disp = FlextContainer.get_global().get("command_bus").unwrap()
-        if not isinstance(disp, p.CommandBus):
-            msg = "command_bus is not CommandBus"
-            raise TypeError(msg)
-        dispatcher = disp
-        _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
-        # Create handler functions grouped by functionality
-        function_map: dict[
-            type,
-            tuple[
-                Callable[[t.ContainerValue], t.ContainerValue],
-                Mapping[str, t.JsonValue] | None,
-            ],
-        ] = {}
-        # Add connection handlers
-        function_map.update(cls._create_connection_handlers(services))
-        # Add query handlers - need instance for these methods now
-        instance = cls()
-        function_map.update(instance._create_query_handlers(services))
-        # Add schema handlers
-        function_map.update(instance._create_schema_handlers(services))
-        # Register each handler with strict API (handler must expose message_type)
-        for handler_fn, _metadata in function_map.values():
-            # Set message_type on handler for strict route discovery
-            dispatcher.register_handler(handler_fn)
-        return dispatcher
 
 
 __all__ = [

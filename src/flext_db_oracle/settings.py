@@ -136,16 +136,6 @@ class FlextDbOracleSettings(FlextSettings):
         description="Oracle database password",
     )
 
-    @field_validator("password", mode="before")
-    @classmethod
-    def _coerce_password(cls, value: object) -> OraclePassword:
-        """Coerce password values into OraclePassword wrapper."""
-        if isinstance(value, OraclePassword):
-            return value
-        if value is None:
-            return OraclePassword("")
-        return OraclePassword(str(value))
-
     @computed_field
     def connection_string(self) -> str:
         """Computed Oracle connection string for SQLAlchemy."""
@@ -159,6 +149,16 @@ class FlextDbOracleSettings(FlextSettings):
         return (
             f"oracle+oracledb://{user}:{password}@{host}:{port}/?service_name={service}"
         )
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def _coerce_password(cls, value: object) -> OraclePassword:
+        """Coerce password values into OraclePassword wrapper."""
+        if isinstance(value, OraclePassword):
+            return value
+        if value is None:
+            return OraclePassword("")
+        return OraclePassword(str(value))
 
     charset: str = Field(
         default=c.DbOracle.Connection.DEFAULT_CHARSET,
@@ -291,68 +291,9 @@ class FlextDbOracleSettings(FlextSettings):
         description="Performance critical threshold in seconds",
     )
 
-    # Validation methods
-    @field_validator("pool_max", mode="before")
-    @classmethod
-    def validate_pool_max(cls, v: int, info: ValidationInfo) -> int:
-        """Validate pool_max is greater than pool_min."""
-        if "pool_min" in info.data and v < info.data["pool_min"]:
-            msg = "pool_max must be greater than or equal to pool_min"
-            raise ValueError(msg)
-        return v
-
-    def validate_connection_config(self) -> r[bool]:
-        """Validate the complete connection configuration."""
-        # Validate required fields
-        if not self.host:
-            return r[bool].fail("Oracle host is required")
-
-        if not self.username:
-            return r[bool].fail("Oracle username is required")
-
-        if not self.password:
-            return r[bool].fail("Oracle password is required")
-
-        # Validate pool configuration
-        if self.pool_max < self.pool_min:
-            return r[bool].fail(
-                "pool_max must be greater than or equal to pool_min",
-            )
-
-        # Validate SSL configuration
-        if self.use_ssl:
-            if self.ssl_cert_file and not self.ssl_key_file:
-                return r[bool].fail(
-                    "SSL key file is required when SSL cert file is provided",
-                )
-
-            if self.ssl_key_file and not self.ssl_cert_file:
-                return r[bool].fail(
-                    "SSL cert file is required when SSL key file is provided",
-                )
-
-        return r[bool].ok(True)
-
-    def get_connection_string(self) -> str:
-        """Generate Oracle connection string."""
-        if self.service_name:
-            return f"{self.host}:{self.port}/{self.service_name}"
-        if self.sid:
-            return f"{self.host}:{self.port}:{self.sid}"
-        return f"{self.host}:{self.port}"
-
-    def get_connection_config(self) -> Mapping[str, object]:
-        """Get connection configuration (without exposing secrets)."""
-        return {
-            "host": self.host,
-            "port": self.port,
-            "service_name": self.service_name,
-            "database_name": self.name,
-            "sid": self.sid,
-            "username": self.username,
-            "charset": self.charset,
-            "password_configured": bool(self.password),
-        }
+    def __new__(cls, **_kwargs: object) -> Self:
+        """Create independent settings instances for test and runtime isolation."""
+        return BaseSettings.__new__(cls)
 
     @classmethod
     def from_env(cls, _prefix: str = "ORACLE_") -> r[FlextDbOracleSettings]:
@@ -492,6 +433,65 @@ class FlextDbOracleSettings(FlextSettings):
         """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
         super().reset_global_instance()
 
-    def __new__(cls, **_kwargs: object) -> Self:
-        """Create independent settings instances for test and runtime isolation."""
-        return BaseSettings.__new__(cls)
+    # Validation methods
+    @field_validator("pool_max", mode="before")
+    @classmethod
+    def validate_pool_max(cls, v: int, info: ValidationInfo) -> int:
+        """Validate pool_max is greater than pool_min."""
+        if "pool_min" in info.data and v < info.data["pool_min"]:
+            msg = "pool_max must be greater than or equal to pool_min"
+            raise ValueError(msg)
+        return v
+
+    def get_connection_config(self) -> Mapping[str, object]:
+        """Get connection configuration (without exposing secrets)."""
+        return {
+            "host": self.host,
+            "port": self.port,
+            "service_name": self.service_name,
+            "database_name": self.name,
+            "sid": self.sid,
+            "username": self.username,
+            "charset": self.charset,
+            "password_configured": bool(self.password),
+        }
+
+    def get_connection_string(self) -> str:
+        """Generate Oracle connection string."""
+        if self.service_name:
+            return f"{self.host}:{self.port}/{self.service_name}"
+        if self.sid:
+            return f"{self.host}:{self.port}:{self.sid}"
+        return f"{self.host}:{self.port}"
+
+    def validate_connection_config(self) -> r[bool]:
+        """Validate the complete connection configuration."""
+        # Validate required fields
+        if not self.host:
+            return r[bool].fail("Oracle host is required")
+
+        if not self.username:
+            return r[bool].fail("Oracle username is required")
+
+        if not self.password:
+            return r[bool].fail("Oracle password is required")
+
+        # Validate pool configuration
+        if self.pool_max < self.pool_min:
+            return r[bool].fail(
+                "pool_max must be greater than or equal to pool_min",
+            )
+
+        # Validate SSL configuration
+        if self.use_ssl:
+            if self.ssl_cert_file and not self.ssl_key_file:
+                return r[bool].fail(
+                    "SSL key file is required when SSL cert file is provided",
+                )
+
+            if self.ssl_key_file and not self.ssl_cert_file:
+                return r[bool].fail(
+                    "SSL cert file is required when SSL key file is provided",
+                )
+
+        return r[bool].ok(True)

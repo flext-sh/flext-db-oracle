@@ -94,33 +94,11 @@ class FlextDbOracleModels(FlextModels):
             db_version: str = Field(default="", description="Oracle database version")
 
             @property
-            def status_description(self) -> str:
-                """Human-readable status description."""
-                if self.is_connected:
-                    return "Connected"
-                return (
-                    f"Disconnected: {self.error_message}"
-                    if self.error_message
-                    else "Disconnected"
-                )
-
-            @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
                 if self.is_connected:
                     return (datetime.now(UTC) - self.last_activity).total_seconds()
                 return 0.0
-
-            @property
-            def is_healthy(self) -> bool:
-                """Connection health status."""
-                if not self.is_connected:
-                    return False
-                age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
-                return (
-                    age_seconds
-                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
-                )
 
             @property
             def connection_info(self) -> str:
@@ -138,6 +116,17 @@ class FlextDbOracleModels(FlextModels):
                     if v  # Empty strings are falsy, so this works
                 ]
                 return ", ".join(parts) or "Connected"
+
+            @property
+            def is_healthy(self) -> bool:
+                """Connection health status."""
+                if not self.is_connected:
+                    return False
+                age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
+                return (
+                    age_seconds
+                    <= c.DbOracle.OraclePerformance.CONNECTION_IDLE_TIMEOUT_SECONDS
+                )
 
             @property
             def performance_info(self) -> str:
@@ -159,6 +148,35 @@ class FlextDbOracleModels(FlextModels):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
 
+            @property
+            def status_description(self) -> str:
+                """Human-readable status description."""
+                if self.is_connected:
+                    return "Connected"
+                return (
+                    f"Disconnected: {self.error_message}"
+                    if self.error_message
+                    else "Disconnected"
+                )
+
+            @field_serializer("connection_time", when_used="json")
+            def serialize_connection_time(self, value: float) -> str:
+                """Format connection time with units."""
+                return f"{value:.3f}s"
+
+            @field_serializer("last_check", "last_activity", when_used="json")
+            def serialize_datetime(self, value: datetime) -> str:
+                """Format datetime as ISO string."""
+                return value.isoformat()
+
+            @field_serializer("error_message")
+            def serialize_error_message(self, value: str) -> str:
+                """Truncate long error messages."""
+                max_error_length = c.DbOracle.Error.MAX_ERROR_MESSAGE_LENGTH
+                if len(value) > max_error_length:
+                    return f"{value[:max_error_length]}... (truncated)"
+                return value
+
             @model_validator(mode="after")
             def validate_connection_status_consistency(
                 self,
@@ -178,24 +196,6 @@ class FlextDbOracleModels(FlextModels):
                     msg = "Connection time cannot be negative"
                     raise ValueError(msg)
                 return self
-
-            @field_serializer("error_message")
-            def serialize_error_message(self, value: str) -> str:
-                """Truncate long error messages."""
-                max_error_length = c.DbOracle.Error.MAX_ERROR_MESSAGE_LENGTH
-                if len(value) > max_error_length:
-                    return f"{value[:max_error_length]}... (truncated)"
-                return value
-
-            @field_serializer("last_check", "last_activity", when_used="json")
-            def serialize_datetime(self, value: datetime) -> str:
-                """Format datetime as ISO string."""
-                return value.isoformat()
-
-            @field_serializer("connection_time", when_used="json")
-            def serialize_connection_time(self, value: float) -> str:
-                """Format connection time with units."""
-                return f"{value:.3f}s"
 
         class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
@@ -217,6 +217,22 @@ class FlextDbOracleModels(FlextModels):
             explain_plan: str = Field(default="", description="Query execution plan")
 
             @property
+            def column_count(self) -> int:
+                """Number of columns."""
+                return len(self.columns)
+
+            @property
+            def data_size_bytes(self) -> int:
+                """Estimated data size in bytes."""
+                return (
+                    len(self.rows)
+                    * len(self.columns)
+                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    if self.rows
+                    else 0
+                )
+
+            @property
             def execution_time_seconds(self) -> float:
                 """Execution time in seconds."""
                 return self.execution_time_ms / 1000.0
@@ -227,9 +243,16 @@ class FlextDbOracleModels(FlextModels):
                 return self.row_count > 0
 
             @property
-            def column_count(self) -> int:
-                """Number of columns."""
-                return len(self.columns)
+            def memory_usage_mb(self) -> float:
+                """Estimated memory usage in MB."""
+                data_size = (
+                    len(self.rows)
+                    * len(self.columns)
+                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
+                    if self.rows
+                    else 0
+                )
+                return data_size / (1024 * 1024)
 
             @property
             def performance_rating(self) -> str:
@@ -253,28 +276,15 @@ class FlextDbOracleModels(FlextModels):
                     else "Slow"
                 )
 
-            @property
-            def data_size_bytes(self) -> int:
-                """Estimated data size in bytes."""
+            @field_serializer("execution_time_ms", when_used="json")
+            def serialize_execution_time(self, value: int) -> str:
+                """Format execution time with appropriate units."""
+                threshold = (
+                    c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
+                )
                 return (
-                    len(self.rows)
-                    * len(self.columns)
-                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
-                    if self.rows
-                    else 0
+                    f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
                 )
-
-            @property
-            def memory_usage_mb(self) -> float:
-                """Estimated memory usage in MB."""
-                data_size = (
-                    len(self.rows)
-                    * len(self.columns)
-                    * c.DbOracle.OraclePerformance.DATA_SIZE_ESTIMATION_FACTOR
-                    if self.rows
-                    else 0
-                )
-                return data_size / (1024 * 1024)
 
             @model_validator(mode="after")
             def validate_query_result_consistency(
@@ -292,16 +302,6 @@ class FlextDbOracleModels(FlextModels):
                     msg = "Execution time cannot be negative"
                     raise ValueError(msg)
                 return self
-
-            @field_serializer("execution_time_ms", when_used="json")
-            def serialize_execution_time(self, value: int) -> str:
-                """Format execution time with appropriate units."""
-                threshold = (
-                    c.DbOracle.OraclePerformance.MILLISECONDS_TO_SECONDS_THRESHOLD
-                )
-                return (
-                    f"{value}ms" if value < threshold else f"{value / threshold:.2f}s"
-                )
 
         class OperationRecord(FlextModels.Entity):
             """Operation tracking record for observability workflows."""
@@ -321,17 +321,17 @@ class FlextDbOracleModels(FlextModels):
             database: str = "oracle"
             metrics: Mapping[str, t.JsonValue] = Field(default_factory=dict)
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in health status."""
-                if key in self.metrics:
-                    return True
-                return key in self.model_dump()
-
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
                 return self.model_dump().get(key)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in health status."""
+                if key in self.metrics:
+                    return True
+                return key in self.model_dump()
 
         class TableMetadata(FlextModels.Entity):
             """Complete table metadata for Oracle introspection."""
@@ -343,22 +343,18 @@ class FlextDbOracleModels(FlextModels):
             )
             primary_keys: list[str] = Field(default_factory=list)
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in table metadata."""
-                return key in self.model_dump()
-
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
                 return self.model_dump().get(key)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in table metadata."""
+                return key in self.model_dump()
 
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
             mapping: Mapping[str, str] = Field(default_factory=dict)
-
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in type mapping."""
-                return key in self.mapping
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
@@ -367,6 +363,10 @@ class FlextDbOracleModels(FlextModels):
             def __len__(self) -> int:
                 """Get number of type mappings."""
                 return len(self.mapping)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in type mapping."""
+                return key in self.mapping
 
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
@@ -404,17 +404,6 @@ class FlextDbOracleModels(FlextModels):
                 description="Default value for the column",
             )
 
-            def __contains__(self, key: str) -> bool:
-                """Check if key is in column metadata."""
-                return key in {
-                    "name",
-                    "column_name",
-                    "data_type",
-                    "nullable",
-                    "primary_key",
-                    "default_value",
-                }
-
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
                 key_map = {
@@ -426,6 +415,17 @@ class FlextDbOracleModels(FlextModels):
                     "default_value": self.default_value,
                 }
                 return key_map.get(key)
+
+            def __contains__(self, key: str) -> bool:
+                """Check if key is in column metadata."""
+                return key in {
+                    "name",
+                    "column_name",
+                    "data_type",
+                    "nullable",
+                    "primary_key",
+                    "default_value",
+                }
 
         class Schema(FlextModels.Entity):
             """Schema metadata using flext-core Entity."""
