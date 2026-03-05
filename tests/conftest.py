@@ -68,6 +68,29 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     try:
         docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+
+        # Só recriar se realmente houver containers dirty
+        dirty_containers = docker.get_dirty_containers()
+        if not dirty_containers:
+            logger.debug("No dirty containers to clean")
+            return
+
+        # Verificar se o container está realmente com problemas antes de recriar
+        container_name = "flext-oracle-db-test"
+        status_result = docker.get_container_status(container_name)
+
+        # Se o container existe e está rodando sem erros, limpar o estado dirty
+        if status_result.is_success:
+            status = status_result.value
+            if status.status == docker.ContainerStatus.RUNNING:
+                # Container está rodando bem, limpar estado dirty
+                docker.mark_container_clean(container_name)
+                logger.info(
+                    f"Container {container_name} is healthy, cleared dirty state"
+                )
+                return
+
+        # Container realmente precisa ser recriado
         cleanup_result = docker.cleanup_dirty_containers()
         if cleanup_result.is_failure:
             logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
