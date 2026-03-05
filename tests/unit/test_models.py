@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime
 
 import pytest
@@ -97,6 +98,7 @@ class TestFlextDbOracleModels:
         # Excellent performance
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
+            host="localhost",
             connection_time=0.05,  # 50ms
         )
         assert "Excellent" in status.performance_info
@@ -157,6 +159,7 @@ class TestFlextDbOracleModels:
         now = datetime.now(UTC)
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True,
+            host="localhost",
             last_check=now,
             last_activity=now,
             error_message="Test error message that is very long and should be truncated because it's over 500 characters in length and we want to make sure the serialization works properly by cutting it off at the appropriate limit",
@@ -574,6 +577,10 @@ class TestFlextDbOracleSettings:
 
     def test_config_from_env_with_values(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test config creation from environment variables."""
+        # Clear FLEXT_TARGET variables first since they take precedence
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_TARGET_ORACLE_"):
+                monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("ORACLE_HOST", "db.example.com")
         monkeypatch.setenv("ORACLE_PORT", "1522")
         monkeypatch.setenv("ORACLE_SERVICE_NAME", "MYDB")
@@ -628,6 +635,10 @@ class TestFlextDbOracleSettings:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test port conversion from environment string to int."""
+        # Clear FLEXT_TARGET variables first since they take precedence
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_TARGET_ORACLE_"):
+                monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("ORACLE_PORT", "1523")
 
         result = FlextDbOracleSettings.from_env()
@@ -641,6 +652,10 @@ class TestFlextDbOracleSettings:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with invalid port."""
+        # Clear FLEXT_TARGET variables first since they take precedence
+        for key in list(os.environ.keys()):
+            if key.startswith("FLEXT_TARGET_ORACLE_"):
+                monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("ORACLE_PORT", "invalid")
 
         result = FlextDbOracleSettings.from_env()

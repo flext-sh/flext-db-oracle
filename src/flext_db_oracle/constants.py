@@ -97,7 +97,7 @@ class FlextDbOracleConstants(FlextConstants):
             SINGER_TYPE_MAP: ClassVar[dict[str, str]] = {
                 "string": "VARCHAR2(4000)",
                 "integer": "NUMBER(38)",
-                "number": "NUMBER(38)",
+                "number": "NUMBER",
                 "boolean": "NUMBER(1)",
                 "array": "CLOB",
                 "object": "CLOB",
@@ -503,6 +503,9 @@ class FlextDbOracleConstants(FlextConstants):
             HTTP_METHOD_POST: Final[str] = "POST"
             HTTP_METHOD_PUT: Final[str] = "PUT"
             HTTP_METHOD_PATCH: Final[str] = "PATCH"
+
+    class Platform(DbOracle.Platform):
+        """Compatibility alias for platform constants at root namespace."""
 
 
 c = FlextDbOracleConstants

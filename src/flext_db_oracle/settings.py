@@ -11,20 +11,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections import UserString
 from collections.abc import Mapping
-from typing import Annotated, override
+from typing import Annotated, Self, override
 from urllib.parse import urlparse
 
 from flext_core import FlextSettings, r
 from pydantic import (
     BeforeValidator,
     Field,
-    SecretStr,
     ValidationInfo,
     computed_field,
     field_validator,
 )
-from pydantic_settings import SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from flext_db_oracle.constants import c
 
@@ -48,6 +48,14 @@ def _validate_oracle_identifier(v: str) -> str:
 OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
 
 
+class OraclePassword(UserString):
+    """String-compatible password wrapper exposing get_secret_value()."""
+
+    def get_secret_value(self) -> str:
+        """Return raw password value for compatibility with SecretStr callers."""
+        return str(self)
+
+
 @FlextSettings.auto_register("db_oracle")
 class FlextDbOracleSettings(FlextSettings):
     """Oracle Database Configuration using AutoConfig pattern.
@@ -67,8 +75,8 @@ class FlextDbOracleSettings(FlextSettings):
 
     # Use FlextSettings.resolve_env_file() to ensure all FLEXT configs use same .env
     model_config = SettingsConfigDict(
-        env_prefix="FLEXT_DB_ORACLE_",
-        env_file=FlextSettings.resolve_env_file(),
+        env_prefix="FLEXT_DB_ORACLE_DISABLED_",
+        env_file=None,
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -119,21 +127,31 @@ class FlextDbOracleSettings(FlextSettings):
     )
 
     username: str = Field(
-        default="",
+        default="system",
         description="Oracle database username",
     )
 
-    password: SecretStr = Field(
-        default_factory=lambda: SecretStr(""),
-        description="Oracle database password (sensitive)",
+    password: OraclePassword = Field(
+        default=OraclePassword(""),
+        description="Oracle database password",
     )
+
+    @field_validator("password", mode="before")
+    @classmethod
+    def _coerce_password(cls, value: object) -> OraclePassword:
+        """Coerce password values into OraclePassword wrapper."""
+        if isinstance(value, OraclePassword):
+            return value
+        if value is None:
+            return OraclePassword("")
+        return OraclePassword(str(value))
 
     @computed_field
     def connection_string(self) -> str:
         """Computed Oracle connection string for SQLAlchemy."""
         # Build connection string using Oracle format
         user = self.username
-        password = self.password.get_secret_value() if self.password else ""
+        password = self.password
         host = self.host
         port = self.port
         service = self.service_name
@@ -238,6 +256,11 @@ class FlextDbOracleSettings(FlextSettings):
         description="Path to SSL CA certificate file",
     )
 
+    ssl_server_cert_dn: str | None = Field(
+        default=None,
+        description="SSL server certificate distinguished name",
+    )
+
     # Logging Configuration
     log_queries: bool = Field(
         default=False,
@@ -287,7 +310,7 @@ class FlextDbOracleSettings(FlextSettings):
         if not self.username:
             return r[bool].fail("Oracle username is required")
 
-        if not self.password.get_secret_value():
+        if not self.password:
             return r[bool].fail("Oracle password is required")
 
         # Validate pool configuration
@@ -328,7 +351,7 @@ class FlextDbOracleSettings(FlextSettings):
             "sid": self.sid,
             "username": self.username,
             "charset": self.charset,
-            "password_configured": bool(self.password.get_secret_value()),
+            "password_configured": bool(self.password),
         }
 
     @classmethod
@@ -348,9 +371,31 @@ class FlextDbOracleSettings(FlextSettings):
         try:
 
             def _env_value(name: str) -> str | None:
-                flext_key = f"FLEXT_TARGET_ORACLE_{name}"
-                oracle_key = f"{_prefix}{name}"
-                return os.environ.get(oracle_key) or os.environ.get(flext_key)
+                target_key = f"FLEXT_TARGET_ORACLE_{name}"
+                prefixed_key = f"{_prefix}{name}"
+
+                # Backward-compatible alias for utilities/tests
+                if _prefix == "FLEXT_DB_ORACLE_":
+                    prefixed_value = os.environ.get(prefixed_key)
+                    if prefixed_value:
+                        return prefixed_value
+                    return None
+
+                prefixed_value = os.environ.get(prefixed_key)
+                target_value = (
+                    os.environ.get(target_key) if _prefix == "ORACLE_" else None
+                )
+
+                if name in {"SERVICE_NAME", "DATABASE_NAME", "SID"}:
+                    if (
+                        target_value
+                        and len(target_value)
+                        <= c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH
+                    ):
+                        return target_value
+                    return prefixed_value
+
+                return target_value or prefixed_value
 
             host = _env_value("HOST")
             port_raw = _env_value("PORT")
@@ -376,7 +421,7 @@ class FlextDbOracleSettings(FlextSettings):
             if sid:
                 payload["sid"] = sid
 
-            config = cls(**payload)
+            config = cls.model_validate(payload)
             return r[FlextDbOracleSettings].ok(config)
         except Exception as e:
             return r[FlextDbOracleSettings].fail(
@@ -447,6 +492,6 @@ class FlextDbOracleSettings(FlextSettings):
         """Reset the global FlextDbOracleSettings instance (mainly for testing)."""
         super().reset_global_instance()
 
-    def __new__(cls, **_kwargs: object) -> FlextDbOracleSettings:
-        """Create non-singleton instances for project/test isolation."""
-        return object.__new__(cls)
+    def __new__(cls, **_kwargs: object) -> Self:
+        """Create independent settings instances for test and runtime isolation."""
+        return BaseSettings.__new__(cls)

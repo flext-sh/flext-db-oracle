@@ -68,7 +68,7 @@ class FlextDbOracleModels(FlextModels):
         class ConnectionStatus(FlextModels.Entity):
             """Connection status using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False)
+            model_config = ConfigDict(frozen=False, extra="ignore")
 
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -174,8 +174,6 @@ class FlextDbOracleModels(FlextModels):
                 ):
                     msg = f"Invalid port number: {self.port}"
                     raise ValueError(msg)
-                if not self.is_connected and not self.error_message:
-                    self.error_message = "Connection failed"
                 if self.connection_time < 0:
                     msg = "Connection time cannot be negative"
                     raise ValueError(msg)
@@ -189,12 +187,12 @@ class FlextDbOracleModels(FlextModels):
                     return f"{value[:max_error_length]}... (truncated)"
                 return value
 
-            @field_serializer("last_check", "last_activity")
+            @field_serializer("last_check", "last_activity", when_used="json")
             def serialize_datetime(self, value: datetime) -> str:
                 """Format datetime as ISO string."""
                 return value.isoformat()
 
-            @field_serializer("connection_time")
+            @field_serializer("connection_time", when_used="json")
             def serialize_connection_time(self, value: float) -> str:
                 """Format connection time with units."""
                 return f"{value:.3f}s"
@@ -202,7 +200,7 @@ class FlextDbOracleModels(FlextModels):
         class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False)
+            model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
             result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
@@ -237,6 +235,14 @@ class FlextDbOracleModels(FlextModels):
             def performance_rating(self) -> str:
                 """Query performance rating."""
                 thresholds = c.DbOracle.OraclePerformance
+                result_acceptance_threshold_ms = (
+                    thresholds.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+                )
+                if (
+                    self.has_results
+                    and self.execution_time_ms <= result_acceptance_threshold_ms
+                ):
+                    return "Acceptable"
                 return (
                     "Excellent"
                     if self.execution_time_ms < thresholds.QUERY_EXCELLENT_THRESHOLD_MS
@@ -287,7 +293,7 @@ class FlextDbOracleModels(FlextModels):
                     raise ValueError(msg)
                 return self
 
-            @field_serializer("execution_time_ms")
+            @field_serializer("execution_time_ms", when_used="json")
             def serialize_execution_time(self, value: int) -> str:
                 """Format execution time with appropriate units."""
                 threshold = (
@@ -311,13 +317,20 @@ class FlextDbOracleModels(FlextModels):
 
             status: str
             timestamp: str
+            service: str = "oracle"
+            database: str = "oracle"
+            metrics: Mapping[str, t.JsonValue] = Field(default_factory=dict)
 
             def __contains__(self, key: str) -> bool:
                 """Check if key is in health status."""
+                if key in self.metrics:
+                    return True
                 return key in self.model_dump()
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
+                if key in self.metrics:
+                    return self.metrics[key]
                 return self.model_dump().get(key)
 
         class TableMetadata(FlextModels.Entity):

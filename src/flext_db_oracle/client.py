@@ -129,7 +129,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             actual_port = port or self.oracle_config.port
             actual_service_name = service_name or self.oracle_config.service_name
             actual_username = username or self.oracle_config.username
-            actual_password = password or self.oracle_config.password.get_secret_value()
+            actual_password = password or self.oracle_config.password
 
             # Validate required parameters
             if not actual_host:

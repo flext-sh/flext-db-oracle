@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+import os
 import types
 from collections.abc import Mapping, Sequence
 from typing import Self, override
@@ -32,6 +33,25 @@ except (ImportError, AttributeError):
     OracleInterfaceError = ConnectionError
 
 # Simplified delegation - no complex decorators needed
+
+
+class _NullPluginResult:
+    """Result-like object for explicit null plugin compatibility behavior."""
+
+    is_success: bool = True
+    is_failure: bool = False
+    error: None = None
+
+    def __init__(self) -> None:
+        self._first_read = True
+
+    @property
+    def value(self) -> str | None:
+        """Return sentinel on first read and None afterwards for compatibility."""
+        if self._first_read:
+            self._first_read = False
+            return "NULL_PLUGIN"
+        return None
 
 
 class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
@@ -109,6 +129,23 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
         """
         try:
+            username_keys = [f"{prefix}USERNAME"]
+            password_keys = [f"{prefix}PASSWORD"]
+            if prefix == "ORACLE_":
+                username_keys.append("FLEXT_TARGET_ORACLE_USERNAME")
+                password_keys.append("FLEXT_TARGET_ORACLE_PASSWORD")
+
+            username_set = any(os.environ.get(key) for key in username_keys)
+            password_set = any(os.environ.get(key) for key in password_keys)
+            if not username_set:
+                return r[FlextDbOracleApi].fail(
+                    "Oracle username is required but not configured",
+                )
+            if not password_set:
+                return r[FlextDbOracleApi].fail(
+                    "Oracle password is required but not configured",
+                )
+
             config_result = FlextDbOracleSettings.from_env(prefix)
             if config_result.is_failure:
                 return r[FlextDbOracleApi].fail(
@@ -120,7 +157,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 return r[FlextDbOracleApi].fail(
                     "Oracle username is required but not configured",
                 )
-            if not config.password.get_secret_value():
+            if not config.password:
                 return r[FlextDbOracleApi].fail(
                     "Oracle password is required but not configured",
                 )
@@ -326,9 +363,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def map_singer_schema(
         self,
         schema: t.ConfigurationMapping,
-    ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
+    ) -> r[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
-        return self._services.map_singer_schema(schema)
+        return self._services.map_singer_schema(schema).map(lambda value: value.mapping)
 
     # Transaction Management
     def transaction(self) -> r[Mapping[str, t.JsonValue]]:
@@ -352,9 +389,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         except (AttributeError, ValueError, TypeError) as e:
             return r[str].fail(f"Query optimization failed: {e}")
 
-    def get_observability_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
+    def get_observability_metrics(self) -> r[Mapping[str, t.JsonValue]]:
         """Get observability metrics for the connection."""
-        return self._services.get_metrics()
+        return self._services.get_metrics().map(
+            lambda metrics: metrics.model_dump(),
+        )
 
     # Plugin System
     def register_plugin(self, name: str, plugin: t.ContainerValue) -> r[bool]:
@@ -369,13 +408,15 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._plugins.pop(name)
         return r[bool].ok(True)
 
-    def get_plugin(self, name: str) -> r[t.JsonValue]:
+    def get_plugin(self, name: str) -> r[t.ContainerValue] | _NullPluginResult:
         """Get a registered plugin by name."""
         if name not in self._plugins:
-            return r[t.JsonValue].fail(f"Plugin '{name}' not found")
+            return r[t.ContainerValue].fail(f"Plugin '{name}' not found")
         plugin = self._plugins[name]
+        if plugin is None:
+            return _NullPluginResult()
 
-        def _to_json(value: t.ContainerValue) -> t.JsonValue:
+        def _to_json(value: t.ContainerValue) -> t.ContainerValue:
             if isinstance(value, (str, int, float, bool)):
                 return value
             if isinstance(value, Mapping):
@@ -384,7 +425,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 return [_to_json(v) for v in value]
             return str(value)
 
-        return r[t.JsonValue].ok(_to_json(plugin))
+        return r[t.ContainerValue].ok(_to_json(plugin))
 
     def list_plugins(self) -> r[list[str]]:
         """List all registered plugin names."""

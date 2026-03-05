@@ -17,7 +17,11 @@ from urllib.parse import quote_plus
 import oracledb
 from flext_core import FlextService, r, t
 from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
-from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
+from sqlalchemy.exc import (
+    DatabaseError as SQLAlchemyDatabaseError,
+    OperationalError as SQLAlchemyOperationalError,
+    SQLAlchemyError,
+)
 
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
@@ -189,14 +193,15 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._engine: object | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.JsonValue] = {}
+        self._metrics: dict[str, t.JsonValue] = {}
 
     def _build_connection_url(self) -> r[str]:
         """Build Oracle connection URL from configuration."""
         try:
-            password = self._db_config.password.get_secret_value()
+            password = self._db_config.password
             if not password:
                 return r.fail("Password is required for database connection")
-            encoded_password = quote_plus(password)
+            encoded_password = quote_plus(str(password).encode())
             service_name = self._db_config.service_name
             base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
             url = f"{base}/?service_name={service_name}"
@@ -205,7 +210,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Failed to build connection URL: {e}")
@@ -239,9 +246,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
+            self._engine = None
             self.logger.exception("Oracle connection failed")
             return r.fail(f"Connection failed: {e}")
 
@@ -275,7 +285,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Connection test failed: {e}")
@@ -314,6 +326,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         params: m.ConfigMap | None = None,
     ) -> r[list[m.Dict]]:
         """Execute SQL query and return results."""
+        if not self.is_connected():
+            return r.fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.is_failure:
             return r.fail(
@@ -332,7 +346,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Query execution failed: {e}")
@@ -343,6 +359,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         params: m.ConfigMap | None = None,
     ) -> r[int]:
         """Execute SQL statement and return affected rows."""
+        if not self.is_connected():
+            return r.fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.is_failure:
             return r.fail(
@@ -362,7 +380,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Statement execution failed: {e}")
@@ -373,6 +393,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         params_list: Sequence[Mapping[str, t.ContainerValue] | m.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
+        if not self.is_connected():
+            return r.fail("Not connected to database")
         engine_result = self._get_engine()
         if engine_result.is_failure:
             return r.fail(
@@ -403,7 +425,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Bulk execution failed: {e}")
@@ -518,7 +542,9 @@ ORDER BY column_id
             OracleDatabaseError,
             OracleInterfaceError,
             ConnectionError,
+            SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
+            SQLAlchemyError,
             OSError,
         ) as e:
             return r.fail(f"Failed to get primary keys: {e}")
@@ -797,8 +823,8 @@ ORDER BY column_id
             ),
         )
 
-    @staticmethod
     def record_metric(
+        self,
         _name: str,
         _value: float,
         _tags: m.ConfigMap | t.ConfigurationMapping | None = None,
@@ -839,6 +865,11 @@ ORDER BY column_id
                     "Metric recording failed in observability",
                 ),
             )
+        self._metrics[_name] = {
+            "value": _value,
+            "tags": tags_payload,
+            "timestamp": self._get_current_timestamp(),
+        }
         return r[bool].ok(True)
 
     def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
@@ -859,6 +890,9 @@ ORDER BY column_id
             FlextDbOracleModels.DbOracle.HealthStatus(
                 status=f"{status}_with_observability",
                 timestamp=self._get_current_timestamp(),
+                service="oracle",
+                database=self._db_config.service_name,
+                metrics=dict(self._metrics),
             ),
         )
 
@@ -868,6 +902,13 @@ ORDER BY column_id
             FlextDbOracleModels.DbOracle.HealthStatus(
                 status="healthy" if self.is_connected() else "unhealthy",
                 timestamp=self._get_current_timestamp(),
+                service="oracle",
+                database=self._db_config.service_name,
+                metrics={
+                    "connected": self.is_connected(),
+                    "host": self._db_config.host,
+                    "port": self._db_config.port,
+                },
             ),
         )
 
@@ -888,10 +929,6 @@ ORDER BY column_id
 
         payload = dict(plugin_payload.root)
         payload["name"] = str(payload.get("name", _name))
-        version_raw = str(payload.get("version", "1.0.0"))
-        payload["version"] = (
-            f"{version_raw}.0" if version_raw.count(".") == 1 else version_raw
-        )
         self._plugins[_name] = payload
         return r[bool].ok(True)
 
