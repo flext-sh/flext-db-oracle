@@ -16,8 +16,7 @@ from __future__ import annotations
 
 from typing import Literal, TypeAlias
 
-from flext_core import FlextTypes, t as _core_t
-from flext_core._models.containers import FlextModelsContainers as _core_m
+from flext_core import FlextTypes, m as _core_m, t as _core_t
 
 from flext_db_oracle.models import FlextDbOracleModels
 

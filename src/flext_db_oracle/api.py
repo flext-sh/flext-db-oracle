@@ -61,7 +61,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         super().__init__()
 
         # Configuration management - use FlextDbOracleSettings directly
-        self._oracle_config = config
+        self._oracle_config = config.model_copy(deep=True)
 
         # Core services initialization
         self._services = FlextDbOracleServices(config=self._oracle_config)
@@ -118,6 +118,14 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 )
 
             config = config_result.value
+            if not config.username:
+                return r[FlextDbOracleApi].fail(
+                    "Oracle username is required but not configured",
+                )
+            if not config.password.get_secret_value():
+                return r[FlextDbOracleApi].fail(
+                    "Oracle password is required but not configured",
+                )
             return r[FlextDbOracleApi].ok(cls(config=config))
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[FlextDbOracleApi].fail(
@@ -149,9 +157,14 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 f"API creation from URL failed: {e}",
             )
 
-    @staticmethod
+    @classmethod
+    def from_config(cls, config: FlextDbOracleSettings) -> FlextDbOracleApi:
+        """Create API instance from an existing settings object."""
+        return cls(config=config)
+
+    @classmethod
     @override
-    def to_dict(obj: t.ContainerValue | None = None) -> m_core.ConfigMap:
+    def to_dict(cls, obj: t.ContainerValue | None = None) -> m_core.ConfigMap:
         """Convert API instance to dictionary representation."""
         if isinstance(obj, FlextDbOracleApi):
             plugins_result = obj.list_plugins()
@@ -378,7 +391,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Unregister a plugin from FlextRegistry."""
         result = self._registry.unregister_plugin("oracle_plugins", name)
         if result.is_failure:
-            return r[bool].fail(result.error or f"Plugin '{name}' not found")
+            return r[bool].fail(f"Plugin '{name}' not found")
         return r[bool].ok(True)
 
     def get_plugin(self, name: str) -> r[t.JsonValue]:
@@ -388,9 +401,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return r[t.JsonValue].fail(result.error or f"Plugin '{name}' not found")
         # Extract data from wrapper
         wrapper = result.value
-        data = getattr(wrapper, "data", None)
-        if data is None:
+        if not hasattr(wrapper, "data"):
             return r[t.JsonValue].fail(f"Invalid plugin format for '{name}'")
+        data = wrapper.data
         return r[t.JsonValue].ok(data)
 
     def list_plugins(self) -> r[list[str]]:
@@ -456,6 +469,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def __enter__(self) -> Self:
         """Context manager entry."""
+        _ = self.connect()
         return self
 
     def __exit__(
