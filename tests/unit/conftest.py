@@ -14,10 +14,10 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-
 from flext_core import FlextLogger
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from flext_tests import FlextTestsDocker
+
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger: FlextLogger = FlextLogger(__name__)
 
@@ -172,7 +172,7 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
                     pass
         except Exception:
             pass
-    yield
+    return
 
 
 @pytest.fixture
