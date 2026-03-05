@@ -17,6 +17,7 @@ from __future__ import annotations
 from typing import Literal, TypeAlias
 
 from flext_core import FlextTypes, t as _core_t
+from flext_core._models.containers import FlextModelsContainers as _core_m
 
 from flext_db_oracle.models import FlextDbOracleModels
 
@@ -25,7 +26,7 @@ _ConnectionStatus = FlextDbOracleModels.DbOracle.ConnectionStatus
 _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
-_ConfigMap = _core_t.ConfigMap
+_ConfigMap = _core_m.ConfigMap
 JsonValue: TypeAlias = _core_t.JsonValue
 
 # =============================================================================
