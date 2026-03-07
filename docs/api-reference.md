@@ -160,7 +160,7 @@ Updated: September 17, 2025 | Version: 0.9.9
 
 - [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/api-reference/foundation.md) - Core APIs and patterns
 - [flext-core Railway-Oriented Programming](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - FlextResult patterns
-- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/CLAUDE.md) - Oracle Integration Cloud patterns
+- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
 
 **External Resources**:
 

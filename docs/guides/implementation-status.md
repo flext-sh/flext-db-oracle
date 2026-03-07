@@ -154,7 +154,7 @@ ______________________________________________________________________
 
 #### Documentation Files
 
-- ✅ **CLAUDE.md**: Development guide with current patterns
+- ✅ **AGENTS.md**: Development guide with current patterns
 - ✅ **README.md**: Project overview and quick start
 - ✅ **docs/README.md**: Documentation index
 - ✅ **docs/architecture.md**: System design documentation
