@@ -143,7 +143,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def display_message(self, message: str) -> None:
             """Display message to user - direct output for CLI."""
-            sys.stdout.write(f"{message}\n")
+            _ = sys.stdout.write(f"{message}\n")
             sys.stdout.flush()
 
         def format_data(
