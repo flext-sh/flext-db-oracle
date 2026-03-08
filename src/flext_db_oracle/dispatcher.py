@@ -24,8 +24,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     @classmethod
     def _create_connection_handlers(
-        cls,
-        services: FlextDbOracleServices,
+        cls, services: FlextDbOracleServices
     ) -> dict[
         type,
         tuple[
@@ -55,10 +54,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     @classmethod
     def build_dispatcher(
-        cls,
-        services: FlextDbOracleServices,
-        *,
-        _bus: t.ContainerValue | None = None,
+        cls, services: FlextDbOracleServices, *, _bus: t.ContainerValue | None = None
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
         disp = FlextContainer.get_global().get("command_bus").unwrap()
@@ -66,8 +62,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             msg = "command_bus is not CommandBus"
             raise TypeError(msg)
         dispatcher = disp
-        _registry = FlextRegistry(dispatcher)  # Registry initialized for future use
-        # Create handler functions grouped by functionality
+        _registry = FlextRegistry(dispatcher)
         function_map: dict[
             type,
             tuple[
@@ -75,22 +70,16 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 Mapping[str, t.JsonValue] | None,
             ],
         ] = {}
-        # Add connection handlers
         function_map.update(cls._create_connection_handlers(services))
-        # Add query handlers - need instance for these methods now
         instance = cls()
         function_map.update(instance._create_query_handlers(services))
-        # Add schema handlers
         function_map.update(instance._create_schema_handlers(services))
-        # Register each handler with strict API (handler must expose message_type)
         for handler_fn, _metadata in function_map.values():
-            # Set message_type on handler for strict route discovery
             dispatcher.register_handler(handler_fn)
         return dispatcher
 
     def _create_query_handlers(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> dict[
         type,
         tuple[
@@ -118,9 +107,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = m.ConfigMap(root={})
             return services.fetch_one(sql, parameters).map_or(None)
 
-        def execute_statement_handler(
-            command: t.ContainerValue,
-        ) -> t.ContainerValue:
+        def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, self.ExecuteStatementCommand):
                 sql = command.sql
                 parameters = command.parameters or m.ConfigMap(root={})
@@ -146,8 +133,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         }
 
     def _create_schema_handlers(
-        self,
-        services: FlextDbOracleServices,
+        self, services: FlextDbOracleServices
     ) -> dict[
         type,
         tuple[
@@ -182,6 +168,4 @@ class FlextDbOracleDispatcher(FlextService[None]):
         }
 
 
-__all__ = [
-    "FlextDbOracleDispatcher",
-]
+__all__ = ["FlextDbOracleDispatcher"]

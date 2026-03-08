@@ -26,10 +26,6 @@ class FlextDbOracleUtilities(FlextUtilities):
     - Generic parsing utilities for StrEnums (inherited from parent)
     """
 
-    # ═══════════════════════════════════════════════════════════════════
-    # ORACLE NAMESPACE: Project-specific utilities
-    # ═══════════════════════════════════════════════════════════════════
-
     class DbOracle:
         """Oracle-specific utility namespace.
 
@@ -50,10 +46,6 @@ class FlextDbOracleUtilities(FlextUtilities):
             Access via u.Oracle.Collection.* pattern.
             """
 
-        # ═══════════════════════════════════════════════════════════════════
-        # ARGS UTILITIES: @validated, parse_kwargs - ZERO validation boilerplate
-        # ═══════════════════════════════════════════════════════════════════
-
         class Args(u.Args):
             """Args utilities extending u.Args via inheritance.
 
@@ -62,10 +54,6 @@ class FlextDbOracleUtilities(FlextUtilities):
             Access via u.Oracle.Args.* pattern.
             """
 
-        # ═══════════════════════════════════════════════════════════════════
-        # MODEL UTILITIES: from_dict, merge_defaults, update - ZERO try/except
-        # ═══════════════════════════════════════════════════════════════════
-
         class Model(u.Model):
             """Model utilities extending u.Model via inheritance.
 
@@ -73,17 +61,11 @@ class FlextDbOracleUtilities(FlextUtilities):
             Access via u.Oracle.Model.* pattern.
             """
 
-        # ═══════════════════════════════════════════════════════════════════
-        # PYDANTIC UTILITIES: Annotated type factories
-        # ═══════════════════════════════════════════════════════════════════
-
         class Pydantic:
             """Factories for Annotated types."""
 
             @staticmethod
-            def coerced_enum[E: StrEnum](
-                enum_cls: type[E],
-            ) -> type[E]:
+            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
                 """Create an Annotated StrEnum type with automatic coercion.
 
                 Args:
@@ -94,13 +76,8 @@ class FlextDbOracleUtilities(FlextUtilities):
 
                 """
                 return Annotated[
-                    enum_cls,
-                    BeforeValidator(u.Enum.coerce_validator(enum_cls)),
+                    enum_cls, BeforeValidator(u.Enum.coerce_validator(enum_cls))
                 ]
-
-        # ═══════════════════════════════════════════════════════════════════
-        # FEATURE FLAGS: Environment-based feature toggles
-        # ═══════════════════════════════════════════════════════════════════
 
         class FeatureFlags:
             """Feature toggles for progressive dispatcher rollout.
@@ -155,8 +132,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def format_query_result(
-        result: t.ContainerValue,
-        format_type: str = "table",
+        result: t.ContainerValue, format_type: str = "table"
     ) -> r[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
@@ -171,8 +147,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
     @staticmethod
     def generate_query_hash(
-        query: str,
-        params: Mapping[str, t.ContainerValue] | None,
+        query: str, params: Mapping[str, t.ContainerValue] | None
     ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         serialized = json.dumps(params or {}, sort_keys=True, default=str)
@@ -181,9 +156,4 @@ class FlextDbOracleUtilities(FlextUtilities):
 
 
 u = FlextDbOracleUtilities
-
-
-__all__ = [
-    "FlextDbOracleUtilities",
-    "u",
-]
+__all__ = ["FlextDbOracleUtilities", "u"]

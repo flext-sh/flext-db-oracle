@@ -19,11 +19,7 @@ from typing import Protocol, override
 
 import yaml
 from flext_cli import FlextCliCommands
-from flext_core import (
-    FlextResult,
-    FlextService,
-    t,
-)
+from flext_core import FlextResult, FlextService, t
 from pydantic import ValidationError
 
 from flext_db_oracle.api import FlextDbOracleApi
@@ -37,7 +33,6 @@ try:
 except (ImportError, AttributeError):
     OracleDatabaseError = ConnectionError
     OracleInterfaceError = ConnectionError
-
 type CliScalar = t.Scalar | None
 
 
@@ -55,7 +50,6 @@ class FlextDbOracleCli(FlextService[str]):
     def __init__(self) -> None:
         """Initialize Oracle CLI Service."""
         super().__init__()
-        # CLI main component - initialized as None to avoid circular dependencies
         self._cli_main: FlextCliCommands | None = None
 
     def _initialize_cli_main(self) -> FlextResult[FlextCliCommands | None]:
@@ -68,7 +62,7 @@ class FlextDbOracleCli(FlextService[str]):
             return FlextResult[FlextCliCommands].ok(cli_main)
         except Exception as e:
             return FlextResult[FlextCliCommands | None].fail(
-                f"FlextCliCommands initialization failed: {e}",
+                f"FlextCliCommands initialization failed: {e}"
             )
 
     class _YamlModule(Protocol):
@@ -102,15 +96,14 @@ class FlextDbOracleCli(FlextService[str]):
             """
             if password is None or not password.strip():
                 return FlextResult[FlextDbOracleSettings].fail(
-                    "Password is required for Oracle connection",
+                    "Password is required for Oracle connection"
                 )
-
             try:
                 config = FlextDbOracleSettings(
                     host=host,
                     port=port,
                     service_name=service_name,
-                    username=username,  # Fixed: Use 'username' parameter name
+                    username=username,
                     password=password,
                 )
                 return FlextResult[FlextDbOracleSettings].ok(config)
@@ -122,28 +115,22 @@ class FlextDbOracleCli(FlextService[str]):
                 ValueError,
             ) as e:
                 return FlextResult[FlextDbOracleSettings].fail(
-                    f"Configuration creation failed: {e}",
+                    f"Configuration creation failed: {e}"
                 )
 
         @staticmethod
-        def validate_connection(
-            config: FlextDbOracleSettings,
-        ) -> FlextResult[bool]:
+        def validate_connection(config: FlextDbOracleSettings) -> FlextResult[bool]:
             """Validate Oracle database connection.
 
             Returns:
             FlextResult[bool]: True if connection valid, False otherwise.
 
             """
-            # Create new API instance with the config
             new_api = FlextDbOracleApi(config=config)
-
-            # Connect to the database
             connect_result = new_api.connect()
             if connect_result.is_failure:
                 error_text = connect_result.error or "Unknown connection error"
                 return FlextResult[bool].fail(f"Connection failed: {error_text}")
-
             success = True
             return FlextResult[bool].ok(success)
 
@@ -156,7 +143,6 @@ class FlextDbOracleCli(FlextService[str]):
 
         def display_message(self, message: str) -> None:
             """Display message to user - direct output for CLI."""
-            # Use sys.stdout for CLI output instead of print
             sys.stdout.write(f"{message}\n")
             sys.stdout.flush()
 
@@ -181,10 +167,9 @@ class FlextDbOracleCli(FlextService[str]):
                         return FlextResult[str].ok(data.model_dump_json(indent=2))
                     case _:
                         return FlextResult[str].ok(
-                            json.dumps(data, indent=2, default=str),
+                            json.dumps(data, indent=2, default=str)
                         )
             if output_format == "yaml":
-                # YAML is always available since imported at module level
                 match data:
                     case OutputPayload() | HealthCheckReport():
                         payload = data.model_dump(mode="python")
@@ -226,23 +211,18 @@ class FlextDbOracleCli(FlextService[str]):
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
-
             if output_format == "table":
-                # Simple table formatting
                 output_lines = [title, "=" * len(title)]
                 output_lines.extend(f"  - {item}" for item in string_items)
                 return FlextResult[str].ok("\n".join(output_lines))
             if output_format == "json":
-                # Simple JSON formatting
                 data = OutputPayload(title=title, items=string_items)
                 return FlextResult[str].ok(data.model_dump_json(indent=2))
             if output_format == "yaml":
-                # Simple YAML formatting - yaml is always available since imported
                 data = OutputPayload(title=title, items=string_items)
                 return FlextResult[str].ok(
-                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False),
+                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False)
                 )
-            # Plain format
             output_lines = [title, *string_items]
             return FlextResult[str].ok("\n".join(output_lines))
 
@@ -261,7 +241,6 @@ class FlextDbOracleCli(FlextService[str]):
         """Execute main CLI entry point using flext-cli exclusively."""
         cli_service = cls()
         result = cli_service.run_cli()
-
         if result.is_failure:
             sys.exit(1)
 
@@ -270,7 +249,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Module-level main entry point."""
         cls.main()
 
-    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:  # type: ignore[override]
+    def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
         Returns:
@@ -304,11 +283,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         """
         start_time = time.time()
-
         try:
-            # Build connection config
-
-            # Create API instance
             config = FlextDbOracleSettings(
                 host=host,
                 port=port,
@@ -318,17 +293,13 @@ class FlextDbOracleCli(FlextService[str]):
                 timeout=timeout,
             )
             api = FlextDbOracleApi(config=config)
-
-            # Test connection
             health_result = api.get_health_status()
             if health_result.is_failure:
                 return FlextResult[HealthCheckReport].fail(
-                    f"Health check failed: {health_result.error}",
+                    f"Health check failed: {health_result.error}"
                 )
-
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-
             result = HealthCheckReport.model_validate({
                 "status": "healthy",
                 "host": host,
@@ -338,9 +309,7 @@ class FlextDbOracleCli(FlextService[str]):
                 "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
             })
-
             return FlextResult[HealthCheckReport].ok(result)
-
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
             error_result = HealthCheckReport(
@@ -352,7 +321,6 @@ class FlextDbOracleCli(FlextService[str]):
                 error=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             )
-
             return FlextResult[HealthCheckReport].ok(error_result)
 
     def execute_list_schemas(
@@ -371,59 +339,41 @@ class FlextDbOracleCli(FlextService[str]):
 
         """
         formatter = self._OutputFormatter(self._cli_main)
-
-        # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
+            host, port, service_name, username, password
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
             error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}",
+                f"Configuration failed: {error_text}"
             )
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
         config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
-
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
-        # Create API instance
         api = FlextDbOracleApi(config=config)
-
-        # Get schemas
         schemas_result = api.get_schemas()
         if schemas_result.is_failure:
             error_text = schemas_result.error or "Unknown schemas error"
             error_msg = formatter.format_error_message(
-                f"Failed to get schemas: {error_text}",
+                f"Failed to get schemas: {error_text}"
             )
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
         schemas = schemas_result.value
-
-        # Format and display schemas
         formatted_result = formatter.format_list_output(
-            schemas,
-            "Available Oracle Schemas",
-            output_format,
+            schemas, "Available Oracle Schemas", output_format
         )
         if formatted_result.is_success:
             formatter.display_message(formatted_result.value)
-
         return FlextResult[str].ok(f"Listed {len(schemas)} schemas successfully")
 
     def execute_list_tables(
@@ -443,61 +393,43 @@ class FlextDbOracleCli(FlextService[str]):
 
         """
         formatter = self._OutputFormatter(self._cli_main)
-
-        # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
+            host, port, service_name, username, password
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
             error_msg = formatter.format_error_message(
-                f"Configuration failed: {error_text}",
+                f"Configuration failed: {error_text}"
             )
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
         config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
-
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
-        # Create API instance
         api = FlextDbOracleApi(config=config)
-
-        # Get tables
         tables_result = api.get_tables(schema)
         if tables_result.is_failure:
             error_text = tables_result.error or "Unknown tables error"
             error_msg = formatter.format_error_message(
-                f"Failed to get tables: {error_text}",
+                f"Failed to get tables: {error_text}"
             )
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
             return FlextResult[str].fail(error_text)
-
         tables = tables_result.value
-
-        # Format and display tables
         formatted_result = formatter.format_list_output(
-            tables,
-            f"Tables in schema {schema}",
-            output_format,
+            tables, f"Tables in schema {schema}", output_format
         )
         if formatted_result.is_success:
             formatter.display_message(formatted_result.value)
-
         return FlextResult[str].ok(
-            f"Listed {len(tables)} tables in schema {schema} successfully",
+            f"Listed {len(tables)} tables in schema {schema} successfully"
         )
 
     def execute_query(
@@ -517,68 +449,42 @@ class FlextDbOracleCli(FlextService[str]):
 
         """
         formatter = self._OutputFormatter(self._cli_main)
-
         if not sql.strip():
             return self._handle_error_and_fail(
-                formatter,
-                "SQL query cannot be empty",
-                "SQL query cannot be empty",
+                formatter, "SQL query cannot be empty", "SQL query cannot be empty"
             )
-
-        # Create configuration and validate connection
         config_result = self._OracleConnectionHelper.create_config_from_params(
-            host,
-            port,
-            service_name,
-            username,
-            password,
+            host, port, service_name, username, password
         )
         if config_result.is_failure:
             error_text = config_result.error or "Unknown configuration error"
             return self._handle_error_and_fail(
-                formatter,
-                error_text,
-                f"Configuration failed: {error_text}",
+                formatter, error_text, f"Configuration failed: {error_text}"
             )
-
         config = config_result.value
         validation_result = self._OracleConnectionHelper.validate_connection(config)
-
         if validation_result.is_failure:
             error_text = validation_result.error or "Unknown validation error"
             return self._handle_error_and_fail(formatter, error_text, error_text)
-
-        # Create API instance
         api = FlextDbOracleApi(config=config)
-
-        # Execute query
         query_result = api.query(sql)
         if query_result.is_failure:
             error_text = query_result.error or "Unknown query error"
             return self._handle_error_and_fail(
-                formatter,
-                error_text,
-                f"Query failed: {error_text}",
+                formatter, error_text, f"Query failed: {error_text}"
             )
-
         result = query_result.value
-        row_count = len(result)  # result is a list, so count items
-
-        # Format and display result
+        row_count = len(result)
         success_msg = formatter.format_success_message(
-            f"Query executed successfully. Rows: {row_count}",
+            f"Query executed successfully. Rows: {row_count}"
         )
         if success_msg.is_success:
             formatter.display_message(success_msg.value)
-
-        # Format result using specified output format
         formatted_result = formatter.format_data(
-            {"rows": "row_count", "result": "result"},
-            output_format,
+            {"rows": "row_count", "result": "result"}, output_format
         )
         if formatted_result.is_success:
             return FlextResult[str].ok(formatted_result.value)
-
         return FlextResult[str].ok(f"Query executed successfully with {row_count} rows")
 
     def run_cli(self, args: list[str] | None = None) -> FlextResult[str]:
@@ -590,26 +496,11 @@ class FlextDbOracleCli(FlextService[str]):
         """
         if args is None:
             args = sys.argv[1:]
-
         if not args:
-            # Show help/usage
-            help_msg = """Oracle Database CLI - Enterprise Oracle operations.
-
-Available commands:
- health Check Oracle database health
- schemas List Oracle schemas
- tables List Oracle tables in a schema
- query Execute SQL query
-
-Use --help with any command for detailed options.
-"""
-
+            help_msg = "Oracle Database CLI - Enterprise Oracle operations.\n\nAvailable commands:\n health Check Oracle database health\n schemas List Oracle schemas\n tables List Oracle tables in a schema\n query Execute SQL query\n\nUse --help with any command for detailed options.\n"
             self._OutputFormatter(self._cli_main).display_message(help_msg)
             return FlextResult[str].ok("Help displayed")
-
         command = args[0].lower()
-
-        # Basic command parsing - in a real implementation, use proper CLI argument parsing
         if command == "health":
             health_result = self.execute_health_check()
             if health_result.is_success:

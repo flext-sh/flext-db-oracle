@@ -40,7 +40,6 @@ def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
         container_config = c.Tests.Docker.SHARED_CONTAINERS.get("flext-oracle-db-test")
         if not container_config:
             return None
-
         connection = container_config.get("connection", {})
         return FlextDbOracleSettings(
             host=str(connection.get("host", "localhost")),
@@ -109,7 +108,6 @@ def connected_oracle_api(
     if oracle_api is None:
         yield None
         return
-
     connect_result = oracle_api.connect()
     if connect_result.is_success:
         connected_api = connect_result.value
@@ -155,14 +153,7 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
             ]
             for query in cleanup_queries:
                 try:
-                    plsql_query = f"""
-                    BEGIN
-                        EXECUTE IMMEDIATE '{query}';
-                    EXCEPTION
-                        WHEN OTHERS THEN
-                            NULL;
-                    END;
-                    """
+                    plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL;\n                    END;\n                    "
                     connected_oracle_api.execute(plsql_query)
                 except Exception:
                     pass

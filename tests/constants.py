@@ -87,10 +87,5 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
         TEST_NULLABLE: Final[bool] = True
 
 
-# Short aliases per FLEXT convention
-c = TestsFlextDbOracleConstants  # Primary test constants alias
-
-__all__ = [
-    "TestsFlextDbOracleConstants",
-    "c",
-]
+c = TestsFlextDbOracleConstants
+__all__ = ["TestsFlextDbOracleConstants", "c"]

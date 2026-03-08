@@ -13,9 +13,7 @@ from __future__ import annotations
 from collections import UserString
 from typing import Annotated
 
-from pydantic import (
-    BeforeValidator,
-)
+from pydantic import BeforeValidator
 
 from flext_db_oracle.constants import c
 

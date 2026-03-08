@@ -16,7 +16,6 @@ from pathlib import Path
 
 from flext_core import t
 
-# Constants for CLI examples
 MAX_OUTPUT_LINES = 3
 
 
@@ -53,12 +52,7 @@ def _get_cli_examples() -> list[dict[str, t.ContainerValue]]:
         },
         {
             "name": "Execute Simple Query",
-            "command": [
-                "flext-oracle",
-                "query",
-                "--sql",
-                "SELECT SYSDATE FROM DUAL",
-            ],
+            "command": ["flext-oracle", "query", "--sql", "SELECT SYSDATE FROM DUAL"],
             "description": "Execute a simple query",
             "env_required": True,
         },
@@ -90,20 +84,16 @@ def _get_cli_examples() -> list[dict[str, t.ContainerValue]]:
 
 def _run_example_command(example: dict[str, t.ContainerValue]) -> None:
     """Run a single CLI example command - DRY pattern."""
-    if example.get("env_required") and not _check_oracle_env():
+    if example.get("env_required") and (not _check_oracle_env()):
         return
-
     command = example["command"]
     if isinstance(command, list):
         command_list = [str(item) for item in command]
     else:
         command_list = [str(command)]
-
     exit_code, stdout, stderr = run_cli_command(command_list)
-
     if exit_code == 0:
         if stdout.strip():
-            # Show first few lines of output
             lines = stdout.strip().split("\n")
             preview = lines[:MAX_OUTPUT_LINES]
             if len(lines) > MAX_OUTPUT_LINES:
@@ -111,7 +101,7 @@ def _run_example_command(example: dict[str, t.ContainerValue]) -> None:
             for _line in preview:
                 pass
     elif stderr.strip():
-        error_lines = stderr.strip().split("\n")[:2]  # Show first 2 error lines
+        error_lines = stderr.strip().split("\n")[:2]
         for _line in error_lines:
             pass
 
@@ -142,15 +132,11 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
     def _run() -> tuple[int, str, str]:
         try:
             process = subprocess.run(
-                cmd,
-                capture_output=True,
-                check=False,
-                timeout=30.0,
-                text=True,
+                cmd, capture_output=True, check=False, timeout=30.0, text=True
             )
-            return process.returncode, process.stdout, process.stderr
+            return (process.returncode, process.stdout, process.stderr)
         except Exception as e:
-            return 1, "", f"Command failed: {e}"
+            return (1, "", f"Command failed: {e}")
 
     return _run()
 
@@ -158,11 +144,8 @@ def run_cli_command(cmd: list[str]) -> tuple[int, str, str]:
 def demo_cli_commands() -> None:
     """Execute CLI command demonstrations using DRY patterns."""
     examples = _get_cli_examples()
-
     if not _check_oracle_env():
         return
-
-    # Run each example - refatoração DRY real
     for example in examples:
         if not example.get("interactive", False):
             _run_example_command(example)
@@ -170,24 +153,7 @@ def demo_cli_commands() -> None:
 
 def show_environment_setup() -> None:
     """Show how to set up environment for CLI usage."""
-    setup_script = """
-# Oracle Database Configuration
-export FLEXT_TARGET_ORACLE_HOST="localhost"
-export FLEXT_TARGET_ORACLE_PORT="1521"
-export FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"
-export FLEXT_TARGET_ORACLE_USERNAME="flext_user"
-export FLEXT_TARGET_ORACLE_PASSWORD="secure_password"
-
-# Optional: Connection Pool Settings
-export FLEXT_TARGET_ORACLE_POOL_MIN="1"
-export FLEXT_TARGET_ORACLE_POOL_MAX="10"
-export FLEXT_TARGET_ORACLE_TIMEOUT="30"
-
-# Optional: Debug Mode
-export FLEXT_CLI_DEV_MODE="true"
-export FLEXT_CLI_LOG_LEVEL="debug"
-"""
-
+    setup_script = '\n# Oracle Database Configuration\nexport FLEXT_TARGET_ORACLE_HOST="localhost"\nexport FLEXT_TARGET_ORACLE_PORT="1521"\nexport FLEXT_TARGET_ORACLE_SERVICE_NAME="XEPDB1"\nexport FLEXT_TARGET_ORACLE_USERNAME="flext_user"\nexport FLEXT_TARGET_ORACLE_PASSWORD="secure_password"\n\n# Optional: Connection Pool Settings\nexport FLEXT_TARGET_ORACLE_POOL_MIN="1"\nexport FLEXT_TARGET_ORACLE_POOL_MAX="10"\nexport FLEXT_TARGET_ORACLE_TIMEOUT="30"\n\n# Optional: Debug Mode\nexport FLEXT_CLI_DEV_MODE="true"\nexport FLEXT_CLI_LOG_LEVEL="debug"\n'
     env_file = Path(".env")
     if not env_file.exists():
         env_file.write_text(setup_script.strip(), encoding="utf-8")
@@ -207,14 +173,8 @@ def main() -> None:
         elif sys.argv[1] == "demo":
             demo_cli_commands()
     else:
-        # Show current environment status
-        env_vars = [
-            "FLEXT_TARGET_ORACLE_HOST",
-            "FLEXT_TARGET_ORACLE_USERNAME",
-        ]
-
+        env_vars = ["FLEXT_TARGET_ORACLE_HOST", "FLEXT_TARGET_ORACLE_USERNAME"]
         configured = sum(1 for var in env_vars if os.getenv(var))
-
         if configured == 0 or configured == len(env_vars):
             pass
 

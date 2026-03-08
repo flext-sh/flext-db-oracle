@@ -33,8 +33,6 @@ class TestsFlextDbOracleProtocols(FlextTestsProtocols, FlextDbOracleProtocols):
             """DbOracle-specific test protocols."""
 
 
-# Runtime aliases
 p = TestsFlextDbOracleProtocols
 p = TestsFlextDbOracleProtocols
-
 __all__ = ["TestsFlextDbOracleProtocols", "p"]

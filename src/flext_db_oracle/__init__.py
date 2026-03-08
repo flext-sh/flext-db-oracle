@@ -34,8 +34,6 @@ if TYPE_CHECKING:
         FlextDbOracleUtilities,
         FlextDbOracleUtilities as u,
     )
-
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
@@ -63,7 +61,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "t": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
     "u": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
 }
-
 __all__ = [
     "FlextDbOracleApi",
     "FlextDbOracleCli",
@@ -87,7 +84,7 @@ __all__ = [
 ]
 
 
-def __getattr__(name: str) -> Any:  # noqa: ANN401
+def __getattr__(name: str) -> Any:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

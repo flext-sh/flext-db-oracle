@@ -18,8 +18,6 @@ if TYPE_CHECKING:
         TestsFlextDbOracleConstants as c,
     )
     from tests.models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m, tm
-
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsFlextDbOracleConstants": ("tests.constants", "TestsFlextDbOracleConstants"),
     "TestsFlextDbOracleModels": ("tests.models", "TestsFlextDbOracleModels"),
@@ -27,17 +25,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "m": ("tests.models", "TestsFlextDbOracleModels"),
     "tm": ("tests.models", "tm"),
 }
-
-__all__ = [
-    "TestsFlextDbOracleConstants",
-    "TestsFlextDbOracleModels",
-    "c",
-    "m",
-    "tm",
-]
+__all__ = ["TestsFlextDbOracleConstants", "TestsFlextDbOracleModels", "c", "m", "tm"]
 
 
-def __getattr__(name: str) -> Any:  # noqa: ANN401
+def __getattr__(name: str) -> Any:
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

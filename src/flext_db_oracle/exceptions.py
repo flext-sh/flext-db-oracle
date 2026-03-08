@@ -119,6 +119,4 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.elapsed_time = elapsed_time
 
 
-__all__ = [
-    "FlextDbOracleExceptions",
-]
+__all__ = ["FlextDbOracleExceptions"]
