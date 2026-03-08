@@ -24,7 +24,7 @@ from flext_core import (
     FlextService,
     t,
 )
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -39,32 +39,6 @@ except (ImportError, AttributeError):
     OracleInterfaceError = ConnectionError
 
 type CliScalar = t.Scalar | None
-
-
-class NamedItem(BaseModel):
-    """Typed named item for CLI list rendering."""
-
-    name: str
-
-
-class OutputPayload(BaseModel):
-    """Typed output payload for json/yaml formatting."""
-
-    title: str
-    items: list[str]
-
-
-class HealthCheckReport(BaseModel):
-    """Typed health check output."""
-
-    status: str
-    host: str
-    port: int
-    service_name: str
-    response_time_ms: float
-    details: Mapping[str, t.JsonValue] | None = None
-    error: str | None = None
-    timestamp: str
 
 
 class FlextDbOracleCli(FlextService[str]):

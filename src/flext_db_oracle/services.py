@@ -16,7 +16,7 @@ from urllib.parse import quote_plus
 
 import oracledb
 from flext_core import FlextService, r, t
-from pydantic import BaseModel, ConfigDict, RootModel, TypeAdapter, ValidationError
+from pydantic import RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
@@ -28,19 +28,6 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
-
-
-class _StrictIntValue(BaseModel):
-    """Strict integer payload model."""
-
-    model_config = ConfigDict(strict=True)
-    value: int
-
-
-class _CountValue(BaseModel):
-    """Count payload accepting integer or numeric string."""
-
-    value: int | str
 
 
 class _ObjectRows(RootModel[list[t.ContainerValue]]):

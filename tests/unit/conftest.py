@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 from flext_core import FlextLogger
-from flext_tests import FlextTestsDocker
+from flext_tests import FlextTestsDocker, c
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
@@ -28,8 +28,6 @@ def _is_oracle_container_running() -> bool:
         docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
         status_result = docker.get_container_status("flext-oracle-db-test")
         if status_result.is_success:
-            from flext_tests import c
-
             return status_result.value.status == c.Tests.Docker.ContainerStatus.RUNNING
     except Exception:
         pass
@@ -39,8 +37,6 @@ def _is_oracle_container_running() -> bool:
 def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
     """Get Oracle config from shared container configuration."""
     try:
-        from flext_tests import c
-
         container_config = c.Tests.Docker.SHARED_CONTAINERS.get("flext-oracle-db-test")
         if not container_config:
             return None

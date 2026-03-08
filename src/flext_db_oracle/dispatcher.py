@@ -10,7 +10,6 @@ from collections.abc import Callable, Mapping
 from typing import override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
-from pydantic import Field
 
 from flext_db_oracle.services import FlextDbOracleServices
 
@@ -22,68 +21,6 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def execute(self) -> r[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
         return r[None].ok(None)
-
-    class ConnectCommand(m.Command):
-        """Command to establish an Oracle database connection."""
-
-    class DisconnectCommand(m.Command):
-        """Command to close the Oracle database connection."""
-
-    class TestConnectionCommand(m.Command):
-        """Command to validate the Oracle database connectivity."""
-
-    class ExecuteQueryCommand(m.Command):
-        """Command to execute a SQL query and return rows."""
-
-        sql: str = Field(description="SQL query to execute")
-        parameters: m.ConfigMap | None = Field(
-            default=None,
-            description="Query parameters",
-        )
-
-    class FetchOneCommand(m.Command):
-        """Command to execute a SQL query and fetch a single row."""
-
-        sql: str = Field(description="SQL query to execute")
-        parameters: m.ConfigMap | None = Field(
-            default=None,
-            description="Query parameters",
-        )
-
-    class ExecuteStatementCommand(m.Command):
-        """Command to execute a SQL statement (INSERT/UPDATE/DELETE)."""
-
-        sql: str = Field(description="SQL statement to execute")
-        parameters: m.ConfigMap | None = Field(
-            default=None,
-            description="Statement parameters",
-        )
-
-    class ExecuteManyCommand(m.Command):
-        """Command to execute a SQL statement multiple times."""
-
-        sql: str = Field(description="SQL statement to execute")
-        parameters_list: list[m.ConfigMap] = Field(description="List of parameter sets")
-
-    class GetSchemasCommand(m.Command):
-        """Command to retrieve available database schemas."""
-
-    class GetTablesCommand(m.Command):
-        """Command to list tables for an optional schema."""
-
-        schema_name: str | None = Field(
-            default=None,
-            description="Optional schema name",
-        )
-
-    class GetColumnsCommand(m.Command):
-        """Command to list column metadata for a table."""
-
-        table: str = Field(description="Table name")
-        schema_name: str | None = Field(
-            default=None,
-            description="Optional schema name",
-        )
 
     @classmethod
     def _create_connection_handlers(
