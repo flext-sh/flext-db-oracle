@@ -406,10 +406,10 @@ def _validate_custom_rule(self, content: str) -> List[Dict[str, object]]:
     # Your custom validation logic here
     if "deprecated_feature" in content:
         issues.append({
-            'type': 'deprecated_reference',
-            'severity': 'medium',
-            'message': 'References deprecated feature',
-            'suggestion': 'Update to current feature or remove reference'
+            "type": "deprecated_reference",
+            "severity": "medium",
+            "message": "References deprecated feature",
+            "suggestion": "Update to current feature or remove reference",
         })
 
     return issues
@@ -440,11 +440,12 @@ def generate_custom_report_section(self, results: List[AuditResult]) -> str:
     """Generate custom report content."""
     # Custom analysis logic
     oracle_references = sum(
-        len(re.findall(r'oracle|Oracle', str(result.file_path)))
-        for result in results
+        len(re.findall(r"oracle|Oracle", str(result.file_path))) for result in results
     )
 
-    return f"### Oracle References\n- Found {oracle_references} files referencing Oracle\n"
+    return (
+        f"### Oracle References\n- Found {oracle_references} files referencing Oracle\n"
+    )
 ```
 
 ## 📊 Monitoring & Analytics

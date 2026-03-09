@@ -160,6 +160,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def query_operation() -> FlextResult[List[Dict]]:
     # No try/catch - explicit error handling
     connection_result = self._get_connection()

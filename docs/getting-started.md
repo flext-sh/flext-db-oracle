@@ -53,7 +53,7 @@ config = OracleConfig(
     port=1521,
     service_name="XEPDB1",
     username="system",
-    password="Oracle123"
+    password="Oracle123",
 )
 
 # Create API instance with FLEXT patterns
@@ -74,8 +74,7 @@ else:
 ```python
 # Execute SELECT query with parameters
 result = api.query(
-    "SELECT table_name FROM user_tables WHERE rownum <= :limit",
-    {"limit": 5}
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
 )
 
 if result.is_success:

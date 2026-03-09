@@ -42,7 +42,7 @@ config = FlextDbOracleModels.OracleConfig(
     port=1521,
     service_name="XEPDB1",
     user="system",
-    password="Oracle123"
+    password="Oracle123",
 )
 api = FlextDbOracleApi(config)
 ```

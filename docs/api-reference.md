@@ -21,11 +21,7 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 ## Core Imports
 
 ```python
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleModels,
-    OracleConfig
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, OracleConfig
 ```
 
 ## FlextDbOracleApi
@@ -107,7 +103,7 @@ config = FlextDbOracleModels.OracleConfig(
     port=1521,
     service_name="XEPDB1",
     user="system",
-    password="Oracle123"
+    password="Oracle123",
 )
 
 # From environment variables

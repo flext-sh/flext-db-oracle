@@ -180,6 +180,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def demonstrate_comprehensive_usage():
     """Demonstrate comprehensive Oracle database usage."""
 
@@ -196,7 +197,9 @@ def demonstrate_comprehensive_usage():
     with api:
         # Test connection
         connection_result = api.test_connection()
-        print(f"Connection: {'✅ Success' if connection_result.unwrap_or(False) else '❌ Failed'}")
+        print(
+            f"Connection: {'✅ Success' if connection_result.unwrap_or(False) else '❌ Failed'}"
+        )
 
         # Query execution using modern unwrap_or pattern
         query_result = api.execute_query("SELECT SYSDATE FROM DUAL")
@@ -209,6 +212,7 @@ def demonstrate_comprehensive_usage():
         schemas_data = schemas_result.unwrap_or([])
         if schemas_data:
             print(f"Available schemas: {len(schemas_data)}")
+
 
 if __name__ == "__main__":
     demonstrate_comprehensive_usage()
@@ -232,6 +236,7 @@ from flext_db_oracle.typings import FlextDbOracleTypes
 from sqlalchemy import text, select
 from sqlalchemy.orm import Session
 
+
 def demonstrate_sqlalchemy2_patterns():
     """Demonstrate SQLAlchemy 2 integration patterns."""
 
@@ -248,8 +253,11 @@ def demonstrate_sqlalchemy2_patterns():
             # Transaction management
             with session.begin():
                 # Transactional operations here
-                session.execute(text("INSERT INTO audit_log VALUES (SYSDATE, 'Example')"))
+                session.execute(
+                    text("INSERT INTO audit_log VALUES (SYSDATE, 'Example')")
+                )
                 # Automatic commit on success, rollback on exception
+
 
 if __name__ == "__main__":
     demonstrate_sqlalchemy2_patterns()
@@ -272,30 +280,34 @@ Shows practical CLI usage patterns:
 import subprocess
 import os
 
+
 def demonstrate_cli_patterns():
     """Demonstrate CLI usage patterns."""
 
     # Set environment for examples
     env = os.environ.copy()
     env.update({
-        'FLEXT_TARGET_ORACLE_HOST': 'localhost',
-        'FLEXT_TARGET_ORACLE_PORT': '1521',
-        'FLEXT_TARGET_ORACLE_SERVICE_NAME': 'XEPDB1',
-        'FLEXT_TARGET_ORACLE_USERNAME': 'flext_user',
-        'FLEXT_TARGET_ORACLE_PASSWORD': 'flext_password'
+        "FLEXT_TARGET_ORACLE_HOST": "localhost",
+        "FLEXT_TARGET_ORACLE_PORT": "1521",
+        "FLEXT_TARGET_ORACLE_SERVICE_NAME": "XEPDB1",
+        "FLEXT_TARGET_ORACLE_USERNAME": "flext_user",
+        "FLEXT_TARGET_ORACLE_PASSWORD": "flext_password",
     })
 
     # Test connection (pseudo-code; prefer in-process or wrappers)
     print("Testing connection...")
+
     # rc, out, err = run([sys.executable, '-m', 'flext_db_oracle.cli', 'connect-env'], env=env)
     # Simulated result object below for documentation purposes:
     class Result:
         """Lightweight result for documentation."""
-        def __init__(self, returncode: int, stdout: str = '', stderr: str = '') -> None:
+
+        def __init__(self, returncode: int, stdout: str = "", stderr: str = "") -> None:
             self.returncode = returncode
             self.stdout = stdout
             self.stderr = stderr
-    result = Result(0, 'Connected OK')
+
+    result = Result(0, "Connected OK")
 
     if result.returncode == 0:
         print("✅ Connection successful")
@@ -307,6 +319,7 @@ def demonstrate_cli_patterns():
         print(out2)
     else:
         print(f"❌ Connection failed: {result.stderr}")
+
 
 if __name__ == "__main__":
     demonstrate_cli_patterns()
@@ -329,7 +342,7 @@ def setup_local_development():
         username="dev_user",
         password=SecretStr("dev_password"),
         pool_min=1,
-        pool_max=5
+        pool_max=5,
     )
     return FlextDbOracleApi(config)
 ```
@@ -385,10 +398,7 @@ def setup_ha_environment():
 
     # Configure connection pooling for HA
     api.configure_ha_pooling(
-        min_connections=10,
-        max_connections=50,
-        retry_attempts=3,
-        failover_timeout=30
+        min_connections=10, max_connections=50, retry_attempts=3, failover_timeout=30
     )
 
     return api
@@ -447,6 +457,7 @@ from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
+
 def main() -> None:
     """Main example execution function."""
     try:
@@ -460,10 +471,12 @@ def main() -> None:
     print("Example completed successfully")
     return 0
 
+
 def demonstrate_feature() -> None:
     """Demonstrate specific feature or workflow."""
     # Implementation with proper error handling
     pass
+
 
 if __name__ == "__main__":
     exit(main())

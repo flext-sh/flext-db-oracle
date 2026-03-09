@@ -181,6 +181,7 @@ def flext_db_oracle_api() -> FlextDbOracleApi:
     config = FlextDbOracleSettings()
     return FlextDbOracleApi(config)
 
+
 @pytest.fixture
 def oracle_config_data() -> dict[str, object]:
     """Sample Oracle configuration for testing."""
@@ -189,7 +190,7 @@ def oracle_config_data() -> dict[str, object]:
         "port": 1521,
         "service_name": "XEPDB1",
         "username": "test",
-        "password": "test123"
+        "password": "test123",
     }
 ```
 
@@ -255,6 +256,7 @@ def test_rich_table_formatter(flext_cli_formatters):
     assert table is not None
     # Verify Rich table structure and rendering
 
+
 def test_rich_progress_formatter(flext_cli_formatters):
     """Test Rich progress bar functionality."""
     progress = flext_cli_formatters.create_progress()
@@ -306,10 +308,10 @@ ______________________________________________________________________
 # pytest.ini_options coverage exclusions
 exclude_lines = [
     "@(abc\\.)?abstractmethod",  # Abstract methods
-    "class .*\\bProtocol\\):",    # Protocol classes
-    "def __repr__",               # Debug representations
-    "if self.debug:",             # Debug-only code
-    "raise AssertionError",       # Assertion messages
+    "class .*\\bProtocol\\):",  # Protocol classes
+    "def __repr__",  # Debug representations
+    "if self.debug:",  # Debug-only code
+    "raise AssertionError",  # Assertion messages
     "raise NotImplementedError",  # Interface placeholders
 ]
 ```
@@ -346,6 +348,7 @@ def test_flext_result_success_path(flext_db_oracle_api):
     connection = result.unwrap()
     assert connection is not None
 
+
 def test_flext_result_error_path(flext_db_oracle_api):
     """Test failed operation returns FlextResult.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
@@ -365,10 +368,12 @@ def oracle_container():
     yield container
     container.stop()
 
+
 @pytest.fixture
 def mock_oracle_connection():
     """Provides mocked Oracle connection for unit tests."""
     return MagicMock(spec=Connection)
+
 
 @pytest.fixture
 def flext_db_oracle_api(oracle_config) -> FlextDbOracleApi:
@@ -381,12 +386,15 @@ def flext_db_oracle_api(oracle_config) -> FlextDbOracleApi:
 #### Test Multiple Scenarios
 
 ```python
-@pytest.mark.parametrize("sql_query,expected_result", [
-    ("SELECT 1 FROM DUAL", True),
-    ("SELECT SYSDATE FROM DUAL", True),
-    ("INVALID SQL", False),
-    ("SELECT * FROM NONEXISTENT_TABLE", False),
-])
+@pytest.mark.parametrize(
+    "sql_query,expected_result",
+    [
+        ("SELECT 1 FROM DUAL", True),
+        ("SELECT SYSDATE FROM DUAL", True),
+        ("INVALID SQL", False),
+        ("SELECT * FROM NONEXISTENT_TABLE", False),
+    ],
+)
 def test_sql_query_validation(flext_db_oracle_api, sql_query, expected_result):
     """Test SQL query validation with multiple scenarios."""
     result = flext_db_oracle_api.validate_query(sql_query)
@@ -403,6 +411,7 @@ def test_real_connection_pool():
     """Test with actual connection pool (preferred)."""
     pool = create_real_connection_pool()
     assert pool.max_connections == 20
+
 
 # Use mocks only when necessary
 def test_connection_timeout(mock_oracle_connection):
@@ -584,11 +593,7 @@ def test_operation_success_and_failure():
 @pytest.fixture(scope="module")
 def oracle_test_data():
     """Reusable test data for Oracle operations."""
-    return {
-        "valid_queries": [...],
-        "invalid_queries": [...],
-        "expected_results": [...]
-    }
+    return {"valid_queries": [...], "invalid_queries": [...], "expected_results": [...]}
 ```
 
 #### 3. **Mock vs Real Implementation Balance**
@@ -600,6 +605,7 @@ def test_with_real_oracle_connection(oracle_container):
     connection = oracle_container.get_connection()
     result = execute_query(connection, "SELECT 1 FROM DUAL")
     assert result == 1
+
 
 def test_with_mocked_connection(mock_connection):
     """Use mocks only when real implementation unavailable."""

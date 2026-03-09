@@ -253,8 +253,10 @@ All tests must pass these quality standards:
 def test_connect_with_valid_config_returns_success():
     """Test successful connection with valid configuration."""
 
+
 def test_query_with_invalid_sql_returns_failure():
     """Test query execution failure with invalid SQL."""
+
 
 def test_metadata_extraction_with_empty_schema_returns_empty_result():
     """Test metadata extraction returns empty result for empty schema."""
@@ -313,13 +315,15 @@ Use mocks appropriately based on test layer:
 
 ```python
 # Unit tests: Mock external dependencies
-@patch('flext_db_oracle.connection.create_engine')
+@patch("flext_db_oracle.connection.create_engine")
 def test_connection_creation_with_mocked_database():
     """Test connection creation with mocked database engine."""
+
 
 # Integration tests: Use real Oracle database
 def test_connection_with_real_oracle_database():
     """Test connection with actual Oracle database."""
+
 
 # E2E tests: Full system without mocks
 def test_complete_workflow_without_mocks():

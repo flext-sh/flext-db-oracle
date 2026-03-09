@@ -176,13 +176,13 @@ graph TB
 ```python
 # Key exports
 __all__ = [
-    "FlextDbOracleApi",      # Main API
-    "FlextDbOracleCli",      # CLI interface
-    "FlextDbOracleClient",   # Client operations
-    "FlextDbOracleSettings",   # Configuration
-    "FlextDbOracleConstants", # Constants
+    "FlextDbOracleApi",  # Main API
+    "FlextDbOracleCli",  # CLI interface
+    "FlextDbOracleClient",  # Client operations
+    "FlextDbOracleSettings",  # Configuration
+    "FlextDbOracleConstants",  # Constants
     # ... 9 more classes
-    "__version__",           # Version info
+    "__version__",  # Version info
     "__version_info__",
 ]
 ```

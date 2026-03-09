@@ -212,6 +212,7 @@ class OracleConfig(BaseModel):
     username: str
     password: SecretStr
 
+
 class QueryResult(BaseModel):
     rows: List[List[object]]
     columns: t.StringList
