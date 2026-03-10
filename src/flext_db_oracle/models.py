@@ -497,7 +497,9 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: list[dict[str, t.ContainerValue]] = []
+            parameters_list: list[dict[str, t.ContainerValue]] = Field(
+                default_factory=list
+            )
 
         class GetSchemasCommand(FlextModels.Entity):
             """Command to retrieve all schemas."""
