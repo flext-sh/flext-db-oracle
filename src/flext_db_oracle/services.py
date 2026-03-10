@@ -757,16 +757,19 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 properties=normalized_properties
             )
         mapping = m.ConfigMap(root={})
-         for field_name, field_def in schema_model.properties.items():
-             raw_field = (
-                 raw_properties.get(field_name) if isinstance(raw_properties, Mapping) else None
-             )
-             format_hint = (
-                 raw_field.get("format") if isinstance(raw_field, Mapping) else None
-             )
-             conversion = self.convert_singer_type(field_def.type, format_hint)
-             if conversion.is_success:
-                 mapping.root[field_name] = conversion.value
+        for field_name, field_def in schema_model.properties.items():
+            raw_field = (
+                raw_properties.get(field_name)
+                if isinstance(raw_properties, Mapping)
+                else None
+            )
+            format_value = (
+                raw_field.get("format") if isinstance(raw_field, Mapping) else None
+            )
+            format_hint = format_value if isinstance(format_value, str) else None
+            conversion = self.convert_singer_type(field_def.type, format_hint)
+            if conversion.is_success:
+                mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
             "mapping": normalized_mapping
