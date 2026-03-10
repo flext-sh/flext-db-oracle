@@ -17,23 +17,45 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from typing import Protocol, override
 
+import oracledb
 import yaml
 from flext_cli import FlextCliCommands
 from flext_core import FlextResult, FlextService, t
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
 
-try:
-    _oracledb_module = __import__("oracledb")
-    OracleDatabaseError = _oracledb_module.DatabaseError
-    OracleInterfaceError = _oracledb_module.InterfaceError
-except (ImportError, AttributeError):
-    OracleDatabaseError = ConnectionError
-    OracleInterfaceError = ConnectionError
+OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 type CliScalar = t.Scalar | None
+
+
+class NamedItem(BaseModel):
+    """Named item payload for list formatting."""
+
+    name: str = Field(default="")
+
+
+class OutputPayload(BaseModel):
+    """Structured output payload for formatter rendering."""
+
+    title: str = Field(default="")
+    items: list[str] = Field(default_factory=list)
+
+
+class HealthCheckReport(BaseModel):
+    """Health-check result payload for CLI reporting."""
+
+    status: str = Field(default="unknown")
+    host: str = Field(default="")
+    port: int = Field(default=0)
+    service_name: str = Field(default="")
+    response_time_ms: float = Field(default=0.0)
+    details: dict[str, t.JsonValue] = Field(default_factory=dict)
+    error: str | None = Field(default=None)
+    timestamp: str = Field(default="")
 
 
 class FlextDbOracleCli(FlextService[str]):
@@ -70,7 +92,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def dump(
             self,
-            data: OutputPayload | HealthCheckReport | list[str] | str,  # noqa: F821
+            data: OutputPayload | HealthCheckReport | list[str] | str,
             *,
             default_flow_style: bool = True,
         ) -> str:
@@ -148,8 +170,8 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_data(
             self,
-            data: OutputPayload  # noqa: F821
-            | HealthCheckReport  # noqa: F821
+            data: OutputPayload
+            | HealthCheckReport
             | Mapping[str, CliScalar]
             | list[str]
             | str,
@@ -163,7 +185,7 @@ class FlextDbOracleCli(FlextService[str]):
             """
             if output_format == "json":
                 match data:
-                    case OutputPayload() | HealthCheckReport():  # noqa: F821
+                    case OutputPayload() | HealthCheckReport():
                         return FlextResult[str].ok(data.model_dump_json(indent=2))
                     case _:
                         return FlextResult[str].ok(
@@ -171,7 +193,7 @@ class FlextDbOracleCli(FlextService[str]):
                         )
             if output_format == "yaml":
                 match data:
-                    case OutputPayload() | HealthCheckReport():  # noqa: F821
+                    case OutputPayload() | HealthCheckReport():
                         payload = data.model_dump(mode="python")
                     case _:
                         payload = data
@@ -190,7 +212,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: list[str] | list[NamedItem],  # noqa: F821
+            items: list[str] | list[NamedItem],
             title: str,
             output_format: str = "table",
         ) -> FlextResult[str]:
@@ -207,7 +229,7 @@ class FlextDbOracleCli(FlextService[str]):
                         string_items.append(item_text)
                     case _:
                         try:
-                            parsed_item = NamedItem.model_validate(item)  # noqa: F821
+                            parsed_item = NamedItem.model_validate(item)
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
@@ -216,10 +238,10 @@ class FlextDbOracleCli(FlextService[str]):
                 output_lines.extend(f"  - {item}" for item in string_items)
                 return FlextResult[str].ok("\n".join(output_lines))
             if output_format == "json":
-                data = OutputPayload(title=title, items=string_items)  # noqa: F821
+                data = OutputPayload(title=title, items=string_items)
                 return FlextResult[str].ok(data.model_dump_json(indent=2))
             if output_format == "yaml":
-                data = OutputPayload(title=title, items=string_items)  # noqa: F821
+                data = OutputPayload(title=title, items=string_items)
                 return FlextResult[str].ok(
                     yaml.dump(data.model_dump(mode="python"), default_flow_style=False)
                 )
@@ -237,17 +259,15 @@ class FlextDbOracleCli(FlextService[str]):
             return FlextResult[str].ok(formatted_msg)
 
     @classmethod
-    def main(cls) -> None:
+    def main(cls) -> FlextResult[str]:
         """Execute main CLI entry point using flext-cli exclusively."""
         cli_service = cls()
-        result = cli_service.run_cli()
-        if result.is_failure:
-            sys.exit(1)
+        return cli_service.run_cli()
 
     @classmethod
-    def run_main(cls) -> None:
+    def run_main(cls) -> int:
         """Module-level main entry point."""
-        cls.main()
+        return 0 if cls.main().is_success else 1
 
     def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
@@ -267,7 +287,7 @@ class FlextDbOracleCli(FlextService[str]):
         username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_TIMEOUT,
-    ) -> FlextResult[HealthCheckReport]:  # noqa: F821
+    ) -> FlextResult[HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
         Args:
@@ -295,12 +315,12 @@ class FlextDbOracleCli(FlextService[str]):
             api = FlextDbOracleApi(config=config)
             health_result = api.get_health_status()
             if health_result.is_failure:
-                return FlextResult[HealthCheckReport].fail(  # noqa: F821
+                return FlextResult[HealthCheckReport].fail(
                     f"Health check failed: {health_result.error}"
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-            result = HealthCheckReport.model_validate({  # noqa: F821
+            result = HealthCheckReport.model_validate({
                 "status": "healthy",
                 "host": host,
                 "port": port,
@@ -309,10 +329,10 @@ class FlextDbOracleCli(FlextService[str]):
                 "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
             })
-            return FlextResult[HealthCheckReport].ok(result)  # noqa: F821
+            return FlextResult[HealthCheckReport].ok(result)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
-            error_result = HealthCheckReport(  # noqa: F821
+            error_result = HealthCheckReport(
                 status="unhealthy",
                 host=host,
                 port=port,
@@ -321,7 +341,7 @@ class FlextDbOracleCli(FlextService[str]):
                 error=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             )
-            return FlextResult[HealthCheckReport].ok(error_result)  # noqa: F821
+            return FlextResult[HealthCheckReport].ok(error_result)
 
     def execute_list_schemas(
         self,
@@ -536,4 +556,4 @@ class FlextDbOracleCli(FlextService[str]):
 
 
 if __name__ == "__main__":
-    FlextDbOracleCli.run_main()
+    raise SystemExit(FlextDbOracleCli.run_main())

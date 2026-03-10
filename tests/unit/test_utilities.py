@@ -324,7 +324,7 @@ class TestFlextDbOracleUtilities:
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
         monkeypatch.setenv("FLEXT_DB_ORACLE_PASSWORD", "testpass")
         monkeypatch.setenv("FLEXT_DB_ORACLE_SERVICE_NAME", "TESTSERVICE")
-        FlextDbOracleSettings.reset_global_instance()
+        FlextDbOracleSettings.reset_for_testing()
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
@@ -339,7 +339,7 @@ class TestFlextDbOracleUtilities:
         """Test config creation with FLEXT_DB_ORACLE prefix."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "flext-user")
-        FlextDbOracleSettings.reset_global_instance()
+        FlextDbOracleSettings.reset_for_testing()
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value
@@ -353,7 +353,7 @@ class TestFlextDbOracleUtilities:
         """Test config creation reads FLEXT_DB_ORACLE_ prefix only."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
-        FlextDbOracleSettings.reset_global_instance()
+        FlextDbOracleSettings.reset_for_testing()
         result = FlextDbOracleUtilities.create_config_from_env()
         assert result.is_success
         config = result.value

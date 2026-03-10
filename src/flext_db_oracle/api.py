@@ -16,7 +16,8 @@ import types
 from collections.abc import Mapping, Sequence
 from typing import Self, override
 
-from flext_core import FlextService, m as m_core, r, t
+import oracledb
+from flext_core import FlextService, r, t
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -24,13 +25,8 @@ from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 
-try:
-    _oracledb_module = __import__("oracledb")
-    OracleDatabaseError: type[Exception] = _oracledb_module.DatabaseError
-    OracleInterfaceError: type[Exception] = _oracledb_module.InterfaceError
-except (ImportError, AttributeError):
-    OracleDatabaseError = ConnectionError
-    OracleInterfaceError = ConnectionError
+OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
 class _NullPluginResult:
@@ -377,28 +373,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def test_connection(self) -> r[bool]:
         """Test Oracle database connection."""
         return self._services.test_connection()
-
-    def to_dict(self) -> m_core.ConfigMap:
-        """Convert API instance to dictionary representation."""
-        plugins_result = self.list_plugins()
-        plugin_count = (
-            len(plugins_result.value)
-            if plugins_result.is_success and plugins_result.value
-            else 0
-        )
-        return m_core.ConfigMap(
-            root={
-                "config": {
-                    "host": self.config.host,
-                    "port": self.config.port,
-                    "service_name": self.config.service_name,
-                    "username": self.config.username,
-                },
-                "connected": self.is_connected,
-                "plugin_count": plugin_count,
-                "dispatcher_enabled": True,
-            }
-        )
 
     def transaction(self) -> r[Mapping[str, t.JsonValue]]:
         """Get transaction status information."""
