@@ -72,7 +72,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
         @runtime_checkable
-        class OraclePlugin(FlextProtocols.Registrable, Protocol):
+        class OraclePlugin(Protocol):
             """Protocol for Oracle database plugins.
 
             All plugins registered with the FlextDbOracle plugin system
