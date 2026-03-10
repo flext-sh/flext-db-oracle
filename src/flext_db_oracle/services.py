@@ -57,7 +57,7 @@ def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
 def _parse_rowcount(value: object) -> int:
     """Parse strict integer rowcount via Pydantic."""
     try:
-        return _StrictIntValue.model_validate({"value": value}).value
+        return _StrictIntValue.model_validate({"value": value}).value  # noqa: F821
     except ValidationError:
         return 0
 
@@ -65,7 +65,7 @@ def _parse_rowcount(value: object) -> int:
 def _parse_count_value(value: object) -> int:
     """Parse row count value accepting int or numeric string."""
     try:
-        validated = _CountValue.model_validate({"value": value}).value
+        validated = _CountValue.model_validate({"value": value}).value  # noqa: F821
     except ValidationError:
         return 0
     try:

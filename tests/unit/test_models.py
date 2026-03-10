@@ -216,7 +216,7 @@ class TestFlextDbOracleModels:
             FlextDbOracleModels.DbOracle.QueryResult(
                 query="SELECT 1", execution_time_ms=-100
             )
-        with pytest.raises(ValueError, match="Row length.*doesn't match column count"):
+        with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
             FlextDbOracleModels.DbOracle.QueryResult(
                 query="SELECT 1",
                 columns=["id", "name"],

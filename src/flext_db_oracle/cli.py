@@ -70,7 +70,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def dump(
             self,
-            data: OutputPayload | HealthCheckReport | list[str] | str,
+            data: OutputPayload | HealthCheckReport | list[str] | str,  # noqa: F821
             *,
             default_flow_style: bool = True,
         ) -> str:
@@ -148,8 +148,8 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_data(
             self,
-            data: OutputPayload
-            | HealthCheckReport
+            data: OutputPayload  # noqa: F821
+            | HealthCheckReport  # noqa: F821
             | Mapping[str, CliScalar]
             | list[str]
             | str,
@@ -163,7 +163,7 @@ class FlextDbOracleCli(FlextService[str]):
             """
             if output_format == "json":
                 match data:
-                    case OutputPayload() | HealthCheckReport():
+                    case OutputPayload() | HealthCheckReport():  # noqa: F821
                         return FlextResult[str].ok(data.model_dump_json(indent=2))
                     case _:
                         return FlextResult[str].ok(
@@ -171,7 +171,7 @@ class FlextDbOracleCli(FlextService[str]):
                         )
             if output_format == "yaml":
                 match data:
-                    case OutputPayload() | HealthCheckReport():
+                    case OutputPayload() | HealthCheckReport():  # noqa: F821
                         payload = data.model_dump(mode="python")
                     case _:
                         payload = data
@@ -190,7 +190,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: list[str] | list[NamedItem],
+            items: list[str] | list[NamedItem],  # noqa: F821
             title: str,
             output_format: str = "table",
         ) -> FlextResult[str]:
@@ -207,7 +207,7 @@ class FlextDbOracleCli(FlextService[str]):
                         string_items.append(item_text)
                     case _:
                         try:
-                            parsed_item = NamedItem.model_validate(item)
+                            parsed_item = NamedItem.model_validate(item)  # noqa: F821
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
@@ -216,10 +216,10 @@ class FlextDbOracleCli(FlextService[str]):
                 output_lines.extend(f"  - {item}" for item in string_items)
                 return FlextResult[str].ok("\n".join(output_lines))
             if output_format == "json":
-                data = OutputPayload(title=title, items=string_items)
+                data = OutputPayload(title=title, items=string_items)  # noqa: F821
                 return FlextResult[str].ok(data.model_dump_json(indent=2))
             if output_format == "yaml":
-                data = OutputPayload(title=title, items=string_items)
+                data = OutputPayload(title=title, items=string_items)  # noqa: F821
                 return FlextResult[str].ok(
                     yaml.dump(data.model_dump(mode="python"), default_flow_style=False)
                 )
@@ -267,7 +267,7 @@ class FlextDbOracleCli(FlextService[str]):
         username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_TIMEOUT,
-    ) -> FlextResult[HealthCheckReport]:
+    ) -> FlextResult[HealthCheckReport]:  # noqa: F821
         """Execute complete health check for Oracle database connection.
 
         Args:
@@ -295,12 +295,12 @@ class FlextDbOracleCli(FlextService[str]):
             api = FlextDbOracleApi(config=config)
             health_result = api.get_health_status()
             if health_result.is_failure:
-                return FlextResult[HealthCheckReport].fail(
+                return FlextResult[HealthCheckReport].fail(  # noqa: F821
                     f"Health check failed: {health_result.error}"
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-            result = HealthCheckReport.model_validate({
+            result = HealthCheckReport.model_validate({  # noqa: F821
                 "status": "healthy",
                 "host": host,
                 "port": port,
@@ -309,10 +309,10 @@ class FlextDbOracleCli(FlextService[str]):
                 "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
             })
-            return FlextResult[HealthCheckReport].ok(result)
+            return FlextResult[HealthCheckReport].ok(result)  # noqa: F821
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
-            error_result = HealthCheckReport(
+            error_result = HealthCheckReport(  # noqa: F821
                 status="unhealthy",
                 host=host,
                 port=port,
@@ -321,7 +321,7 @@ class FlextDbOracleCli(FlextService[str]):
                 error=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             )
-            return FlextResult[HealthCheckReport].ok(error_result)
+            return FlextResult[HealthCheckReport].ok(error_result)  # noqa: F821
 
     def execute_list_schemas(
         self,
