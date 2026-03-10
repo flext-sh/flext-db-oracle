@@ -458,6 +458,64 @@ class FlextDbOracleModels(FlextModels):
             update_columns: list[str] = Field(default_factory=list)
             insert_columns: list[str] = Field(default_factory=list)
 
+        # Command classes for dispatcher integration
+        class ConnectCommand(FlextModels.Entity):
+            """Command to establish Oracle connection."""
+
+            pass
+
+        class DisconnectCommand(FlextModels.Entity):
+            """Command to close Oracle connection."""
+
+            pass
+
+        class TestConnectionCommand(FlextModels.Entity):
+            """Command to test Oracle connection."""
+
+            pass
+
+        class ExecuteQueryCommand(FlextModels.Entity):
+            """Command to execute SELECT query."""
+
+            sql: str
+            parameters: dict[str, t.ContainerValue] | None = None
+
+        class FetchOneCommand(FlextModels.Entity):
+            """Command to fetch single row."""
+
+            sql: str
+            parameters: dict[str, t.ContainerValue] | None = None
+
+        class ExecuteStatementCommand(FlextModels.Entity):
+            """Command to execute INSERT/UPDATE/DELETE."""
+
+            sql: str
+            parameters: dict[str, t.ContainerValue] | None = None
+
+        class ExecuteManyCommand(FlextModels.Entity):
+            """Command to execute batch statements."""
+
+            sql: str
+            parameters_list: list[dict[str, t.ContainerValue]] = Field(
+                default_factory=list
+            )
+
+        class GetSchemasCommand(FlextModels.Entity):
+            """Command to retrieve all schemas."""
+
+            pass
+
+        class GetTablesCommand(FlextModels.Entity):
+            """Command to retrieve tables in schema."""
+
+            schema_name: str | None = None
+
+        class GetColumnsCommand(FlextModels.Entity):
+            """Command to retrieve columns in table."""
+
+            table: str
+            schema_name: str | None = None
+
 
 m = FlextDbOracleModels
 

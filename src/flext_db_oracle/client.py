@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import override
 
 import oracledb
-from flext_core import FlextService, r
+from flext_core import FlextService, r, t as _core_t
 from pydantic import TypeAdapter
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -26,8 +26,10 @@ from flext_db_oracle.typings import t
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_JSON_VALUE_ADAPTER = TypeAdapter(t.JsonValue)
-_GENERAL_LIST_ADAPTER = TypeAdapter(list[t.ContainerValue])
+_JSON_VALUE_ADAPTER: TypeAdapter[_core_t.JsonValue] = TypeAdapter(_core_t.JsonValue)
+_GENERAL_LIST_ADAPTER: TypeAdapter[list[t.ContainerValue]] = TypeAdapter(
+    list[t.ContainerValue]
+)
 
 
 def _validate_json_value(value: t.ContainerValue) -> t.JsonValue | None:
@@ -159,18 +161,21 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             actual_port = port or self.oracle_config.port
             actual_service_name = service_name or self.oracle_config.service_name
             actual_username = username or self.oracle_config.username
-            actual_password = password or self.oracle_config.password
+            actual_password_raw = password or self.oracle_config.password
             if not actual_host:
                 return r[FlextDbOracleApi].fail("Oracle host is required")
             if not actual_username:
                 return r[FlextDbOracleApi].fail("Oracle username is required")
-            if not actual_password:
+            if not actual_password_raw:
                 return r[FlextDbOracleApi].fail("Oracle password is required")
             self.logger.info(
                 "Connecting to Oracle at %s:%s/%s",
                 actual_host,
                 actual_port,
                 actual_service_name,
+            )
+            actual_password: str | None = (
+                str(actual_password_raw) if actual_password_raw else None
             )
             config: FlextDbOracleSettings = FlextDbOracleSettings(
                 host=actual_host,
