@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from typing import Annotated
 
 from flext_core import FlextModels, t
 from pydantic import (
@@ -50,7 +51,9 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: list[t.JsonValue] = Field(default_factory=list)
+            values: Annotated[list[t.ContainerValue], Field(default_factory=list)] = (
+                Field(default_factory=list)
+            )
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -203,7 +206,9 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: list[Mapping[str, t.JsonValue]] = Field(default_factory=list)
+            result_data: list[Mapping[str, t.ContainerValue]] = Field(
+                default_factory=list
+            )
             row_count: int = 0
             execution_time_ms: int = 0
 
@@ -319,7 +324,7 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Mapping[str, t.JsonValue] = Field(default_factory=dict)
+            metrics: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
