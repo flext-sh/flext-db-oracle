@@ -999,12 +999,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             for row in self._extract_mapping_rows(mapping_result)
         ]
 
-    def _normalize_row(self, row: object) -> m.Dict:
+    def _normalize_row(
+        self, row: Mapping[str, t.ContainerValue] | t.ContainerValue
+    ) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        mapping: object = (
-            row if isinstance(row, (dict, Mapping)) else getattr(row, "_mapping", None)
-        )
-        validated_mapping = _validate_config_map(mapping)
+        if isinstance(row, Mapping):
+            validated_mapping = _validate_config_map(row)
+        else:
+            validated_mapping = _validate_config_map(getattr(row, "_mapping", None))
         if validated_mapping is None:
             return m.Dict(root={})
         return m.Dict(
