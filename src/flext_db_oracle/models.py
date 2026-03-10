@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Annotated
 
 from flext_core import FlextModels, t
 from pydantic import (
@@ -51,9 +50,7 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: Annotated[list[t.ContainerValue], Field(default_factory=list)] = (
-                Field(default_factory=list)
-            )
+            values: list[object] = []
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -206,18 +203,13 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: list[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=list
-            )
+            result_data: list[Mapping[str, object]] = []
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
-            columns: list[str] = Field(default_factory=list, description="Column names")
-            rows: list[FlextDbOracleModels.DbOracle.RowData] = Field(
-                default_factory=list,
-                description="Row data",
-            )
+            columns: list[str] = []
+            rows: list[FlextDbOracleModels.DbOracle.RowData] = []
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
 
@@ -343,10 +335,8 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=list
-            )
-            primary_keys: list[str] = Field(default_factory=list)
+            columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = []
+            primary_keys: list[str] = []
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
@@ -390,9 +380,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             owner: str = ""
-            columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
-                default_factory=list
-            )
+            columns: list[FlextDbOracleModels.DbOracle.Column] = []
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -436,9 +424,7 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: list[FlextDbOracleModels.DbOracle.Table] = Field(
-                default_factory=list
-            )
+            tables: list[FlextDbOracleModels.DbOracle.Table] = []
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
@@ -501,9 +487,7 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: list[dict[str, t.ContainerValue]] = Field(
-                default_factory=list
-            )
+            parameters_list: list[dict[str, t.ContainerValue]] = []
 
         class GetSchemasCommand(FlextModels.Entity):
             """Command to retrieve all schemas."""

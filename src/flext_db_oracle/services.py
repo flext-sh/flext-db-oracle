@@ -25,6 +25,7 @@ from sqlalchemy.exc import (
 
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.utilities import u
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
@@ -183,8 +184,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._config = config
         self._engine: object | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
-        self._plugins: dict[str, t.JsonValue] = {}
-        self._metrics: dict[str, t.JsonValue] = {}
+        self._plugins: dict[str, t.ContainerValue] = {}
+        self._metrics: dict[str, t.ContainerValue] = {}
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
@@ -574,19 +575,19 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Get tracked operations."""
         return r.ok(self._operations.copy())
 
-    def get_plugin(self, _name: str) -> r[t.JsonValue]:
+    def get_plugin(self, _name: str) -> r[t.ContainerValue]:
         """Get plugin data from local service registry."""
         if not _name:
-            return r[t.JsonValue].fail("Plugin name is required")
+            return r[t.ContainerValue].fail("Plugin name is required")
         try:
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
-            return r[t.JsonValue].fail(
+            return r[t.ContainerValue].fail(
                 "flext-plugin integration unavailable; install flext-plugin"
             )
         if _name not in self._plugins:
-            return r[t.JsonValue].fail(f"Plugin '{_name}' not found")
-        return r[t.JsonValue].ok(self._plugins[_name])
+            return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
+        return r[t.ContainerValue].ok(self._plugins[_name])
 
     def get_primary_key_columns(
         self, table_name: str, schema_name: str | None = None
@@ -598,26 +599,32 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self, table_name: str, schema: str | None = None
     ) -> r[list[str]]:
         """Get primary key column names for specified table."""
-        try:
+
+        def _fetch_keys() -> list[str]:
             if schema:
                 sql = "\n                SELECT column_name\n                FROM all_constraints c, all_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                AND c.owner = UPPER(:schema)\n                ORDER BY cc.position\n                "
                 params = m.ConfigMap(root={"table_name": table_name, "schema": schema})
             else:
                 sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
                 params = m.ConfigMap(root={"table_name": table_name})
-            return self.execute_query(sql, params).map(
-                lambda rows: [str(row.root["column_name"]) for row in rows]
-            )
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyDatabaseError,
-            SQLAlchemyOperationalError,
-            SQLAlchemyError,
-            OSError,
-        ) as e:
-            return r[list[str]].fail(f"Failed to get primary keys: {e}")
+            query_result = self.execute_query(sql, params)
+            if query_result.is_failure:
+                raise RuntimeError(query_result.error or "Query execution failed")
+            return [str(row.root["column_name"]) for row in query_result.value]
+
+        return u.try_(
+            _fetch_keys,
+            catch=(
+                OracleDatabaseError,
+                OracleInterfaceError,
+                ConnectionError,
+                SQLAlchemyDatabaseError,
+                SQLAlchemyOperationalError,
+                SQLAlchemyError,
+                OSError,
+                RuntimeError,
+            ),
+        ).map_error(lambda e: f"Failed to get primary keys: {e}")
 
     def get_schemas(self) -> r[list[str]]:
         """Get list of Oracle schemas."""
@@ -630,51 +637,66 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self, table_name: str, schema: str | None = None
     ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
         """Get complete table metadata."""
-        try:
-            return self.get_columns(table_name, schema).flat_map(
-                lambda columns: self.get_primary_keys(table_name, schema).map(
-                    lambda pk: FlextDbOracleModels.DbOracle.TableMetadata(
-                        table_name=table_name,
-                        schema_name=schema or "",
-                        columns=[
-                            FlextDbOracleModels.DbOracle.ColumnMetadata(
-                                name=column.name,
-                                data_type=column.data_type,
-                                nullable=column.nullable,
-                            )
-                            for column in columns
-                        ],
-                        primary_keys=pk,
+
+        def _fetch_metadata() -> FlextDbOracleModels.DbOracle.TableMetadata:
+            columns_result = self.get_columns(table_name, schema)
+            if columns_result.is_failure:
+                raise RuntimeError(columns_result.error or "Failed to get columns")
+
+            pk_result = self.get_primary_keys(table_name, schema)
+            if pk_result.is_failure:
+                raise RuntimeError(pk_result.error or "Failed to get primary keys")
+
+            return FlextDbOracleModels.DbOracle.TableMetadata(
+                table_name=table_name,
+                schema_name=schema or "",
+                columns=[
+                    FlextDbOracleModels.DbOracle.ColumnMetadata(
+                        name=column.name,
+                        data_type=column.data_type,
+                        nullable=column.nullable,
                     )
-                )
+                    for column in columns_result.value
+                ],
+                primary_keys=pk_result.value,
             )
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyOperationalError,
-            OSError,
-        ) as e:
-            return r[FlextDbOracleModels.DbOracle.TableMetadata].fail(
-                f"Failed to get table metadata: {e}"
-            )
+
+        return u.try_(
+            _fetch_metadata,
+            catch=(
+                OracleDatabaseError,
+                OracleInterfaceError,
+                ConnectionError,
+                SQLAlchemyOperationalError,
+                OSError,
+                RuntimeError,
+            ),
+        ).map_error(lambda e: f"Failed to get table metadata: {e}")
 
     def get_table_row_count(
         self, table_name: str, schema_name: str | None = None
     ) -> r[int]:
         """Get row count - simplified."""
-        try:
+
+        def _fetch_count() -> int:
             schema = f"{schema_name}." if schema_name else ""
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
-            return self.execute_query(sql).map(self._parse_count_from_rows)
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyOperationalError,
-            OSError,
-        ) as e:
-            return r[int].fail(f"Failed to get row count: {e}")
+            query_result = self.execute_query(sql)
+            if query_result.is_failure:
+                raise RuntimeError(query_result.error or "Query execution failed")
+            return self._parse_count_from_rows(query_result.value)
+
+        return u.try_(
+            _fetch_count,
+            catch=(
+                OracleDatabaseError,
+                OracleInterfaceError,
+                ConnectionError,
+                SQLAlchemyOperationalError,
+                OSError,
+                RuntimeError,
+            ),
+        ).map_error(lambda e: f"Failed to get row count: {e}")
 
     def get_tables(self, schema: str | None = None) -> r[list[str]]:
         """Get list of tables in Oracle schema."""
@@ -870,7 +892,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         metadata: m.ConfigMap | t.ConfigurationMapping | None = None,
     ) -> r[bool]:
         """Track database operation for monitoring."""
-        try:
+
+        def _track() -> bool:
             metadata_value = (
                 metadata
                 if isinstance(metadata, m.ConfigMap)
@@ -884,15 +907,18 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 timestamp=self._get_current_timestamp(),
             )
             self._operations.append(operation)
-            return r[bool].ok(True)
-        except (
-            OracleDatabaseError,
-            OracleInterfaceError,
-            ConnectionError,
-            SQLAlchemyOperationalError,
-            OSError,
-        ) as e:
-            return r[bool].fail(f"Failed to track operation: {e}")
+            return True
+
+        return u.try_(
+            _track,
+            catch=(
+                OracleDatabaseError,
+                OracleInterfaceError,
+                ConnectionError,
+                SQLAlchemyOperationalError,
+                OSError,
+            ),
+        ).map_error(lambda e: f"Failed to track operation: {e}")
 
     def transaction(self) -> Generator[object]:
         """Get transaction context for database operations."""
@@ -975,7 +1001,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
 
     def _normalize_row(self, row: object) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        mapping = row if isinstance(row, Mapping) else getattr(row, "_mapping", None)
+        mapping: object = (
+            row if isinstance(row, (dict, Mapping)) else getattr(row, "_mapping", None)
+        )
         validated_mapping = _validate_config_map(mapping)
         if validated_mapping is None:
             return m.Dict(root={})
