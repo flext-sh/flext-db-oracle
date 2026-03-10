@@ -726,6 +726,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         | Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
+        raw_properties: t.ContainerValue | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
@@ -739,11 +740,15 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             ] = {}
             for field_name, field_def in raw_properties.items():
                 if isinstance(field_def, Mapping):
-                    normalized_properties[str(field_name)] = (
-                        FlextDbOracleModels.DbOracle.SingerField(
-                            type=field_def.get("type", "string")
+                    field_type = field_def.get("type", "string")
+                    if isinstance(field_type, str):
+                        normalized_properties[str(field_name)] = (
+                            FlextDbOracleModels.DbOracle.SingerField(type=field_type)
                         )
-                    )
+                    else:
+                        normalized_properties[str(field_name)] = (
+                            FlextDbOracleModels.DbOracle.SingerField(type="string")
+                        )
                 else:
                     normalized_properties[str(field_name)] = (
                         FlextDbOracleModels.DbOracle.SingerField(type="string")
@@ -752,16 +757,16 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 properties=normalized_properties
             )
         mapping = m.ConfigMap(root={})
-        for field_name, field_def in schema_model.properties.items():
-            raw_field = (
-                raw_properties.get(field_name) if "raw_properties" in locals() else None
-            )
-            format_hint = (
-                raw_field.get("format") if isinstance(raw_field, Mapping) else None
-            )
-            conversion = self.convert_singer_type(field_def.type, format_hint)
-            if conversion.is_success:
-                mapping.root[field_name] = conversion.value
+         for field_name, field_def in schema_model.properties.items():
+             raw_field = (
+                 raw_properties.get(field_name) if isinstance(raw_properties, Mapping) else None
+             )
+             format_hint = (
+                 raw_field.get("format") if isinstance(raw_field, Mapping) else None
+             )
+             conversion = self.convert_singer_type(field_def.type, format_hint)
+             if conversion.is_success:
+                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
             "mapping": normalized_mapping
