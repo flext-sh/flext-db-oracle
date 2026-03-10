@@ -65,7 +65,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             """Factories for Annotated types."""
 
             @staticmethod
-            def coerced_enum[E: StrEnum](enum_cls: type[E]):
+            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
                 """Create an Annotated StrEnum type with automatic coercion.
 
                 Args:
