@@ -121,7 +121,7 @@ def docker_control() -> FlextTestsDocker:
 
 
 @pytest.fixture(scope="session")
-def shared_oracle_container(docker_control: FlextTestsDocker) -> Generator[str]:
+def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
     """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
     container_name = "flext-oracle-db-test"
     container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
@@ -215,10 +215,10 @@ def ensure_shared_docker_container(shared_oracle_container: str) -> None:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings | None:
+def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings:
     """Return real Oracle configuration for tests that can use it."""
     if oracle_container is None:
-        return None
+        pytest.skip("Oracle container unavailable")
     return FlextDbOracleSettings(
         host=os.getenv("TEST_ORACLE_HOST", "localhost"),
         port=int(os.getenv("TEST_ORACLE_PORT", "1522")),
@@ -232,22 +232,17 @@ def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings | 
 
 @pytest.fixture
 def oracle_api(
-    real_oracle_config: FlextDbOracleSettings | None,
-) -> FlextDbOracleApi | None:
+    real_oracle_config: FlextDbOracleSettings,
+) -> FlextDbOracleApi:
     """Return Oracle API for tests that can use it."""
-    if real_oracle_config is None:
-        return None
     return FlextDbOracleApi(config=real_oracle_config)
 
 
 @pytest.fixture
 def connected_oracle_api(
-    oracle_api: FlextDbOracleApi | None,
-) -> Generator[FlextDbOracleApi | None]:
+    oracle_api: FlextDbOracleApi,
+) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
-    if oracle_api is None:
-        yield None
-        return
     connect_result = oracle_api.connect()
     if connect_result.is_success:
         connected_api = connect_result.value
@@ -255,7 +250,7 @@ def connected_oracle_api(
         with contextlib.suppress(Exception):
             connected_api.disconnect()
     else:
-        yield None
+        pytest.skip(f"Failed to connect Oracle API: {connect_result.error}")
 
 
 @pytest.fixture

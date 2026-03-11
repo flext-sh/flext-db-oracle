@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleExceptions as FlextExceptions,
@@ -101,9 +103,11 @@ class TestRealOracleExceptionsCore:
             pass
 
     def test_real_query_error_scenario(
-        self, real_oracle_config: FlextDbOracleSettings
+        self, real_oracle_config: FlextDbOracleSettings | None
     ) -> None:
         """Test FlextExceptions.OracleQueryError with real invalid SQL."""
+        if real_oracle_config is None:
+            pytest.skip("Oracle real config unavailable")
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
         assert connect_result.is_success
@@ -133,15 +137,21 @@ class TestRealOracleExceptionsCore:
             connection.disconnect()
 
     def test_real_timeout_error_scenario(
-        self, real_oracle_config: FlextDbOracleSettings
+        self, real_oracle_config: FlextDbOracleSettings | None
     ) -> None:
         """Test FlextExceptions.TimeoutError with real long-running query."""
+        if real_oracle_config is None:
+            pytest.skip("Oracle real config unavailable")
         timeout_config = FlextDbOracleSettings(
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
             username=real_oracle_config.username,
-            password=real_oracle_config.password,
+            password=(
+                str(real_oracle_config.password)
+                if real_oracle_config.password is not None
+                else None
+            ),
             timeout=1,
         )
         connection = FlextDbOracleServices(config=timeout_config)
@@ -172,9 +182,11 @@ class TestRealOracleExceptionsAdvanced:
     """Teste real de exceções avançadas Oracle - SEM MOCKS."""
 
     def test_real_metadata_error_scenario(
-        self, connected_oracle_api: FlextDbOracleApi
+        self, connected_oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test FlextExceptions.OracleMetadataError with real metadata operations."""
+        if connected_oracle_api is None:
+            pytest.skip("Connected Oracle API unavailable")
         invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
         for invalid_schema in invalid_schemas:
             if invalid_schema:
@@ -188,9 +200,11 @@ class TestRealOracleExceptionsAdvanced:
         assert len(columns_result.value) == 0
 
     def test_real_processing_error_scenario(
-        self, connected_oracle_api: FlextDbOracleApi
+        self, connected_oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test FlextExceptions.ProcessingError with real data processing errors."""
+        if connected_oracle_api is None:
+            pytest.skip("Connected Oracle API unavailable")
         try:
             problematic_operations = [
                 "SELECT * FROM NON_EXISTENT_TABLE_12345",

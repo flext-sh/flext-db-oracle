@@ -1473,9 +1473,11 @@ class TestDirectCoverageBoostAPI:
         assert result4.is_failure or result4.is_success
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api: FlextDbOracleApi
+        self, oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
+        if oracle_api is None:
+            pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -1495,8 +1497,12 @@ class TestDirectCoverageBoostAPI:
         finally:
             connected_api.disconnect()
 
-    def test_api_query_optimization_758_798(self, oracle_api: FlextDbOracleApi) -> None:
+    def test_api_query_optimization_758_798(
+        self, oracle_api: FlextDbOracleApi | None
+    ) -> None:
         """Test API query optimization paths (lines 758-798)."""
+        if oracle_api is None:
+            pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -1578,9 +1584,11 @@ class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
     def test_connection_edge_cases(
-        self, real_oracle_config: FlextDbOracleSettings
+        self, real_oracle_config: FlextDbOracleSettings | None
     ) -> None:
         """Test connection edge cases for missed lines."""
+        if real_oracle_config is None:
+            pytest.skip("Oracle real config unavailable")
         connection = FlextDbOracleServices(config=real_oracle_config)
         for _i in range(3):
             result = connection.connect()
@@ -1689,9 +1697,11 @@ class TestDirectCoverageBoostObservability:
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api: FlextDbOracleApi
+        self, oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test observability metrics collection."""
+        if oracle_api is None:
+            pytest.skip("Oracle API unavailable")
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
