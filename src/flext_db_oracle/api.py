@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from typing import Self, override
 
 import oracledb
-from flext_core import FlextService, r, t
+from flext_core import FlextService, r, t, u
 from pydantic import BaseModel
 
 from flext_db_oracle.constants import c
@@ -232,10 +232,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     @override
     def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""
-        try:
-            return r.ok(self._oracle_config)
-        except Exception as e:
-            return r[FlextDbOracleSettings].fail(f"API execution failed: {e}")
+        return u.try_(lambda: self._oracle_config).map_error(
+            lambda e: f"API execution failed: {e}"
+        )
 
     def execute_many(
         self, sql: str, parameters_list: Sequence[Mapping[str, t.ContainerValue]]
@@ -344,10 +343,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def optimize_query(self, sql: str) -> r[str]:
         """Optimize a SQL query for Oracle."""
-        try:
-            return r[str].ok(" ".join(sql.split()))
-        except (AttributeError, ValueError, TypeError) as e:
-            return r[str].fail(f"Query optimization failed: {e}")
+        return u.try_(
+            lambda: " ".join(sql.split()),
+            catch=(AttributeError, ValueError, TypeError),
+        ).map_error(lambda e: f"Query optimization failed: {e}")
 
     def query(
         self, sql: str, parameters: Mapping[str, t.ContainerValue] | None = None

@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import override
 
 import oracledb
-from flext_core import FlextService, r, t as _core_t
+from flext_core import FlextService, r, t as _core_t, u
 from pydantic import TypeAdapter
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -433,10 +433,10 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: JSON formatted data or error.
 
         """
-        try:
-            return r[str].ok(json.dumps(data.root, indent=2, default=str))
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r[str].fail(f"JSON formatting failed: {e}")
+        return u.try_(
+            lambda: json.dumps(data.root, indent=2, default=str),
+            catch=(OracleDatabaseError, OracleInterfaceError, ConnectionError),
+        ).map_error(lambda e: f"JSON formatting failed: {e}")
 
     def _format_as_table(self, data: m.ConfigMap) -> r[str]:
         """Format data as table output.
