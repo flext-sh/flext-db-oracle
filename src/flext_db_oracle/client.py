@@ -177,13 +177,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None
             )
-            config: FlextDbOracleSettings = FlextDbOracleSettings(
-                host=actual_host,
-                port=actual_port,
-                service_name=actual_service_name,
-                username=actual_username,
-                password=actual_password,
-            )
+            config: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
+                "host": actual_host,
+                "port": actual_port,
+                "service_name": actual_service_name,
+                "username": actual_username,
+                "password": actual_password,
+            })
             api = FlextDbOracleApi(config=config)
             connect_result: r[FlextDbOracleApi] = api.connect()
             if connect_result.is_success:

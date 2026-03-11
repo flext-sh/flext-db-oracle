@@ -121,13 +121,13 @@ class FlextDbOracleCli(FlextService[str]):
                     "Password is required for Oracle connection"
                 )
             try:
-                config = FlextDbOracleSettings(
-                    host=host,
-                    port=port,
-                    service_name=service_name,
-                    username=username,
-                    password=password,
-                )
+                config = FlextDbOracleSettings.model_validate({
+                    "host": host,
+                    "port": port,
+                    "service_name": service_name,
+                    "username": username,
+                    "password": password,
+                })
                 return FlextResult[FlextDbOracleSettings].ok(config)
             except (
                 OracleDatabaseError,
@@ -194,7 +194,7 @@ class FlextDbOracleCli(FlextService[str]):
             if output_format == "yaml":
                 match data:
                     case OutputPayload() | HealthCheckReport():
-                        payload = data.model_dump(mode="python")
+                        payload: t.ContainerValue = data.model_dump(mode="python")
                     case _:
                         payload = data
                 return FlextResult[str].ok(yaml.dump(payload, default_flow_style=False))
@@ -269,6 +269,7 @@ class FlextDbOracleCli(FlextService[str]):
         """Module-level main entry point."""
         return 0 if cls.main().is_success else 1
 
+    @override
     def execute(self, **_kwargs: str | float | bool) -> FlextResult[str]:
         """Execute domain service - required by FlextService.
 
@@ -304,14 +305,14 @@ class FlextDbOracleCli(FlextService[str]):
         """
         start_time = time.time()
         try:
-            config = FlextDbOracleSettings(
-                host=host,
-                port=port,
-                service_name=service_name,
-                username=username,
-                password=password or "",
-                timeout=timeout,
-            )
+            config = FlextDbOracleSettings.model_validate({
+                "host": host,
+                "port": port,
+                "service_name": service_name,
+                "username": username,
+                "password": password,
+                "timeout": timeout,
+            })
             api = FlextDbOracleApi(config=config)
             health_result = api.get_health_status()
             if health_result.is_failure:

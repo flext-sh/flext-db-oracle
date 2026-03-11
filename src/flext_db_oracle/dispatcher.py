@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import override
+from typing import ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
 
@@ -17,6 +17,23 @@ from flext_db_oracle.services import FlextDbOracleServices
 
 class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
+
+    ConnectCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.ConnectCommand
+    DisconnectCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.DisconnectCommand
+    TestConnectionCommand: ClassVar[type] = (
+        FlextDbOracleModels.DbOracle.TestConnectionCommand
+    )
+    ExecuteQueryCommand: ClassVar[type] = (
+        FlextDbOracleModels.DbOracle.ExecuteQueryCommand
+    )
+    FetchOneCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.FetchOneCommand
+    ExecuteStatementCommand: ClassVar[type] = (
+        FlextDbOracleModels.DbOracle.ExecuteStatementCommand
+    )
+    ExecuteManyCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.ExecuteManyCommand
+    GetSchemasCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.GetSchemasCommand
+    GetTablesCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.GetTablesCommand
+    GetColumnsCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.GetColumnsCommand
 
     @override
     def execute(self) -> r[None]:
@@ -128,7 +145,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters_list = command.parameters_list
             else:
                 sql = ""
-                parameters_list = list[m.ConfigMap]()
+                parameters_list = list[Mapping[str, t.ContainerValue]]()
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {

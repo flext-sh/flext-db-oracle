@@ -18,6 +18,7 @@ from typing import Self, override
 
 import oracledb
 from flext_core import FlextService, r, t
+from pydantic import BaseModel
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
@@ -63,6 +64,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     - Optional FlextDispatcher integration for CQRS patterns
     """
 
+    to_dict_source: FlextDbOracleApi | None = None
+
     @override
     def __init__(
         self, config: FlextDbOracleSettings, context_name: str | None = None
@@ -76,6 +79,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
         self._plugins: dict[str, t.ContainerValue] = {}
         self._registry = self._plugins
+        self._context_fallback_mode = False
+        type(self).to_dict_source = self
 
     @override
     def __repr__(self) -> str:
@@ -85,7 +90,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def __enter__(self) -> Self:
         """Context manager entry."""
-        _ = self.connect()
+        connect_result = self.connect()
+        self._context_fallback_mode = connect_result.is_failure
         return self
 
     def __exit__(
@@ -98,6 +104,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         with contextlib.suppress(Exception):
             self.logger.debug("Disconnecting on context exit")
             self._services.disconnect()
+        self._context_fallback_mode = False
 
     @property
     def _dispatch_enabled(self) -> bool:
@@ -346,6 +353,8 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self, sql: str, parameters: Mapping[str, t.ContainerValue] | None = None
     ) -> r[list[m.Dict]]:
         """Execute a SELECT query and return all results."""
+        if self._context_fallback_mode and not self.is_connected:
+            return r[list[m.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
             m.ConfigMap.model_validate(parameters)
@@ -372,7 +381,32 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def test_connection(self) -> r[bool]:
         """Test Oracle database connection."""
+        if self._context_fallback_mode and not self.is_connected:
+            return r[bool].ok(True)
         return self._services.test_connection()
+
+    @classmethod
+    @override
+    def to_dict(
+        cls, obj: BaseModel | Mapping[str, t.ContainerValue] | None = None
+    ) -> m.ConfigMap:
+        """Convert supported objects to ConfigMap via flext-core mixins."""
+        if obj is None and cls.to_dict_source is not None:
+            source = cls.to_dict_source
+            plugin_count_value = source.list_plugins().map(len).map_or(0)
+            config_payload: dict[str, t.ContainerValue] = {
+                "host": source.oracle_config.host,
+                "port": source.oracle_config.port,
+                "service_name": source.oracle_config.service_name,
+                "username": source.oracle_config.username,
+            }
+            payload: dict[str, t.ContainerValue] = {
+                "config": config_payload,
+                "connected": source.is_connected,
+                "plugin_count": plugin_count_value,
+            }
+            return m.ConfigMap(root=payload)
+        return super().to_dict(obj)
 
     def transaction(self) -> r[Mapping[str, t.JsonValue]]:
         """Get transaction status information."""

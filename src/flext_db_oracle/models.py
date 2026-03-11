@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 
 from flext_core import FlextModels, t
@@ -23,6 +23,10 @@ from pydantic import (
 )
 
 from flext_db_oracle.constants import c
+
+
+def _default_parameters_list() -> list[Mapping[str, t.ContainerValue]]:
+    return []
 
 
 class FlextDbOracleModels(FlextModels):
@@ -50,7 +54,7 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: list[t.ContainerValue] = Field(default_factory=list)
+            values: Sequence[t.ContainerValue] = Field(default_factory=list)
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -203,17 +207,13 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: list[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=list
-            )
+            result_data: Sequence[t.ContainerValue] = Field(default_factory=list)
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
             columns: list[str] = Field(default_factory=list)
-            rows: list[FlextDbOracleModels.DbOracle.RowData] = Field(
-                default_factory=list
-            )
+            rows: Sequence[t.ContainerValue] = Field(default_factory=list)
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
 
@@ -296,7 +296,9 @@ class FlextDbOracleModels(FlextModels):
                     self.row_count = len(self.rows)
                 if self.rows and len(self.columns) > 0:
                     for row in self.rows:
-                        if len(row.values) != len(self.columns):
+                        if isinstance(
+                            row, FlextDbOracleModels.DbOracle.RowData
+                        ) and len(row.values) != len(self.columns):
                             msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
                             raise ValueError(msg)
                 if self.execution_time_ms < 0:
@@ -339,9 +341,7 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: list[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=list
-            )
+            columns: Sequence[t.ContainerValue] = Field(default_factory=list)
             primary_keys: list[str] = Field(default_factory=list)
 
             def __getitem__(self, key: str) -> t.ContainerValue:
@@ -386,9 +386,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             owner: str = ""
-            columns: list[FlextDbOracleModels.DbOracle.Column] = Field(
-                default_factory=list
-            )
+            columns: Sequence[t.ContainerValue] = Field(default_factory=list)
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -407,7 +405,7 @@ class FlextDbOracleModels(FlextModels):
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
-                key_map = {
+                key_map: dict[str, t.ContainerValue] = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -415,7 +413,9 @@ class FlextDbOracleModels(FlextModels):
                     "primary_key": self.primary_key,
                     "default_value": self.default_value,
                 }
-                return key_map.get(key)
+                if key in key_map:
+                    return key_map[key]
+                return None
 
             def __contains__(self, key: str) -> bool:
                 """Check if key is in column metadata."""
@@ -432,9 +432,7 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: list[FlextDbOracleModels.DbOracle.Table] = Field(
-                default_factory=list
-            )
+            tables: Sequence[t.ContainerValue] = Field(default_factory=list)
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
@@ -497,8 +495,8 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: list[dict[str, t.ContainerValue]] = Field(
-                default_factory=list
+            parameters_list: Sequence[Mapping[str, t.ContainerValue]] = Field(
+                default_factory=_default_parameters_list
             )
 
         class GetSchemasCommand(FlextModels.Entity):

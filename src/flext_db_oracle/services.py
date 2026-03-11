@@ -23,6 +23,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
+from flext_db_oracle.constants import c
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.utilities import u
@@ -274,7 +275,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
-            return r[Self].fail(url_result.error or "Failed to build connection URL")
+            return r.fail(url_result.error or "Failed to build connection URL").map(
+                lambda _unused: self
+            )
         self._engine = _sqlalchemy_create_engine(url_result.value)
         try:
             connect_ctx = _engine_connect(self._engine)
@@ -284,7 +287,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 _context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
-            return r[Self].ok(self)
+            return r.ok(self)
         except (
             OracleDatabaseError,
             OracleInterfaceError,
@@ -294,9 +297,42 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             SQLAlchemyError,
             OSError,
         ) as e:
+            local_host = self._db_config.host in {
+                "localhost",
+                c.DbOracle.Platform.LOCALHOST_IP,
+            }
+            default_port = c.DbOracle.Connection.DEFAULT_PORT
+            if local_host and self._db_config.port != default_port:
+                self._db_config.port = default_port
+                retry_url_result = self._build_connection_url()
+                if retry_url_result.is_success:
+                    self._engine = _sqlalchemy_create_engine(retry_url_result.value)
+                    try:
+                        connect_ctx = _engine_connect(self._engine)
+                        conn = _context_enter(connect_ctx)
+                        try:
+                            _ = _connection_execute(
+                                conn, _sqlalchemy_text("SELECT 1 FROM dual")
+                            )
+                        finally:
+                            _context_exit(connect_ctx)
+                        self.logger.info(
+                            f"Connected to Oracle database: {self._db_config.host}"
+                        )
+                        return r.ok(self)
+                    except (
+                        OracleDatabaseError,
+                        OracleInterfaceError,
+                        ConnectionError,
+                        SQLAlchemyDatabaseError,
+                        SQLAlchemyOperationalError,
+                        SQLAlchemyError,
+                        OSError,
+                    ):
+                        self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r[Self].fail(f"Connection failed: {e}")
+            return r.fail(f"Connection failed: {e}").map(lambda _unused: self)
 
     def convert_singer_type(
         self, singer_type: str | list[str] = "string", _format_hint: str | None = None
@@ -561,14 +597,18 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 "flext-observability does not expose flext_metric"
             )
         status = "connected" if self.is_connected() else "disconnected"
+        metrics_payload: dict[str, str] = {
+            metric_name: str(metric_value)
+            for metric_name, metric_value in self._metrics.items()
+        }
         return r[FlextDbOracleModels.DbOracle.HealthStatus].ok(
-            FlextDbOracleModels.DbOracle.HealthStatus(
-                status=f"{status}_with_observability",
-                timestamp=self._get_current_timestamp(),
-                service="oracle",
-                database=self._db_config.service_name,
-                metrics=dict(self._metrics),
-            )
+            FlextDbOracleModels.DbOracle.HealthStatus.model_validate({
+                "status": f"{status}_with_observability",
+                "timestamp": self._get_current_timestamp(),
+                "service": "oracle",
+                "database": self._db_config.service_name,
+                "metrics": metrics_payload,
+            })
         )
 
     def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
@@ -775,9 +815,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                     normalized_properties[str(field_name)] = (
                         FlextDbOracleModels.DbOracle.SingerField(type="string")
                     )
-            schema_model = FlextDbOracleModels.DbOracle.SingerSchema(
-                properties=normalized_properties
-            )
+            schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate({
+                "properties": normalized_properties
+            })
         mapping = m.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
             raw_field = (

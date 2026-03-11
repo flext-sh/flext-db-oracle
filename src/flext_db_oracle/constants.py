@@ -14,7 +14,7 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants, c
+from flext_core import FlextConstants, c as core_c
 
 
 class FlextDbOracleConstants(FlextConstants):
@@ -216,8 +216,10 @@ class FlextDbOracleConstants(FlextConstants):
             PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
             MAX_DISPLAY_ROWS: Final[int] = 1000
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = c.Performance.BatchProcessing.DEFAULT_SIZE
-            MAX_BATCH_SIZE: Final[int] = c.Performance.BatchProcessing.MAX_ITEMS
+            DEFAULT_BATCH_SIZE: Final[int] = (
+                core_c.Performance.BatchProcessing.DEFAULT_SIZE
+            )
+            MAX_BATCH_SIZE: Final[int] = core_c.Performance.BatchProcessing.MAX_ITEMS
             DEFAULT_POOL_RECYCLE: Final[int] = 3600
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             CONNECTION_EXCELLENT_THRESHOLD_SECONDS: Final[float] = 0.1
@@ -282,10 +284,12 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
             DEFAULT_POOL_TIMEOUT: Final[int] = 60
-            DEFAULT_CONNECTION_TIMEOUT: Final[int] = c.Network.DEFAULT_TIMEOUT
+            DEFAULT_CONNECTION_TIMEOUT: Final[int] = core_c.Network.DEFAULT_TIMEOUT
             DEFAULT_QUERY_TIMEOUT: Final[int] = 60
             DEFAULT_QUERY_LIMIT: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = c.Performance.BatchProcessing.DEFAULT_SIZE
+            DEFAULT_BATCH_SIZE: Final[int] = (
+                core_c.Performance.BatchProcessing.DEFAULT_SIZE
+            )
             DEFAULT_COMMIT_SIZE: Final[int] = 1000
             DEFAULT_POOL_RECYCLE: Final[int] = 3600
             DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
@@ -412,7 +416,7 @@ class FlextDbOracleConstants(FlextConstants):
 
             DISPATCHER_ENABLED: Final[bool] = False
 
-        class Platform(c.Platform):
+        class Platform(core_c.Platform):
             """Oracle-specific platform constants extending base Platform."""
 
             LOOPBACK_IP: Final[str] = "127.0.0.1"

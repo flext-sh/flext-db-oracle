@@ -9,7 +9,7 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
-from flext_core import FlextUtilities, r, t, u
+from flext_core import FlextUtilities, r, t, u as core_u
 from pydantic import BeforeValidator
 
 from flext_db_oracle.constants import c
@@ -39,14 +39,14 @@ class FlextDbOracleUtilities(FlextUtilities):
 
         """
 
-        class Collection(u.Collection):
+        class Collection(core_u.Collection):
             """Collection utilities extending u.Collection via inheritance.
 
             Exposes all flext-core Collection methods through inheritance hierarchy.
             Access via u.Oracle.Collection.* pattern.
             """
 
-        class Args(u.Args):
+        class Args(core_u.Args):
             """Args utilities extending u.Args via inheritance.
 
             Exposes all flext-core Args methods through inheritance hierarchy,
@@ -54,7 +54,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             Access via u.Oracle.Args.* pattern.
             """
 
-        class Model(u.Model):
+        class Model(core_u.Model):
             """Model utilities extending u.Model via inheritance.
 
             Exposes all flext-core Model methods through inheritance hierarchy.
@@ -76,7 +76,7 @@ class FlextDbOracleUtilities(FlextUtilities):
 
                 """
                 return Annotated[
-                    enum_cls, BeforeValidator(u.Enum.coerce_validator(enum_cls))
+                    enum_cls, BeforeValidator(core_u.Enum.coerce_validator(enum_cls))
                 ]
 
         class FeatureFlags:
