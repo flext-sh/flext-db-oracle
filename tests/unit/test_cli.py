@@ -16,7 +16,7 @@ import os
 from unittest.mock import Mock, patch
 
 import yaml
-from flext_core import FlextResult
+from flext_core import r
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -136,7 +136,7 @@ class TestFlextDbOracleClientReal:
     def test_run_cli_command_real(self) -> None:
         """Test CLI command execution with real functionality."""
         result = FlextDbOracleClient.run_cli_command("health", timeout=30)
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_connection_wizard_real_validation(self) -> None:
         """Test connection wizard input validation."""
@@ -159,7 +159,7 @@ class TestFlextDbOracleClientReal:
         result = client.execute_query("")
         assert not result.is_success
         bad_result = client.configure_preferences(valid_key="")
-        assert isinstance(bad_result, FlextResult)
+        assert isinstance(bad_result, r)
         assert bad_result.is_success
 
     def test_client_preferences_persistence(self) -> None:
@@ -222,7 +222,7 @@ class TestFlextDbOracleCli:
         """Test successful CLI main initialization."""
         cli_service = FlextDbOracleCli()
         result = cli_service._initialize_cli_main()
-        assert isinstance(result, FlextResult)
+        assert isinstance(result, r)
 
     def test_initialize_cli_main_failure(self) -> None:
         """Test CLI main initialization failure handling."""
@@ -300,7 +300,7 @@ class TestOracleConnectionHelper:
             password="test_password",
         )
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
+            mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
                 config
             )
@@ -317,9 +317,7 @@ class TestOracleConnectionHelper:
             password="invalid_password",
         )
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].fail(
-                "Connection failed"
-            )
+            mock_connect.return_value = r[FlextDbOracleApi].fail("Connection failed")
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
                 config
             )
@@ -462,7 +460,7 @@ class TestCliServiceOperations:
         with patch.object(
             FlextDbOracleCli._OracleConnectionHelper, "validate_connection"
         ) as mock_validate:
-            mock_validate.return_value = FlextResult[bool].ok(True)
+            mock_validate.return_value = r[bool].ok(True)
             result = cli_service.execute_health_check(
                 host="localhost",
                 port=1521,
@@ -494,7 +492,7 @@ class TestCliServiceOperations:
         """Test health check with connection validation failure."""
         cli_service = FlextDbOracleCli()
         with patch.object(FlextDbOracleApi, "get_health_status") as mock_health:
-            mock_health.return_value = FlextResult[t.ConfigurationMapping].fail(
+            mock_health.return_value = r[t.ConfigurationMapping].fail(
                 "Database unreachable"
             )
             result = cli_service.execute_health_check(
@@ -511,7 +509,7 @@ class TestCliServiceOperations:
         """Test successful schema listing."""
         cli_service = FlextDbOracleCli()
         mock_api = Mock()
-        mock_api.get_schemas.return_value = FlextResult[list[str]].ok([
+        mock_api.get_schemas.return_value = r[list[str]].ok([
             "SCHEMA1",
             "SCHEMA2",
             "SCHEMA3",
@@ -521,8 +519,8 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = FlextResult[list[str]].ok([
+            mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
+            mock_get_schemas.return_value = r[list[str]].ok([
                 "SCHEMA1",
                 "SCHEMA2",
             ])
@@ -545,9 +543,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].fail(
-                "Connection failed"
-            )
+            mock_connect.return_value = r[FlextDbOracleApi].fail("Connection failed")
             result = cli_service.execute_list_schemas(
                 host="invalid-host",
                 port=1521,
@@ -567,10 +563,8 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = FlextResult[list[str]].fail(
-                "Schema query failed"
-            )
+            mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
+            mock_get_schemas.return_value = r[list[str]].fail("Schema query failed")
             result = cli_service.execute_list_schemas(
                 host="localhost",
                 port=1521,
@@ -589,8 +583,8 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = FlextResult[list[str]].ok([
+            mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
+            mock_get_tables.return_value = r[list[str]].ok([
                 "TABLE1",
                 "TABLE2",
             ])
@@ -615,8 +609,8 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = FlextResult[list[str]].ok(["TABLE1"])
+            mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
+            mock_get_tables.return_value = r[list[str]].ok(["TABLE1"])
             result = cli_service.execute_list_tables(
                 host="localhost",
                 port=1521,
@@ -640,10 +634,8 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "connect") as mock_connect,
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
-            mock_connect.return_value = FlextResult[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = FlextResult[list[t.ConfigurationMapping]].ok(
-                mock_result
-            )
+            mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
+            mock_query.return_value = r[list[t.ConfigurationMapping]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,

@@ -170,7 +170,7 @@ ______________________________________________________________________
 - **Query Execution**: Parameter binding, result processing, error handling
 - **Schema Operations**: Introspection, metadata extraction
 - **Transaction Management**: ACID compliance, rollback scenarios
-- **Error Handling**: All FlextResult error paths
+- **Error Handling**: All r error paths
 
 #### Key Test Fixtures
 
@@ -338,11 +338,11 @@ ______________________________________________________________________
 
 ### 1. Railway Pattern Testing
 
-#### Test FlextResult Operations
+#### Test r Operations
 
 ```python
 def test_flext_result_success_path(flext_db_oracle_api):
-    """Test successful operation returns FlextResult.ok()."""
+    """Test successful operation returns r.ok()."""
     result = flext_db_oracle_api.connect(valid_config)
     assert result.is_success
     connection = result.unwrap()
@@ -350,7 +350,7 @@ def test_flext_result_success_path(flext_db_oracle_api):
 
 
 def test_flext_result_error_path(flext_db_oracle_api):
-    """Test failed operation returns FlextResult.fail()."""
+    """Test failed operation returns r.fail()."""
     result = flext_db_oracle_api.connect(invalid_config)
     assert result.is_failure
     assert "connection failed" in result.error.lower()

@@ -276,7 +276,7 @@ Each test file includes:
 Following FLEXT Core patterns for consistent testing:
 
 ```python
-# FlextResult pattern testing
+# r pattern testing
 result = api.connect()
 assert result.success
 assert result.value is not None

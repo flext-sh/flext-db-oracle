@@ -140,7 +140,7 @@
 #### Ecosystem Integration
 
 - **FLEXT ecosystem**: Mandatory compatibility with 32+ dependent projects
-- **flext-core integration**: Required usage of FlextResult[T], FlextService patterns
+- **flext-core integration**: Required usage of r[T], FlextService patterns
 - **Zero custom implementations**: All Oracle operations through flext-db-oracle
 
 ### Business Constraints
@@ -216,7 +216,7 @@ Presentation Layer → Application Layer → Domain Layer ← Infrastructure Lay
 
 #### Core Principles
 
-- **No bare exceptions**: All operations return `FlextResult[T]`
+- **No bare exceptions**: All operations return `r[T]`
 - **Composability**: Operations chain with `flat_map()` and `map()`
 - **Context preservation**: Errors carry full operation history
 - **Type safety**: Generic types ensure correct error handling
@@ -240,7 +240,7 @@ result = (
 
 - **Pyrefly strict mode**: All code must pass strict type checking
 - **100% type annotations**: No `object` types in production code
-- **Generic type support**: Full support for `FlextResult[T]` patterns
+- **Generic type support**: Full support for `r[T]` patterns
 - **Protocol compliance**: Structural typing over inheritance
 
 #### Type Safety Benefits
@@ -284,7 +284,7 @@ result = (
 
 #### ADR-003: Railway Pattern Implementation
 
-- **Decision**: FlextResult[T] throughout for composable error handling
+- **Decision**: r[T] throughout for composable error handling
 - **Rationale**: Type-safe, composable error handling for enterprise reliability
 - **Impact**: No exception-based error handling in business logic
 
@@ -356,7 +356,7 @@ result = (
 
 **Domain-Driven Design (DDD)**: Software development approach focused on modeling business domains.
 
-**FlextResult[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error handling.
+**r[T]**: FLEXT ecosystem's implementation of Railway Pattern for type-safe error handling.
 
 ### Oracle Database Terms
 
@@ -370,7 +370,7 @@ result = (
 
 ### FLEXT Ecosystem Terms
 
-**FlextResult[T]**: Railway pattern implementation for composable error handling.
+**r[T]**: Railway pattern implementation for composable error handling.
 
 **FlextService**: Base class for domain services with common functionality.
 

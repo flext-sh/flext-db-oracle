@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import contextlib
 
-from flext_core import FlextResult
+from flext_core import r
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -275,7 +275,7 @@ class TestRealOracleApi:
                 column_parts.append(col_def)
             ddl_parts.extend((", ".join(column_parts), ")"))
             ddl_sql = " ".join(ddl_parts)
-            ddl_result = FlextResult[str].ok(ddl_sql)
+            ddl_result = r[str].ok(ddl_sql)
             if ddl_result.is_failure:
                 msg = f"DDL generation failed: {ddl_result.error}"
                 raise AssertionError(msg)

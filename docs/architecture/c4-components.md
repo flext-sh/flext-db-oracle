@@ -72,7 +72,7 @@ graph TB
 
         PYDANTIC[Pydantic v2<br/>✅ Data Validation<br/>Type Safety]
 
-        FLEXT_CORE[flext-core<br/>🏛️ Foundation Patterns<br/>FlextResult[T]]
+        FLEXT_CORE[flext-core<br/>🏛️ Foundation Patterns<br/>r[T]]
 
         CLICK[Click<br/>💻 CLI Framework<br/>Command Line]
 
@@ -146,17 +146,17 @@ graph TB
 
 - Unified entry point for all Oracle operations
 - Orchestrates service calls and error handling
-- Implements railway-oriented programming with FlextResult[T]
+- Implements railway-oriented programming with r[T]
 - Provides both sync and async operation support
 
 **Key Interfaces**:
 
 ```python
 class FlextDbOracleApi(FlextService):
-    def connect(self, config: OracleConfig) -> FlextResult[Connection]
-    def execute_query(self, sql: str, params: dict[str, object] = None) -> FlextResult[QueryResult]
-    def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
-    def close_connection(self) -> FlextResult[bool]
+    def connect(self, config: OracleConfig) -> r[Connection]
+    def execute_query(self, sql: str, params: dict[str, object] = None) -> r[QueryResult]
+    def get_schema_info(self, schema: str) -> r[SchemaInfo]
+    def close_connection(self) -> r[bool]
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container
@@ -350,7 +350,7 @@ sequenceDiagram
     Oracle-->>Connection: result set
     Connection-->>API: QueryResult
     API->>Models: validate_result(result)
-    API-->>Client: FlextResult[QueryResult]
+    API-->>Client: r[QueryResult]
 ```
 
 ### Error Handling Flow
@@ -366,9 +366,9 @@ sequenceDiagram
     Services->>Services: operation_fails()
     Services->>Exceptions: create_domain_exception()
     Exceptions->>Logger: log_error(context)
-    Services-->>API: FlextResult.fail(exception)
+    Services-->>API: r.fail(exception)
     API->>Logger: log_operation_failure()
-    API-->>Client: FlextResult.failure
+    API-->>Client: r.failure
 ```
 
 ### Connection Management Flow
@@ -399,7 +399,7 @@ stateDiagram-v2
 
 ### Reliability
 
-- **Error Handling**: Comprehensive exception handling with FlextResult[T]
+- **Error Handling**: Comprehensive exception handling with r[T]
 - **Connection Resilience**: Automatic retry and recovery mechanisms
 - **Data Integrity**: Transaction management with rollback capabilities
 - **Resource Management**: Proper cleanup and leak prevention

@@ -64,7 +64,7 @@ make validate
 
 - ✅ **Core Database Operations**: Query, execute, schema introspection fully functional
 - ✅ **SQLAlchemy 2.0 Integration**: Complete abstraction with clean separation
-- ✅ **FlextResult Error Handling**: 784+ occurrences, railway pattern throughout
+- ✅ **r Error Handling**: 784+ occurrences, railway pattern throughout
 - ✅ **Configuration Management**: Pydantic-based configuration with validation
 - ✅ **FLEXT Ecosystem Integration**: Complete flext-core, flext-cli integration
 - ✅ **Type Safety**: Pyrefly strict mode compliant (ZERO errors)
@@ -200,14 +200,14 @@ Integrating with 32+ dependent FLEXT projects while maintaining backward compati
 
 #### Solution Implemented
 
-- **Complete FlextResult Migration**: 784+ occurrences across codebase
+- **Complete r Migration**: 784+ occurrences across codebase
 - **Backward Compatibility**: Maintained both `.data` and `.value` APIs
 - **Type Safety**: Zero Pyrefly errors across entire codebase
 - **Clean Architecture**: Clear separation between infrastructure, domain, and application layers
 
 #### Best Practices Established
 
-- **Railway Pattern Throughout**: All operations return `FlextResult[T]`
+- **Railway Pattern Throughout**: All operations return `r[T]`
 - **Single Class Per Module**: Unified API per module (FlextDbOracleApi, FlextDbOracleModels, etc.)
 - **Root Module Imports**: `from flext_db_oracle import X` only, no internal imports
 - **Zero Breaking Changes**: Maintained API compatibility across ecosystem
@@ -263,7 +263,7 @@ Achieving Pyrefly strict mode compliance across large, complex codebase with mul
 - **100% Type Annotations**: No `object` types, complete type coverage
 - **Pyrefly Strict Compliance**: Zero type checking errors
 - **Protocol Usage**: Structural typing for clean interfaces
-- **Generic Type Support**: Full support for `FlextResult[T]` generics
+- **Generic Type Support**: Full support for `r[T]` generics
 
 #### Best Practices Established
 

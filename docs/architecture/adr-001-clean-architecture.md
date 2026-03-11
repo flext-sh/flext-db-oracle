@@ -70,7 +70,7 @@ Adopt Clean Architecture principles for flext-db-oracle with the following layer
 
 - **Dependency Direction**: Inner layers don't depend on outer layers
 - **Dependency Injection**: FlextContainer manages cross-cutting concerns
-- **Railway Pattern**: FlextResult[T] for error handling throughout
+- **Railway Pattern**: r[T] for error handling throughout
 - **Domain-First Design**: Business rules drive infrastructure implementation
 
 ## Rationale
@@ -94,7 +94,7 @@ Clean Architecture provides the best foundation for enterprise database integrat
 
 ### FLEXT Ecosystem Alignment
 
-- Uses flext-core foundation patterns (FlextResult, FlextService, FlextContainer)
+- Uses flext-core foundation patterns (r, FlextService, FlextContainer)
 - Follows established FLEXT naming conventions and patterns
 - Integrates with existing FLEXT CLI and logging infrastructure
 - Supports FLEXT's dependency injection and configuration patterns
@@ -180,7 +180,7 @@ Clean Architecture provides the best foundation for enterprise database integrat
 
 1. ✅ Define layer boundaries and responsibilities
 1. ✅ Create domain models with Pydantic v2
-1. ✅ Implement FlextResult[T] error handling
+1. ✅ Implement r[T] error handling
 1. ✅ Set up dependency injection with FlextContainer
 1. ✅ Create basic service layer structure
 

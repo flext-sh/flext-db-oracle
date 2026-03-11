@@ -12,7 +12,7 @@
   - [Bounded Context](#bounded-context)
   - [Aggregates](#aggregates)
 - [Error Handling Strategy](#error-handling-strategy)
-  - [FlextResult Pattern](#flextresult-pattern)
+  - [r Pattern](#flextresult-pattern)
   - [Exception Hierarchy](#exception-hierarchy)
 - [Technology Stack](#technology-stack)
   - [Current Implementation](#current-implementation)
@@ -53,7 +53,7 @@ Clean Architecture implementation for Oracle Database integration in the FLEXT e
 
 | Pattern             | Implementation         | Status      |
 | ------------------- | ---------------------- | ----------- |
-| **FlextResult\<T>** | Monadic error handling | Complete    |
+| **r\<T>** | Monadic error handling | Complete    |
 | **FlextService**    | Base service patterns  | Implemented |
 | **FlextContainer**  | Dependency injection   | Partial     |
 | **FlextLogger**     | Structured logging     | Integrated  |
@@ -102,7 +102,7 @@ graph TB
     SQLAlchemy --> Driver[python-oracledb]
     Driver --> Oracle[(Oracle Database)]
 
-    Models --> Result[FlextResult<T>]
+    Models --> Result[r<T>]
     Services --> Result
     API --> Result
 ```
@@ -134,9 +134,9 @@ graph TB
 
 ## Error Handling Strategy
 
-### FlextResult Pattern
+### r Pattern
 
-All operations use FlextResult for railway-oriented programming:
+All operations use r for railway-oriented programming:
 
 ```python
 from flext_core import FlextBus
@@ -154,24 +154,24 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
 from flext_core import u
 
 
-def query_operation() -> FlextResult[List[Dict]]:
+def query_operation() -> r[List[Dict]]:
     # No try/catch - explicit error handling
     connection_result = self._get_connection()
     if connection_result.is_failure:
-        return FlextResult[List[Dict]].fail(connection_result.error)
+        return r[List[Dict]].fail(connection_result.error)
 
     query_result = self._execute_query(sql)
     if query_result.is_failure:
-        return FlextResult[List[Dict]].fail(query_result.error)
+        return r[List[Dict]].fail(query_result.error)
 
-    return FlextResult[List[Dict]].ok(query_result.value)
+    return r[List[Dict]].ok(query_result.value)
 ```
 
 ### Exception Hierarchy
@@ -196,7 +196,7 @@ FlextDbOracleException (base)
 
 **FLEXT Integration**:
 
-- flext-core (FlextResult, FlextContainer, FlextLogger)
+- flext-core (r, FlextContainer, FlextLogger)
 - flext-cli (CLI patterns and utilities)
 - Domain-driven design patterns
 
@@ -252,11 +252,11 @@ engine = create_engine(
 ```python
 class OraclePlugin(ABC):
     @abstractmethod
-    def validate_query(self, sql: str) -> FlextResult[str]:
+    def validate_query(self, sql: str) -> r[str]:
         """Validate and potentially modify SQL queries"""
 
     @abstractmethod
-    def monitor_performance(self, metrics: Dict) -> FlextResult[bool]:
+    def monitor_performance(self, metrics: Dict) -> r[bool]:
         """Monitor query performance"""
 ```
 
@@ -295,7 +295,7 @@ class OraclePlugin(ABC):
 
 **FLEXT Compliance**:
 
-- FlextResult for all fallible operations
+- r for all fallible operations
 - FlextContainer for dependency injection
 - FlextLogger for structured logging
 - Domain service patterns throughout

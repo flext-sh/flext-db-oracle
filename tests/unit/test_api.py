@@ -17,7 +17,7 @@ from threading import Thread
 from typing import cast
 
 import pytest
-from flext_core import FlextResult
+from flext_core import r
 from flext_tests import FlextTestsDomains, tm
 
 from flext_db_oracle import (
@@ -333,8 +333,8 @@ class TestFlextDbOracleApiRealFunctionality:
         assert expected == repr_str
 
     def test_api_creation_using_testbuilders_real(self) -> None:
-        """Test API creation using direct FlextResult."""
-        config_result = FlextResult.ok(
+        """Test API creation using direct r."""
+        config_result = r.ok(
             FlextDbOracleSettings(
                 host="testbuilder_host",
                 port=1521,
@@ -605,7 +605,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert health_data is not None
 
     def test_flext_result_consistency_real(self) -> None:
-        """Test that all API methods return consistent FlextResult objects."""
+        """Test that all API methods return consistent r objects."""
         result1 = self.api.optimize_query("SELECT 1")
         assert hasattr(result1, "is_success")
         assert hasattr(result1, "error")
@@ -714,8 +714,8 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         self._TestDataHelper.create_test_oracle_config()
         if hasattr(api, "connect"):
-            result: FlextResult[FlextDbOracleApi] = api.connect()
-            assert isinstance(result, FlextResult)
+            result: r[FlextDbOracleApi] = api.connect()
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_disconnect(self) -> None:
         """Test FlextDbOracleApi disconnect functionality."""
@@ -730,7 +730,7 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         if hasattr(api, "disconnect"):
             result = api.disconnect()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_execute_query(self) -> None:
         """Test FlextDbOracleApi execute_query functionality."""
@@ -745,8 +745,8 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: FlextResult[list[m.Dict]] = api.query(str(test_query["query"]))
-            assert isinstance(result, FlextResult)
+            result: r[list[m.Dict]] = api.query(str(test_query["query"]))
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
         """Test FlextDbOracleApi execute_update functionality."""
@@ -761,11 +761,11 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "execute_sql"):
-            result: FlextResult[int] = api.execute_sql(
+            result: r[int] = api.execute_sql(
                 str(test_query["query"]),
                 cast("dict[str, t.ContainerValue]", test_query["params"]),
             )
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_get_metadata(self) -> None:
         """Test FlextDbOracleApi get_metadata functionality."""
@@ -781,7 +781,7 @@ class TestApiModule:
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "get_table_metadata"):
             result = api.get_table_metadata(str(test_schema["table_name"]))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_map_singer_schema(self) -> None:
         """Test FlextDbOracleApi map_singer_schema functionality."""
@@ -797,7 +797,7 @@ class TestApiModule:
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "map_singer_schema"):
             result = api.map_singer_schema(dict(test_schema))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_get_table_schema(self) -> None:
         """Test FlextDbOracleApi get_table_schema functionality."""
@@ -811,8 +811,8 @@ class TestApiModule:
         )
         api = FlextDbOracleApi(config=config)
         if hasattr(api, "get_tables"):
-            result: FlextResult[list[str]] = api.get_tables()
-            assert isinstance(result, FlextResult)
+            result: r[list[str]] = api.get_tables()
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
         """Test comprehensive api module scenario."""
@@ -829,19 +829,17 @@ class TestApiModule:
         test_query = self._TestDataHelper.create_test_query_data()
         assert api is not None
         if hasattr(api, "connect"):
-            connect_result: FlextResult[FlextDbOracleApi] = api.connect()
-            assert isinstance(connect_result, FlextResult)
+            connect_result: r[FlextDbOracleApi] = api.connect()
+            assert isinstance(connect_result, r)
         if hasattr(api, "query"):
-            query_result: FlextResult[list[m.Dict]] = api.query(
-                str(test_query["query"])
-            )
-            assert isinstance(query_result, FlextResult)
+            query_result: r[list[m.Dict]] = api.query(str(test_query["query"]))
+            assert isinstance(query_result, r)
         if hasattr(api, "get_tables"):
-            schema_result: FlextResult[list[str]] = api.get_tables()
-            assert isinstance(schema_result, FlextResult)
+            schema_result: r[list[str]] = api.get_tables()
+            assert isinstance(schema_result, r)
         if hasattr(api, "disconnect"):
-            disconnect_result: FlextResult[bool] = api.disconnect()
-            assert isinstance(disconnect_result, FlextResult)
+            disconnect_result: r[bool] = api.disconnect()
+            assert isinstance(disconnect_result, r)
 
     def test_flext_db_oracle_api_error_handling(self) -> None:
         """Test api module error handling patterns."""
@@ -856,14 +854,14 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         invalid_query = "INVALID SQL QUERY"
         if hasattr(api, "connect"):
-            result: FlextResult[FlextDbOracleApi] = api.connect()
-            assert isinstance(result, FlextResult)
+            result: r[FlextDbOracleApi] = api.connect()
+            assert isinstance(result, r)
         if hasattr(api, "query"):
-            query_result: FlextResult[list[m.Dict]] = api.query(invalid_query)
-            assert isinstance(query_result, FlextResult)
+            query_result: r[list[m.Dict]] = api.query(invalid_query)
+            assert isinstance(query_result, r)
         if hasattr(api, "get_table_metadata"):
             metadata_result = api.get_table_metadata("non_existent_table")
-            assert isinstance(metadata_result, FlextResult)
+            assert isinstance(metadata_result, r)
 
     def test_flext_db_oracle_api_with_flext_tests(
         self, flext_domains: FlextTestsDomains
@@ -885,10 +883,10 @@ class TestApiModule:
         test_query["query"] = "SELECT * FROM flext_test_table"
         if hasattr(api, "connect"):
             result = api.connect()
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
         if hasattr(api, "query"):
             result = api.query(str(test_query["query"]))
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
     def test_flext_db_oracle_api_docstring(self) -> None:
         """Test that FlextDbOracleApi has proper docstring."""
@@ -970,14 +968,12 @@ class TestApiModule:
         ]
         if hasattr(api, "connect"):
             for _config_data in realistic_configs:
-                result: FlextResult[FlextDbOracleApi] = api.connect()
-                assert isinstance(result, FlextResult)
+                result: r[FlextDbOracleApi] = api.connect()
+                assert isinstance(result, r)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: FlextResult[list[m.Dict]] = api.query(
-                    str(query_data["query"])
-                )
-                assert isinstance(query_result, FlextResult)
+                query_result: r[list[m.Dict]] = api.query(str(query_data["query"]))
+                assert isinstance(query_result, r)
 
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
         """Test api integration patterns between different components."""
@@ -995,16 +991,16 @@ class TestApiModule:
         test_schema = self._TestDataHelper.create_test_schema_data()
         if hasattr(api, "connect"):
             connect_result = api.connect()
-            assert isinstance(connect_result, FlextResult)
+            assert isinstance(connect_result, r)
         if hasattr(api, "query"):
             query_result = api.query(str(test_query["query"]))
-            assert isinstance(query_result, FlextResult)
+            assert isinstance(query_result, r)
         if hasattr(api, "get_table_metadata"):
             metadata_result = api.get_table_metadata(str(test_schema["table_name"]))
-            assert isinstance(metadata_result, FlextResult)
+            assert isinstance(metadata_result, r)
         if hasattr(api, "disconnect"):
             disconnect_result = api.disconnect()
-            assert isinstance(disconnect_result, FlextResult)
+            assert isinstance(disconnect_result, r)
 
     def test_flext_db_oracle_api_performance_patterns(self) -> None:
         """Test api performance patterns."""
@@ -1022,8 +1018,8 @@ class TestApiModule:
         if hasattr(api, "connect"):
             for i in range(10):
                 config_data = {**test_config, "host": f"host_{i}"}
-                result: FlextResult[FlextDbOracleApi] = api.connect()
-                assert isinstance(result, FlextResult)
+                result: r[FlextDbOracleApi] = api.connect()
+                assert isinstance(result, r)
         end_time = time.time()
         assert end_time - start_time < 2.0
 
@@ -1042,13 +1038,13 @@ class TestApiModule:
 
         def connect_to_database(_index: int) -> None:
             if hasattr(api, "connect"):
-                result: FlextResult[FlextDbOracleApi] = api.connect()
+                result: r[FlextDbOracleApi] = api.connect()
                 results.append(result)
 
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                result: FlextResult[list[m.Dict]] = api.query(sql)
+                result: r[list[m.Dict]] = api.query(sql)
                 results.append(result)
 
         threads: list[Thread] = []
@@ -1062,7 +1058,7 @@ class TestApiModule:
         for thread in threads:
             thread.join()
         for result in results:
-            assert isinstance(result, FlextResult)
+            assert isinstance(result, r)
 
 
 "Tests for FlextDbOracleApi methods that work without Oracle connection.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -1768,7 +1764,7 @@ class TestDirectCoverageBoostServices:
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
         configs = [
-            FlextResult.ok(
+            r.ok(
                 FlextDbOracleSettings(
                     host="test_host",
                     port=1521,
@@ -1778,7 +1774,7 @@ class TestDirectCoverageBoostServices:
                     ssl_server_cert_dn=None,
                 )
             ),
-            FlextResult.ok(
+            r.ok(
                 FlextDbOracleSettings(
                     host="localhost",
                     port=1,

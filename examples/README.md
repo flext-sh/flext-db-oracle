@@ -46,7 +46,7 @@ Demonstrates comprehensive Oracle database operations including:
 
 **Key Features:**
 
-- Enterprise-grade error handling with FlextResult patterns
+- Enterprise-grade error handling with r patterns
 - Performance monitoring and metrics collection
 - Plugin system demonstration with real Oracle operations
 - Configuration validation and multi-environment support
@@ -174,7 +174,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t
@@ -410,7 +410,7 @@ def setup_ha_environment():
 
 1. **Follow naming convention**: `##_descriptive_name.py`
 1. **Include comprehensive docstrings**: Explain purpose and key concepts
-1. **Handle errors gracefully**: Use FlextResult patterns throughout
+1. **Handle errors gracefully**: Use r patterns throughout
 1. **Demonstrate best practices**: Show production patterns
 1. **Include cleanup code**: Proper resource management
 
@@ -451,7 +451,7 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import FlextResult
+from flext_core import r
 from flext_core import FlextRuntime
 from flext_core import FlextService
 from flext_core import t

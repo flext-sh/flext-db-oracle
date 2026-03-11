@@ -10,7 +10,7 @@
   - [SimpleNamespace placeholders](#simplenamespace-placeholders)
 - [Installation Issues](#installation-issues)
   - ["No module named 'oracledb'"](#no-module-named-oracledb)
-  - ["ImportError: FlextResult"](#importerror-flextresult)
+  - ["ImportError: r"](#importerror-flextresult)
 - [Performance Issues](#performance-issues)
   - [Slow queries](#slow-queries)
 - [Missing Features](#missing-features)
@@ -72,7 +72,7 @@ Install dependencies:
 poetry install
 ```
 
-### "ImportError: FlextResult"
+### "ImportError: r"
 
 Ensure flext-core is installed:
 
