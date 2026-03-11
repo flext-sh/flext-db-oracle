@@ -751,7 +751,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars = {}
+        original_vars: dict[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",

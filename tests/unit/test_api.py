@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from threading import Thread
 from typing import cast
 
 import pytest
@@ -1050,7 +1051,7 @@ class TestApiModule:
                 result: FlextResult[list[m.Dict]] = api.query(sql)
                 results.append(result)
 
-        threads = []
+        threads: list[Thread] = []
         for i in range(5):
             thread = threading.Thread(target=connect_to_database, args=(i,))
             threads.append(thread)
@@ -1543,7 +1544,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars = {}
+        original_vars: dict[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",
