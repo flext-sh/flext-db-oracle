@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal, TypeAlias
+from typing import Literal
 
 from flext_core import FlextTypes, m as _core_m
 
@@ -25,7 +25,6 @@ _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
 _ConfigMap = _core_m.ConfigMap
-object: TypeAlias = _core_object
 
 
 class FlextDbOracleTypes(FlextTypes):

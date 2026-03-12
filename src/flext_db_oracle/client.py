@@ -26,16 +26,16 @@ from flext_db_oracle.typings import t
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_JSON_VALUE_ADAPTER: TypeAdapter[_core_object] = TypeAdapter(_core_object)
-_GENERAL_LIST_ADAPTER: TypeAdapter[list[object]] = TypeAdapter(list[object])
+_JSON_VALUE_ADAPTER: TypeAdapter[t.Container] = TypeAdapter(t.Container)
+_GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Container])
 
 
-def _validate_json_value(value: object) -> object | None:
+def _validate_json_value(value: t.Container) -> t.Container | None:
     """Validate JSON-compatible value with Pydantic."""
     return _JSON_VALUE_ADAPTER.validate_python(value)
 
 
-def _validate_config_map(value: object) -> m.ConfigMap | None:
+def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
     """Validate generic mapping payload with Pydantic."""
     return m.ConfigMap.model_validate(value)
 
