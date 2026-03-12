@@ -17,7 +17,7 @@ from collections.abc import Mapping, Sequence
 from typing import Self, override
 
 import oracledb
-from flext_core import FlextService, r, t, u
+from flext_core import FlextService, r, u
 from pydantic import BaseModel
 
 from flext_db_oracle.constants import c

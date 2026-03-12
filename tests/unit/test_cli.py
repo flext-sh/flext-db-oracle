@@ -24,7 +24,6 @@ from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
-    t,
 )
 from flext_db_oracle.cli import HealthCheckReport, NamedItem
 
@@ -492,9 +491,7 @@ class TestCliServiceOperations:
         """Test health check with connection validation failure."""
         cli_service = FlextDbOracleCli()
         with patch.object(FlextDbOracleApi, "get_health_status") as mock_health:
-            mock_health.return_value = r[object].fail(
-                "Database unreachable"
-            )
+            mock_health.return_value = r[object].fail("Database unreachable")
             result = cli_service.execute_health_check(
                 host="unreachable-host",
                 port=1521,
