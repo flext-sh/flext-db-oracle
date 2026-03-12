@@ -275,9 +275,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
-            return r.fail(url_result.error or "Failed to build connection URL").map(
-                lambda _unused: self
-            )
+            return r[Self].fail(url_result.error or "Failed to build connection URL")
         self._engine = _sqlalchemy_create_engine(url_result.value)
         try:
             connect_ctx = _engine_connect(self._engine)
@@ -287,7 +285,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 _context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
-            return r.ok(self)
+            return r[Self].ok(self)
         except (
             OracleDatabaseError,
             OracleInterfaceError,
@@ -319,7 +317,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self.logger.info(
                             f"Connected to Oracle database: {self._db_config.host}"
                         )
-                        return r.ok(self)
+                        return r[Self].ok(self)
                     except (
                         OracleDatabaseError,
                         OracleInterfaceError,
@@ -332,7 +330,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r.fail(f"Connection failed: {e}").map(lambda _unused: self)
+            return r[Self].fail(f"Connection failed: {e}")
 
     def convert_singer_type(
         self, singer_type: str | list[str] = "string", _format_hint: str | None = None
@@ -613,7 +611,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
 
     def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
         """Get tracked operations."""
-        return r.ok(self._operations.copy())
+        return r[list[FlextDbOracleModels.DbOracle.OperationRecord]].ok(
+            self._operations.copy()
+        )
 
     def get_plugin(self, _name: str) -> r[t.ContainerValue]:
         """Get plugin data from local service registry."""
