@@ -40,7 +40,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         """
 
         class Collection(core_u.Collection):
-            """Collection utilities extending u.Collection via inheritance.
+            """Collection utilities extending u via inheritance.
 
             Exposes all flext-core Collection methods through inheritance hierarchy.
             Access via u.Oracle.Collection.* pattern.
@@ -55,7 +55,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             """
 
         class Model(core_u.Model):
-            """Model utilities extending u.Model via inheritance.
+            """Model utilities extending u via inheritance.
 
             Exposes all flext-core Model methods through inheritance hierarchy.
             Access via u.Oracle.Model.* pattern.
