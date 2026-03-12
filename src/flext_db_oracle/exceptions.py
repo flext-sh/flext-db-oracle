@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_core import FlextExceptions, t
+from flext_core import FlextExceptions
 
 
 class FlextDbOracleExceptions(FlextExceptions):
@@ -94,7 +94,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             sql_text: str | None = None,
-            bind_variables: Mapping[str, t.JsonValue] | None = None,
+            bind_variables: Mapping[str, object] | None = None,
             **_kwargs: object,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""

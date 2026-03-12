@@ -492,7 +492,7 @@ class TestCliServiceOperations:
         """Test health check with connection validation failure."""
         cli_service = FlextDbOracleCli()
         with patch.object(FlextDbOracleApi, "get_health_status") as mock_health:
-            mock_health.return_value = r[t.ConfigurationMapping].fail(
+            mock_health.return_value = r[object].fail(
                 "Database unreachable"
             )
             result = cli_service.execute_health_check(
@@ -635,7 +635,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = r[list[t.ConfigurationMapping]].ok(mock_result)
+            mock_query.return_value = r[list[object]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,

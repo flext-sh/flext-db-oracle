@@ -15,7 +15,7 @@ from collections.abc import Callable
 from typing import override
 
 import oracledb
-from flext_core import FlextService, r, t as _core_t, u
+from flext_core import FlextService, r, u
 from pydantic import TypeAdapter
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -26,11 +26,11 @@ from flext_db_oracle.typings import t
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_JSON_VALUE_ADAPTER: TypeAdapter[_core_t.JsonValue] = TypeAdapter(_core_t.JsonValue)
+_JSON_VALUE_ADAPTER: TypeAdapter[_core_object] = TypeAdapter(_core_object)
 _GENERAL_LIST_ADAPTER: TypeAdapter[list[object]] = TypeAdapter(list[object])
 
 
-def _validate_json_value(value: object) -> t.JsonValue | None:
+def _validate_json_value(value: object) -> object | None:
     """Validate JSON-compatible value with Pydantic."""
     return _JSON_VALUE_ADAPTER.validate_python(value)
 
@@ -45,12 +45,12 @@ def _validate_general_list(value: object) -> list[object] | None:
     return _GENERAL_LIST_ADAPTER.validate_python(value)
 
 
-def _collect_json_params(value: object) -> t.JsonDict:
+def _collect_json_params(value: object) -> object:
     """Collect JSON-safe parameters from dynamic input."""
     validated_params = _validate_config_map(value)
     if validated_params is None:
-        return dict[str, t.JsonValue]()
-    json_params: dict[str, t.JsonValue] = {}
+        return dict[str, object]()
+    json_params: dict[str, object] = {}
     for key, raw_value in validated_params.items():
         json_value = _validate_json_value(raw_value)
         if json_value is not None:
@@ -456,7 +456,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """Get formatter strategy for output format.
 
         Returns:
-        r[t.JsonValue]: Formatter strategy or error.
+        r[object]: Formatter strategy or error.
 
         """
         try:

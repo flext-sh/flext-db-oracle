@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
+from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -47,7 +47,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, t.JsonValue] | None,
+            Mapping[str, object] | None,
         ],
     ]:
         """Create connection-related handler functions."""
@@ -88,7 +88,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             type,
             tuple[
                 Callable[[object], object],
-                Mapping[str, t.JsonValue] | None,
+                Mapping[str, object] | None,
             ],
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
@@ -105,7 +105,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, t.JsonValue] | None,
+            Mapping[str, object] | None,
         ],
     ]:
         """Create query-related handler functions."""
@@ -170,7 +170,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, t.JsonValue] | None,
+            Mapping[str, object] | None,
         ],
     ]:
         """Create schema/metadata handler functions."""

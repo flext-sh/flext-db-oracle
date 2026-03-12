@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Literal, TypeAlias
 
-from flext_core import FlextTypes, m as _core_m, t as _core_t
+from flext_core import FlextTypes, m as _core_m
 
 from flext_db_oracle.models import FlextDbOracleModels
 
@@ -25,7 +25,7 @@ _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
 _ConfigMap = _core_m.ConfigMap
-JsonValue: TypeAlias = _core_t.JsonValue
+object: TypeAlias = _core_object
 
 
 class FlextDbOracleTypes(FlextTypes):
@@ -46,8 +46,8 @@ class FlextDbOracleTypes(FlextTypes):
         type ConnectionPool = _ConfigMap
         type ConnectionString = str
         type ConnectionParams = dict[str, str | int | bool]
-        type SslConfiguration = dict[str, str | bool | dict[str, JsonValue]]
-        type AuthenticationConfig = dict[str, str | dict[str, JsonValue]]
+        type SslConfiguration = dict[str, str | bool | dict[str, object]]
+        type AuthenticationConfig = dict[str, str | dict[str, object]]
 
     class Query:
         """Oracle query complex types.
@@ -58,9 +58,9 @@ class FlextDbOracleTypes(FlextTypes):
         type SqlQuery = str
         type QueryParameters = _ConfigMap
         type QueryResult = _QueryResult
-        type QueryMetadata = dict[str, str | int | dict[str, JsonValue]]
-        type PreparedStatement = dict[str, str | dict[str, JsonValue]]
-        type QueryExecution = dict[str, str | int | bool | dict[str, JsonValue]]
+        type QueryMetadata = dict[str, str | int | dict[str, object]]
+        type PreparedStatement = dict[str, str | dict[str, object]]
+        type QueryExecution = dict[str, str | int | bool | dict[str, object]]
 
     class Transaction:
         """Oracle transaction complex types.
@@ -69,9 +69,9 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         type TransactionConfiguration = dict[str, str | int | bool]
-        type TransactionState = dict[str, str | bool | dict[str, JsonValue]]
+        type TransactionState = dict[str, str | bool | dict[str, object]]
         type IsolationLevel = str
-        type TransactionBlock = list[dict[str, str | dict[str, JsonValue]]]
+        type TransactionBlock = list[dict[str, str | dict[str, object]]]
         type SavepointConfig = dict[str, str | int]
         type RollbackConfig = dict[str, str | bool | list[str]]
 
@@ -83,10 +83,10 @@ class FlextDbOracleTypes(FlextTypes):
 
         type SchemaDefinition = _TableMetadata
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
-        type ColumnDefinition = dict[str, str | int | bool | dict[str, JsonValue]]
-        type IndexDefinition = dict[str, str | list[str] | dict[str, JsonValue]]
+        type ColumnDefinition = dict[str, str | int | bool | dict[str, object]]
+        type IndexDefinition = dict[str, str | list[str] | dict[str, object]]
         type ConstraintDefinition = dict[str, str | list[str] | bool]
-        type ViewDefinition = dict[str, str | dict[str, JsonValue]]
+        type ViewDefinition = dict[str, str | dict[str, object]]
 
     class Session:
         """Oracle session complex types.
@@ -94,11 +94,11 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SessionConfiguration = dict[str, str | int | bool | dict[str, JsonValue]]
-        type SessionState = dict[str, JsonValue | dict[str, JsonValue]]
-        type SessionVariables = dict[str, JsonValue]
+        type SessionConfiguration = dict[str, str | int | bool | dict[str, object]]
+        type SessionState = dict[str, object | dict[str, object]]
+        type SessionVariables = dict[str, object]
         type SessionMetrics = dict[str, int | float | str]
-        type SessionPooling = dict[str, int | bool | str | dict[str, JsonValue]]
+        type SessionPooling = dict[str, int | bool | str | dict[str, object]]
         type SessionTimeout = dict[str, int | str]
 
     class Performance:
@@ -107,10 +107,10 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type PerformanceMetrics = dict[str, int | float | dict[str, JsonValue]]
-        type QueryPlan = dict[str, str | int | list[dict[str, JsonValue]]]
-        type ExecutionStats = dict[str, int | float | str | dict[str, JsonValue]]
-        type IndexUsage = dict[str, str | int | bool | dict[str, JsonValue]]
+        type PerformanceMetrics = dict[str, int | float | dict[str, object]]
+        type QueryPlan = dict[str, str | int | list[dict[str, object]]]
+        type ExecutionStats = dict[str, int | float | str | dict[str, object]]
+        type IndexUsage = dict[str, str | int | bool | dict[str, object]]
         type CacheConfiguration = dict[str, int | str | bool]
         type OptimizationHints = dict[str, str | list[str]]
 
@@ -121,11 +121,11 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         type UserPermissions = dict[str, list[str] | dict[str, bool]]
-        type RoleDefinition = dict[str, str | list[str] | dict[str, JsonValue]]
-        type PrivilegeConfiguration = dict[str, bool | list[str] | dict[str, JsonValue]]
-        type AccessPolicy = dict[str, str | bool | dict[str, JsonValue]]
-        type EncryptionConfig = dict[str, str | bool | dict[str, JsonValue]]
-        type AuditConfiguration = dict[str, bool | str | dict[str, JsonValue]]
+        type RoleDefinition = dict[str, str | list[str] | dict[str, object]]
+        type PrivilegeConfiguration = dict[str, bool | list[str] | dict[str, object]]
+        type AccessPolicy = dict[str, str | bool | dict[str, object]]
+        type EncryptionConfig = dict[str, str | bool | dict[str, object]]
+        type AuditConfiguration = dict[str, bool | str | dict[str, object]]
 
     class DataTypes:
         """Oracle data type complex mappings.
@@ -136,9 +136,9 @@ class FlextDbOracleTypes(FlextTypes):
         type OracleDataType = str
         type PythonDataType = type[object]
         type TypeMapping = _TypeMapping
-        type DataConversion = dict[str, JsonValue | object]
+        type DataConversion = dict[str, object]
         type TypeValidation = dict[str, bool | str | list[str]]
-        type NullHandling = dict[str, bool | JsonValue]
+        type NullHandling = dict[str, bool | object]
 
     class Project:
         """Oracle database-specific project types.
@@ -165,10 +165,10 @@ class FlextDbOracleTypes(FlextTypes):
             "sql-service",
             "data-connector",
         ]
-        type OracleProjectConfig = dict[str, JsonValue]
+        type OracleProjectConfig = dict[str, object]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
-        type SchemaConfig = dict[str, bool | str | dict[str, JsonValue]]
-        type ConnectionConfig = dict[str, JsonValue]
+        type SchemaConfig = dict[str, bool | str | dict[str, object]]
+        type ConnectionConfig = dict[str, object]
 
     type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
     "Oracle connection type literal - references ConnectionType StrEnum members."

@@ -53,7 +53,7 @@ class HealthCheckReport(BaseModel):
     port: int = Field(default=0)
     service_name: str = Field(default="")
     response_time_ms: float = Field(default=0.0)
-    details: dict[str, t.JsonValue] = Field(default_factory=dict)
+    details: dict[str, object] = Field(default_factory=dict)
     error: str | None = Field(default=None)
     timestamp: str = Field(default="")
 

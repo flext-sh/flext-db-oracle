@@ -663,7 +663,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[t.ConfigurationMapping]]:
+        def create_test_schema_data() -> dict[str, str | list[object]]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",

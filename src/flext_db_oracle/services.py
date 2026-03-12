@@ -188,7 +188,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._plugins: dict[str, object] = {}
         self._metrics: dict[str, object] = {}
 
-    def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
+    def build_create_index_statement(self, _config: object) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
@@ -238,7 +238,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: list[str] | None = None,
-        conditions: m.ConfigMap | t.ConfigurationMapping | None = None,
+        conditions: m.ConfigMap | object | None = None,
         schema_name: str | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
@@ -352,7 +352,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[FlextDbOracleModels.DbOracle.Column | t.ConfigurationMapping],
+        columns: Sequence[FlextDbOracleModels.DbOracle.Column | object],
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
@@ -401,7 +401,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         return r[str].ok(ddl)
 
     @override
-    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
@@ -519,7 +519,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         )
 
     def generate_query_hash(
-        self, sql: str = "", params: m.ConfigMap | t.ConfigurationMapping | None = None
+        self, sql: str = "", params: m.ConfigMap | object | None = None
     ) -> r[str]:
         """Generate query hash - simplified."""
         typed_params = (
@@ -784,7 +784,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def map_singer_schema(
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
-        | t.ConfigurationMapping
+        | object
         | Mapping[str, object],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
@@ -842,7 +842,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         _name: str,
         _value: float,
-        _tags: m.ConfigMap | t.ConfigurationMapping | None = None,
+        _tags: m.ConfigMap | object | None = None,
     ) -> r[bool]:
         """Record metric through flext-observability when available."""
         if not _name:
@@ -862,7 +862,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             else m.ConfigMap.model_validate(_tags)
         )
         tags_payload = (
-            typed_tags.root if typed_tags is not None else dict[str, t.JsonValue]()
+            typed_tags.root if typed_tags is not None else dict[str, object]()
         )
         metric_result = metric_factory(
             name=_name, value=_value, tags=m.Dict.model_validate(tags_payload)
@@ -880,7 +880,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         }
         return r[bool].ok(True)
 
-    def register_plugin(self, _name: str, _plugin: t.JsonValue) -> r[bool]:
+    def register_plugin(self, _name: str, _plugin: object) -> r[bool]:
         """Register plugin via flext-plugin when available."""
         if not _name:
             return r[bool].fail("Plugin name is required")
@@ -929,7 +929,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: m.ConfigMap | t.ConfigurationMapping | None = None,
+        metadata: m.ConfigMap | object | None = None,
     ) -> r[bool]:
         """Track database operation for monitoring."""
 

@@ -12,7 +12,6 @@ from typing import Protocol, runtime_checkable
 from flext_core import FlextProtocols, r
 
 from flext_db_oracle.models import m
-from flext_db_oracle.typings import t
 
 
 class FlextDbOracleProtocols(FlextProtocols):
@@ -79,11 +78,11 @@ class FlextDbOracleProtocols(FlextProtocols):
             must satisfy this protocol.
             """
 
-            def get_connection(self) -> r[t.JsonValue]:
+            def get_connection(self) -> r[object]:
                 """Get current Oracle connection object.
 
                 Returns:
-                r[t.JsonValue]: Connection object or error
+                r[object]: Connection object or error
 
                 """
                 ...
@@ -110,7 +109,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_many(
-                self, sql: str, params_list: list[Mapping[str, t.JsonValue]]
+                self, sql: str, params_list: list[Mapping[str, object]]
             ) -> r[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -125,8 +124,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_query(
-                self, sql: str, params: Mapping[str, t.JsonValue] | None = None
-            ) -> r[t.JsonValue]:
+                self, sql: str, params: Mapping[str, object] | None = None
+            ) -> r[object]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -134,13 +133,13 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[t.JsonValue]: Query result or error
+                r[object]: Query result or error
 
                 """
                 ...
 
             def execute_statement(
-                self, sql: str, params: Mapping[str, t.JsonValue] | None = None
+                self, sql: str, params: Mapping[str, object] | None = None
             ) -> r[bool]:
                 """Execute Oracle SQL statement.
 
@@ -155,8 +154,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: Mapping[str, t.JsonValue] | None = None
-            ) -> r[t.JsonValue | None]:
+                self, sql: str, params: Mapping[str, object] | None = None
+            ) -> r[object | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -164,7 +163,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[t.JsonValue | None]: Single result or None
+                r[object | None]: Single result or None
 
                 """
                 ...
@@ -183,7 +182,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[dict[str, t.JsonValue]]]: Column metadata or error
+                r[list[dict[str, object]]]: Column metadata or error
 
                 """
                 ...
@@ -222,7 +221,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[dict[str, t.JsonValue]]: Table metadata or error
+                r[dict[str, object]]: Table metadata or error
 
                 """
                 ...
@@ -257,8 +256,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: Mapping[str, t.JsonValue]
-            ) -> r[tuple[str, Mapping[str, t.JsonValue]]]:
+                self, table: str, data: Mapping[str, object]
+            ) -> r[tuple[str, Mapping[str, object]]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -266,7 +265,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 data: Column data
 
                 Returns:
-                r[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
+                r[tuple[str, dict[str, object]]]: SQL and parameters or error
 
                 """
                 ...
@@ -295,8 +294,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_update_statement(
-                self, table: str, data: Mapping[str, t.JsonValue], where_clause: str
-            ) -> r[tuple[str, Mapping[str, t.JsonValue]]]:
+                self, table: str, data: Mapping[str, object], where_clause: str
+            ) -> r[tuple[str, Mapping[str, object]]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -305,7 +304,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 where_clause: WHERE condition
 
                 Returns:
-                r[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
+                r[tuple[str, dict[str, object]]]: SQL and parameters or error
 
                 """
                 ...
@@ -376,7 +375,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get collected Oracle metrics.
 
                 Returns:
-                r[dict[str, t.JsonValue]]: Metrics data or error
+                r[dict[str, object]]: Metrics data or error
 
                 """
                 ...
@@ -417,14 +416,14 @@ class FlextDbOracleProtocols(FlextProtocols):
         class PluginRegistryProtocol(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def get_plugin(self, name: str) -> r[t.JsonValue]:
+            def get_plugin(self, name: str) -> r[object]:
                 """Get Oracle database plugin by name.
 
                 Args:
                 name: Plugin name
 
                 Returns:
-                r[t.JsonValue]: Plugin instance or error
+                r[object]: Plugin instance or error
 
                 """
                 ...
@@ -438,7 +437,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def register_plugin(self, name: str, _plugin: t.JsonValue) -> r[bool]:
+            def register_plugin(self, name: str, _plugin: object) -> r[bool]:
                 """Register Oracle database plugin.
 
                 Args:
@@ -471,7 +470,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle connection status information.
 
                 Returns:
-                r[dict[str, t.JsonValue]]: Connection status or error
+                r[dict[str, object]]: Connection status or error
 
                 """
                 ...
@@ -480,7 +479,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Perform Oracle database health check.
 
                 Returns:
-                r[dict[str, t.JsonValue]]: Health status or error
+                r[dict[str, object]]: Health status or error
 
                 """
                 ...

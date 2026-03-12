@@ -230,7 +230,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services.disconnect()
 
     @override
-    def execute(self, **_kwargs: t.JsonValue) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}"
@@ -260,7 +260,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def execute_statement(
         self,
-        sql: str | t.JsonValue,
+        sql: str | object,
         parameters: Mapping[str, object] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
@@ -285,7 +285,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get database connection health status."""
         return self._services.get_connection_status()
 
-    def get_observability_metrics(self) -> r[Mapping[str, t.JsonValue]]:
+    def get_observability_metrics(self) -> r[Mapping[str, object]]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
@@ -337,7 +337,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """List all registered plugin names."""
         return r[list[str]].ok(list(self._plugins.keys()))
 
-    def map_singer_schema(self, schema: t.ConfigurationMapping) -> r[Mapping[str, str]]:
+    def map_singer_schema(self, schema: object) -> r[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
         return self._services.map_singer_schema(schema).map(lambda value: value.mapping)
 
@@ -407,18 +407,16 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return m.ConfigMap(root=payload)
         return super().to_dict(obj)
 
-    def transaction(self) -> r[Mapping[str, t.JsonValue]]:
+    def transaction(self) -> r[Mapping[str, object]]:
         """Get transaction status information."""
         try:
-            status: dict[str, t.JsonValue] = {
+            status: dict[str, object] = {
                 "connected": self._services.is_connected(),
                 "transaction_available": True,
             }
-            return r[Mapping[str, t.JsonValue]].ok(status)
+            return r[Mapping[str, object]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
-            return r[Mapping[str, t.JsonValue]].fail(
-                f"Transaction status check failed: {e}"
-            )
+            return r[Mapping[str, object]].fail(f"Transaction status check failed: {e}")
 
     def unregister_plugin(self, name: str) -> r[bool]:
         """Unregister a plugin from local API registry."""
