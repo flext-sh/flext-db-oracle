@@ -111,7 +111,7 @@ class FlextDbOracleSettings(FlextSettings):
 
     @field_validator("password", mode="before")
     @classmethod
-    def _parse_password(cls, value: t.ContainerValue | None) -> OraclePassword | None:
+    def _parse_password(cls, value: object | None) -> OraclePassword | None:
         if value is None:
             return None
         text = str(value)

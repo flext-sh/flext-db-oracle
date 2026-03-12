@@ -76,7 +76,7 @@ class TestFlextDbOracleClientReal:
             invalid_key="value", another_invalid="test"
         )
         assert result.is_success is True
-        original_dict: dict[str, t.ContainerValue] = (
+        original_dict: dict[str, object] = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
             else dict(original_prefs)
@@ -399,7 +399,7 @@ class TestOutputFormatter:
         assert "item2" in output
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with dict[str, t.ContainerValue] items."""
+        """Test list output formatting with dict[str, object] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: list[NamedItem] = [
             NamedItem.model_validate({"name": "table1", "type": "TABLE"}),
@@ -625,7 +625,7 @@ class TestCliServiceOperations:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: list[dict[str, t.ContainerValue]] = [
+        mock_result: list[dict[str, object]] = [
             {"id": 1, "name": "test"},
             {"id": 2, "name": "test2"},
         ]

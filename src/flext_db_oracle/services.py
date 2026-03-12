@@ -32,10 +32,10 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class _ObjectRows(RootModel[list[t.ContainerValue]]):
+class _ObjectRows(RootModel[list[object]]):
     """Pydantic root model for generic list payloads."""
 
-    root: list[t.ContainerValue]
+    root: list[object]
 
 
 class _StrictIntValue(RootModel[int]):
@@ -97,7 +97,7 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: object) -> list[t.ContainerValue]:
+def _extract_object_rows(value: object) -> list[object]:
     """Extract list payload using Pydantic validation."""
     return _ObjectRows.model_validate(value).root
 
@@ -185,8 +185,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._config = config
         self._engine: object | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
-        self._plugins: dict[str, t.ContainerValue] = {}
-        self._metrics: dict[str, t.ContainerValue] = {}
+        self._plugins: dict[str, object] = {}
+        self._metrics: dict[str, object] = {}
 
     def build_create_index_statement(self, _config: t.JsonValue) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
@@ -413,7 +413,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[Mapping[str, t.ContainerValue] | m.ConfigMap],
+        params_list: Sequence[Mapping[str, object] | m.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
         if not self.is_connected():
@@ -615,19 +615,19 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self._operations.copy()
         )
 
-    def get_plugin(self, _name: str) -> r[t.ContainerValue]:
+    def get_plugin(self, _name: str) -> r[object]:
         """Get plugin data from local service registry."""
         if not _name:
-            return r[t.ContainerValue].fail("Plugin name is required")
+            return r[object].fail("Plugin name is required")
         try:
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
-            return r[t.ContainerValue].fail(
+            return r[object].fail(
                 "flext-plugin integration unavailable; install flext-plugin"
             )
         if _name not in self._plugins:
-            return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
-        return r[t.ContainerValue].ok(self._plugins[_name])
+            return r[object].fail(f"Plugin '{_name}' not found")
+        return r[object].ok(self._plugins[_name])
 
     def get_primary_key_columns(
         self, table_name: str, schema_name: str | None = None
@@ -785,10 +785,10 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
         | t.ConfigurationMapping
-        | Mapping[str, t.ContainerValue],
+        | Mapping[str, object],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: t.ContainerValue | None = None
+        raw_properties: object | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
@@ -1010,7 +1010,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
-    def _extract_mapping_rows(self, mapping_result: object) -> list[t.ContainerValue]:
+    def _extract_mapping_rows(self, mapping_result: object) -> list[object]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
@@ -1039,9 +1039,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             for row in self._extract_mapping_rows(mapping_result)
         ]
 
-    def _normalize_row(
-        self, row: Mapping[str, t.ContainerValue] | t.ContainerValue
-    ) -> m.Dict:
+    def _normalize_row(self, row: Mapping[str, object] | object) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         if isinstance(row, Mapping):
             validated_mapping = _validate_config_map(row)

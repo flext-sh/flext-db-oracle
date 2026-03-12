@@ -23,7 +23,6 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
     m,
-    t,
 )
 
 
@@ -46,7 +45,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: dict[str, t.ContainerValue],
+        metadata: dict[str, object],
     ) -> None:
         self.name = name
         self.plugin_version = plugin_version
@@ -64,7 +63,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: dict[str, t.ContainerValue],
+        metadata: dict[str, object],
     ) -> _StubPluginEntity:
         return cls(
             name=name,
@@ -166,7 +165,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.ContainerValue] = {"id": 1, "name": "test"}
+        conditions: dict[str, object] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -182,7 +181,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.ContainerValue] = {"id": 1, "status": "active"}
+        conditions: dict[str, object] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -222,7 +221,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: dict[str, t.ContainerValue] = {
+        singer_schema: dict[str, object] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -248,7 +247,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: list[dict[str, t.ContainerValue]] = [
+        columns: list[dict[str, object]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -441,7 +440,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, t.ContainerValue] = {"id": 123}
+        params: dict[str, object] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         assert hash_result.is_success
         assert isinstance(hash_result.value, str)
@@ -1383,7 +1382,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.ContainerValue] = {"id": 1, "name": "test"}
+        conditions: dict[str, object] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         assert select_result.is_success
         assert "WHERE" in select_result.value
@@ -1399,7 +1398,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.ContainerValue] = {"id": 1, "status": "active"}
+        conditions: dict[str, object] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         assert safe_result.is_success
         sql = safe_result.value
@@ -1439,7 +1438,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: dict[str, t.ContainerValue] = {
+        singer_schema: dict[str, object] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1465,7 +1464,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: list[dict[str, t.ContainerValue]] = [
+        columns: list[dict[str, object]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1658,7 +1657,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, t.ContainerValue] = {"id": 123}
+        params: dict[str, object] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         assert hash_result.is_success
         assert isinstance(hash_result.value, str)
@@ -1714,9 +1713,9 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        invalid_schema: dict[str, t.ContainerValue] = {"properties": "not_a_dict"}
+        invalid_schema: dict[str, object] = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         assert mapping_result.is_failure
-        missing_props_schema: dict[str, t.ContainerValue] = {}
+        missing_props_schema: dict[str, object] = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         assert mapping_result.is_failure or len(mapping_result.value) == 0

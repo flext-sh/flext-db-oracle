@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 
 class OperationTestError(Exception):
@@ -173,7 +173,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: dict[str, t.ContainerValue] = {
+            singer_schema: dict[str, object] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

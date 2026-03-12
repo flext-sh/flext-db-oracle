@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 
-from flext_core import FlextModels, t
+from flext_core import FlextModels
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -25,7 +25,7 @@ from pydantic import (
 from flext_db_oracle.constants import c
 
 
-def _default_parameters_list() -> list[Mapping[str, t.ContainerValue]]:
+def _default_parameters_list() -> list[Mapping[str, object]]:
     return []
 
 
@@ -54,7 +54,7 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: Sequence[t.ContainerValue] = Field(default_factory=list)
+            values: Sequence[object] = Field(default_factory=list)
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -207,13 +207,13 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: Sequence[t.ContainerValue] = Field(default_factory=list)
+            result_data: Sequence[object] = Field(default_factory=list)
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
             columns: list[str] = Field(default_factory=list)
-            rows: Sequence[t.ContainerValue] = Field(default_factory=list)
+            rows: Sequence[object] = Field(default_factory=list)
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
 
@@ -322,9 +322,9 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
+            metrics: Mapping[str, object] = Field(default_factory=dict)
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> object:
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
@@ -341,10 +341,10 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: Sequence[t.ContainerValue] = Field(default_factory=list)
+            columns: Sequence[object] = Field(default_factory=list)
             primary_keys: list[str] = Field(default_factory=list)
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> object:
                 """Get item from table metadata."""
                 return self.model_dump().get(key)
 
@@ -386,7 +386,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             owner: str = ""
-            columns: Sequence[t.ContainerValue] = Field(default_factory=list)
+            columns: Sequence[object] = Field(default_factory=list)
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -403,9 +403,9 @@ class FlextDbOracleModels(FlextModels):
                 description="Default value for the column",
             )
 
-            def __getitem__(self, key: str) -> t.ContainerValue:
+            def __getitem__(self, key: str) -> object:
                 """Get item from column metadata."""
-                key_map: dict[str, t.ContainerValue] = {
+                key_map: dict[str, object] = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -432,7 +432,7 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: Sequence[t.ContainerValue] = Field(default_factory=list)
+            tables: Sequence[object] = Field(default_factory=list)
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
@@ -477,25 +477,25 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute SELECT query."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: dict[str, object] | None = None
 
         class FetchOneCommand(FlextModels.Entity):
             """Command to fetch single row."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: dict[str, object] | None = None
 
         class ExecuteStatementCommand(FlextModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: dict[str, object] | None = None
 
         class ExecuteManyCommand(FlextModels.Entity):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: Sequence[Mapping[str, t.ContainerValue]] = Field(
+            parameters_list: Sequence[Mapping[str, object]] = Field(
                 default_factory=_default_parameters_list
             )
 

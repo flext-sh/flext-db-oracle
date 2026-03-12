@@ -91,7 +91,7 @@ class TestFlextDbOracleApiRealFunctionality:
         assert "plugin_count" in result
         config_obj = result["config"]
         assert isinstance(config_obj, dict), "config should be a dict"
-        config_dict: dict[str, t.ContainerValue] = config_obj
+        config_dict: dict[str, object] = config_obj
         assert config_dict["host"] == "test_host"
         assert config_dict["port"] == 1521
         assert config_dict["service_name"] == "TEST"
@@ -445,7 +445,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: dict[str, t.ContainerValue] = {
+        test_schema: dict[str, object] = {
             "type": "object",
             "properties": {
                 "id": {"type": "integer"},
@@ -643,7 +643,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, t.ContainerValue]:
+        def create_test_oracle_config() -> dict[str, object]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -763,7 +763,7 @@ class TestApiModule:
         if hasattr(api, "execute_sql"):
             result: r[int] = api.execute_sql(
                 str(test_query["query"]),
-                cast("dict[str, t.ContainerValue]", test_query["params"]),
+                cast("dict[str, object]", test_query["params"]),
             )
             assert isinstance(result, r)
 
@@ -1150,7 +1150,7 @@ class TestFlextDbOracleApiSafeMethods:
                 "empty" in plugins_result.error.lower()
                 or "not found" in plugins_result.error.lower()
             )
-        plugin: dict[str, t.ContainerValue] = {
+        plugin: dict[str, object] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1250,7 +1250,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)
-        plugin: dict[str, t.ContainerValue] = {
+        plugin: dict[str, object] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1438,7 +1438,7 @@ class TestFlextDbOracleApiWorking:
         assert isinstance(api_from_config, FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, t.ContainerValue] serialization methods."""
+        """Test dict[str, object] serialization methods."""
         as_dict = self.api.to_dict()
         assert as_dict is not None
 

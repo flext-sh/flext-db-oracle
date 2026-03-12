@@ -192,7 +192,7 @@ class FlextDbOracleCli(FlextService[str]):
             if output_format == "yaml":
                 match data:
                     case OutputPayload() | HealthCheckReport():
-                        payload: t.ContainerValue = data.model_dump(mode="python")
+                        payload: object = data.model_dump(mode="python")
                     case _:
                         payload = data
                 return r[str].ok(yaml.dump(payload, default_flow_style=False))
