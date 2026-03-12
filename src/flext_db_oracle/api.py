@@ -25,6 +25,7 @@ from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import t
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
@@ -230,7 +231,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services.disconnect()
 
     @override
-    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.Scalar) -> r[FlextDbOracleSettings]:
         """Execute default domain service operation - return config."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}"

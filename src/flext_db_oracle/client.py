@@ -77,7 +77,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         }
     )
 
-    def __init__(self, *, debug: bool = False, **kwargs: object) -> None:
+    def __init__(self, *, debug: bool = False, **kwargs: t.Scalar) -> None:
         """Initialize Oracle CLI client with proper composition."""
         self._oracle_config = FlextDbOracleSettings()
         super().__init__(**kwargs)
@@ -367,7 +367,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[m.ConfigMap].fail(f"Health check failed: {e}")
 
-    def _execute_operation(self, operation: str, **params: object) -> r[m.ConfigMap]:
+    def _execute_operation(self, operation: str, **params: t.Scalar) -> r[m.ConfigMap]:
         """Execute Oracle operation with error handling.
 
         Returns:
@@ -389,7 +389,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[m.ConfigMap].fail(f"Operation failed: {e}")
 
-    def _execute_with_chain(self, operation: str, **params: object) -> r[m.ConfigMap]:
+    def _execute_with_chain(self, operation: str, **params: t.Scalar) -> r[m.ConfigMap]:
         """Execute operation with validation chain.
 
         Returns:
@@ -492,7 +492,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             lambda schemas: m.ConfigMap(root={"schemas": list(schemas)})
         )
 
-    def _handle_list_tables_operation(self, **params: object) -> r[m.ConfigMap]:
+    def _handle_list_tables_operation(self, **params: t.Scalar) -> r[m.ConfigMap]:
         """Handle list tables operation."""
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -501,7 +501,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             lambda tables: m.ConfigMap(root={"tables": list(tables)})
         )
 
-    def _handle_query_operation(self, **params: object) -> r[m.ConfigMap]:
+    def _handle_query_operation(self, **params: t.Scalar) -> r[m.ConfigMap]:
         """Handle query operation."""
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")

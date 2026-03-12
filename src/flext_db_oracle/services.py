@@ -26,6 +26,7 @@ from sqlalchemy.exc import (
 from flext_db_oracle.constants import c
 from flext_db_oracle.models import FlextDbOracleModels, m
 from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import t
 from flext_db_oracle.utilities import u
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
@@ -401,7 +402,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         return r[str].ok(ddl)
 
     @override
-    def execute(self, **_kwargs: object) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.Scalar) -> r[FlextDbOracleSettings]:
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
