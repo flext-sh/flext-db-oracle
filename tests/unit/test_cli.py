@@ -680,7 +680,7 @@ class TestCliServiceOperations:
         assert "SQL query cannot be empty" in str(result.error)
 
 
-class TestYamlModuleProtocol:
+class TestYamlModule:
     """Test YAML module protocol interface."""
 
     def test_yaml_module_protocol_interface(self) -> None:

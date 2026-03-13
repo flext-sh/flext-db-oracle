@@ -351,7 +351,7 @@ def rollback_transaction(self) -> r[bool]
 **Purpose**: Type-safe interfaces without inheritance
 **Features**:
 
-- ConnectionProtocol, QueryProtocol, ResultProtocol
+- Connection, Query, Result
 - Structural subtyping for clean interfaces
 
 #### `typings.py` (Type Aliases)
