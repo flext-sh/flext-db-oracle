@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from collections.abc import Mapping
@@ -21,7 +20,7 @@ import oracledb
 import yaml
 from flext_cli import FlextCliCommands
 from flext_core import FlextService, r, t
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -188,7 +187,8 @@ class FlextDbOracleCli(FlextService[str]):
                     case OutputPayload() | HealthCheckReport():
                         return r[str].ok(data.model_dump_json(indent=2))
                     case _:
-                        return r[str].ok(json.dumps(data, indent=2, default=str))
+                        adapter = TypeAdapter(type(data))
+                        return r[str].ok(adapter.dump_json(data, indent=2).decode())
             if output_format == "yaml":
                 match data:
                     case OutputPayload() | HealthCheckReport():

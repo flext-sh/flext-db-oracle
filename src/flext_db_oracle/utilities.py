@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
 from flext_core import FlextUtilities, r, u as core_u
-from pydantic import BeforeValidator
+from pydantic import BeforeValidator, TypeAdapter
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
@@ -130,11 +129,15 @@ class FlextDbOracleUtilities(FlextUtilities):
         max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         return r[str].ok(identifier[:max_len])
 
+    _QUERY_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+
     @staticmethod
     def format_query_result(result: object, format_type: str = "table") -> r[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
-            return r[str].ok(json.dumps(result, default=str))
+            return r[str].ok(
+                FlextDbOracleUtilities._QUERY_RESULT_ADAPTER.dump_json(result).decode()
+            )
         return r[str].ok(str(result))
 
     @staticmethod
@@ -143,10 +146,17 @@ class FlextDbOracleUtilities(FlextUtilities):
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
+    _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(
+        dict[str, object]
+    )
+
     @staticmethod
     def generate_query_hash(query: str, params: Mapping[str, object] | None) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
-        serialized = json.dumps(params or {}, sort_keys=True, default=str)
+        sorted_params = dict(sorted((params or {}).items()))
+        serialized = FlextDbOracleUtilities._HASH_PARAMS_ADAPTER.dump_json(
+            sorted_params
+        ).decode()
         payload = f"{query}|{serialized}".encode()
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 

@@ -297,17 +297,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         plugin = self._plugins[name]
         if plugin is None:
             return _NullPluginResult()
-
-        def _to_json(value: object) -> object:
-            if isinstance(value, (str, int, float, bool)):
-                return value
-            if isinstance(value, Mapping):
-                return {str(k): _to_json(v) for k, v in value.items()}
-            if isinstance(value, Sequence):
-                return [_to_json(v) for v in value]
-            return str(value)
-
-        return r[object].ok(_to_json(plugin))
+        return r[object].ok(plugin)
 
     def get_primary_keys(self, table: str, schema: str | None = None) -> r[list[str]]:
         """Get primary key column names for specified table."""

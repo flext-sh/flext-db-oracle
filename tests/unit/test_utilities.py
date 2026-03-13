@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-import json
 
 import pytest
+from pydantic import TypeAdapter
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
 from flext_db_oracle.constants import FlextDbOracleConstants
@@ -242,13 +242,15 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
         assert result.is_success
 
+    _JSON_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""
         data = [{"id": 1, "name": "John", "active": True}]
         result = FlextDbOracleUtilities.format_query_result(data, "json")
         assert result.is_success
         formatted = result.value
-        parsed = json.loads(formatted)
+        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
         assert parsed == data
 
     def test_format_query_result_json_empty(self) -> None:
@@ -257,7 +259,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.format_query_result(data, "json")
         assert result.is_success
         formatted = result.value
-        parsed = json.loads(formatted)
+        parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
         assert parsed == []
 
     def test_format_query_result_json_non_serializable(self) -> None:
@@ -295,7 +297,7 @@ class TestFlextDbOracleUtilities:
         assert len(formatted) > 0
 
     def test_format_query_result_none_data(self) -> None:
-        """Test formatting with None data returns success (json.dumps handles None)."""
+        """Test formatting with None data returns success (TypeAdapter handles None)."""
         result = FlextDbOracleUtilities.format_query_result(None, "json")
         assert result.is_success
         assert result.value == "null"

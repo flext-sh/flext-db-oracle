@@ -11,12 +11,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 import os
 from unittest.mock import Mock, patch
 
 import yaml
 from flext_core import r
+from pydantic import TypeAdapter
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -364,6 +364,8 @@ class TestOutputFormatter:
         assert "table2" in output
         assert "table3" in output
 
+    _JSON_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
+
     def test_format_list_output_json_format(self) -> None:
         """Test list output formatting in JSON format."""
         formatter = FlextDbOracleCli._OutputFormatter()
@@ -371,7 +373,7 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Schemas", "json")
         assert result.is_success
         output = result.value
-        data = json.loads(output)
+        data = self._JSON_ADAPTER.validate_json(output)
         assert data["title"] == "Schemas"
         assert data["items"] == ["schema1", "schema2"]
 
@@ -411,14 +413,17 @@ class TestOutputFormatter:
         assert "table1" in output
         assert "table2" in output
 
+    _DATA_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
+
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""
         formatter = FlextDbOracleCli._OutputFormatter()
         data = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         assert result.is_success
-        parsed_data = json.loads(result.value)
-        assert parsed_data == data
+        parsed_data = self._DATA_ADAPTER.validate_json(result.value)
+        assert parsed_data["key"] == "value"
+        assert parsed_data["number"] == 42
 
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""

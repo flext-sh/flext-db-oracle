@@ -212,8 +212,11 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: Formatted query results or error.
 
         """
-        query_params_source = params if params is not None else m.ConfigMap(root={})
-        query_params = _collect_json_params(query_params_source)
+        query_params = (
+            m.ConfigMap.model_validate(params)
+            if params is not None
+            else m.ConfigMap(root={})
+        )
         operation_result = self._execute_with_chain(
             "query", sql=sql, params=query_params
         )
@@ -408,7 +411,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         return u.try_(
-            lambda: json.dumps(data.root, indent=2, default=str),
+            lambda: data.model_dump_json(indent=2),
             catch=(OracleDatabaseError, OracleInterfaceError, ConnectionError),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
@@ -488,8 +491,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         sql = str(params.get("sql", ""))
         if not sql:
             return r[m.ConfigMap].fail("SQL query required")
-        params_dict = _collect_json_params(params.get("params", m.ConfigMap(root={})))
-        return self.current_connection.query(sql, params_dict).map(
+        raw_params = params.get("params", m.ConfigMap(root={}))
+        params_map = (
+            m.ConfigMap.model_validate(raw_params)
+            if raw_params
+            else m.ConfigMap(root={})
+        )
+        return self.current_connection.query(sql, params_map).map(
             lambda rows: m.ConfigMap(
                 root={"rows": [row.root for row in rows], "row_count": len(rows)}
             )
