@@ -120,7 +120,7 @@ class FlextDbOracleCli(FlextService[str]):
                     "Password is required for Oracle connection"
                 )
             try:
-                config = FlextDbOracleSettings.model_validate({
+                config = FlextDbOracleSettings({
                     "host": host,
                     "port": port,
                     "service_name": service_name,
@@ -227,7 +227,7 @@ class FlextDbOracleCli(FlextService[str]):
                         string_items.append(item_text)
                     case _:
                         try:
-                            parsed_item = NamedItem.model_validate(item)
+                            parsed_item = NamedItem(item)
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
@@ -303,7 +303,7 @@ class FlextDbOracleCli(FlextService[str]):
         """
         start_time = time.time()
         try:
-            config = FlextDbOracleSettings.model_validate({
+            config = FlextDbOracleSettings({
                 "host": host,
                 "port": port,
                 "service_name": service_name,
@@ -319,7 +319,7 @@ class FlextDbOracleCli(FlextService[str]):
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-            result = HealthCheckReport.model_validate({
+            result = HealthCheckReport({
                 "status": "healthy",
                 "host": host,
                 "port": port,

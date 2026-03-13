@@ -97,7 +97,7 @@ class TestFlextDbOracleModels:
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True, host="localhost", port=1521
         )
-        validated = status.model_validate(status.model_dump())
+        validated = status(status.model_dump())
         assert validated.is_connected
         with pytest.raises(
             ValueError, match="Connected status requires host information"
@@ -210,7 +210,7 @@ class TestFlextDbOracleModels:
             ],
             execution_time_ms=100,
         )
-        validated = result.model_validate(result.model_dump())
+        validated = result(result.model_dump())
         assert validated.row_count == 2
         with pytest.raises(ValueError, match="Execution time cannot be negative"):
             FlextDbOracleModels.DbOracle.QueryResult(

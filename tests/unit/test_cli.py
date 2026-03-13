@@ -403,8 +403,8 @@ class TestOutputFormatter:
         """Test list output formatting with dict[str, object] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: list[NamedItem] = [
-            NamedItem.model_validate({"name": "table1", "type": "TABLE"}),
-            NamedItem.model_validate({"name": "table2", "type": "VIEW"}),
+            NamedItem({"name": "table1", "type": "TABLE"}),
+            NamedItem({"name": "table2", "type": "VIEW"}),
             NamedItem(name="unnamed"),
         ]
         result = formatter.format_list_output(items, "Database Objects", "table")

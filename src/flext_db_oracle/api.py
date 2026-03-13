@@ -242,9 +242,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        typed_params_list = [
-            m.ConfigMap.model_validate(params) for params in parameters_list
-        ]
+        typed_params_list = [m.ConfigMap(params) for params in parameters_list]
         return self._services.execute_many(sql, typed_params_list)
 
     def execute_sql(
@@ -253,9 +251,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         query_params = (
-            m.ConfigMap.model_validate(parameters)
-            if parameters is not None
-            else m.ConfigMap(root={})
+            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
         )
         return self._services.execute_statement(sql, query_params)
 
@@ -268,7 +264,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             sql_text = str(sql)
             query_params = (
-                m.ConfigMap.model_validate(parameters)
+                m.ConfigMap(parameters)
                 if parameters is not None
                 else m.ConfigMap(root={})
             )
@@ -347,9 +343,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return r[list[m.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
-            m.ConfigMap.model_validate(parameters)
-            if parameters is not None
-            else m.ConfigMap(root={})
+            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
         )
         return self._services.execute_query(sql, query_params)
 
@@ -358,9 +352,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     ) -> r[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
-            m.ConfigMap.model_validate(parameters)
-            if parameters is not None
-            else m.ConfigMap(root={})
+            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
         )
         return self._services.fetch_one(sql, query_params)
 

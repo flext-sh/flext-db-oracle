@@ -57,7 +57,7 @@ _STRING_LIST_ADAPTER = TypeAdapter(list[str])
 def _validate_config_map(value: object) -> m.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
     try:
-        return m.ConfigMap.model_validate(value)
+        return m.ConfigMap(value)
     except ValidationError:
         return None
 
@@ -72,7 +72,7 @@ def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
 def _parse_rowcount(value: object) -> int:
     """Parse strict integer rowcount via Pydantic."""
     try:
-        return _StrictIntValue.model_validate(value).root
+        return _StrictIntValue(value).root
     except ValidationError:
         return 0
 
@@ -80,7 +80,7 @@ def _parse_rowcount(value: object) -> int:
 def _parse_count_value(value: object) -> int:
     """Parse row count value accepting int or numeric string."""
     try:
-        validated = _CountValue.model_validate(value).root
+        validated = _CountValue(value).root
     except ValidationError:
         return 0
     try:
@@ -100,7 +100,7 @@ def _normalize_singer_type(value: str | list[str]) -> str:
 
 def _extract_object_rows(value: object) -> list[object]:
     """Extract list payload using Pydantic validation."""
-    return _ObjectRows.model_validate(value).root
+    return _ObjectRows(value).root
 
 
 def _sqlalchemy_create_engine(url: str) -> object:
@@ -192,9 +192,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def build_create_index_statement(self, _config: object) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
-            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
-                _config
-            )
+            config = FlextDbOracleModels.DbOracle.CreateIndexConfig(_config)
             if not config.columns:
                 return r[str].fail("Index definition requires at least one column")
             schema_prefix = f"{config.schema_name}." if config.schema_name else ""
@@ -246,7 +244,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         typed_conditions = (
             conditions
             if isinstance(conditions, m.ConfigMap) or conditions is None
-            else m.ConfigMap.model_validate(conditions)
+            else m.ConfigMap(conditions)
         )
         cols = ", ".join(columns) if columns else "*"
         if typed_conditions and typed_conditions.root:
@@ -431,7 +429,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                     typed_params = (
                         params
                         if isinstance(params, m.ConfigMap)
-                        else m.ConfigMap.model_validate(params)
+                        else m.ConfigMap(params)
                     )
                     result = _connection_execute(
                         conn, _sqlalchemy_text(sql), typed_params
@@ -526,7 +524,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         typed_params = (
             params
             if isinstance(params, m.ConfigMap) or params is None
-            else m.ConfigMap.model_validate(params)
+            else m.ConfigMap(params)
         )
         hash_input = f"{sql}_{typed_params!s}"
         return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
@@ -601,7 +599,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             for metric_name, metric_value in self._metrics.items()
         }
         return r[FlextDbOracleModels.DbOracle.HealthStatus].ok(
-            FlextDbOracleModels.DbOracle.HealthStatus.model_validate({
+            FlextDbOracleModels.DbOracle.HealthStatus({
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
                 "service": "oracle",
@@ -816,7 +814,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                     normalized_properties[str(field_name)] = (
                         FlextDbOracleModels.DbOracle.SingerField(type="string")
                     )
-            schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate({
+            schema_model = FlextDbOracleModels.DbOracle.SingerSchema({
                 "properties": normalized_properties
             })
         mapping = m.ConfigMap(root={})
@@ -834,7 +832,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             if conversion.is_success:
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
-        type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
+        type_mapping = FlextDbOracleModels.DbOracle.TypeMapping({
             "mapping": normalized_mapping
         })
         return r[FlextDbOracleModels.DbOracle.TypeMapping].ok(type_mapping)
@@ -860,13 +858,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         typed_tags = (
             _tags
             if isinstance(_tags, m.ConfigMap) or _tags is None
-            else m.ConfigMap.model_validate(_tags)
+            else m.ConfigMap(_tags)
         )
         tags_payload = (
             typed_tags.root if typed_tags is not None else dict[str, object]()
         )
         metric_result = metric_factory(
-            name=_name, value=_value, tags=m.Dict.model_validate(tags_payload)
+            name=_name, value=_value, tags=m.Dict(tags_payload)
         )
         if getattr(metric_result, "is_failure", False):
             return r[bool].fail(
@@ -938,7 +936,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             metadata_value = (
                 metadata
                 if isinstance(metadata, m.ConfigMap)
-                else m.ConfigMap.model_validate(metadata or {})
+                else m.ConfigMap(metadata or {})
             )
             operation = FlextDbOracleModels.DbOracle.OperationRecord(
                 operation_type=operation_type,

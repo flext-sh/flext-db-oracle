@@ -30,7 +30,7 @@ _GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Conta
 
 def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
     """Validate generic mapping payload with Pydantic."""
-    return m.ConfigMap.model_validate(value)
+    return m.ConfigMap(value)
 
 
 def _validate_general_list(value: object) -> list[object] | None:
@@ -155,7 +155,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None
             )
-            config: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
+            config: FlextDbOracleSettings = FlextDbOracleSettings({
                 "host": actual_host,
                 "port": actual_port,
                 "service_name": actual_service_name,
@@ -213,9 +213,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         query_params = (
-            m.ConfigMap.model_validate(params)
-            if params is not None
-            else m.ConfigMap(root={})
+            m.ConfigMap(params) if params is not None else m.ConfigMap(root={})
         )
         operation_result = self._execute_with_chain(
             "query", sql=sql, params=query_params
@@ -492,11 +490,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if not sql:
             return r[m.ConfigMap].fail("SQL query required")
         raw_params = params.get("params", m.ConfigMap(root={}))
-        params_map = (
-            m.ConfigMap.model_validate(raw_params)
-            if raw_params
-            else m.ConfigMap(root={})
-        )
+        params_map = m.ConfigMap(raw_params) if raw_params else m.ConfigMap(root={})
         return self.current_connection.query(sql, params_map).map(
             lambda rows: m.ConfigMap(
                 root={"rows": [row.root for row in rows], "row_count": len(rows)}
