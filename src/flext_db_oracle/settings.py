@@ -257,7 +257,7 @@ class FlextDbOracleSettings(FlextSettings):
                 return None
 
         return u.try_(
-            lambda: cls({
+            lambda: cls.model_validate({
                 "host": host,
                 "port": _safe_int(port_text, c.DbOracle.Connection.DEFAULT_PORT),
                 "service_name": _safe_identifier(
@@ -297,7 +297,7 @@ class FlextDbOracleSettings(FlextSettings):
             or c.DbOracle.Connection.DEFAULT_SERVICE_NAME
         )
         return u.try_(
-            lambda: cls({
+            lambda: cls.model_validate({
                 "host": host,
                 "port": port,
                 "service_name": service_name,

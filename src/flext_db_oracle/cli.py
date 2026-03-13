@@ -70,7 +70,19 @@ class FlextDbOracleCli(FlextService[str]):
     @override
     def __init__(self) -> None:
         """Initialize Oracle CLI Service."""
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+            subproject=None,
+            services=None,
+            factories=None,
+            resources=None,
+            container_overrides=None,
+            wire_modules=None,
+            wire_packages=None,
+            wire_classes=None,
+        )
         self._cli_main: FlextCliCommands | None = None
 
     def _initialize_cli_main(self) -> r[FlextCliCommands | None]:
@@ -120,7 +132,7 @@ class FlextDbOracleCli(FlextService[str]):
                     "Password is required for Oracle connection"
                 )
             try:
-                config = FlextDbOracleSettings({
+                config = FlextDbOracleSettings.model_validate({
                     "host": host,
                     "port": port,
                     "service_name": service_name,
@@ -227,7 +239,7 @@ class FlextDbOracleCli(FlextService[str]):
                         string_items.append(item_text)
                     case _:
                         try:
-                            parsed_item = NamedItem(item)
+                            parsed_item = NamedItem.model_validate(item)
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
@@ -303,7 +315,7 @@ class FlextDbOracleCli(FlextService[str]):
         """
         start_time = time.time()
         try:
-            config = FlextDbOracleSettings({
+            config = FlextDbOracleSettings.model_validate({
                 "host": host,
                 "port": port,
                 "service_name": service_name,
@@ -319,7 +331,7 @@ class FlextDbOracleCli(FlextService[str]):
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-            result = HealthCheckReport({
+            result = HealthCheckReport.model_validate({
                 "status": "healthy",
                 "host": host,
                 "port": port,
@@ -337,6 +349,7 @@ class FlextDbOracleCli(FlextService[str]):
                 port=port,
                 service_name=service_name,
                 response_time_ms=round(elapsed_time * 1000, 2),
+                details={},
                 error=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             )

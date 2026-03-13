@@ -10,12 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
+from types import ModuleType
 from typing import override
 
 import oracledb
-from flext_core import FlextService, r, u
-from pydantic import TypeAdapter
+from flext_core import FlextContext, FlextService, FlextSettings, r, u
+from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from flext_db_oracle.api import FlextDbOracleApi
@@ -26,14 +27,22 @@ from flext_db_oracle.typings import t
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
 _GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Container])
+_CONFIG_DICT_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
 
 
-def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
+def _validate_config_map(
+    value: Mapping[str, object] | m.ConfigMap,
+) -> m.ConfigMap | None:
     """Validate generic mapping payload with Pydantic."""
-    return m.ConfigMap(value)
+    try:
+        if isinstance(value, m.ConfigMap):
+            return value
+        return m.ConfigMap(root=dict(value))
+    except ValidationError:
+        return None
 
 
-def _validate_general_list(value: object) -> list[object] | None:
+def _validate_general_list(value: object) -> list[t.Container] | None:
     """Validate list payload with Pydantic."""
     return _GENERAL_LIST_ADAPTER.validate_python(value)
 
@@ -57,10 +66,37 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         }
     )
 
-    def __init__(self, *, debug: bool = False, **kwargs: t.Scalar) -> None:
+    def __init__(
+        self,
+        *,
+        debug: bool = False,
+        config_type: type[FlextSettings] | None = None,
+        config_overrides: Mapping[str, t.Scalar] | None = None,
+        initial_context: FlextContext | None = None,
+        subproject: str | None = None,
+        services: Mapping[str, t.RegisterableService] | None = None,
+        factories: Mapping[str, t.FactoryCallable] | None = None,
+        resources: Mapping[str, t.ResourceCallable] | None = None,
+        container_overrides: Mapping[str, t.Scalar] | None = None,
+        wire_modules: Sequence[ModuleType] | None = None,
+        wire_packages: Sequence[str] | None = None,
+        wire_classes: Sequence[type] | None = None,
+    ) -> None:
         """Initialize Oracle CLI client with proper composition."""
         self._oracle_config = FlextDbOracleSettings()
-        super().__init__(**kwargs)
+        super().__init__(
+            config_type=config_type,
+            config_overrides=config_overrides,
+            initial_context=initial_context,
+            subproject=subproject,
+            services=services,
+            factories=factories,
+            resources=resources,
+            container_overrides=container_overrides,
+            wire_modules=wire_modules,
+            wire_packages=wire_packages,
+            wire_classes=wire_classes,
+        )
         self.debug = debug
         self.user_preferences = m.ConfigMap(
             root={
@@ -98,7 +134,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 return r[str].fail(health_result.error or "Health check failed")
             if params:
                 client.logger.debug(
-                    "Unused CLI parameters for operation '%s': %s", operation, params
+                    "Unused CLI parameters for operation '%s'",
+                    operation,
+                    unused_params=str(params),
                 )
             return r[str].fail(f"Unknown CLI operation: {operation}")
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
@@ -114,7 +152,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         try:
             self.user_preferences.root.update(preferences)
             self.logger.info(
-                "Client preferences updated", extra={"preferences": "preferences"}
+                "Client preferences updated",
+                preferences_info=str(preferences),
             )
             return r[bool].ok(True)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
@@ -155,7 +194,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None
             )
-            config: FlextDbOracleSettings = FlextDbOracleSettings({
+            config: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
                 "host": actual_host,
                 "port": actual_port,
                 "service_name": actual_service_name,
@@ -212,9 +251,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: Formatted query results or error.
 
         """
-        query_params = (
-            m.ConfigMap(params) if params is not None else m.ConfigMap(root={})
-        )
+        query_params = params if params is not None else m.ConfigMap(root={})
         operation_result = self._execute_with_chain(
             "query", sql=sql, params=query_params
         )
@@ -282,7 +319,11 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 return [m.ConfigMap(root={"table": str(table)}) for table in tables]
 
             def adapt_health(raw_value: object) -> list[m.ConfigMap]:
-                health = _validate_config_map(raw_value)
+                try:
+                    health_map = _CONFIG_DICT_ADAPTER.validate_python(raw_value)
+                except ValidationError:
+                    return []
+                health = _validate_config_map(health_map)
                 if health is None:
                     return []
                 return [
@@ -348,7 +389,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[m.ConfigMap].fail(f"Health check failed: {e}")
 
-    def _execute_operation(self, operation: str, **params: t.Scalar) -> r[m.ConfigMap]:
+    def _execute_operation(
+        self, operation: str, **params: t.Scalar | m.ConfigMap
+    ) -> r[m.ConfigMap]:
         """Execute Oracle operation with error handling.
 
         Returns:
@@ -370,7 +413,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[m.ConfigMap].fail(f"Operation failed: {e}")
 
-    def _execute_with_chain(self, operation: str, **params: t.Scalar) -> r[m.ConfigMap]:
+    def _execute_with_chain(
+        self, operation: str, **params: t.Scalar | m.ConfigMap
+    ) -> r[m.ConfigMap]:
         """Execute operation with validation chain.
 
         Returns:
@@ -473,7 +518,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             lambda schemas: m.ConfigMap(root={"schemas": list(schemas)})
         )
 
-    def _handle_list_tables_operation(self, **params: t.Scalar) -> r[m.ConfigMap]:
+    def _handle_list_tables_operation(
+        self, **params: t.Scalar | m.ConfigMap
+    ) -> r[m.ConfigMap]:
         """Handle list tables operation."""
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -482,7 +529,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             lambda tables: m.ConfigMap(root={"tables": list(tables)})
         )
 
-    def _handle_query_operation(self, **params: t.Scalar) -> r[m.ConfigMap]:
+    def _handle_query_operation(
+        self, **params: t.Scalar | m.ConfigMap
+    ) -> r[m.ConfigMap]:
         """Handle query operation."""
         if self.current_connection is None:
             return r[m.ConfigMap].fail("No active database connection")
@@ -490,8 +539,15 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if not sql:
             return r[m.ConfigMap].fail("SQL query required")
         raw_params = params.get("params", m.ConfigMap(root={}))
-        params_map = m.ConfigMap(raw_params) if raw_params else m.ConfigMap(root={})
-        return self.current_connection.query(sql, params_map).map(
+        if isinstance(raw_params, m.ConfigMap):
+            params_map = raw_params
+        else:
+            try:
+                normalized_params = _CONFIG_DICT_ADAPTER.validate_python(raw_params)
+            except ValidationError:
+                normalized_params: dict[str, object] = {}
+            params_map = m.ConfigMap(root=normalized_params)
+        return self.current_connection.query(sql, params_map.root).map(
             lambda rows: m.ConfigMap(
                 root={"rows": [row.root for row in rows], "row_count": len(rows)}
             )

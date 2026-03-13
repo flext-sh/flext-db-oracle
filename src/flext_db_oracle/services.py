@@ -192,7 +192,20 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def build_create_index_statement(self, _config: object) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
-            config = FlextDbOracleModels.DbOracle.CreateIndexConfig(_config)
+            if not isinstance(_config, Mapping):
+                return r[str].fail("Invalid CREATE INDEX config payload")
+            payload = {
+                "table_name": str(_config.get("table_name", "")),
+                "index_name": str(_config.get("index_name", "")),
+                "columns": [str(col) for col in _config.get("columns", [])],
+                "unique": bool(_config.get("unique", False)),
+                "schema_name": str(_config.get("schema_name", "")),
+                "tablespace": str(_config.get("tablespace", "")),
+                "parallel": int(_config.get("parallel", 1)),
+            }
+            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
+                payload
+            )
             if not config.columns:
                 return r[str].fail("Index definition requires at least one column")
             schema_prefix = f"{config.schema_name}." if config.schema_name else ""
@@ -364,7 +377,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 nullable = "" if col.nullable else " NOT NULL"
                 if getattr(col, "primary_key", False):
                     primary_keys.append(name)
-            else:
+            elif isinstance(col, Mapping):
                 name_value = col.get("name") or col.get("column_name")
                 data_type_value = col.get("data_type")
                 nullable_value = col.get("nullable", True)
@@ -377,6 +390,8 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 nullable = "" if bool(nullable_value) else " NOT NULL"
                 if bool(col.get("primary_key", False)):
                     primary_keys.append(name)
+            else:
+                continue
             col_defs.append(f"{name} {data_type}{nullable}")
         if primary_keys:
             col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")
@@ -599,7 +614,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             for metric_name, metric_value in self._metrics.items()
         }
         return r[FlextDbOracleModels.DbOracle.HealthStatus].ok(
-            FlextDbOracleModels.DbOracle.HealthStatus({
+            FlextDbOracleModels.DbOracle.HealthStatus.model_validate({
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
                 "service": "oracle",
@@ -791,6 +806,10 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
+            if not isinstance(singer_schema, Mapping):
+                return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
+                    "Singer schema must be a mapping"
+                )
             raw_properties = singer_schema.get("properties", {})
             if not isinstance(raw_properties, Mapping):
                 return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
@@ -814,7 +833,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                     normalized_properties[str(field_name)] = (
                         FlextDbOracleModels.DbOracle.SingerField(type="string")
                     )
-            schema_model = FlextDbOracleModels.DbOracle.SingerSchema({
+            schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate({
                 "properties": normalized_properties
             })
         mapping = m.ConfigMap(root={})
@@ -832,7 +851,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             if conversion.is_success:
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
-        type_mapping = FlextDbOracleModels.DbOracle.TypeMapping({
+        type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
             "mapping": normalized_mapping
         })
         return r[FlextDbOracleModels.DbOracle.TypeMapping].ok(type_mapping)

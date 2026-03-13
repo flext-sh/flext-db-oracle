@@ -14,6 +14,7 @@ import contextlib
 import os
 import types
 from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from typing import Self, override
 
 import oracledb
@@ -72,7 +73,19 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self, config: FlextDbOracleSettings, context_name: str | None = None
     ) -> None:
         """Initialize API with Oracle configuration and complete flext-core integration."""
-        super().__init__()
+        super().__init__(
+            config_type=None,
+            config_overrides=None,
+            initial_context=None,
+            subproject=None,
+            services=None,
+            factories=None,
+            resources=None,
+            container_overrides=None,
+            wire_modules=None,
+            wire_packages=None,
+            wire_classes=None,
+        )
         self._oracle_config = config
         self._services = FlextDbOracleServices(config=self._oracle_config)
         self._context_name = context_name or "oracle-api"
@@ -134,6 +147,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._oracle_config
 
     @property
+    @override
     def services(self) -> FlextDbOracleServices:
         """Get the services instance."""
         return self._services
@@ -242,7 +256,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        typed_params_list = [m.ConfigMap(params) for params in parameters_list]
+        typed_params_list = [
+            m.ConfigMap(root=dict(params)) for params in parameters_list
+        ]
         return self._services.execute_many(sql, typed_params_list)
 
     def execute_sql(
@@ -251,7 +267,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         query_params = (
-            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
+            m.ConfigMap(root=dict(parameters))
+            if parameters is not None
+            else m.ConfigMap(root={})
         )
         return self._services.execute_statement(sql, query_params)
 
@@ -264,7 +282,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             sql_text = str(sql)
             query_params = (
-                m.ConfigMap(parameters)
+                m.ConfigMap(root=dict(parameters))
                 if parameters is not None
                 else m.ConfigMap(root={})
             )
@@ -343,7 +361,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return r[list[m.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
-            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
+            m.ConfigMap(root=dict(parameters))
+            if parameters is not None
+            else m.ConfigMap(root={})
         )
         return self._services.execute_query(sql, query_params)
 
@@ -352,7 +372,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     ) -> r[m.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
-            m.ConfigMap(parameters) if parameters is not None else m.ConfigMap(root={})
+            m.ConfigMap(root=dict(parameters))
+            if parameters is not None
+            else m.ConfigMap(root={})
         )
         return self._services.fetch_one(sql, query_params)
 
@@ -368,7 +390,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return self._services.test_connection()
 
     @classmethod
-    @override
     def to_dict(
         cls, obj: BaseModel | Mapping[str, object] | None = None
     ) -> m.ConfigMap:
@@ -388,7 +409,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 "plugin_count": plugin_count_value,
             }
             return m.ConfigMap(root=payload)
-        return super().to_dict(obj)
+        if isinstance(obj, BaseModel):
+            return m.ConfigMap(root=obj.model_dump(mode="python"))
+        if isinstance(obj, Mapping):
+            return m.ConfigMap(root=dict(obj))
+        return m.ConfigMap(root={})
 
     def transaction(self) -> r[Mapping[str, object]]:
         """Get transaction status information."""
@@ -414,7 +439,16 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Convert raw query data to QueryResult model."""
         if not data:
             return FlextDbOracleModels.DbOracle.QueryResult(
-                query=sql, columns=[], rows=[], row_count=0
+                query=sql,
+                columns=[],
+                rows=[],
+                row_count=0,
+                unique_id="",
+                created_at=datetime.now(UTC),
+                domain_events=[],
+                result_data=[],
+                query_hash="",
+                explain_plan="",
             )
         first_row = data[0].root
         columns = list(first_row.keys())
@@ -425,7 +459,16 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             for row in data
         ]
         return FlextDbOracleModels.DbOracle.QueryResult(
-            query=sql, columns=columns, rows=rows, row_count=len(data)
+            query=sql,
+            columns=columns,
+            rows=rows,
+            row_count=len(data),
+            unique_id="",
+            created_at=datetime.now(UTC),
+            domain_events=[],
+            result_data=[],
+            query_hash="",
+            explain_plan="",
         )
 
     def _execute_query_sql(

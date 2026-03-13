@@ -83,7 +83,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             msg = "command_bus is not CommandBus"
             raise TypeError(msg)
         dispatcher = disp
-        _registry = FlextRegistry(dispatcher)
+        _registry = FlextRegistry(dispatcher=dispatcher)
         function_map: dict[
             type,
             tuple[
