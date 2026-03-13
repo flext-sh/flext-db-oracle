@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from typing import override
 
@@ -26,13 +25,7 @@ from flext_db_oracle.typings import t
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_JSON_VALUE_ADAPTER: TypeAdapter[t.Container] = TypeAdapter(t.Container)
 _GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Container])
-
-
-def _validate_json_value(value: t.Container) -> t.Container | None:
-    """Validate JSON-compatible value with Pydantic."""
-    return _JSON_VALUE_ADAPTER.validate_python(value)
 
 
 def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
@@ -43,19 +36,6 @@ def _validate_config_map(value: t.Container) -> m.ConfigMap | None:
 def _validate_general_list(value: object) -> list[object] | None:
     """Validate list payload with Pydantic."""
     return _GENERAL_LIST_ADAPTER.validate_python(value)
-
-
-def _collect_json_params(value: object) -> object:
-    """Collect JSON-safe parameters from dynamic input."""
-    validated_params = _validate_config_map(value)
-    if validated_params is None:
-        return dict[str, object]()
-    json_params: dict[str, object] = {}
-    for key, raw_value in validated_params.items():
-        json_value = _validate_json_value(raw_value)
-        if json_value is not None:
-            json_params[key] = json_value
-    return json_params
 
 
 class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
