@@ -14,7 +14,7 @@ import sys
 import time
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Protocol, override
+from typing import Annotated, Protocol, override
 
 import oracledb
 import yaml
@@ -34,27 +34,27 @@ type CliScalar = t.Scalar | None
 class NamedItem(BaseModel):
     """Named item payload for list formatting."""
 
-    name: str = Field(default="")
+    name: Annotated[str, Field(default="")]
 
 
 class OutputPayload(BaseModel):
     """Structured output payload for formatter rendering."""
 
-    title: str = Field(default="")
-    items: list[str] = Field(default_factory=list)
+    title: Annotated[str, Field(default="")]
+    items: Annotated[list[str], Field(default_factory=list)]
 
 
 class HealthCheckReport(BaseModel):
     """Health-check result payload for CLI reporting."""
 
-    status: str = Field(default="unknown")
-    host: str = Field(default="")
-    port: int = Field(default=0)
-    service_name: str = Field(default="")
-    response_time_ms: float = Field(default=0.0)
-    details: dict[str, object] = Field(default_factory=dict)
-    error: str | None = Field(default=None)
-    timestamp: str = Field(default="")
+    status: Annotated[str, Field(default="unknown")]
+    host: Annotated[str, Field(default="")]
+    port: Annotated[int, Field(default=0)]
+    service_name: Annotated[str, Field(default="")]
+    response_time_ms: Annotated[float, Field(default=0.0)]
+    details: Annotated[dict[str, object], Field(default_factory=dict)]
+    error: Annotated[str | None, Field(default=None)]
+    timestamp: Annotated[str, Field(default="")]
 
 
 class FlextDbOracleCli(FlextService[str]):

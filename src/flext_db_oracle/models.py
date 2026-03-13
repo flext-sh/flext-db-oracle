@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
+from typing import Annotated
 
 from flext_core import FlextModels
 from pydantic import (
@@ -54,7 +55,7 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: Sequence[object] = Field(default_factory=list)
+            values: Annotated[Sequence[object], Field(default_factory=list)]
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -75,27 +76,46 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             is_connected: bool = False
-            last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
-            error_message: str = Field(
-                default="",
-                description="Error message when disconnected",
-            )
+            last_check: Annotated[
+                datetime, Field(default_factory=lambda: datetime.now(UTC))
+            ]
+            error_message: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Error message when disconnected",
+                ),
+            ]
 
             # Additional Oracle-specific connection details
-            connection_time: float = Field(
-                default=0.0,
-                description="Connection establishment time in seconds",
-            )
-            last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
-            session_id: str = Field(default="", description="Oracle session identifier")
-            host: str = Field(default="", description="Database host")
-            port: int = Field(
-                default=c.DbOracle.Connection.DEFAULT_PORT,
-                description="Database port",
-            )
-            service_name: str = Field(default="", description="Oracle service name")
-            username: str = Field(default="", description="Database username")
-            db_version: str = Field(default="", description="Oracle database version")
+            connection_time: Annotated[
+                float,
+                Field(
+                    default=0.0,
+                    description="Connection establishment time in seconds",
+                ),
+            ]
+            last_activity: Annotated[
+                datetime, Field(default_factory=lambda: datetime.now(UTC))
+            ]
+            session_id: Annotated[
+                str, Field(default="", description="Oracle session identifier")
+            ]
+            host: Annotated[str, Field(default="", description="Database host")]
+            port: Annotated[
+                int,
+                Field(
+                    default=c.DbOracle.Connection.DEFAULT_PORT,
+                    description="Database port",
+                ),
+            ]
+            service_name: Annotated[
+                str, Field(default="", description="Oracle service name")
+            ]
+            username: Annotated[str, Field(default="", description="Database username")]
+            db_version: Annotated[
+                str, Field(default="", description="Oracle database version")
+            ]
 
             @property
             def connection_age_seconds(self) -> float:
@@ -207,15 +227,19 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: Sequence[object] = Field(default_factory=list)
+            result_data: Annotated[Sequence[object], Field(default_factory=list)]
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
-            columns: list[str] = Field(default_factory=list)
-            rows: Sequence[object] = Field(default_factory=list)
-            query_hash: str = Field(default="", description="Query hash for caching")
-            explain_plan: str = Field(default="", description="Query execution plan")
+            columns: Annotated[list[str], Field(default_factory=list)]
+            rows: Annotated[Sequence[object], Field(default_factory=list)]
+            query_hash: Annotated[
+                str, Field(default="", description="Query hash for caching")
+            ]
+            explain_plan: Annotated[
+                str, Field(default="", description="Query execution plan")
+            ]
 
             @property
             def column_count(self) -> int:
@@ -312,7 +336,9 @@ class FlextDbOracleModels(FlextModels):
             operation_type: str
             duration: float
             success: bool
-            metadata_info: str = Field(default="", description="Operation metadata")
+            metadata_info: Annotated[
+                str, Field(default="", description="Operation metadata")
+            ]
             timestamp: str
 
         class HealthStatus(FlextModels.Entity):
@@ -322,7 +348,7 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Mapping[str, object] = Field(default_factory=dict)
+            metrics: Annotated[Mapping[str, object], Field(default_factory=dict)]
 
             def __getitem__(self, key: str) -> object:
                 """Get item from health status."""
@@ -341,8 +367,8 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: Sequence[object] = Field(default_factory=list)
-            primary_keys: list[str] = Field(default_factory=list)
+            columns: Annotated[Sequence[object], Field(default_factory=list)]
+            primary_keys: Annotated[list[str], Field(default_factory=list)]
 
             def __getitem__(self, key: str) -> object:
                 """Get item from table metadata."""
@@ -355,7 +381,7 @@ class FlextDbOracleModels(FlextModels):
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: Mapping[str, str] = Field(default_factory=dict)
+            mapping: Annotated[Mapping[str, str], Field(default_factory=dict)]
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
@@ -377,16 +403,17 @@ class FlextDbOracleModels(FlextModels):
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
 
-            properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
-                default_factory=dict
-            )
+            properties: Annotated[
+                Mapping[str, FlextDbOracleModels.DbOracle.SingerField],
+                Field(default_factory=dict),
+            ]
 
         class Table(FlextModels.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
             owner: str = ""
-            columns: Sequence[object] = Field(default_factory=list)
+            columns: Annotated[Sequence[object], Field(default_factory=list)]
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -394,14 +421,20 @@ class FlextDbOracleModels(FlextModels):
             name: str
             data_type: str
             nullable: bool = True
-            primary_key: bool = Field(
-                default=False,
-                description="Whether this column is a primary key",
-            )
-            default_value: str = Field(
-                default="",
-                description="Default value for the column",
-            )
+            primary_key: Annotated[
+                bool,
+                Field(
+                    default=False,
+                    description="Whether this column is a primary key",
+                ),
+            ]
+            default_value: Annotated[
+                str,
+                Field(
+                    default="",
+                    description="Default value for the column",
+                ),
+            ]
 
             def __getitem__(self, key: str) -> object:
                 """Get item from column metadata."""
@@ -432,7 +465,7 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: Sequence[object] = Field(default_factory=list)
+            tables: Annotated[Sequence[object], Field(default_factory=list)]
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
@@ -441,12 +474,15 @@ class FlextDbOracleModels(FlextModels):
             index_name: str
             columns: list[str]
             unique: bool = False
-            schema_name: str = Field(default="", description="Schema name")
-            tablespace: str = Field(default="", description="Tablespace name")
-            parallel: int = Field(
-                default=1,
-                description="Parallel degree for index creation",
-            )
+            schema_name: Annotated[str, Field(default="", description="Schema name")]
+            tablespace: Annotated[str, Field(default="", description="Tablespace name")]
+            parallel: Annotated[
+                int,
+                Field(
+                    default=1,
+                    description="Parallel degree for index creation",
+                ),
+            ]
 
         class MergeStatementConfig(FlextModels.Entity):
             """Merge statement config using flext-core Entity."""
@@ -454,8 +490,8 @@ class FlextDbOracleModels(FlextModels):
             target_table: str
             source_query: str
             merge_conditions: list[str]
-            update_columns: list[str] = Field(default_factory=list)
-            insert_columns: list[str] = Field(default_factory=list)
+            update_columns: Annotated[list[str], Field(default_factory=list)]
+            insert_columns: Annotated[list[str], Field(default_factory=list)]
 
         # Command classes for dispatcher integration
         class ConnectCommand(FlextModels.Entity):
@@ -495,9 +531,10 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: Sequence[Mapping[str, object]] = Field(
-                default_factory=_default_parameters_list
-            )
+            parameters_list: Annotated[
+                Sequence[Mapping[str, object]],
+                Field(default_factory=_default_parameters_list),
+            ]
 
         class GetSchemasCommand(FlextModels.Entity):
             """Command to retrieve all schemas."""

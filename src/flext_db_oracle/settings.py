@@ -59,20 +59,21 @@ class FlextDbOracleSettings(FlextSettings):
         validate_assignment=False,
     )
 
-    host: str = Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)
-    port: int = Field(default=c.DbOracle.Connection.DEFAULT_PORT)
-    service_name: OracleIdentifier = Field(
-        default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME
-    )
-    username: str = Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)
-    password: OraclePassword | None = Field(default=OraclePassword(""))
-    timeout: int = Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
-    pool_min: int = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)
-    pool_max: int = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)
-    sid: OracleIdentifier | None = Field(default=None)
-    name: str = Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)
-    ssl_cert_file: str | None = Field(default=None)
-    ssl_server_cert_dn: str | None = Field(default=None)
+    host: Annotated[str, Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)]
+    port: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_PORT)]
+    service_name: Annotated[
+        OracleIdentifier,
+        Field(default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME),
+    ]
+    username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
+    password: Annotated[OraclePassword | None, Field(default=OraclePassword(""))]
+    timeout: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)]
+    pool_min: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)]
+    pool_max: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)]
+    sid: Annotated[OracleIdentifier | None, Field(default=None)]
+    name: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)]
+    ssl_cert_file: Annotated[str | None, Field(default=None)]
+    ssl_server_cert_dn: Annotated[str | None, Field(default=None)]
 
     @override
     def __new__(cls, **_kwargs: t.Scalar | None) -> Self:
