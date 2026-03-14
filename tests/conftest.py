@@ -76,7 +76,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         else:
             cleaned = cleanup_result.value
             if cleaned:
-                logger.info("Recreated dirty containers: %s", cleaned)
+                logger.info(f"Recreated dirty containers: {cleaned}")
             else:
                 logger.debug("No dirty containers to clean")
     except Exception as e:

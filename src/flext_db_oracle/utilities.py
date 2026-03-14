@@ -129,7 +129,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         return r[str].ok(identifier[:max_len])
 
-    _QUERY_RESULT_ADAPTER: TypeAdapter = TypeAdapter(object)
+    _QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(t.ContainerValue)
 
     @staticmethod
     def format_query_result(

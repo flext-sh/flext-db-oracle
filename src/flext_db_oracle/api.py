@@ -32,25 +32,6 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class _NullPluginResult:
-    """Result-like object for explicit null plugin compatibility behavior."""
-
-    is_success: bool = True
-    is_failure: bool = False
-    error: None = None
-
-    def __init__(self) -> None:
-        self._first_read = True
-
-    @property
-    def value(self) -> str | None:
-        """Return sentinel on first read and None afterwards for compatibility."""
-        if self._first_read:
-            self._first_read = False
-            return "NULL_PLUGIN"
-        return None
-
-
 class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     """Oracle Database API with complete flext-core integration.
 
@@ -304,14 +285,12 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
-    def get_plugin(self, name: str) -> r | _NullPluginResult:
+    def get_plugin(self, name: str) -> r[t.ContainerValue | None]:
         """Get a registered plugin by name."""
         if name not in self._plugins:
-            return r.fail(f"Plugin '{name}' not found")
+            return r[t.ContainerValue | None].fail(f"Plugin '{name}' not found")
         plugin = self._plugins[name]
-        if plugin is None:
-            return _NullPluginResult()
-        return r.ok(plugin)
+        return r[t.ContainerValue | None].ok(plugin)
 
     def get_primary_keys(self, table: str, schema: str | None = None) -> r[list[str]]:
         """Get primary key column names for specified table."""

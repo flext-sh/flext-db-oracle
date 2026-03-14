@@ -334,7 +334,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 ]
 
             adaptation_strategies: list[
-                tuple[str, Callable[, list[m.ConfigMap]]]
+                tuple[str, Callable[[t.ContainerValue], list[m.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),

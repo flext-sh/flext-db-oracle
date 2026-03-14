@@ -10,7 +10,7 @@ If Oracle is not available, tests gracefully skip or use mocks.
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from pathlib import Path
 
 import pytest
@@ -40,7 +40,13 @@ def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
         container_config = c.Tests.Docker.SHARED_CONTAINERS.get("flext-oracle-db-test")
         if not container_config:
             return None
-        connection = container_config.get("connection", {})
+        connection_raw = container_config.get("connection", {})
+        if hasattr(connection_raw, "model_dump"):
+            connection = connection_raw.model_dump(mode="python")
+        elif isinstance(connection_raw, Mapping):
+            connection = dict(connection_raw)
+        else:
+            connection = {}
         return FlextDbOracleSettings(
             host=str(connection.get("host", "localhost")),
             port=int(connection.get("port", 1522)),
@@ -154,7 +160,7 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
             for query in cleanup_queries:
                 try:
                     plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL;\n                    END;\n                    "
-                    connected_oracle_api.execute(plsql_query)
+                    connected_oracle_api.execute_sql(plsql_query)
                 except Exception:
                     pass
         except Exception:

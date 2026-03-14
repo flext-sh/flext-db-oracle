@@ -571,7 +571,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         )
 
     @contextmanager
-    def get_connection(self) -> Generator:
+    def get_connection(self) -> Generator[t.ContainerValue]:
         """Get database connection context manager."""
         engine = self._engine
         if engine is None:
@@ -631,16 +631,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self._operations.copy()
         )
 
-    def get_plugin(self, _name: str) -> r:
+    def get_plugin(self, _name: str) -> r[t.ContainerValue]:
         """Get plugin data from local service registry."""
         if not _name:
             return r.fail("Plugin name is required")
         try:
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
-            return r.fail(
-                "flext-plugin integration unavailable; install flext-plugin"
-            )
+            return r.fail("flext-plugin integration unavailable; install flext-plugin")
         if _name not in self._plugins:
             return r.fail(f"Plugin '{_name}' not found")
         return r.ok(self._plugins[_name])
@@ -980,7 +978,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def transaction(self) -> Generator:
+    def transaction(self) -> Generator[t.ContainerValue]:
         """Get transaction context for database operations."""
         engine = self._engine
         if engine is None:
@@ -1044,7 +1042,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Get current timestamp for operation tracking."""
         return str(int(time.time()))
 
-    def _get_engine(self) -> r:
+    def _get_engine(self) -> r[t.ContainerValue]:
         """Get database engine."""
         if not self._engine or not self.is_connected():
             return r.fail("Not connected to database")
