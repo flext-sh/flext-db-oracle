@@ -36,7 +36,7 @@ OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 class _ObjectRows(RootModel[list[t.ContainerValue]]):
     """Pydantic root model for generic list payloads."""
 
-    root: list[object]
+    root: list[t.ContainerValue]
 
 
 class _StrictIntValue(RootModel[int]):
@@ -54,7 +54,7 @@ class _CountValue(RootModel[int | str]):
 _STRING_LIST_ADAPTER = TypeAdapter(list[str])
 
 
-def _validate_config_map(value: object) -> m.ConfigMap | None:
+def _validate_config_map(value: t.ContainerValue) -> m.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
     try:
         return m.ConfigMap(value)
@@ -69,7 +69,7 @@ def _normalize_params(params: m.ConfigMap | None) -> m.ConfigMap:
     return m.ConfigMap(root={})
 
 
-def _parse_rowcount(value: object) -> int:
+def _parse_rowcount(value: t.ContainerValue) -> int:
     """Parse strict integer rowcount via Pydantic."""
     try:
         return _StrictIntValue(value).root
@@ -77,7 +77,7 @@ def _parse_rowcount(value: object) -> int:
         return 0
 
 
-def _parse_count_value(value: object) -> int:
+def _parse_count_value(value: t.ContainerValue) -> int:
     """Parse row count value accepting int or numeric string."""
     try:
         validated = _CountValue(value).root
@@ -98,12 +98,12 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: object) -> list[object]:
+def _extract_object_rows(value: t.ContainerValue) -> list[t.ContainerValue]:
     """Extract list payload using Pydantic validation."""
     return _ObjectRows(value).root
 
 
-def _sqlalchemy_create_engine(url: str) -> object:
+def _sqlalchemy_create_engine(url: str) -> t.ContainerValue:
     """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
     sqlalchemy_module = import_module("sqlalchemy")
     create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
@@ -113,7 +113,7 @@ def _sqlalchemy_create_engine(url: str) -> object:
     return create_engine_func(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
 
 
-def _sqlalchemy_text(statement: str) -> object:
+def _sqlalchemy_text(statement: str) -> t.ContainerValue:
     """Build SQL text object via runtime import."""
     sqlalchemy_module = import_module("sqlalchemy")
     text_func = getattr(sqlalchemy_module, "text", None)
@@ -123,7 +123,7 @@ def _sqlalchemy_text(statement: str) -> object:
     return text_func(statement)
 
 
-def _engine_connect(engine: object) -> object:
+def _engine_connect(engine: t.ContainerValue) -> t.ContainerValue:
     """Open connection context manager from engine."""
     connect_method = getattr(engine, "connect", None)
     if not callable(connect_method):
@@ -132,7 +132,7 @@ def _engine_connect(engine: object) -> object:
     return connect_method()
 
 
-def _engine_begin(engine: object) -> object:
+def _engine_begin(engine: t.ContainerValue) -> t.ContainerValue:
     """Open transaction context manager from engine."""
     begin_method = getattr(engine, "begin", None)
     if not callable(begin_method):
@@ -141,7 +141,7 @@ def _engine_begin(engine: object) -> object:
     return begin_method()
 
 
-def _context_enter(context_manager: object) -> object:
+def _context_enter(context_manager: t.ContainerValue) -> t.ContainerValue:
     """Enter dynamic context manager and return inner object."""
     enter_method = getattr(context_manager, "__enter__", None)
     if not callable(enter_method):
@@ -150,14 +150,14 @@ def _context_enter(context_manager: object) -> object:
     return enter_method()
 
 
-def _context_exit(context_manager: object) -> None:
+def _context_exit(context_manager: t.ContainerValue) -> None:
     """Exit dynamic context manager safely."""
     exit_method = getattr(context_manager, "__exit__", None)
     if callable(exit_method):
         _ = exit_method(None, None, None)
 
 
-def _engine_dispose(engine: object) -> None:
+def _engine_dispose(engine: t.ContainerValue) -> None:
     """Dispose engine resources through dynamic method lookup."""
     dispose_method = getattr(engine, "dispose", None)
     if callable(dispose_method):
@@ -165,8 +165,10 @@ def _engine_dispose(engine: object) -> None:
 
 
 def _connection_execute(
-    connection: object, statement: object, parameters: m.ConfigMap | None = None
-) -> object:
+    connection: t.ContainerValue,
+    statement: t.ContainerValue,
+    parameters: m.ConfigMap | None = None,
+) -> t.ContainerValue:
     """Execute statement on dynamic SQL connection."""
     execute_method = getattr(connection, "execute", None)
     if not callable(execute_method):
@@ -184,12 +186,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         super().__init__()
         self._db_config = config
         self._config = config
-        self._engine: object | None = None
+        self._engine: t.ContainerValue | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
-        self._plugins: dict[str, object] = {}
-        self._metrics: dict[str, object] = {}
+        self._plugins: dict[str, t.ContainerValue] = {}
+        self._metrics: dict[str, t.ContainerValue] = {}
 
-    def build_create_index_statement(self, _config: object) -> r[str]:
+    def build_create_index_statement(self, _config: t.ContainerValue) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             if not isinstance(_config, Mapping):
@@ -427,7 +429,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[Mapping[str, object] | m.ConfigMap],
+        params_list: Sequence[Mapping[str, t.ContainerValue] | m.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
         if not self.is_connected():
@@ -802,7 +804,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         | Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: object | None = None
+        raw_properties: t.ContainerValue | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
@@ -898,7 +900,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         }
         return r[bool].ok(True)
 
-    def register_plugin(self, _name: str, _plugin: object) -> r[bool]:
+    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> r[bool]:
         """Register plugin via flext-plugin when available."""
         if not _name:
             return r[bool].fail("Plugin name is required")
@@ -1028,7 +1030,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
-    def _extract_mapping_rows(self, mapping_result: object) -> list[object]:
+    def _extract_mapping_rows(
+        self, mapping_result: t.ContainerValue
+    ) -> list[t.ContainerValue]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
@@ -1046,7 +1050,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             return r[object].fail("Not connected to database")
         return r[object].ok(self._engine)
 
-    def _normalize_query_rows(self, query_result: object) -> list[m.Dict]:
+    def _normalize_query_rows(self, query_result: t.ContainerValue) -> list[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mappings_method = getattr(query_result, "mappings", None)
         if not callable(mappings_method):
@@ -1057,7 +1061,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             for row in self._extract_mapping_rows(mapping_result)
         ]
 
-    def _normalize_row(self, row: Mapping[str, object] | object) -> m.Dict:
+    def _normalize_row(self, row: Mapping[str, t.ContainerValue] | object) -> m.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         if isinstance(row, Mapping):
             validated_mapping = _validate_config_map(row)

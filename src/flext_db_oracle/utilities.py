@@ -64,7 +64,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             """Factories for Annotated types."""
 
             @staticmethod
-            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> object:
+            def coerced_enum[E: StrEnum](enum_cls: type[E]) -> t.ContainerValue:
                 """Create an Annotated StrEnum type with automatic coercion.
 
                 Args:
@@ -132,7 +132,9 @@ class FlextDbOracleUtilities(FlextUtilities):
     _QUERY_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
 
     @staticmethod
-    def format_query_result(result: object, format_type: str = "table") -> r[str]:
+    def format_query_result(
+        result: t.ContainerValue, format_type: str = "table"
+    ) -> r[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
             return r[str].ok(

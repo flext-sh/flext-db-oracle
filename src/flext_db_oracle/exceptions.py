@@ -96,7 +96,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             sql_text: str | None = None,
-            bind_variables: Mapping[str, object] | None = None,
+            bind_variables: Mapping[str, t.ContainerValue] | None = None,
             **_kwargs: t.Scalar,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""

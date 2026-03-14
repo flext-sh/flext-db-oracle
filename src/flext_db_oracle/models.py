@@ -24,9 +24,10 @@ from pydantic import (
 )
 
 from flext_db_oracle.constants import c
+from flext_db_oracle.typings import t
 
 
-def _default_parameters_list() -> list[Mapping[str, object]]:
+def _default_parameters_list() -> list[Mapping[str, t.ContainerValue]]:
     return []
 
 
@@ -348,9 +349,11 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Annotated[Mapping[str, object], Field(default_factory=dict)]
+            metrics: Annotated[
+                Mapping[str, t.ContainerValue], Field(default_factory=dict)
+            ]
 
-            def __getitem__(self, key: str) -> object:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
@@ -370,7 +373,7 @@ class FlextDbOracleModels(FlextModels):
             columns: Annotated[Sequence[object], Field(default_factory=list)]
             primary_keys: Annotated[list[str], Field(default_factory=list)]
 
-            def __getitem__(self, key: str) -> object:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
                 return self.model_dump().get(key)
 
@@ -436,9 +439,9 @@ class FlextDbOracleModels(FlextModels):
                 ),
             ]
 
-            def __getitem__(self, key: str) -> object:
+            def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
-                key_map: dict[str, object] = {
+                key_map: dict[str, t.ContainerValue] = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -513,26 +516,26 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute SELECT query."""
 
             sql: str
-            parameters: dict[str, object] | None = None
+            parameters: dict[str, t.ContainerValue] | None = None
 
         class FetchOneCommand(FlextModels.Entity):
             """Command to fetch single row."""
 
             sql: str
-            parameters: dict[str, object] | None = None
+            parameters: dict[str, t.ContainerValue] | None = None
 
         class ExecuteStatementCommand(FlextModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str
-            parameters: dict[str, object] | None = None
+            parameters: dict[str, t.ContainerValue] | None = None
 
         class ExecuteManyCommand(FlextModels.Entity):
             """Command to execute batch statements."""
 
             sql: str
             parameters_list: Annotated[
-                Sequence[Mapping[str, object]],
+                Sequence[Mapping[str, t.ContainerValue]],
                 Field(default_factory=_default_parameters_list),
             ]
 

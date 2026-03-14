@@ -12,6 +12,7 @@ from typing import Protocol, runtime_checkable
 from flext_core import FlextProtocols, r
 
 from flext_db_oracle.models import m
+from flext_db_oracle.typings import t
 
 
 class FlextDbOracleProtocols(FlextProtocols):
@@ -109,7 +110,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_many(
-                self, sql: str, params_list: list[Mapping[str, object]]
+                self, sql: str, params_list: list[Mapping[str, t.ContainerValue]]
             ) -> r[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -124,7 +125,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_query(
-                self, sql: str, params: Mapping[str, object] | None = None
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
             ) -> r[object]:
                 """Execute Oracle SQL query.
 
@@ -139,7 +140,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_statement(
-                self, sql: str, params: Mapping[str, object] | None = None
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
             ) -> r[bool]:
                 """Execute Oracle SQL statement.
 
@@ -154,7 +155,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: Mapping[str, object] | None = None
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
             ) -> r[object | None]:
                 """Fetch single result from Oracle query.
 
@@ -182,7 +183,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[dict[str, object]]]: Column metadata or error
+                r[list[dict[str, t.ContainerValue]]]: Column metadata or error
 
                 """
                 ...
@@ -221,7 +222,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[dict[str, object]]: Table metadata or error
+                r[dict[str, t.ContainerValue]]: Table metadata or error
 
                 """
                 ...
@@ -256,8 +257,8 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: Mapping[str, object]
-            ) -> r[tuple[str, Mapping[str, object]]]:
+                self, table: str, data: Mapping[str, t.ContainerValue]
+            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -265,7 +266,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 data: Column data
 
                 Returns:
-                r[tuple[str, dict[str, object]]]: SQL and parameters or error
+                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
 
                 """
                 ...
@@ -294,8 +295,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_update_statement(
-                self, table: str, data: Mapping[str, object], where_clause: str
-            ) -> r[tuple[str, Mapping[str, object]]]:
+                self,
+                table: str,
+                data: Mapping[str, t.ContainerValue],
+                where_clause: str,
+            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -304,7 +308,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 where_clause: WHERE condition
 
                 Returns:
-                r[tuple[str, dict[str, object]]]: SQL and parameters or error
+                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
 
                 """
                 ...
@@ -375,7 +379,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get collected Oracle metrics.
 
                 Returns:
-                r[dict[str, object]]: Metrics data or error
+                r[dict[str, t.ContainerValue]]: Metrics data or error
 
                 """
                 ...
@@ -437,7 +441,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def register_plugin(self, name: str, _plugin: object) -> r[bool]:
+            def register_plugin(self, name: str, _plugin: t.ContainerValue) -> r[bool]:
                 """Register Oracle database plugin.
 
                 Args:
@@ -470,7 +474,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Get Oracle connection status information.
 
                 Returns:
-                r[dict[str, object]]: Connection status or error
+                r[dict[str, t.ContainerValue]]: Connection status or error
 
                 """
                 ...
@@ -479,7 +483,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """Perform Oracle database health check.
 
                 Returns:
-                r[dict[str, object]]: Health status or error
+                r[dict[str, t.ContainerValue]]: Health status or error
 
                 """
                 ...

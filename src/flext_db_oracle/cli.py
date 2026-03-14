@@ -52,7 +52,7 @@ class HealthCheckReport(BaseModel):
     port: Annotated[int, Field(default=0)]
     service_name: Annotated[str, Field(default="")]
     response_time_ms: Annotated[float, Field(default=0.0)]
-    details: Annotated[dict[str, object], Field(default_factory=dict)]
+    details: Annotated[dict[str, t.ContainerValue], Field(default_factory=dict)]
     error: Annotated[str | None, Field(default=None)]
     timestamp: Annotated[str, Field(default="")]
 

@@ -47,20 +47,20 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, object] | None,
+            Mapping[str, t.ContainerValue] | None,
         ],
     ]:
         """Create connection-related handler functions."""
 
-        def connect_handler(_cmd: object) -> object:
+        def connect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
             return services.connect().is_success
 
-        def disconnect_handler(_cmd: object) -> object:
+        def disconnect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
             return services.disconnect().is_success
 
         def connection_test_handler(
-            _command_data: object,
-        ) -> object:
+            _command_data: t.ContainerValue,
+        ) -> t.ContainerValue:
             """Oracle connection test handler - command_data parameter required by dispatcher interface."""
             return services.test_connection().map_or(False)
 
@@ -75,7 +75,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
 
     @classmethod
     def build_dispatcher(
-        cls, services: FlextDbOracleServices, *, _bus: object | None = None
+        cls, services: FlextDbOracleServices, *, _bus: t.ContainerValue | None = None
     ) -> p.CommandBus:
         """Create a dispatcher instance wired to Oracle services."""
         disp = FlextContainer.get_global().get("command_bus").unwrap()
@@ -88,7 +88,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             type,
             tuple[
                 Callable[[object], object],
-                Mapping[str, object] | None,
+                Mapping[str, t.ContainerValue] | None,
             ],
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
@@ -105,12 +105,12 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, object] | None,
+            Mapping[str, t.ContainerValue] | None,
         ],
     ]:
         """Create query-related handler functions."""
 
-        def execute_query_handler(command: object) -> object:
+        def execute_query_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
                 parameters = m.ConfigMap(root=command.parameters or {})
@@ -119,7 +119,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = m.ConfigMap(root={})
             return services.execute_query(sql, parameters).map_or([])
 
-        def fetch_one_handler(command: object) -> object:
+        def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.FetchOneCommand):
                 sql = command.sql
                 parameters = m.ConfigMap(root=command.parameters or {})
@@ -128,7 +128,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = m.ConfigMap(root={})
             return services.fetch_one(sql, parameters).map_or(None)
 
-        def execute_statement_handler(command: object) -> object:
+        def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(
                 command, FlextDbOracleModels.DbOracle.ExecuteStatementCommand
             ):
@@ -139,7 +139,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters = m.ConfigMap(root={})
             return services.execute_statement(sql, parameters).map_or(0)
 
-        def execute_many_handler(command: object) -> object:
+        def execute_many_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteManyCommand):
                 sql = command.sql
                 parameters_list = command.parameters_list
@@ -170,21 +170,21 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[object], object],
-            Mapping[str, object] | None,
+            Mapping[str, t.ContainerValue] | None,
         ],
     ]:
         """Create schema/metadata handler functions."""
 
-        def get_schemas_handler(_cmd: object) -> object:
+        def get_schemas_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
             return services.get_schemas().map_or([])
 
-        def get_tables_handler(command: object) -> object:
+        def get_tables_handler(command: t.ContainerValue) -> t.ContainerValue:
             schema: str | None = None
             if isinstance(command, FlextDbOracleModels.DbOracle.GetTablesCommand):
                 schema = command.schema_name
             return services.get_tables(schema).map_or([])
 
-        def get_columns_handler(command: object) -> object:
+        def get_columns_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.GetColumnsCommand):
                 table = command.table
                 schema = command.schema_name

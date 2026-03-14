@@ -99,7 +99,7 @@ class FlextDbOracleTypes(FlextTypes):
             str, str | int | bool | dict[str, t.ContainerValue]
         ]
         type SessionState = dict[str, object | dict[str, t.ContainerValue]]
-        type SessionVariables = dict[str, object]
+        type SessionVariables = dict[str, t.ContainerValue]
         type SessionMetrics = dict[str, int | float | str]
         type SessionPooling = dict[str, int | bool | str | dict[str, t.ContainerValue]]
         type SessionTimeout = dict[str, int | str]
@@ -141,7 +141,7 @@ class FlextDbOracleTypes(FlextTypes):
         type OracleDataType = str
         type PythonDataType = type[object]
         type TypeMapping = _TypeMapping
-        type DataConversion = dict[str, object]
+        type DataConversion = dict[str, t.ContainerValue]
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | object]
 
@@ -170,10 +170,10 @@ class FlextDbOracleTypes(FlextTypes):
             "sql-service",
             "data-connector",
         ]
-        type OracleProjectConfig = dict[str, object]
+        type OracleProjectConfig = dict[str, t.ContainerValue]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
         type SchemaConfig = dict[str, bool | str | dict[str, t.ContainerValue]]
-        type ConnectionConfig = dict[str, object]
+        type ConnectionConfig = dict[str, t.ContainerValue]
 
     type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
     "Oracle connection type literal - references ConnectionType StrEnum members."
