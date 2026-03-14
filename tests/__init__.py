@@ -28,7 +28,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 __all__ = ["TestsFlextDbOracleConstants", "TestsFlextDbOracleModels", "c", "m", "tm"]
 
 
-def __getattr__(name: str) -> Any:
+def __getattr__(name: str):
     """Lazy-load module attributes on first access (PEP 562)."""
     return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
 

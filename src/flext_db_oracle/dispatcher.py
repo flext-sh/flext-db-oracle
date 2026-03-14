@@ -46,7 +46,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], object],
+            Callable[, object],
             Mapping[str, t.ContainerValue] | None,
         ],
     ]:
@@ -87,7 +87,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         function_map: dict[
             type,
             tuple[
-                Callable[[object], object],
+                Callable[, object],
                 Mapping[str, t.ContainerValue] | None,
             ],
         ] = {}
@@ -104,7 +104,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], object],
+            Callable[, object],
             Mapping[str, t.ContainerValue] | None,
         ],
     ]:
@@ -169,7 +169,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     ) -> dict[
         type,
         tuple[
-            Callable[[object], object],
+            Callable[, object],
             Mapping[str, t.ContainerValue] | None,
         ],
     ]:

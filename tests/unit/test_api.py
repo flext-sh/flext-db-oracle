@@ -662,7 +662,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[object]]:
+        def create_test_schema_data() -> dict[str, str | list]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",

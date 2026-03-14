@@ -79,11 +79,11 @@ class FlextDbOracleProtocols(FlextProtocols):
             must satisfy this protocol.
             """
 
-            def get_connection(self) -> r[object]:
+            def get_connection(self) -> r:
                 """Get current Oracle connection object.
 
                 Returns:
-                r[object]: Connection object or error
+                r: Connection object or error
 
                 """
                 ...
@@ -126,7 +126,7 @@ class FlextDbOracleProtocols(FlextProtocols):
 
             def execute_query(
                 self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[object]:
+            ) -> r:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -134,7 +134,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[object]: Query result or error
+                r: Query result or error
 
                 """
                 ...
@@ -420,14 +420,14 @@ class FlextDbOracleProtocols(FlextProtocols):
         class PluginRegistry(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def get_plugin(self, name: str) -> r[object]:
+            def get_plugin(self, name: str) -> r:
                 """Get Oracle database plugin by name.
 
                 Args:
                 name: Plugin name
 
                 Returns:
-                r[object]: Plugin instance or error
+                r: Plugin instance or error
 
                 """
                 ...

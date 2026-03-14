@@ -334,7 +334,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 ]
 
             adaptation_strategies: list[
-                tuple[str, Callable[[object], list[m.ConfigMap]]]
+                tuple[str, Callable[, list[m.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),
@@ -484,7 +484,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """Get formatter strategy for output format.
 
         Returns:
-        r[object]: Formatter strategy or error.
+        r: Formatter strategy or error.
 
         """
         try:

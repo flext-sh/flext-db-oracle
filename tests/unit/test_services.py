@@ -538,7 +538,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name == "flext_observability":
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -554,11 +554,11 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         service = self._make_service()
         calls: list[dict[str, object]] = []
 
-        def fake_flext_metric(*, name: str, value: float, tags: object) -> _StubResult:
+        def fake_flext_metric(*, name: str, value: float, tags) -> _StubResult:
             calls.append({"name": name, "value": value, "tags": tags})
             return _StubResult()
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name == "flext_observability":
                 return SimpleNamespace(flext_metric=fake_flext_metric)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -576,7 +576,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name == "flext_observability":
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -591,7 +591,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name == "flext_observability":
                 return SimpleNamespace(flext_metric=lambda **_: _StubResult())
             raise AssertionError(f"Unexpected module import: {name}")
@@ -606,7 +606,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name in {"flext_plugin.api", "flext_plugin.models"}:
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -629,7 +629,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         )
         plugin_api = SimpleNamespace(FlextPluginApi=_StubPluginApi)
 
-        def fake_import(name: str) -> object:
+        def fake_import(name: str):
             if name == "flext_plugin.models":
                 return plugin_models
             if name == "flext_plugin.api":

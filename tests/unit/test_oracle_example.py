@@ -18,7 +18,7 @@ from flext_db_oracle import (
 )
 
 
-def safe_get_first_value(data: object) -> object:
+def safe_get_first_value(data):
     """Safely get first value from various data structures."""
     if hasattr(data, "root"):
         data = data.root

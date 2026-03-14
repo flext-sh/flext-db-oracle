@@ -139,7 +139,7 @@ class FlextDbOracleTypes(FlextTypes):
         """
 
         type OracleDataType = str
-        type PythonDataType = type[object]
+        type PythonDataType = type
         type TypeMapping = _TypeMapping
         type DataConversion = dict[str, t.ContainerValue]
         type TypeValidation = dict[str, bool | str | list[str]]

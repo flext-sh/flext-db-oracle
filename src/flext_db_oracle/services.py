@@ -571,7 +571,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         )
 
     @contextmanager
-    def get_connection(self) -> Generator[object]:
+    def get_connection(self) -> Generator:
         """Get database connection context manager."""
         engine = self._engine
         if engine is None:
@@ -631,19 +631,19 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             self._operations.copy()
         )
 
-    def get_plugin(self, _name: str) -> r[object]:
+    def get_plugin(self, _name: str) -> r:
         """Get plugin data from local service registry."""
         if not _name:
-            return r[object].fail("Plugin name is required")
+            return r.fail("Plugin name is required")
         try:
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
-            return r[object].fail(
+            return r.fail(
                 "flext-plugin integration unavailable; install flext-plugin"
             )
         if _name not in self._plugins:
-            return r[object].fail(f"Plugin '{_name}' not found")
-        return r[object].ok(self._plugins[_name])
+            return r.fail(f"Plugin '{_name}' not found")
+        return r.ok(self._plugins[_name])
 
     def get_primary_key_columns(
         self, table_name: str, schema_name: str | None = None
@@ -980,7 +980,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def transaction(self) -> Generator[object]:
+    def transaction(self) -> Generator:
         """Get transaction context for database operations."""
         engine = self._engine
         if engine is None:
@@ -1044,11 +1044,11 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Get current timestamp for operation tracking."""
         return str(int(time.time()))
 
-    def _get_engine(self) -> r[object]:
+    def _get_engine(self) -> r:
         """Get database engine."""
         if not self._engine or not self.is_connected():
-            return r[object].fail("Not connected to database")
-        return r[object].ok(self._engine)
+            return r.fail("Not connected to database")
+        return r.ok(self._engine)
 
     def _normalize_query_rows(self, query_result: t.ContainerValue) -> list[m.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""

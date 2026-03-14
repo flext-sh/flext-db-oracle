@@ -56,7 +56,7 @@ class FlextDbOracleModels(FlextModels):
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: Annotated[Sequence[object], Field(default_factory=list)]
+            values: Annotated[Sequence, Field(default_factory=list)]
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -228,13 +228,13 @@ class FlextDbOracleModels(FlextModels):
             model_config = ConfigDict(frozen=False, extra="ignore")
 
             query: str
-            result_data: Annotated[Sequence[object], Field(default_factory=list)]
+            result_data: Annotated[Sequence, Field(default_factory=list)]
             row_count: int = 0
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
             columns: Annotated[list[str], Field(default_factory=list)]
-            rows: Annotated[Sequence[object], Field(default_factory=list)]
+            rows: Annotated[Sequence, Field(default_factory=list)]
             query_hash: Annotated[
                 str, Field(default="", description="Query hash for caching")
             ]
@@ -370,7 +370,7 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: Annotated[Sequence[object], Field(default_factory=list)]
+            columns: Annotated[Sequence, Field(default_factory=list)]
             primary_keys: Annotated[list[str], Field(default_factory=list)]
 
             def __getitem__(self, key: str) -> t.ContainerValue:
@@ -416,7 +416,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             owner: str = ""
-            columns: Annotated[Sequence[object], Field(default_factory=list)]
+            columns: Annotated[Sequence, Field(default_factory=list)]
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -468,7 +468,7 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: Annotated[Sequence[object], Field(default_factory=list)]
+            tables: Annotated[Sequence, Field(default_factory=list)]
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""

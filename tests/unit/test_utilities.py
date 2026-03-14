@@ -242,7 +242,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.escape_oracle_identifier(long_identifier)
         assert result.is_success
 
-    _JSON_RESULT_ADAPTER: TypeAdapter[object] = TypeAdapter(object)
+    _JSON_RESULT_ADAPTER: TypeAdapter = TypeAdapter(object)
 
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""

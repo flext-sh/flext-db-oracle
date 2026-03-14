@@ -304,14 +304,14 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
-    def get_plugin(self, name: str) -> r[object] | _NullPluginResult:
+    def get_plugin(self, name: str) -> r | _NullPluginResult:
         """Get a registered plugin by name."""
         if name not in self._plugins:
-            return r[object].fail(f"Plugin '{name}' not found")
+            return r.fail(f"Plugin '{name}' not found")
         plugin = self._plugins[name]
         if plugin is None:
             return _NullPluginResult()
-        return r[object].ok(plugin)
+        return r.ok(plugin)
 
     def get_primary_keys(self, table: str, schema: str | None = None) -> r[list[str]]:
         """Get primary key column names for specified table."""
