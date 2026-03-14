@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_core import FlextTypes, m as _core_m
+from flext_core import FlextTypes, m as _core_m, t
 
 from flext_db_oracle.models import FlextDbOracleModels
 
@@ -189,3 +189,6 @@ class FlextDbOracleTypes(FlextTypes):
 
 t = FlextDbOracleTypes
 __all__ = ["FlextDbOracleTypes", "t"]
+
+
+type CliScalar = t.Scalar | None

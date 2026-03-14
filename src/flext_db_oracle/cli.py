@@ -25,10 +25,10 @@ from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import CliScalar
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
-type CliScalar = t.Scalar | None
 
 
 class NamedItem(BaseModel):
