@@ -27,7 +27,9 @@ from flext_db_oracle.typings import t
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
 _GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Container])
-_CONFIG_DICT_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
+_CONFIG_DICT_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(
+    dict[str, t.ContainerValue]
+)
 
 
 def _validate_config_map(

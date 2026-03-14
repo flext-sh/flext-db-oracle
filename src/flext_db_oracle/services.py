@@ -33,7 +33,7 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class _ObjectRows(RootModel[list[object]]):
+class _ObjectRows(RootModel[list[t.ContainerValue]]):
     """Pydantic root model for generic list payloads."""
 
     root: list[object]
@@ -799,7 +799,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
         | object
-        | Mapping[str, object],
+        | Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
         raw_properties: object | None = None
@@ -880,7 +880,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             else m.ConfigMap(_tags)
         )
         tags_payload = (
-            typed_tags.root if typed_tags is not None else dict[str, object]()
+            typed_tags.root if typed_tags is not None else dict[str, t.ContainerValue]()
         )
         metric_result = metric_factory(
             name=_name, value=_value, tags=m.Dict(tags_payload)

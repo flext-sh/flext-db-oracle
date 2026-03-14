@@ -391,7 +391,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @classmethod
     def to_dict(
-        cls, obj: BaseModel | Mapping[str, object] | None = None
+        cls, obj: BaseModel | Mapping[str, t.ContainerValue] | None = None
     ) -> m.ConfigMap:
         """Convert supported objects to ConfigMap via flext-core mixins."""
         if obj is None and cls.to_dict_source is not None:
@@ -422,9 +422,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 "connected": self._services.is_connected(),
                 "transaction_available": True,
             }
-            return r[Mapping[str, object]].ok(status)
+            return r[Mapping[str, t.ContainerValue]].ok(status)
         except (AttributeError, RuntimeError, ValueError) as e:
-            return r[Mapping[str, object]].fail(f"Transaction status check failed: {e}")
+            return r[Mapping[str, t.ContainerValue]].fail(
+                f"Transaction status check failed: {e}"
+            )
 
     def unregister_plugin(self, name: str) -> r[bool]:
         """Unregister a plugin from local API registry."""

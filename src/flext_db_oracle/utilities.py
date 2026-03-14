@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from enum import StrEnum
 from typing import Annotated
 
-from flext_core import FlextUtilities, r
+from flext_core import FlextUtilities, r, t
 from pydantic import BeforeValidator, TypeAdapter
 
 from flext_db_oracle.constants import c
@@ -146,12 +146,14 @@ class FlextDbOracleUtilities(FlextUtilities):
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
-    _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(
-        dict[str, object]
+    _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+        dict[str, t.ContainerValue]
     )
 
     @staticmethod
-    def generate_query_hash(query: str, params: Mapping[str, object] | None) -> r[str]:
+    def generate_query_hash(
+        query: str, params: Mapping[str, t.ContainerValue] | None
+    ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
         serialized = FlextDbOracleUtilities._HASH_PARAMS_ADAPTER.dump_json(

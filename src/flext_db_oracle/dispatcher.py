@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r
+from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -145,7 +145,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters_list = command.parameters_list
             else:
                 sql = ""
-                parameters_list = list[Mapping[str, object]]()
+                parameters_list = list[Mapping[str, t.ContainerValue]]()
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {
