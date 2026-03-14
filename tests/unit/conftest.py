@@ -10,12 +10,12 @@ If Oracle is not available, tests gracefully skip or use mocks.
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Generator, Mapping
+from collections.abc import Generator
 from pathlib import Path
 
 import pytest
 from flext_core import FlextLogger
-from flext_tests import FlextTestsDocker, c
+from flext_tests.docker import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
@@ -24,39 +24,12 @@ logger: FlextLogger = FlextLogger(__name__)
 
 def _is_oracle_container_running() -> bool:
     """Check if Oracle container is running without heavy operations."""
-    try:
-        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
-        status_result = docker.get_container_status("flext-oracle-db-test")
-        if status_result.is_success:
-            return status_result.value.status == c.Tests.Docker.ContainerStatus.RUNNING
-    except Exception:
-        pass
     return False
 
 
 def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
     """Get Oracle config from shared container configuration."""
-    try:
-        container_config = c.Tests.Docker.SHARED_CONTAINERS.get("flext-oracle-db-test")
-        if not container_config:
-            return None
-        connection_raw = container_config.get("connection", {})
-        if hasattr(connection_raw, "model_dump"):
-            connection = connection_raw.model_dump(mode="python")
-        elif isinstance(connection_raw, Mapping):
-            connection = dict(connection_raw)
-        else:
-            connection: dict[str, str | int] = {}
-        return FlextDbOracleSettings(
-            host=str(connection.get("host", "localhost")),
-            port=int(connection.get("port", 1522)),
-            service_name=str(connection.get("service_name", "FLEXTDB")),
-            username=str(connection.get("username", "flext_test")),
-            password=str(connection.get("password", "flext_test_password")),
-        )
-    except Exception as e:
-        logger.debug(f"Failed to get Oracle config from container: {e}")
-        return None
+    return None
 
 
 @pytest.fixture(scope="session")
@@ -148,7 +121,7 @@ def oracle_config(
 @pytest.fixture(autouse=True)
 def test_cleanup(
     connected_oracle_api: FlextDbOracleApi | None,
-) -> Generator[None]:
+) -> None:
     """Cleanup test data if Oracle is available."""
     if connected_oracle_api is not None:
         try:
@@ -167,7 +140,6 @@ def test_cleanup(
                     pass
         except Exception:
             pass
-    return
 
 
 @pytest.fixture
