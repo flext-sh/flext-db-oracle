@@ -67,6 +67,7 @@ class TestBasicModelCreation:
         assert config.port == 1521
         assert config.service_name == "TEST"
         assert config.username == "testuser"
+        assert config.password is not None
         assert config.password.get_secret_value() == "testpass"
 
     def test_oracle_config_with_ssl(self) -> None:

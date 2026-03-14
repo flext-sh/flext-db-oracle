@@ -14,7 +14,6 @@ import os
 import threading
 import time
 from threading import Thread
-from typing import cast
 
 import pytest
 from flext_core import r
@@ -662,7 +661,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list]:
+        def create_test_schema_data() -> dict[str, str | list[dict[str, str | bool]]]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -760,10 +759,9 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "execute_sql"):
-            result: r[int] = api.execute_sql(
-                str(test_query["query"]),
-                cast("dict[str, object]", test_query["params"]),
-            )
+            query_params = test_query["params"]
+            params = query_params if isinstance(query_params, dict) else {}
+            result: r[int] = api.execute_sql(str(test_query["query"]), params)
             assert isinstance(result, r)
 
     def test_flext_db_oracle_api_get_metadata(self) -> None:

@@ -13,12 +13,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import FlextTestsModels
-
 from flext_db_oracle.models import FlextDbOracleModels
 
 
-class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
+class TestsFlextDbOracleModels(FlextDbOracleModels):
     """Models for flext-db-oracle tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
@@ -39,11 +37,10 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     - All production models come from FlextDbOracleModels
     """
 
-    class Tests(FlextTestsModels.Tests):
+    class Tests:
         """Project-specific test fixtures namespace.
 
         Provides test fixtures for flext-db-oracle testing.
-        Extends the base FlextTestsModels.Tests namespace.
         """
 
         class Oracle:

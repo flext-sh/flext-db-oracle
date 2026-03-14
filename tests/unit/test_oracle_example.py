@@ -9,20 +9,20 @@ from __future__ import annotations
 
 import contextlib
 
-from flext_core import FlextModelsContainers, r
-from flext_core._models.containers import FlextModelsContainers
-from src.flext_core._models.containers import FlextModelsContainers
+from flext_core import r
 
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    m,
+    t,
 )
 
 
 def safe_get_first_value(
-    data: FlextModelsContainers.Dict | list[FlextModelsContainers.Dict],
-):
+    data: m.Dict | list[m.Dict],
+) -> t.ContainerValue:
     """Safely get first value from various data structures."""
     if hasattr(data, "root"):
         data = data.root

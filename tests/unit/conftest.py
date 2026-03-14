@@ -46,7 +46,7 @@ def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
         elif isinstance(connection_raw, Mapping):
             connection = dict(connection_raw)
         else:
-            connection = {}
+            connection: dict[str, str | int] = {}
         return FlextDbOracleSettings(
             host=str(connection.get("host", "localhost")),
             port=int(connection.get("port", 1522)),
@@ -146,7 +146,9 @@ def oracle_config(
 
 
 @pytest.fixture(autouse=True)
-def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[None]:
+def test_cleanup(
+    connected_oracle_api: FlextDbOracleApi | None,
+) -> Generator[None]:
     """Cleanup test data if Oracle is available."""
     if connected_oracle_api is not None:
         try:

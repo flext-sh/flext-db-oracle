@@ -538,7 +538,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str):
+        def fake_import(name: str) -> SimpleNamespace:
             if name == "flext_observability":
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -554,7 +554,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         service = self._make_service()
         calls: list[dict[str, object]] = []
 
-        def fake_flext_metric(*, name: str, value: float, tags) -> _StubResult:
+        def fake_flext_metric(*, name: str, value: float, tags: m.Dict) -> _StubResult:
             calls.append({"name": name, "value": value, "tags": tags})
             return _StubResult()
 
@@ -576,7 +576,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str):
+        def fake_import(name: str) -> SimpleNamespace:
             if name == "flext_observability":
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -606,7 +606,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
     ) -> None:
         service = self._make_service()
 
-        def fake_import(name: str):
+        def fake_import(name: str) -> SimpleNamespace:
             if name in {"flext_plugin.api", "flext_plugin.models"}:
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")

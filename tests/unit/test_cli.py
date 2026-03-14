@@ -24,6 +24,7 @@ from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
+    m,
 )
 from flext_db_oracle.cli import HealthCheckReport, NamedItem
 
@@ -251,6 +252,7 @@ class TestOracleConnectionHelper:
         assert config.port == 1522
         assert config.service_name == "TEST_SERVICE"
         assert config.username == "test_user"
+        assert config.password is not None
         assert config.password.get_secret_value() == "test_password"
 
     def test_create_config_from_params_defaults(self) -> None:
@@ -403,8 +405,8 @@ class TestOutputFormatter:
         """Test list output formatting with dict[str, object] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: list[NamedItem] = [
-            NamedItem({"name": "table1", "type": "TABLE"}),
-            NamedItem({"name": "table2", "type": "VIEW"}),
+            NamedItem(name="table1"),
+            NamedItem(name="table2"),
             NamedItem(name="unnamed"),
         ]
         result = formatter.format_list_output(items, "Database Objects", "table")
@@ -627,9 +629,9 @@ class TestCliServiceOperations:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: list[dict[str, object]] = [
-            {"id": 1, "name": "test"},
-            {"id": 2, "name": "test2"},
+        mock_result: list[m.Dict] = [
+            m.Dict(root={"id": 1, "name": "test"}),
+            m.Dict(root={"id": 2, "name": "test2"}),
         ]
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
@@ -637,7 +639,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = r[list].ok(mock_result)
+            mock_query.return_value = r[list[m.Dict]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,
