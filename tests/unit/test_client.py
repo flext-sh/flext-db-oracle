@@ -14,13 +14,9 @@ class TestFlextDbOracleClientRealFunctionality:
 
     def test_client_creation(self) -> None:
         """Test client can be created."""
-        # Create config first
         FlextDbOracleSettings(
-            host="test-host",
-            username="test-user",
-            password="test-password",
+            host="test-host", username="test-user", password="test-password"
         )
-        # Create client without passing config (it will create default internally)
         client = FlextDbOracleClient()
         assert client is not None
         assert hasattr(client, "logger")

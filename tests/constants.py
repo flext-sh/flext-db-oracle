@@ -15,8 +15,9 @@ from __future__ import annotations
 
 from typing import Final
 
+from flext_tests import FlextTestsConstants
+
 from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_tests.constants import FlextTestsConstants
 
 
 class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
@@ -27,11 +28,11 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
     2. FlextDbOracleConstants - for domain constants (.Oracle.*)
 
     Access patterns:
-    - tc.Tests.Docker.* (container testing)
-    - tc.Tests.Matcher.* (assertion messages)
-    - tc.Tests.Factory.* (test data generation)
-    - tc.Oracle.* (domain constants from production)
-    - tc.TestConnection.* (project-specific test data)
+    - c.Tests.Docker.* (container testing)
+    - c.Tests.Matcher.* (assertion messages)
+    - c.Tests.Factory.* (test data generation)
+    - c.Oracle.* (domain constants from production)
+    - c.TestConnection.* (project-specific test data)
 
     Rules:
     - NEVER duplicate constants from FlextTestsConstants or FlextDbOracleConstants
@@ -86,12 +87,5 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
         TEST_NULLABLE: Final[bool] = True
 
 
-# Short aliases per FLEXT convention
-tc = TestsFlextDbOracleConstants  # Primary test constants alias
-c = TestsFlextDbOracleConstants  # Alternative alias for compatibility
-
-__all__ = [
-    "TestsFlextDbOracleConstants",
-    "c",
-    "tc",
-]
+c = TestsFlextDbOracleConstants
+__all__ = ["TestsFlextDbOracleConstants", "c"]

@@ -13,8 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import FlextTestsModels
+
 from flext_db_oracle.models import FlextDbOracleModels
-from flext_tests.models import FlextTestsModels
 
 
 class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
@@ -38,7 +39,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     - All production models come from FlextDbOracleModels
     """
 
-    class Tests:
+    class Tests(FlextTestsModels.Tests):
         """Project-specific test fixtures namespace.
 
         Provides test fixtures for flext-db-oracle testing.
@@ -51,7 +52,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
 
 # Short aliases per FLEXT convention
 tm = TestsFlextDbOracleModels  # Primary test models alias
-m = TestsFlextDbOracleModels  # Alternative alias for production model access
+m = TestsFlextDbOracleModels  # Production alias (for from tests.models import m)
 
 __all__ = [
     "TestsFlextDbOracleModels",

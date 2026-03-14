@@ -53,13 +53,13 @@ config = OracleConfig(
     port=1521,
     service_name="XEPDB1",
     username="system",
-    password="Oracle123"
+    password="Oracle123",
 )
 
 # Create API instance with FLEXT patterns
 api = FlextDbOracleApi(config)
 
-# Test connection using FlextResult pattern
+# Test connection using r pattern
 connection_result = api.test_connection()
 if connection_result.is_success:
     print("✅ Connected to Oracle successfully")
@@ -74,8 +74,7 @@ else:
 ```python
 # Execute SELECT query with parameters
 result = api.query(
-    "SELECT table_name FROM user_tables WHERE rownum <= :limit",
-    {"limit": 5}
+    "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
 )
 
 if result.is_success:
@@ -168,7 +167,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 **Working Features**:
 
 - SQLAlchemy 2.0 integration with Oracle
-- FlextResult error handling patterns
+- r error handling patterns
 - Connection pooling and management
 - Schema introspection (tables, columns)
 - Query execution with parameter binding
@@ -211,7 +210,7 @@ ______________________________________________________________________
 
 - [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/architecture/overview.md) - Clean architecture and CQRS patterns
 - [flext-core Service Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns and dependency injection
-- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/CLAUDE.md) - Oracle Integration Cloud patterns
+- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
 
 **External Resources**:
 

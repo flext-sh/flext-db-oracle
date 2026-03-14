@@ -178,27 +178,23 @@ def test_complete_cli_workflow():
     runner = CliRunner()
 
     # Step 1: Test database connection
-    connection_result = runner.invoke(oracle_cli, [
-        'connect-env'
-    ])
+    connection_result = runner.invoke(oracle_cli, ["connect-env"])
     assert connection_result.exit_code == 0
     assert "Connection Successful" in connection_result.output
 
     # Step 2: Execute data query
-    query_result = runner.invoke(oracle_cli, [
-        'query',
-        '--sql', 'SELECT COUNT(*) as customer_count FROM customers'
-    ])
+    query_result = runner.invoke(
+        oracle_cli,
+        ["query", "--sql", "SELECT COUNT(*) as customer_count FROM customers"],
+    )
     assert query_result.exit_code == 0
     assert "customer_count" in query_result.output
 
     # Step 3: List schemas and tables
-    schema_result = runner.invoke(oracle_cli, ['schemas'])
+    schema_result = runner.invoke(oracle_cli, ["schemas"])
     assert schema_result.exit_code == 0
 
-    table_result = runner.invoke(oracle_cli, [
-        'tables', '--schema', 'FLEXT_E2E'
-    ])
+    table_result = runner.invoke(oracle_cli, ["tables", "--schema", "FLEXT_E2E"])
     assert table_result.exit_code == 0
     assert "customers" in table_result.output
     assert "orders" in table_result.output
@@ -238,10 +234,13 @@ def test_api_integration_workflow():
         assert query_result.value.row_count > 0
 
         # Test plugin operations
-        plugin_result = api.execute_with_plugins("performance_monitor", {
-            "sql": "SELECT * FROM customers WHERE status = 'ACTIVE'",
-            "threshold_ms": 1000
-        })
+        plugin_result = api.execute_with_plugins(
+            "performance_monitor",
+            {
+                "sql": "SELECT * FROM customers WHERE status = 'ACTIVE'",
+                "threshold_ms": 1000,
+            },
+        )
         assert plugin_result.success
 ```
 
@@ -306,7 +305,7 @@ def test_high_volume_operations():
         # In production, use SQLAlchemy 2.0 Core API instead of string concatenation
         concurrent_queries = []
         for i in range(10):
-            query = f"SELECT * FROM customers WHERE id BETWEEN {i*100} AND {(i+1)*100}"
+            query = f"SELECT * FROM customers WHERE id BETWEEN {i * 100} AND {(i + 1) * 100}"
             concurrent_queries.append(query)
 
         # Execute queries concurrently and measure performance

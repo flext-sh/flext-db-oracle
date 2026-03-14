@@ -176,13 +176,13 @@ graph TB
 ```python
 # Key exports
 __all__ = [
-    "FlextDbOracleApi",      # Main API
-    "FlextDbOracleCli",      # CLI interface
-    "FlextDbOracleClient",   # Client operations
-    "FlextDbOracleSettings",   # Configuration
-    "FlextDbOracleConstants", # Constants
+    "FlextDbOracleApi",  # Main API
+    "FlextDbOracleCli",  # CLI interface
+    "FlextDbOracleClient",  # Client operations
+    "FlextDbOracleSettings",  # Configuration
+    "FlextDbOracleConstants",  # Constants
     # ... 9 more classes
-    "__version__",           # Version info
+    "__version__",  # Version info
     "__version_info__",
 ]
 ```
@@ -211,12 +211,12 @@ __all__ = [
 **Key Methods**:
 
 ```python
-def connect(self, config: OracleConfig) -> FlextResult[Connection]
-def execute_query(self, sql: str, params: dict[str, object] = None) -> FlextResult[QueryResult]
-def get_schema_info(self, schema: str) -> FlextResult[SchemaInfo]
-def begin_transaction(self) -> FlextResult[Transaction]
-def commit_transaction(self) -> FlextResult[bool]
-def rollback_transaction(self) -> FlextResult[bool]
+def connect(self, config: OracleConfig) -> r[Connection]
+def execute_query(self, sql: str, params: dict[str, object] = None) -> r[QueryResult]
+def get_schema_info(self, schema: str) -> r[SchemaInfo]
+def begin_transaction(self) -> r[Transaction]
+def commit_transaction(self) -> r[bool]
+def rollback_transaction(self) -> r[bool]
 ```
 
 ### Service Layer
@@ -351,7 +351,7 @@ def rollback_transaction(self) -> FlextResult[bool]
 **Purpose**: Type-safe interfaces without inheritance
 **Features**:
 
-- ConnectionProtocol, QueryProtocol, ResultProtocol
+- Connection, Query, Result
 - Structural subtyping for clean interfaces
 
 #### `typings.py` (Type Aliases)
@@ -392,7 +392,7 @@ def rollback_transaction(self) -> FlextResult[bool]
 
 - **Pyrefly Strict Mode**: ✅ Compliant (0 errors)
 - **Type Annotations**: ✅ 100% coverage
-- **Generic Types**: ✅ Full FlextResult[T] support
+- **Generic Types**: ✅ Full r[T] support
 - **Protocol Usage**: ✅ 8 structural typing protocols
 
 ### Code Quality Standards

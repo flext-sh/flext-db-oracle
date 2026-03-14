@@ -50,7 +50,7 @@
 
 - **Total Codebase**: 16 Python files, ~4,517 lines
 - **Test Coverage**: ~95% (30 test files, some failing due to import/integration issues)
-- **FLEXT Integration**: Complete (FlextResult, FlextService, FlextContainer)
+- **FLEXT Integration**: Complete (r, FlextService, FlextContainer)
 - **Oracle Compatibility**: SQLAlchemy 2.0 + oracledb 3.2+
 - **Type Safety**: Pyrefly strict mode compliant (with Pydantic deprecation warnings)
 
@@ -62,7 +62,7 @@ ______________________________________________________________________
 
 #### Flext-Core Integration
 
-- ✅ **FlextResult<T>**: 784+ occurrences across codebase
+- ✅ **`r[T]`**: 784+ occurrences across codebase
 - ✅ **FlextService**: FlextDbOracleApi extends base service
 - ✅ **FlextContainer**: Dependency injection implemented
 - ✅ **FlextLogger**: Structured logging integrated
@@ -75,7 +75,7 @@ ______________________________________________________________________
 - ✅ **Query Execution**: Parameter binding, result processing
 - ✅ **Schema Introspection**: Tables, columns, metadata extraction
 - ✅ **Transaction Management**: ACID compliance patterns
-- ✅ **Error Handling**: FlextResult railway pattern throughout
+- ✅ **Error Handling**: r railway pattern throughout
 
 #### Module Architecture
 
@@ -154,7 +154,7 @@ ______________________________________________________________________
 
 #### Documentation Files
 
-- ✅ **CLAUDE.md**: Development guide with current patterns
+- ✅ **AGENTS.md**: Development guide with current patterns
 - ✅ **README.md**: Project overview and quick start
 - ✅ **docs/README.md**: Documentation index
 - ✅ **docs/architecture.md**: System design documentation
@@ -189,7 +189,7 @@ ______________________________________________________________________
 #### 1. **FLEXT-Core Integration Complexity**
 
 **Challenge**: Integrating with 32+ dependent projects while maintaining backward compatibility
-**Solution**: Implemented complete FlextResult migration, maintained both `.data` and `.value` APIs
+**Solution**: Implemented complete r migration, maintained both `.data` and `.value` APIs
 **Impact**: Zero breaking changes across ecosystem
 
 #### 2. **SQLAlchemy Abstraction Design**
@@ -215,7 +215,7 @@ ______________________________________________________________________
 #### 1. **Railway Pattern Throughout**
 
 ```python
-# All operations return FlextResult
+# All operations return r
 result = api.connect(config)
 if result.is_success:
     connection = result.unwrap()

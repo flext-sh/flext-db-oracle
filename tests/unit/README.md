@@ -96,7 +96,7 @@ pytest tests/unit/ -x --tb=short
 ### **Mock-Based Testing**
 
 ```python
-@patch('flext_db_oracle.connection.create_engine')
+@patch("flext_db_oracle.connection.create_engine")
 def test_connection_with_mocked_engine(mock_create_engine):
     """Test connection creation with mocked SQLAlchemy engine."""
     # Arrange
@@ -123,7 +123,7 @@ def test_config_validation_with_invalid_host():
         port=1521,
         username="test_user",
         password=SecretStr("test_pass"),
-        service_name="TEST"
+        service_name="TEST",
     )
 
     # Act

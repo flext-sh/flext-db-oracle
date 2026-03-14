@@ -6,140 +6,112 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Protocol, runtime_checkable
 
-from flext_core.protocols import p
+from flext_core import FlextProtocols, r
+
+from flext_db_oracle.models import m
 from flext_db_oracle.typings import t
 
 
-class FlextDbOracleProtocols(p):
-    """Oracle database protocols extending p.
+class FlextDbOracleProtocols(FlextProtocols):
+    """Oracle database protocols extending FlextProtocols.
 
-    Extends p to inherit all foundation protocols (Result, Service, etc.)
-    and adds Oracle-specific protocols in the Database namespace.
+    Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
+    and adds Oracle-specific protocols in the DbOracle namespace.
 
     Architecture:
-    - EXTENDS: p (inherits Foundation, Domain, Application, etc.)
-    - ADDS: Oracle-specific protocols in Database namespace
-    - PROVIDES: Root-level alias `p` for convenient access
+    - EXTENDS: FlextProtocols (inherits Foundation, Domain, Application, etc.)
+    - ADDS: Oracle-specific protocols in DbOracle namespace
 
     Usage:
-    from flext_db_oracle.protocols import p
+    from flext_db_oracle.protocols import FlextDbOracleProtocols
 
     # Foundation protocols (inherited)
-    result: p.Result[str]
-    service: p.Service[str]
+    result: FlextDbOracleProtocols.Result[str]
+    service: FlextDbOracleProtocols.Service[str]
 
     # Oracle-specific protocols
-    connection: p.Database.ConnectionProtocol
-    query: p.Database.QueryExecutorProtocol
+    connection: FlextDbOracleProtocols.Database.Connection
+    query: FlextDbOracleProtocols.Database.QueryExecutor
     """
-
-    # =========================================================================
-    # INHERITED FOUNDATION PROTOCOLS - Available from p
-    # =========================================================================
-    # Foundation, Domain, Application, Infrastructure, Extensions, Commands
-    # are all inherited from p parent class
-
-    # =========================================================================
-    # ORACLE DATABASE-SPECIFIC PROTOCOLS - Domain extension for database operations
-    # =========================================================================
 
     class DbOracle:
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
-        class ConnectionProtocol(p.Service, Protocol):
+        class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 
-            def connect(self) -> p.Result[bool]:
+            def connect(self) -> r[bool]:
                 """Establish Oracle database connection.
 
                 Returns:
                 r[bool]: Connection success status
 
                 """
-                ...  # INTERFACE  # INTERFACE
+                ...
 
-            def disconnect(self) -> p.Result[bool]:
+            def disconnect(self) -> r[bool]:
                 """Close Oracle database connection.
 
                 Returns:
                 r[bool]: Disconnection success status
 
                 """
-                ...  # INTERFACE  # INTERFACE
+                ...
 
-            def is_connected(self) -> p.Result[bool]:
+            def is_connected(self) -> r[bool]:
                 """Check if Oracle connection is active.
 
                 Returns:
                 r[bool]: Connection status
 
                 """
-                ...  # INTERFACE  # INTERFACE
+                ...
 
-            def test_connection(self) -> p.Result[bool]:
+        @runtime_checkable
+        class OraclePlugin(Protocol):
+            """Protocol for Oracle database plugins.
+
+            All plugins registered with the FlextDbOracle plugin system
+            must satisfy this protocol.
+            """
+
+            def get_connection(self) -> r[object]:
+                """Get current Oracle connection object.
+
+                Returns:
+                r[object]: Connection object or error
+
+                """
+                ...
+
+            def initialize(self) -> r[bool]:
+                """Initialize the plugin."""
+                ...
+
+            def shutdown(self) -> r[bool]:
+                """Shutdown the plugin."""
+                ...
+
+            def test_connection(self) -> r[bool]:
                 """Test Oracle database connectivity.
 
                 Returns:
                 r[bool]: Connection test result
 
                 """
-                ...  # INTERFACE  # INTERFACE
-
-            def get_connection(self) -> p.Result[t.JsonValue]:
-                """Get current Oracle connection object.
-
-                Returns:
-                r[t.JsonValue]: Connection object or error
-
-                """
-                ...  # INTERFACE  # INTERFACE
+                ...
 
         @runtime_checkable
-        class QueryExecutorProtocol(p.Service, Protocol):
+        class QueryExecutor(Protocol):
             """Protocol for Oracle query execution operations."""
 
-            def execute_query(
-                self,
-                sql: str,
-                params: dict[str, t.JsonValue] | None = None,
-            ) -> p.Result[t.JsonValue]:
-                """Execute Oracle SQL query.
-
-                Args:
-                sql: SQL query string
-                params: Query parameters
-
-                Returns:
-                r[t.JsonValue]: Query result or error
-
-                """
-                ...  # INTERFACE  # INTERFACE
-
-            def execute_statement(
-                self,
-                sql: str,
-                params: dict[str, t.JsonValue] | None = None,
-            ) -> p.Result[bool]:
-                """Execute Oracle SQL statement.
-
-                Args:
-                sql: SQL statement string
-                params: Statement parameters
-
-                Returns:
-                r[bool]: Execution success status
-
-                """
-                ...  # INTERFACE  # INTERFACE
-
             def execute_many(
-                self,
-                sql: str,
-                params_list: list[dict[str, t.JsonValue]],
-            ) -> p.Result[int]:
+                self, sql: str, params_list: list[Mapping[str, t.ContainerValue]]
+            ) -> r[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
                 Args:
@@ -150,13 +122,41 @@ class FlextDbOracleProtocols(p):
                 r[int]: Number of affected rows
 
                 """
-                ...  # INTERFACE  # INTERFACE
+                ...
+
+            def execute_query(
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+            ) -> r[object]:
+                """Execute Oracle SQL query.
+
+                Args:
+                sql: SQL query string
+                params: Query parameters
+
+                Returns:
+                r[object]: Query result or error
+
+                """
+                ...
+
+            def execute_statement(
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+            ) -> r[bool]:
+                """Execute Oracle SQL statement.
+
+                Args:
+                sql: SQL statement string
+                params: Statement parameters
+
+                Returns:
+                r[bool]: Execution success status
+
+                """
+                ...
 
             def fetch_one(
-                self,
-                sql: str,
-                params: dict[str, t.JsonValue] | None = None,
-            ) -> p.Result[t.JsonValue | None]:
+                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+            ) -> r[object | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -164,44 +164,18 @@ class FlextDbOracleProtocols(p):
                 params: Query parameters
 
                 Returns:
-                r[t.JsonValue | None]: Single result or None
+                r[object | None]: Single result or None
 
                 """
-                ...  # INTERFACE
+                ...
 
         @runtime_checkable
-        class SchemaIntrospectorProtocol(p.Service, Protocol):
+        class SchemaIntrospector(Protocol):
             """Protocol for Oracle schema introspection operations."""
 
-            def get_schemas(self) -> p.Result[list[str]]:
-                """Get list of Oracle schemas.
-
-                Returns:
-                r[list[str]]: Schema names or error
-
-                """
-                ...  # INTERFACE
-
-            def get_tables(
-                self,
-                schema: str | None = None,
-            ) -> p.Result[list[str]]:
-                """Get list of tables in Oracle schema.
-
-                Args:
-                schema: Schema name (optional)
-
-                Returns:
-                r[list[str]]: Table names or error
-
-                """
-                ...  # INTERFACE
-
             def get_columns(
-                self,
-                table: str,
-                schema: str | None = None,
-            ) -> p.Result[list[dict[str, t.JsonValue]]]:
+                self, table: str, schema: str | None = None
+            ) -> r[list[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -209,33 +183,14 @@ class FlextDbOracleProtocols(p):
                 schema: Schema name (optional)
 
                 Returns:
-                r[list[dict[str, t.JsonValue]]]: Column metadata or error
+                r[list[dict[str, t.ContainerValue]]]: Column metadata or error
 
                 """
-                ...  # INTERFACE
-
-            def get_table_metadata(
-                self,
-                table: str,
-                schema: str | None = None,
-            ) -> p.Result[dict[str, t.JsonValue]]:
-                """Get Oracle table metadata.
-
-                Args:
-                table: Table name
-                schema: Schema name (optional)
-
-                Returns:
-                r[dict[str, t.JsonValue]]: Table metadata or error
-
-                """
-                ...  # INTERFACE
+                ...
 
             def get_primary_keys(
-                self,
-                table: str,
-                schema: str | None = None,
-            ) -> p.Result[list[str]]:
+                self, table: str, schema: str | None = None
+            ) -> r[list[str]]:
                 """Get primary key columns for Oracle table.
 
                 Args:
@@ -246,11 +201,75 @@ class FlextDbOracleProtocols(p):
                 r[list[str]]: Primary key column names or error
 
                 """
-                ...  # INTERFACE
+                ...
+
+            def get_schemas(self) -> r[list[str]]:
+                """Get list of Oracle schemas.
+
+                Returns:
+                r[list[str]]: Schema names or error
+
+                """
+                ...
+
+            def get_table_metadata(
+                self, table: str, schema: str | None = None
+            ) -> r[m.DbOracle.TableMetadata]:
+                """Get Oracle table metadata.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[dict[str, t.ContainerValue]]: Table metadata or error
+
+                """
+                ...
+
+            def get_tables(self, schema: str | None = None) -> r[list[str]]:
+                """Get list of tables in Oracle schema.
+
+                Args:
+                schema: Schema name (optional)
+
+                Returns:
+                r[list[str]]: Table names or error
+
+                """
+                ...
 
         @runtime_checkable
-        class SqlBuilderProtocol(p.Service, Protocol):
+        class SqlBuilder(Protocol):
             """Protocol for Oracle SQL statement building operations."""
+
+            def build_delete_statement(self, table: str, where_clause: str) -> r[str]:
+                """Build Oracle DELETE statement.
+
+                Args:
+                table: Table name
+                where_clause: WHERE condition
+
+                Returns:
+                r[str]: SQL DELETE statement or error
+
+                """
+                ...
+
+            def build_insert_statement(
+                self, table: str, data: Mapping[str, t.ContainerValue]
+            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
+                """Build Oracle INSERT statement.
+
+                Args:
+                table: Table name
+                data: Column data
+
+                Returns:
+                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
+
+                """
+                ...
 
             def build_select(
                 self,
@@ -259,7 +278,7 @@ class FlextDbOracleProtocols(p):
                 where_clause: str | None = None,
                 order_by: str | None = None,
                 limit: int | None = None,
-            ) -> p.Result[str]:
+            ) -> r[str]:
                 """Build Oracle SELECT statement.
 
                 Args:
@@ -273,31 +292,14 @@ class FlextDbOracleProtocols(p):
                 r[str]: SQL SELECT statement or error
 
                 """
-                ...  # INTERFACE
-
-            def build_insert_statement(
-                self,
-                table: str,
-                data: dict[str, t.JsonValue],
-            ) -> p.Result[tuple[str, dict[str, t.JsonValue]]]:
-                """Build Oracle INSERT statement.
-
-                Args:
-                table: Table name
-                data: Column data
-
-                Returns:
-                r[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
-
-                """
-                ...  # INTERFACE
+                ...
 
             def build_update_statement(
                 self,
                 table: str,
-                data: dict[str, t.JsonValue],
+                data: Mapping[str, t.ContainerValue],
                 where_clause: str,
-            ) -> p.Result[tuple[str, dict[str, t.JsonValue]]]:
+            ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -306,67 +308,14 @@ class FlextDbOracleProtocols(p):
                 where_clause: WHERE condition
 
                 Returns:
-                r[tuple[str, dict[str, t.JsonValue]]]: SQL and parameters or error
+                r[tuple[str, dict[str, t.ContainerValue]]]: SQL and parameters or error
 
                 """
-                ...  # INTERFACE
-
-            def build_delete_statement(
-                self,
-                table: str,
-                where_clause: str,
-            ) -> p.Result[str]:
-                """Build Oracle DELETE statement.
-
-                Args:
-                table: Table name
-                where_clause: WHERE condition
-
-                Returns:
-                r[str]: SQL DELETE statement or error
-
-                """
-                ...  # INTERFACE
+                ...
 
         @runtime_checkable
-        class DdlGeneratorProtocol(p.Service, Protocol):
+        class DdlGenerator(Protocol):
             """Protocol for Oracle DDL generation operations."""
-
-            def create_table_ddl(
-                self,
-                table: str,
-                columns: list[dict[str, t.JsonValue]],
-                schema: str | None = None,
-            ) -> p.Result[str]:
-                """Generate Oracle CREATE TABLE DDL.
-
-                Args:
-                table: Table name
-                columns: Column definitions
-                schema: Schema name (optional)
-
-                Returns:
-                r[str]: CREATE TABLE DDL or error
-
-                """
-                ...  # INTERFACE
-
-            def drop_table_ddl(
-                self,
-                table: str,
-                schema: str | None = None,
-            ) -> p.Result[str]:
-                """Generate Oracle DROP TABLE DDL.
-
-                Args:
-                table: Table name
-                schema: Schema name (optional)
-
-                Returns:
-                r[str]: DROP TABLE DDL or error
-
-                """
-                ...  # INTERFACE
 
             def build_create_index_statement(
                 self,
@@ -375,7 +324,7 @@ class FlextDbOracleProtocols(p):
                 index_name: str | None = None,
                 *,
                 unique: bool = False,
-            ) -> p.Result[str]:
+            ) -> r[str]:
                 """Build Oracle CREATE INDEX statement.
 
                 Args:
@@ -388,18 +337,56 @@ class FlextDbOracleProtocols(p):
                 r[str]: CREATE INDEX statement or error
 
                 """
-                ...  # INTERFACE
+                ...
+
+            def create_table_ddl(
+                self,
+                table: str,
+                columns: list[m.DbOracle.Column],
+                schema: str | None = None,
+            ) -> r[str]:
+                """Generate Oracle CREATE TABLE DDL.
+
+                Args:
+                table: Table name
+                columns: Column definitions
+                schema: Schema name (optional)
+
+                Returns:
+                r[str]: CREATE TABLE DDL or error
+
+                """
+                ...
+
+            def drop_table_ddl(self, table: str, schema: str | None = None) -> r[str]:
+                """Generate Oracle DROP TABLE DDL.
+
+                Args:
+                table: Table name
+                schema: Schema name (optional)
+
+                Returns:
+                r[str]: DROP TABLE DDL or error
+
+                """
+                ...
 
         @runtime_checkable
-        class MetricsCollectorProtocol(p.Service, Protocol):
+        class MetricsCollector(Protocol):
             """Protocol for Oracle database metrics collection."""
 
+            def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
+                """Get collected Oracle metrics.
+
+                Returns:
+                r[dict[str, t.ContainerValue]]: Metrics data or error
+
+                """
+                ...
+
             def record_metric(
-                self,
-                name: str,
-                value: float,
-                tags: dict[str, str] | None = None,
-            ) -> p.Result[bool]:
+                self, name: str, value: float, tags: Mapping[str, str] | None = None
+            ) -> r[bool]:
                 """Record Oracle database metric.
 
                 Args:
@@ -411,26 +398,11 @@ class FlextDbOracleProtocols(p):
                 r[bool]: Success status
 
                 """
-                ...  # INTERFACE
-
-            def get_metrics(
-                self,
-            ) -> p.Result[dict[str, t.JsonValue]]:
-                """Get collected Oracle metrics.
-
-                Returns:
-                r[dict[str, t.JsonValue]]: Metrics data or error
-
-                """
-                ...  # INTERFACE
+                ...
 
             def track_operation(
-                self,
-                operation: str,
-                duration: float,
-                *,
-                success: bool,
-            ) -> p.Result[bool]:
+                self, operation: str, duration: float, *, success: bool
+            ) -> r[bool]:
                 """Track Oracle operation performance.
 
                 Args:
@@ -442,17 +414,34 @@ class FlextDbOracleProtocols(p):
                 r[bool]: Tracking success status
 
                 """
-                ...  # INTERFACE
+                ...
 
         @runtime_checkable
-        class PluginRegistryProtocol(p.Service, Protocol):
+        class PluginRegistry(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def register_plugin(
-                self,
-                name: str,
-                _plugin: t.JsonValue,
-            ) -> p.Result[bool]:
+            def get_plugin(self, name: str) -> r[object]:
+                """Get Oracle database plugin by name.
+
+                Args:
+                name: Plugin name
+
+                Returns:
+                r[object]: Plugin instance or error
+
+                """
+                ...
+
+            def list_plugins(self) -> r[list[str]]:
+                """List registered Oracle database plugins.
+
+                Returns:
+                r[list[str]]: Plugin names or error
+
+                """
+                ...
+
+            def register_plugin(self, name: str, _plugin: t.ContainerValue) -> r[bool]:
                 """Register Oracle database plugin.
 
                 Args:
@@ -463,9 +452,9 @@ class FlextDbOracleProtocols(p):
                 r[bool]: Registration success status
 
                 """
-                ...  # INTERFACE
+                ...
 
-            def unregister_plugin(self, name: str) -> p.Result[bool]:
+            def unregister_plugin(self, name: str) -> r[bool]:
                 """Unregister Oracle database plugin.
 
                 Args:
@@ -475,60 +464,30 @@ class FlextDbOracleProtocols(p):
                 r[bool]: Unregistration success status
 
                 """
-                ...  # INTERFACE
-
-            def get_plugin(self, name: str) -> p.Result[t.JsonValue]:
-                """Get Oracle database plugin by name.
-
-                Args:
-                name: Plugin name
-
-                Returns:
-                r[t.JsonValue]: Plugin instance or error
-
-                """
-                ...  # INTERFACE
-
-            def list_plugins(self) -> p.Result[list[str]]:
-                """List registered Oracle database plugins.
-
-                Returns:
-                r[list[str]]: Plugin names or error
-
-                """
-                ...  # INTERFACE
+                ...
 
         @runtime_checkable
-        class HealthCheckProtocol(p.Service, Protocol):
+        class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def health_check(
-                self,
-            ) -> p.Result[dict[str, t.JsonValue]]:
-                """Perform Oracle database health check.
-
-                Returns:
-                r[dict[str, t.JsonValue]]: Health status or error
-
-                """
-                ...  # INTERFACE
-
-            def get_connection_status(
-                self,
-            ) -> p.Result[dict[str, t.JsonValue]]:
+            def get_connection_status(self) -> r[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:
-                r[dict[str, t.JsonValue]]: Connection status or error
+                r[dict[str, t.ContainerValue]]: Connection status or error
 
                 """
-                ...  # INTERFACE
+                ...
+
+            def health_check(self) -> r[m.DbOracle.HealthStatus]:
+                """Perform Oracle database health check.
+
+                Returns:
+                r[dict[str, t.ContainerValue]]: Health status or error
+
+                """
+                ...
 
 
-# Runtime alias for simplified usage
 p = FlextDbOracleProtocols
-
-__all__ = [
-    "FlextDbOracleProtocols",
-    "p",
-]
+__all__ = ["FlextDbOracleProtocols", "p"]

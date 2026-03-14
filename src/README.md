@@ -94,7 +94,7 @@ The source code follows Clean Architecture principles with clear layer separatio
 
 All modules integrate with FLEXT Core patterns:
 
-- **FlextResult[T]**: Railway-oriented programming for error handling
+- **r[T]**: Railway-oriented programming for error handling
 - **FlextContainer**: Dependency injection for service management
 - **FlextSettings**: Configuration management with validation
 - **FlextModels.Entity**: Domain-driven design entity patterns

@@ -34,7 +34,7 @@
 <!-- TOC END -->
 
 **ADR Number**: 003
-**Title**: Railway Pattern Implementation with FlextResult[T]
+**Title**: Railway Pattern Implementation with r[T]
 **Date**: 2025-01-25
 **Status**: Accepted
 
@@ -49,17 +49,17 @@ The flext-db-oracle library needs robust error handling for enterprise database 
 - **Performance**: Error handling should not significantly impact performance
 - **Ecosystem Consistency**: Should align with FLEXT ecosystem error handling patterns
 
-Traditional exception-based error handling becomes complex in enterprise applications with multiple layers and async operations. The FLEXT ecosystem already uses FlextResult[T] pattern successfully.
+Traditional exception-based error handling becomes complex in enterprise applications with multiple layers and async operations. The FLEXT ecosystem already uses r[T] pattern successfully.
 
 ## Decision
 
-Implement Railway Pattern error handling throughout flext-db-oracle using FlextResult\[T\]:
+Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]:
 
 **Core Pattern:**
 
 ```python
-# Railway Pattern with FlextResult[T]
-def enterprise_operation(config: Config) -> FlextResult[Result]:
+# Railway Pattern with r[T]
+def enterprise_operation(config: Config) -> r[Result]:
     return (
         validate_config(config)
         .flat_map(lambda c: create_connection(c))
@@ -71,15 +71,15 @@ def enterprise_operation(config: Config) -> FlextResult[Result]:
 
 **Key Implementation Details:**
 
-- **FlextResult[T]**: Railway pattern implementation from flext-core
-- **No Bare Exceptions**: All operations return FlextResult, never throw exceptions
+- **r[T]**: Railway pattern implementation from flext-core
+- **No Bare Exceptions**: All operations return r, never throw exceptions
 - **Composable Operations**: `flat_map()` and `map()` for operation chaining
 - **Error Enrichment**: `map_error()` for adding context and logging
 - **Type Safety**: Full generic type support throughout the chain
 
 ## Rationale
 
-Railway Pattern with FlextResult[T] provides the most robust, type-safe, and composable error handling for enterprise database operations.
+Railway Pattern with r[T] provides the most robust, type-safe, and composable error handling for enterprise database operations.
 
 ### Benefits Achieved
 
@@ -138,10 +138,10 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 
 ### Option 2: Result Pattern with Custom Classes
 
-**Description**: Create custom Result/Ok/Error classes instead of using FlextResult
+**Description**: Create custom Result/Ok/Error classes instead of using r
 **Pros**: Full control over implementation; tailored to specific needs
 **Cons**: Reinventing existing FLEXT patterns; ecosystem inconsistency; maintenance burden
-**Decision**: Rejected - FLEXT already has proven FlextResult implementation
+**Decision**: Rejected - FLEXT already has proven r implementation
 
 ### Option 3: Optional Pattern with None Checks
 
@@ -155,7 +155,7 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 **Description**: Implement full monadic error handling with bind operations
 **Pros**: Pure functional approach; excellent composability; mathematical correctness
 **Cons**: Complex implementation; steep learning curve; potential performance overhead
-**Decision**: Considered but not selected - FlextResult provides similar benefits with simpler API
+**Decision**: Considered but not selected - r provides similar benefits with simpler API
 
 ### Option 5: Callback-Based Error Handling
 
@@ -216,8 +216,8 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 
 ### Phase 1: Foundation Setup (Completed)
 
-1. ✅ Adopt FlextResult[T] as the standard error handling pattern
-1. ✅ Update all core APIs to return FlextResult instead of throwing exceptions
+1. ✅ Adopt r[T] as the standard error handling pattern
+1. ✅ Update all core APIs to return r instead of throwing exceptions
 1. ✅ Implement error translation from SQLAlchemy exceptions to domain errors
 1. ✅ Create comprehensive error hierarchy with context preservation
 
@@ -239,7 +239,7 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 
 ### Functional Validation
 
-- ✅ All public APIs return FlextResult[T] instead of throwing exceptions
+- ✅ All public APIs return r[T] instead of throwing exceptions
 - ✅ Error chains preserve full context through operation pipelines
 - ✅ Type safety maintained throughout Railway Pattern chains
 - ✅ SQLAlchemy exceptions properly translated to domain errors
@@ -262,14 +262,14 @@ Railway Pattern with FlextResult[T] provides the most robust, type-safe, and com
 
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)
 - [Functional Error Handling in Scala](https://www.youtube.com/watch?v=8G01pKsT3NU)
-- [FlextResult Implementation](https://github.com/organization/flext/tree/main/flext-core/src/flext_core/result.py)
+- [r Implementation](https://github.com/organization/flext/tree/main/flext-core/src/flext_core/result.py)
 - [Error Handling Patterns](https://blog.cleancoder.com/uncle-bob/2018/10/18/FP-vs-OO.html)
 
 ## Notes
 
 ### Best Practices Established
 
-1. **Always Return FlextResult**: No exceptions thrown from business logic
+1. **Always Return r**: No exceptions thrown from business logic
 1. **Chain Operations**: Use `flat_map()` and `map()` for composability
 1. **Enrich Errors**: Use `map_error()` to add context and logging
 1. **Test Both Paths**: Always test both success and failure scenarios

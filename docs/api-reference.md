@@ -21,11 +21,7 @@ Oracle Database integration API for FLEXT ecosystem - version 0.9.9.
 ## Core Imports
 
 ```python
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleModels,
-    OracleConfig
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, OracleConfig
 ```
 
 ## FlextDbOracleApi
@@ -38,13 +34,13 @@ Oracle database interface providing 36 methods for connection management, query 
 api = FlextDbOracleApi(config)
 
 # Test connection
-result = api.test_connection() -> FlextResult[bool]
+result = api.test_connection() -> r[bool]
 
 # Connect to database
-result = api.connect() -> FlextResult[Self]
+result = api.connect() -> r[Self]
 
 # Disconnect from database
-result = api.disconnect() -> FlextResult[bool]
+result = api.disconnect() -> r[bool]
 
 # Check connection status
 status = api.is_connected() -> bool
@@ -54,42 +50,42 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> FlextResult[list[t.Dict]]
+result = api.query(sql, parameters=None) -> r[list[t.Dict]]
 
 # Execute single row SELECT
-result = api.query_one(sql, parameters=None) -> FlextResult[dict | None]
+result = api.query_one(sql, parameters=None) -> r[dict | None]
 
 # Execute INSERT/UPDATE/DELETE
-result = api.execute(sql, parameters=None) -> FlextResult[int]
+result = api.execute(sql, parameters=None) -> r[int]
 
 # Execute multiple statements
-result = api.execute_many(sql, parameters_list) -> FlextResult[int]
+result = api.execute_many(sql, parameters_list) -> r[int]
 ```
 
 ### Schema Methods
 
 ```python
 # Get available schemas
-result = api.get_schemas() -> FlextResult[t.StringList]
+result = api.get_schemas() -> r[t.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> FlextResult[list[t.Dict]]
+result = api.get_tables(schema=None) -> r[list[t.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> FlextResult[list[t.Dict]]
+result = api.get_columns(table, schema=None) -> r[list[t.Dict]]
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> FlextResult[t.Dict]
+result = api.get_table_metadata(table, schema=None) -> r[t.Dict]
 ```
 
 ### Configuration Methods
 
 ```python
 # Create from environment variables
-result = FlextDbOracleApi.from_env() -> FlextResult[FlextDbOracleApi]
+result = FlextDbOracleApi.from_env() -> r[FlextDbOracleApi]
 
 # Create from URL
-result = FlextDbOracleApi.from_url(url) -> FlextResult[FlextDbOracleApi]
+result = FlextDbOracleApi.from_url(url) -> r[FlextDbOracleApi]
 
 # Get current config
 config = api.config -> OracleConfig
@@ -107,7 +103,7 @@ config = FlextDbOracleModels.OracleConfig(
     port=1521,
     service_name="XEPDB1",
     user="system",
-    password="Oracle123"
+    password="Oracle123",
 )
 
 # From environment variables
@@ -127,7 +123,7 @@ result = cli.execute_health_check()
 
 ## Error Handling
 
-All methods return FlextResult for type-safe error handling.
+All methods return r for type-safe error handling.
 
 ```python
 result = api.query("SELECT 1 FROM DUAL")
@@ -159,8 +155,8 @@ Updated: September 17, 2025 | Version: 0.9.9
 **Across Projects**:
 
 - [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/api-reference/foundation.md) - Core APIs and patterns
-- [flext-core Railway-Oriented Programming](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - FlextResult patterns
-- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/CLAUDE.md) - Oracle Integration Cloud patterns
+- [flext-core Railway-Oriented Programming](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - r patterns
+- [flext-oracle-oic Integration](https://github.com/organization/flext/tree/main/flext-oracle-oic/AGENTS.md) - Oracle Integration Cloud patterns
 
 **External Resources**:
 

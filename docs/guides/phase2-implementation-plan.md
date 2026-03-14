@@ -125,8 +125,8 @@ ______________________________________________________________________
 # Current (BROKEN)
 self._formatters = SimpleNamespace(
     table=lambda data: data,  # PLACEHOLDER
-    progress=lambda: None,    # PLACEHOLDER
-    status=lambda msg: msg,   # PLACEHOLDER
+    progress=lambda: None,  # PLACEHOLDER
+    status=lambda msg: msg,  # PLACEHOLDER
 )
 
 # Target (FUNCTIONAL)
@@ -198,6 +198,7 @@ from rich.table import Table
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+
 class FlextCliFormatters:
     """Actual Rich-based formatters."""
 
@@ -219,7 +220,7 @@ class FlextCliFormatters:
         return Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            console=self.console
+            console=self.console,
         )
 ```
 

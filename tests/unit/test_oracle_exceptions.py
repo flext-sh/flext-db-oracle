@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleExceptions as FlextExceptions,
@@ -20,7 +22,6 @@ class TestRealOracleExceptionsCore:
 
     def test_real_authentication_error_scenario(self) -> None:
         """Test FlextExceptions.AuthenticationError with real invalid credentials."""
-        # Use real invalid credentials against Oracle container
         invalid_config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
@@ -28,17 +29,12 @@ class TestRealOracleExceptionsCore:
             username="invalid_user_12345",
             password="invalid_password_12345",
         )
-
         connection = FlextDbOracleServices(config=invalid_config)
         result = connection.connect()
-
-        # Connection should fail with authentication error - using modern pattern
         if result.is_success:
             msg = "Connection with invalid credentials should fail"
             raise AssertionError(msg)
-        # Failure case - use error directly
         error_msg = (result.error or "").lower()
-        # Oracle returns different error messages for invalid credentials or connection issues
         assert any(
             keyword in error_msg
             for keyword in [
@@ -57,7 +53,6 @@ class TestRealOracleExceptionsCore:
 
     def test_real_connection_error_scenario(self) -> None:
         """Test FlextExceptions.OracleConnectionError with real unreachable host."""
-        # Use real unreachable host
         unreachable_config = FlextDbOracleSettings(
             host="unreachable-host-12345.invalid",
             port=1521,
@@ -65,17 +60,12 @@ class TestRealOracleExceptionsCore:
             username="testuser",
             password="testpass",
         )
-
         connection = FlextDbOracleServices(config=unreachable_config)
         result = connection.connect()
-
-        # Should fail with connection error - using modern pattern
         if result.is_success:
             msg = "Connection to unreachable host should fail"
             raise AssertionError(msg)
-        # Failure case - use error directly
         error_msg = (result.error or "").lower()
-        # Network/DNS resolution errors
         assert any(
             keyword in error_msg
             for keyword in [
@@ -85,64 +75,53 @@ class TestRealOracleExceptionsCore:
                 "unreachable",
                 "resolve",
                 "timeout",
-                "name or service not known",  # DNS resolution error
-                "errno -2",  # Socket error code for DNS resolution
-                "gaierror",  # getaddrinfo error
+                "name or service not known",
+                "errno -2",
+                "gaierror",
             ]
         )
 
     def test_real_configuration_error_scenario(self) -> None:
         """Test FlextExceptions.ConfigurationError with real invalid config."""
-        # Test config without service_name or sid - should fail validation
         try:
             invalid_config = FlextDbOracleSettings(
                 host="localhost",
                 port=1521,
-                service_name="",  # Empty service name
-                sid="",  # Empty SID
+                service_name="",
+                sid="",
                 username="testuser",
                 password="testpass",
             )
             connection = FlextDbOracleServices(config=invalid_config)
             result = connection.connect()
-
-            # Should fail configuration validation - using modern pattern
             if result.is_success:
                 msg = "Connection with invalid config should fail"
                 raise AssertionError(msg)
-            # Failure case - use error directly
             error_msg = result.error or ""
             assert "service_name" in error_msg.lower() or "sid" in error_msg.lower()
-
         except (ValueError, TypeError, RuntimeError):
-            # Config validation might fail at creation time
-            pass  # Expected configuration error
+            pass
 
     def test_real_query_error_scenario(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings | None
     ) -> None:
         """Test FlextExceptions.OracleQueryError with real invalid SQL."""
+        if real_oracle_config is None:
+            pytest.skip("Oracle real config unavailable")
         connection = FlextDbOracleServices(config=real_oracle_config)
-
         connect_result = connection.connect()
         assert connect_result.is_success
-
         try:
-            # Execute invalid SQL against Oracle
             invalid_queries = [
-                "SELECT FROM",  # Syntax error
-                "SELECT * FROM non_existent_table_12345",  # Table doesn't exist
-                "SELECT INVALID_FUNCTION()",  # Invalid function
-                "INSERT INTO dual VALUES (1)",  # Can't insert into DUAL
+                "SELECT FROM",
+                "SELECT * FROM non_existent_table_12345",
+                "SELECT INVALID_FUNCTION()",
+                "INSERT INTO dual VALUES (1)",
             ]
-
             for invalid_sql in invalid_queries:
                 result = connection.execute_query(invalid_sql)
                 assert result.is_failure, f"Query should fail: {invalid_sql}"
-
                 error_msg = (result.error or "").lower()
-                # Should contain Oracle error indicators
                 assert any(
                     keyword in error_msg
                     for keyword in [
@@ -154,41 +133,37 @@ class TestRealOracleExceptionsCore:
                         "missing",
                     ]
                 )
-
         finally:
             connection.disconnect()
 
     def test_real_timeout_error_scenario(
-        self,
-        real_oracle_config: FlextDbOracleSettings,
+        self, real_oracle_config: FlextDbOracleSettings | None
     ) -> None:
         """Test FlextExceptions.TimeoutError with real long-running query."""
-        # Create config with very short timeout
+        if real_oracle_config is None:
+            pytest.skip("Oracle real config unavailable")
         timeout_config = FlextDbOracleSettings(
             host=real_oracle_config.host,
             port=real_oracle_config.port,
             service_name=real_oracle_config.service_name,
             username=real_oracle_config.username,
-            password=real_oracle_config.password,
-            timeout=1,  # 1 second timeout
+            password=(
+                str(real_oracle_config.password)
+                if real_oracle_config.password is not None
+                else None
+            ),
+            timeout=1,
         )
-
         connection = FlextDbOracleServices(config=timeout_config)
         connect_result = connection.connect()
         assert connect_result.is_success
-
         try:
-            # Execute query that might timeout (sleep simulation)
-            # Note: Oracle might not respect query timeout exactly
             long_query = (
                 "SELECT * FROM (SELECT LEVEL FROM DUAL CONNECT BY LEVEL <= 100000)"
             )
             result = connection.execute_query(long_query)
-
-            # Either succeeds quickly or fails with timeout-related error
             if result.is_failure:
                 error_msg = (result.error or "").lower()
-                # Timeout or resource-related errors
                 assert any(
                     keyword in error_msg
                     for keyword in [
@@ -199,7 +174,6 @@ class TestRealOracleExceptionsCore:
                         "limit",
                     ]
                 )
-
         finally:
             connection.disconnect()
 
@@ -208,57 +182,39 @@ class TestRealOracleExceptionsAdvanced:
     """Teste real de exceções avançadas Oracle - SEM MOCKS."""
 
     def test_real_metadata_error_scenario(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test FlextExceptions.OracleMetadataError with real metadata operations."""
-        # Try to get metadata for non-existent schema
+        if connected_oracle_api is None:
+            pytest.skip("Connected Oracle API unavailable")
         invalid_schemas = ["NON_EXISTENT_SCHEMA_12345", "INVALID$SCHEMA", ""]
-
         for invalid_schema in invalid_schemas:
-            if invalid_schema:  # Skip empty schema for now
+            if invalid_schema:
                 result = connected_oracle_api.get_tables(schema=invalid_schema)
-                # May succeed with empty results or fail - both are valid
-                # Focus on ensuring no crashes and proper error handling
-                assert (
-                    result.is_success or result.is_failure
-                )  # Should return valid FlextResult
-
-        # Try to get columns for non-existent table
+                assert result.is_success or result.is_failure
         columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
-        # Should return empty list, not crash - using modern pattern
         if columns_result.is_failure:
             msg = f"Get columns failed: {columns_result.error}"
             raise AssertionError(msg)
-        # Success case - use modern .value access
         assert isinstance(columns_result.value, list)
-        assert len(columns_result.value) == 0  # No columns for non-existent table
+        assert len(columns_result.value) == 0
 
     def test_real_processing_error_scenario(
-        self,
-        connected_oracle_api: FlextDbOracleApi,
+        self, connected_oracle_api: FlextDbOracleApi | None
     ) -> None:
         """Test FlextExceptions.ProcessingError with real data processing errors."""
-        # Create table with constraints then violate them
-
+        if connected_oracle_api is None:
+            pytest.skip("Connected Oracle API unavailable")
         try:
-            # Test constraint violation using existing methods
-            # Try to execute invalid SQL that should trigger processing errors
             problematic_operations = [
-                "SELECT * FROM NON_EXISTENT_TABLE_12345",  # Table doesn't exist
-                "INSERT INTO dual VALUES (1, 2)",  # Too many values for dual
-                "CREATE TABLE invalid..syntax ERROR",  # Invalid DDL syntax
+                "SELECT * FROM NON_EXISTENT_TABLE_12345",
+                "INSERT INTO dual VALUES (1, 2)",
+                "CREATE TABLE invalid..syntax ERROR",
             ]
-
             for invalid_operation in problematic_operations:
-                # Use query method for SQL operations
                 result = connected_oracle_api.query(invalid_operation)
-
-                # Should fail with processing errors
                 assert result.is_failure, f"Operation should fail: {invalid_operation}"
-
                 error_msg = (result.error or "").lower()
-                # Should contain Oracle error indicators
                 assert any(
                     keyword in error_msg
                     for keyword in [
@@ -270,14 +226,11 @@ class TestRealOracleExceptionsAdvanced:
                         "error",
                     ]
                 )
-
         finally:
-            # No cleanup needed since we're not creating actual tables
             pass
 
     def test_real_validation_error_scenario(self) -> None:
         """Test FlextExceptions.ValidationError with real config validation."""
-        # Test various invalid configurations
         invalid_configs = [
             {
                 "host": "",
@@ -308,19 +261,14 @@ class TestRealOracleExceptionsAdvanced:
                 "password": "pass",
             },
         ]
-
         for config_data in invalid_configs:
             try:
-                # Convert config_data to proper types with explicit type assertions
                 port_value = config_data.get("port", 1521)
                 assert isinstance(port_value, int)
-
                 host_value = str(config_data.get("host", ""))
                 user_value = str(config_data.get("user", ""))
                 password_value = str(config_data.get("password", ""))
                 service_name_value = str(config_data.get("service_name", "XE"))
-
-                # Create FlextDbOracleSettings with properly typed values
                 FlextDbOracleSettings(
                     host=host_value,
                     port=port_value,
@@ -328,17 +276,8 @@ class TestRealOracleExceptionsAdvanced:
                     password=password_value,
                     service_name=service_name_value,
                 )
-                # Skip validate_business_rules check since method doesn't exist
-                # validation_result = (
-                #     None  # Method doesn't exist in current implementation
-                # )
-
-                # Configuration creation should succeed with basic Oracle config
-                # Future: Add business rules validation when implemented
-
             except (ValueError, TypeError):
-                # Config creation itself should fail for invalid data
-                pass  # Expected validation error
+                pass
 
 
 class TestRealOracleExceptionHierarchy:
@@ -346,8 +285,6 @@ class TestRealOracleExceptionHierarchy:
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
-        # Test exception class hierarchy - all should inherit from Exception
-        # Note: Direct inheritance from Exception to avoid MyPy issues with flext-core
         assert issubclass(FlextExceptions.Error, Exception)
         assert issubclass(FlextExceptions.AuthenticationError, Exception)
         assert issubclass(FlextExceptions.ConfigurationError, Exception)
@@ -357,41 +294,24 @@ class TestRealOracleExceptionHierarchy:
         assert issubclass(FlextExceptions.OracleQueryError, Exception)
         assert issubclass(FlextExceptions.OracleTimeoutError, Exception)
         assert issubclass(FlextExceptions.ValidationError, Exception)
-
-        # Test that domain-specific exceptions inherit from local BaseError
+        assert issubclass(FlextExceptions.OracleQueryError, FlextExceptions.BaseError)
         assert issubclass(
-            FlextExceptions.OracleQueryError,
-            FlextExceptions.BaseError,
-        )
-        assert issubclass(
-            FlextExceptions.OracleMetadataError,
-            FlextExceptions.BaseError,
+            FlextExceptions.OracleMetadataError, FlextExceptions.BaseError
         )
 
     def test_real_exception_instantiation(self) -> None:
         """Test that Oracle exceptions can be instantiated with context."""
-        # Test FlextExceptions.OracleQueryError with simple message
         query_error = FlextExceptions.OracleQueryError("Invalid SQL syntax")
         assert "Invalid SQL syntax" in str(query_error)
-
-        # Test FlextExceptions.OracleMetadataError with simple message
         metadata_error = FlextExceptions.OracleMetadataError("Schema not found")
         assert "Schema not found" in str(metadata_error)
-
-        # Test base FlextExceptions.Error
         base_error = FlextExceptions.Error("General Oracle error")
         assert "General Oracle error" in str(base_error)
 
     def test_real_exception_context_handling(self) -> None:
         """Test that Oracle exceptions handle context parameters properly."""
-        # Test simple exception instantiation without complex parameters
-        # that may not be supported in the current exception implementation
-
-        # Test query error with simple message
         query_error = FlextExceptions.OracleQueryError("Query too complex")
         error_str = str(query_error)
         assert "Query too complex" in error_str
-
-        # Test that error can be created and stringified
         assert isinstance(error_str, str)
         assert len(error_str) > 0
