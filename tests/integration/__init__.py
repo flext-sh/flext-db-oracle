@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
     from tests.integration.test_oracle import TestOracleIntegration, mock_oracle_config
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestOracleIntegration": ("tests.integration.test_oracle", "TestOracleIntegration"),
     "mock_oracle_config": ("tests.integration.test_oracle", "mock_oracle_config"),

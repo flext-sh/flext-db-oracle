@@ -104,7 +104,6 @@ if TYPE_CHECKING:
     from tests.unit.test_typings import TestFlextDbOracleTypes
     from tests.unit.test_utilities import TestFlextDbOracleUtilities
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestApiModule": ("tests.unit.test_api", "TestApiModule"),
     "TestApiSurgicalSimple": ("tests.unit.test_api", "TestApiSurgicalSimple"),

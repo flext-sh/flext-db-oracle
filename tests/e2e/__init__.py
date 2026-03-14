@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
     from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),
     "TestOracleE2E": ("tests.e2e.test_oracle", "TestOracleE2E"),

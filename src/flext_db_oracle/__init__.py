@@ -55,7 +55,6 @@ if TYPE_CHECKING:
     from flext_db_oracle.typings import FlextDbOracleTypes, t
     from flext_db_oracle.utilities import FlextDbOracleUtilities, u
 
-# Lazy import mapping: export_name -> (module_path, attr_name)
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
