@@ -1,13 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make codegen
 #
-"""FLEXT DB Oracle Tests - Test infrastructure and utilities.
-
-Provides TestsFlextDbOracle classes extending FlextTests and FlextDbOracle for comprehensive testing.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+"""Tests package."""
 
 from __future__ import annotations
 
@@ -17,6 +11,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
+    from tests import e2e, integration, unit
     from tests.conftest import (
         OperationTestError,
         connected_oracle_api,
@@ -255,11 +250,13 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "connected_oracle_api": ("tests.conftest", "connected_oracle_api"),
     "docker_control": ("tests.conftest", "docker_control"),
     "e": ("tests.unit.test_coverage_baseline", "TestExceptions"),
+    "e2e": ("tests.e2e", ""),
     "ensure_shared_docker_container": (
         "tests.conftest",
         "ensure_shared_docker_container",
     ),
     "flext_domains": ("tests.conftest", "flext_domains"),
+    "integration": ("tests.integration", ""),
     "logger": ("tests.conftest", "logger"),
     "m": ("tests.models", "m"),
     "mock_oracle_config": ("tests.conftest", "mock_oracle_config"),
@@ -279,6 +276,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "test_database_setup": ("tests.conftest", "test_database_setup"),
     "tm": ("tests.models", "tm"),
     "u": ("tests.unit.test_coverage_baseline", "TestUtilities"),
+    "unit": ("tests.unit", ""),
 }
 
 __all__ = [
@@ -340,8 +338,10 @@ __all__ = [
     "connected_oracle_api",
     "docker_control",
     "e",
+    "e2e",
     "ensure_shared_docker_container",
     "flext_domains",
+    "integration",
     "logger",
     "m",
     "mock_oracle_config",
@@ -361,6 +361,7 @@ __all__ = [
     "test_database_setup",
     "tm",
     "u",
+    "unit",
 ]
 
 
