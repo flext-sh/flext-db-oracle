@@ -19,7 +19,7 @@ from flext_tests.docker import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
-logger: FlextLogger = FlextLogger(__name__)
+logger: p.Logger = FlextLogger(__name__)
 
 
 def _is_oracle_container_running() -> bool:
