@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from enum import StrEnum, unique, unique
+from enum import StrEnum, unique
 from typing import ClassVar, Final
 
 from flext_core import FlextConstants, c as core_c
@@ -300,12 +300,12 @@ class FlextDbOracleConstants(FlextConstants):
             @unique
             class ConnectionType(StrEnum):
                 """Oracle connection types.
-            
+
                 DRY Pattern:
                     StrEnum is the single source of truth. Use ConnectionType.SERVICE_NAME.value
                     or ConnectionType.SERVICE_NAME directly - no base strings needed.
                 """
-            
+
                 SERVICE_NAME = "service_name"
                 SID = "sid"
                 TNS = "tns"
@@ -313,12 +313,12 @@ class FlextDbOracleConstants(FlextConstants):
             @unique
             class QueryType(StrEnum):
                 """Oracle query types.
-            
+
                 DRY Pattern:
                     StrEnum is the single source of truth. Use QueryType.SELECT.value
                     or QueryType.SELECT directly - no base strings needed.
                 """
-            
+
                 SELECT = "SELECT"
                 INSERT = "INSERT"
                 UPDATE = "UPDATE"
@@ -330,12 +330,12 @@ class FlextDbOracleConstants(FlextConstants):
             @unique
             class DataType(StrEnum):
                 """Oracle data types.
-            
+
                 DRY Pattern:
                     StrEnum is the single source of truth. Use DataType.VARCHAR2.value
                     or DataType.VARCHAR2 directly - no base strings needed.
                 """
-            
+
                 VARCHAR2 = "VARCHAR2"
                 NUMBER = "NUMBER"
                 DATE = "DATE"
@@ -433,8 +433,6 @@ class FlextDbOracleConstants(FlextConstants):
     class Platform(DbOracle.Platform):
         """Compatibility alias for platform constants at root namespace."""
 
-
-
     @unique
     class ProjectType(StrEnum):
         LIBRARY = "library"
@@ -479,6 +477,7 @@ class FlextDbOracleConstants(FlextConstants):
         BLOB = "BLOB"
         CHAR = "CHAR"
         RAW = "RAW"
+
 
 c = FlextDbOracleConstants
 

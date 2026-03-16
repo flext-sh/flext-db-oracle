@@ -36,6 +36,7 @@ if TYPE_CHECKING:
         OutputPayload,
     )
     from flext_db_oracle.client import FlextDbOracleClient
+    from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import (
         FlextDbOracleExceptions,
@@ -58,6 +59,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
+    "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
     "FlextDbOracleDispatcher": (
         "flext_db_oracle.dispatcher",
         "FlextDbOracleDispatcher",
@@ -88,6 +90,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__url__": ("flext_db_oracle.__version__", "__url__"),
     "__version__": ("flext_db_oracle.__version__", "__version__"),
     "__version_info__": ("flext_db_oracle.__version__", "__version_info__"),
+    "c": ("flext_db_oracle.constants", "c"),
     "e": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
     "m": ("flext_db_oracle.models", "m"),
     "p": ("flext_db_oracle.protocols", "p"),
@@ -99,6 +102,7 @@ __all__ = [
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
+    "FlextDbOracleConstants",
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
@@ -123,6 +127,7 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    "c",
     "e",
     "m",
     "p",
