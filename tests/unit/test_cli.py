@@ -15,7 +15,7 @@ import os
 from unittest.mock import Mock, patch
 
 import yaml
-from flext_core import r
+from flext_core import r, t
 from pydantic import TypeAdapter
 
 from flext_db_oracle import (
