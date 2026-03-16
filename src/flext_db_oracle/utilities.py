@@ -165,5 +165,6 @@ class FlextDbOracleUtilities(FlextUtilities):
         return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
 
-u = FlextDbOracleUtilities
 __all__ = ["FlextDbOracleUtilities", "u"]
+
+u = FlextDbOracleUtilities

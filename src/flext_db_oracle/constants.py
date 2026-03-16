@@ -431,5 +431,6 @@ class FlextDbOracleConstants(FlextConstants):
         """Compatibility alias for platform constants at root namespace."""
 
 
-c = FlextDbOracleConstants
 __all__: list[str] = ["FlextDbOracleConstants", "c"]
+
+c = FlextDbOracleConstants

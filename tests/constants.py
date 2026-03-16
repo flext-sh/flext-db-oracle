@@ -87,5 +87,6 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
         TEST_NULLABLE: Final[bool] = True
 
 
-c = TestsFlextDbOracleConstants
 __all__ = ["TestsFlextDbOracleConstants", "c"]
+
+c = TestsFlextDbOracleConstants

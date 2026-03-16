@@ -11,3 +11,5 @@ from __future__ import annotations
 
 class TestsFlextDbOracleUtilities:
     """Test utilities for flextdboracle."""
+
+u = TestsFlextDbOracleUtilities

@@ -33,6 +33,6 @@ class TestsFlextDbOracleProtocols(FlextTestsProtocols, FlextDbOracleProtocols):
             """DbOracle-specific test protocols."""
 
 
-p = TestsFlextDbOracleProtocols
-p = TestsFlextDbOracleProtocols
 __all__ = ["TestsFlextDbOracleProtocols", "p"]
+
+p = TestsFlextDbOracleProtocols
