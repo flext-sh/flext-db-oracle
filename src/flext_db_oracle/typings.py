@@ -14,8 +14,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal
-
 from flext_core import FlextTypes, m as _core_m, t as _core_t
 
 from flext_db_oracle.models import FlextDbOracleModels
@@ -25,6 +23,9 @@ _QueryResult = FlextDbOracleModels.DbOracle.QueryResult
 _TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
 _TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
 _ConfigMap = _core_m.ConfigMap
+
+
+from flext_db_oracle import c
 
 
 class FlextDbOracleTypes(FlextTypes):
@@ -175,37 +176,17 @@ class FlextDbOracleTypes(FlextTypes):
         Oracle-specific types.
         """
 
-        type ProjectType = Literal[
-            "library",
-            "application",
-            "service",
-            "oracle-service",
-            "database-service",
-            "data-warehouse",
-            "etl-service",
-            "oracle-client",
-            "db-migration",
-            "schema-manager",
-            "data-pipeline",
-            "oracle-api",
-            "database-api",
-            "sql-service",
-            "data-connector",
-        ]
+        type ProjectType = c.ProjectType
         type OracleProjectConfig = dict[str, _core_t.ContainerValue]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
         type SchemaConfig = dict[str, bool | str | dict[str, _core_t.ContainerValue]]
         type ConnectionConfig = dict[str, _core_t.ContainerValue]
 
-    type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
+    type ConnectionTypeLiteral = c.ConnectionTypeLiteral
     "Oracle connection type literal - references ConnectionType StrEnum members."
-    type QueryTypeLiteral = Literal[
-        "SELECT", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER"
-    ]
+    type QueryTypeLiteral = c.QueryTypeLiteral
     "Oracle query type literal - references QueryType StrEnum members."
-    type DataTypeLiteral = Literal[
-        "VARCHAR2", "NUMBER", "DATE", "TIMESTAMP", "CLOB", "BLOB", "CHAR", "RAW"
-    ]
+    type DataTypeLiteral = c.DataTypeLiteral
     "Oracle data type literal - references DataType StrEnum members."
 
 

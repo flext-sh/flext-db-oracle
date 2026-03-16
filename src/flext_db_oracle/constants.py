@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import StrEnum, unique, unique
 from typing import ClassVar, Final
 
 from flext_core import FlextConstants, c as core_c
@@ -297,26 +297,28 @@ class FlextDbOracleConstants(FlextConstants):
         class OracleEnums:
             """Oracle-specific enumerations."""
 
+            @unique
             class ConnectionType(StrEnum):
                 """Oracle connection types.
-
+            
                 DRY Pattern:
                     StrEnum is the single source of truth. Use ConnectionType.SERVICE_NAME.value
                     or ConnectionType.SERVICE_NAME directly - no base strings needed.
                 """
-
+            
                 SERVICE_NAME = "service_name"
                 SID = "sid"
                 TNS = "tns"
 
+            @unique
             class QueryType(StrEnum):
                 """Oracle query types.
-
+            
                 DRY Pattern:
                     StrEnum is the single source of truth. Use QueryType.SELECT.value
                     or QueryType.SELECT directly - no base strings needed.
                 """
-
+            
                 SELECT = "SELECT"
                 INSERT = "INSERT"
                 UPDATE = "UPDATE"
@@ -325,14 +327,15 @@ class FlextDbOracleConstants(FlextConstants):
                 DROP = "DROP"
                 ALTER = "ALTER"
 
+            @unique
             class DataType(StrEnum):
                 """Oracle data types.
-
+            
                 DRY Pattern:
                     StrEnum is the single source of truth. Use DataType.VARCHAR2.value
                     or DataType.VARCHAR2 directly - no base strings needed.
                 """
-
+            
                 VARCHAR2 = "VARCHAR2"
                 NUMBER = "NUMBER"
                 DATE = "DATE"
@@ -431,6 +434,52 @@ class FlextDbOracleConstants(FlextConstants):
         """Compatibility alias for platform constants at root namespace."""
 
 
-__all__: list[str] = ["FlextDbOracleConstants", "c"]
+
+    @unique
+    class ProjectType(StrEnum):
+        LIBRARY = "library"
+        APPLICATION = "application"
+        SERVICE = "service"
+        ORACLE_SERVICE = "oracle-service"
+        DATABASE_SERVICE = "database-service"
+        DATA_WAREHOUSE = "data-warehouse"
+        ETL_SERVICE = "etl-service"
+        ORACLE_CLIENT = "oracle-client"
+        DB_MIGRATION = "db-migration"
+        SCHEMA_MANAGER = "schema-manager"
+        DATA_PIPELINE = "data-pipeline"
+        ORACLE_API = "oracle-api"
+        DATABASE_API = "database-api"
+        SQL_SERVICE = "sql-service"
+        DATA_CONNECTOR = "data-connector"
+
+    @unique
+    class ConnectionTypeLiteral(StrEnum):
+        SERVICE_NAME = "service_name"
+        SID = "sid"
+        TNS = "tns"
+
+    @unique
+    class QueryTypeLiteral(StrEnum):
+        SELECT = "SELECT"
+        INSERT = "INSERT"
+        UPDATE = "UPDATE"
+        DELETE = "DELETE"
+        CREATE = "CREATE"
+        DROP = "DROP"
+        ALTER = "ALTER"
+
+    @unique
+    class DataTypeLiteral(StrEnum):
+        VARCHAR2 = "VARCHAR2"
+        NUMBER = "NUMBER"
+        DATE = "DATE"
+        TIMESTAMP = "TIMESTAMP"
+        CLOB = "CLOB"
+        BLOB = "BLOB"
+        CHAR = "CHAR"
+        RAW = "RAW"
 
 c = FlextDbOracleConstants
+
+__all__: list[str] = ["FlextDbOracleConstants", "c"]
