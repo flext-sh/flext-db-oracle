@@ -24,7 +24,6 @@ from flext_db_oracle import (
     FlextDbOracleClient,
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
-    m,
 )
 from flext_db_oracle.cli import HealthCheckReport, NamedItem
 
@@ -629,9 +628,9 @@ class TestCliServiceOperations:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: list[m.Dict] = [
-            m.Dict(root={"id": 1, "name": "test"}),
-            m.Dict(root={"id": 2, "name": "test2"}),
+        mock_result: list[t.Dict] = [
+            t.Dict(root={"id": 1, "name": "test"}),
+            t.Dict(root={"id": 2, "name": "test2"}),
         ]
         with (
             patch.object(FlextDbOracleApi, "__init__", return_value=None),
@@ -639,7 +638,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = r[list[m.Dict]].ok(mock_result)
+            mock_query.return_value = r[list[t.Dict]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,

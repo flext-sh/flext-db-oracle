@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels, m
+from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
@@ -238,7 +238,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         typed_params_list = [
-            m.ConfigMap(root=dict(params)) for params in parameters_list
+            t.ConfigMap(root=dict(params)) for params in parameters_list
         ]
         return self._services.execute_many(sql, typed_params_list)
 
@@ -248,9 +248,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         query_params = (
-            m.ConfigMap(root=dict(parameters))
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
-            else m.ConfigMap(root={})
+            else t.ConfigMap(root={})
         )
         return self._services.execute_statement(sql, query_params)
 
@@ -263,9 +263,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             sql_text = str(sql)
             query_params = (
-                m.ConfigMap(root=dict(parameters))
+                t.ConfigMap(root=dict(parameters))
                 if parameters is not None
-                else m.ConfigMap(root={})
+                else t.ConfigMap(root={})
             )
             return self._services.execute_statement(sql_text, query_params)
         except Exception as e:
@@ -334,26 +334,26 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def query(
         self, sql: str, parameters: Mapping[str, t.ContainerValue] | None = None
-    ) -> r[list[m.Dict]]:
+    ) -> r[list[t.Dict]]:
         """Execute a SELECT query and return all results."""
         if self._context_fallback_mode and not self.is_connected:
-            return r[list[m.Dict]].ok([])
+            return r[list[t.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
-            m.ConfigMap(root=dict(parameters))
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
-            else m.ConfigMap(root={})
+            else t.ConfigMap(root={})
         )
         return self._services.execute_query(sql, query_params)
 
     def query_one(
         self, sql: str, parameters: Mapping[str, t.ContainerValue] | None = None
-    ) -> r[m.Dict | None]:
+    ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
-            m.ConfigMap(root=dict(parameters))
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
-            else m.ConfigMap(root={})
+            else t.ConfigMap(root={})
         )
         return self._services.fetch_one(sql, query_params)
 
@@ -371,7 +371,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     @classmethod
     def to_dict(
         cls, obj: BaseModel | Mapping[str, t.ContainerValue] | None = None
-    ) -> m.ConfigMap:
+    ) -> t.ConfigMap:
         """Convert supported objects to ConfigMap via flext-core mixins."""
         if obj is None and cls.to_dict_source is not None:
             source = cls.to_dict_source
@@ -387,12 +387,12 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 "connected": source.is_connected,
                 "plugin_count": plugin_count_value,
             }
-            return m.ConfigMap(root=payload)
+            return t.ConfigMap(root=payload)
         if isinstance(obj, BaseModel):
-            return m.ConfigMap(root=obj.model_dump(mode="python"))
+            return t.ConfigMap(root=obj.model_dump(mode="python"))
         if isinstance(obj, Mapping):
-            return m.ConfigMap(root=dict(obj))
-        return m.ConfigMap(root={})
+            return t.ConfigMap(root=dict(obj))
+        return t.ConfigMap(root={})
 
     def transaction(self) -> r[Mapping[str, t.ContainerValue]]:
         """Get transaction status information."""
@@ -415,7 +415,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return r[bool].ok(True)
 
     def _convert_to_query_result(
-        self, sql: str, data: list[m.Dict]
+        self, sql: str, data: list[t.Dict]
     ) -> FlextDbOracleModels.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:

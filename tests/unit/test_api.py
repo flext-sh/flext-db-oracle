@@ -25,7 +25,6 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
-    m,
 )
 
 
@@ -743,7 +742,7 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: r[list[m.Dict]] = api.query(str(test_query["query"]))
+            result: r[list[t.Dict]] = api.query(str(test_query["query"]))
             assert isinstance(result, r)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
@@ -829,7 +828,7 @@ class TestApiModule:
             connect_result: r[FlextDbOracleApi] = api.connect()
             assert isinstance(connect_result, r)
         if hasattr(api, "query"):
-            query_result: r[list[m.Dict]] = api.query(str(test_query["query"]))
+            query_result: r[list[t.Dict]] = api.query(str(test_query["query"]))
             assert isinstance(query_result, r)
         if hasattr(api, "get_tables"):
             schema_result: r[list[str]] = api.get_tables()
@@ -854,7 +853,7 @@ class TestApiModule:
             result: r[FlextDbOracleApi] = api.connect()
             assert isinstance(result, r)
         if hasattr(api, "query"):
-            query_result: r[list[m.Dict]] = api.query(invalid_query)
+            query_result: r[list[t.Dict]] = api.query(invalid_query)
             assert isinstance(query_result, r)
         if hasattr(api, "get_table_metadata"):
             metadata_result = api.get_table_metadata("non_existent_table")
@@ -969,7 +968,7 @@ class TestApiModule:
                 assert isinstance(result, r)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: r[list[m.Dict]] = api.query(str(query_data["query"]))
+                query_result: r[list[t.Dict]] = api.query(str(query_data["query"]))
                 assert isinstance(query_result, r)
 
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
@@ -1041,7 +1040,7 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                result: r[list[m.Dict]] = api.query(sql)
+                result: r[list[t.Dict]] = api.query(sql)
                 results.append(result)
 
         threads: list[Thread] = []

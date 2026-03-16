@@ -22,7 +22,6 @@ from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    m,
 )
 
 
@@ -554,7 +553,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         service = self._make_service()
         calls: list[dict[str, object]] = []
 
-        def fake_flext_metric(*, name: str, value: float, tags: m.Dict) -> _StubResult:
+        def fake_flext_metric(*, name: str, value: float, tags: t.Dict) -> _StubResult:
             calls.append({"name": name, "value": value, "tags": tags})
             return _StubResult()
 
@@ -565,7 +564,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.record_metric(
-            "db_query_duration", 12.5, m.ConfigMap(root={"k": "v"})
+            "db_query_duration", 12.5, t.ConfigMap(root={"k": "v"})
         )
         assert result.is_success
         assert len(calls) == 1

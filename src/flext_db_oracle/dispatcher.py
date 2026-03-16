@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, FlextService, m, p, r, t
+from flext_core import FlextContainer, FlextRegistry, FlextService, p, r, t
 
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices
@@ -113,19 +113,19 @@ class FlextDbOracleDispatcher(FlextService[None]):
         def execute_query_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
-                parameters = m.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap(root=command.parameters or {})
             else:
                 sql = ""
-                parameters = m.ConfigMap(root={})
+                parameters = t.ConfigMap(root={})
             return services.execute_query(sql, parameters).map_or([])
 
         def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.FetchOneCommand):
                 sql = command.sql
-                parameters = m.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap(root=command.parameters or {})
             else:
                 sql = ""
-                parameters = m.ConfigMap(root={})
+                parameters = t.ConfigMap(root={})
             return services.fetch_one(sql, parameters).map_or(None)
 
         def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
@@ -133,10 +133,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 command, FlextDbOracleModels.DbOracle.ExecuteStatementCommand
             ):
                 sql = command.sql
-                parameters = m.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap(root=command.parameters or {})
             else:
                 sql = ""
-                parameters = m.ConfigMap(root={})
+                parameters = t.ConfigMap(root={})
             return services.execute_statement(sql, parameters).map_or(0)
 
         def execute_many_handler(command: t.ContainerValue) -> t.ContainerValue:

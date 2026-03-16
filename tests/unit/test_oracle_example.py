@@ -15,13 +15,12 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    m,
     t,
 )
 
 
 def safe_get_first_value(
-    data: m.Dict | list[m.Dict],
+    data: t.Dict | list[t.Dict],
 ) -> t.ContainerValue:
     """Safely get first value from various data structures."""
     if hasattr(data, "root"):

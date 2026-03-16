@@ -126,7 +126,7 @@ class FlextDbOracleProtocols(FlextProtocols):
 
             def execute_query(
                 self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[list[m.Dict]]:
+            ) -> r[list[t.Dict]]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -156,7 +156,7 @@ class FlextDbOracleProtocols(FlextProtocols):
 
             def fetch_one(
                 self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
-            ) -> r[m.Dict | None]:
+            ) -> r[t.Dict | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
