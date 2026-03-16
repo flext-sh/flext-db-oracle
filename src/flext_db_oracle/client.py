@@ -15,7 +15,7 @@ from types import ModuleType
 from typing import override
 
 import oracledb
-from flext_core import FlextContext, FlextService, FlextSettings, r, u
+from flext_core import FlextService, FlextSettings, p, r, u
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -73,7 +73,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         debug: bool = False,
         config_type: type[FlextSettings] | None = None,
         config_overrides: dict[str, t.Scalar] | None = None,
-        initial_context: FlextContext | None = None,
+        initial_context: p.Context | None = None,
         subproject: str | None = None,
         services: Mapping[str, t.RegisterableService] | None = None,
         factories: Mapping[str, t.FactoryCallable] | None = None,
