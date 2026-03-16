@@ -11,13 +11,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections import UserString
 from typing import Annotated, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 import oracledb
 from flext_core import FlextSettings, r, t, u
-from pydantic import BeforeValidator, Field, field_validator, model_validator
+from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -41,12 +40,20 @@ def _validate_oracle_identifier(v: str) -> str:
 OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
 
 
-class OraclePassword(UserString):
+class OraclePassword(BaseModel):
     """String-compatible password wrapper for Oracle settings."""
 
+    _value: str = ""
+
+    def __init__(self, data: str = "") -> None:
+        super().__init__()
+        object.__setattr__(self, "_value", data)
+
+    def __str__(self) -> str:
+        return self._value
+
     def get_secret_value(self) -> str:
-        """Return the raw string value."""
-        return str(self)
+        return self._value
 
 
 class FlextDbOracleSettings(FlextSettings):
