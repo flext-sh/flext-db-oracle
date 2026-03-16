@@ -14,7 +14,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from flext_core import FlextLogger
+from flext_core import FlextLogger, p
 from flext_tests.docker import FlextTestsDocker
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
