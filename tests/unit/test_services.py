@@ -15,9 +15,9 @@ from typing import ClassVar, cast
 from unittest.mock import MagicMock
 
 import pytest
+from flext_core import t
 
 from flext_db_oracle import (
-from flext_core import t
     FlextDbOracleApi,
     FlextDbOracleConstants,
     FlextDbOracleModels,
