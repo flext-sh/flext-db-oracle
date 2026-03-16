@@ -76,10 +76,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
     @classmethod
     def build_dispatcher(
         cls, services: FlextDbOracleServices, *, _bus: t.ContainerValue | None = None
-    ) -> p.CommandBus:
+    ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         disp = FlextContainer.get_global().get("command_bus").unwrap()
-        if not isinstance(disp, p.CommandBus):
+        if not isinstance(disp, p.Dispatcher):
             msg = "command_bus is not CommandBus"
             raise TypeError(msg)
         dispatcher = disp
