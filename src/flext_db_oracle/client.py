@@ -72,7 +72,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         *,
         debug: bool = False,
         config_type: type[FlextSettings] | None = None,
-        config_overrides: Mapping[str, t.Scalar] | None = None,
+        config_overrides: dict[str, t.Scalar] | None = None,
         initial_context: FlextContext | None = None,
         subproject: str | None = None,
         services: Mapping[str, t.RegisterableService] | None = None,
