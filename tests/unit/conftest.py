@@ -10,47 +10,174 @@ If Oracle is not available, tests gracefully skip or use mocks.
 from __future__ import annotations
 
 import contextlib
+import os
+import time
 from collections.abc import Generator
 from pathlib import Path
 
+import oracledb
 import pytest
 from flext_core import FlextLogger, p
 from flext_tests.docker import FlextTestsDocker
+from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger: p.Logger = FlextLogger(__name__)
+_PORT_BINDINGS_ADAPTER = TypeAdapter(dict[str, str])
+
+
+def _workspace_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _normalized_port_bindings(value: object) -> dict[str, str]:
+    try:
+        return _PORT_BINDINGS_ADAPTER.validate_python(value)
+    except ValidationError:
+        return {}
+
+
+def _resolve_oracle_test_port(
+    docker_control: FlextTestsDocker, container_name: str
+) -> int:
+    env_port = os.getenv("TEST_ORACLE_PORT")
+    if env_port is not None and env_port.isdigit():
+        env_port_int = int(env_port)
+        status_result = docker_control.get_container_status(container_name)
+        if status_result.is_success:
+            status_value = status_result.value
+            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
+            for container_port, host_port in ports.items():
+                if (
+                    container_port.startswith("1521")
+                    and host_port.isdigit()
+                    and int(host_port) == env_port_int
+                ):
+                    return env_port_int
+    fallback_port = 1522
+    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
+    if container_config is not None:
+        configured_port = container_config.get("port")
+        if isinstance(configured_port, int):
+            fallback_port = configured_port
+    for _ in range(30):
+        status_result = docker_control.get_container_status(container_name)
+        if status_result.is_success:
+            status_value = status_result.value
+            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
+            for container_port, host_port in ports.items():
+                if container_port.startswith("1521") and host_port.isdigit():
+                    return int(host_port)
+        time.sleep(2)
+    return fallback_port
+
+
+def _wait_for_oracle_ready(port: int, max_wait_seconds: int = 300) -> bool:
+    waited_seconds = 0
+    while waited_seconds < max_wait_seconds:
+        try:
+            dsn = oracledb.makedsn("localhost", port, service_name="FLEXTDB")
+            connection = oracledb.connect(
+                user="flext_test",
+                password="flext_test_password",
+                dsn=dsn,
+            )
+            connection.close()
+            return True
+        except Exception:
+            time.sleep(5)
+            waited_seconds += 5
+    return False
+
+
+def _ensure_shared_oracle_container() -> str | None:
+    container_name = "flext-oracle-db-test"
+    docker_control = FlextTestsDocker(workspace_root=_workspace_root())
+    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
+    if container_config is None:
+        return None
+    compose_file_value = container_config.get("compose_file")
+    if compose_file_value is None:
+        return None
+    compose_file = str(compose_file_value)
+    if not compose_file.startswith("/"):
+        compose_file = str(_workspace_root() / compose_file)
+    status = docker_control.get_container_status(container_name)
+    status_value = status.value if status.is_success else None
+    status_name = getattr(status_value, "status", None)
+    container_running = status.is_success and (
+        status_name == FlextTestsDocker.ContainerStatus.RUNNING
+    )
+    if not container_running:
+        service_name = str(container_config.get("service", ""))
+        compose_result = docker_control.compose_up(
+            compose_file, service=service_name or None
+        )
+        if compose_result.is_failure:
+            return None
+    resolved_port = _resolve_oracle_test_port(docker_control, container_name)
+    os.environ["TEST_ORACLE_HOST"] = "localhost"
+    os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
+    os.environ["TEST_ORACLE_SERVICE"] = "FLEXTDB"
+    os.environ["TEST_ORACLE_USER"] = "flext_test"
+    os.environ["TEST_ORACLE_PASSWORD"] = "flext_test_password"
+    if not _wait_for_oracle_ready(resolved_port):
+        return None
+    return container_name
 
 
 def _is_oracle_container_running() -> bool:
     """Check if Oracle container is running without heavy operations."""
-    return False
+    try:
+        docker_control = FlextTestsDocker(workspace_root=_workspace_root())
+        status_result = docker_control.get_container_status("flext-oracle-db-test")
+    except Exception:
+        return False
+    return status_result.is_success and (
+        getattr(status_result.value, "status", None)
+        == FlextTestsDocker.ContainerStatus.RUNNING
+    )
 
 
 def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
     """Get Oracle config from shared container configuration."""
-    return None
+    if not _is_oracle_container_running():
+        return None
+    host = os.getenv("TEST_ORACLE_HOST", "localhost")
+    port_text = os.getenv("TEST_ORACLE_PORT", "1522")
+    if not port_text.isdigit():
+        return None
+    service = os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB")
+    username = os.getenv("TEST_ORACLE_USER", "flext_test")
+    password = os.getenv("TEST_ORACLE_PASSWORD", "flext_test_password")
+    return FlextDbOracleSettings(
+        host=host,
+        port=int(port_text),
+        name=service,
+        username=username,
+        password=password,
+        service_name=service,
+        ssl_server_cert_dn=None,
+    )
 
 
 @pytest.fixture(scope="session")
 def shared_oracle_container() -> str | None:
     """Return container name if running, None otherwise."""
-    if _is_oracle_container_running():
-        return "flext-oracle-db-test"
-    return None
+    return _ensure_shared_oracle_container()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def ensure_shared_docker_container() -> None:
-    """No-op for unit tests - container managed by root conftest."""
-    pass
+    _ = _ensure_shared_oracle_container()
 
 
 @pytest.fixture(scope="session")
 def docker_control() -> FlextTestsDocker | None:
     """Provide Docker control if available."""
     try:
-        return FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+        return FlextTestsDocker(workspace_root=_workspace_root())
     except Exception:
         return None
 

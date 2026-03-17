@@ -18,10 +18,12 @@ import oracledb
 import pytest
 from flext_core import FlextLogger
 from flext_tests import FlextTestsDocker, FlextTestsDomains
+from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 
 logger = FlextLogger(__name__)
+_PORT_BINDINGS_ADAPTER = TypeAdapter(dict[str, str])
 
 
 class OperationTestError(Exception):
@@ -34,21 +36,46 @@ class OperationTestError(Exception):
         self.error = error
 
 
+def _normalized_port_bindings(value: object) -> dict[str, str]:
+    try:
+        return _PORT_BINDINGS_ADAPTER.validate_python(value)
+    except ValidationError:
+        return {}
+
+
 def _resolve_oracle_test_port(
     docker_control: FlextTestsDocker, container_name: str
 ) -> int:
     env_port = os.getenv("TEST_ORACLE_PORT")
     if env_port is not None and env_port.isdigit():
-        return int(env_port)
-    status_result = docker_control.get_container_status(container_name)
-    if status_result.is_success and isinstance(
-        status_result.value, FlextTestsDocker.ContainerInfo
-    ):
-        ports = status_result.value.ports
-        for container_port, host_port in ports.items():
-            if container_port.startswith("1521") and host_port.isdigit():
-                return int(host_port)
-    return 1522
+        env_port_int = int(env_port)
+        status_result = docker_control.get_container_status(container_name)
+        if status_result.is_success:
+            status_value = status_result.value
+            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
+            for container_port, host_port in ports.items():
+                if (
+                    container_port.startswith("1521")
+                    and host_port.isdigit()
+                    and int(host_port) == env_port_int
+                ):
+                    return env_port_int
+    fallback_port = 1522
+    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
+    if container_config is not None:
+        configured_port = container_config.get("port")
+        if isinstance(configured_port, int):
+            fallback_port = configured_port
+    for _ in range(30):
+        status_result = docker_control.get_container_status(container_name)
+        if status_result.is_success:
+            status_value = status_result.value
+            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
+            for container_port, host_port in ports.items():
+                if container_port.startswith("1521") and host_port.isdigit():
+                    return int(host_port)
+        time.sleep(2)
+    return fallback_port
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -163,10 +190,10 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
             )
     else:
         status = docker_control.get_container_status(container_name)
-        container_running = (
-            status.is_success
-            and isinstance(status.value, FlextTestsDocker.ContainerInfo)
-            and (status.value.status == FlextTestsDocker.ContainerStatus.RUNNING)
+        status_value = status.value if status.is_success else None
+        status_name = getattr(status_value, "status", None)
+        container_running = status.is_success and (
+            status_name == FlextTestsDocker.ContainerStatus.RUNNING
         )
         if not container_running:
             logger.info(

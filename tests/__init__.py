@@ -11,8 +11,9 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
-    from tests import e2e, integration, unit
-    from tests.conftest import (
+
+    from . import e2e as e2e, integration as integration, unit as unit
+    from .conftest import (
         OperationTestError,
         connected_oracle_api,
         docker_control,
@@ -32,20 +33,20 @@ if TYPE_CHECKING:
         test_cleanup,
         test_database_setup,
     )
-    from tests.constants import TestsFlextDbOracleConstants, c
-    from tests.e2e.test_oracle import TestOracleE2E
-    from tests.integration.test_oracle import TestOracleIntegration
-    from tests.models import TestsFlextDbOracleModels, m, tm
-    from tests.protocols import TestsFlextDbOracleProtocols, p
-    from tests.typings import TestsFlextDbOracleTypes
-    from tests.unit.test_api import (
+    from .constants import TestsFlextDbOracleConstants, c
+    from .e2e.test_oracle import TestOracleE2E
+    from .integration.test_oracle import TestOracleIntegration
+    from .models import TestsFlextDbOracleModels, m, tm
+    from .protocols import TestsFlextDbOracleProtocols, p
+    from .typings import TestsFlextDbOracleTypes
+    from .unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
         TestFlextDbOracleApiRealFunctionality,
         TestFlextDbOracleApiSafeMethods,
         TestFlextDbOracleApiWorking,
     )
-    from tests.unit.test_cli import (
+    from .unit.test_cli import (
         TestCLIRealFunctionality,
         TestCliServiceOperations,
         TestFlextDbOracleCli,
@@ -55,9 +56,9 @@ if TYPE_CHECKING:
         TestOutputFormatter,
         TestYamlModule,
     )
-    from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
-    from tests.unit.test_constants import TestFlextDbOracleConstants
-    from tests.unit.test_coverage_baseline import (
+    from .unit.test_client import TestFlextDbOracleClientRealFunctionality
+    from .unit.test_constants import TestFlextDbOracleConstants
+    from .unit.test_coverage_baseline import (
         TestBasicModelCreation,
         TestConstants,
         TestExceptions,
@@ -66,26 +67,23 @@ if TYPE_CHECKING:
         TestModuleImports,
         TestUtilities,
     )
-    from tests.unit.test_dispatcher import TestDispatcherSurgical
-    from tests.unit.test_exceptions import TestFlextDbOracleExceptions
-    from tests.unit.test_fields import TestFlextDbOracleFields
-    from tests.unit.test_models import (
-        TestFlextDbOracleModels,
-        TestFlextDbOracleSettings,
-    )
-    from tests.unit.test_oracle_example import (
+    from .unit.test_dispatcher import TestDispatcherSurgical
+    from .unit.test_exceptions import TestFlextDbOracleExceptions
+    from .unit.test_fields import TestFlextDbOracleFields
+    from .unit.test_models import TestFlextDbOracleModels, TestFlextDbOracleSettings
+    from .unit.test_oracle_example import (
         TestRealOracleApi,
         TestRealOracleConnection,
         TestRealOracleErrorHandling,
         safe_get_first_value,
     )
-    from tests.unit.test_oracle_exceptions import (
+    from .unit.test_oracle_exceptions import (
         TestRealOracleExceptionHierarchy,
         TestRealOracleExceptionsAdvanced,
         TestRealOracleExceptionsCore,
     )
-    from tests.unit.test_protocols import TestFlextDbOracleProtocols
-    from tests.unit.test_services import (
+    from .unit.test_protocols import TestFlextDbOracleProtocols
+    from .unit.test_services import (
         TestDirectCoverageBoostAPI,
         TestDirectCoverageBoostConfig,
         TestDirectCoverageBoostConnection,
@@ -99,9 +97,9 @@ if TYPE_CHECKING:
         TestFlextDbOracleServicesPlaceholderRemovals,
         TestServiceErrorHandling,
     )
-    from tests.unit.test_typings import TestFlextDbOracleTypes
-    from tests.unit.test_utilities import TestFlextDbOracleUtilities
-    from tests.utilities import TestsFlextDbOracleUtilities, u
+    from .unit.test_typings import TestFlextDbOracleTypes
+    from .unit.test_utilities import TestFlextDbOracleUtilities
+    from .utilities import TestsFlextDbOracleUtilities, u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "OperationTestError": ("tests.conftest", "OperationTestError"),

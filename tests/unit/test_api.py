@@ -546,7 +546,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.register_plugin("none_plugin", None)
         tm.ok(result)
         get_result = self.api.get_plugin("none_plugin")
-        tm.ok(get_result)
+        assert get_result.is_success
         assert get_result.value is None
         empty_result = self.api.register_plugin("", {"test": "plugin"})
         tm.ok(empty_result)

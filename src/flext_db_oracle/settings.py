@@ -58,6 +58,13 @@ class OraclePassword(BaseModel):
         """Return wrapped password for secret consumers."""
         return self._value
 
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, OraclePassword):
+            return self._value == other._value
+        if isinstance(other, str):
+            return self._value == other
+        return False
+
 
 class FlextDbOracleSettings(FlextSettings):
     """Oracle settings contract consumed by API, client, and services."""

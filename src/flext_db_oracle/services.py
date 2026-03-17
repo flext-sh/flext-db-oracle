@@ -33,12 +33,6 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class _ObjectRows(RootModel[list[t.ContainerValue]]):
-    """Pydantic root model for generic list payloads."""
-
-    root: list[t.ContainerValue]
-
-
 class _StrictIntValue(RootModel[int]):
     """Pydantic root model for strict integer validation."""
 
@@ -98,9 +92,10 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: t.ContainerValue) -> list[t.ContainerValue]:
-    """Extract list payload using Pydantic validation."""
-    return _ObjectRows(value).root
+def _extract_object_rows(value: t.ContainerValue) -> list[object]:
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes):
+        return list(value)
+    return []
 
 
 def _sqlalchemy_create_engine(url: str) -> t.ContainerValue:
@@ -1048,9 +1043,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
-    def _extract_mapping_rows(
-        self, mapping_result: t.ContainerValue
-    ) -> list[t.ContainerValue]:
+    def _extract_mapping_rows(self, mapping_result: t.ContainerValue) -> list[object]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
