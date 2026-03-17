@@ -34,6 +34,23 @@ class OperationTestError(Exception):
         self.error = error
 
 
+def _resolve_oracle_test_port(
+    docker_control: FlextTestsDocker, container_name: str
+) -> int:
+    env_port = os.getenv("TEST_ORACLE_PORT")
+    if env_port is not None and env_port.isdigit():
+        return int(env_port)
+    status_result = docker_control.get_container_status(container_name)
+    if status_result.is_success and isinstance(
+        status_result.value, FlextTestsDocker.ContainerInfo
+    ):
+        ports = status_result.value.ports
+        for container_port, host_port in ports.items():
+            if container_port.startswith("1521") and host_port.isdigit():
+                return int(host_port)
+    return 1522
+
+
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
     config.addinivalue_line("markers", "oracle: Oracle database integration tests")
@@ -137,7 +154,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
     is_dirty = docker_control.is_container_dirty(container_name)
     if is_dirty:
         logger.info(
-            "Container %s is dirty, recreating with fresh volumes", container_name
+            f"Container {container_name} is dirty, recreating with fresh volumes"
         )
         cleanup_result = docker_control.cleanup_dirty_containers()
         if cleanup_result.is_failure:
@@ -153,8 +170,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
         )
         if not container_running:
             logger.info(
-                "Container %s is not running (but not dirty), starting...",
-                container_name,
+                f"Container {container_name} is not running (but not dirty), starting..."
             )
             service_name = str(container_config.get("service", ""))
             compose_result = docker_control.compose_up(
@@ -166,15 +182,17 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
                 )
         else:
             logger.debug(
-                "Container %s is running and clean, no action needed", container_name
+                f"Container {container_name} is running and clean, no action needed"
             )
+    resolved_port = _resolve_oracle_test_port(docker_control, container_name)
+    os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
     max_wait: int = 300
     wait_interval: float = 5.0
     waited: float = 0.0
-    logger.info("Waiting for container %s to be ready...", container_name)
+    logger.info(f"Waiting for container {container_name} to be ready...")
     while waited < max_wait:
         try:
-            dsn = oracledb.makedsn("localhost", 1522, service_name="FLEXTDB")
+            dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
             connection = oracledb.connect(
                 user="flext_test", password="flext_test_password", dsn=dsn
             )

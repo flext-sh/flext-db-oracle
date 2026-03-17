@@ -136,8 +136,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 return r[str].fail(health_result.error or "Health check failed")
             if params:
                 client.logger.debug(
-                    "Unused CLI parameters for operation '%s'",
-                    operation,
+                    f"Unused CLI parameters for operation '{operation}'",
                     unused_params=str(params),
                 )
             return r[str].fail(f"Unknown CLI operation: {operation}")
@@ -188,10 +187,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             if not actual_password_raw:
                 return r[FlextDbOracleApi].fail("Oracle password is required")
             self.logger.info(
-                "Connecting to Oracle at %s:%s/%s",
-                actual_host,
-                actual_port,
-                actual_service_name,
+                f"Connecting to Oracle at {actual_host}:{actual_port}/{actual_service_name}"
             )
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None

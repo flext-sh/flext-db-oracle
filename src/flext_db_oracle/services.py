@@ -16,7 +16,7 @@ from urllib.parse import quote_plus
 
 import oracledb
 from flext_core import FlextService, r
-from pydantic import RootModel, TypeAdapter, ValidationError
+from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
@@ -181,6 +181,8 @@ def _connection_execute(
 class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     """Generic Oracle database services using flext-core patterns."""
 
+    _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
+
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize with configuration."""
         super().__init__()
@@ -190,6 +192,14 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.ContainerValue] = {}
         self._metrics: dict[str, t.ContainerValue] = {}
+
+    @property
+    def db_config(self) -> FlextDbOracleSettings:
+        config = self._db_config
+        if config is None:
+            msg = "Database configuration not initialized"
+            raise RuntimeError(msg)
+        return config
 
     def build_create_index_statement(self, _config: t.ContainerValue) -> r[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
@@ -298,7 +308,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
             finally:
                 _context_exit(connect_ctx)
-            self.logger.info(f"Connected to Oracle database: {self._db_config.host}")
+            self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             return r[Self].ok(self)
         except (
             OracleDatabaseError,
@@ -309,13 +319,13 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             SQLAlchemyError,
             OSError,
         ) as e:
-            local_host = self._db_config.host in {
+            local_host = self.db_config.host in {
                 "localhost",
                 c.DbOracle.Platform.LOCALHOST_IP,
             }
             default_port = c.DbOracle.Connection.DEFAULT_PORT
-            if local_host and self._db_config.port != default_port:
-                self._db_config.port = default_port
+            if local_host and self.db_config.port != default_port:
+                self.db_config.port = default_port
                 retry_url_result = self._build_connection_url()
                 if retry_url_result.is_success:
                     self._engine = _sqlalchemy_create_engine(retry_url_result.value)
@@ -329,7 +339,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         finally:
                             _context_exit(connect_ctx)
                         self.logger.info(
-                            f"Connected to Oracle database: {self._db_config.host}"
+                            f"Connected to Oracle database: {self.db_config.host}"
                         )
                         return r[Self].ok(self)
                     except (
@@ -425,7 +435,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Execute main domain service operation - return config."""
         test_result = self.test_connection()
         if test_result.is_success:
-            return r[FlextDbOracleSettings].ok(self._db_config)
+            return r[FlextDbOracleSettings].ok(self.db_config)
         return r[FlextDbOracleSettings].fail(
             test_result.error or "Connection test failed"
         )
@@ -593,10 +603,10 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         return r[FlextDbOracleModels.DbOracle.ConnectionStatus].ok(
             FlextDbOracleModels.DbOracle.ConnectionStatus(
                 is_connected=self.is_connected(),
-                host=self._db_config.host,
-                port=self._db_config.port,
-                service_name=self._db_config.service_name,
-                username=self._db_config.username,
+                host=self.db_config.host,
+                port=self.db_config.port,
+                service_name=self.db_config.service_name,
+                username=self.db_config.username,
                 error_message="" if self.is_connected() else "Connection unavailable",
             )
         )
@@ -611,6 +621,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             )
         metric_factory = getattr(observability_module, "flext_metric", None)
         if not callable(metric_factory):
+            core_module = import_module("flext_observability._core")
+            metric_factory = getattr(core_module, "flext_metric", None)
+        if not callable(metric_factory):
             return r[FlextDbOracleModels.DbOracle.HealthStatus].fail(
                 "flext-observability does not expose flext_metric"
             )
@@ -624,7 +637,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
                 "service": "oracle",
-                "database": self._db_config.service_name,
+                "database": self.db_config.service_name,
                 "metrics": metrics_payload,
             })
         )
@@ -775,11 +788,11 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 status="healthy" if self.is_connected() else "unhealthy",
                 timestamp=self._get_current_timestamp(),
                 service="oracle",
-                database=self._db_config.service_name,
+                database=self.db_config.service_name,
                 metrics={
                     "connected": self.is_connected(),
-                    "host": self._db_config.host,
-                    "port": self._db_config.port,
+                    "host": self.db_config.host,
+                    "port": self.db_config.port,
                 },
             )
         )
@@ -876,6 +889,9 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 "flext-observability integration unavailable; install flext-observability"
             )
         metric_factory = getattr(observability_module, "flext_metric", None)
+        if not callable(metric_factory):
+            core_module = import_module("flext_observability._core")
+            metric_factory = getattr(core_module, "flext_metric", None)
         if not callable(metric_factory):
             return r[bool].fail("flext-observability does not expose flext_metric")
         typed_tags = (
@@ -1013,12 +1029,12 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     def _build_connection_url(self) -> r[str]:
         """Build Oracle connection URL from configuration."""
         try:
-            password = self._db_config.password
+            password = self.db_config.password
             if not password:
                 return r[str].fail("Password is required for database connection")
             encoded_password = quote_plus(str(password).encode())
-            service_name = self._db_config.service_name
-            base = f"oracle+oracledb://{self._db_config.username}:{encoded_password}@{self._db_config.host}:{self._db_config.port}"
+            service_name = self.db_config.service_name
+            base = f"oracle+oracledb://{self.db_config.username}:{encoded_password}@{self.db_config.host}:{self.db_config.port}"
             url = f"{base}/?service_name={service_name}"
             return r[str].ok(url)
         except (

@@ -75,7 +75,7 @@ def oracle_api(
 ) -> FlextDbOracleApi | None:
     """Provide Oracle API with real config if available."""
     if real_oracle_config is None:
-        return None
+        pytest.skip("Oracle configuration unavailable for real API fixture")
     return FlextDbOracleApi(config=real_oracle_config)
 
 
@@ -85,8 +85,7 @@ def connected_oracle_api(
 ) -> Generator[FlextDbOracleApi | None]:
     """Return connected Oracle API if available."""
     if oracle_api is None:
-        yield None
-        return
+        pytest.skip("Oracle API unavailable for connected fixture")
     connect_result = oracle_api.connect()
     if connect_result.is_success:
         connected_api = connect_result.value
@@ -94,7 +93,7 @@ def connected_oracle_api(
         with contextlib.suppress(Exception):
             connected_api.disconnect()
     else:
-        yield None
+        pytest.skip("Oracle connection unavailable for connected fixture")
 
 
 @pytest.fixture

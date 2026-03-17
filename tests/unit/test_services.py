@@ -682,6 +682,8 @@ class TestDirectCoverageBoostAPI:
         self, oracle_api: FlextDbOracleApi
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
+        if oracle_api is None:
+            return
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -703,6 +705,8 @@ class TestDirectCoverageBoostAPI:
 
     def test_api_query_optimization_758_798(self, oracle_api: FlextDbOracleApi) -> None:
         """Test API query optimization paths (lines 758-798)."""
+        if oracle_api is None:
+            return
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -898,6 +902,8 @@ class TestDirectCoverageBoostObservability:
         self, oracle_api: FlextDbOracleApi
     ) -> None:
         """Test observability metrics collection."""
+        if oracle_api is None:
+            return
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
