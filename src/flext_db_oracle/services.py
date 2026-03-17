@@ -15,7 +15,7 @@ from typing import Self, override
 from urllib.parse import quote_plus
 
 import oracledb
-from flext_core import FlextService, r
+from flext_core import s, r
 from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -173,7 +173,7 @@ def _connection_execute(
     return execute_method(statement, normalized_params.root)
 
 
-class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
+class FlextDbOracleServices(s[FlextDbOracleSettings]):
     """Generic Oracle database services using flext-core patterns."""
 
     _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
@@ -1094,4 +1094,6 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         return _parse_count_value(count_value)
 
 
-__all__ = ["FlextDbOracleServices"]
+s = FlextDbOracleServices
+
+__all__ = ["FlextDbOracleServices", "s"]

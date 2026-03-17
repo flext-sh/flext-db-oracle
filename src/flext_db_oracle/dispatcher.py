@@ -9,13 +9,13 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, FlextService, p, r, t
+from flext_core import FlextContainer, FlextRegistry, p, r, t
 
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.services import FlextDbOracleServices
+from flext_db_oracle import FlextDbOracleModels
+from flext_db_oracle import s
 
 
-class FlextDbOracleDispatcher(FlextService[None]):
+class FlextDbOracleDispatcher(s[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     ConnectCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.ConnectCommand

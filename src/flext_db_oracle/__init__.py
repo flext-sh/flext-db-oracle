@@ -38,13 +38,10 @@ if TYPE_CHECKING:
     from flext_db_oracle.client import FlextDbOracleClient
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-    from flext_db_oracle.exceptions import (
-        FlextDbOracleExceptions,
-        FlextDbOracleExceptions as e,
-    )
+    from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
-    from flext_db_oracle.services import FlextDbOracleServices
+    from flext_db_oracle.services import FlextDbOracleServices, s
     from flext_db_oracle.settings import (
         FlextDbOracleSettings,
         OracleDatabaseError,
@@ -91,9 +88,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__version__": ("flext_db_oracle.__version__", "__version__"),
     "__version_info__": ("flext_db_oracle.__version__", "__version_info__"),
     "c": ("flext_db_oracle.constants", "c"),
-    "e": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
+    "e": ("flext_db_oracle.exceptions", "e"),
     "m": ("flext_db_oracle.models", "m"),
     "p": ("flext_db_oracle.protocols", "p"),
+    "s": ("flext_db_oracle.services", "s"),
     "t": ("flext_db_oracle.typings", "t"),
     "u": ("flext_db_oracle.utilities", "u"),
 }
@@ -131,6 +129,7 @@ __all__ = [
     "e",
     "m",
     "p",
+    "s",
     "t",
     "u",
 ]

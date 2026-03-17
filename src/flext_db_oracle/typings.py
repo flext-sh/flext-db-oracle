@@ -44,12 +44,6 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type AuthenticationConfig = dict[str, str | dict[str, _core_t.ContainerValue]]
 
-    class Query:
-        """Oracle query complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
-
         type SqlQuery = str
         type QueryParameters = _ConfigMap
         type QueryResult = _ConfigMap
@@ -59,12 +53,6 @@ class FlextDbOracleTypes(FlextTypes):
             str, str | int | bool | dict[str, _core_t.ContainerValue]
         ]
 
-    class Transaction:
-        """Oracle transaction complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
-
         type TransactionConfiguration = dict[str, str | int | bool]
         type TransactionState = dict[
             str, str | bool | dict[str, _core_t.ContainerValue]
@@ -73,12 +61,6 @@ class FlextDbOracleTypes(FlextTypes):
         type TransactionBlock = list[dict[str, str | dict[str, _core_t.ContainerValue]]]
         type SavepointConfig = dict[str, str | int]
         type RollbackConfig = dict[str, str | bool | list[str]]
-
-    class Schema:
-        """Oracle schema complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
 
         type SchemaDefinition = _ConfigMap
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
@@ -91,12 +73,6 @@ class FlextDbOracleTypes(FlextTypes):
         type ConstraintDefinition = dict[str, str | list[str] | bool]
         type ViewDefinition = dict[str, str | dict[str, _core_t.ContainerValue]]
 
-    class Session:
-        """Oracle session complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
-
         type SessionConfiguration = dict[
             str, str | int | bool | dict[str, _core_t.ContainerValue]
         ]
@@ -107,12 +83,6 @@ class FlextDbOracleTypes(FlextTypes):
             str, int | bool | str | dict[str, _core_t.ContainerValue]
         ]
         type SessionTimeout = dict[str, int | str]
-
-    class Performance:
-        """Oracle performance complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
 
         type PerformanceMetrics = dict[
             str, int | float | dict[str, _core_t.ContainerValue]
@@ -126,12 +96,6 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type CacheConfiguration = dict[str, int | str | bool]
         type OptimizationHints = dict[str, str | list[str]]
-
-    class Security:
-        """Oracle security complex types.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
 
         type UserPermissions = dict[str, list[str] | dict[str, bool]]
         type RoleDefinition = dict[
@@ -148,12 +112,6 @@ class FlextDbOracleTypes(FlextTypes):
             str, bool | str | dict[str, _core_t.ContainerValue]
         ]
 
-    class DataTypes:
-        """Oracle data type complex mappings.
-
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
-        """
-
         type OracleDataType = str
         type PythonDataType = type
         type TypeMapping = _ConfigMap
@@ -161,26 +119,22 @@ class FlextDbOracleTypes(FlextTypes):
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | object]
 
-    class Project:
-        """Oracle database-specific project types.
-
-        Adds Oracle database-specific project types.
-        Follows domain separation principle: Oracle domain owns
-        Oracle-specific types.
-        """
-
         type ProjectType = c.ProjectType
         type OracleProjectConfig = dict[str, _core_t.ContainerValue]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
         type SchemaConfig = dict[str, bool | str | dict[str, _core_t.ContainerValue]]
         type ConnectionConfig = dict[str, _core_t.ContainerValue]
 
-    type ConnectionTypeLiteral = c.ConnectionTypeLiteral
-    "Oracle connection type literal - references ConnectionType StrEnum members."
-    type QueryTypeLiteral = c.QueryTypeLiteral
-    "Oracle query type literal - references QueryType StrEnum members."
-    type DataTypeLiteral = c.DataTypeLiteral
-    "Oracle data type literal - references DataType StrEnum members."
+        type ConnectionTypeLiteral = c.ConnectionTypeLiteral
+        "Oracle connection type literal - references ConnectionType StrEnum members."
+        type QueryTypeLiteral = c.QueryTypeLiteral
+        "Oracle query type literal - references QueryType StrEnum members."
+        type DataTypeLiteral = c.DataTypeLiteral
+        "Oracle data type literal - references DataType StrEnum members."
+
+        _QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
+            t.ContainerValue
+        )
 
 
 t = FlextDbOracleTypes
