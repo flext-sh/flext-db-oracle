@@ -20,6 +20,7 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import t
 
@@ -377,7 +378,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 return r[t.ConfigMap].fail("No connection available")
             health_data = t.ConfigMap(
                 root={
-                    "connection_status": "active"
+                    "connection_status": c.Cqrs.CommonStatus.ACTIVE
                     if self.current_connection.is_connected
                     else "inactive",
                     "host": self.current_connection.oracle_config.host,
