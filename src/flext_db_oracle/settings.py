@@ -46,13 +46,16 @@ class OraclePassword(BaseModel):
     _value: str = ""
 
     def __init__(self, data: str = "") -> None:
+        """Initialize password wrapper with raw string value."""
         super().__init__()
         object.__setattr__(self, "_value", data)
 
     def __str__(self) -> str:
+        """Return wrapped password as plain string."""
         return self._value
 
     def get_secret_value(self) -> str:
+        """Return wrapped password for secret consumers."""
         return self._value
 
 

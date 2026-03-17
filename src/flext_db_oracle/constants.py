@@ -435,6 +435,8 @@ class FlextDbOracleConstants(FlextConstants):
 
     @unique
     class ProjectType(StrEnum):
+        """Project type literals for package metadata."""
+
         LIBRARY = "library"
         APPLICATION = "application"
         SERVICE = "service"
@@ -453,12 +455,16 @@ class FlextDbOracleConstants(FlextConstants):
 
     @unique
     class ConnectionTypeLiteral(StrEnum):
+        """Oracle connection type literals."""
+
         SERVICE_NAME = "service_name"
         SID = "sid"
         TNS = "tns"
 
     @unique
     class QueryTypeLiteral(StrEnum):
+        """Oracle SQL query type literals."""
+
         SELECT = "SELECT"
         INSERT = "INSERT"
         UPDATE = "UPDATE"
@@ -469,6 +475,8 @@ class FlextDbOracleConstants(FlextConstants):
 
     @unique
     class DataTypeLiteral(StrEnum):
+        """Oracle data type literals."""
+
         VARCHAR2 = "VARCHAR2"
         NUMBER = "NUMBER"
         DATE = "DATE"

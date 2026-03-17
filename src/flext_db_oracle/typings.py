@@ -16,16 +16,9 @@ from __future__ import annotations
 
 from flext_core import FlextTypes, m as _core_m, t as _core_t
 
-from flext_db_oracle.models import FlextDbOracleModels
-
-_ConnectionStatus = FlextDbOracleModels.DbOracle.ConnectionStatus
-_QueryResult = FlextDbOracleModels.DbOracle.QueryResult
-_TableMetadata = FlextDbOracleModels.DbOracle.TableMetadata
-_TypeMapping = FlextDbOracleModels.DbOracle.TypeMapping
-_ConfigMap = _core_m.ConfigMap
-
-
 from flext_db_oracle import c
+
+_ConfigMap = _core_m.ConfigMap
 
 
 class FlextDbOracleTypes(FlextTypes):
@@ -42,7 +35,7 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type ConnectionConfiguration = _ConnectionStatus
+        type ConnectionConfiguration = _ConfigMap
         type ConnectionPool = _ConfigMap
         type ConnectionString = str
         type ConnectionParams = dict[str, str | int | bool]
@@ -59,7 +52,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type SqlQuery = str
         type QueryParameters = _ConfigMap
-        type QueryResult = _QueryResult
+        type QueryResult = _ConfigMap
         type QueryMetadata = dict[str, str | int | dict[str, _core_t.ContainerValue]]
         type PreparedStatement = dict[str, str | dict[str, _core_t.ContainerValue]]
         type QueryExecution = dict[
@@ -87,7 +80,7 @@ class FlextDbOracleTypes(FlextTypes):
         Python 3.13+ best practice: Use TypeAlias for better type checking.
         """
 
-        type SchemaDefinition = _TableMetadata
+        type SchemaDefinition = _ConfigMap
         type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
         type ColumnDefinition = dict[
             str, str | int | bool | dict[str, _core_t.ContainerValue]
@@ -163,7 +156,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type OracleDataType = str
         type PythonDataType = type
-        type TypeMapping = _TypeMapping
+        type TypeMapping = _ConfigMap
         type DataConversion = dict[str, _core_t.ContainerValue]
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | object]
