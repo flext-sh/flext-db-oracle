@@ -14,7 +14,7 @@ from flext_core import FlextContainer, FlextRegistry, r
 from flext_db_oracle import FlextDbOracleModels, p, s, t
 
 
-class FlextDbOracleDispatcher(s[None]):
+class FlextDbOracleDispatcher(s):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     ConnectCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.ConnectCommand
