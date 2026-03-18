@@ -11,3 +11,7 @@ from __future__ import annotations
 
 class TestsFlextDbOracleTypes:
     """Test type aliases for flextdboracle."""
+
+
+t = TestsFlextDbOracleTypes
+__all__ = ["TestsFlextDbOracleTypes", "t"]

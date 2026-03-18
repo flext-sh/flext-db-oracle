@@ -14,3 +14,4 @@ class TestsFlextDbOracleUtilities:
 
 
 u = TestsFlextDbOracleUtilities
+__all__ = ["TestsFlextDbOracleUtilities", "u"]

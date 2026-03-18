@@ -49,10 +49,11 @@ if TYPE_CHECKING:
         OracleInterfaceError,
         OraclePassword,
     )
-    from flext_db_oracle.typings import FlextDbOracleTypes, t
+    from flext_db_oracle.typings import CliScalar, FlextDbOracleTypes, t
     from flext_db_oracle.utilities import FlextDbOracleUtilities, u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "CliScalar": ("flext_db_oracle.typings", "CliScalar"),
     "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
@@ -97,6 +98,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 __all__ = [
+    "CliScalar",
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
