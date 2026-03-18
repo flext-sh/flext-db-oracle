@@ -70,7 +70,8 @@ class TestBasicModelCreation:
         tm.that(config.service_name, eq="TEST")
         tm.that(config.username, eq="testuser")
         tm.that(config.password is not None, eq=True)
-        tm.that(config.password.get_secret_value(), eq="testpass")
+        if config.password is not None:
+            tm.that(config.password.get_secret_value(), eq="testpass")
 
     def test_oracle_config_with_ssl(self) -> None:
         """Test Oracle configuration with SSL settings."""

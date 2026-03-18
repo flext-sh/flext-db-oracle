@@ -57,7 +57,10 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -115,7 +118,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(hasattr(result, "is_success"), eq=True)
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
-        error_lower = result.error.lower()
+        error_lower = result.error.lower() if result.error is not None else ""
         tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 
     def test_test_connection_structure(self) -> None:
@@ -182,7 +185,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         result = self.manager.get_tables("APP_SCHEMA")
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
-        error_lower = result.error.lower()
+        error_lower = result.error.lower() if result.error is not None else ""
         tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 
     def test_validation_logic_comprehensive(self) -> None:

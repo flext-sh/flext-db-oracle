@@ -90,7 +90,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that("plugin_count" in result, eq=True)
         config_obj = result["config"]
         tm.that(isinstance(config_obj, dict), eq=True)
-        config_dict: dict[str, object] = config_obj
+        if isinstance(config_obj, dict):
+            config_dict: dict[str, object] = config_obj
+        else:
+            config_dict = {}
         tm.that(config_dict["host"] == "test_host", eq=True)
         tm.that(config_dict["port"] == 1521, eq=True)
         tm.that(config_dict["service_name"] == "TEST", eq=True)
@@ -121,7 +124,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -134,7 +140,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -147,7 +156,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -158,7 +170,7 @@ class TestFlextDbOracleApiRealFunctionality:
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
             tm.that(
-                FlextDbOracleUtilities.DbOracle.FeatureFlags.dispatcher_enabled(),
+                FlextDbOracleUtilities.DbOracle.dispatcher_enabled(),
                 eq=True,
             )
             api = FlextDbOracleApi(self.config)
@@ -178,7 +190,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -191,7 +206,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -204,7 +222,10 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "not connected" in result.error.lower()
-                or "connection" in result.error.lower()
+                if result.error is not None
+                else "" or "connection" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -214,7 +235,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.test_connection()
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
-        error_msg = result.error.lower()
+        error_msg = result.error.lower() if result.error is not None else ""
         tm.that(
             (
                 "connection" in error_msg
@@ -285,8 +306,12 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(
             (
                 "invalid" in result.error.lower()
-                or "failed to parse" in result.error.lower()
-                or "not implemented" in result.error.lower()
+                if result.error is not None
+                else "" or "failed to parse" in result.error.lower()
+                if result.error is not None
+                else "" or "not implemented" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -318,6 +343,8 @@ class TestFlextDbOracleApiRealFunctionality:
             (
                 result.error is not None
                 and "plugin 'nonexistent_plugin' not found" in result.error.lower()
+                if result.error is not None
+                else ""
             ),
             eq=True,
         )
@@ -337,8 +364,9 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
         tm.that(
-            result.error is not None
-            and "nonexistent_plugin" in result.error.lower() is True,
+            result.error is not None and "nonexistent_plugin" in result.error.lower()
+            if result.error is not None
+            else "" == True,
             eq=True,
         )
 
@@ -516,7 +544,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(hasattr(result, "error"), eq=True)
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
-        error_lower = result.error.lower()
+        error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
             (
                 "connection" in error_lower
@@ -534,7 +562,7 @@ class TestFlextDbOracleApiRealFunctionality:
         if not result.is_success:
             tm.fail(result)
             tm.that(result.error is not None, eq=True)
-            error_lower = result.error.lower()
+            error_lower = result.error.lower() if result.error is not None else ""
             tm.that(
                 (
                     "connection" in error_lower
@@ -677,7 +705,8 @@ class TestFlextDbOracleApiRealFunctionality:
             else:
                 tm.that(result.error is not None, eq=True)
                 tm.that(isinstance(result.error, str), eq=True)
-                tm.that(len(result.error) > 0, eq=True)
+                if result.error is not None:
+                    tm.that(len(result.error) > 0, eq=True)
 
 
 "Unit tests for flext_db_oracle.api module.\n\nTests FlextDbOracleApi functionality with real implementations,\nno mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -935,7 +964,8 @@ class TestApiModule:
     def test_flext_db_oracle_api_docstring(self) -> None:
         """Test that FlextDbOracleApi has proper docstring."""
         tm.that(FlextDbOracleApi.__doc__ is not None, eq=True)
-        tm.that(len(FlextDbOracleApi.__doc__.strip()) > 0, eq=True)
+        if FlextDbOracleApi.__doc__ is not None:
+            tm.that(len(FlextDbOracleApi.__doc__.strip()) > 0, eq=True)
 
     def test_flext_db_oracle_api_method_signatures(self) -> None:
         """Test that api methods have proper signatures."""
@@ -1193,7 +1223,10 @@ class TestFlextDbOracleApiSafeMethods:
             tm.that(
                 (
                     "empty" in plugins_result.error.lower()
-                    or "not found" in plugins_result.error.lower()
+                    if plugins_result.error is not None
+                    else "" or "not found" in plugins_result.error.lower()
+                    if plugins_result.error is not None
+                    else ""
                 ),
                 eq=True,
             )
@@ -1211,7 +1244,12 @@ class TestFlextDbOracleApiSafeMethods:
             tm.that(len(plugins_after.value) >= 1, eq=True)
         else:
             tm.that(plugins_after.error is not None, eq=True)
-            tm.that("empty" in plugins_after.error.lower(), eq=True)
+            tm.that(
+                "empty" in plugins_after.error.lower()
+                if plugins_after.error is not None
+                else "",
+                eq=True,
+            )
         plugin["name"] if isinstance(plugin, dict) else "performance_monitor"
         get_result = api.get_plugin("performance_monitor")
         tm.that(get_result.is_success, eq=True)
@@ -1232,7 +1270,9 @@ class TestFlextDbOracleApiSafeMethods:
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
         tm.that(
-            result.error is not None and "not found" in result.error.lower() is True,
+            result.error is not None and "not found" in result.error.lower()
+            if result.error is not None
+            else "" == True,
             eq=True,
         )
         register_result = api.register_plugin("test_plugin", None)

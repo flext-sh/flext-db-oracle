@@ -95,22 +95,22 @@ class TestFlextDbOracleClientReal:
         tm.that(
             (
                 result.error is not None
-                and "No active Oracle connection" in result.error
+                and "No active Oracle connection" in (result.error or "")
             ),
             eq=True,
         )
         schemas_result = client.list_schemas()
         tm.that(not schemas_result.is_success, eq=True)
         tm.that(schemas_result.error, eq=True)
-        tm.that("No active Oracle connection" in schemas_result.error, eq=True)
+        tm.that("No active Oracle connection" in (schemas_result.error or ""), eq=True)
         tables_result = client.list_tables()
         tm.that(not tables_result.is_success, eq=True)
         tm.that(tables_result.error, eq=True)
-        tm.that("No active Oracle connection" in tables_result.error, eq=True)
+        tm.that("No active Oracle connection" in (tables_result.error or ""), eq=True)
         health_result = client.health_check()
         tm.that(not health_result.is_success, eq=True)
         tm.that(health_result.error, eq=True)
-        tm.that("No active Oracle connection" in health_result.error, eq=True)
+        tm.that("No active Oracle connection" in (health_result.error or ""), eq=True)
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
         """Test Oracle connection with invalid credentials (real connection attempt)."""
@@ -126,9 +126,9 @@ class TestFlextDbOracleClientReal:
         tm.that(result.error, eq=True)
         tm.that(
             (
-                "Connection failed" in result.error
-                or "Oracle connection failed" in result.error
-                or "Connection error" in result.error
+                "Connection failed" in (result.error or "")
+                or "Oracle connection failed" in (result.error or "")
+                or "Connection error" in (result.error or "")
             ),
             eq=True,
         )
@@ -264,7 +264,8 @@ class TestOracleConnectionHelper:
         tm.that(config.service_name == "TEST_SERVICE", eq=True)
         tm.that(config.username == "test_user", eq=True)
         tm.that(config.password is not None, eq=True)
-        tm.that(config.password.get_secret_value() == "test_password", eq=True)
+        if config.password is not None:
+            tm.that(config.password.get_secret_value() == "test_password", eq=True)
 
     def test_create_config_from_params_defaults(self) -> None:
         """Test config creation with default parameters."""
@@ -519,7 +520,8 @@ class TestCliServiceOperations:
             )
         tm.that(result.is_failure, eq=True)
         tm.that(
-            result.error is not None and "Database unreachable" in result.error is True,
+            result.error is not None
+            and "Database unreachable" in (result.error or "") is True,
             eq=True,
         )
 
@@ -571,7 +573,8 @@ class TestCliServiceOperations:
             )
         tm.that(result.is_failure, eq=True)
         tm.that(
-            result.error is not None and "Connection failed" in result.error is True,
+            result.error is not None
+            and "Connection failed" in (result.error or "") is True,
             eq=True,
         )
 
@@ -595,7 +598,8 @@ class TestCliServiceOperations:
             )
         tm.that(result.is_failure, eq=True)
         tm.that(
-            result.error is not None and "Schema query failed" in result.error is True,
+            result.error is not None
+            and "Schema query failed" in (result.error or "") is True,
             eq=True,
         )
 
@@ -779,10 +783,9 @@ class TestCLIRealFunctionality:
 
     def test_output_formatting_real(self) -> None:
         """Test output formatting using real functionality."""
-        utilities = FlextDbOracleUtilities()
         test_result = {"column1": "value1", "column2": "value2"}
         for format_type in ["table", "json", "csv"]:
-            format_result = utilities.format_query_result(
+            format_result = FlextDbOracleUtilities.DbOracle.format_query_result(
                 test_result, format_type=format_type
             )
             tm.ok(format_result)
@@ -805,7 +808,10 @@ class TestCLIRealFunctionality:
         tm.that(
             (
                 "not connected" in query_result.error.lower()
-                or "connection" in query_result.error.lower()
+                if query_result.error is not None
+                else "" or "connection" in query_result.error.lower()
+                if query_result.error is not None
+                else ""
             ),
             eq=True,
         )

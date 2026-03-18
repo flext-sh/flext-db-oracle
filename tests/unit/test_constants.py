@@ -279,18 +279,17 @@ class TestFlextDbOracleConstants:
 
     def test_feature_flags_functionality(self) -> None:
         """Test feature flag functionality."""
-        flags = FlextDbOracleUtilities.DbOracle.FeatureFlags
-        tm.that(not flags.dispatcher_enabled(), eq=True)
+        tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
         original_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
-            tm.that(flags.dispatcher_enabled(), eq=True)
+            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "true"
-            tm.that(flags.dispatcher_enabled(), eq=True)
+            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "0"
-            tm.that(not flags.dispatcher_enabled(), eq=True)
+            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "false"
-            tm.that(not flags.dispatcher_enabled(), eq=True)
+            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
         finally:
             if original_value is not None:
                 os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = original_value
@@ -403,7 +402,7 @@ class TestFlextDbOracleConstants:
         tm.that(isinstance(max_length, int), eq=True)
         tm.that(max_length > 0, eq=True)
         long_name = "A" * (max_length - 10)
-        escaped = FlextDbOracleUtilities.escape_oracle_identifier(long_name)
+        escaped = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(long_name)
         tm.ok(escaped)
         max_varchar = (
             FlextDbOracleConstants.DbOracle.OracleValidation.MAX_VARCHAR_LENGTH
@@ -442,7 +441,7 @@ class TestFlextDbOracleConstants:
         for word in test_words:
             tm.that(word in reserved is True, eq=True)
         for word in test_words[:3]:
-            result = FlextDbOracleUtilities.OracleValidation.validate_identifier(word)
+            result = FlextDbOracleUtilities.DbOracle.validate_identifier(word)
             tm.that(result.is_failure, eq=True)
             tm.that(
                 result.error is not None and "reserved word" in result.error is True,
