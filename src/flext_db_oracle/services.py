@@ -15,7 +15,7 @@ from typing import Self, override
 from urllib.parse import quote_plus
 
 import oracledb
-from flext_core import s, r
+from flext_core import r, s
 from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,

@@ -11,8 +11,7 @@ from typing import ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, p, r, t
 
-from flext_db_oracle import FlextDbOracleModels
-from flext_db_oracle import s
+from flext_db_oracle import FlextDbOracleModels, s
 
 
 class FlextDbOracleDispatcher(s[None]):
