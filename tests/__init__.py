@@ -38,7 +38,7 @@ if TYPE_CHECKING:
     from .integration.test_oracle import TestOracleIntegration
     from .models import TestsFlextDbOracleModels, m, tm
     from .protocols import TestsFlextDbOracleProtocols, p
-    from .typings import TestsFlextDbOracleTypes
+    from .typings import TestsFlextDbOracleTypes, t
     from .unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
@@ -90,7 +90,6 @@ if TYPE_CHECKING:
         TestDirectCoverageBoostObservability,
         TestDirectCoverageBoostServices,
         TestDirectCoverageBoostTypes,
-        TestDirectCoverageBoostTypes as t,
         TestFlextDbOracleConnectionSimple,
         TestFlextDbOracleMetadataManagerComprehensive,
         TestFlextDbOracleServicesBasic,
@@ -268,7 +267,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "real_oracle_config": ("tests.conftest", "real_oracle_config"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
     "shared_oracle_container": ("tests.conftest", "shared_oracle_container"),
-    "t": ("tests.unit.test_services", "TestDirectCoverageBoostTypes"),
+    "t": ("tests.typings", "t"),
     "test_cleanup": ("tests.conftest", "test_cleanup"),
     "test_database_setup": ("tests.conftest", "test_database_setup"),
     "tm": ("tests.models", "tm"),
