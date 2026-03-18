@@ -247,7 +247,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     def execute_query(
         self,
         sql: str,
-        params: t.Query.QueryParameters | None = None,
+        params: t.DbOracle.QueryParameters | None = None,
     ) -> r[str]:
         """Execute SQL query with formatted output.
 

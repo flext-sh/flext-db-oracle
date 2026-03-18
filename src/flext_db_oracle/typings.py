@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextTypes, m as _core_m, t as _core_t
-from typings import TypeAdapter
+from pydantic import TypeAdapter
 
 from flext_db_oracle import c
 

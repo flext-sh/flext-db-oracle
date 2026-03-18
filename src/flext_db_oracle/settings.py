@@ -50,6 +50,7 @@ class OraclePassword(BaseModel):
         super().__init__()
         object.__setattr__(self, "_value", data)
 
+    @override
     def __str__(self) -> str:
         """Return wrapped password as plain string."""
         return self._value
@@ -58,6 +59,7 @@ class OraclePassword(BaseModel):
         """Return wrapped password for secret consumers."""
         return self._value
 
+    @override
     def __eq__(self, other: object) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, OraclePassword):
