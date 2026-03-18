@@ -110,7 +110,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
             return r[str].ok(identifier[:max_len])
 
-        _QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
+        QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
             t.ContainerValue,
         )
 
@@ -122,7 +122,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             """Format a query result to string or JSON."""
             if format_type == "json":
                 return r[str].ok(
-                    FlextDbOracleUtilities._QUERY_RESULT_ADAPTER.dump_json(
+                    FlextDbOracleUtilities.DbOracle.QUERY_RESULT_ADAPTER.dump_json(
                         result,
                     ).decode(),
                 )
@@ -134,7 +134,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             normalized = " ".join(sql.split())
             return r[str].ok(normalized)
 
-        _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
+        HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
             dict[str, t.ContainerValue],
         )
 
@@ -145,7 +145,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         ) -> r[str]:
             """Generate a SHA-256 hash for a query and its parameters."""
             sorted_params = dict(sorted((params or {}).items()))
-            serialized = FlextDbOracleUtilities._HASH_PARAMS_ADAPTER.dump_json(
+            serialized = FlextDbOracleUtilities.DbOracle.HASH_PARAMS_ADAPTER.dump_json(
                 sorted_params,
             ).decode()
             payload = f"{query}|{serialized}".encode()
@@ -278,7 +278,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             if not callable(execute_method):
                 msg = "Database connection does not expose execute()"
                 raise TypeError(msg)
-            normalized_params = FlextDbOracleUtilities.DbOracle._normalize_params(
+            normalized_params = FlextDbOracleUtilities.DbOracle.normalize_params(
                 parameters,
             )
             return execute_method(statement, normalized_params.root)

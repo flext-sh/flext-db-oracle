@@ -59,11 +59,16 @@ class OraclePassword(BaseModel):
         return self._value
 
     def __eq__(self, other: object) -> bool:
+        """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, OraclePassword):
             return self._value == other._value
         if isinstance(other, str):
             return self._value == other
         return False
+
+    def __hash__(self) -> int:
+        """Return hash based on wrapped password value."""
+        return hash(self._value)
 
 
 class FlextDbOracleSettings(FlextSettings):

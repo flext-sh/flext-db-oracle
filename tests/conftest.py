@@ -17,6 +17,8 @@ from typing import Any
 import oracledb
 import pytest
 from flext_core import FlextLogger
+from flext_tests.docker import tk
+from flext_tests.domains import td
 from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
