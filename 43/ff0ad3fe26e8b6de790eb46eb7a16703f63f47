@@ -1,0 +1,23 @@
+src/flext_db_oracle/utilities.py
+  0fb2d9539512fe80 148,281
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "43ff0ad3fe26e8b6de790eb46eb7a16703f63f47",
+  "prompts": {
+    "0fb2d9539512fe80": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2feca499dffeo7Yde2XRqw4tW3",
+        "model": "anthropic/claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 4,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
