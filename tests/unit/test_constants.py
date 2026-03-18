@@ -361,7 +361,7 @@ class TestFlextDbOracleConstants:
             FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
         )
         tm.that(isinstance(default_service, str), eq=True)
-        tm.that(len(default_service) > 0 == True, eq=True)
+        tm.that(len(default_service) > 0, eq=True)
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         tm.that(isinstance(default_port, int), eq=True)
         tm.that(
@@ -401,7 +401,7 @@ class TestFlextDbOracleConstants:
             FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         )
         tm.that(isinstance(max_length, int), eq=True)
-        tm.that(max_length > 0 == True, eq=True)
+        tm.that(max_length > 0, eq=True)
         long_name = "A" * (max_length - 10)
         escaped = FlextDbOracleUtilities.escape_oracle_identifier(long_name)
         tm.ok(escaped)
@@ -424,11 +424,11 @@ class TestFlextDbOracleConstants:
         execution_ms = (end_time - start_time) * 1000
         perf = FlextDbOracleConstants.DbOracle.OraclePerformance
         if execution_ms < perf.QUERY_EXCELLENT_THRESHOLD_MS:
-            tm.that(execution_ms < 100 == True, eq=True)
+            tm.that(execution_ms < 100, eq=True)
         elif execution_ms < perf.QUERY_GOOD_THRESHOLD_MS:
-            tm.that(execution_ms < 500 == True, eq=True)
+            tm.that(execution_ms < 500, eq=True)
         elif execution_ms < perf.QUERY_ACCEPTABLE_THRESHOLD_MS:
-            tm.that(execution_ms < 2000 == True, eq=True)
+            tm.that(execution_ms < 2000, eq=True)
 
     @pytest.mark.unit_integration
     def test_oracle_reserved_words_real_validation(

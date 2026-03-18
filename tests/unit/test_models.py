@@ -74,27 +74,27 @@ class TestFlextDbOracleModels:
         tm.that(status.status_description == "Disconnected: Connection lost", eq=True)
         status.is_connected = True
         status.error_message = ""
-        tm.that(status.connection_age_seconds >= 0 == True, eq=True)
+        tm.that(status.connection_age_seconds >= 0, eq=True)
         tm.that(status.is_healthy, eq=True)
-        tm.that("localhost" in status.connection_info is True, eq=True)
-        tm.that("1521" in status.connection_info is True, eq=True)
-        tm.that("XEPDB1" in status.connection_info is True, eq=True)
-        tm.that("system" in status.connection_info is True, eq=True)
+        tm.that("localhost" in status.connection_info, eq=True)
+        tm.that("1521" in status.connection_info, eq=True)
+        tm.that("XEPDB1" in status.connection_info, eq=True)
+        tm.that("system" in status.connection_info, eq=True)
 
     def test_connection_status_performance_info(self) -> None:
         """Test ConnectionStatus performance rating."""
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
             is_connected=True, host="localhost", connection_time=0.05
         )
-        tm.that("Excellent" in status.performance_info is True, eq=True)
+        tm.that("Excellent" in status.performance_info, eq=True)
         status.connection_time = 0.3
-        tm.that("Good" in status.performance_info is True, eq=True)
+        tm.that("Good" in status.performance_info, eq=True)
         status.connection_time = 1.5
-        tm.that("Acceptable" in status.performance_info is True, eq=True)
+        tm.that("Acceptable" in status.performance_info, eq=True)
         status.connection_time = 3.0
-        tm.that("Slow" in status.performance_info is True, eq=True)
+        tm.that("Slow" in status.performance_info, eq=True)
         status.connection_time = 0.0
-        tm.that("No performance data" in status.performance_info is True, eq=True)
+        tm.that("No performance data" in status.performance_info, eq=True)
 
     def test_connection_status_validation(self) -> None:
         """Test ConnectionStatus validation."""
@@ -130,8 +130,8 @@ class TestFlextDbOracleModels:
             connection_time=1.23456,
         )
         serialized = status.model_dump(mode="json")
-        tm.that("last_check" in serialized is True, eq=True)
-        tm.that("last_activity" in serialized is True, eq=True)
+        tm.that("last_check" in serialized, eq=True)
+        tm.that("last_activity" in serialized, eq=True)
         tm.that(
             len(status.error_message) <= 500 + len("... (truncated)") is True, eq=True
         )
@@ -246,7 +246,7 @@ class TestFlextDbOracleModels:
             query="SELECT 1", execution_time_ms=1500
         )
         serialized = result.model_dump(mode="json")
-        tm.that("execution_time_ms" in serialized is True, eq=True)
+        tm.that("execution_time_ms" in serialized, eq=True)
         execution_time_str = result.execution_time_ms
         tm.that(execution_time_str == 1500, eq=True)
 
@@ -272,7 +272,7 @@ class TestFlextDbOracleModels:
         tm.that(table.columns[0].name == "id", eq=True)
         tm.that(table.columns[0].nullable is False, eq=True)
         tm.that(table.columns[1].name == "name", eq=True)
-        tm.that(table.columns[1].nullable is True == True, eq=True)
+        tm.that(table.columns[1].nullable is True, eq=True)
 
     def test_column_creation(self) -> None:
         """Test Column model creation."""
@@ -315,7 +315,7 @@ class TestFlextDbOracleModels:
         tm.that(config.table_name == "users", eq=True)
         tm.that(config.index_name == "idx_users_email", eq=True)
         tm.that(config.columns == ["email"], eq=True)
-        tm.that(config.unique is True == True, eq=True)
+        tm.that(config.unique is True, eq=True)
         tm.that(config.schema_name == "hr", eq=True)
         tm.that(config.tablespace == "users_idx", eq=True)
         tm.that(config.parallel == 4, eq=True)
@@ -395,8 +395,7 @@ class TestFlextDbOracleModels:
                 "Good",
                 "Acceptable",
                 "Slow",
-            }
-            == True,
+            },
             eq=True,
         )
 
@@ -428,7 +427,7 @@ class TestFlextDbOracleSettings:
         tm.that(config.service_name == "XEPDB1", eq=True)
         tm.that(config.username == "system", eq=True)
         tm.that(config.password == "", eq=True)
-        tm.that(config.ssl_server_cert_dn is None is True, eq=True)
+        tm.that(config.ssl_server_cert_dn is None, eq=True)
 
     def test_config_creation_with_values(self) -> None:
         """Test config creation with custom values."""
@@ -565,15 +564,15 @@ class TestFlextDbOracleSettings:
         config2 = FlextDbOracleSettings(host="localhost", port=1521)
         config3 = FlextDbOracleSettings(host="remotehost", port=1521)
         tm.that(config1 == config2, eq=True)
-        tm.that(config1 != config3 is True, eq=True)
+        tm.that(config1 != config3, eq=True)
 
     def test_config_repr(self) -> None:
         """Test config string representation."""
         config = FlextDbOracleSettings(host="localhost", port=1521, username="system")
         repr_str = repr(config)
-        tm.that("FlextDbOracleSettings" in repr_str is True, eq=True)
-        tm.that("localhost" in repr_str is True, eq=True)
-        tm.that("1521" in repr_str is True, eq=True)
+        tm.that("FlextDbOracleSettings" in repr_str, eq=True)
+        tm.that("localhost" in repr_str, eq=True)
+        tm.that("1521" in repr_str, eq=True)
 
     def test_config_connection_string_components(self) -> None:
         """Test that config has all components needed for connection string."""
@@ -604,8 +603,8 @@ class TestFlextDbOracleSettings:
         """Test that config defaults are properly set and don't change."""
         config1 = FlextDbOracleSettings()
         config2 = FlextDbOracleSettings()
-        tm.that(config1.host == config2.host, eq=True) == "localhost"
-        tm.that(config1.port == config2.port, eq=True) == 1521
-        tm.that(config1.service_name == config2.service_name, eq=True) == "XEPDB1"
+        tm.that(config1.host == config2.host, eq=True)
+        tm.that(config1.port == config2.port, eq=True)
+        tm.that(config1.service_name == config2.service_name, eq=True)
         config1.host = "modified"
         tm.that(config2.host == "localhost", eq=True)

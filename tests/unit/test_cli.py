@@ -36,17 +36,17 @@ class TestFlextDbOracleClientReal:
     def test_client_initialization_debug_mode(self) -> None:
         """Test CLI client initialization in debug mode."""
         client = FlextDbOracleClient(debug=True)
-        tm.that(client.debug is True, eq=True)
-        tm.that(client.current_connection is None is True, eq=True)
+        tm.that(client.debug, eq=True)
+        tm.that(client.current_connection is None, eq=True)
         tm.that(client.user_preferences["default_output_format"] == "table", eq=True)
         tm.that(client.user_preferences["show_execution_time"] == "True", eq=True)
-        tm.that(client.container is not None is True, eq=True)
-        tm.that(client.logger is not None is True, eq=True)
+        tm.that(client.container is not None, eq=True)
+        tm.that(client.logger is not None, eq=True)
 
     def test_client_initialization_production_mode(self) -> None:
         """Test CLI client initialization in production mode."""
         client = FlextDbOracleClient(debug=False)
-        tm.that(client.debug is False is True, eq=True)
+        tm.that(client.debug is False, eq=True)
         tm.that(client.user_preferences["auto_confirm_operations"] == "False", eq=True)
         tm.that(client.user_preferences["connection_timeout"] == 30, eq=True)
         tm.that(client.user_preferences["query_limit"] == 1000, eq=True)
@@ -54,9 +54,9 @@ class TestFlextDbOracleClientReal:
     def test_client_initialization_real(self) -> None:
         """Test actual CLI client initialization."""
         client = FlextDbOracleClient()
-        tm.that(client.container is not None is True, eq=True)
-        tm.that(client.logger is not None is True, eq=True)
-        tm.that(client.current_connection is None is True, eq=True)
+        tm.that(client.container is not None, eq=True)
+        tm.that(client.logger is not None, eq=True)
+        tm.that(client.current_connection is None, eq=True)
 
     def test_configure_preferences_real(self) -> None:
         """Test configuring user preferences with real values."""
@@ -64,12 +64,10 @@ class TestFlextDbOracleClientReal:
         result = client.configure_preferences(
             default_output_format="json", query_limit=2000, show_execution_time=False
         )
-        tm.that(result.is_success is True, eq=True)
+        tm.that(result.is_success, eq=True)
         tm.that(client.user_preferences["default_output_format"] == "json", eq=True)
         tm.that(client.user_preferences["query_limit"] == 2000, eq=True)
-        tm.that(
-            client.user_preferences["show_execution_time"] is False is True, eq=True
-        )
+        tm.that(client.user_preferences["show_execution_time"] is False, eq=True)
 
     def test_configure_preferences_invalid_keys(self) -> None:
         """Test configuring preferences with invalid keys."""
@@ -78,7 +76,7 @@ class TestFlextDbOracleClientReal:
         result = client.configure_preferences(
             invalid_key="value", another_invalid="test"
         )
-        tm.that(result.is_success is True, eq=True)
+        tm.that(result.is_success, eq=True)
         original_dict: dict[str, object] = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
@@ -104,15 +102,15 @@ class TestFlextDbOracleClientReal:
         schemas_result = client.list_schemas()
         tm.that(not schemas_result.is_success, eq=True)
         tm.that(schemas_result.error, eq=True)
-        tm.that("No active Oracle connection" in schemas_result.error is True, eq=True)
+        tm.that("No active Oracle connection" in schemas_result.error, eq=True)
         tables_result = client.list_tables()
         tm.that(not tables_result.is_success, eq=True)
         tm.that(tables_result.error, eq=True)
-        tm.that("No active Oracle connection" in tables_result.error is True, eq=True)
+        tm.that("No active Oracle connection" in tables_result.error, eq=True)
         health_result = client.health_check()
         tm.that(not health_result.is_success, eq=True)
         tm.that(health_result.error, eq=True)
-        tm.that("No active Oracle connection" in health_result.error is True, eq=True)
+        tm.that("No active Oracle connection" in health_result.error, eq=True)
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
         """Test Oracle connection with invalid credentials (real connection attempt)."""
@@ -141,7 +139,7 @@ class TestFlextDbOracleClientReal:
         client2 = FlextDbOracleClient()
         tm.that(isinstance(client1, FlextDbOracleClient), eq=True)
         tm.that(isinstance(client2, FlextDbOracleClient), eq=True)
-        tm.that(client1 is not client2 is True, eq=True)
+        tm.that(client1 is not client2, eq=True)
 
     def test_run_cli_command_real(self) -> None:
         """Test CLI command execution with real functionality."""
@@ -218,14 +216,14 @@ class TestFlextDbOracleCli:
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service is not None is True, eq=True)
-        tm.that(cli_service._container is not None is True, eq=True)
-        tm.that(cli_service.logger is not None is True, eq=True)
+        tm.that(cli_service is not None, eq=True)
+        tm.that(cli_service._container is not None, eq=True)
+        tm.that(cli_service.logger is not None, eq=True)
 
     def test_cli_service_initialization_basic(self) -> None:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service is not None is True, eq=True)
+        tm.that(cli_service is not None, eq=True)
         tm.that(hasattr(cli_service, "logger"), eq=True)
 
     def test_initialize_cli_main_success(self) -> None:
@@ -265,7 +263,7 @@ class TestOracleConnectionHelper:
         tm.that(config.port == 1522, eq=True)
         tm.that(config.service_name == "TEST_SERVICE", eq=True)
         tm.that(config.username == "test_user", eq=True)
-        tm.that(config.password is not None is True, eq=True)
+        tm.that(config.password is not None, eq=True)
         tm.that(config.password.get_secret_value() == "test_password", eq=True)
 
     def test_create_config_from_params_defaults(self) -> None:
@@ -286,7 +284,7 @@ class TestOracleConnectionHelper:
             host="test-host", username="test_user"
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Password is required" in str(result.error) is True, eq=True)
+        tm.that("Password is required" in str(result.error), eq=True)
 
     def test_create_config_from_params_empty_password(self) -> None:
         """Test config creation fails with empty password."""
@@ -294,7 +292,7 @@ class TestOracleConnectionHelper:
             host="test-host", username="test_user", password=""
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Password is required" in str(result.error) is True, eq=True)
+        tm.that("Password is required" in str(result.error), eq=True)
 
     def test_create_config_from_params_validation_error(self) -> None:
         """Test config creation handles validation errors."""
@@ -302,7 +300,7 @@ class TestOracleConnectionHelper:
             host="", password="test_password"
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Configuration creation failed" in str(result.error) is True, eq=True)
+        tm.that("Configuration creation failed" in str(result.error), eq=True)
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
@@ -319,7 +317,7 @@ class TestOracleConnectionHelper:
                 config
             )
         tm.ok(result)
-        tm.that(result.value is True, eq=True)
+        tm.that(result.value, eq=True)
 
     def test_validate_connection_failure(self) -> None:
         """Test connection validation failure handling."""
@@ -336,7 +334,7 @@ class TestOracleConnectionHelper:
                 config
             )
         tm.that(result.is_failure, eq=True)
-        tm.that("Connection failed" in str(result.error) is True, eq=True)
+        tm.that("Connection failed" in str(result.error), eq=True)
 
 
 class TestOutputFormatter:
@@ -346,12 +344,12 @@ class TestOutputFormatter:
         """Test formatter initialization with CLI main."""
         mock_cli_main = Mock()
         formatter = FlextDbOracleCli._OutputFormatter(mock_cli_main)
-        tm.that(formatter._cli_main is mock_cli_main is True, eq=True)
+        tm.that(formatter._cli_main is mock_cli_main, eq=True)
 
     def test_formatter_initialization_without_cli_main(self) -> None:
         """Test formatter initialization without CLI main."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        tm.that(formatter._cli_main is None is True, eq=True)
+        tm.that(formatter._cli_main is None, eq=True)
 
     def test_format_success_message(self) -> None:
         """Test success message formatting."""
@@ -374,10 +372,10 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Database Tables", "table")
         tm.ok(result)
         output = result.value
-        tm.that("Database Tables" in output is True, eq=True)
-        tm.that("table1" in output is True, eq=True)
-        tm.that("table2" in output is True, eq=True)
-        tm.that("table3" in output is True, eq=True)
+        tm.that("Database Tables" in output, eq=True)
+        tm.that("table1" in output, eq=True)
+        tm.that("table2" in output, eq=True)
+        tm.that("table3" in output, eq=True)
 
     _JSON_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
 
@@ -410,9 +408,9 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Test Items", "plain")
         tm.ok(result)
         output = result.value
-        tm.that("Test Items" in output is True, eq=True)
-        tm.that("item1" in output is True, eq=True)
-        tm.that("item2" in output is True, eq=True)
+        tm.that("Test Items" in output, eq=True)
+        tm.that("item1" in output, eq=True)
+        tm.that("item2" in output, eq=True)
 
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with dict[str, object] items."""
@@ -425,8 +423,8 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Database Objects", "table")
         tm.ok(result)
         output = result.value
-        tm.that("table1" in output is True, eq=True)
-        tm.that("table2" in output is True, eq=True)
+        tm.that("table1" in output, eq=True)
+        tm.that("table2" in output, eq=True)
 
     _DATA_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
 
@@ -490,9 +488,7 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(isinstance(output, HealthCheckReport), eq=True)
-        tm.that(
-            hasattr(output, "status") and output.status is not None is True, eq=True
-        )
+        tm.that(hasattr(output, "status") and output.status is not None, eq=True)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
         """Test health check with config creation failure."""
@@ -507,9 +503,7 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(isinstance(output, HealthCheckReport), eq=True)
-        tm.that(
-            hasattr(output, "status") and output.status is not None is True, eq=True
-        )
+        tm.that(hasattr(output, "status") and output.status is not None, eq=True)
 
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""
@@ -558,7 +552,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 2 schemas successfully" in output is True, eq=True)
+        tm.that("Listed 2 schemas successfully" in output, eq=True)
 
     def test_execute_list_schemas_connection_failure(self) -> None:
         """Test schema listing with connection failure."""
@@ -629,7 +623,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 2 tables" in output is True, eq=True)
+        tm.that("Listed 2 tables" in output, eq=True)
 
     def test_execute_list_tables_no_schema(self) -> None:
         """Test table listing without schema name."""
@@ -650,7 +644,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 1 tables" in output is True, eq=True)
+        tm.that("Listed 1 tables" in output, eq=True)
 
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
@@ -694,7 +688,7 @@ class TestCliServiceOperations:
             sql="",
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("SQL query cannot be empty" in str(result.error) is True, eq=True)
+        tm.that("SQL query cannot be empty" in str(result.error), eq=True)
 
     def test_execute_query_whitespace_sql(self) -> None:
         """Test query execution with whitespace-only SQL."""
@@ -708,7 +702,7 @@ class TestCliServiceOperations:
             sql="   \n\t  ",
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("SQL query cannot be empty" in str(result.error) is True, eq=True)
+        tm.that("SQL query cannot be empty" in str(result.error), eq=True)
 
 
 class TestYamlModule:
@@ -720,8 +714,8 @@ class TestYamlModule:
         data = {"test": "value"}
         result = yaml_module.dump(data, default_flow_style=True)
         tm.that(isinstance(result, str), eq=True)
-        tm.that("test" in result is True, eq=True)
-        tm.that("value" in result is True, eq=True)
+        tm.that("test" in result, eq=True)
+        tm.that("value" in result, eq=True)
 
 
 class TestCLIRealFunctionality:
@@ -755,7 +749,7 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host is not None is True, eq=True)
+            tm.that(api.config.host is not None, eq=True)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -781,7 +775,7 @@ class TestCLIRealFunctionality:
         tm.that(hasattr(connection_result, "is_success"), eq=True)
         is_valid = api.is_valid()
         tm.that(isinstance(is_valid, bool), eq=True)
-        tm.that(is_valid is True, eq=True)
+        tm.that(is_valid, eq=True)
 
     def test_output_formatting_real(self) -> None:
         """Test output formatting using real functionality."""
@@ -793,7 +787,7 @@ class TestCLIRealFunctionality:
             )
             tm.ok(format_result)
             tm.that(isinstance(format_result.value, str), eq=True)
-            tm.that(len(format_result.value) > 0 == True, eq=True)
+            tm.that(len(format_result.value) > 0, eq=True)
 
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""
@@ -807,7 +801,7 @@ class TestCLIRealFunctionality:
         api = FlextDbOracleApi(invalid_config)
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.that(query_result.is_failure, eq=True)
-        tm.that(query_result.error is not None is True, eq=True)
+        tm.that(query_result.error is not None, eq=True)
         tm.that(
             (
                 "not connected" in query_result.error.lower()
@@ -868,7 +862,7 @@ class TestCLIRealFunctionality:
                     eq=True,
                 )
             else:
-                tm.that(result is not None is True, eq=True)
+                tm.that(result is not None, eq=True)
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
@@ -887,7 +881,7 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host is not None is True, eq=True)
+            tm.that(api.config.host is not None, eq=True)
             tm.that(isinstance(api.config.port, int), eq=True)
         finally:
             for key, original_value in original_env.items():
@@ -923,7 +917,7 @@ class TestCLIRealFunctionality:
         list_result = api.list_plugins()
         tm.ok(list_result)
         plugin_list = list_result.value
-        tm.that("test_plugin" in plugin_list is True, eq=True)
+        tm.that("test_plugin" in plugin_list, eq=True)
         get_result = api.get_plugin("test_plugin")
         tm.ok(get_result)
         retrieved_plugin = get_result.value
@@ -932,4 +926,4 @@ class TestCLIRealFunctionality:
         tm.ok(unregister_result)
         final_list = api.list_plugins()
         tm.ok(final_list)
-        tm.that("test_plugin" not in final_list.value is True, eq=True)
+        tm.that("test_plugin" not in final_list.value, eq=True)
