@@ -9,7 +9,7 @@ from enum import StrEnum
 from typing import Annotated
 
 from flext_core import FlextUtilities, r, t
-from pydantic import BeforeValidator, TypeAdapter
+from pydantic import BeforeValidator, TypeAdapter, ValidationError
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings

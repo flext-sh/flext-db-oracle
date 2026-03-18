@@ -1,6 +1,6 @@
 """FLEXT DB Oracle Types - Domain-specific Oracle database type definitions.
 
-This module provides Oracle database-specific type definitions extending t.
+This module provides Oracle database-specific type definitions extending FlextTypes.
 Follows FLEXT standards:
 - Domain-specific complex types only
 - No simple aliases to primitive types
@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import FlextTypes, m as _core_m, t as _core_t
+from typings import TypeAdapter
 
 from flext_db_oracle import c
 
@@ -22,7 +23,7 @@ _ConfigMap = _core_m.ConfigMap
 
 
 class FlextDbOracleTypes(FlextTypes):
-    """Oracle database-specific type definitions extending t.
+    """Oracle database-specific type definitions extending FlextTypes.
 
     Domain-specific type system for Oracle database operations.
     Contains ONLY complex Oracle-specific types, no simple aliases.
@@ -132,8 +133,8 @@ class FlextDbOracleTypes(FlextTypes):
         type DataTypeLiteral = c.DataTypeLiteral
         "Oracle data type literal - references DataType StrEnum members."
 
-        _QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
-            t.ContainerValue
+        _QUERY_RESULT_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
+            FlextTypes.ContainerValue
         )
 
 
