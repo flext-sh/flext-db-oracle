@@ -1270,9 +1270,7 @@ class TestFlextDbOracleApiSafeMethods:
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
         tm.that(
-            result.error is not None and "not found" in result.error.lower()
-            if result.error is not None
-            else "" == True,
+            "not found" in result.error.lower() if result.error is not None else False,
             eq=True,
         )
         register_result = api.register_plugin("test_plugin", None)
