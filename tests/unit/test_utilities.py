@@ -119,7 +119,7 @@ class TestFlextDbOracleUtilities:
     def test_format_sql_for_oracle_basic_select(self) -> None:
         """Test basic SQL formatting normalizes whitespace."""
         sql = "select id, name from users"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(result)
         formatted = result.value
         tm.that(formatted, eq="select id, name from users")
@@ -127,7 +127,7 @@ class TestFlextDbOracleUtilities:
     def test_format_sql_for_oracle_keyword_formatting(self) -> None:
         """Test SQL keyword formatting normalizes whitespace."""
         sql = "select u.id, u.name from users u join orders o on u.id = o.user_id where u.active = 1 group by u.id, u.name order by u.name"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(result)
         formatted = result.value
         tm.that("\n" not in formatted, eq=True)
@@ -136,7 +136,7 @@ class TestFlextDbOracleUtilities:
     def test_format_sql_for_oracle_already_formatted(self) -> None:
         """Test formatting of already formatted SQL normalizes whitespace."""
         sql = "\nSELECT id, name\nFROM users\nWHERE active = 1\n"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(result)
         formatted = result.value
         tm.that("\n" not in formatted, eq=True)
@@ -144,7 +144,7 @@ class TestFlextDbOracleUtilities:
     def test_format_sql_for_oracle_complex_query(self) -> None:
         """Test formatting of complex query."""
         sql = "select distinct u.id, u.email, count(o.id) as order_count from users u inner join orders o on u.id = o.user_id where u.created_at >= '2023-01-01' and u.status in ('active', 'pending') group by u.id, u.email having count(o.id) > 0 order by order_count desc, u.email asc"
-        result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(result)
         formatted = result.value
         tm.that("SELECT" in formatted.upper(), eq=True)
@@ -157,14 +157,14 @@ class TestFlextDbOracleUtilities:
 
     def test_format_sql_for_oracle_empty_string(self) -> None:
         """Test formatting of empty string."""
-        result = FlextDbOracleUtilities.format_sql_for_oracle("")
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle("")
         tm.ok(result)
         formatted = result.value
         tm.that(formatted, eq="")
 
     def test_format_sql_for_oracle_whitespace_only(self) -> None:
         """Test formatting of whitespace-only string."""
-        result = FlextDbOracleUtilities.format_sql_for_oracle("   \n\t  ")
+        result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle("   \n\t  ")
         tm.ok(result)
         formatted = result.value
         tm.that(formatted.strip(), eq="")
@@ -341,7 +341,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_none_data(self) -> None:
         """Test formatting with None data returns success (TypeAdapter handles None)."""
-        result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
+        result = FlextDbOracleUtilities.DbOracle.format_query_result(None, "json")
         tm.ok(result)
         tm.that(result.value, eq="null")
 
@@ -422,10 +422,10 @@ class TestFlextDbOracleUtilities:
 
     def test_oracle_validation_validate_identifier_too_long(self) -> None:
         """Test identifier too long validation."""
-        "A" * (
+        long_identifier = "A" * (
             FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1
         )
-        result = FlextDbOracleUtilities.DbOracle.validate_identifier("VALID_TABLE")
+        result = FlextDbOracleUtilities.DbOracle.validate_identifier(long_identifier)
         tm.that(result.is_failure, eq=True)
         tm.that(result.error is not None and "too long" in result.error, eq=True)
 
@@ -495,7 +495,7 @@ class TestFlextDbOracleUtilities:
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         sql = "select id, name, count(*) as cnt from test_table group by id, name order by cnt desc"
-        format_result = FlextDbOracleUtilities.format_sql_for_oracle(sql)
+        format_result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(format_result)
         formatted_sql = format_result.value
         tm.that("select" in formatted_sql.lower(), eq=True)

@@ -364,9 +364,9 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.fail(result)
         tm.that(result.error is not None, eq=True)
         tm.that(
-            result.error is not None and "nonexistent_plugin" in result.error.lower()
+            "nonexistent_plugin" in result.error.lower()
             if result.error is not None
-            else "" == True,
+            else False,
             eq=True,
         )
 
