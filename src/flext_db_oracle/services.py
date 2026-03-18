@@ -211,7 +211,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 "parallel": int(_config.get("parallel", 1)),
             }
             config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
-                payload
+                payload,
             )
             if not config.columns:
                 return r[str].fail("Index definition requires at least one column")
@@ -228,7 +228,10 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             return r[str].fail(f"Invalid CREATE INDEX config: {e}")
 
     def build_delete_statement(
-        self, table_name: str, where_columns: list[str], schema: str | None = None
+        self,
+        table_name: str,
+        where_columns: list[str],
+        schema: str | None = None,
     ) -> r[str]:
         """Build DELETE statement - simplified."""
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
@@ -329,12 +332,13 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         conn = _context_enter(connect_ctx)
                         try:
                             _ = _connection_execute(
-                                conn, _sqlalchemy_text("SELECT 1 FROM dual")
+                                conn,
+                                _sqlalchemy_text("SELECT 1 FROM dual"),
                             )
                         finally:
                             _context_exit(connect_ctx)
                         self.logger.info(
-                            f"Connected to Oracle database: {self.db_config.host}"
+                            f"Connected to Oracle database: {self.db_config.host}",
                         )
                         return r[Self].ok(self)
                     except (
@@ -352,7 +356,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             return r[Self].fail(f"Connection failed: {e}")
 
     def convert_singer_type(
-        self, singer_type: str | list[str] = "string", _format_hint: str | None = None
+        self,
+        singer_type: str | list[str] = "string",
+        _format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
         singer_type = _normalize_singer_type(singer_type)
@@ -432,7 +438,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if test_result.is_success:
             return r[FlextDbOracleSettings].ok(self.db_config)
         return r[FlextDbOracleSettings].fail(
-            test_result.error or "Connection test failed"
+            test_result.error or "Connection test failed",
         )
 
     def execute_many(
@@ -458,7 +464,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         else t.ConfigMap(params)
                     )
                     result = _connection_execute(
-                        conn, _sqlalchemy_text(sql), typed_params
+                        conn,
+                        _sqlalchemy_text(sql),
+                        typed_params,
                     )
                     rowcount_raw = getattr(result, "rowcount", 0)
                     total_affected += _parse_rowcount(rowcount_raw)
@@ -477,7 +485,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             return r[int].fail(f"Bulk execution failed: {e}")
 
     def execute_query(
-        self, sql: str, params: t.ConfigMap | None = None
+        self,
+        sql: str,
+        params: t.ConfigMap | None = None,
     ) -> r[list[t.Dict]]:
         """Execute SQL query and return results."""
         if not self.is_connected():
@@ -485,7 +495,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         engine_result = self._get_engine()
         if engine_result.is_failure:
             return r[list[t.Dict]].fail(
-                engine_result.error or "Failed to get database engine"
+                engine_result.error or "Failed to get database engine",
             )
         try:
             connect_ctx = _engine_connect(engine_result.value)
@@ -536,15 +546,19 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             return r[int].fail(f"Statement execution failed: {e}")
 
     def fetch_one(
-        self, sql: str, params: t.ConfigMap | None = None
+        self,
+        sql: str,
+        params: t.ConfigMap | None = None,
     ) -> r[t.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
-            lambda rows: rows[0] if rows else None
+            lambda rows: rows[0] if rows else None,
         )
 
     def generate_query_hash(
-        self, sql: str = "", params: t.ConfigMap | object | None = None
+        self,
+        sql: str = "",
+        params: t.ConfigMap | object | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
         typed_params = (
@@ -556,13 +570,15 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
 
     def get_columns(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> r[list[FlextDbOracleModels.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
             params = t.ConfigMap(
-                root={"table_name": table_name, "schema_name": schema_name}
+                root={"table_name": table_name, "schema_name": schema_name},
             )
         else:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM user_tab_columns\nWHERE table_name = UPPER(:table_name)\nORDER BY column_id\n"
@@ -576,7 +592,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     default_value=str(row.root.get("data_default", "")),
                 )
                 for row in rows
-            ]
+            ],
         )
 
     @contextmanager
@@ -603,7 +619,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 service_name=self.db_config.service_name,
                 username=self.db_config.username,
                 error_message="" if self.is_connected() else "Connection unavailable",
-            )
+            ),
         )
 
     def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
@@ -612,7 +628,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             observability_module = import_module("flext_observability")
         except ModuleNotFoundError:
             return r[FlextDbOracleModels.DbOracle.HealthStatus].fail(
-                "flext-observability integration unavailable; install flext-observability"
+                "flext-observability integration unavailable; install flext-observability",
             )
         metric_factory = getattr(observability_module, "flext_metric", None)
         if not callable(metric_factory):
@@ -620,7 +636,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             metric_factory = getattr(core_module, "flext_metric", None)
         if not callable(metric_factory):
             return r[FlextDbOracleModels.DbOracle.HealthStatus].fail(
-                "flext-observability does not expose flext_metric"
+                "flext-observability does not expose flext_metric",
             )
         status = "connected" if self.is_connected() else "disconnected"
         metrics_payload: dict[str, str] = {
@@ -634,13 +650,13 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 "service": "oracle",
                 "database": self.db_config.service_name,
                 "metrics": metrics_payload,
-            })
+            }),
         )
 
     def get_operations(self) -> r[list[FlextDbOracleModels.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r[list[FlextDbOracleModels.DbOracle.OperationRecord]].ok(
-            self._operations.copy()
+            self._operations.copy(),
         )
 
     def get_plugin(self, _name: str) -> r[t.ContainerValue]:
@@ -656,13 +672,17 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return r.ok(self._plugins[_name])
 
     def get_primary_key_columns(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> r[list[str]]:
         """Alias for get_primary_keys."""
         return self.get_primary_keys(table_name, schema_name)
 
     def get_primary_keys(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> r[list[str]]:
         """Get primary key column names for specified table."""
 
@@ -696,11 +716,13 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
         return self.execute_query(sql).map(
-            lambda rows: [str(row.root["schema_name"]) for row in rows]
+            lambda rows: [str(row.root["schema_name"]) for row in rows],
         )
 
     def get_table_metadata(
-        self, table_name: str, schema: str | None = None
+        self,
+        table_name: str,
+        schema: str | None = None,
     ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
@@ -740,7 +762,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         ).map_error(lambda e: f"Failed to get table metadata: {e}")
 
     def get_table_row_count(
-        self, table_name: str, schema_name: str | None = None
+        self,
+        table_name: str,
+        schema_name: str | None = None,
     ) -> r[int]:
         """Get row count - simplified."""
 
@@ -773,7 +797,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
         return self.execute_query(sql, params).map(
-            lambda rows: [str(row.root["table_name"]) for row in rows]
+            lambda rows: [str(row.root["table_name"]) for row in rows],
         )
 
     def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
@@ -789,7 +813,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     "host": self.db_config.host,
                     "port": self.db_config.port,
                 },
-            )
+            ),
         )
 
     def is_connected(self) -> bool:
@@ -802,7 +826,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
             return r[t.ConfigMap].fail(
-                "flext-plugin integration unavailable; install flext-plugin"
+                "flext-plugin integration unavailable; install flext-plugin",
             )
         plugin_names = list(self._plugins.keys())
         return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
@@ -820,15 +844,16 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         else:
             if not isinstance(singer_schema, Mapping):
                 return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
-                    "Singer schema must be a mapping"
+                    "Singer schema must be a mapping",
                 )
             raw_properties = singer_schema.get("properties", {})
             if not isinstance(raw_properties, Mapping):
                 return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
-                    "Singer schema properties must be a mapping"
+                    "Singer schema properties must be a mapping",
                 )
             normalized_properties: dict[
-                str, FlextDbOracleModels.DbOracle.SingerField
+                str,
+                FlextDbOracleModels.DbOracle.SingerField,
             ] = {}
             for field_name, field_def in raw_properties.items():
                 if isinstance(field_def, Mapping):
@@ -846,7 +871,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         FlextDbOracleModels.DbOracle.SingerField(type="string")
                     )
             schema_model = FlextDbOracleModels.DbOracle.SingerSchema.model_validate({
-                "properties": normalized_properties
+                "properties": normalized_properties,
             })
         mapping = t.ConfigMap(root={})
         for field_name, field_def in schema_model.properties.items():
@@ -864,7 +889,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({
-            "mapping": normalized_mapping
+            "mapping": normalized_mapping,
         })
         return r[FlextDbOracleModels.DbOracle.TypeMapping].ok(type_mapping)
 
@@ -881,7 +906,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             observability_module = import_module("flext_observability")
         except ModuleNotFoundError:
             return r[bool].fail(
-                "flext-observability integration unavailable; install flext-observability"
+                "flext-observability integration unavailable; install flext-observability",
             )
         metric_factory = getattr(observability_module, "flext_metric", None)
         if not callable(metric_factory):
@@ -898,13 +923,17 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             typed_tags.root if typed_tags is not None else dict[str, t.ContainerValue]()
         )
         metric_result = metric_factory(
-            name=_name, value=_value, tags=t.Dict(tags_payload)
+            name=_name,
+            value=_value,
+            tags=t.Dict(tags_payload),
         )
         if getattr(metric_result, "is_failure", False):
             return r[bool].fail(
                 getattr(
-                    metric_result, "error", "Metric recording failed in observability"
-                )
+                    metric_result,
+                    "error",
+                    "Metric recording failed in observability",
+                ),
             )
         self._metrics[_name] = {
             "value": _value,
@@ -925,7 +954,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             _ = import_module("flext_plugin.models")
         except ModuleNotFoundError:
             return r[bool].fail(
-                "flext-plugin integration unavailable; install flext-plugin"
+                "flext-plugin integration unavailable; install flext-plugin",
             )
         payload = dict(plugin_payload.root)
         payload["name"] = str(payload.get("name", _name))
@@ -1014,7 +1043,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
             return r[bool].fail(
-                "flext-plugin integration unavailable; install flext-plugin"
+                "flext-plugin integration unavailable; install flext-plugin",
             )
         if _name not in self._plugins:
             return r[bool].fail(f"Plugin '{_name}' not found")
@@ -1081,7 +1110,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if validated_mapping is None:
             return t.Dict(root={})
         return t.Dict(
-            root={str(key): value for key, value in validated_mapping.root.items()}
+            root={str(key): value for key, value in validated_mapping.root.items()},
         )
 
     def _parse_count_from_rows(self, rows: list[t.Dict]) -> int:

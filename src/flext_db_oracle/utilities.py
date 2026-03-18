@@ -4,15 +4,31 @@ from __future__ import annotations
 
 import hashlib
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
+from importlib import import_module
 from typing import Annotated
 
 from flext_core import FlextUtilities, r, t
-from pydantic import BeforeValidator, TypeAdapter, ValidationError
+from pydantic import BeforeValidator, RootModel, TypeAdapter, ValidationError
 
 from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
+
+
+class _StrictIntValue(RootModel[int]):
+    """Strict integer parser via Pydantic validation."""
+
+    root: int
+
+
+class _CountValue(RootModel[int | str]):
+    """Numeric value parser accepting int or numeric string."""
+
+    root: int | str
+
+
+_STRING_LIST_ADAPTER: TypeAdapter[list[str]] = TypeAdapter(list[str])
 
 
 class FlextDbOracleUtilities(FlextUtilities):
@@ -50,7 +66,8 @@ class FlextDbOracleUtilities(FlextUtilities):
 
             """
             return Annotated[
-                enum_cls, BeforeValidator(FlextUtilities.coerce_validator(enum_cls))
+                enum_cls,
+                BeforeValidator(FlextUtilities.coerce_validator(enum_cls)),
             ]
 
         @classmethod
@@ -94,19 +111,20 @@ class FlextDbOracleUtilities(FlextUtilities):
             return r[str].ok(identifier[:max_len])
 
         _QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
-            t.ContainerValue
+            t.ContainerValue,
         )
 
         @staticmethod
         def format_query_result(
-            result: t.ContainerValue, format_type: str = "table"
+            result: t.ContainerValue,
+            format_type: str = "table",
         ) -> r[str]:
             """Format a query result to string or JSON."""
             if format_type == "json":
                 return r[str].ok(
                     FlextDbOracleUtilities._QUERY_RESULT_ADAPTER.dump_json(
-                        result
-                    ).decode()
+                        result,
+                    ).decode(),
                 )
             return r[str].ok(str(result))
 
@@ -117,21 +135,23 @@ class FlextDbOracleUtilities(FlextUtilities):
             return r[str].ok(normalized)
 
         _HASH_PARAMS_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
-            dict[str, t.ContainerValue]
+            dict[str, t.ContainerValue],
         )
 
         @staticmethod
         def generate_query_hash(
-            query: str, params: Mapping[str, t.ContainerValue] | None
+            query: str,
+            params: Mapping[str, t.ContainerValue] | None,
         ) -> r[str]:
             """Generate a SHA-256 hash for a query and its parameters."""
             sorted_params = dict(sorted((params or {}).items()))
             serialized = FlextDbOracleUtilities._HASH_PARAMS_ADAPTER.dump_json(
-                sorted_params
+                sorted_params,
             ).decode()
             payload = f"{query}|{serialized}".encode()
             return r[str].ok(hashlib.sha256(payload).hexdigest()[:16])
 
+        @staticmethod
         def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
             """Validate arbitrary mapping input as ConfigMap."""
             try:
@@ -139,12 +159,14 @@ class FlextDbOracleUtilities(FlextUtilities):
             except ValidationError:
                 return None
 
-        def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
+        @staticmethod
+        def normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
             """Normalize optional parameters into ConfigMap."""
             if params is not None:
                 return params
             return t.ConfigMap(root={})
 
+        @staticmethod
         def _parse_rowcount(value: t.ContainerValue) -> int:
             """Parse strict integer rowcount via Pydantic."""
             try:
@@ -152,6 +174,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             except ValidationError:
                 return 0
 
+        @staticmethod
         def _parse_count_value(value: t.ContainerValue) -> int:
             """Parse row count value accepting int or numeric string."""
             try:
@@ -163,6 +186,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             except (TypeError, ValueError):
                 return 0
 
+        @staticmethod
         def _normalize_singer_type(value: str | list[str]) -> str:
             """Normalize Singer type input to a single string value."""
             try:
@@ -171,11 +195,13 @@ class FlextDbOracleUtilities(FlextUtilities):
                 return str(value)
             return values[0] if values else "string"
 
+        @staticmethod
         def _extract_object_rows(value: t.ContainerValue) -> list[object]:
             if isinstance(value, Sequence) and not isinstance(value, str | bytes):
                 return list(value)
             return []
 
+        @staticmethod
         def _sqlalchemy_create_engine(url: str) -> t.ContainerValue:
             """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
             sqlalchemy_module = import_module("sqlalchemy")
@@ -184,9 +210,13 @@ class FlextDbOracleUtilities(FlextUtilities):
                 msg = "sqlalchemy.create_engine unavailable"
                 raise TypeError(msg)
             return create_engine_func(
-                url, pool_pre_ping=True, pool_recycle=3600, echo=False
+                url,
+                pool_pre_ping=True,
+                pool_recycle=3600,
+                echo=False,
             )
 
+        @staticmethod
         def _sqlalchemy_text(statement: str) -> t.ContainerValue:
             """Build SQL text object via runtime import."""
             sqlalchemy_module = import_module("sqlalchemy")
@@ -196,6 +226,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 raise TypeError(msg)
             return text_func(statement)
 
+        @staticmethod
         def _engine_connect(engine: t.ContainerValue) -> t.ContainerValue:
             """Open connection context manager from engine."""
             connect_method = getattr(engine, "connect", None)
@@ -204,6 +235,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 raise TypeError(msg)
             return connect_method()
 
+        @staticmethod
         def _engine_begin(engine: t.ContainerValue) -> t.ContainerValue:
             """Open transaction context manager from engine."""
             begin_method = getattr(engine, "begin", None)
@@ -212,6 +244,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 raise TypeError(msg)
             return begin_method()
 
+        @staticmethod
         def _context_enter(context_manager: t.ContainerValue) -> t.ContainerValue:
             """Enter dynamic context manager and return inner object."""
             enter_method = getattr(context_manager, "__enter__", None)
@@ -220,18 +253,21 @@ class FlextDbOracleUtilities(FlextUtilities):
                 raise TypeError(msg)
             return enter_method()
 
+        @staticmethod
         def _context_exit(context_manager: t.ContainerValue) -> None:
             """Exit dynamic context manager safely."""
             exit_method = getattr(context_manager, "__exit__", None)
             if callable(exit_method):
                 _ = exit_method(None, None, None)
 
+        @staticmethod
         def _engine_dispose(engine: t.ContainerValue) -> None:
             """Dispose engine resources through dynamic method lookup."""
             dispose_method = getattr(engine, "dispose", None)
             if callable(dispose_method):
                 dispose_method()
 
+        @staticmethod
         def _connection_execute(
             connection: t.ContainerValue,
             statement: t.ContainerValue,
@@ -242,7 +278,9 @@ class FlextDbOracleUtilities(FlextUtilities):
             if not callable(execute_method):
                 msg = "Database connection does not expose execute()"
                 raise TypeError(msg)
-            normalized_params = _normalize_params(parameters)
+            normalized_params = FlextDbOracleUtilities.DbOracle._normalize_params(
+                parameters,
+            )
             return execute_method(statement, normalized_params.root)
 
 

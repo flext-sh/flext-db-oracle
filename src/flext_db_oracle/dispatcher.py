@@ -41,7 +41,8 @@ class FlextDbOracleDispatcher(s):
 
     @classmethod
     def _create_connection_handlers(
-        cls, services: s
+        cls,
+        services: s,
     ) -> dict[
         type,
         tuple[
@@ -74,7 +75,10 @@ class FlextDbOracleDispatcher(s):
 
     @classmethod
     def build_dispatcher(
-        cls, services: s, *, _bus: t.ContainerValue | None = None
+        cls,
+        services: s,
+        *,
+        _bus: t.ContainerValue | None = None,
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         disp = FlextContainer.get_global().get("command_bus").unwrap()
@@ -99,7 +103,8 @@ class FlextDbOracleDispatcher(s):
         return dispatcher
 
     def _create_query_handlers(
-        self, services: s
+        self,
+        services: s,
     ) -> dict[
         type,
         tuple[
@@ -129,7 +134,8 @@ class FlextDbOracleDispatcher(s):
 
         def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(
-                command, FlextDbOracleModels.DbOracle.ExecuteStatementCommand
+                command,
+                FlextDbOracleModels.DbOracle.ExecuteStatementCommand,
             ):
                 sql = command.sql
                 parameters = t.ConfigMap(root=command.parameters or {})
@@ -164,7 +170,8 @@ class FlextDbOracleDispatcher(s):
         }
 
     def _create_schema_handlers(
-        self, services: s
+        self,
+        services: s,
     ) -> dict[
         type,
         tuple[

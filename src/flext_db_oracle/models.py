@@ -78,7 +78,8 @@ class FlextDbOracleModels(FlextModels):
 
             is_connected: bool = False
             last_check: Annotated[
-                datetime, Field(default_factory=lambda: datetime.now(UTC))
+                datetime,
+                Field(default_factory=lambda: datetime.now(UTC)),
             ]
             error_message: Annotated[
                 str,
@@ -97,10 +98,12 @@ class FlextDbOracleModels(FlextModels):
                 ),
             ]
             last_activity: Annotated[
-                datetime, Field(default_factory=lambda: datetime.now(UTC))
+                datetime,
+                Field(default_factory=lambda: datetime.now(UTC)),
             ]
             session_id: Annotated[
-                str, Field(default="", description="Oracle session identifier")
+                str,
+                Field(default="", description="Oracle session identifier"),
             ]
             host: Annotated[str, Field(default="", description="Database host")]
             port: Annotated[
@@ -111,11 +114,13 @@ class FlextDbOracleModels(FlextModels):
                 ),
             ]
             service_name: Annotated[
-                str, Field(default="", description="Oracle service name")
+                str,
+                Field(default="", description="Oracle service name"),
             ]
             username: Annotated[str, Field(default="", description="Database username")]
             db_version: Annotated[
-                str, Field(default="", description="Oracle database version")
+                str,
+                Field(default="", description="Oracle database version"),
             ]
 
             @property
@@ -229,7 +234,8 @@ class FlextDbOracleModels(FlextModels):
 
             query: str
             result_data: Annotated[
-                Sequence[t.ContainerValue], Field(default_factory=list)
+                Sequence[t.ContainerValue],
+                Field(default_factory=list),
             ]
             row_count: int = 0
             execution_time_ms: int = 0
@@ -241,10 +247,12 @@ class FlextDbOracleModels(FlextModels):
                 Field(default_factory=list),
             ]
             query_hash: Annotated[
-                str, Field(default="", description="Query hash for caching")
+                str,
+                Field(default="", description="Query hash for caching"),
             ]
             explain_plan: Annotated[
-                str, Field(default="", description="Query execution plan")
+                str,
+                Field(default="", description="Query execution plan"),
             ]
 
             @property
@@ -327,7 +335,8 @@ class FlextDbOracleModels(FlextModels):
                 if self.rows and len(self.columns) > 0:
                     for row in self.rows:
                         if isinstance(
-                            row, FlextDbOracleModels.DbOracle.RowData
+                            row,
+                            FlextDbOracleModels.DbOracle.RowData,
                         ) and len(row.values) != len(self.columns):
                             msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
                             raise ValueError(msg)
@@ -343,7 +352,8 @@ class FlextDbOracleModels(FlextModels):
             duration: float
             success: bool
             metadata_info: Annotated[
-                str, Field(default="", description="Operation metadata")
+                str,
+                Field(default="", description="Operation metadata"),
             ]
             timestamp: str
 
@@ -355,7 +365,8 @@ class FlextDbOracleModels(FlextModels):
             service: str = "oracle"
             database: str = "oracle"
             metrics: Annotated[
-                Mapping[str, t.ContainerValue], Field(default_factory=dict)
+                Mapping[str, t.ContainerValue],
+                Field(default_factory=dict),
             ]
 
             def __getitem__(self, key: str) -> t.ContainerValue:
@@ -514,17 +525,11 @@ class FlextDbOracleModels(FlextModels):
         class ConnectCommand(FlextModels.Entity):
             """Command to establish Oracle connection."""
 
-            pass
-
         class DisconnectCommand(FlextModels.Entity):
             """Command to close Oracle connection."""
 
-            pass
-
         class TestConnectionCommand(FlextModels.Entity):
             """Command to test Oracle connection."""
-
-            pass
 
         class ExecuteQueryCommand(FlextModels.Entity):
             """Command to execute SELECT query."""
@@ -555,8 +560,6 @@ class FlextDbOracleModels(FlextModels):
 
         class GetSchemasCommand(FlextModels.Entity):
             """Command to retrieve all schemas."""
-
-            pass
 
         class GetTablesCommand(FlextModels.Entity):
             """Command to retrieve tables in schema."""

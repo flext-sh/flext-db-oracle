@@ -110,7 +110,9 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle query execution operations."""
 
             def execute_many(
-                self, sql: str, params_list: list[Mapping[str, t.ContainerValue]]
+                self,
+                sql: str,
+                params_list: list[Mapping[str, t.ContainerValue]],
             ) -> r[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
@@ -125,7 +127,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_query(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+                self,
+                sql: str,
+                params: Mapping[str, t.ContainerValue] | None = None,
             ) -> r[list[t.Dict]]:
                 """Execute Oracle SQL query.
 
@@ -140,7 +144,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def execute_statement(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+                self,
+                sql: str,
+                params: Mapping[str, t.ContainerValue] | None = None,
             ) -> r[bool]:
                 """Execute Oracle SQL statement.
 
@@ -155,7 +161,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def fetch_one(
-                self, sql: str, params: Mapping[str, t.ContainerValue] | None = None
+                self,
+                sql: str,
+                params: Mapping[str, t.ContainerValue] | None = None,
             ) -> r[t.Dict | None]:
                 """Fetch single result from Oracle query.
 
@@ -174,7 +182,9 @@ class FlextDbOracleProtocols(FlextProtocols):
             """Protocol for Oracle schema introspection operations."""
 
             def get_columns(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> r[list[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
@@ -189,7 +199,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def get_primary_keys(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> r[list[str]]:
                 """Get primary key columns for Oracle table.
 
@@ -213,7 +225,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def get_table_metadata(
-                self, table: str, schema: str | None = None
+                self,
+                table: str,
+                schema: str | None = None,
             ) -> r[m.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
@@ -257,7 +271,9 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def build_insert_statement(
-                self, table: str, data: Mapping[str, t.ContainerValue]
+                self,
+                table: str,
+                data: Mapping[str, t.ContainerValue],
             ) -> r[tuple[str, Mapping[str, t.ContainerValue]]]:
                 """Build Oracle INSERT statement.
 
@@ -385,7 +401,10 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def record_metric(
-                self, name: str, value: float, tags: Mapping[str, str] | None = None
+                self,
+                name: str,
+                value: float,
+                tags: Mapping[str, str] | None = None,
             ) -> r[bool]:
                 """Record Oracle database metric.
 
@@ -401,7 +420,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
             def track_operation(
-                self, operation: str, duration: float, *, success: bool
+                self,
+                operation: str,
+                duration: float,
+                *,
+                success: bool,
             ) -> r[bool]:
                 """Track Oracle operation performance.
 

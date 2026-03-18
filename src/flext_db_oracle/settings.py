@@ -138,7 +138,8 @@ class FlextDbOracleSettings(FlextSettings):
     @field_validator("password", mode="after")
     @classmethod
     def _ensure_password_wrapper(
-        cls, value: OraclePassword | str | None
+        cls,
+        value: OraclePassword | str | None,
     ) -> OraclePassword | None:
         if value is None:
             return None
@@ -202,7 +203,8 @@ class FlextDbOracleSettings(FlextSettings):
             keys["sid"].insert(0, "FLEXT_TARGET_ORACLE_SID")
 
         def _first_env(
-            candidates: list[str], fallback: str | None = None
+            candidates: list[str],
+            fallback: str | None = None,
         ) -> str | None:
             for env_key in candidates:
                 env_value = os.environ.get(env_key)
@@ -213,22 +215,27 @@ class FlextDbOracleSettings(FlextSettings):
         host = _first_env(keys["host"], c.DbOracle.OracleDefaults.DEFAULT_HOST)
         port_value = _first_env(keys["port"], str(c.DbOracle.Connection.DEFAULT_PORT))
         service_name = _first_env(
-            keys["service_name"], c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+            keys["service_name"],
+            c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         )
         username = _first_env(keys["username"], c.DbOracle.Connection.DEFAULT_USERNAME)
         password = _first_env(keys["password"])
         database_name = _first_env(
-            keys["name"], c.DbOracle.Connection.DEFAULT_DATABASE_NAME
+            keys["name"],
+            c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
         )
         sid_value = _first_env(keys["sid"])
         timeout_value = _first_env(
-            keys["timeout"], str(c.DbOracle.Connection.DEFAULT_TIMEOUT)
+            keys["timeout"],
+            str(c.DbOracle.Connection.DEFAULT_TIMEOUT),
         )
         pool_min_value = _first_env(
-            keys["pool_min"], str(c.DbOracle.Connection.DEFAULT_POOL_MIN)
+            keys["pool_min"],
+            str(c.DbOracle.Connection.DEFAULT_POOL_MIN),
         )
         pool_max_value = _first_env(
-            keys["pool_max"], str(c.DbOracle.Connection.DEFAULT_POOL_MAX)
+            keys["pool_max"],
+            str(c.DbOracle.Connection.DEFAULT_POOL_MAX),
         )
         port_text = (
             port_value
@@ -278,20 +285,24 @@ class FlextDbOracleSettings(FlextSettings):
                 "host": host,
                 "port": _safe_int(port_text, c.DbOracle.Connection.DEFAULT_PORT),
                 "service_name": _safe_identifier(
-                    service_name, c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+                    service_name,
+                    c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
                 ),
                 "username": username,
                 "password": password,
                 "name": database_name,
                 "sid": _safe_optional_identifier(sid_value),
                 "timeout": _safe_int(
-                    timeout_text, c.DbOracle.Connection.DEFAULT_TIMEOUT
+                    timeout_text,
+                    c.DbOracle.Connection.DEFAULT_TIMEOUT,
                 ),
                 "pool_min": _safe_int(
-                    pool_min_text, c.DbOracle.Connection.DEFAULT_POOL_MIN
+                    pool_min_text,
+                    c.DbOracle.Connection.DEFAULT_POOL_MIN,
                 ),
                 "pool_max": _safe_int(
-                    pool_max_text, c.DbOracle.Connection.DEFAULT_POOL_MAX
+                    pool_max_text,
+                    c.DbOracle.Connection.DEFAULT_POOL_MAX,
                 ),
             }),
             catch=ValueError,
