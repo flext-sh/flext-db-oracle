@@ -9,9 +9,9 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, p, r, t
+from flext_core import FlextContainer, FlextRegistry, r
 
-from flext_db_oracle import FlextDbOracleModels, s
+from flext_db_oracle import FlextDbOracleModels, p, s, t
 
 
 class FlextDbOracleDispatcher(s[None]):
@@ -41,7 +41,7 @@ class FlextDbOracleDispatcher(s[None]):
 
     @classmethod
     def _create_connection_handlers(
-        cls, services: FlextDbOracleServices
+        cls, services: s
     ) -> dict[
         type,
         tuple[
@@ -74,7 +74,7 @@ class FlextDbOracleDispatcher(s[None]):
 
     @classmethod
     def build_dispatcher(
-        cls, services: FlextDbOracleServices, *, _bus: t.ContainerValue | None = None
+        cls, services: s, *, _bus: t.ContainerValue | None = None
     ) -> p.Dispatcher:
         """Create a dispatcher instance wired to Oracle services."""
         disp = FlextContainer.get_global().get("command_bus").unwrap()
@@ -99,7 +99,7 @@ class FlextDbOracleDispatcher(s[None]):
         return dispatcher
 
     def _create_query_handlers(
-        self, services: FlextDbOracleServices
+        self, services: s
     ) -> dict[
         type,
         tuple[
@@ -164,7 +164,7 @@ class FlextDbOracleDispatcher(s[None]):
         }
 
     def _create_schema_handlers(
-        self, services: FlextDbOracleServices
+        self, services: s
     ) -> dict[
         type,
         tuple[
