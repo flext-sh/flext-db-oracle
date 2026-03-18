@@ -1,0 +1,31 @@
+tests/unit/test_constants.py
+  0f46f83de0143d24 364,404,427,429,431
+tests/unit/test_models.py
+  0f46f83de0143d24 398
+tests/unit/test_api.py
+  0f46f83de0143d24 100,451,468,680,938,1068,1211,1902
+tests/unit/test_services.py
+  0f46f83de0143d24 1767
+tests/unit/test_cli.py
+  0f46f83de0143d24 491,506
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "4f5f39f8b99ecaf1dbe3442a3600ee308085abdb",
+  "prompts": {
+    "0f46f83de0143d24": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_2fe4698a9ffezG8YgHzmRqaPsV",
+        "model": "anthropic/claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot <team@flext.sh>",
+      "messages": [],
+      "total_additions": 272,
+      "total_deletions": 279,
+      "accepted_lines": 17,
+      "overriden_lines": 0
+    }
+  }
+}
