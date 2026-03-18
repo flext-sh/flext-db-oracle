@@ -16,6 +16,7 @@ from unittest.mock import Mock, patch
 
 import yaml
 from flext_core import r
+from flext_tests import tm
 from pydantic import TypeAdapter
 from tests import t
 
@@ -35,27 +36,27 @@ class TestFlextDbOracleClientReal:
     def test_client_initialization_debug_mode(self) -> None:
         """Test CLI client initialization in debug mode."""
         client = FlextDbOracleClient(debug=True)
-        assert client.debug is True
-        assert client.current_connection is None
-        assert client.user_preferences["default_output_format"] == "table"
-        assert client.user_preferences["show_execution_time"] == "True"
-        assert client.container is not None
-        assert client.logger is not None
+        tm.that(client.debug is True, eq=True)
+        tm.that(client.current_connection is None is True, eq=True)
+        tm.that(client.user_preferences["default_output_format"] == "table", eq=True)
+        tm.that(client.user_preferences["show_execution_time"] == "True", eq=True)
+        tm.that(client.container is not None is True, eq=True)
+        tm.that(client.logger is not None is True, eq=True)
 
     def test_client_initialization_production_mode(self) -> None:
         """Test CLI client initialization in production mode."""
         client = FlextDbOracleClient(debug=False)
-        assert client.debug is False
-        assert client.user_preferences["auto_confirm_operations"] == "False"
-        assert client.user_preferences["connection_timeout"] == 30
-        assert client.user_preferences["query_limit"] == 1000
+        tm.that(client.debug is False is True, eq=True)
+        tm.that(client.user_preferences["auto_confirm_operations"] == "False", eq=True)
+        tm.that(client.user_preferences["connection_timeout"] == 30, eq=True)
+        tm.that(client.user_preferences["query_limit"] == 1000, eq=True)
 
     def test_client_initialization_real(self) -> None:
         """Test actual CLI client initialization."""
         client = FlextDbOracleClient()
-        assert client.container is not None
-        assert client.logger is not None
-        assert client.current_connection is None
+        tm.that(client.container is not None is True, eq=True)
+        tm.that(client.logger is not None is True, eq=True)
+        tm.that(client.current_connection is None is True, eq=True)
 
     def test_configure_preferences_real(self) -> None:
         """Test configuring user preferences with real values."""
@@ -63,10 +64,12 @@ class TestFlextDbOracleClientReal:
         result = client.configure_preferences(
             default_output_format="json", query_limit=2000, show_execution_time=False
         )
-        assert result.is_success is True
-        assert client.user_preferences["default_output_format"] == "json"
-        assert client.user_preferences["query_limit"] == 2000
-        assert client.user_preferences["show_execution_time"] is False
+        tm.that(result.is_success is True, eq=True)
+        tm.that(client.user_preferences["default_output_format"] == "json", eq=True)
+        tm.that(client.user_preferences["query_limit"] == 2000, eq=True)
+        tm.that(
+            client.user_preferences["show_execution_time"] is False is True, eq=True
+        )
 
     def test_configure_preferences_invalid_keys(self) -> None:
         """Test configuring preferences with invalid keys."""
@@ -75,7 +78,7 @@ class TestFlextDbOracleClientReal:
         result = client.configure_preferences(
             invalid_key="value", another_invalid="test"
         )
-        assert result.is_success is True
+        tm.that(result.is_success is True, eq=True)
         original_dict: dict[str, object] = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
@@ -83,29 +86,33 @@ class TestFlextDbOracleClientReal:
         )
         original_dict["invalid_key"] = "value"
         original_dict["another_invalid"] = "test"
-        assert client.user_preferences.model_dump() == original_dict
+        tm.that(client.user_preferences.model_dump() == original_dict, eq=True)
 
     def test_connection_without_config(self) -> None:
         """Test connection methods without active connection."""
         client = FlextDbOracleClient()
         result = client.execute_query("SELECT 1 FROM DUAL")
-        assert not result.is_success
-        assert result.error
-        assert (
-            result.error is not None and "No active Oracle connection" in result.error
+        tm.that(not result.is_success, eq=True)
+        tm.that(result.error, eq=True)
+        tm.that(
+            (
+                result.error is not None
+                and "No active Oracle connection" in result.error
+            ),
+            eq=True,
         )
         schemas_result = client.list_schemas()
-        assert not schemas_result.is_success
-        assert schemas_result.error
-        assert "No active Oracle connection" in schemas_result.error
+        tm.that(not schemas_result.is_success, eq=True)
+        tm.that(schemas_result.error, eq=True)
+        tm.that("No active Oracle connection" in schemas_result.error is True, eq=True)
         tables_result = client.list_tables()
-        assert not tables_result.is_success
-        assert tables_result.error
-        assert "No active Oracle connection" in tables_result.error
+        tm.that(not tables_result.is_success, eq=True)
+        tm.that(tables_result.error, eq=True)
+        tm.that("No active Oracle connection" in tables_result.error is True, eq=True)
         health_result = client.health_check()
-        assert not health_result.is_success
-        assert health_result.error
-        assert "No active Oracle connection" in health_result.error
+        tm.that(not health_result.is_success, eq=True)
+        tm.that(health_result.error, eq=True)
+        tm.that("No active Oracle connection" in health_result.error is True, eq=True)
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
         """Test Oracle connection with invalid credentials (real connection attempt)."""
@@ -117,50 +124,53 @@ class TestFlextDbOracleClientReal:
             username="invalid_user",
             password="invalid_password",
         )
-        assert not result.is_success
-        assert result.error
-        assert (
-            "Connection failed" in result.error
-            or "Oracle connection failed" in result.error
-            or "Connection error" in result.error
+        tm.that(not result.is_success, eq=True)
+        tm.that(result.error, eq=True)
+        tm.that(
+            (
+                "Connection failed" in result.error
+                or "Oracle connection failed" in result.error
+                or "Connection error" in result.error
+            ),
+            eq=True,
         )
 
     def test_get_global_client_real(self) -> None:
         """Test creating client instances with real functionality."""
         client1 = FlextDbOracleClient()
         client2 = FlextDbOracleClient()
-        assert isinstance(client1, FlextDbOracleClient)
-        assert isinstance(client2, FlextDbOracleClient)
-        assert client1 is not client2
+        tm.that(isinstance(client1, FlextDbOracleClient), eq=True)
+        tm.that(isinstance(client2, FlextDbOracleClient), eq=True)
+        tm.that(client1 is not client2 is True, eq=True)
 
     def test_run_cli_command_real(self) -> None:
         """Test CLI command execution with real functionality."""
         result = FlextDbOracleClient.run_cli_command("health", timeout=30)
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_connection_wizard_real_validation(self) -> None:
         """Test connection wizard input validation."""
         client = FlextDbOracleClient()
-        assert hasattr(client, "connect_to_oracle")
-        assert callable(client.connect_to_oracle)
+        tm.that(hasattr(client, "connect_to_oracle"), eq=True)
+        tm.that(callable(client.connect_to_oracle), eq=True)
 
     def test_oracle_cli_client_methods_real(self) -> None:
         """Test FlextDbOracleClient has proper CLI methods."""
         client = FlextDbOracleClient()
-        assert hasattr(client, "connect_to_oracle")
-        assert hasattr(client, "execute_query")
-        assert hasattr(client, "list_schemas")
-        assert hasattr(client, "list_tables")
-        assert hasattr(client, "health_check")
+        tm.that(hasattr(client, "connect_to_oracle"), eq=True)
+        tm.that(hasattr(client, "execute_query"), eq=True)
+        tm.that(hasattr(client, "list_schemas"), eq=True)
+        tm.that(hasattr(client, "list_tables"), eq=True)
+        tm.that(hasattr(client, "health_check"), eq=True)
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""
         client = FlextDbOracleClient()
         result = client.execute_query("")
-        assert not result.is_success
+        tm.that(not result.is_success, eq=True)
         bad_result = client.configure_preferences(valid_key="")
-        assert isinstance(bad_result, r)
-        assert bad_result.is_success
+        tm.that(isinstance(bad_result, r), eq=True)
+        tm.ok(bad_result)
 
     def test_client_preferences_persistence(self) -> None:
         """Test that preference changes persist within client instance."""
@@ -170,9 +180,9 @@ class TestFlextDbOracleClientReal:
         client.configure_preferences(
             default_output_format="json", connection_timeout=60
         )
-        assert client.user_preferences["default_output_format"] == "json"
-        assert client.user_preferences["connection_timeout"] == 60
-        assert client.user_preferences["query_limit"] == 1000
+        tm.that(client.user_preferences["default_output_format"] == "json", eq=True)
+        tm.that(client.user_preferences["connection_timeout"] == 60, eq=True)
+        tm.that(client.user_preferences["query_limit"] == 1000, eq=True)
 
 
 class TestFlextDbOracleClientIntegration:
@@ -198,8 +208,8 @@ class TestFlextDbOracleClientIntegration:
             config.username,
             config.password.get_secret_value() if config.password else None,
         )
-        assert not result.is_success
-        assert isinstance(result.error, str)
+        tm.that(not result.is_success, eq=True)
+        tm.that(isinstance(result.error, str), eq=True)
 
 
 class TestFlextDbOracleCli:
@@ -208,21 +218,21 @@ class TestFlextDbOracleCli:
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        assert cli_service is not None
-        assert cli_service._container is not None
-        assert cli_service.logger is not None
+        tm.that(cli_service is not None is True, eq=True)
+        tm.that(cli_service._container is not None is True, eq=True)
+        tm.that(cli_service.logger is not None is True, eq=True)
 
     def test_cli_service_initialization_basic(self) -> None:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        assert cli_service is not None
-        assert hasattr(cli_service, "logger")
+        tm.that(cli_service is not None is True, eq=True)
+        tm.that(hasattr(cli_service, "logger"), eq=True)
 
     def test_initialize_cli_main_success(self) -> None:
         """Test successful CLI main initialization."""
         cli_service = FlextDbOracleCli()
         result = cli_service._initialize_cli_main()
-        assert isinstance(result, r)
+        tm.that(isinstance(result, r), eq=True)
 
     def test_initialize_cli_main_failure(self) -> None:
         """Test CLI main initialization failure handling."""
@@ -230,8 +240,11 @@ class TestFlextDbOracleCli:
         with patch("flext_db_oracle.cli.FlextCliCommands") as mock_cli_main:
             mock_cli_main.side_effect = Exception("Initialization error")
             result = cli_service._initialize_cli_main()
-            assert result.is_failure
-            assert "FlextCliCommands initialization failed" in str(result.error)
+            tm.that(result.is_failure, eq=True)
+            tm.that(
+                "FlextCliCommands initialization failed" in str(result.error) is True,
+                eq=True,
+            )
 
 
 class TestOracleConnectionHelper:
@@ -246,50 +259,50 @@ class TestOracleConnectionHelper:
             username="test_user",
             password="test_password",
         )
-        assert result.is_success
+        tm.ok(result)
         config = result.value
-        assert config.host == "test-host"
-        assert config.port == 1522
-        assert config.service_name == "TEST_SERVICE"
-        assert config.username == "test_user"
-        assert config.password is not None
-        assert config.password.get_secret_value() == "test_password"
+        tm.that(config.host == "test-host", eq=True)
+        tm.that(config.port == 1522, eq=True)
+        tm.that(config.service_name == "TEST_SERVICE", eq=True)
+        tm.that(config.username == "test_user", eq=True)
+        tm.that(config.password is not None is True, eq=True)
+        tm.that(config.password.get_secret_value() == "test_password", eq=True)
 
     def test_create_config_from_params_defaults(self) -> None:
         """Test config creation with default parameters."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             password="test_password"
         )
-        assert result.is_success
+        tm.ok(result)
         config = result.value
-        assert config.host == "localhost"
-        assert config.port == 1521
-        assert config.service_name == "XEPDB1"
-        assert config.username == "system"
+        tm.that(config.host == "localhost", eq=True)
+        tm.that(config.port == 1521, eq=True)
+        tm.that(config.service_name == "XEPDB1", eq=True)
+        tm.that(config.username == "system", eq=True)
 
     def test_create_config_from_params_no_password(self) -> None:
         """Test config creation fails without password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="test-host", username="test_user"
         )
-        assert result.is_failure
-        assert "Password is required" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("Password is required" in str(result.error) is True, eq=True)
 
     def test_create_config_from_params_empty_password(self) -> None:
         """Test config creation fails with empty password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="test-host", username="test_user", password=""
         )
-        assert result.is_failure
-        assert "Password is required" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("Password is required" in str(result.error) is True, eq=True)
 
     def test_create_config_from_params_validation_error(self) -> None:
         """Test config creation handles validation errors."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="", password="test_password"
         )
-        assert result.is_failure
-        assert "Configuration creation failed" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("Configuration creation failed" in str(result.error) is True, eq=True)
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
@@ -305,8 +318,8 @@ class TestOracleConnectionHelper:
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
                 config
             )
-        assert result.is_success
-        assert result.value is True
+        tm.ok(result)
+        tm.that(result.value is True, eq=True)
 
     def test_validate_connection_failure(self) -> None:
         """Test connection validation failure handling."""
@@ -322,8 +335,8 @@ class TestOracleConnectionHelper:
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
                 config
             )
-        assert result.is_failure
-        assert "Connection failed" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("Connection failed" in str(result.error) is True, eq=True)
 
 
 class TestOutputFormatter:
@@ -333,38 +346,38 @@ class TestOutputFormatter:
         """Test formatter initialization with CLI main."""
         mock_cli_main = Mock()
         formatter = FlextDbOracleCli._OutputFormatter(mock_cli_main)
-        assert formatter._cli_main is mock_cli_main
+        tm.that(formatter._cli_main is mock_cli_main is True, eq=True)
 
     def test_formatter_initialization_without_cli_main(self) -> None:
         """Test formatter initialization without CLI main."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        assert formatter._cli_main is None
+        tm.that(formatter._cli_main is None is True, eq=True)
 
     def test_format_success_message(self) -> None:
         """Test success message formatting."""
         formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_success_message("Operation completed")
-        assert result.is_success
-        assert result.value == "✅ Operation completed"
+        tm.ok(result)
+        tm.that(result.value == "✅ Operation completed", eq=True)
 
     def test_format_error_message(self) -> None:
         """Test error message formatting."""
         formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_error_message("Something went wrong")
-        assert result.is_success
-        assert result.value == "❌ Something went wrong"
+        tm.ok(result)
+        tm.that(result.value == "❌ Something went wrong", eq=True)
 
     def test_format_list_output_table_format(self) -> None:
         """Test list output formatting in table format."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items = ["table1", "table2", "table3"]
         result = formatter.format_list_output(items, "Database Tables", "table")
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Database Tables" in output
-        assert "table1" in output
-        assert "table2" in output
-        assert "table3" in output
+        tm.that("Database Tables" in output is True, eq=True)
+        tm.that("table1" in output is True, eq=True)
+        tm.that("table2" in output is True, eq=True)
+        tm.that("table3" in output is True, eq=True)
 
     _JSON_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
 
@@ -373,33 +386,33 @@ class TestOutputFormatter:
         formatter = FlextDbOracleCli._OutputFormatter()
         items = ["schema1", "schema2"]
         result = formatter.format_list_output(items, "Schemas", "json")
-        assert result.is_success
+        tm.ok(result)
         output = result.value
         data = self._JSON_ADAPTER.validate_json(output)
-        assert data["title"] == "Schemas"
-        assert data["items"] == ["schema1", "schema2"]
+        tm.that(data["title"] == "Schemas", eq=True)
+        tm.that(data["items"] == ["schema1", "schema2"], eq=True)
 
     def test_format_list_output_yaml_format(self) -> None:
         """Test list output formatting in YAML format."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "yaml")
-        assert result.is_success
+        tm.ok(result)
         output = result.value
         data = yaml.safe_load(output)
-        assert data["title"] == "Test Items"
-        assert data["items"] == ["item1", "item2"]
+        tm.that(data["title"] == "Test Items", eq=True)
+        tm.that(data["items"] == ["item1", "item2"], eq=True)
 
     def test_format_list_output_plain_format(self) -> None:
         """Test list output formatting in plain format."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "plain")
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Test Items" in output
-        assert "item1" in output
-        assert "item2" in output
+        tm.that("Test Items" in output is True, eq=True)
+        tm.that("item1" in output is True, eq=True)
+        tm.that("item2" in output is True, eq=True)
 
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with dict[str, object] items."""
@@ -410,10 +423,10 @@ class TestOutputFormatter:
             NamedItem(name="unnamed"),
         ]
         result = formatter.format_list_output(items, "Database Objects", "table")
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "table1" in output
-        assert "table2" in output
+        tm.that("table1" in output is True, eq=True)
+        tm.that("table2" in output is True, eq=True)
 
     _DATA_ADAPTER: TypeAdapter[dict[str, object]] = TypeAdapter(dict[str, object])
 
@@ -422,27 +435,27 @@ class TestOutputFormatter:
         formatter = FlextDbOracleCli._OutputFormatter()
         data = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
-        assert result.is_success
+        tm.ok(result)
         parsed_data = self._DATA_ADAPTER.validate_json(result.value)
-        assert parsed_data["key"] == "value"
-        assert parsed_data["number"] == 42
+        tm.that(parsed_data["key"] == "value", eq=True)
+        tm.that(parsed_data["number"] == 42, eq=True)
 
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""
         formatter = FlextDbOracleCli._OutputFormatter()
         data = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
-        assert result.is_success
+        tm.ok(result)
         parsed_data = yaml.safe_load(result.value)
-        assert parsed_data == data
+        tm.that(parsed_data == data, eq=True)
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""
         formatter = FlextDbOracleCli._OutputFormatter()
         data = {"key": "value"}
         result = formatter.format_data(data, "plain")
-        assert result.is_success
-        assert str(data) == result.value
+        tm.ok(result)
+        tm.that(str(data) == result.value, eq=True)
 
     def test_display_message(self) -> None:
         """Test message display functionality."""
@@ -474,10 +487,12 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert isinstance(output, HealthCheckReport)
-        assert hasattr(output, "status") and output.status is not None
+        tm.that(isinstance(output, HealthCheckReport), eq=True)
+        tm.that(
+            hasattr(output, "status") and output.status is not None is True, eq=True
+        )
 
     def test_execute_health_check_config_creation_failure(self) -> None:
         """Test health check with config creation failure."""
@@ -489,10 +504,12 @@ class TestCliServiceOperations:
             username="test_user",
             password="",
         )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert isinstance(output, HealthCheckReport)
-        assert hasattr(output, "status") and output.status is not None
+        tm.that(isinstance(output, HealthCheckReport), eq=True)
+        tm.that(
+            hasattr(output, "status") and output.status is not None is True, eq=True
+        )
 
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""
@@ -506,8 +523,11 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        assert result.is_failure
-        assert result.error is not None and "Database unreachable" in result.error
+        tm.that(result.is_failure, eq=True)
+        tm.that(
+            result.error is not None and "Database unreachable" in result.error is True,
+            eq=True,
+        )
 
     def test_execute_list_schemas_success(self) -> None:
         """Test successful schema listing."""
@@ -536,9 +556,9 @@ class TestCliServiceOperations:
                 password="test_password",
                 output_format="table",
             )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Listed 2 schemas successfully" in output
+        tm.that("Listed 2 schemas successfully" in output is True, eq=True)
 
     def test_execute_list_schemas_connection_failure(self) -> None:
         """Test schema listing with connection failure."""
@@ -555,8 +575,11 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        assert result.is_failure
-        assert result.error is not None and "Connection failed" in result.error
+        tm.that(result.is_failure, eq=True)
+        tm.that(
+            result.error is not None and "Connection failed" in result.error is True,
+            eq=True,
+        )
 
     def test_execute_list_schemas_api_failure(self) -> None:
         """Test schema listing with API failure."""
@@ -576,8 +599,11 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        assert result.is_failure
-        assert result.error is not None and "Schema query failed" in result.error
+        tm.that(result.is_failure, eq=True)
+        tm.that(
+            result.error is not None and "Schema query failed" in result.error is True,
+            eq=True,
+        )
 
     def test_execute_list_tables_success(self) -> None:
         """Test successful table listing."""
@@ -601,9 +627,9 @@ class TestCliServiceOperations:
                 password="test_password",
                 output_format="json",
             )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Listed 2 tables" in output
+        tm.that("Listed 2 tables" in output is True, eq=True)
 
     def test_execute_list_tables_no_schema(self) -> None:
         """Test table listing without schema name."""
@@ -622,9 +648,9 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Listed 1 tables" in output
+        tm.that("Listed 1 tables" in output is True, eq=True)
 
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
@@ -649,9 +675,12 @@ class TestCliServiceOperations:
                 sql="SELECT * FROM test_table",
                 output_format="json",
             )
-        assert result.is_success
+        tm.ok(result)
         output = result.value
-        assert "Query executed successfully" in output or "rows" in output.lower()
+        tm.that(
+            "Query executed successfully" in output or "rows" in output.lower() is True,
+            eq=True,
+        )
 
     def test_execute_query_empty_sql(self) -> None:
         """Test query execution with empty SQL."""
@@ -664,8 +693,8 @@ class TestCliServiceOperations:
             password="test_password",
             sql="",
         )
-        assert result.is_failure
-        assert "SQL query cannot be empty" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("SQL query cannot be empty" in str(result.error) is True, eq=True)
 
     def test_execute_query_whitespace_sql(self) -> None:
         """Test query execution with whitespace-only SQL."""
@@ -678,8 +707,8 @@ class TestCliServiceOperations:
             password="test_password",
             sql="   \n\t  ",
         )
-        assert result.is_failure
-        assert "SQL query cannot be empty" in str(result.error)
+        tm.that(result.is_failure, eq=True)
+        tm.that("SQL query cannot be empty" in str(result.error) is True, eq=True)
 
 
 class TestYamlModule:
@@ -690,9 +719,9 @@ class TestYamlModule:
         yaml_module = yaml
         data = {"test": "value"}
         result = yaml_module.dump(data, default_flow_style=True)
-        assert isinstance(result, str)
-        assert "test" in result
-        assert "value" in result
+        tm.that(isinstance(result, str), eq=True)
+        tm.that("test" in result is True, eq=True)
+        tm.that("value" in result is True, eq=True)
 
 
 class TestCLIRealFunctionality:
@@ -701,13 +730,13 @@ class TestCLIRealFunctionality:
     def test_cli_creation_and_basic_functionality(self) -> None:
         """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""
         oracle_cli = FlextDbOracleClient()
-        assert hasattr(oracle_cli, "execute_query")
+        tm.that(hasattr(oracle_cli, "execute_query"), eq=True)
         get_history_method = getattr(oracle_cli, "get_command_history", None)
         if callable(get_history_method):
             history = get_history_method()
-            assert isinstance(history, list)
+            tm.that(isinstance(history, list), eq=True)
         else:
-            assert callable(getattr(oracle_cli, "execute_query", None))
+            tm.that(callable(getattr(oracle_cli, "execute_query", None)), eq=True)
 
     def test_environment_configuration_real(self) -> None:
         """Test environment configuration using real API functionality."""
@@ -724,9 +753,9 @@ class TestCLIRealFunctionality:
             os.environ[key] = value
         try:
             api_result = FlextDbOracleApi.from_env()
-            assert api_result.is_success
+            tm.ok(api_result)
             api = api_result.value
-            assert api.config.host is not None
+            tm.that(api.config.host is not None is True, eq=True)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -746,13 +775,13 @@ class TestCLIRealFunctionality:
         )
         api = FlextDbOracleApi(config)
         metrics_result = api.get_observability_metrics()
-        assert metrics_result.is_success
-        assert isinstance(metrics_result.value, object)
+        tm.ok(metrics_result)
+        tm.that(isinstance(metrics_result.value, object), eq=True)
         connection_result = api.test_connection()
-        assert hasattr(connection_result, "is_success")
+        tm.that(hasattr(connection_result, "is_success"), eq=True)
         is_valid = api.is_valid()
-        assert isinstance(is_valid, bool)
-        assert is_valid is True
+        tm.that(isinstance(is_valid, bool), eq=True)
+        tm.that(is_valid is True, eq=True)
 
     def test_output_formatting_real(self) -> None:
         """Test output formatting using real functionality."""
@@ -762,9 +791,9 @@ class TestCLIRealFunctionality:
             format_result = utilities.format_query_result(
                 test_result, format_type=format_type
             )
-            assert format_result.is_success
-            assert isinstance(format_result.value, str)
-            assert len(format_result.value) > 0
+            tm.ok(format_result)
+            tm.that(isinstance(format_result.value, str), eq=True)
+            tm.that(len(format_result.value) > 0 == True, eq=True)
 
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""
@@ -777,16 +806,19 @@ class TestCLIRealFunctionality:
         )
         api = FlextDbOracleApi(invalid_config)
         query_result = api.query("SELECT 1 FROM DUAL")
-        assert query_result.is_failure
-        assert query_result.error is not None
-        assert (
-            "not connected" in query_result.error.lower()
-            or "connection" in query_result.error.lower()
+        tm.that(query_result.is_failure, eq=True)
+        tm.that(query_result.error is not None is True, eq=True)
+        tm.that(
+            (
+                "not connected" in query_result.error.lower()
+                or "connection" in query_result.error.lower()
+            ),
+            eq=True,
         )
         schemas_result = api.get_schemas()
-        assert schemas_result.is_failure
+        tm.that(schemas_result.is_failure, eq=True)
         tables_result = api.get_tables()
-        assert tables_result.is_failure
+        tm.that(tables_result.is_failure, eq=True)
 
     def test_parameter_processing_real(self) -> None:
         """Test parameter processing using real API functionality."""
@@ -805,10 +837,10 @@ class TestCLIRealFunctionality:
             password=str(config_data["password"]),
         )
         api = FlextDbOracleApi(config=config)
-        assert api.config.host == "param_test_host"
-        assert api.config.port == 1521
-        assert api.config.service_name == "PARAM_TEST"
-        assert api.config.username == "param_user"
+        tm.that(api.config.host == "param_test_host", eq=True)
+        tm.that(api.config.port == 1521, eq=True)
+        tm.that(api.config.service_name == "PARAM_TEST", eq=True)
+        tm.that(api.config.username == "param_user", eq=True)
 
     def test_comprehensive_api_coverage_real(self) -> None:
         """Comprehensive API coverage test using real functionality - NO MOCKS."""
@@ -831,9 +863,12 @@ class TestCLIRealFunctionality:
         for _method_name, method_call in methods_to_test:
             result = method_call()
             if hasattr(result, "success"):
-                assert hasattr(result, "error") or hasattr(result, "value")
+                tm.that(
+                    hasattr(result, "error") or hasattr(result, "value"),
+                    eq=True,
+                )
             else:
-                assert result is not None
+                tm.that(result is not None is True, eq=True)
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
@@ -850,10 +885,10 @@ class TestCLIRealFunctionality:
             os.environ[key] = value
         try:
             api_result = FlextDbOracleApi.from_env()
-            assert api_result.is_success
+            tm.ok(api_result)
             api = api_result.value
-            assert api.config.host is not None
-            assert isinstance(api.config.port, int)
+            tm.that(api.config.host is not None is True, eq=True)
+            tm.that(isinstance(api.config.port, int), eq=True)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -868,9 +903,9 @@ class TestCLIRealFunctionality:
             password="pass",
         )
         url_api = FlextDbOracleApi(config=config_for_url)
-        assert url_api.config.host == "host"
-        assert url_api.config.port == 1521
-        assert url_api.config.service_name == "SERVICE"
+        tm.that(url_api.config.host == "host", eq=True)
+        tm.that(url_api.config.port == 1521, eq=True)
+        tm.that(url_api.config.service_name == "SERVICE", eq=True)
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
@@ -884,17 +919,17 @@ class TestCLIRealFunctionality:
         api = FlextDbOracleApi(config)
         test_plugin = {"name": "test_plugin", "version": "1.0.0"}
         register_result = api.register_plugin("test_plugin", test_plugin)
-        assert register_result.is_success
+        tm.ok(register_result)
         list_result = api.list_plugins()
-        assert list_result.is_success
+        tm.ok(list_result)
         plugin_list = list_result.value
-        assert "test_plugin" in plugin_list
+        tm.that("test_plugin" in plugin_list is True, eq=True)
         get_result = api.get_plugin("test_plugin")
-        assert get_result.is_success
+        tm.ok(get_result)
         retrieved_plugin = get_result.value
-        assert retrieved_plugin == test_plugin
+        tm.that(retrieved_plugin == test_plugin, eq=True)
         unregister_result = api.unregister_plugin("test_plugin")
-        assert unregister_result.is_success
+        tm.ok(unregister_result)
         final_list = api.list_plugins()
-        assert final_list.is_success
-        assert "test_plugin" not in final_list.value
+        tm.ok(final_list)
+        tm.that("test_plugin" not in final_list.value is True, eq=True)

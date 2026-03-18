@@ -15,6 +15,7 @@ from typing import ClassVar, cast
 from unittest.mock import MagicMock
 
 import pytest
+from flext_tests import tm
 from tests import t
 
 from flext_db_oracle import (
@@ -112,8 +113,8 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert service is not None
-        assert service.config == config
+        tm.that(service is not None is True, eq=True)
+        tm.that(service.config == config, eq=True)
 
     def test_service_initial_state(self) -> None:
         """Test service initial state is correct."""
@@ -125,7 +126,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert not service.is_connected()
+        tm.that(not service.is_connected(), eq=True)
 
     def test_service_connection_building(self) -> None:
         """Test connection URL building."""
@@ -138,7 +139,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         result = service.test_connection()
-        assert result.is_success or result.is_failure
+        tm.that(result.is_success or result.is_failure, eq=True)
 
     def test_service_sql_builder_integration(self) -> None:
         """Test service integrates with SQL builder correctly."""
@@ -151,9 +152,9 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"])
-        assert select_result.is_success
-        assert "SELECT" in select_result.value
-        assert "TEST_TABLE" in select_result.value
+        tm.ok(select_result)
+        tm.that("SELECT" in select_result.value is True, eq=True)
+        tm.that("TEST_TABLE" in select_result.value is True, eq=True)
 
     def test_service_query_building_with_conditions(self) -> None:
         """Test query building with WHERE conditions."""
@@ -167,9 +168,9 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         conditions: dict[str, object] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
-        assert select_result.is_success
-        assert "WHERE" in select_result.value
-        assert "id = :id" in select_result.value
+        tm.ok(select_result)
+        tm.that("WHERE" in select_result.value is True, eq=True)
+        tm.that("id = :id" in select_result.value is True, eq=True)
 
     def test_service_safe_query_building(self) -> None:
         """Test safe parameterized query building."""
@@ -183,12 +184,12 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         conditions: dict[str, object] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
-        assert safe_result.is_success
+        tm.ok(safe_result)
         sql = safe_result.value
-        assert "SELECT" in sql
-        assert "USERS" in sql
-        assert "id" in sql
-        assert "status" in sql
+        tm.that("SELECT" in sql is True, eq=True)
+        tm.that("USERS" in sql is True, eq=True)
+        tm.that("id" in sql is True, eq=True)
+        tm.that("status" in sql is True, eq=True)
 
     def test_service_singer_type_conversion(self) -> None:
         """Test Singer JSON Schema type conversion."""
@@ -200,16 +201,18 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert service.convert_singer_type("string").value == "VARCHAR2(4000)"
-        assert service.convert_singer_type("integer").value == "NUMBER(38)"
-        assert service.convert_singer_type("number").value == "NUMBER"
-        assert service.convert_singer_type("boolean").value == "NUMBER(1)"
+        tm.that(
+            service.convert_singer_type("string").value == "VARCHAR2(4000)", eq=True
+        )
+        tm.that(service.convert_singer_type("integer").value == "NUMBER(38)", eq=True)
+        tm.that(service.convert_singer_type("number").value == "NUMBER", eq=True)
+        tm.that(service.convert_singer_type("boolean").value == "NUMBER(1)", eq=True)
         array_result = service.convert_singer_type(["string", "null"])
-        assert array_result.is_success
-        assert array_result.value == "VARCHAR2(4000)"
+        tm.ok(array_result)
+        tm.that(array_result.value == "VARCHAR2(4000)", eq=True)
         datetime_result = service.convert_singer_type("string", "date-time")
-        assert datetime_result.is_success
-        assert datetime_result.value == "TIMESTAMP"
+        tm.ok(datetime_result)
+        tm.that(datetime_result.value == "TIMESTAMP", eq=True)
 
     def test_service_schema_mapping(self) -> None:
         """Test Singer schema to Oracle mapping."""
@@ -230,12 +233,12 @@ class TestFlextDbOracleServicesBasic:
             }
         }
         mapping_result = service.map_singer_schema(singer_schema)
-        assert mapping_result.is_success
+        tm.ok(mapping_result)
         mapping = mapping_result.value
-        assert mapping["id"] == "NUMBER(38)"
-        assert mapping["name"] == "VARCHAR2(4000)"
-        assert mapping["created_at"] == "TIMESTAMP"
-        assert mapping["is_active"] == "NUMBER(1)"
+        tm.that(mapping["id"] == "NUMBER(38)", eq=True)
+        tm.that(mapping["name"] == "VARCHAR2(4000)", eq=True)
+        tm.that(mapping["created_at"] == "TIMESTAMP", eq=True)
+        tm.that(mapping["is_active"] == "NUMBER(1)", eq=True)
 
     def test_service_ddl_generation(self) -> None:
         """Test DDL statement generation."""
@@ -258,10 +261,10 @@ class TestFlextDbOracleServicesBasic:
             {"name": "created_at", "data_type": "TIMESTAMP", "nullable": False},
         ]
         ddl_result = service.create_table_ddl("TEST_TABLE", columns)
-        assert ddl_result.is_success
-        assert "CREATE TABLE" in ddl_result.value
-        assert "PRIMARY KEY" in ddl_result.value
-        assert "NOT NULL" in ddl_result.value
+        tm.ok(ddl_result)
+        tm.that("CREATE TABLE" in ddl_result.value is True, eq=True)
+        tm.that("PRIMARY KEY" in ddl_result.value is True, eq=True)
+        tm.that("NOT NULL" in ddl_result.value is True, eq=True)
 
     def test_service_insert_statement_building(self) -> None:
         """Test INSERT statement building."""
@@ -275,11 +278,11 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         columns = ["id", "name", "email"]
         insert_result = service.build_insert_statement("USERS", columns)
-        assert insert_result.is_success
-        assert "INSERT INTO" in insert_result.value
-        assert "VALUES" in insert_result.value
-        assert ":id" in insert_result.value
-        assert ":name" in insert_result.value
+        tm.ok(insert_result)
+        tm.that("INSERT INTO" in insert_result.value is True, eq=True)
+        tm.that("VALUES" in insert_result.value is True, eq=True)
+        tm.that(":id" in insert_result.value is True, eq=True)
+        tm.that(":name" in insert_result.value is True, eq=True)
 
     def test_service_update_statement_building(self) -> None:
         """Test UPDATE statement building."""
@@ -296,11 +299,11 @@ class TestFlextDbOracleServicesBasic:
         update_result = service.build_update_statement(
             "USERS", set_columns, where_columns
         )
-        assert update_result.is_success
-        assert "UPDATE" in update_result.value
-        assert "SET" in update_result.value
-        assert "WHERE" in update_result.value
-        assert "name=:name" in update_result.value
+        tm.ok(update_result)
+        tm.that("UPDATE" in update_result.value is True, eq=True)
+        tm.that("SET" in update_result.value is True, eq=True)
+        tm.that("WHERE" in update_result.value is True, eq=True)
+        tm.that("name=:name" in update_result.value is True, eq=True)
 
     def test_service_delete_statement_building(self) -> None:
         """Test DELETE statement building."""
@@ -314,10 +317,10 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         where_columns = ["id", "status"]
         delete_result = service.build_delete_statement("USERS", where_columns)
-        assert delete_result.is_success
-        assert "DELETE FROM" in delete_result.value
-        assert "WHERE" in delete_result.value
-        assert "id = :id" in delete_result.value
+        tm.ok(delete_result)
+        tm.that("DELETE FROM" in delete_result.value is True, eq=True)
+        tm.that("WHERE" in delete_result.value is True, eq=True)
+        tm.that("id = :id" in delete_result.value is True, eq=True)
 
     def test_service_merge_statement_building(self) -> None:
         """Test MERGE statement building."""
@@ -335,7 +338,7 @@ class TestFlextDbOracleServicesBasic:
         merge_config.merge_keys = ["id"]
         merge_config.schema_name = None
         select_result = service.build_select("test_table", ["id", "name"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_service_index_statement_building(self) -> None:
         """Test CREATE INDEX statement building."""
@@ -356,7 +359,7 @@ class TestFlextDbOracleServicesBasic:
         index_config.tablespace = None
         index_config.parallel = None
         select_result = service.build_select("test_table", ["id", "name"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_service_metrics_tracking(self) -> None:
         """Test metrics recording functionality."""
@@ -369,10 +372,10 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
-        assert metric_result.is_success
+        tm.ok(metric_result)
         metrics_result = service.get_metrics()
-        assert metrics_result.is_success
-        assert "query_time" in metrics_result.value
+        tm.ok(metrics_result)
+        tm.that("query_time" in metrics_result.value is True, eq=True)
 
     def test_service_operation_tracking(self) -> None:
         """Test operation tracking functionality."""
@@ -387,10 +390,10 @@ class TestFlextDbOracleServicesBasic:
         track_result = service.track_operation(
             "SELECT", 25.0, success=True, metadata={"table": "users"}
         )
-        assert track_result.is_success
+        tm.ok(track_result)
         ops_result = service.get_operations()
-        assert ops_result.is_success
-        assert len(ops_result.value) > 0
+        tm.ok(ops_result)
+        tm.that(len(ops_result.value) > 0 == True, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -404,14 +407,14 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         test_plugin = {"name": "test_plugin", "version": "1.0"}
         register_result = service.register_plugin("test", test_plugin)
-        assert register_result.is_success
+        tm.ok(register_result)
         get_result = service.get_plugin("test")
-        assert get_result.is_success
-        assert get_result.value == test_plugin
+        tm.ok(get_result)
+        tm.that(get_result.value == test_plugin, eq=True)
         unregister_result = service.unregister_plugin("test")
-        assert unregister_result.is_success
+        tm.ok(unregister_result)
         missing_result = service.get_plugin("missing")
-        assert missing_result.is_failure
+        tm.that(missing_result.is_failure, eq=True)
 
     def test_service_health_check(self) -> None:
         """Test health check functionality."""
@@ -424,10 +427,10 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         health_result = service.health_check()
-        assert health_result.is_success
-        assert "service" in health_result.value
-        assert "status" in health_result.value
-        assert "database" in health_result.value
+        tm.ok(health_result)
+        tm.that("service" in health_result.value is True, eq=True)
+        tm.that("status" in health_result.value is True, eq=True)
+        tm.that("database" in health_result.value is True, eq=True)
 
     def test_service_query_hash_generation(self) -> None:
         """Test query hash generation."""
@@ -442,9 +445,9 @@ class TestFlextDbOracleServicesBasic:
         sql = "SELECT * FROM users WHERE id = :id"
         params: dict[str, object] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
-        assert hash_result.is_success
-        assert isinstance(hash_result.value, str)
-        assert len(hash_result.value) > 0
+        tm.ok(hash_result)
+        tm.that(isinstance(hash_result.value, str), eq=True)
+        tm.that(len(hash_result.value) > 0 == True, eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -457,7 +460,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("test_table", ["email", "id"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
 
 class TestServiceErrorHandling:
@@ -475,7 +478,7 @@ class TestServiceErrorHandling:
         service = FlextDbOracleServices(config=config)
         invalid_table = "table'; DROP TABLE users;--"
         select_result = service.build_select(invalid_table, ["col1"])
-        assert select_result is not None, "Select result should not be None"
+        tm.that(select_result is not None is True, eq=True)
 
     def test_empty_parameters_handling(self) -> None:
         """Test handling of empty parameters."""
@@ -488,7 +491,7 @@ class TestServiceErrorHandling:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("TEST_TABLE", [])
-        assert select_result.is_success
+        tm.ok(select_result)
 
 
 class TestFlextDbOracleServicesPlaceholderRemovals:
@@ -517,10 +520,13 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
             "tablespace": "USERS_TS",
             "parallel": 2,
         })
-        assert result.is_success
-        assert (
-            result.value
-            == "CREATE UNIQUE INDEX IDX_USERS_EMAIL ON APP.USERS (email) TABLESPACE USERS_TS PARALLEL 2"
+        tm.ok(result)
+        tm.that(
+            (
+                result.value
+                == "CREATE UNIQUE INDEX IDX_USERS_EMAIL ON APP.USERS (email) TABLESPACE USERS_TS PARALLEL 2"
+            ),
+            eq=True,
         )
 
     def test_build_create_index_statement_fails_for_empty_columns(self) -> None:
@@ -530,8 +536,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
             "index_name": "IDX_USERS_EMPTY",
             "columns": [],
         })
-        assert result.is_failure
-        assert "at least one column" in (result.error or "")
+        tm.that(result.is_failure, eq=True)
+        tm.that("at least one column" in (result.error or "") is True, eq=True)
 
     def test_record_metric_fails_when_observability_missing(
         self, monkeypatch: pytest.MonkeyPatch
@@ -545,8 +551,13 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.record_metric("db_query_duration", 12.5)
-        assert result.is_failure
-        assert "flext-observability integration unavailable" in (result.error or "")
+        tm.that(result.is_failure, eq=True)
+        tm.that(
+            "flext-observability integration unavailable"
+            in (result.error or "")
+            is True,
+            eq=True,
+        )
 
     def test_record_metric_uses_observability_when_available(
         self, monkeypatch: pytest.MonkeyPatch
@@ -567,9 +578,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         result = service.record_metric(
             "db_query_duration", 12.5, t.ConfigMap(root={"k": "v"})
         )
-        assert result.is_success
-        assert len(calls) == 1
-        assert calls[0]["name"] == "db_query_duration"
+        tm.ok(result)
+        tm.that(len(calls) == 1, eq=True)
+        tm.that(calls[0]["name"] == "db_query_duration", eq=True)
 
     def test_get_metrics_fails_when_observability_missing(
         self, monkeypatch: pytest.MonkeyPatch
@@ -583,8 +594,13 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.get_metrics()
-        assert result.is_failure
-        assert "flext-observability integration unavailable" in (result.error or "")
+        tm.that(result.is_failure, eq=True)
+        tm.that(
+            "flext-observability integration unavailable"
+            in (result.error or "")
+            is True,
+            eq=True,
+        )
 
     def test_get_metrics_returns_health_status_when_observability_available(
         self, monkeypatch: pytest.MonkeyPatch
@@ -598,8 +614,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.get_metrics()
-        assert result.is_success
-        assert result.value.status.endswith("_with_observability")
+        tm.ok(result)
+        tm.that(result.value.status.endswith("_with_observability"), eq=True)
 
     def test_plugin_methods_fail_when_plugin_integration_missing(
         self, monkeypatch: pytest.MonkeyPatch
@@ -612,10 +628,12 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
             raise AssertionError(f"Unexpected module import: {name}")
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
-        assert service.register_plugin("sample", {"version": "1.0.0"}).is_failure
-        assert service.unregister_plugin("sample").is_failure
-        assert service.list_plugins().is_failure
-        assert service.get_plugin("sample").is_failure
+        tm.that(
+            service.register_plugin("sample", {"version": "1.0.0"}).is_failure, eq=True
+        )
+        tm.that(service.unregister_plugin("sample").is_failure, eq=True)
+        tm.that(service.list_plugins().is_failure, eq=True)
+        tm.that(service.get_plugin("sample").is_failure, eq=True)
 
     def test_plugin_methods_wire_to_flext_plugin_when_available(
         self, monkeypatch: pytest.MonkeyPatch
@@ -641,16 +659,16 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
             "sample",
             {"version": "1.2.3", "description": "demo", "plugin_type": "utility"},
         )
-        assert register_result.is_success
+        tm.ok(register_result)
         list_result = service.list_plugins()
-        assert list_result.is_success
-        assert list_result.value.root == {"sample": True}
+        tm.ok(list_result)
+        tm.that(list_result.value.root == {"sample": True}, eq=True)
         get_result = service.get_plugin("sample")
-        assert get_result.is_success
-        assert isinstance(get_result.value, dict)
-        assert get_result.value.get("name") == "sample"
+        tm.ok(get_result)
+        tm.that(isinstance(get_result.value, dict), eq=True)
+        tm.that(get_result.value.get("name") == "sample", eq=True)
         unregister_result = service.unregister_plugin("sample")
-        assert unregister_result.is_success
+        tm.ok(unregister_result)
 
 
 "Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -670,13 +688,13 @@ class TestDirectCoverageBoostAPI:
         )
         api = FlextDbOracleApi(bad_config)
         result1 = api.test_connection()
-        assert result1.is_failure or result1.is_success
+        tm.that(result1.is_failure or result1.is_success, eq=True)
         result2 = api.get_schemas()
-        assert result2.is_failure or result2.is_success
+        tm.that(result2.is_failure or result2.is_success, eq=True)
         result3 = api.get_tables()
-        assert result3.is_failure or result3.is_success
+        tm.that(result3.is_failure or result3.is_success, eq=True)
         result4 = api.query("SELECT 1 FROM DUAL")
-        assert result4.is_failure or result4.is_success
+        tm.that(result4.is_failure or result4.is_success, eq=True)
 
     def test_api_schema_operations_1038_1058(
         self, oracle_api: FlextDbOracleApi
@@ -697,9 +715,15 @@ class TestDirectCoverageBoostAPI:
                     if schema != "NONEXISTENT"
                     else None
                 )
-                assert tables_result.is_success or tables_result.is_failure
+                tm.that(
+                    tables_result.is_success or tables_result.is_failure,
+                    eq=True,
+                )
                 if columns_result:
-                    assert columns_result.is_success or columns_result.is_failure
+                    tm.that(
+                        columns_result.is_success or columns_result.is_failure,
+                        eq=True,
+                    )
         finally:
             connected_api.disconnect()
 
@@ -720,7 +744,7 @@ class TestDirectCoverageBoostAPI:
             ]
             for query in complex_queries:
                 result = connected_api.query(query)
-                assert result.is_success or result.is_failure
+                tm.that(result.is_success or result.is_failure, eq=True)
         finally:
             connected_api.disconnect()
 
@@ -748,7 +772,7 @@ class TestDirectCoverageBoostConfig:
                     password=password,
                     service_name=service_name,
                 )
-                assert config is not None
+                tm.that(config is not None is True, eq=True)
             except (ValueError, TypeError):
                 pass
 
@@ -773,9 +797,9 @@ class TestDirectCoverageBoostConfig:
                 password=os.getenv("FLEXT_TARGET_ORACLE_PASSWORD", "default"),
                 service_name=os.getenv("FLEXT_TARGET_ORACLE_SERVICE_NAME", "default"),
             )
-            assert config.host == "test_host"
-            assert config.port == 1234
-            assert config.username == "test_user"
+            tm.that(config.host == "test_host", eq=True)
+            tm.that(config.port == 1234, eq=True)
+            tm.that(config.username == "test_user", eq=True)
         finally:
             for var, original_value in original_vars.items():
                 if original_value is None:
@@ -795,7 +819,7 @@ class TestDirectCoverageBoostConnection:
         for _i in range(3):
             result = connection.connect()
             if result.is_success:
-                assert connection.is_connected()
+                tm.that(connection.is_connected(), eq=True)
                 connection.disconnect()
                 connection.disconnect()
 
@@ -819,11 +843,11 @@ class TestDirectCoverageBoostConnection:
             try:
                 result = operation()
                 if hasattr(result, "is_failure") and hasattr(result, "is_success"):
-                    assert result.is_failure or result.is_success
+                    tm.that(result.is_failure or result.is_success, eq=True)
                 elif isinstance(result, bool):
-                    assert isinstance(result, bool)
+                    tm.that(isinstance(result, bool), eq=True)
                 else:
-                    assert result is not None or result is None
+                    tm.that(result is not None or result is None is True, eq=True)
             except (AttributeError, TypeError):
                 pass
 
@@ -837,22 +861,22 @@ class TestDirectCoverageBoostTypes:
             column = FlextDbOracleModels.DbOracle.Column(
                 name="TEST_COLUMN", data_type="VARCHAR2", nullable=True
             )
-            assert column.name == "TEST_COLUMN"
+            tm.that(column.name == "TEST_COLUMN", eq=True)
         except (TypeError, ValueError):
             pass
         try:
             table = FlextDbOracleModels.DbOracle.Table(
                 name="TEST_TABLE", owner="TEST_SCHEMA", columns=[]
             )
-            assert table.name == "TEST_TABLE"
+            tm.that(table.name == "TEST_TABLE", eq=True)
         except (TypeError, ValueError):
             pass
         try:
             column2 = FlextDbOracleModels.DbOracle.Column(
                 name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
             )
-            assert hasattr(column2, "name")
-            assert hasattr(column2, "data_type")
+            tm.that(hasattr(column2, "name"), eq=True)
+            tm.that(hasattr(column2, "data_type"), eq=True)
         except (TypeError, ValueError, NotImplementedError):
             pass
 
@@ -861,20 +885,20 @@ class TestDirectCoverageBoostTypes:
         column = FlextDbOracleModels.DbOracle.Column(
             name="ID", data_type="NUMBER", nullable=False
         )
-        assert column.name == "ID"
-        assert column.data_type == "NUMBER"
-        assert column.nullable is False
+        tm.that(column.name == "ID", eq=True)
+        tm.that(column.data_type == "NUMBER", eq=True)
+        tm.that(column.nullable is False, eq=True)
         str_repr = str(column)
-        assert str_repr is not None
+        tm.that(str_repr is not None is True, eq=True)
         repr_str = repr(column)
-        assert repr_str is not None
+        tm.that(repr_str is not None is True, eq=True)
         column_with_default = FlextDbOracleModels.DbOracle.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,
             default_value="DEFAULT_VALUE",
         )
-        assert column_with_default.default_value == "DEFAULT_VALUE"
+        tm.that(column_with_default.default_value == "DEFAULT_VALUE", eq=True)
 
 
 class TestDirectCoverageBoostObservability:
@@ -893,8 +917,8 @@ class TestDirectCoverageBoostObservability:
             )
             api = FlextDbOracleApi(config)
             metrics_result = api.get_observability_metrics()
-            assert metrics_result.is_success
-            assert isinstance(metrics_result.value, dict)
+            tm.ok(metrics_result)
+            tm.that(isinstance(metrics_result.value, dict), eq=True)
         except (TypeError, AttributeError):
             pass
 
@@ -912,7 +936,7 @@ class TestDirectCoverageBoostObservability:
             connected_api.test_connection()
             connected_api.get_schemas()
             connected_api.query("SELECT 1 FROM DUAL")
-            assert True
+            tm.that(True, eq=True)
         finally:
             connected_api.disconnect()
 
@@ -931,11 +955,11 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(config=config)
-        assert services is not None
-        assert services is not None
+        tm.that(services is not None is True, eq=True)
+        tm.that(services is not None is True, eq=True)
         identifier_result = services.build_select("test_table", ["col1", "col2"])
-        assert identifier_result.is_success
-        assert "SELECT" in identifier_result.value
+        tm.ok(identifier_result)
+        tm.that("SELECT" in identifier_result.value is True, eq=True)
 
     def test_services_sql_builder_operations(self) -> None:
         """Test SQL builder operations for 100% coverage."""
@@ -950,22 +974,24 @@ class TestDirectCoverageBoostServices:
         test_identifiers = ["valid_table", "VALID_TABLE", "table123", "test_col"]
         for identifier in test_identifiers:
             result = services.build_select(identifier, ["col1"])
-            assert result.is_success
-            assert identifier.upper() in result.value
+            tm.ok(result)
+            tm.that(identifier.upper() in result.value is True, eq=True)
         table_ref_result = services.build_select(
             "test_table", ["col1"], schema_name="test_schema"
         )
-        assert table_ref_result.is_success
+        tm.ok(table_ref_result)
         sql_result = table_ref_result.value
-        assert (
-            "TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result
-        ) or "test_schema.test_table" in sql_result
+        tm.that(
+            ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result)
+            or "test_schema.test_table" in sql_result is True,
+            eq=True,
+        )
         test_columns = ["col1", "col2", "col3"]
         column_result = services.build_select("test_table", test_columns)
-        assert column_result.is_success
+        tm.ok(column_result)
         result_sql = column_result.value
-        assert "col1" in result_sql
-        assert "col2" in result_sql
+        tm.that("col1" in result_sql is True, eq=True)
+        tm.that("col2" in result_sql is True, eq=True)
 
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
@@ -989,13 +1015,13 @@ class TestDirectCoverageBoostServices:
         ]
         for config in configs:
             services = FlextDbOracleServices(config=config)
-            assert services is not None
-            assert hasattr(services, "config")
-            assert services.config == config
-            assert not services.is_connected()
+            tm.that(services is not None is True, eq=True)
+            tm.that(hasattr(services, "config"), eq=True)
+            tm.that(services.config == config, eq=True)
+            tm.that(not services.is_connected(), eq=True)
             connection_result = services.connect()
-            assert hasattr(connection_result, "is_failure")
-            assert connection_result.is_failure
+            tm.that(hasattr(connection_result, "is_failure"), eq=True)
+            tm.that(connection_result.is_failure, eq=True)
 
     def test_services_sql_generation_comprehensive(self) -> None:
         """Test SQL generation methods comprehensively for 100% coverage."""
@@ -1029,29 +1055,34 @@ class TestDirectCoverageBoostServices:
             try:
                 method = getattr(services, method_name)
                 result = method(*args)
-                assert result is not None
-                assert result.is_success
+                tm.that(result is not None is True, eq=True)
+                tm.ok(result)
                 sql_content = result.value
                 if isinstance(sql_content, tuple):
                     sql_text = sql_content[0]
                     sql_params = sql_content[1]
-                    assert isinstance(sql_text, str)
-                    assert isinstance(sql_params, dict)
+                    tm.that(isinstance(sql_text, str), eq=True)
+                    tm.that(isinstance(sql_params, dict), eq=True)
                 elif isinstance(sql_content, str):
                     sql_text = sql_content
                 else:
                     sql_text = str(sql_content)
-                assert len(sql_text) > 0
+                tm.that(len(sql_text) > 0 == True, eq=True)
                 if method_name.startswith("build_select"):
-                    assert "SELECT" in sql_text.upper()
+                    tm.that("SELECT" in sql_text.upper() is True, eq=True)
                 elif method_name.startswith("build_insert"):
-                    assert "INSERT" in sql_text.upper()
+                    tm.that("INSERT" in sql_text.upper() is True, eq=True)
                 elif method_name.startswith("build_update"):
-                    assert "UPDATE" in sql_text.upper()
+                    tm.that("UPDATE" in sql_text.upper() is True, eq=True)
                 elif method_name.startswith("build_delete"):
-                    assert (
-                        getattr(FlextDbOracleConstants.Platform, "HTTP_METHOD_DELETE")
-                        in sql_text.upper()
+                    tm.that(
+                        (
+                            getattr(
+                                FlextDbOracleConstants.Platform, "HTTP_METHOD_DELETE"
+                            )
+                            in sql_text.upper()
+                        ),
+                        eq=True,
                     )
             except AttributeError:
                 pass
@@ -1085,58 +1116,61 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_metadata_manager_initialization(self) -> None:
         """Test metadata manager initialization with real connection."""
-        assert self.manager is not None
-        assert self.manager == self.services
-        assert hasattr(self.manager, "config")
-        assert hasattr(self.manager, "connect")
+        tm.that(self.manager is not None is True, eq=True)
+        tm.that(self.manager == self.services, eq=True)
+        tm.that(hasattr(self.manager, "config"), eq=True)
+        tm.that(hasattr(self.manager, "connect"), eq=True)
 
     def test_get_schemas_structure(self) -> None:
         """Test get_schemas method structure and error handling."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
-        assert not result.is_success
-        assert result.error is not None
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(hasattr(result, "error"), eq=True)
+        tm.that(not result.is_success, eq=True)
+        tm.that(result.error is not None is True, eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                or "connection" in result.error.lower()
+            ),
+            eq=True,
         )
 
     def test_get_tables_structure(self) -> None:
         """Test get_tables method structure and error handling."""
         result = self.manager.get_tables()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_columns_structure(self) -> None:
         """Test get_columns method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_COLUMN")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
 
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
@@ -1152,17 +1186,19 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             name="TEST_TABLE", owner="TEST_SCHEMA", columns=columns
         )
         result = self.manager.get_tables("TEST_SCHEMA")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
-        assert result.error is not None
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
+        tm.that(result.error is not None is True, eq=True)
         error_lower = result.error.lower()
-        assert "connection" in error_lower or "connected" in error_lower
+        tm.that(
+            "connection" in error_lower or "connected" in error_lower is True, eq=True
+        )
 
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(not result.is_success, eq=True)
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
@@ -1174,18 +1210,18 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         for method_name, args in methods_to_test:
             method = getattr(self.manager, method_name)
             result = method(*args)
-            assert hasattr(result, "is_success")
-            assert hasattr(result, "error")
+            tm.that(hasattr(result, "is_success"), eq=True)
+            tm.that(hasattr(result, "error"), eq=True)
             if method_name != "generate_ddl":
-                assert not result.is_success
-                assert result.error is not None
-                assert len(result.error) > 0
+                tm.that(not result.is_success, eq=True)
+                tm.that(result.error is not None is True, eq=True)
+                tm.that(len(result.error) > 0 == True, eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
-        assert self.manager is self.services
-        assert hasattr(self.manager, "get_connection_status")
-        assert self.manager is not None
+        tm.that(self.manager is self.services is True, eq=True)
+        tm.that(hasattr(self.manager, "get_connection_status"), eq=True)
+        tm.that(self.manager is not None is True, eq=True)
         existing_methods = [
             "get_schemas",
             "get_tables",
@@ -1193,8 +1229,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             "test_connection",
         ]
         for method_name in existing_methods:
-            assert hasattr(self.manager, method_name)
-            assert callable(getattr(self.manager, method_name))
+            tm.that(hasattr(self.manager, method_name), eq=True)
+            tm.that(callable(getattr(self.manager, method_name)), eq=True)
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
@@ -1215,24 +1251,26 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         table = FlextDbOracleModels.DbOracle.Table(
             name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
         )
-        assert len(columns) == 4
-        assert table.name == "COMPLEX_TABLE"
-        assert table.owner == "APP_SCHEMA"
-        assert len(table.columns) == 4
+        tm.that(len(columns) == 4, eq=True)
+        tm.that(table.name == "COMPLEX_TABLE", eq=True)
+        tm.that(table.owner == "APP_SCHEMA", eq=True)
+        tm.that(len(table.columns) == 4, eq=True)
         result = self.manager.get_tables("APP_SCHEMA")
-        assert not result.is_success
-        assert result.error is not None
+        tm.that(not result.is_success, eq=True)
+        tm.that(result.error is not None is True, eq=True)
         error_lower = result.error.lower()
-        assert "connection" in error_lower or "connected" in error_lower
+        tm.that(
+            "connection" in error_lower or "connected" in error_lower is True, eq=True
+        )
 
     def test_validation_logic_comprehensive(self) -> None:
         """Test validation logic in metadata operations."""
         result_empty_table = self.manager.get_tables("")
-        assert not result_empty_table.is_success
+        tm.that(not result_empty_table.is_success, eq=True)
         result_empty_schema = self.manager.get_tables("")
-        assert not result_empty_schema.is_success
+        tm.that(not result_empty_schema.is_success, eq=True)
         result_none_table = self.manager.get_tables(None)
-        assert not result_none_table.is_success
+        tm.that(not result_none_table.is_success, eq=True)
 
 
 "Simplified tests for FlextDbOracleServices connection functionality.\n\nThis module tests the connection functionality with real code paths,\nfocusing on the actual available methods and attributes.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -1258,18 +1296,18 @@ class TestFlextDbOracleConnectionSimple:
 
     def test_connection_initialization(self) -> None:
         """Test connection initialization with real configuration."""
-        assert self.connection is not None
-        assert self.connection.config == self.config
+        tm.that(self.connection is not None is True, eq=True)
+        tm.that(self.connection.config == self.config, eq=True)
 
     def test_is_connected_method(self) -> None:
         """Test is_connected method behavior."""
         connected_status = self.connection.is_connected()
-        assert isinstance(connected_status, bool)
+        tm.that(isinstance(connected_status, bool), eq=True)
 
     def test_disconnect_when_not_connected(self) -> None:
         """Test disconnect when not connected."""
         result = self.connection.disconnect()
-        assert result.is_success
+        tm.ok(result)
 
     def test_config_validation(self) -> None:
         """Test Oracle config validation."""
@@ -1280,50 +1318,50 @@ class TestFlextDbOracleConnectionSimple:
             username="test",
             password="test",
         )
-        assert config.host == "localhost"
-        assert config.port == 1521
+        tm.that(config.host == "localhost", eq=True)
+        tm.that(config.port == 1521, eq=True)
 
     def test_services_methods_exist(self) -> None:
         """Test that required service methods exist."""
-        assert hasattr(self.connection, "connect")
-        assert hasattr(self.connection, "disconnect")
-        assert hasattr(self.connection, "is_connected")
-        assert hasattr(self.connection, "get_schemas")
-        assert hasattr(self.connection, "get_tables")
+        tm.that(hasattr(self.connection, "connect"), eq=True)
+        tm.that(hasattr(self.connection, "disconnect"), eq=True)
+        tm.that(hasattr(self.connection, "is_connected"), eq=True)
+        tm.that(hasattr(self.connection, "get_schemas"), eq=True)
+        tm.that(hasattr(self.connection, "get_tables"), eq=True)
 
     def test_query_methods_exist(self) -> None:
         """Test that query methods exist."""
-        assert hasattr(self.connection, "execute")
-        assert hasattr(self.connection, "build_select")
-        assert hasattr(self.connection, "build_insert_statement")
+        tm.that(hasattr(self.connection, "execute"), eq=True)
+        tm.that(hasattr(self.connection, "build_select"), eq=True)
+        tm.that(hasattr(self.connection, "build_insert_statement"), eq=True)
 
     def test_connection_error_handling(self) -> None:
         """Test connection error handling."""
         result = self.connection.connect()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(hasattr(result, "error"), eq=True)
 
     def test_schema_operations_error_handling(self) -> None:
         """Test schema operations error handling when not connected."""
         result = self.connection.get_schemas()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(hasattr(result, "error"), eq=True)
         result = self.connection.get_tables()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(hasattr(result, "error"), eq=True)
 
     def test_sql_building_methods(self) -> None:
         """Test SQL building methods."""
         result = self.connection.build_select("TEST_TABLE")
-        assert hasattr(result, "is_success")
+        tm.that(hasattr(result, "is_success"), eq=True)
         columns = ["column1", "column2"]
         result = self.connection.build_insert_statement("TEST_TABLE", columns)
-        assert hasattr(result, "is_success")
+        tm.that(hasattr(result, "is_success"), eq=True)
 
     def test_ddl_operations(self) -> None:
         """Test DDL operations."""
-        assert hasattr(self.connection, "build_create_index_statement")
-        assert callable(self.connection.build_create_index_statement)
+        tm.that(hasattr(self.connection, "build_create_index_statement"), eq=True)
+        tm.that(callable(self.connection.build_create_index_statement), eq=True)
 
     def test_service_creation(self) -> None:
         """Test service can be created with configuration."""
@@ -1335,8 +1373,8 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert service is not None
-        assert service.config == config
+        tm.that(service is not None is True, eq=True)
+        tm.that(service.config == config, eq=True)
 
     def test_service_initial_state(self) -> None:
         """Test service initial state is correct."""
@@ -1348,7 +1386,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert not service.is_connected()
+        tm.that(not service.is_connected(), eq=True)
 
     def test_service_connection_building(self) -> None:
         """Test connection URL building."""
@@ -1361,7 +1399,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         result = service.test_connection()
-        assert result.is_success or result.is_failure
+        tm.that(result.is_success or result.is_failure, eq=True)
 
     def test_service_sql_builder_integration(self) -> None:
         """Test service integrates with SQL builder correctly."""
@@ -1374,9 +1412,9 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"])
-        assert select_result.is_success
-        assert "SELECT" in select_result.value
-        assert "TEST_TABLE" in select_result.value
+        tm.ok(select_result)
+        tm.that("SELECT" in select_result.value is True, eq=True)
+        tm.that("TEST_TABLE" in select_result.value is True, eq=True)
 
     def test_service_query_building_with_conditions(self) -> None:
         """Test query building with WHERE conditions."""
@@ -1390,9 +1428,9 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         conditions: dict[str, object] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
-        assert select_result.is_success
-        assert "WHERE" in select_result.value
-        assert "id = :id" in select_result.value
+        tm.ok(select_result)
+        tm.that("WHERE" in select_result.value is True, eq=True)
+        tm.that("id = :id" in select_result.value is True, eq=True)
 
     def test_service_safe_query_building(self) -> None:
         """Test safe parameterized query building."""
@@ -1406,12 +1444,12 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         conditions: dict[str, object] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
-        assert safe_result.is_success
+        tm.ok(safe_result)
         sql = safe_result.value
-        assert "SELECT" in sql
-        assert "USERS" in sql
-        assert "id" in sql
-        assert "status" in sql
+        tm.that("SELECT" in sql is True, eq=True)
+        tm.that("USERS" in sql is True, eq=True)
+        tm.that("id" in sql is True, eq=True)
+        tm.that("status" in sql is True, eq=True)
 
     def test_service_singer_type_conversion(self) -> None:
         """Test Singer JSON Schema type conversion."""
@@ -1423,16 +1461,18 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        assert service.convert_singer_type("string").value == "VARCHAR2(4000)"
-        assert service.convert_singer_type("integer").value == "NUMBER(38)"
-        assert service.convert_singer_type("number").value == "NUMBER"
-        assert service.convert_singer_type("boolean").value == "NUMBER(1)"
+        tm.that(
+            service.convert_singer_type("string").value == "VARCHAR2(4000)", eq=True
+        )
+        tm.that(service.convert_singer_type("integer").value == "NUMBER(38)", eq=True)
+        tm.that(service.convert_singer_type("number").value == "NUMBER", eq=True)
+        tm.that(service.convert_singer_type("boolean").value == "NUMBER(1)", eq=True)
         array_result = service.convert_singer_type(["string", "null"])
-        assert array_result.is_success
-        assert array_result.value == "VARCHAR2(4000)"
+        tm.ok(array_result)
+        tm.that(array_result.value == "VARCHAR2(4000)", eq=True)
         datetime_result = service.convert_singer_type("string", "date-time")
-        assert datetime_result.is_success
-        assert datetime_result.value == "TIMESTAMP"
+        tm.ok(datetime_result)
+        tm.that(datetime_result.value == "TIMESTAMP", eq=True)
 
     def test_service_schema_mapping(self) -> None:
         """Test Singer schema to Oracle mapping."""
@@ -1453,12 +1493,12 @@ class TestFlextDbOracleConnectionSimple:
             }
         }
         mapping_result = service.map_singer_schema(singer_schema)
-        assert mapping_result.is_success
+        tm.ok(mapping_result)
         mapping = mapping_result.value
-        assert mapping["id"] == "NUMBER(38)"
-        assert mapping["name"] == "VARCHAR2(4000)"
-        assert mapping["created_at"] == "TIMESTAMP"
-        assert mapping["is_active"] == "NUMBER(1)"
+        tm.that(mapping["id"] == "NUMBER(38)", eq=True)
+        tm.that(mapping["name"] == "VARCHAR2(4000)", eq=True)
+        tm.that(mapping["created_at"] == "TIMESTAMP", eq=True)
+        tm.that(mapping["is_active"] == "NUMBER(1)", eq=True)
 
     def test_service_ddl_generation(self) -> None:
         """Test DDL statement generation."""
@@ -1481,10 +1521,10 @@ class TestFlextDbOracleConnectionSimple:
             {"name": "created_at", "data_type": "TIMESTAMP", "nullable": False},
         ]
         ddl_result = service.create_table_ddl("TEST_TABLE", columns)
-        assert ddl_result.is_success
-        assert "CREATE TABLE" in ddl_result.value
-        assert "PRIMARY KEY" in ddl_result.value
-        assert "NOT NULL" in ddl_result.value
+        tm.ok(ddl_result)
+        tm.that("CREATE TABLE" in ddl_result.value is True, eq=True)
+        tm.that("PRIMARY KEY" in ddl_result.value is True, eq=True)
+        tm.that("NOT NULL" in ddl_result.value is True, eq=True)
 
     def test_service_insert_statement_building(self) -> None:
         """Test INSERT statement building."""
@@ -1498,11 +1538,11 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         columns = ["id", "name", "email"]
         insert_result = service.build_insert_statement("USERS", columns)
-        assert insert_result.is_success
-        assert "INSERT INTO" in insert_result.value
-        assert "VALUES" in insert_result.value
-        assert ":id" in insert_result.value
-        assert ":name" in insert_result.value
+        tm.ok(insert_result)
+        tm.that("INSERT INTO" in insert_result.value is True, eq=True)
+        tm.that("VALUES" in insert_result.value is True, eq=True)
+        tm.that(":id" in insert_result.value is True, eq=True)
+        tm.that(":name" in insert_result.value is True, eq=True)
 
     def test_service_update_statement_building(self) -> None:
         """Test UPDATE statement building."""
@@ -1519,11 +1559,11 @@ class TestFlextDbOracleConnectionSimple:
         update_result = service.build_update_statement(
             "USERS", set_columns, where_columns
         )
-        assert update_result.is_success
-        assert "UPDATE" in update_result.value
-        assert "SET" in update_result.value
-        assert "WHERE" in update_result.value
-        assert "name=:name" in update_result.value
+        tm.ok(update_result)
+        tm.that("UPDATE" in update_result.value is True, eq=True)
+        tm.that("SET" in update_result.value is True, eq=True)
+        tm.that("WHERE" in update_result.value is True, eq=True)
+        tm.that("name=:name" in update_result.value is True, eq=True)
 
     def test_service_delete_statement_building(self) -> None:
         """Test DELETE statement building."""
@@ -1537,10 +1577,10 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         where_columns = ["id", "status"]
         delete_result = service.build_delete_statement("USERS", where_columns)
-        assert delete_result.is_success
-        assert "DELETE FROM" in delete_result.value
-        assert "WHERE" in delete_result.value
-        assert "id = :id" in delete_result.value
+        tm.ok(delete_result)
+        tm.that("DELETE FROM" in delete_result.value is True, eq=True)
+        tm.that("WHERE" in delete_result.value is True, eq=True)
+        tm.that("id = :id" in delete_result.value is True, eq=True)
 
     def test_service_merge_statement_building(self) -> None:
         """Test MERGE statement building."""
@@ -1558,7 +1598,7 @@ class TestFlextDbOracleConnectionSimple:
         merge_config.merge_keys = ["id"]
         merge_config.schema_name = None
         select_result = service.build_select("test_table", ["id", "name"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_service_index_statement_building(self) -> None:
         """Test CREATE INDEX statement building."""
@@ -1579,7 +1619,7 @@ class TestFlextDbOracleConnectionSimple:
         index_config.tablespace = None
         index_config.parallel = None
         select_result = service.build_select("test_table", ["id", "name"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_service_metrics_tracking(self) -> None:
         """Test metrics recording functionality."""
@@ -1592,10 +1632,10 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         metric_result = service.record_metric("query_time", 150.5, {"table": "users"})
-        assert metric_result.is_success
+        tm.ok(metric_result)
         metrics_result = service.get_metrics()
-        assert metrics_result.is_success
-        assert "query_time" in metrics_result.value
+        tm.ok(metrics_result)
+        tm.that("query_time" in metrics_result.value is True, eq=True)
 
     def test_service_operation_tracking(self) -> None:
         """Test operation tracking functionality."""
@@ -1610,10 +1650,10 @@ class TestFlextDbOracleConnectionSimple:
         track_result = service.track_operation(
             "SELECT", 25.0, success=True, metadata={"table": "users"}
         )
-        assert track_result.is_success
+        tm.ok(track_result)
         ops_result = service.get_operations()
-        assert ops_result.is_success
-        assert len(ops_result.value) > 0
+        tm.ok(ops_result)
+        tm.that(len(ops_result.value) > 0 == True, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -1627,14 +1667,14 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         test_plugin = {"name": "test_plugin", "version": "1.0"}
         register_result = service.register_plugin("test", test_plugin)
-        assert register_result.is_success
+        tm.ok(register_result)
         get_result = service.get_plugin("test")
-        assert get_result.is_success
-        assert get_result.value == test_plugin
+        tm.ok(get_result)
+        tm.that(get_result.value == test_plugin, eq=True)
         unregister_result = service.unregister_plugin("test")
-        assert unregister_result.is_success
+        tm.ok(unregister_result)
         missing_result = service.get_plugin("missing")
-        assert missing_result.is_failure
+        tm.that(missing_result.is_failure, eq=True)
 
     def test_service_health_check(self) -> None:
         """Test health check functionality."""
@@ -1647,10 +1687,10 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         health_result = service.health_check()
-        assert health_result.is_success
-        assert "service" in health_result.value
-        assert "status" in health_result.value
-        assert "database" in health_result.value
+        tm.ok(health_result)
+        tm.that("service" in health_result.value is True, eq=True)
+        tm.that("status" in health_result.value is True, eq=True)
+        tm.that("database" in health_result.value is True, eq=True)
 
     def test_service_query_hash_generation(self) -> None:
         """Test query hash generation."""
@@ -1665,9 +1705,9 @@ class TestFlextDbOracleConnectionSimple:
         sql = "SELECT * FROM users WHERE id = :id"
         params: dict[str, object] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
-        assert hash_result.is_success
-        assert isinstance(hash_result.value, str)
-        assert len(hash_result.value) > 0
+        tm.ok(hash_result)
+        tm.that(isinstance(hash_result.value, str), eq=True)
+        tm.that(len(hash_result.value) > 0 == True, eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -1680,7 +1720,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("test_table", ["email", "id"])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_invalid_sql_identifier_rejection(self) -> None:
         """Test that invalid SQL identifiers are rejected."""
@@ -1694,7 +1734,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         invalid_table = "table'; DROP TABLE users;--"
         select_result = service.build_select(invalid_table, ["col1"])
-        assert select_result is not None, "Select result should not be None"
+        tm.that(select_result is not None is True, eq=True)
 
     def test_empty_parameters_handling(self) -> None:
         """Test handling of empty parameters."""
@@ -1707,7 +1747,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         select_result = service.build_select("TEST_TABLE", [])
-        assert select_result.is_success
+        tm.ok(select_result)
 
     def test_invalid_singer_schema_handling(self) -> None:
         """Test handling of invalid Singer schemas."""
@@ -1721,7 +1761,9 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         invalid_schema: dict[str, object] = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
-        assert mapping_result.is_failure
+        tm.that(mapping_result.is_failure, eq=True)
         missing_props_schema: dict[str, object] = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
-        assert mapping_result.is_failure or len(mapping_result.value) == 0
+        tm.that(
+            mapping_result.is_failure or len(mapping_result.value) == 0 == True, eq=True
+        )

@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import tm
+
 from flext_db_oracle import FlextDbOracleTypes
 
 
@@ -15,4 +17,4 @@ class TestFlextDbOracleTypes:
 
     def test_types_access(self) -> None:
         """Test types can be accessed."""
-        assert FlextDbOracleTypes is not None
+        tm.that(FlextDbOracleTypes is not None, eq=True)

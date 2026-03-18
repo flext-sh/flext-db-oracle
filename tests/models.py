@@ -1,10 +1,10 @@
 """Test models for flext-db-oracle tests.
 
-Provides TestsFlextDbOracleModels, extending FlextTestsModels with flext-db-oracle-specific
+Provides TestsFlextDbOracleModels, extending m with flext-db-oracle-specific
 models using COMPOSITION INHERITANCE.
 
 Inheritance hierarchy:
-- FlextTestsModels (flext_tests) - Provides .Tests.* namespace
+- m (flext_tests) - Provides .Tests.* namespace
 - FlextDbOracleModels (production) - Provides Oracle domain models
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -20,20 +20,20 @@ class TestsFlextDbOracleModels(FlextDbOracleModels):
     """Models for flext-db-oracle tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
-    1. FlextTestsModels - for test infrastructure (.Tests.*)
+    1. m - for test infrastructure (.Tests.*)
     2. FlextDbOracleModels - for domain models (ConnectionStatus, QueryResult, etc.)
 
     Access patterns:
-    - tm.Tests.* (generic test models from FlextTestsModels)
+    - tm.Tests.* (generic test models from m)
     - tm.ConnectionStatus (Oracle connection status model)
     - tm.QueryResult (Oracle query result model)
     - tm.Table, tm.Column, tm.Schema (Oracle metadata models)
     - m.* (production models via alternative alias)
 
     Rules:
-    - NEVER duplicate models from FlextTestsModels or FlextDbOracleModels
+    - NEVER duplicate models from m or FlextDbOracleModels
     - Only flext-db-oracle-specific test fixtures allowed
-    - All generic test models come from FlextTestsModels
+    - All generic test models come from m
     - All production models come from FlextDbOracleModels
     """
 

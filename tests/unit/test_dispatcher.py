@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import tm
+
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleServices,
@@ -23,18 +25,18 @@ class TestDispatcherSurgical:
         )
         services = FlextDbOracleServices(config=config)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        assert dispatcher is not None
+        tm.that(dispatcher is not None, eq=True)
 
     def test_dispatcher_has_command_classes(self) -> None:
         """Test dispatcher has command classes."""
-        assert hasattr(FlextDbOracleDispatcher, "ExecuteQueryCommand")
-        assert hasattr(FlextDbOracleDispatcher, "ConnectCommand")
-        assert hasattr(FlextDbOracleDispatcher, "ExecuteManyCommand")
+        tm.that(hasattr(FlextDbOracleDispatcher, "ExecuteQueryCommand"), eq=True)
+        tm.that(hasattr(FlextDbOracleDispatcher, "ConnectCommand"), eq=True)
+        tm.that(hasattr(FlextDbOracleDispatcher, "ExecuteManyCommand"), eq=True)
 
     def test_command_creation(self) -> None:
         """Test command objects can be created."""
         cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
             sql="SELECT 1 FROM DUAL", parameters=None
         )
-        assert cmd.sql == "SELECT 1 FROM DUAL"
-        assert cmd.parameters is None
+        tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
+        tm.that(cmd.parameters is None, eq=True)

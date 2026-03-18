@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -35,20 +36,23 @@ class TestRealOracleExceptionsCore:
             msg = "Connection with invalid credentials should fail"
             raise AssertionError(msg)
         error_msg = (result.error or "").lower()
-        assert any(
-            keyword in error_msg
-            for keyword in [
-                "invalid username/password",
-                "authentication",
-                "login denied",
-                "ora-01017",
-                "logon denied",
-                "connection refused",
-                "cannot connect",
-                "name or service not known",
-                "connection test failed",
-                "not connected to database",
-            ]
+        tm.that(
+            any(
+                keyword in error_msg
+                for keyword in [
+                    "invalid username/password",
+                    "authentication",
+                    "login denied",
+                    "ora-01017",
+                    "logon denied",
+                    "connection refused",
+                    "cannot connect",
+                    "name or service not known",
+                    "connection test failed",
+                    "not connected to database",
+                ]
+            ),
+            eq=True,
         )
 
     def test_real_connection_error_scenario(self) -> None:
@@ -66,19 +70,22 @@ class TestRealOracleExceptionsCore:
             msg = "Connection to unreachable host should fail"
             raise AssertionError(msg)
         error_msg = (result.error or "").lower()
-        assert any(
-            keyword in error_msg
-            for keyword in [
-                "connection",
-                "network",
-                "host",
-                "unreachable",
-                "resolve",
-                "timeout",
-                "name or service not known",
-                "errno -2",
-                "gaierror",
-            ]
+        tm.that(
+            any(
+                keyword in error_msg
+                for keyword in [
+                    "connection",
+                    "network",
+                    "host",
+                    "unreachable",
+                    "resolve",
+                    "timeout",
+                    "name or service not known",
+                    "errno -2",
+                    "gaierror",
+                ]
+            ),
+            eq=True,
         )
 
     def test_real_configuration_error_scenario(self) -> None:
@@ -98,7 +105,10 @@ class TestRealOracleExceptionsCore:
                 msg = "Connection with invalid config should fail"
                 raise AssertionError(msg)
             error_msg = result.error or ""
-            assert "service_name" in error_msg.lower() or "sid" in error_msg.lower()
+            tm.that(
+                "service_name" in error_msg.lower() or "sid" in error_msg.lower(),
+                eq=True,
+            )
         except (ValueError, TypeError, RuntimeError):
             pass
 
@@ -110,7 +120,7 @@ class TestRealOracleExceptionsCore:
             pytest.skip("Oracle real config unavailable")
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        assert connect_result.is_success
+        tm.that(connect_result.is_success, eq=True)
         try:
             invalid_queries = [
                 "SELECT FROM",
@@ -120,18 +130,21 @@ class TestRealOracleExceptionsCore:
             ]
             for invalid_sql in invalid_queries:
                 result = connection.execute_query(invalid_sql)
-                assert result.is_failure, f"Query should fail: {invalid_sql}"
+                tm.fail(result), f"Query should fail: {invalid_sql}"
                 error_msg = (result.error or "").lower()
-                assert any(
-                    keyword in error_msg
-                    for keyword in [
-                        "ora-",
-                        "syntax",
-                        "invalid",
-                        "not exist",
-                        "table",
-                        "missing",
-                    ]
+                tm.that(
+                    any(
+                        keyword in error_msg
+                        for keyword in [
+                            "ora-",
+                            "syntax",
+                            "invalid",
+                            "not exist",
+                            "table",
+                            "missing",
+                        ]
+                    ),
+                    eq=True,
                 )
         finally:
             connection.disconnect()
@@ -156,7 +169,7 @@ class TestRealOracleExceptionsCore:
         )
         connection = FlextDbOracleServices(config=timeout_config)
         connect_result = connection.connect()
-        assert connect_result.is_success
+        tm.that(connect_result.is_success, eq=True)
         try:
             long_query = (
                 "SELECT * FROM (SELECT LEVEL FROM DUAL CONNECT BY LEVEL <= 100000)"
@@ -164,15 +177,18 @@ class TestRealOracleExceptionsCore:
             result = connection.execute_query(long_query)
             if result.is_failure:
                 error_msg = (result.error or "").lower()
-                assert any(
-                    keyword in error_msg
-                    for keyword in [
-                        "timeout",
-                        "cancel",
-                        "interrupt",
-                        "resource",
-                        "limit",
-                    ]
+                tm.that(
+                    any(
+                        keyword in error_msg
+                        for keyword in [
+                            "timeout",
+                            "cancel",
+                            "interrupt",
+                            "resource",
+                            "limit",
+                        ]
+                    ),
+                    eq=True,
                 )
         finally:
             connection.disconnect()
@@ -191,13 +207,13 @@ class TestRealOracleExceptionsAdvanced:
         for invalid_schema in invalid_schemas:
             if invalid_schema:
                 result = connected_oracle_api.get_tables(schema=invalid_schema)
-                assert result.is_success or result.is_failure
+                tm.that(result.is_success or result.is_failure, eq=True)
         columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
         if columns_result.is_failure:
             msg = f"Get columns failed: {columns_result.error}"
             raise AssertionError(msg)
-        assert isinstance(columns_result.value, list)
-        assert len(columns_result.value) == 0
+        tm.that(isinstance(columns_result.value, list), eq=True)
+        tm.that(len(columns_result.value), eq=0)
 
     def test_real_processing_error_scenario(
         self, connected_oracle_api: FlextDbOracleApi | None
@@ -213,18 +229,21 @@ class TestRealOracleExceptionsAdvanced:
             ]
             for invalid_operation in problematic_operations:
                 result = connected_oracle_api.query(invalid_operation)
-                assert result.is_failure, f"Operation should fail: {invalid_operation}"
+                tm.fail(result), f"Operation should fail: {invalid_operation}"
                 error_msg = (result.error or "").lower()
-                assert any(
-                    keyword in error_msg
-                    for keyword in [
-                        "ora-",
-                        "invalid",
-                        "not exist",
-                        "table",
-                        "syntax",
-                        "error",
-                    ]
+                tm.that(
+                    any(
+                        keyword in error_msg
+                        for keyword in [
+                            "ora-",
+                            "invalid",
+                            "not exist",
+                            "table",
+                            "syntax",
+                            "error",
+                        ]
+                    ),
+                    eq=True,
                 )
         finally:
             pass
@@ -264,7 +283,7 @@ class TestRealOracleExceptionsAdvanced:
         for config_data in invalid_configs:
             try:
                 port_value = config_data.get("port", 1521)
-                assert isinstance(port_value, int)
+                tm.that(isinstance(port_value, int), eq=True)
                 host_value = str(config_data.get("host", ""))
                 user_value = str(config_data.get("user", ""))
                 password_value = str(config_data.get("password", ""))
@@ -285,33 +304,37 @@ class TestRealOracleExceptionHierarchy:
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
-        assert issubclass(FlextExceptions.Error, Exception)
-        assert issubclass(FlextExceptions.AuthenticationError, Exception)
-        assert issubclass(FlextExceptions.ConfigurationError, Exception)
-        assert issubclass(FlextExceptions.OracleConnectionError, Exception)
-        assert issubclass(FlextExceptions.OracleMetadataError, Exception)
-        assert issubclass(FlextExceptions.ProcessingError, Exception)
-        assert issubclass(FlextExceptions.OracleQueryError, Exception)
-        assert issubclass(FlextExceptions.OracleTimeoutError, Exception)
-        assert issubclass(FlextExceptions.ValidationError, Exception)
-        assert issubclass(FlextExceptions.OracleQueryError, FlextExceptions.BaseError)
-        assert issubclass(
-            FlextExceptions.OracleMetadataError, FlextExceptions.BaseError
+        tm.that(issubclass(FlextExceptions.Error, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.AuthenticationError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.ConfigurationError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.OracleConnectionError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.OracleMetadataError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.ProcessingError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.OracleQueryError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.OracleTimeoutError, Exception), eq=True)
+        tm.that(issubclass(FlextExceptions.ValidationError, Exception), eq=True)
+        tm.that(
+            issubclass(FlextExceptions.OracleQueryError, FlextExceptions.BaseError),
+            eq=True,
+        )
+        tm.that(
+            issubclass(FlextExceptions.OracleMetadataError, FlextExceptions.BaseError),
+            eq=True,
         )
 
     def test_real_exception_instantiation(self) -> None:
         """Test that Oracle exceptions can be instantiated with context."""
         query_error = FlextExceptions.OracleQueryError("Invalid SQL syntax")
-        assert "Invalid SQL syntax" in str(query_error)
+        tm.that("Invalid SQL syntax" in str(query_error), eq=True)
         metadata_error = FlextExceptions.OracleMetadataError("Schema not found")
-        assert "Schema not found" in str(metadata_error)
+        tm.that("Schema not found" in str(metadata_error), eq=True)
         base_error = FlextExceptions.Error("General Oracle error")
-        assert "General Oracle error" in str(base_error)
+        tm.that("General Oracle error" in str(base_error), eq=True)
 
     def test_real_exception_context_handling(self) -> None:
         """Test that Oracle exceptions handle context parameters properly."""
         query_error = FlextExceptions.OracleQueryError("Query too complex")
         error_str = str(query_error)
-        assert "Query too complex" in error_str
-        assert isinstance(error_str, str)
-        assert len(error_str) > 0
+        tm.that("Query too complex" in error_str, eq=True)
+        tm.that(isinstance(error_str, str), eq=True)
+        tm.that(len(error_str) > 0, eq=True)

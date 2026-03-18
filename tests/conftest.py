@@ -42,9 +42,7 @@ def _normalized_port_bindings(value: object) -> dict[str, str]:
         return {}
 
 
-def _resolve_oracle_test_port(
-    docker_control: FlextTestsDocker, container_name: str
-) -> int:
+def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
     env_port = os.getenv("TEST_ORACLE_PORT")
     if env_port is not None and env_port.isdigit():
         env_port_int = int(env_port)
@@ -60,7 +58,7 @@ def _resolve_oracle_test_port(
                 ):
                     return env_port_int
     fallback_port = 1522
-    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
+    container_config = tk.SHARED_CONTAINERS.get(container_name)
     if container_config is not None:
         configured_port = container_config.get("port")
         if isinstance(configured_port, int):
@@ -98,7 +96,7 @@ def pytest_configure(config: pytest.Config) -> None:
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     try:
-        docker = FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+        docker = tk(workspace_root=Path(__file__).resolve().parents[2])
         dirty_containers = docker.get_dirty_containers()
         if not dirty_containers:
             logger.debug("No dirty containers to clean")
@@ -146,9 +144,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             for err in oracle_service_errors
         )
         if is_service_failure:
-            docker = FlextTestsDocker(
-                workspace_root=Path(__file__).resolve().parents[2]
-            )
+            docker = tk(workspace_root=Path(__file__).resolve().parents[2])
             docker.mark_container_dirty("flext-oracle-db-test")
             logger.error(
                 f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}"
@@ -158,16 +154,16 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
 
 
 @pytest.fixture(scope="session")
-def docker_control() -> FlextTestsDocker:
-    """Provide FlextTestsDocker instance for container management."""
-    return FlextTestsDocker(workspace_root=Path(__file__).resolve().parents[2])
+def docker_control() -> tk:
+    """Provide tk instance for container management."""
+    return tk(workspace_root=Path(__file__).resolve().parents[2])
 
 
 @pytest.fixture(scope="session")
-def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
+def shared_oracle_container(docker_control: tk) -> str:
     """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
     container_name = "flext-oracle-db-test"
-    container_config = FlextTestsDocker.SHARED_CONTAINERS.get(container_name)
+    container_config = tk.SHARED_CONTAINERS.get(container_name)
     if container_config is None:
         pytest.skip(f"Container {container_name} not found in SHARED_CONTAINERS")
     compose_file_value = container_config.get("compose_file")
@@ -192,7 +188,7 @@ def shared_oracle_container(docker_control: FlextTestsDocker) -> str:
         status_value = status.value if status.is_success else None
         status_name = getattr(status_value, "status", None)
         container_running = status.is_success and (
-            status_name == FlextTestsDocker.ContainerStatus.RUNNING
+            status_name == tk.ContainerStatus.RUNNING
         )
         if not container_running:
             logger.info(
@@ -298,9 +294,9 @@ def connected_oracle_api(
 
 
 @pytest.fixture
-def flext_domains() -> FlextTestsDomains:
-    """Provide FlextTestsDomains instance for domain-based testing."""
-    return FlextTestsDomains()
+def flext_domains() -> td:
+    """Provide td instance for domain-based testing."""
+    return td()
 
 
 @pytest.fixture

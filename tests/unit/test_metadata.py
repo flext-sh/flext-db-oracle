@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import cast
 
+from flext_tests import tm
+
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServices,
@@ -40,58 +42,61 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_metadata_manager_initialization(self) -> None:
         """Test metadata manager initialization with real connection."""
-        assert self.manager is not None
-        assert self.manager == self.services
-        assert hasattr(self.manager, "config")
-        assert hasattr(self.manager, "connect")
+        tm.that(self.manager is not None, eq=True)
+        tm.that(self.manager, eq=self.services)
+        tm.that(hasattr(self.manager, "config"), eq=True)
+        tm.that(hasattr(self.manager, "connect"), eq=True)
 
     def test_get_schemas_structure(self) -> None:
         """Test get_schemas method structure and error handling."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert hasattr(result, "error")
-        assert not result.is_success
-        assert result.error is not None
-        assert (
-            "not connected" in result.error.lower()
-            or "connection" in result.error.lower()
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.that(hasattr(result, "error"), eq=True)
+        tm.fail(result)
+        tm.that(result.error is not None, eq=True)
+        tm.that(
+            (
+                "not connected" in result.error.lower()
+                or "connection" in result.error.lower()
+            ),
+            eq=True,
         )
 
     def test_get_tables_structure(self) -> None:
         """Test get_tables method structure and error handling."""
         result = self.manager.get_tables()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.fail(result_with_schema)
 
     def test_get_columns_structure(self) -> None:
         """Test get_columns method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.fail(result_with_schema)
 
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        assert not result_with_schema.is_success
+        tm.fail(result_with_schema)
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_COLUMN")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
 
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
@@ -107,17 +112,17 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             name="TEST_TABLE", owner="TEST_SCHEMA", columns=columns
         )
         result = self.manager.get_tables("TEST_SCHEMA")
-        assert hasattr(result, "is_success")
-        assert not result.is_success
-        assert result.error is not None
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
+        tm.that(result.error is not None, eq=True)
         error_lower = result.error.lower()
-        assert "connection" in error_lower or "connected" in error_lower
+        tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
         result = self.manager.get_schemas()
-        assert hasattr(result, "is_success")
-        assert not result.is_success
+        tm.that(hasattr(result, "is_success"), eq=True)
+        tm.fail(result)
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
@@ -129,18 +134,18 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         for method_name, args in methods_to_test:
             method = getattr(self.manager, method_name)
             result = method(*args)
-            assert hasattr(result, "is_success")
-            assert hasattr(result, "error")
+            tm.that(hasattr(result, "is_success"), eq=True)
+            tm.that(hasattr(result, "error"), eq=True)
             if method_name != "generate_ddl":
-                assert not result.is_success
-                assert result.error is not None
-                assert len(result.error) > 0
+                tm.fail(result)
+                tm.that(result.error is not None, eq=True)
+                tm.that(len(result.error) > 0, eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
-        assert self.manager is self.services
-        assert hasattr(self.manager, "get_connection_status")
-        assert self.manager is not None
+        tm.that(self.manager is self.services, eq=True)
+        tm.that(hasattr(self.manager, "get_connection_status"), eq=True)
+        tm.that(self.manager is not None, eq=True)
         existing_methods = [
             "get_schemas",
             "get_tables",
@@ -148,8 +153,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             "test_connection",
         ]
         for method_name in existing_methods:
-            assert hasattr(self.manager, method_name)
-            assert callable(getattr(self.manager, method_name))
+            tm.that(hasattr(self.manager, method_name), eq=True)
+            tm.that(callable(getattr(self.manager, method_name)), eq=True)
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
@@ -170,21 +175,21 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         table = FlextDbOracleModels.DbOracle.Table(
             name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
         )
-        assert len(columns) == 4
-        assert table.name == "COMPLEX_TABLE"
-        assert table.owner == "APP_SCHEMA"
-        assert len(table.columns) == 4
+        tm.that(len(columns), eq=4)
+        tm.that(table.name, eq="COMPLEX_TABLE")
+        tm.that(table.owner, eq="APP_SCHEMA")
+        tm.that(len(table.columns), eq=4)
         result = self.manager.get_tables("APP_SCHEMA")
-        assert not result.is_success
-        assert result.error is not None
+        tm.fail(result)
+        tm.that(result.error is not None, eq=True)
         error_lower = result.error.lower()
-        assert "connection" in error_lower or "connected" in error_lower
+        tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 
     def test_validation_logic_comprehensive(self) -> None:
         """Test validation logic in metadata operations."""
         result_empty_table = self.manager.get_tables("")
-        assert not result_empty_table.is_success
+        tm.fail(result_empty_table)
         result_empty_schema = self.manager.get_tables("")
-        assert not result_empty_schema.is_success
+        tm.fail(result_empty_schema)
         result_none_table = self.manager.get_tables(None)
-        assert not result_none_table.is_success
+        tm.fail(result_none_table)

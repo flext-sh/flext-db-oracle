@@ -1,10 +1,10 @@
 """Constants for flext-db-oracle tests.
 
-Provides TestsFlextDbOracleConstants, extending FlextTestsConstants with flext-db-oracle-specific
+Provides TestsFlextDbOracleConstants, extending c with flext-db-oracle-specific
 constants using COMPOSITION INHERITANCE.
 
 Inheritance hierarchy:
-- FlextTestsConstants (flext_tests) - Provides .Tests.* namespace
+- c (flext_tests) - Provides .Tests.* namespace
 - FlextDbOracleConstants (production) - Provides .Oracle.* namespace
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -20,11 +20,11 @@ from flext_tests import c
 from flext_db_oracle.constants import FlextDbOracleConstants
 
 
-class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
+class TestsFlextDbOracleConstants(c, FlextDbOracleConstants):
     """Constants for flext-db-oracle tests using COMPOSITION INHERITANCE.
 
     MANDATORY: Inherits from BOTH:
-    1. FlextTestsConstants - for test infrastructure (.Tests.*)
+    1. c - for test infrastructure (.Tests.*)
     2. FlextDbOracleConstants - for domain constants (.Oracle.*)
 
     Access patterns:
@@ -35,9 +35,9 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
     - c.TestConnection.* (project-specific test data)
 
     Rules:
-    - NEVER duplicate constants from FlextTestsConstants or FlextDbOracleConstants
+    - NEVER duplicate constants from c or FlextDbOracleConstants
     - Only flext-db-oracle-specific test constants allowed
-    - All generic constants come from FlextTestsConstants
+    - All generic constants come from c
     - All production constants come from FlextDbOracleConstants
     """
 

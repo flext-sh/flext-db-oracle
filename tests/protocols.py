@@ -1,6 +1,6 @@
 """Test protocol definitions for flext-db-oracle.
 
-Provides TestsFlextDbOracleProtocols, combining FlextTestsProtocols with
+Provides TestsFlextDbOracleProtocols, combining p with
 FlextDbOracleProtocols for test-specific protocol definitions.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -14,19 +14,19 @@ from flext_tests import p
 from flext_db_oracle.protocols import FlextDbOracleProtocols
 
 
-class TestsFlextDbOracleProtocols(FlextTestsProtocols, FlextDbOracleProtocols):
-    """Test protocols combining FlextTestsProtocols and FlextDbOracleProtocols.
+class TestsFlextDbOracleProtocols(p, FlextDbOracleProtocols):
+    """Test protocols combining p and FlextDbOracleProtocols.
 
     Provides access to:
-    - p.Tests.Docker.* (from FlextTestsProtocols)
-    - p.Tests.Factory.* (from FlextTestsProtocols)
+    - p.Tests.Docker.* (from p)
+    - p.Tests.Factory.* (from p)
     - p.DbOracle.* (from FlextDbOracleProtocols)
     """
 
-    class Tests(FlextTestsProtocols.Tests):
+    class Tests(p.Tests):
         """Project-specific test protocols.
 
-        Extends FlextTestsProtocols.Tests with DbOracle-specific protocols.
+        Extends p.Tests with DbOracle-specific protocols.
         """
 
         class DbOracle:

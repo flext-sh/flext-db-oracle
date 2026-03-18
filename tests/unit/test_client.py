@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_tests import tm
+
 from flext_db_oracle import FlextDbOracleClient, FlextDbOracleSettings
 
 
@@ -18,20 +20,20 @@ class TestFlextDbOracleClientRealFunctionality:
             host="test-host", username="test-user", password="test-password"
         )
         client = FlextDbOracleClient()
-        assert client is not None
-        assert hasattr(client, "logger")
+        tm.that(client is not None, eq=True)
+        tm.that(hasattr(client, "logger"), eq=True)
 
     def test_client_creation_default_config(self) -> None:
         """Test client can be created with default config."""
         client = FlextDbOracleClient()
-        assert client is not None
-        assert hasattr(client, "debug")
-        assert hasattr(client, "current_connection")
+        tm.that(client is not None, eq=True)
+        tm.that(hasattr(client, "debug"), eq=True)
+        tm.that(hasattr(client, "current_connection"), eq=True)
 
     def test_client_has_required_attributes(self) -> None:
         """Test client has required attributes."""
         client = FlextDbOracleClient()
-        assert hasattr(client, "debug")
-        assert hasattr(client, "current_connection")
-        assert hasattr(client, "user_preferences")
-        assert hasattr(client, "logger")
+        tm.that(hasattr(client, "debug"), eq=True)
+        tm.that(hasattr(client, "current_connection"), eq=True)
+        tm.that(hasattr(client, "user_preferences"), eq=True)
+        tm.that(hasattr(client, "logger"), eq=True)
