@@ -122,7 +122,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
                 logger.info(f"Recreated dirty containers: {cleaned}")
             else:
                 logger.debug("No dirty containers to clean")
-    except Exception as e:
+    except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
         logger.warning(f"Docker cleanup skipped (unavailable): {e}")
 
 
@@ -151,7 +151,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             logger.error(
                 f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}"
             )
-    except Exception:
+    except (ConnectionError, TimeoutError, OSError, RuntimeError):
         pass
 
 
@@ -223,7 +223,7 @@ def shared_oracle_container(docker_control: tk) -> str:
             connection.close()
             logger.info(f"Container {container_name} is ready after {waited:.1f}s")
             break
-        except Exception as e:
+        except (oracledb.Error, ConnectionError, TimeoutError, OSError) as e:
             if waited % 30 == 0:
                 logger.debug(
                     f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
@@ -344,9 +344,9 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
                 try:
                     plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
                     connected_oracle_api.execute_statement(plsql_query)
-                except Exception:
+                except (oracledb.Error, ConnectionError, OSError):
                     pass
-        except Exception:
+        except (oracledb.Error, ConnectionError, OSError):
             pass
     yield
     if connected_oracle_api is not None:
@@ -360,9 +360,9 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
                 try:
                     plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL; -- Ignore errors\n                    END;\n                    "
                     connected_oracle_api.execute_statement(plsql_query)
-                except Exception:
+                except (oracledb.Error, ConnectionError, OSError):
                     pass
-        except Exception:
+        except (oracledb.Error, ConnectionError, OSError):
             pass
 
 
@@ -382,13 +382,13 @@ def test_database_setup(
     for ddl in cleanup_ddl:
         try:
             connected_oracle_api.execute_statement(ddl)
-        except Exception:
+        except (oracledb.Error, ConnectionError, OSError):
             pass
     for ddl in test_schema.values():
         try:
             result = connected_oracle_api.execute_statement(ddl)
             if result.is_failure:
                 pytest.skip(f"Could not create test schema: {result.error}")
-        except Exception as e:
+        except (oracledb.Error, ConnectionError, OSError) as e:
             pytest.skip(f"Test setup failed: {e}")
     yield test_schema

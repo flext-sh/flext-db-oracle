@@ -83,7 +83,7 @@ def _wait_for_oracle_ready(port: int, max_wait_seconds: int = 300) -> bool:
             )
             connection.close()
             return True
-        except Exception:
+        except (oracledb.Error, ConnectionError, TimeoutError, OSError):
             time.sleep(5)
             waited_seconds += 5
     return False
@@ -130,7 +130,7 @@ def _is_oracle_container_running() -> bool:
     try:
         docker_control = tk(workspace_root=_workspace_root())
         status_result = docker_control.get_container_status("flext-oracle-db-test")
-    except Exception:
+    except (ConnectionError, TimeoutError, OSError, RuntimeError):
         return False
     return status_result.is_success and (
         getattr(status_result.value, "status", None) == tk.ContainerStatus.RUNNING
@@ -175,7 +175,7 @@ def docker_control() -> tk | None:
     """Provide Docker control if available."""
     try:
         return tk(workspace_root=_workspace_root())
-    except Exception:
+    except (ConnectionError, OSError, RuntimeError):
         return None
 
 
@@ -259,9 +259,9 @@ def test_cleanup(
                 try:
                     plsql_query = f"\n                    BEGIN\n                        EXECUTE IMMEDIATE '{query}';\n                    EXCEPTION\n                        WHEN OTHERS THEN\n                            NULL;\n                    END;\n                    "
                     connected_oracle_api.execute_sql(plsql_query)
-                except Exception:
+                except (oracledb.Error, ConnectionError, OSError):
                     pass
-        except Exception:
+        except (oracledb.Error, ConnectionError, OSError):
             pass
 
 
