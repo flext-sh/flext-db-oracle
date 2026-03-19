@@ -261,7 +261,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: list[str] | None = None,
-        conditions: t.ConfigMap | object | None = None,
+        conditions: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
         schema_name: str | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
@@ -559,7 +559,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def generate_query_hash(
         self,
         sql: str = "",
-        params: t.ConfigMap | object | None = None,
+        params: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
         typed_params = (
@@ -898,7 +898,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         _name: str,
         _value: float,
-        _tags: t.ConfigMap | object | None = None,
+        _tags: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
     ) -> r[bool]:
         """Record metric through flext-observability when available."""
         if not _name:
@@ -992,7 +992,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: t.ConfigMap | object | None = None,
+        metadata: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
     ) -> r[bool]:
         """Track database operation for monitoring."""
 

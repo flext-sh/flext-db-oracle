@@ -265,7 +265,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def execute_statement(
         self,
-        sql: str | object,
+        sql: str | t.ContainerValue,
         parameters: Mapping[str, t.ContainerValue] | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""

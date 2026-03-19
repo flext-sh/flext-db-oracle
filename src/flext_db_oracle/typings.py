@@ -83,7 +83,10 @@ class FlextDbOracleTypes(FlextTypes):
             str,
             str | int | bool | dict[str, _core_t.ContainerValue],
         ]
-        type SessionState = dict[str, object | dict[str, _core_t.ContainerValue]]
+        type SessionState = dict[
+            str,
+            _core_t.ContainerValue | dict[str, _core_t.ContainerValue],
+        ]
         type SessionVariables = dict[str, _core_t.ContainerValue]
         type SessionMetrics = dict[str, int | float | str]
         type SessionPooling = dict[
@@ -132,7 +135,7 @@ class FlextDbOracleTypes(FlextTypes):
         type TypeMapping = _ConfigMap
         type DataConversion = dict[str, _core_t.ContainerValue]
         type TypeValidation = dict[str, bool | str | list[str]]
-        type NullHandling = dict[str, bool | object]
+        type NullHandling = dict[str, bool | _core_t.ContainerValue]
 
         type ProjectType = c.ProjectType
         type OracleProjectConfig = dict[str, _core_t.ContainerValue]

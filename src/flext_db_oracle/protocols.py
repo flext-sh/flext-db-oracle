@@ -172,7 +172,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 params: Query parameters
 
                 Returns:
-                r[object | None]: Single result or None
+                r[t.Dict | None]: Single result or None
 
                 """
                 ...
