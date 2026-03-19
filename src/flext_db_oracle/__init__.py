@@ -15,6 +15,10 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
+    from flext_core.decorators import d
+    from flext_core.handlers import h
+    from flext_core.mixins import x
+    from flext_core.result import r
     from flext_core.typings import FlextTypes
 
     from flext_db_oracle.__version__ import (
@@ -89,12 +93,16 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__version__": ("flext_db_oracle.__version__", "__version__"),
     "__version_info__": ("flext_db_oracle.__version__", "__version_info__"),
     "c": ("flext_db_oracle.constants", "c"),
+    "d": ("flext_core.decorators", "d"),
     "e": ("flext_db_oracle.exceptions", "e"),
+    "h": ("flext_core.handlers", "h"),
     "m": ("flext_db_oracle.models", "m"),
     "p": ("flext_db_oracle.protocols", "p"),
+    "r": ("flext_core.result", "r"),
     "s": ("flext_db_oracle.services", "s"),
     "t": ("flext_db_oracle.typings", "t"),
     "u": ("flext_db_oracle.utilities", "u"),
+    "x": ("flext_core.mixins", "x"),
 }
 
 __all__ = [
@@ -128,12 +136,16 @@ __all__ = [
     "__version__",
     "__version_info__",
     "c",
+    "d",
     "e",
+    "h",
     "m",
     "p",
+    "r",
     "s",
     "t",
     "u",
+    "x",
 ]
 
 

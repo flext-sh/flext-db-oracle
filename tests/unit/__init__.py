@@ -51,28 +51,19 @@ if TYPE_CHECKING:
         TestYamlModule,
     )
     from .test_client import TestFlextDbOracleClientRealFunctionality
-    from .test_constants import (
-        TestFlextDbOracleConstants,
-        TestFlextDbOracleConstants as c,
-    )
+    from .test_constants import TestFlextDbOracleConstants
     from .test_coverage_baseline import (
         TestBasicModelCreation,
         TestConstants,
         TestExceptions,
-        TestExceptions as e,
         TestFlextDbOracleServices,
         TestModuleImports,
         TestUtilities,
-        TestUtilities as u,
     )
     from .test_dispatcher import TestDispatcherSurgical
     from .test_exceptions import TestFlextDbOracleExceptions
     from .test_fields import TestFlextDbOracleFields
-    from .test_models import (
-        TestFlextDbOracleModels,
-        TestFlextDbOracleModels as m,
-        TestFlextDbOracleSettings,
-    )
+    from .test_models import TestFlextDbOracleModels, TestFlextDbOracleSettings
     from .test_oracle_example import (
         TestRealOracleApi,
         TestRealOracleConnection,
@@ -84,10 +75,7 @@ if TYPE_CHECKING:
         TestRealOracleExceptionsAdvanced,
         TestRealOracleExceptionsCore,
     )
-    from .test_protocols import (
-        TestFlextDbOracleProtocols,
-        TestFlextDbOracleProtocols as p,
-    )
+    from .test_protocols import TestFlextDbOracleProtocols
     from .test_services import (
         TestDirectCoverageBoostAPI,
         TestDirectCoverageBoostConfig,
@@ -95,7 +83,6 @@ if TYPE_CHECKING:
         TestDirectCoverageBoostObservability,
         TestDirectCoverageBoostServices,
         TestDirectCoverageBoostTypes,
-        TestDirectCoverageBoostTypes as t,
         TestFlextDbOracleConnectionSimple,
         TestFlextDbOracleMetadataManagerComprehensive,
         TestFlextDbOracleServicesBasic,
@@ -239,28 +226,22 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "TestUtilities": ("tests.unit.test_coverage_baseline", "TestUtilities"),
     "TestYamlModule": ("tests.unit.test_cli", "TestYamlModule"),
-    "c": ("tests.unit.test_constants", "TestFlextDbOracleConstants"),
     "connected_oracle_api": ("tests.unit.conftest", "connected_oracle_api"),
     "docker_control": ("tests.unit.conftest", "docker_control"),
-    "e": ("tests.unit.test_coverage_baseline", "TestExceptions"),
     "ensure_shared_docker_container": (
         "tests.unit.conftest",
         "ensure_shared_docker_container",
     ),
     "logger": ("tests.unit.conftest", "logger"),
-    "m": ("tests.unit.test_models", "TestFlextDbOracleModels"),
     "mock_oracle_config": ("tests.unit.conftest", "mock_oracle_config"),
     "oracle_api": ("tests.unit.conftest", "oracle_api"),
     "oracle_available": ("tests.unit.conftest", "oracle_available"),
     "oracle_config": ("tests.unit.conftest", "oracle_config"),
     "oracle_container": ("tests.unit.conftest", "oracle_container"),
-    "p": ("tests.unit.test_protocols", "TestFlextDbOracleProtocols"),
     "real_oracle_config": ("tests.unit.conftest", "real_oracle_config"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
     "shared_oracle_container": ("tests.unit.conftest", "shared_oracle_container"),
-    "t": ("tests.unit.test_services", "TestDirectCoverageBoostTypes"),
     "test_cleanup": ("tests.unit.conftest", "test_cleanup"),
-    "u": ("tests.unit.test_coverage_baseline", "TestUtilities"),
 }
 
 __all__ = [
@@ -310,25 +291,19 @@ __all__ = [
     "TestServiceErrorHandling",
     "TestUtilities",
     "TestYamlModule",
-    "c",
     "connected_oracle_api",
     "docker_control",
-    "e",
     "ensure_shared_docker_container",
     "logger",
-    "m",
     "mock_oracle_config",
     "oracle_api",
     "oracle_available",
     "oracle_config",
     "oracle_container",
-    "p",
     "real_oracle_config",
     "safe_get_first_value",
     "shared_oracle_container",
-    "t",
     "test_cleanup",
-    "u",
 ]
 
 

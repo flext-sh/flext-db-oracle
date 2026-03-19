@@ -12,6 +12,13 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
+    from flext_db_oracle.decorators import d
+    from flext_db_oracle.exceptions import e
+    from flext_db_oracle.handlers import h
+    from flext_db_oracle.mixins import x
+    from flext_db_oracle.result import r
+    from flext_db_oracle.service import s
+
     from . import e2e as e2e, integration as integration, unit as unit
     from .conftest import (
         OperationTestError,
@@ -62,7 +69,6 @@ if TYPE_CHECKING:
         TestBasicModelCreation,
         TestConstants,
         TestExceptions,
-        TestExceptions as e,
         TestFlextDbOracleServices,
         TestModuleImports,
         TestUtilities,
@@ -244,14 +250,16 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsFlextDbOracleUtilities": ("tests.utilities", "TestsFlextDbOracleUtilities"),
     "c": ("tests.constants", "c"),
     "connected_oracle_api": ("tests.conftest", "connected_oracle_api"),
+    "d": ("flext_db_oracle.decorators", "d"),
     "docker_control": ("tests.conftest", "docker_control"),
-    "e": ("tests.unit.test_coverage_baseline", "TestExceptions"),
+    "e": ("flext_db_oracle.exceptions", "e"),
     "e2e": ("tests.e2e", ""),
     "ensure_shared_docker_container": (
         "tests.conftest",
         "ensure_shared_docker_container",
     ),
     "flext_domains": ("tests.conftest", "flext_domains"),
+    "h": ("flext_db_oracle.handlers", "h"),
     "integration": ("tests.integration", ""),
     "logger": ("tests.conftest", "logger"),
     "m": ("tests.models", "m"),
@@ -264,7 +272,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "pytest_configure": ("tests.conftest", "pytest_configure"),
     "pytest_runtest_makereport": ("tests.conftest", "pytest_runtest_makereport"),
     "pytest_sessionstart": ("tests.conftest", "pytest_sessionstart"),
+    "r": ("flext_db_oracle.result", "r"),
     "real_oracle_config": ("tests.conftest", "real_oracle_config"),
+    "s": ("flext_db_oracle.service", "s"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
     "shared_oracle_container": ("tests.conftest", "shared_oracle_container"),
     "t": ("tests.typings", "t"),
@@ -273,6 +283,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "tm": ("tests.models", "tm"),
     "u": ("tests.utilities", "u"),
     "unit": ("tests.unit", ""),
+    "x": ("flext_db_oracle.mixins", "x"),
 }
 
 __all__ = [
@@ -332,11 +343,13 @@ __all__ = [
     "TestsFlextDbOracleUtilities",
     "c",
     "connected_oracle_api",
+    "d",
     "docker_control",
     "e",
     "e2e",
     "ensure_shared_docker_container",
     "flext_domains",
+    "h",
     "integration",
     "logger",
     "m",
@@ -349,7 +362,9 @@ __all__ = [
     "pytest_configure",
     "pytest_runtest_makereport",
     "pytest_sessionstart",
+    "r",
     "real_oracle_config",
+    "s",
     "safe_get_first_value",
     "shared_oracle_container",
     "t",
@@ -358,6 +373,7 @@ __all__ = [
     "tm",
     "u",
     "unit",
+    "x",
 ]
 
 
