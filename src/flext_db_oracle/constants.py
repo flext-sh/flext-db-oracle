@@ -131,7 +131,6 @@ class FlextDbOracleConstants(FlextConstants):
         class OraclePerformance:
             """Oracle-specific performance tuning constants."""
 
-            DEFAULT_COMMIT_SIZE: Final[int] = FlextConstants.DEFAULT_BATCH_SIZE
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
             DEFAULT_BATCH_SIZE: Final[int] = (
                 core_c.Performance.BatchProcessing.DEFAULT_SIZE
@@ -173,7 +172,6 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_BATCH_SIZE: Final[int] = (
                 core_c.Performance.BatchProcessing.DEFAULT_SIZE
             )
-            DEFAULT_COMMIT_SIZE: Final[int] = FlextConstants.DEFAULT_BATCH_SIZE
 
         class OracleEnums:
             """Oracle-specific enumerations."""
