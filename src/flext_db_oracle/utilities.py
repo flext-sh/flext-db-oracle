@@ -9,10 +9,10 @@ from enum import StrEnum
 from importlib import import_module
 from typing import Annotated
 
-from flext_core import FlextUtilities, r, t
+from flext_core import FlextUtilities, r
 from pydantic import BeforeValidator, RootModel, TypeAdapter, ValidationError
 
-from flext_db_oracle import c
+from flext_db_oracle import c, t
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 

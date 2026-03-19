@@ -15,11 +15,11 @@ from types import ModuleType
 from typing import override
 
 import oracledb
-from flext_core import FlextService, FlextSettings, p, r, u
+from flext_core import FlextService, FlextSettings, r
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, p, t, u
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 

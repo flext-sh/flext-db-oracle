@@ -18,10 +18,10 @@ from datetime import UTC, datetime
 from typing import Self, override
 
 import oracledb
-from flext_core import FlextService, r, u
+from flext_core import FlextService, r
 from pydantic import BaseModel
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, t, u
 from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.services import FlextDbOracleServices

@@ -19,9 +19,10 @@ from typing import Annotated, Protocol, override
 import oracledb
 import yaml
 from flext_cli import FlextCliCommands
-from flext_core import FlextService, r, t
+from flext_core import FlextService, r
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
+from flext_db_oracle import t
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
