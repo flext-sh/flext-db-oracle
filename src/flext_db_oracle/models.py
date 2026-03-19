@@ -23,8 +23,7 @@ from pydantic import (
     model_validator,
 )
 
-from flext_db_oracle.constants import c
-from flext_db_oracle.typings import t
+from flext_db_oracle import c, t
 
 
 def _default_parameters_list() -> list[Mapping[str, t.ContainerValue]]:

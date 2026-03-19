@@ -45,12 +45,12 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_SID: Final[str] = "XE"
             DEFAULT_USERNAME: Final[str] = "system"
-            DEFAULT_TIMEOUT: Final[int] = 30
+            DEFAULT_TIMEOUT: Final[int] = core_c.Network.DEFAULT_TIMEOUT
             DEFAULT_POOL_INCREMENT: Final[int] = 1
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
             DEFAULT_POOL_TIMEOUT: Final[int] = 60
-            DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
+            DEFAULT_CONNECTION_TIMEOUT: Final[int] = core_c.Network.DEFAULT_TIMEOUT
 
         class Error:
             """Oracle error handling constants."""
@@ -275,7 +275,7 @@ class FlextDbOracleConstants(FlextConstants):
         class OracleDefaults:
             """Oracle-specific default configuration values."""
 
-            DEFAULT_HOST: Final[str] = "localhost"
+            DEFAULT_HOST: Final[str] = core_c.Network.LOCALHOST
             DEFAULT_PORT: Final[int] = 1521
             DEFAULT_USERNAME: Final[str] = "system"
             DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"

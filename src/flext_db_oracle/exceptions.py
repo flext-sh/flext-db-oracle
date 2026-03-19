@@ -14,7 +14,7 @@ from collections.abc import Mapping
 
 from flext_core import FlextExceptions
 
-from flext_db_oracle.typings import t
+from flext_db_oracle import t
 
 
 class FlextDbOracleExceptions(FlextExceptions):

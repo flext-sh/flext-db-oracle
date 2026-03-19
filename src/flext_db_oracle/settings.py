@@ -23,7 +23,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from flext_db_oracle.constants import c
+from flext_db_oracle import c
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError

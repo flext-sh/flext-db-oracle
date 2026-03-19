@@ -12,7 +12,7 @@ from typing import Annotated
 from flext_core import FlextUtilities, r, t
 from pydantic import BeforeValidator, RootModel, TypeAdapter, ValidationError
 
-from flext_db_oracle.constants import c
+from flext_db_oracle import c
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 

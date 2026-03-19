@@ -11,8 +11,7 @@ from typing import Protocol, runtime_checkable
 
 from flext_core import FlextProtocols, r
 
-from flext_db_oracle.models import m
-from flext_db_oracle.typings import t
+from flext_db_oracle import m, t
 
 
 class FlextDbOracleProtocols(FlextProtocols):

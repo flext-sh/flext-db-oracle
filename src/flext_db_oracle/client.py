@@ -19,10 +19,9 @@ from flext_core import FlextService, FlextSettings, p, r, u
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
+from flext_db_oracle import c, t
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.constants import c
 from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import t
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
