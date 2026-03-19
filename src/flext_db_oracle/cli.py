@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
+from flext_db_oracle import c
 
 import sys
 import time
@@ -24,7 +25,6 @@ from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
 from flext_db_oracle import t
 from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
 from flext_db_oracle.typings import CliScalar
 
@@ -116,10 +116,10 @@ class FlextDbOracleCli(FlextService[str]):
 
         @staticmethod
         def create_config_from_params(
-            host: str = FlextDbOracleConstants.DbOracle.OracleDefaults.DEFAULT_HOST,
-            port: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
-            service_name: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-            username: str = FlextDbOracleConstants.DbOracle.OracleDefaults.DEFAULT_USERNAME,
+            host: str = c.DbOracle.OracleDefaults.DEFAULT_HOST,
+            port: int = c.DbOracle.Connection.DEFAULT_PORT,
+            service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+            username: str = c.DbOracle.OracleDefaults.DEFAULT_USERNAME,
             password: str | None = None,
         ) -> r[FlextDbOracleSettings]:
             """Create Oracle configuration from parameters.
@@ -293,12 +293,12 @@ class FlextDbOracleCli(FlextService[str]):
 
     def execute_health_check(
         self,
-        host: str = FlextDbOracleConstants.DbOracle.OracleDefaults.DEFAULT_HOST,
-        port: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
+        host: str = c.DbOracle.OracleDefaults.DEFAULT_HOST,
+        port: int = c.DbOracle.Connection.DEFAULT_PORT,
+        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
-        timeout: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_TIMEOUT,
+        timeout: int = c.DbOracle.Connection.DEFAULT_TIMEOUT,
     ) -> r[HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
@@ -359,9 +359,9 @@ class FlextDbOracleCli(FlextService[str]):
     def execute_list_schemas(
         self,
         host: str = "localhost",
-        port: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.Connection.DEFAULT_PORT,
+        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> r[str]:
@@ -419,9 +419,9 @@ class FlextDbOracleCli(FlextService[str]):
         self,
         schema: str = "SYSTEM",
         host: str = "localhost",
-        port: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.Connection.DEFAULT_PORT,
+        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> r[str]:
@@ -479,9 +479,9 @@ class FlextDbOracleCli(FlextService[str]):
         self,
         sql: str,
         host: str = "localhost",
-        port: int = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT,
-        service_name: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        username: str = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_USERNAME,
+        port: int = c.DbOracle.Connection.DEFAULT_PORT,
+        service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
     ) -> r[str]:
