@@ -36,7 +36,11 @@ if TYPE_CHECKING:
         NamedItem,
         OutputPayload,
     )
-    from flext_db_oracle.client import FlextDbOracleClient
+    from flext_db_oracle.client import (
+        FlextDbOracleClient,
+        OracleDatabaseError,
+        OracleInterfaceError,
+    )
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
@@ -45,9 +49,7 @@ if TYPE_CHECKING:
     from flext_db_oracle.services import FlextDbOracleServices, s
     from flext_db_oracle.settings import (
         FlextDbOracleSettings,
-        OracleDatabaseError,
         OracleIdentifier,
-        OracleInterfaceError,
         OraclePassword,
     )
     from flext_db_oracle.typings import CliScalar, FlextDbOracleTypes, t
@@ -75,9 +77,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleUtilities": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
     "HealthCheckReport": ("flext_db_oracle.cli", "HealthCheckReport"),
     "NamedItem": ("flext_db_oracle.cli", "NamedItem"),
-    "OracleDatabaseError": ("flext_db_oracle.settings", "OracleDatabaseError"),
+    "OracleDatabaseError": ("flext_db_oracle.client", "OracleDatabaseError"),
     "OracleIdentifier": ("flext_db_oracle.settings", "OracleIdentifier"),
-    "OracleInterfaceError": ("flext_db_oracle.settings", "OracleInterfaceError"),
+    "OracleInterfaceError": ("flext_db_oracle.client", "OracleInterfaceError"),
     "OraclePassword": ("flext_db_oracle.settings", "OraclePassword"),
     "OutputPayload": ("flext_db_oracle.cli", "OutputPayload"),
     "__all__": ("flext_db_oracle.__version__", "__all__"),
