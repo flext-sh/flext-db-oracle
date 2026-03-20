@@ -43,7 +43,7 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_PORT: Final[int] = 1521
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_USERNAME: Final[str] = "system"
-            DEFAULT_TIMEOUT: Final[int] = core_c.Network.DEFAULT_TIMEOUT
+            DEFAULT_TIMEOUT: Final[int] = core_c.DEFAULT_TIMEOUT_SECONDS
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
 
