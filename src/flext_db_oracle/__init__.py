@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
-    from flext_core import d, h, r, x
+    from flext_core import d, h, r, s, x
     from flext_core.typings import FlextTypes
 
     from flext_db_oracle.__version__ import (
@@ -41,19 +41,35 @@ if TYPE_CHECKING:
         OracleDatabaseError,
         OracleInterfaceError,
     )
-    from flext_db_oracle.constants import FlextDbOracleConstants, c
+    from flext_db_oracle.constants import (
+        FlextDbOracleConstants,
+        FlextDbOracleConstants as c,
+    )
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-    from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
-    from flext_db_oracle.models import FlextDbOracleModels, m
-    from flext_db_oracle.protocols import FlextDbOracleProtocols, p
-    from flext_db_oracle.services import FlextDbOracleServices, s
+    from flext_db_oracle.exceptions import (
+        FlextDbOracleExceptions,
+        FlextDbOracleExceptions as e,
+    )
+    from flext_db_oracle.models import FlextDbOracleModels, FlextDbOracleModels as m
+    from flext_db_oracle.protocols import (
+        FlextDbOracleProtocols,
+        FlextDbOracleProtocols as p,
+    )
+    from flext_db_oracle.services import FlextDbOracleServices
     from flext_db_oracle.settings import (
         FlextDbOracleSettings,
         OracleIdentifier,
         OraclePassword,
     )
-    from flext_db_oracle.typings import CliScalar, FlextDbOracleTypes, t
-    from flext_db_oracle.utilities import FlextDbOracleUtilities, u
+    from flext_db_oracle.typings import (
+        CliScalar,
+        FlextDbOracleTypes,
+        FlextDbOracleTypes as t,
+    )
+    from flext_db_oracle.utilities import (
+        FlextDbOracleUtilities,
+        FlextDbOracleUtilities as u,
+    )
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CliScalar": ("flext_db_oracle.typings", "CliScalar"),
@@ -91,16 +107,16 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "__url__": ("flext_db_oracle.__version__", "__url__"),
     "__version__": ("flext_db_oracle.__version__", "__version__"),
     "__version_info__": ("flext_db_oracle.__version__", "__version_info__"),
-    "c": ("flext_db_oracle.constants", "c"),
+    "c": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
     "d": ("flext_core", "d"),
-    "e": ("flext_db_oracle.exceptions", "e"),
+    "e": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
     "h": ("flext_core", "h"),
-    "m": ("flext_db_oracle.models", "m"),
-    "p": ("flext_db_oracle.protocols", "p"),
+    "m": ("flext_db_oracle.models", "FlextDbOracleModels"),
+    "p": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "r": ("flext_core", "r"),
-    "s": ("flext_db_oracle.services", "s"),
-    "t": ("flext_db_oracle.typings", "t"),
-    "u": ("flext_db_oracle.utilities", "u"),
+    "s": ("flext_core", "s"),
+    "t": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
+    "u": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
     "x": ("flext_core", "x"),
 }
 
