@@ -12,7 +12,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
 
-    from flext_db_oracle import c, d, e, h, m, p, r, s, t, u, x
+    from flext_db_oracle import d, e, h, r, s, x
 
     from . import e2e as e2e, integration as integration, unit as unit
     from .conftest import (
@@ -35,12 +35,12 @@ if TYPE_CHECKING:
         test_cleanup,
         test_database_setup,
     )
-    from .constants import TestsFlextDbOracleConstants
+    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
     from .e2e.test_oracle import TestOracleE2E
     from .integration.test_oracle import TestOracleIntegration
-    from .models import TestsFlextDbOracleModels, tm
-    from .protocols import TestsFlextDbOracleProtocols
-    from .typings import TestsFlextDbOracleTypes
+    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m, tm
+    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
+    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
     from .unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
@@ -99,7 +99,7 @@ if TYPE_CHECKING:
     )
     from .unit.test_typings import TestFlextDbOracleTypes
     from .unit.test_utilities import TestFlextDbOracleUtilities
-    from .utilities import TestsFlextDbOracleUtilities
+    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "OperationTestError": ("tests.conftest", "OperationTestError"),
@@ -243,7 +243,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsFlextDbOracleProtocols": ("tests.protocols", "TestsFlextDbOracleProtocols"),
     "TestsFlextDbOracleTypes": ("tests.typings", "TestsFlextDbOracleTypes"),
     "TestsFlextDbOracleUtilities": ("tests.utilities", "TestsFlextDbOracleUtilities"),
-    "c": ("flext_db_oracle", "c"),
+    "c": ("tests.constants", "TestsFlextDbOracleConstants"),
     "connected_oracle_api": ("tests.conftest", "connected_oracle_api"),
     "d": ("flext_db_oracle", "d"),
     "docker_control": ("tests.conftest", "docker_control"),
@@ -257,13 +257,13 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "h": ("flext_db_oracle", "h"),
     "integration": ("tests.integration", ""),
     "logger": ("tests.conftest", "logger"),
-    "m": ("flext_db_oracle", "m"),
+    "m": ("tests.models", "TestsFlextDbOracleModels"),
     "mock_oracle_config": ("tests.conftest", "mock_oracle_config"),
     "oracle_api": ("tests.conftest", "oracle_api"),
     "oracle_available": ("tests.conftest", "oracle_available"),
     "oracle_config": ("tests.conftest", "oracle_config"),
     "oracle_container": ("tests.conftest", "oracle_container"),
-    "p": ("flext_db_oracle", "p"),
+    "p": ("tests.protocols", "TestsFlextDbOracleProtocols"),
     "pytest_configure": ("tests.conftest", "pytest_configure"),
     "pytest_runtest_makereport": ("tests.conftest", "pytest_runtest_makereport"),
     "pytest_sessionstart": ("tests.conftest", "pytest_sessionstart"),
@@ -272,11 +272,11 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "s": ("flext_db_oracle", "s"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
     "shared_oracle_container": ("tests.conftest", "shared_oracle_container"),
-    "t": ("flext_db_oracle", "t"),
+    "t": ("tests.typings", "TestsFlextDbOracleTypes"),
     "test_cleanup": ("tests.conftest", "test_cleanup"),
     "test_database_setup": ("tests.conftest", "test_database_setup"),
     "tm": ("tests.models", "tm"),
-    "u": ("flext_db_oracle", "u"),
+    "u": ("tests.utilities", "TestsFlextDbOracleUtilities"),
     "unit": ("tests.unit", ""),
     "x": ("flext_db_oracle", "x"),
 }
