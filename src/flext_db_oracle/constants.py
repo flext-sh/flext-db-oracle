@@ -132,10 +132,8 @@ class FlextDbOracleConstants(FlextConstants):
             """Oracle-specific performance tuning constants."""
 
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = (
-                core_c.Performance.BatchProcessing.DEFAULT_SIZE
-            )
-            MAX_BATCH_SIZE: Final[int] = core_c.Performance.BatchProcessing.MAX_ITEMS
+            DEFAULT_BATCH_SIZE: Final[int] = core_c.BatchProcessing.DEFAULT_SIZE
+            MAX_BATCH_SIZE: Final[int] = core_c.BatchProcessing.MAX_ITEMS
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
 
@@ -162,16 +160,14 @@ class FlextDbOracleConstants(FlextConstants):
         class OracleDefaults:
             """Oracle-specific default configuration values."""
 
-            DEFAULT_HOST: Final[str] = core_c.Network.LOCALHOST
+            DEFAULT_HOST: Final[str] = core_c.LOCALHOST
             DEFAULT_PORT: Final[int] = 1521
             DEFAULT_USERNAME: Final[str] = "system"
             DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
-            DEFAULT_BATCH_SIZE: Final[int] = (
-                core_c.Performance.BatchProcessing.DEFAULT_SIZE
-            )
+            DEFAULT_BATCH_SIZE: Final[int] = core_c.BatchProcessing.DEFAULT_SIZE
 
         class OracleEnums:
             """Oracle-specific enumerations."""
@@ -232,8 +228,8 @@ class FlextDbOracleConstants(FlextConstants):
             Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
             """
 
-            EnvironmentLiteral = FlextConstants.Settings.Environment
-            LogLevelLiteral = FlextConstants.Settings.LogLevel
+            EnvironmentLiteral = FlextConstants.Environment
+            LogLevelLiteral = FlextConstants.LogLevel
 
         class Lists:
             """Lists of constants for validation and iteration.

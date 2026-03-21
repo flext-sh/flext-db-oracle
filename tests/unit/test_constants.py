@@ -241,12 +241,10 @@ class TestFlextDbOracleConstants:
         tm.that(isinstance(c.DbOracle.DataTypeLiteral, tuple), eq=True)
         lit = c.DbOracle.Literals
         tm.that(
-            lit.EnvironmentLiteral is FlextConstants.Settings.Environment is True,
+            lit.EnvironmentLiteral is FlextConstants.Environment is True,
             eq=True,
         )
-        tm.that(
-            lit.LogLevelLiteral is FlextConstants.Settings.LogLevel is True, eq=True
-        )
+        tm.that(lit.LogLevelLiteral is FlextConstants.LogLevel is True, eq=True)
 
     def test_lists_constants(self) -> None:
         """Test list-type constants."""
@@ -364,11 +362,7 @@ class TestFlextDbOracleConstants:
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         tm.that(isinstance(default_port, int), eq=True)
         tm.that(
-            (
-                FlextConstants.Network.MIN_PORT
-                <= default_port
-                <= FlextConstants.Network.MAX_PORT
-            ),
+            (FlextConstants.MIN_PORT <= default_port <= FlextConstants.MAX_PORT),
             eq=True,
         )
 

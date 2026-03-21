@@ -384,7 +384,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         primary_keys: list[str] = []
         for col in columns:
             if isinstance(col, FlextDbOracleModels.DbOracle.Column):
-                name = col.name or c.Mixins.IDENTIFIER_UNKNOWN
+                name = col.name or c.IDENTIFIER_UNKNOWN
                 data_type = col.data_type or "VARCHAR2(255)"
                 nullable = "" if col.nullable else " NOT NULL"
                 if getattr(col, "primary_key", False):
@@ -394,9 +394,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 data_type_value = col.get("data_type")
                 nullable_value = col.get("nullable", True)
                 name = (
-                    str(name_value)
-                    if name_value is not None
-                    else c.Mixins.IDENTIFIER_UNKNOWN
+                    str(name_value) if name_value is not None else c.IDENTIFIER_UNKNOWN
                 )
                 data_type = (
                     str(data_type_value)

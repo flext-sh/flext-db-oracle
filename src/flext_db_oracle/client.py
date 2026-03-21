@@ -382,7 +382,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 return r[t.ConfigMap].fail("No connection available")
             health_data = t.ConfigMap(
                 root={
-                    "connection_status": c.Cqrs.CommonStatus.ACTIVE
+                    "connection_status": c.CommonStatus.ACTIVE
                     if self.current_connection.is_connected
                     else "inactive",
                     "host": self.current_connection.oracle_config.host,
