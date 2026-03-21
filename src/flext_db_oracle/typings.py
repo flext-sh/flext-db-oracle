@@ -14,6 +14,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Literal
+
 from flext_core import FlextTypes, t as _core_t
 from pydantic import TypeAdapter
 
@@ -135,18 +137,48 @@ class FlextDbOracleTypes(FlextTypes):
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | _core_t.ContainerValue]
 
-        type ProjectType = object  # type: ignore[assignment]
+        type ProjectType = Literal[
+            "library",
+            "application",
+            "service",
+            "oracle-service",
+            "database-service",
+            "data-warehouse",
+            "etl-service",
+            "oracle-client",
+            "db-migration",
+            "schema-manager",
+            "data-pipeline",
+            "oracle-api",
+            "database-api",
+            "sql-service",
+            "data-connector",
+        ]
         type OracleProjectConfig = dict[str, _core_t.ContainerValue]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
         type SchemaConfig = dict[str, bool | str | dict[str, _core_t.ContainerValue]]
         type ConnectionConfig = dict[str, _core_t.ContainerValue]
 
-        type ConnectionTypeLiteral = object  # type: ignore[assignment]
-        "Oracle connection type literal - references ConnectionType StrEnum members."
-        type QueryTypeLiteral = object  # type: ignore[assignment]
-        "Oracle query type literal - references QueryType StrEnum members."
-        type DataTypeLiteral = object  # type: ignore[assignment]
-        "Oracle data type literal - references DataType StrEnum members."
+        type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
+        type QueryTypeLiteral = Literal[
+            "SELECT",
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+            "CREATE",
+            "DROP",
+            "ALTER",
+        ]
+        type DataTypeLiteral = Literal[
+            "VARCHAR2",
+            "NUMBER",
+            "DATE",
+            "TIMESTAMP",
+            "CLOB",
+            "BLOB",
+            "CHAR",
+            "RAW",
+        ]
 
         type CliScalar = _core_t.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
@@ -157,5 +189,4 @@ class FlextDbOracleTypes(FlextTypes):
 
 
 t = FlextDbOracleTypes
-CliScalar = FlextDbOracleTypes.DbOracle.CliScalar
-__all__ = ["CliScalar", "FlextDbOracleTypes", "t"]
+__all__ = ["FlextDbOracleTypes", "t"]

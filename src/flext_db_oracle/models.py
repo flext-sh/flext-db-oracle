@@ -52,6 +52,29 @@ class FlextDbOracleModels(FlextModels):
                 extra="forbid",
             )
 
+        class NamedItem(FlextDbOracleBaseModel):
+            """Named item payload for list formatting."""
+
+            name: Annotated[str, Field(default="")]
+
+        class OutputPayload(FlextDbOracleBaseModel):
+            """Structured output payload for formatter rendering."""
+
+            title: Annotated[str, Field(default="")]
+            items: Annotated[list[str], Field(default_factory=list)]
+
+        class HealthCheckReport(FlextDbOracleBaseModel):
+            """Health-check result payload for CLI reporting."""
+
+            status: Annotated[str, Field(default="unknown")]
+            host: Annotated[str, Field(default="")]
+            port: Annotated[int, Field(default=0)]
+            service_name: Annotated[str, Field(default="")]
+            response_time_ms: Annotated[float, Field(default=0.0)]
+            details: Annotated[dict[str, t.ContainerValue], Field(default_factory=dict)]
+            error: Annotated[str | None, Field(default=None)]
+            timestamp: Annotated[str, Field(default="")]
+
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 

@@ -39,13 +39,18 @@ class FlextDbOracleConstants(FlextConstants):
         class Connection:
             """Oracle connection configuration constants."""
 
+            DEFAULT_CHARSET: Final[str] = "UTF8"
             DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
             DEFAULT_PORT: Final[int] = 1521
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
+            DEFAULT_SID: Final[str] = "XE"
             DEFAULT_USERNAME: Final[str] = "system"
             DEFAULT_TIMEOUT: Final[int] = core_c.DEFAULT_TIMEOUT_SECONDS
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
+            DEFAULT_POOL_INCREMENT: Final[int] = 1
+            DEFAULT_POOL_TIMEOUT: Final[int] = 60
+            DEFAULT_CONNECTION_TIMEOUT: Final[int] = 30
 
         class Error:
             """Oracle error handling constants."""
@@ -58,14 +63,31 @@ class FlextDbOracleConstants(FlextConstants):
             MIN_PORT: Final[int] = 1
             MAX_PORT: Final[int] = 65535
             DEFAULT_PORT: Final[int] = 1521
+            DEFAULT_LISTENER_PORT: Final[int] = 1521
+            DEFAULT_SSL_PORT: Final[int] = 2484
 
         class Query:
             """Oracle query and operation constants."""
 
             TEST_QUERY: Final[str] = "SELECT 1 FROM DUAL"
+            DUAL_TABLE: Final[str] = "DUAL"
+            DEFAULT_ARRAY_SIZE: Final[int] = 100
+            DEFAULT_QUERY_LIMIT: Final[int] = 1000
+            DEFAULT_QUERY_TIMEOUT: Final[int] = 60
+            MAX_QUERY_TIMEOUT: Final[int] = 3600
+            MAX_QUERY_ROWS: Final[int] = 100000
 
         class DataTypes:
             """Oracle data type constants and mappings."""
+
+            DATE_TYPE: Final[str] = "DATE"
+            TIMESTAMP_TYPE: Final[str] = "TIMESTAMP"
+            DEFAULT_VARCHAR_TYPE: Final[str] = "VARCHAR2(4000)"
+            CLOB_TYPE: Final[str] = "CLOB"
+            BLOB_TYPE: Final[str] = "BLOB"
+            NUMBER_TYPE: Final[str] = "NUMBER"
+            INTEGER_TYPE: Final[str] = "NUMBER(38)"
+            BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
             SINGER_TYPE_MAP: ClassVar[dict[str, str]] = {
                 "string": "VARCHAR2(4000)",
@@ -84,6 +106,18 @@ class FlextDbOracleConstants(FlextConstants):
 
             MAX_ORACLE_IDENTIFIER_LENGTH: Final[int] = 30
             MAX_IDENTIFIER_LENGTH: Final[int] = 128
+            MAX_TABLE_NAME_LENGTH: Final[int] = 128
+            MAX_COLUMN_NAME_LENGTH: Final[int] = 128
+            MAX_SCHEMA_NAME_LENGTH: Final[int] = 128
+            MAX_USERNAME_LENGTH: Final[int] = 128
+            MAX_SERVICE_NAME_LENGTH: Final[int] = 128
+            MAX_HOSTNAME_LENGTH: Final[int] = 253
+            MAX_VARCHAR_LENGTH: Final[int] = 4000
+            MIN_COLUMN_FIELDS: Final[int] = 4
+            COLUMN_METADATA_FIELD_COUNT: Final[int] = 7
+            ORACLE_IDENTIFIER_PATTERN: Final[str] = "^[A-Z][A-Z0-9_$#]*$"
+            IDENTIFIER_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
+            SCHEMA_PATTERN: Final[str] = "^[A-Za-z][A-Za-z0-9_$#]*$"
             ORACLE_RESERVED: Final[frozenset[str]] = frozenset({
                 "SELECT",
                 "FROM",
@@ -120,15 +154,72 @@ class FlextDbOracleConstants(FlextConstants):
                 "ROLLBACK",
                 "SAVEPOINT",
             })
+            SQL_KEYWORDS: Final[frozenset[str]] = frozenset({
+                "SELECT",
+                "FROM",
+                "WHERE",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "CREATE",
+                "DROP",
+                "ALTER",
+                "JOIN",
+                "LEFT",
+                "RIGHT",
+                "INNER",
+                "OUTER",
+                "ON",
+                "ORDER",
+                "GROUP",
+                "BY",
+                "HAVING",
+                "UNION",
+                "INTERSECT",
+                "MINUS",
+                "DISTINCT",
+                "AS",
+                "AND",
+                "OR",
+                "NOT",
+                "IN",
+                "EXISTS",
+                "BETWEEN",
+                "LIKE",
+                "IS",
+                "NULL",
+                "CASE",
+                "WHEN",
+                "THEN",
+                "ELSE",
+                "END",
+                "WITH",
+            })
 
         class ErrorMessages:
             """Oracle-specific error messages."""
 
             HOST_EMPTY: Final[str] = "Host cannot be empty"
             USERNAME_EMPTY: Final[str] = "Username cannot be empty"
+            COLUMN_NAME_EMPTY: Final[str] = "Column name cannot be empty"
+            DATA_TYPE_EMPTY: Final[str] = "Data type cannot be empty"
+            TABLE_NAME_EMPTY: Final[str] = "Table name cannot be empty"
+            SCHEMA_NAME_EMPTY: Final[str] = "Schema name cannot be empty"
+            POSITION_INVALID: Final[str] = "Position must be positive"
+            COLUMN_ID_INVALID: Final[str] = "Column ID must be positive"
+            PORT_INVALID: Final[str] = "Invalid port number"
+            CONNECTION_FAILED: Final[str] = "Failed to connect to Oracle database"
+            QUERY_EXECUTION_FAILED: Final[str] = "Query execution failed"
+            IDENTIFIER_TOO_LONG: Final[str] = "Identifier exceeds max_length characters"
+            IDENTIFIER_INVALID_PATTERN: Final[str] = (
+                "Identifier does not match required pattern"
+            )
+            IDENTIFIER_RESERVED_WORD: Final[str] = "Identifier is a reserved word"
+            HOST_TOO_LONG: Final[str] = "Host is too long"
             PORT_OUT_OF_RANGE: Final[str] = (
                 "Port must be between {min_port}-{max_port}, got {port}"
             )
+            QUERY_TIMEOUT_TOO_HIGH: Final[str] = "Query timeout is too high"
 
         class OraclePerformance:
             """Oracle-specific performance tuning constants."""
@@ -138,6 +229,10 @@ class FlextDbOracleConstants(FlextConstants):
                 core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
             )
             MAX_BATCH_SIZE: Final[int] = core_c.DEFAULT_MAX_COMMAND_RETRIES or 1000
+            DEFAULT_COMMIT_SIZE: Final[int] = 1000
+            PERFORMANCE_WARNING_THRESHOLD_SECONDS: Final[float] = 5.0
+            MAX_DISPLAY_ROWS: Final[int] = 1000
+            DEFAULT_POOL_RECYCLE: Final[int] = 3600
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
             CONNECTION_EXCELLENT_THRESHOLD_SECONDS: Final[float] = 0.1
@@ -146,14 +241,36 @@ class FlextDbOracleConstants(FlextConstants):
             QUERY_EXCELLENT_THRESHOLD_MS: Final[int] = 100
             QUERY_GOOD_THRESHOLD_MS: Final[int] = 500
             QUERY_ACCEPTABLE_THRESHOLD_MS: Final[int] = 2000
+            INDEX_HINT: Final[str] = "/*+ INDEX */"
+            FULL_HINT: Final[str] = "/*+ FULL */"
+            PARALLEL_HINT: Final[str] = "/*+ PARALLEL */"
 
         class IsolationLevels:
             """Oracle transaction isolation levels."""
+
+            READ_UNCOMMITTED: Final[str] = "READ_UNCOMMITTED"
+            READ_COMMITTED: Final[str] = "READ_COMMITTED"
+            REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
+            SERIALIZABLE: Final[str] = "SERIALIZABLE"
+            VALID_LEVELS: Final[list[str]] = [
+                "READ_UNCOMMITTED",
+                "READ_COMMITTED",
+                "REPEATABLE_READ",
+                "SERIALIZABLE",
+            ]
 
         class OracleEnvironment:
             """Oracle-specific environment variable names and defaults."""
 
             PREFIX_ORACLE: Final[str] = "ORACLE_"
+            PREFIX_FLEXT_TARGET_ORACLE: Final[str] = "FLEXT_TARGET_ORACLE_"
+            ENV_HOST: Final[str] = "ORACLE_HOST"
+            ENV_PORT: Final[str] = "ORACLE_PORT"
+            ENV_USERNAME: Final[str] = "ORACLE_USERNAME"
+            ENV_PASSWORD: Final[str] = "ORACLE_PASSWORD"
+            ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
+            ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
+            ENV_SID: Final[str] = "ORACLE_SID"
             ENV_MAPPING: ClassVar[dict[str, str]] = {
                 "FLEXT_TARGET_ORACLE_HOST": "host",
                 "ORACLE_HOST": "host",
@@ -175,8 +292,15 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_USERNAME: Final[str] = "system"
             DEFAULT_SERVICE_NAME: Final[str] = "XEPDB1"
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
+            DEFAULT_SID: Final[str] = "XE"
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
+            DEFAULT_POOL_TIMEOUT: Final[int] = 60
+            DEFAULT_QUERY_TIMEOUT: Final[int] = 60
+            DEFAULT_QUERY_LIMIT: Final[int] = 1000
+            DEFAULT_COMMIT_SIZE: Final[int] = 1000
+            DEFAULT_POOL_RECYCLE: Final[int] = 3600
+            DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
             DEFAULT_BATCH_SIZE: Final[int] = (
                 core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
             )
@@ -255,10 +379,44 @@ class FlextDbOracleConstants(FlextConstants):
             These lists are kept for backward compatibility and validation convenience.
             """
 
-            "Valid Oracle data types - matches DataType StrEnum values."
+            VALID_DATA_TYPES: Final[list[str]] = [
+                "VARCHAR2",
+                "NUMBER",
+                "DATE",
+                "TIMESTAMP",
+                "CLOB",
+                "BLOB",
+                "CHAR",
+                "RAW",
+            ]
             VALID_CONNECTION_TYPES: Final[list[str]] = ["service_name", "sid", "tns"]
-            "Valid connection types - matches ConnectionType StrEnum values."
-            "Valid query types - matches QueryType StrEnum values."
+            VALID_QUERY_TYPES: Final[list[str]] = [
+                "SELECT",
+                "INSERT",
+                "UPDATE",
+                "DELETE",
+                "CREATE",
+                "DROP",
+                "ALTER",
+            ]
+            VALID_ISOLATION_LEVELS: Final[list[str]] = [
+                "READ_UNCOMMITTED",
+                "READ_COMMITTED",
+                "REPEATABLE_READ",
+                "SERIALIZABLE",
+            ]
+            SYSTEM_USERS: Final[list[str]] = [
+                "SYS",
+                "SYSTEM",
+                "XDB",
+                "DBSNMP",
+                "OUTLN",
+            ]
+            DEFAULT_SCHEMAS: Final[list[str]] = [
+                "SYSTEM",
+                "SYS",
+                "PUBLIC",
+            ]
 
         class FeatureFlags:
             """Internal feature flags for the connection pool."""
@@ -267,9 +425,7 @@ class FlextDbOracleConstants(FlextConstants):
             """Oracle-specific platform constants."""
 
             LOCALHOST_IP: Final[str] = "127.0.0.1"
-
-    class Platform(DbOracle.Platform):
-        """Compatibility alias for platform constants at root namespace."""
+            LOOPBACK_IP: Final[str] = "127.0.0.1"
 
     @unique
     class ProjectType(StrEnum):
@@ -290,39 +446,6 @@ class FlextDbOracleConstants(FlextConstants):
         DATABASE_API = "database-api"
         SQL_SERVICE = "sql-service"
         DATA_CONNECTOR = "data-connector"
-
-    @unique
-    class ConnectionTypeLiteral(StrEnum):
-        """Oracle connection type literals."""
-
-        SERVICE_NAME = "service_name"
-        SID = "sid"
-        TNS = "tns"
-
-    @unique
-    class QueryTypeLiteral(StrEnum):
-        """Oracle SQL query type literals."""
-
-        SELECT = "SELECT"
-        INSERT = "INSERT"
-        UPDATE = "UPDATE"
-        DELETE = "DELETE"
-        CREATE = "CREATE"
-        DROP = "DROP"
-        ALTER = "ALTER"
-
-    @unique
-    class DataTypeLiteral(StrEnum):
-        """Oracle data type literals."""
-
-        VARCHAR2 = "VARCHAR2"
-        NUMBER = "NUMBER"
-        DATE = "DATE"
-        TIMESTAMP = "TIMESTAMP"
-        CLOB = "CLOB"
-        BLOB = "BLOB"
-        CHAR = "CHAR"
-        RAW = "RAW"
 
 
 c = FlextDbOracleConstants

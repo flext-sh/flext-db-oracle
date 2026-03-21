@@ -14,47 +14,20 @@ import sys
 import time
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Annotated, Protocol, override
+from typing import override
 
 import oracledb
 import yaml
 from flext_cli import FlextCliCommands
 from flext_core import FlextService, r
-from pydantic import BaseModel, Field, TypeAdapter, ValidationError
+from pydantic import TypeAdapter, ValidationError
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, m, t
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import CliScalar
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
-
-
-class NamedItem(BaseModel):
-    """Named item payload for list formatting."""
-
-    name: Annotated[str, Field(default="")]
-
-
-class OutputPayload(BaseModel):
-    """Structured output payload for formatter rendering."""
-
-    title: Annotated[str, Field(default="")]
-    items: Annotated[list[str], Field(default_factory=list)]
-
-
-class HealthCheckReport(BaseModel):
-    """Health-check result payload for CLI reporting."""
-
-    status: Annotated[str, Field(default="unknown")]
-    host: Annotated[str, Field(default="")]
-    port: Annotated[int, Field(default=0)]
-    service_name: Annotated[str, Field(default="")]
-    response_time_ms: Annotated[float, Field(default=0.0)]
-    details: Annotated[dict[str, t.ContainerValue], Field(default_factory=dict)]
-    error: Annotated[str | None, Field(default=None)]
-    timestamp: Annotated[str, Field(default="")]
 
 
 class FlextDbOracleCli(FlextService[str]):
@@ -97,18 +70,6 @@ class FlextDbOracleCli(FlextService[str]):
             return r[FlextCliCommands | None].fail(
                 f"FlextCliCommands initialization failed: {e}",
             )
-
-    class _YamlModule(Protocol):
-        """Protocol for YAML module interface."""
-
-        def dump(
-            self,
-            data: OutputPayload | HealthCheckReport | list[str] | str,
-            *,
-            default_flow_style: bool = True,
-        ) -> str:
-            """Dump data as YAML string."""
-            ...
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""
@@ -181,9 +142,9 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_data(
             self,
-            data: OutputPayload
-            | HealthCheckReport
-            | Mapping[str, CliScalar]
+            data: m.DbOracle.OutputPayload
+            | m.DbOracle.HealthCheckReport
+            | Mapping[str, t.DbOracle.CliScalar]
             | list[str]
             | str,
             output_format: str,
@@ -196,21 +157,21 @@ class FlextDbOracleCli(FlextService[str]):
             """
             if output_format == "json":
                 match data:
-                    case OutputPayload() | HealthCheckReport():
+                    case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
                         return r[str].ok(data.model_dump_json(indent=2))
                     case _:
                         adapter = TypeAdapter(type(data))
                         return r[str].ok(adapter.dump_json(data, indent=2).decode())
             if output_format == "yaml":
                 yaml_payload: (
-                    OutputPayload
-                    | HealthCheckReport
-                    | Mapping[str, CliScalar]
+                    m.DbOracle.OutputPayload
+                    | m.DbOracle.HealthCheckReport
+                    | Mapping[str, t.DbOracle.CliScalar]
                     | list[str]
                     | str
                 )
                 match data:
-                    case OutputPayload() | HealthCheckReport():
+                    case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
                         yaml_payload = data.model_dump(mode="python")
                     case _:
                         yaml_payload = data
@@ -229,7 +190,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: list[str] | list[NamedItem],
+            items: list[str] | list[m.DbOracle.NamedItem],
             title: str,
             output_format: str = "table",
         ) -> r[str]:
@@ -246,7 +207,7 @@ class FlextDbOracleCli(FlextService[str]):
                         string_items.append(item_text)
                     case _:
                         try:
-                            parsed_item = NamedItem.model_validate(item)
+                            parsed_item = m.DbOracle.NamedItem.model_validate(item)
                             string_items.append(parsed_item.name)
                         except ValidationError:
                             string_items.append(str(item))
@@ -255,10 +216,10 @@ class FlextDbOracleCli(FlextService[str]):
                 output_lines.extend(f"  - {item}" for item in string_items)
                 return r[str].ok("\n".join(output_lines))
             if output_format == "json":
-                data = OutputPayload(title=title, items=string_items)
+                data = m.DbOracle.OutputPayload(title=title, items=string_items)
                 return r[str].ok(data.model_dump_json(indent=2))
             if output_format == "yaml":
-                data = OutputPayload(title=title, items=string_items)
+                data = m.DbOracle.OutputPayload(title=title, items=string_items)
                 return r[str].ok(
                     yaml.dump(data.model_dump(mode="python"), default_flow_style=False),
                 )
@@ -305,7 +266,7 @@ class FlextDbOracleCli(FlextService[str]):
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = c.DbOracle.Connection.DEFAULT_TIMEOUT,
-    ) -> r[HealthCheckReport]:
+    ) -> r[m.DbOracle.HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
         Args:
@@ -317,7 +278,7 @@ class FlextDbOracleCli(FlextService[str]):
         timeout: Connection timeout in seconds
 
         Returns:
-        r[HealthCheckReport]: Health check results with status and timing
+        r[m.DbOracle.HealthCheckReport]: Health check results with status and timing
 
         """
         start_time = time.time()
@@ -333,12 +294,12 @@ class FlextDbOracleCli(FlextService[str]):
             api = FlextDbOracleApi(config=config)
             health_result = api.get_health_status()
             if health_result.is_failure:
-                return r[HealthCheckReport].fail(
+                return r[m.DbOracle.HealthCheckReport].fail(
                     f"Health check failed: {health_result.error}",
                 )
             elapsed_time = time.time() - start_time
             health_data = health_result.value
-            result = HealthCheckReport.model_validate({
+            result = m.DbOracle.HealthCheckReport.model_validate({
                 "status": "healthy",
                 "host": host,
                 "port": port,
@@ -347,10 +308,10 @@ class FlextDbOracleCli(FlextService[str]):
                 "details": health_data.model_dump(mode="json"),
                 "timestamp": datetime.now(UTC).isoformat(),
             })
-            return r[HealthCheckReport].ok(result)
+            return r[m.DbOracle.HealthCheckReport].ok(result)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             elapsed_time = time.time() - start_time
-            error_result = HealthCheckReport(
+            error_result = m.DbOracle.HealthCheckReport(
                 status="unhealthy",
                 host=host,
                 port=port,
@@ -360,7 +321,7 @@ class FlextDbOracleCli(FlextService[str]):
                 error=str(e),
                 timestamp=datetime.now(UTC).isoformat(),
             )
-            return r[HealthCheckReport].ok(error_result)
+            return r[m.DbOracle.HealthCheckReport].ok(error_result)
 
     def execute_list_schemas(
         self,

@@ -30,12 +30,7 @@ if TYPE_CHECKING:
         __version_info__,
     )
     from flext_db_oracle.api import FlextDbOracleApi
-    from flext_db_oracle.cli import (
-        FlextDbOracleCli,
-        HealthCheckReport,
-        NamedItem,
-        OutputPayload,
-    )
+    from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import (
         FlextDbOracleClient,
         OracleDatabaseError,
@@ -62,7 +57,6 @@ if TYPE_CHECKING:
         OraclePassword,
     )
     from flext_db_oracle.typings import (
-        CliScalar,
         FlextDbOracleTypes,
         FlextDbOracleTypes as t,
     )
@@ -72,7 +66,6 @@ if TYPE_CHECKING:
     )
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-    "CliScalar": ("flext_db_oracle.typings", "CliScalar"),
     "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
@@ -91,13 +84,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FlextDbOracleSettings": ("flext_db_oracle.settings", "FlextDbOracleSettings"),
     "FlextDbOracleTypes": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
     "FlextDbOracleUtilities": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
-    "HealthCheckReport": ("flext_db_oracle.cli", "HealthCheckReport"),
-    "NamedItem": ("flext_db_oracle.cli", "NamedItem"),
     "OracleDatabaseError": ("flext_db_oracle.client", "OracleDatabaseError"),
     "OracleIdentifier": ("flext_db_oracle.settings", "OracleIdentifier"),
     "OracleInterfaceError": ("flext_db_oracle.client", "OracleInterfaceError"),
     "OraclePassword": ("flext_db_oracle.settings", "OraclePassword"),
-    "OutputPayload": ("flext_db_oracle.cli", "OutputPayload"),
     "__all__": ("flext_db_oracle.__version__", "__all__"),
     "__author__": ("flext_db_oracle.__version__", "__author__"),
     "__author_email__": ("flext_db_oracle.__version__", "__author_email__"),
@@ -121,7 +111,6 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 __all__ = [
-    "CliScalar",
     "FlextDbOracleApi",
     "FlextDbOracleCli",
     "FlextDbOracleClient",
@@ -134,13 +123,10 @@ __all__ = [
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
-    "HealthCheckReport",
-    "NamedItem",
     "OracleDatabaseError",
     "OracleIdentifier",
     "OracleInterfaceError",
     "OraclePassword",
-    "OutputPayload",
     "__all__",
     "__author__",
     "__author_email__",
