@@ -56,10 +56,7 @@ if TYPE_CHECKING:
         OracleIdentifier,
         OraclePassword,
     )
-    from flext_db_oracle.typings import (
-        FlextDbOracleTypes,
-        FlextDbOracleTypes as t,
-    )
+    from flext_db_oracle.typings import FlextDbOracleTypes, FlextDbOracleTypes as t
     from flext_db_oracle.utilities import (
         FlextDbOracleUtilities,
         FlextDbOracleUtilities as u,
