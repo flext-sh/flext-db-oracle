@@ -15,7 +15,7 @@ from typing import Annotated, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 import oracledb
-from flext_core import FlextSettings, r, u
+from flext_core import FlextSettings, r
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
@@ -287,8 +287,8 @@ class FlextDbOracleSettings(FlextSettings):
             except ValueError:
                 return None
 
-        return u.try_(
-            lambda: cls.model_validate({
+        try:
+            settings = cls.model_validate({
                 "host": host,
                 "port": _safe_int(port_text, c.DbOracle.Connection.DEFAULT_PORT),
                 "service_name": _safe_identifier(
@@ -311,9 +311,10 @@ class FlextDbOracleSettings(FlextSettings):
                     pool_max_text,
                     c.DbOracle.Connection.DEFAULT_POOL_MAX,
                 ),
-            }),
-            catch=ValueError,
-        ).map_error(lambda e: f"Invalid environment settings: {e}")
+            })
+            return r[FlextDbOracleSettings].ok(settings)
+        except ValueError as e:
+            return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
 
     @classmethod
     def from_url(cls, url: str) -> r[FlextDbOracleSettings]:
@@ -331,16 +332,17 @@ class FlextDbOracleSettings(FlextSettings):
             or (query.get("service_name", [""])[0])
             or c.DbOracle.Connection.DEFAULT_SERVICE_NAME
         )
-        return u.try_(
-            lambda: cls.model_validate({
+        try:
+            settings = cls.model_validate({
                 "host": host,
                 "port": port,
                 "service_name": service_name,
                 "username": username,
                 "password": password,
-            }),
-            catch=ValueError,
-        ).map_error(lambda e: f"Invalid Oracle URL: {e}")
+            })
+            return r[FlextDbOracleSettings].ok(settings)
+        except ValueError as e:
+            return r[FlextDbOracleSettings].fail(f"Invalid Oracle URL: {e}")
 
 
 __all__ = [

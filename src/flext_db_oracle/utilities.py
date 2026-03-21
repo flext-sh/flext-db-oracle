@@ -2,15 +2,23 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping
 from enum import StrEnum
-from importlib import import_module
 from typing import Annotated
 
 from flext_core import FlextUtilities, r
 from pydantic import BeforeValidator, RootModel, TypeAdapter, ValidationError
+from sqlalchemy import (
+    Connection as SAConnection,
+    Engine as SAEngine,
+    TextClause,
+    create_engine,
+    text,
+)
+from sqlalchemy.engine import CursorResult
 
 from flext_db_oracle import c, t
 from flext_db_oracle.settings import FlextDbOracleSettings
@@ -55,7 +63,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         """
 
         @staticmethod
-        def coerced_enum[E: StrEnum](enum_cls: type[E]) -> t.ContainerValue:
+        def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
             """Create an Annotated StrEnum type with automatic coercion.
 
             Args:
@@ -154,8 +162,10 @@ class FlextDbOracleUtilities(FlextUtilities):
         @staticmethod
         def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
             """Validate arbitrary mapping input as ConfigMap."""
+            if not isinstance(value, dict):
+                return None
             try:
-                return t.ConfigMap(value)
+                return t.ConfigMap.model_validate({"root": value})
             except ValidationError:
                 return None
 
@@ -169,16 +179,25 @@ class FlextDbOracleUtilities(FlextUtilities):
         @staticmethod
         def _parse_rowcount(value: t.ContainerValue) -> int:
             """Parse strict integer rowcount via Pydantic."""
+            if isinstance(value, int):
+                return value
             try:
-                return _StrictIntValue(value).root
+                return _StrictIntValue.model_validate(value).root
             except ValidationError:
                 return 0
 
         @staticmethod
         def _parse_count_value(value: t.ContainerValue) -> int:
             """Parse row count value accepting int or numeric string."""
+            if isinstance(value, int):
+                return value
+            if isinstance(value, str):
+                try:
+                    return int(value)
+                except ValueError:
+                    return 0
             try:
-                validated = _CountValue(value).root
+                validated = _CountValue.model_validate(value).root
             except ValidationError:
                 return 0
             try:
@@ -196,92 +215,50 @@ class FlextDbOracleUtilities(FlextUtilities):
             return values[0] if values else "string"
 
         @staticmethod
-        def _extract_object_rows(value: t.ContainerValue) -> list[object]:
-            if isinstance(value, Sequence) and not isinstance(value, str | bytes):
-                return list(value)
-            return []
+        def _sqlalchemy_create_engine(url: str) -> SAEngine:
+            """Create SQLAlchemy engine."""
+            return create_engine(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
 
         @staticmethod
-        def _sqlalchemy_create_engine(url: str) -> t.ContainerValue:
-            """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
-            sqlalchemy_module = import_module("sqlalchemy")
-            create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
-            if not callable(create_engine_func):
-                msg = "sqlalchemy.create_engine unavailable"
-                raise TypeError(msg)
-            return create_engine_func(
-                url,
-                pool_pre_ping=True,
-                pool_recycle=3600,
-                echo=False,
-            )
+        def _sqlalchemy_text(statement: str) -> TextClause:
+            """Build SQL text object."""
+            return text(statement)
 
         @staticmethod
-        def _sqlalchemy_text(statement: str) -> t.ContainerValue:
-            """Build SQL text object via runtime import."""
-            sqlalchemy_module = import_module("sqlalchemy")
-            text_func = getattr(sqlalchemy_module, "text", None)
-            if not callable(text_func):
-                msg = "sqlalchemy.text unavailable"
-                raise TypeError(msg)
-            return text_func(statement)
-
-        @staticmethod
-        def _engine_connect(engine: t.ContainerValue) -> t.ContainerValue:
+        def _engine_connect(engine: SAEngine) -> SAConnection:
             """Open connection context manager from engine."""
-            connect_method = getattr(engine, "connect", None)
-            if not callable(connect_method):
-                msg = "Database engine does not expose connect()"
-                raise TypeError(msg)
-            return connect_method()
+            return engine.connect()
 
         @staticmethod
-        def _engine_begin(engine: t.ContainerValue) -> t.ContainerValue:
+        def _engine_begin(
+            engine: SAEngine,
+        ) -> contextlib.AbstractContextManager[SAConnection]:
             """Open transaction context manager from engine."""
-            begin_method = getattr(engine, "begin", None)
-            if not callable(begin_method):
-                msg = "Database engine does not expose begin()"
-                raise TypeError(msg)
-            return begin_method()
+            return engine.begin()
 
         @staticmethod
-        def _context_enter(context_manager: t.ContainerValue) -> t.ContainerValue:
-            """Enter dynamic context manager and return inner object."""
-            enter_method = getattr(context_manager, "__enter__", None)
-            if not callable(enter_method):
-                msg = "Context manager does not expose __enter__()"
-                raise TypeError(msg)
-            return enter_method()
-
-        @staticmethod
-        def _context_exit(context_manager: t.ContainerValue) -> None:
+        def _context_exit(
+            context_manager: contextlib.AbstractContextManager[SAConnection],
+        ) -> None:
             """Exit dynamic context manager safely."""
-            exit_method = getattr(context_manager, "__exit__", None)
-            if callable(exit_method):
-                _ = exit_method(None, None, None)
+            context_manager.__exit__(None, None, None)
 
         @staticmethod
-        def _engine_dispose(engine: t.ContainerValue) -> None:
-            """Dispose engine resources through dynamic method lookup."""
-            dispose_method = getattr(engine, "dispose", None)
-            if callable(dispose_method):
-                dispose_method()
+        def _engine_dispose(engine: SAEngine) -> None:
+            """Dispose engine resources."""
+            engine.dispose()
 
         @staticmethod
         def _connection_execute(
-            connection: t.ContainerValue,
-            statement: t.ContainerValue,
+            connection: SAConnection,
+            statement: TextClause,
             parameters: t.ConfigMap | None = None,
-        ) -> t.ContainerValue:
-            """Execute statement on dynamic SQL connection."""
-            execute_method = getattr(connection, "execute", None)
-            if not callable(execute_method):
-                msg = "Database connection does not expose execute()"
-                raise TypeError(msg)
+        ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+            """Execute statement on SQL connection."""
             normalized_params = FlextDbOracleUtilities.DbOracle.normalize_params(
                 parameters,
             )
-            return execute_method(statement, normalized_params.root)
+            return connection.execute(statement, normalized_params.root)
 
 
 __all__ = ["FlextDbOracleUtilities", "u"]

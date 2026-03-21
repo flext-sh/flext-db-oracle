@@ -62,6 +62,8 @@ class FlextDbOracleConstants(FlextConstants):
         class Query:
             """Oracle query and operation constants."""
 
+            TEST_QUERY: Final[str] = "SELECT 1 FROM DUAL"
+
         class DataTypes:
             """Oracle data type constants and mappings."""
 

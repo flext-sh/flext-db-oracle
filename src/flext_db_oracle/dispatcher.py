@@ -120,20 +120,26 @@ class FlextDbOracleDispatcher(FlextService[None]):
         def execute_query_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
-                parameters = t.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap.model_validate({
+                    "root": command.parameters or {}
+                })
             else:
                 sql = ""
                 parameters = t.ConfigMap(root={})
-            return services.execute_query(sql, parameters).map_or([])
+            result = services.execute_query(sql, parameters)
+            return len(result.value) if result.is_success else 0
 
         def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.FetchOneCommand):
                 sql = command.sql
-                parameters = t.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap.model_validate({
+                    "root": command.parameters or {}
+                })
             else:
                 sql = ""
                 parameters = t.ConfigMap(root={})
-            return services.fetch_one(sql, parameters).map_or(None)
+            result = services.fetch_one(sql, parameters)
+            return str(result.value) if result.is_success and result.value else ""
 
         def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(
@@ -141,7 +147,9 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 FlextDbOracleModels.DbOracle.ExecuteStatementCommand,
             ):
                 sql = command.sql
-                parameters = t.ConfigMap(root=command.parameters or {})
+                parameters = t.ConfigMap.model_validate({
+                    "root": command.parameters or {}
+                })
             else:
                 sql = ""
                 parameters = t.ConfigMap(root={})
@@ -185,13 +193,15 @@ class FlextDbOracleDispatcher(FlextService[None]):
         """Create schema/metadata handler functions."""
 
         def get_schemas_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
-            return services.get_schemas().map_or([])
+            result = services.get_schemas()
+            return ",".join(result.value) if result.is_success else ""
 
         def get_tables_handler(command: t.ContainerValue) -> t.ContainerValue:
             schema: str | None = None
             if isinstance(command, FlextDbOracleModels.DbOracle.GetTablesCommand):
                 schema = command.schema_name
-            return services.get_tables(schema).map_or([])
+            result = services.get_tables(schema)
+            return ",".join(result.value) if result.is_success else ""
 
         def get_columns_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.GetColumnsCommand):
@@ -200,7 +210,10 @@ class FlextDbOracleDispatcher(FlextService[None]):
             else:
                 table = ""
                 schema = None
-            return services.get_columns(table, schema).map_or([])
+            result = services.get_columns(table, schema)
+            return (
+                ",".join(col.name for col in result.value) if result.is_success else ""
+            )
 
         return {
             FlextDbOracleModels.DbOracle.GetSchemasCommand: (
