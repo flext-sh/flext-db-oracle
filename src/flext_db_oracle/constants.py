@@ -132,8 +132,8 @@ class FlextDbOracleConstants(FlextConstants):
             """Oracle-specific performance tuning constants."""
 
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = core_c.BatchProcessing.DEFAULT_SIZE
-            MAX_BATCH_SIZE: Final[int] = core_c.BatchProcessing.MAX_ITEMS
+            DEFAULT_BATCH_SIZE: Final[int] = core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
+            MAX_BATCH_SIZE: Final[int] = core_c.DEFAULT_MAX_COMMAND_RETRIES or 1000
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
 
@@ -167,7 +167,7 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
-            DEFAULT_BATCH_SIZE: Final[int] = core_c.BatchProcessing.DEFAULT_SIZE
+            DEFAULT_BATCH_SIZE: Final[int] = core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
 
         class OracleEnums:
             """Oracle-specific enumerations."""
@@ -251,8 +251,8 @@ class FlextDbOracleConstants(FlextConstants):
         class FeatureFlags:
             """Internal feature flags for the connection pool."""
 
-        class Platform(core_c.Platform):
-            """Oracle-specific platform constants extending base Platform."""
+        class Platform:
+            """Oracle-specific platform constants."""
 
             LOCALHOST_IP: Final[str] = "127.0.0.1"
 

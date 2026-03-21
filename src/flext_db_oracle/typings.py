@@ -14,10 +14,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_core import FlextTypes, m as _core_m, t as _core_t
 from pydantic import TypeAdapter
 
-from flext_db_oracle import c
+if TYPE_CHECKING:
+    from flext_db_oracle import c
 
 _ConfigMap = _core_m.ConfigMap
 
@@ -137,17 +140,17 @@ class FlextDbOracleTypes(FlextTypes):
         type TypeValidation = dict[str, bool | str | list[str]]
         type NullHandling = dict[str, bool | _core_t.ContainerValue]
 
-        type ProjectType = c.ProjectType
+        type ProjectType = object  # type: ignore[assignment]
         type OracleProjectConfig = dict[str, _core_t.ContainerValue]
         type DatabaseConfig = dict[str, str | int | bool | list[str]]
         type SchemaConfig = dict[str, bool | str | dict[str, _core_t.ContainerValue]]
         type ConnectionConfig = dict[str, _core_t.ContainerValue]
 
-        type ConnectionTypeLiteral = c.ConnectionTypeLiteral
+        type ConnectionTypeLiteral = object  # type: ignore[assignment]
         "Oracle connection type literal - references ConnectionType StrEnum members."
-        type QueryTypeLiteral = c.QueryTypeLiteral
+        type QueryTypeLiteral = object  # type: ignore[assignment]
         "Oracle query type literal - references QueryType StrEnum members."
-        type DataTypeLiteral = c.DataTypeLiteral
+        type DataTypeLiteral = object  # type: ignore[assignment]
         "Oracle data type literal - references DataType StrEnum members."
 
         type CliScalar = _core_t.Scalar | None
