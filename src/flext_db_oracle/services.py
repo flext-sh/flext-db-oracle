@@ -902,13 +902,15 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             if isinstance(_tags, t.ConfigMap) or _tags is None
             else t.ConfigMap.model_validate({"root": dict(_tags)})
         )
-        tags_payload: dict[str, t.ContainerValue] = (
-            dict(typed_tags.root) if typed_tags is not None else {}
+        tags_str: dict[str, str] = (
+            {str(k): str(v) for k, v in typed_tags.root.items()}
+            if typed_tags is not None
+            else {}
         )
         metric_result = metric_factory(
             name=_name,
             value=_value,
-            tags=t.Dict(root=tags_payload),
+            tags=t.Dict.model_validate({"root": tags_str}),
         )
         if getattr(metric_result, "is_failure", False):
             return r[bool].fail(
@@ -1001,7 +1003,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def transaction(self) -> Generator[SAConnection, None, None]:
+    def transaction(self) -> Generator[SAConnection]:
         """Get transaction context for database operations."""
         engine = self._engine
         if engine is None:
@@ -1051,18 +1053,6 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
-    def _extract_mapping_rows(
-        self, mapping_result: t.ContainerValue
-    ) -> list[Mapping[str, t.ContainerValue]]:
-        """Extract all SQLAlchemy mapping rows from a mapping result."""
-        all_method = getattr(mapping_result, "all", None)
-        if not callable(all_method):
-            return []
-        rows = all_method()
-        if isinstance(rows, list):
-            return [dict(row) for row in rows if hasattr(row, "__iter__")]
-        return []
-
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""
         return str(int(time.time()))
@@ -1079,25 +1069,29 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        return [
-            t.Dict(root={str(key): value for key, value in dict(row).items()})
-            for row in rows
-        ]
+        result: list[t.Dict] = []
+        for row in rows:
+            row_dict: dict[str, str] = {
+                str(key): str(val) for key, val in dict(row).items()
+            }
+            result.append(t.Dict.model_validate({"root": row_dict}))
+        return result
 
     def _normalize_row(self, row: Mapping[str, t.ContainerValue]) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        return t.Dict(
-            root={str(key): value for key, value in row.items()},
+        return t.Dict.model_validate(
+            {"root": {str(key): value for key, value in row.items()}},
         )
 
     def _parse_count_from_rows(self, rows: list[t.Dict]) -> int:
         """Parse COUNT(*) value from normalized query rows."""
         if not rows:
             return 0
-        count_value = rows[0].root.get("count")
-        if count_value is None:
+        count_raw = rows[0].root.get("count")
+        if count_raw is None:
             return 0
-        return _parse_count_value(count_value)
+        count_str = str(count_raw)
+        return _parse_count_value(count_str)
 
 
 s = FlextDbOracleServices

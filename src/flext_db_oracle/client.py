@@ -38,7 +38,7 @@ def _validate_config_map(
     try:
         if isinstance(value, t.ConfigMap):
             return value
-        return t.ConfigMap(root=dict(value))
+        return t.ConfigMap.model_validate({"root": dict(value)})
     except ValidationError:
         return None
 
@@ -72,7 +72,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         *,
         debug: bool = False,
         config_type: type[FlextSettings] | None = None,
-        config_overrides: dict[str, t.Scalar] | None = None,
+        config_overrides: dict[str, t.NormalizedValue] | None = None,
         initial_context: p.Context | None = None,
         subproject: str | None = None,
         services: Mapping[str, t.RegisterableService] | None = None,
@@ -255,7 +255,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         query_params: t.ConfigMap = (
-            t.ConfigMap(root=dict(params))
+            t.ConfigMap.model_validate({"root": dict(params)})
             if params is not None
             else t.ConfigMap(root={})
         )
@@ -320,13 +320,19 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 schemas = _validate_general_list(raw_value)
                 if schemas is None:
                     return []
-                return [t.ConfigMap(root={"schema": str(schema)}) for schema in schemas]
+                return [
+                    t.ConfigMap.model_validate({"root": {"schema": str(schema)}})
+                    for schema in schemas
+                ]
 
             def adapt_tables(raw_value: t.ContainerValue) -> list[t.ConfigMap]:
                 tables = _validate_general_list(raw_value)
                 if tables is None:
                     return []
-                return [t.ConfigMap(root={"table": str(table)}) for table in tables]
+                return [
+                    t.ConfigMap.model_validate({"root": {"table": str(table)}})
+                    for table in tables
+                ]
 
             def adapt_health(raw_value: t.ContainerValue) -> list[t.ConfigMap]:
                 try:
@@ -337,7 +343,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 if health is None:
                     return []
                 return [
-                    t.ConfigMap(root={"key": str(key), "value": str(value)})
+                    t.ConfigMap.model_validate({
+                        "root": {"key": str(key), "value": str(value)}
+                    })
                     for key, value in health.items()
                 ]
 
@@ -351,10 +359,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             data_root = data.root
             for key, strategy in adaptation_strategies:
                 if key in data_root:
-                    adapted_data = strategy(data_root[key])
+                    raw_value = data_root[key]
+                    adapted_data = strategy(str(raw_value))
                     return r[list[t.ConfigMap]].ok(adapted_data)
             result = [
-                t.ConfigMap(root={"key": str(key), "value": str(value)})
+                t.ConfigMap.model_validate({
+                    "root": {"key": str(key), "value": str(value)}
+                })
                 for key, value in data_root.items()
             ]
             return r[list[t.ConfigMap]].ok(result)
@@ -524,7 +535,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
         return self.current_connection.get_health_status().map(
-            lambda status: t.ConfigMap(root=status.model_dump()),
+            lambda status: t.ConfigMap.model_validate({"root": status.model_dump()}),
         )
 
     def _handle_list_schemas_operation(self) -> r[t.ConfigMap]:
@@ -532,7 +543,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
         return self.current_connection.get_schemas().map(
-            lambda schemas: t.ConfigMap(root={"schemas": list(schemas)}),
+            lambda schemas: t.ConfigMap.model_validate({
+                "root": {"schemas": list(schemas)}
+            }),
         )
 
     def _handle_list_tables_operation(
@@ -544,7 +557,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             return r[t.ConfigMap].fail("No active database connection")
         schema = str(params.get("schema", ""))
         return self.current_connection.get_tables(schema or None).map(
-            lambda tables: t.ConfigMap(root={"tables": list(tables)}),
+            lambda tables: t.ConfigMap.model_validate({
+                "root": {"tables": list(tables)}
+            }),
         )
 
     def _handle_query_operation(
@@ -565,10 +580,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 normalized_params = _CONFIG_DICT_ADAPTER.validate_python(raw_params)
             except ValidationError:
                 normalized_params: dict[str, t.ContainerValue] = {}
-            params_map = t.ConfigMap(root=normalized_params)
-        return self.current_connection.query(sql, params_map.root).map(
-            lambda rows: t.ConfigMap(
-                root={"rows": [row.root for row in rows], "row_count": len(rows)},
+            params_map = t.ConfigMap.model_validate({"root": normalized_params})
+        query_params: dict[str, t.ContainerValue] = {
+            str(k): str(v) for k, v in params_map.root.items()
+        }
+        return self.current_connection.query(sql, query_params).map(
+            lambda rows: t.ConfigMap.model_validate(
+                {"root": {"row_count": len(rows)}},
             ),
         )
 

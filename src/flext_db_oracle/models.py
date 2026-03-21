@@ -372,7 +372,9 @@ class FlextDbOracleModels(FlextModels):
                 """Get item from health status."""
                 if key in self.metrics:
                     return self.metrics[key]
-                return self.model_dump().get(key)
+                dump = self.model_dump()
+                value = dump.get(key, "")
+                return str(value)
 
             def __contains__(self, key: str) -> bool:
                 """Check if key is in health status."""
@@ -393,7 +395,9 @@ class FlextDbOracleModels(FlextModels):
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
-                return self.model_dump().get(key)
+                dump = self.model_dump()
+                value = dump.get(key, "")
+                return str(value)
 
             def __contains__(self, key: str) -> bool:
                 """Check if key is in table metadata."""
@@ -472,7 +476,7 @@ class FlextDbOracleModels(FlextModels):
                 }
                 if key in key_map:
                     return key_map[key]
-                return None
+                return ""
 
             def __contains__(self, key: str) -> bool:
                 """Check if key is in column metadata."""

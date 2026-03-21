@@ -202,12 +202,19 @@ class FlextDbOracleCli(FlextService[str]):
                         adapter = TypeAdapter(type(data))
                         return r[str].ok(adapter.dump_json(data, indent=2).decode())
             if output_format == "yaml":
+                yaml_payload: (
+                    OutputPayload
+                    | HealthCheckReport
+                    | Mapping[str, CliScalar]
+                    | list[str]
+                    | str
+                )
                 match data:
                     case OutputPayload() | HealthCheckReport():
-                        payload: t.ContainerValue = data.model_dump(mode="python")
+                        yaml_payload = data.model_dump(mode="python")
                     case _:
-                        payload = data
-                return r[str].ok(yaml.dump(payload, default_flow_style=False))
+                        yaml_payload = data
+                return r[str].ok(yaml.dump(yaml_payload, default_flow_style=False))
             return r[str].ok(str(data))
 
         def format_error_message(self, error: str) -> r[str]:
