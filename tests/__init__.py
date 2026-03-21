@@ -16,31 +16,32 @@ if TYPE_CHECKING:
 
     from . import e2e as e2e, integration as integration, unit as unit
     from .conftest import (
-        OperationTestError,
+        flext_domains,
+        pytest_configure,
+        pytest_runtest_makereport,
+        pytest_sessionstart,
+        test_database_setup,
+    )
+    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
+    from .e2e.test_oracle import OperationTestError, TestOracleE2E
+    from .integration.test_oracle import TestOracleIntegration
+    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m, tm
+    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
+    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .unit.conftest import (
         connected_oracle_api,
         docker_control,
         ensure_shared_docker_container,
-        flext_domains,
         logger,
         mock_oracle_config,
         oracle_api,
         oracle_available,
         oracle_config,
         oracle_container,
-        pytest_configure,
-        pytest_runtest_makereport,
-        pytest_sessionstart,
         real_oracle_config,
         shared_oracle_container,
         test_cleanup,
-        test_database_setup,
     )
-    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
-    from .e2e.test_oracle import TestOracleE2E
-    from .integration.test_oracle import TestOracleIntegration
-    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m, tm
-    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
-    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
     from .unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
@@ -102,7 +103,7 @@ if TYPE_CHECKING:
     from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-    "OperationTestError": ("tests.conftest", "OperationTestError"),
+    "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),
     "TestApiModule": ("tests.unit.test_api", "TestApiModule"),
     "TestApiSurgicalSimple": ("tests.unit.test_api", "TestApiSurgicalSimple"),
     "TestBasicModelCreation": (
@@ -244,36 +245,36 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestsFlextDbOracleTypes": ("tests.typings", "TestsFlextDbOracleTypes"),
     "TestsFlextDbOracleUtilities": ("tests.utilities", "TestsFlextDbOracleUtilities"),
     "c": ("tests.constants", "TestsFlextDbOracleConstants"),
-    "connected_oracle_api": ("tests.conftest", "connected_oracle_api"),
+    "connected_oracle_api": ("tests.unit.conftest", "connected_oracle_api"),
     "d": ("flext_db_oracle", "d"),
-    "docker_control": ("tests.conftest", "docker_control"),
+    "docker_control": ("tests.unit.conftest", "docker_control"),
     "e": ("flext_db_oracle", "e"),
     "e2e": ("tests.e2e", ""),
     "ensure_shared_docker_container": (
-        "tests.conftest",
+        "tests.unit.conftest",
         "ensure_shared_docker_container",
     ),
     "flext_domains": ("tests.conftest", "flext_domains"),
     "h": ("flext_db_oracle", "h"),
     "integration": ("tests.integration", ""),
-    "logger": ("tests.conftest", "logger"),
+    "logger": ("tests.unit.conftest", "logger"),
     "m": ("tests.models", "TestsFlextDbOracleModels"),
-    "mock_oracle_config": ("tests.conftest", "mock_oracle_config"),
-    "oracle_api": ("tests.conftest", "oracle_api"),
-    "oracle_available": ("tests.conftest", "oracle_available"),
-    "oracle_config": ("tests.conftest", "oracle_config"),
-    "oracle_container": ("tests.conftest", "oracle_container"),
+    "mock_oracle_config": ("tests.unit.conftest", "mock_oracle_config"),
+    "oracle_api": ("tests.unit.conftest", "oracle_api"),
+    "oracle_available": ("tests.unit.conftest", "oracle_available"),
+    "oracle_config": ("tests.unit.conftest", "oracle_config"),
+    "oracle_container": ("tests.unit.conftest", "oracle_container"),
     "p": ("tests.protocols", "TestsFlextDbOracleProtocols"),
     "pytest_configure": ("tests.conftest", "pytest_configure"),
     "pytest_runtest_makereport": ("tests.conftest", "pytest_runtest_makereport"),
     "pytest_sessionstart": ("tests.conftest", "pytest_sessionstart"),
     "r": ("flext_db_oracle", "r"),
-    "real_oracle_config": ("tests.conftest", "real_oracle_config"),
+    "real_oracle_config": ("tests.unit.conftest", "real_oracle_config"),
     "s": ("flext_db_oracle", "s"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
-    "shared_oracle_container": ("tests.conftest", "shared_oracle_container"),
+    "shared_oracle_container": ("tests.unit.conftest", "shared_oracle_container"),
     "t": ("tests.typings", "TestsFlextDbOracleTypes"),
-    "test_cleanup": ("tests.conftest", "test_cleanup"),
+    "test_cleanup": ("tests.unit.conftest", "test_cleanup"),
     "test_database_setup": ("tests.conftest", "test_database_setup"),
     "tm": ("tests.models", "tm"),
     "u": ("tests.utilities", "TestsFlextDbOracleUtilities"),
