@@ -14,15 +14,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_core import FlextTypes, m as _core_m, t as _core_t
+from flext_core import FlextTypes, t as _core_t
 from pydantic import TypeAdapter
 
-if TYPE_CHECKING:
-    from flext_db_oracle import c
-
-_ConfigMap = _core_m.ConfigMap
+_ConfigMap = dict[str, _core_t.ContainerValue]
 
 
 class FlextDbOracleTypes(FlextTypes):

@@ -132,7 +132,9 @@ class FlextDbOracleConstants(FlextConstants):
             """Oracle-specific performance tuning constants."""
 
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
+            DEFAULT_BATCH_SIZE: Final[int] = (
+                core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
+            )
             MAX_BATCH_SIZE: Final[int] = core_c.DEFAULT_MAX_COMMAND_RETRIES or 1000
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
@@ -167,7 +169,9 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
-            DEFAULT_BATCH_SIZE: Final[int] = core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
+            DEFAULT_BATCH_SIZE: Final[int] = (
+                core_c.DEFAULT_BATCH_SIZE or core_c.DEFAULT_SIZE
+            )
 
         class OracleEnums:
             """Oracle-specific enumerations."""
