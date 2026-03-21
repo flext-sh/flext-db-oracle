@@ -7,14 +7,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping
-from typing import ClassVar, override
+from typing import TYPE_CHECKING, ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, r
+from flext_core import FlextContainer, FlextRegistry, FlextService, r
 
-from flext_db_oracle import FlextDbOracleModels, p, s, t
+from flext_db_oracle import FlextDbOracleModels, p, t
+
+if TYPE_CHECKING:
+    from flext_db_oracle.services import FlextDbOracleServices
 
 
-class FlextDbOracleDispatcher(s):
+class FlextDbOracleDispatcher(FlextService[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     ConnectCommand: ClassVar[type] = FlextDbOracleModels.DbOracle.ConnectCommand
@@ -42,7 +45,7 @@ class FlextDbOracleDispatcher(s):
     @classmethod
     def _create_connection_handlers(
         cls,
-        services: s,
+        services: FlextDbOracleServices,
     ) -> dict[
         type,
         tuple[
@@ -76,7 +79,7 @@ class FlextDbOracleDispatcher(s):
     @classmethod
     def build_dispatcher(
         cls,
-        services: s,
+        services: FlextDbOracleServices,
         *,
         _bus: t.ContainerValue | None = None,
     ) -> p.Dispatcher:
@@ -104,7 +107,7 @@ class FlextDbOracleDispatcher(s):
 
     def _create_query_handlers(
         self,
-        services: s,
+        services: FlextDbOracleServices,
     ) -> dict[
         type,
         tuple[
@@ -171,7 +174,7 @@ class FlextDbOracleDispatcher(s):
 
     def _create_schema_handlers(
         self,
-        services: s,
+        services: FlextDbOracleServices,
     ) -> dict[
         type,
         tuple[

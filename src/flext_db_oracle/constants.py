@@ -138,6 +138,12 @@ class FlextDbOracleConstants(FlextConstants):
             MAX_BATCH_SIZE: Final[int] = core_c.DEFAULT_MAX_COMMAND_RETRIES or 1000
             CONNECTION_IDLE_TIMEOUT_SECONDS: Final[int] = 3600
             DATA_SIZE_ESTIMATION_FACTOR: Final[int] = 50
+            CONNECTION_EXCELLENT_THRESHOLD_SECONDS: Final[float] = 0.1
+            CONNECTION_GOOD_THRESHOLD_SECONDS: Final[float] = 0.5
+            CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS: Final[float] = 2.0
+            QUERY_EXCELLENT_THRESHOLD_MS: Final[int] = 100
+            QUERY_GOOD_THRESHOLD_MS: Final[int] = 500
+            QUERY_ACCEPTABLE_THRESHOLD_MS: Final[int] = 2000
 
         class IsolationLevels:
             """Oracle transaction isolation levels."""

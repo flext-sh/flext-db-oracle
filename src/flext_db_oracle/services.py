@@ -6,10 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import time
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from importlib import import_module
 from typing import Self, override
 from urllib.parse import quote_plus
@@ -17,6 +19,14 @@ from urllib.parse import quote_plus
 import oracledb
 from flext_core import r, s
 from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
+from sqlalchemy import (
+    Connection as SAConnection,
+    Engine as SAEngine,
+    TextClause,
+    create_engine,
+    text,
+)
+from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
@@ -31,12 +41,6 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class _StrictIntValue(RootModel[int]):
-    """Pydantic root model for strict integer validation."""
-
-    root: int
-
-
 class _CountValue(RootModel[int | str]):
     """Pydantic root model for count value (int or numeric string)."""
 
@@ -48,8 +52,10 @@ _STRING_LIST_ADAPTER = TypeAdapter(list[str])
 
 def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
     """Validate arbitrary mapping input as ConfigMap."""
+    if not isinstance(value, dict):
+        return None
     try:
-        return t.ConfigMap(value)
+        return t.ConfigMap.model_validate({"root": value})
     except ValidationError:
         return None
 
@@ -61,18 +67,17 @@ def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
     return t.ConfigMap(root={})
 
 
-def _parse_rowcount(value: t.ContainerValue) -> int:
-    """Parse strict integer rowcount via Pydantic."""
-    try:
-        return _StrictIntValue(value).root
-    except ValidationError:
-        return 0
-
-
 def _parse_count_value(value: t.ContainerValue) -> int:
     """Parse row count value accepting int or numeric string."""
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return 0
     try:
-        validated = _CountValue(value).root
+        validated = _CountValue.model_validate(value).root
     except ValidationError:
         return 0
     try:
@@ -90,85 +95,51 @@ def _normalize_singer_type(value: str | list[str]) -> str:
     return values[0] if values else "string"
 
 
-def _extract_object_rows(value: t.ContainerValue) -> list[object]:
-    if isinstance(value, Sequence) and not isinstance(value, str | bytes):
-        return list(value)
-    return []
+def _sqlalchemy_create_engine(url: str) -> SAEngine:
+    """Create SQLAlchemy engine."""
+    return create_engine(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
 
 
-def _sqlalchemy_create_engine(url: str) -> t.ContainerValue:
-    """Create SQLAlchemy engine via runtime import to keep type boundaries explicit."""
-    sqlalchemy_module = import_module("sqlalchemy")
-    create_engine_func = getattr(sqlalchemy_module, "create_engine", None)
-    if not callable(create_engine_func):
-        msg = "sqlalchemy.create_engine unavailable"
-        raise TypeError(msg)
-    return create_engine_func(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
+def _sqlalchemy_text(statement: str) -> TextClause:
+    """Build SQL text object."""
+    return text(statement)
 
 
-def _sqlalchemy_text(statement: str) -> t.ContainerValue:
-    """Build SQL text object via runtime import."""
-    sqlalchemy_module = import_module("sqlalchemy")
-    text_func = getattr(sqlalchemy_module, "text", None)
-    if not callable(text_func):
-        msg = "sqlalchemy.text unavailable"
-        raise TypeError(msg)
-    return text_func(statement)
-
-
-def _engine_connect(engine: t.ContainerValue) -> t.ContainerValue:
+def _engine_connect(engine: SAEngine) -> SAConnection:
     """Open connection context manager from engine."""
-    connect_method = getattr(engine, "connect", None)
-    if not callable(connect_method):
-        msg = "Database engine does not expose connect()"
-        raise TypeError(msg)
-    return connect_method()
+    return engine.connect()
 
 
-def _engine_begin(engine: t.ContainerValue) -> t.ContainerValue:
+def _engine_begin(engine: SAEngine) -> contextlib.AbstractContextManager[SAConnection]:
     """Open transaction context manager from engine."""
-    begin_method = getattr(engine, "begin", None)
-    if not callable(begin_method):
-        msg = "Database engine does not expose begin()"
-        raise TypeError(msg)
-    return begin_method()
+    return engine.begin()
 
 
-def _context_enter(context_manager: t.ContainerValue) -> t.ContainerValue:
+def _context_enter[T](context_manager: contextlib.AbstractContextManager[T]) -> T:
     """Enter dynamic context manager and return inner object."""
-    enter_method = getattr(context_manager, "__enter__", None)
-    if not callable(enter_method):
-        msg = "Context manager does not expose __enter__()"
-        raise TypeError(msg)
-    return enter_method()
+    return context_manager.__enter__()
 
 
-def _context_exit(context_manager: t.ContainerValue) -> None:
+def _context_exit(
+    context_manager: contextlib.AbstractContextManager[SAConnection],
+) -> None:
     """Exit dynamic context manager safely."""
-    exit_method = getattr(context_manager, "__exit__", None)
-    if callable(exit_method):
-        _ = exit_method(None, None, None)
+    context_manager.__exit__(None, None, None)
 
 
-def _engine_dispose(engine: t.ContainerValue) -> None:
-    """Dispose engine resources through dynamic method lookup."""
-    dispose_method = getattr(engine, "dispose", None)
-    if callable(dispose_method):
-        dispose_method()
+def _engine_dispose(engine: SAEngine) -> None:
+    """Dispose engine resources."""
+    engine.dispose()
 
 
 def _connection_execute(
-    connection: t.ContainerValue,
-    statement: t.ContainerValue,
+    connection: SAConnection,
+    statement: TextClause,
     parameters: t.ConfigMap | None = None,
-) -> t.ContainerValue:
-    """Execute statement on dynamic SQL connection."""
-    execute_method = getattr(connection, "execute", None)
-    if not callable(execute_method):
-        msg = "Database connection does not expose execute()"
-        raise TypeError(msg)
+) -> CursorResult[tuple[t.ContainerValue, ...]]:
+    """Execute statement on SQL connection."""
     normalized_params = _normalize_params(parameters)
-    return execute_method(statement, normalized_params.root)
+    return connection.execute(statement, normalized_params.root)
 
 
 class FlextDbOracleServices(s[FlextDbOracleSettings]):
@@ -181,7 +152,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         super().__init__()
         self._db_config = config
         self._config = config
-        self._engine: t.ContainerValue | None = None
+        self._engine: SAEngine | None = None
         self._operations: list[FlextDbOracleModels.DbOracle.OperationRecord] = []
         self._plugins: dict[str, t.ContainerValue] = {}
         self._metrics: dict[str, t.ContainerValue] = {}
@@ -200,14 +171,24 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         try:
             if not isinstance(_config, Mapping):
                 return r[str].fail("Invalid CREATE INDEX config payload")
+            raw_columns = _config.get("columns", [])
+            columns_list: list[str] = (
+                [str(col) for col in raw_columns]
+                if isinstance(raw_columns, list)
+                else []
+            )
+            raw_parallel = _config.get("parallel", 1)
+            parallel_value = (
+                int(raw_parallel) if isinstance(raw_parallel, (int, str)) else 1
+            )
             payload = {
                 "table_name": str(_config.get("table_name", "")),
                 "index_name": str(_config.get("index_name", "")),
-                "columns": [str(col) for col in _config.get("columns", [])],
+                "columns": columns_list,
                 "unique": bool(_config.get("unique", False)),
                 "schema_name": str(_config.get("schema_name", "")),
                 "tablespace": str(_config.get("tablespace", "")),
-                "parallel": int(_config.get("parallel", 1)),
+                "parallel": parallel_value,
             }
             config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
                 payload,
@@ -266,7 +247,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         typed_conditions = (
             conditions
             if isinstance(conditions, t.ConfigMap) or conditions is None
-            else t.ConfigMap(conditions)
+            else t.ConfigMap.model_validate({"root": dict(conditions)})
         )
         cols = ", ".join(columns) if columns else "*"
         if typed_conditions and typed_conditions.root:
@@ -376,7 +357,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[FlextDbOracleModels.DbOracle.Column | object],
+        columns: Sequence[
+            FlextDbOracleModels.DbOracle.Column | Mapping[str, t.ContainerValue]
+        ],
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
@@ -387,7 +370,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 name = col.name or c.IDENTIFIER_UNKNOWN
                 data_type = col.data_type or "VARCHAR2(255)"
                 nullable = "" if col.nullable else " NOT NULL"
-                if getattr(col, "primary_key", False):
+                if col.primary_key:
                     primary_keys.append(name)
             elif isinstance(col, Mapping):
                 name_value = col.get("name") or col.get("column_name")
@@ -458,15 +441,14 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     typed_params = (
                         params
                         if isinstance(params, t.ConfigMap)
-                        else t.ConfigMap(params)
+                        else t.ConfigMap.model_validate({"root": dict(params)})
                     )
                     result = _connection_execute(
                         conn,
                         _sqlalchemy_text(sql),
                         typed_params,
                     )
-                    rowcount_raw = getattr(result, "rowcount", 0)
-                    total_affected += _parse_rowcount(rowcount_raw)
+                    total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
             finally:
                 _context_exit(connect_ctx)
@@ -526,8 +508,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             conn = _context_enter(transaction_ctx)
             try:
                 result = _connection_execute(conn, _sqlalchemy_text(sql), params)
-                rowcount_raw = getattr(result, "rowcount", 0)
-                rowcount = _parse_rowcount(rowcount_raw)
+                rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
             finally:
                 _context_exit(transaction_ctx)
@@ -561,7 +542,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         typed_params = (
             params
             if isinstance(params, t.ConfigMap) or params is None
-            else t.ConfigMap(params)
+            else t.ConfigMap.model_validate({"root": dict(params)})
         )
         hash_input = f"{sql}_{typed_params!s}"
         return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
@@ -586,6 +567,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     name=str(row.root.get("column_name", "")),
                     data_type=str(row.root.get("data_type", "")),
                     nullable=str(row.root.get("nullable", "Y")) == "Y",
+                    primary_key=False,
                     default_value=str(row.root.get("data_default", "")),
                 )
                 for row in rows
@@ -593,7 +575,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         )
 
     @contextmanager
-    def get_connection(self) -> Generator[t.ContainerValue]:
+    def get_connection(self) -> Generator[SAConnection]:
         """Get database connection context manager."""
         engine = self._engine
         if engine is None:
@@ -608,13 +590,19 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
 
     def get_connection_status(self) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
+        now = datetime.now(UTC)
         return r[FlextDbOracleModels.DbOracle.ConnectionStatus].ok(
             FlextDbOracleModels.DbOracle.ConnectionStatus(
                 is_connected=self.is_connected(),
+                last_check=now,
+                connection_time=0.0,
+                last_activity=now,
+                session_id="",
                 host=self.db_config.host,
                 port=self.db_config.port,
                 service_name=self.db_config.service_name,
                 username=self.db_config.username,
+                db_version="",
                 error_message="" if self.is_connected() else "Connection unavailable",
             ),
         )
@@ -659,14 +647,16 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def get_plugin(self, _name: str) -> r[t.ContainerValue]:
         """Get plugin data from local service registry."""
         if not _name:
-            return r.fail("Plugin name is required")
+            return r[t.ContainerValue].fail("Plugin name is required")
         try:
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
-            return r.fail("flext-plugin integration unavailable; install flext-plugin")
+            return r[t.ContainerValue].fail(
+                "flext-plugin integration unavailable; install flext-plugin"
+            )
         if _name not in self._plugins:
-            return r.fail(f"Plugin '{_name}' not found")
-        return r.ok(self._plugins[_name])
+            return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
+        return r[t.ContainerValue].ok(self._plugins[_name])
 
     def get_primary_key_columns(
         self,
@@ -831,23 +821,19 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def map_singer_schema(
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
-        | object
         | Mapping[str, t.ContainerValue],
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: t.ContainerValue | None = None
+        raw_properties: Mapping[str, t.ContainerValue] | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:
-            if not isinstance(singer_schema, Mapping):
-                return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
-                    "Singer schema must be a mapping",
-                )
-            raw_properties = singer_schema.get("properties", {})
-            if not isinstance(raw_properties, Mapping):
+            raw_props_value = singer_schema.get("properties", {})
+            if not isinstance(raw_props_value, dict):
                 return r[FlextDbOracleModels.DbOracle.TypeMapping].fail(
                     "Singer schema properties must be a mapping",
                 )
+            raw_properties = raw_props_value
             normalized_properties: dict[
                 str,
                 FlextDbOracleModels.DbOracle.SingerField,
@@ -914,15 +900,15 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         typed_tags = (
             _tags
             if isinstance(_tags, t.ConfigMap) or _tags is None
-            else t.ConfigMap(_tags)
+            else t.ConfigMap.model_validate({"root": dict(_tags)})
         )
-        tags_payload = (
-            typed_tags.root if typed_tags is not None else dict[str, t.ContainerValue]()
+        tags_payload: dict[str, t.ContainerValue] = (
+            dict(typed_tags.root) if typed_tags is not None else {}
         )
         metric_result = metric_factory(
             name=_name,
             value=_value,
-            tags=t.Dict(tags_payload),
+            tags=t.Dict(root=tags_payload),
         )
         if getattr(metric_result, "is_failure", False):
             return r[bool].fail(
@@ -932,11 +918,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     "Metric recording failed in observability",
                 ),
             )
-        self._metrics[_name] = {
-            "value": _value,
-            "tags": tags_payload,
-            "timestamp": self._get_current_timestamp(),
-        }
+        self._metrics[_name] = self._get_current_timestamp()
         return r[bool].ok(True)
 
     def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> r[bool]:
@@ -953,9 +935,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             return r[bool].fail(
                 "flext-plugin integration unavailable; install flext-plugin",
             )
-        payload = dict(plugin_payload.root)
-        payload["name"] = str(payload.get("name", _name))
-        self._plugins[_name] = payload
+        self._plugins[_name] = _name
         return r[bool].ok(True)
 
     def test_connection(self) -> r[bool]:
@@ -996,7 +976,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             metadata_value = (
                 metadata
                 if isinstance(metadata, t.ConfigMap)
-                else t.ConfigMap(metadata or {})
+                else t.ConfigMap.model_validate({
+                    "root": dict(metadata) if metadata else {}
+                })
             )
             operation = FlextDbOracleModels.DbOracle.OperationRecord(
                 operation_type=operation_type,
@@ -1019,7 +1001,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def transaction(self) -> Generator[t.ContainerValue]:
+    def transaction(self) -> Generator[SAConnection, None, None]:
         """Get transaction context for database operations."""
         engine = self._engine
         if engine is None:
@@ -1069,45 +1051,43 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"Failed to build connection URL: {e}")
 
-    def _extract_mapping_rows(self, mapping_result: t.ContainerValue) -> list[object]:
+    def _extract_mapping_rows(
+        self, mapping_result: t.ContainerValue
+    ) -> list[Mapping[str, t.ContainerValue]]:
         """Extract all SQLAlchemy mapping rows from a mapping result."""
         all_method = getattr(mapping_result, "all", None)
         if not callable(all_method):
             return []
         rows = all_method()
-        return _extract_object_rows(rows)
+        if isinstance(rows, list):
+            return [dict(row) for row in rows if hasattr(row, "__iter__")]
+        return []
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp for operation tracking."""
         return str(int(time.time()))
 
-    def _get_engine(self) -> r[t.ContainerValue]:
+    def _get_engine(self) -> r[SAEngine]:
         """Get database engine."""
         if not self._engine or not self.is_connected():
-            return r.fail("Not connected to database")
-        return r.ok(self._engine)
+            return r[SAEngine].fail("Not connected to database")
+        return r[SAEngine].ok(self._engine)
 
-    def _normalize_query_rows(self, query_result: t.ContainerValue) -> list[t.Dict]:
+    def _normalize_query_rows(
+        self, query_result: CursorResult[tuple[t.ContainerValue, ...]]
+    ) -> list[t.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
-        mappings_method = getattr(query_result, "mappings", None)
-        if not callable(mappings_method):
-            return []
-        mapping_result = mappings_method()
+        mapping_result = query_result.mappings()
+        rows = mapping_result.all()
         return [
-            self._normalize_row(row)
-            for row in self._extract_mapping_rows(mapping_result)
+            t.Dict(root={str(key): value for key, value in dict(row).items()})
+            for row in rows
         ]
 
-    def _normalize_row(self, row: Mapping[str, t.ContainerValue] | object) -> t.Dict:
+    def _normalize_row(self, row: Mapping[str, t.ContainerValue]) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        if isinstance(row, Mapping):
-            validated_mapping = _validate_config_map(row)
-        else:
-            validated_mapping = _validate_config_map(getattr(row, "_mapping", None))
-        if validated_mapping is None:
-            return t.Dict(root={})
         return t.Dict(
-            root={str(key): value for key, value in validated_mapping.root.items()},
+            root={str(key): value for key, value in row.items()},
         )
 
     def _parse_count_from_rows(self, rows: list[t.Dict]) -> int:

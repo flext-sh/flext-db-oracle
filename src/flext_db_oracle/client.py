@@ -254,7 +254,11 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         r[str]: Formatted query results or error.
 
         """
-        query_params = params if params is not None else t.ConfigMap(root={})
+        query_params: t.ConfigMap = (
+            t.ConfigMap(root=dict(params))
+            if params is not None
+            else t.ConfigMap(root={})
+        )
         operation_result = self._execute_with_chain(
             "query",
             sql=sql,

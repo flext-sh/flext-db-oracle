@@ -16,7 +16,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from flext_tests import tm
-from tests import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -25,6 +24,7 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
+from tests import t
 
 
 class _StubResult:

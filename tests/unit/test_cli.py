@@ -18,7 +18,6 @@ import yaml
 from flext_core import r
 from flext_tests import tm
 from pydantic import TypeAdapter
-from tests import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -28,6 +27,7 @@ from flext_db_oracle import (
     FlextDbOracleUtilities,
 )
 from flext_db_oracle.cli import HealthCheckReport, NamedItem
+from tests import t
 
 
 class TestFlextDbOracleClientReal:

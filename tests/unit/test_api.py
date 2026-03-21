@@ -19,7 +19,6 @@ import pytest
 from flext_core import r
 from flext_tests import tm
 from flext_tests.domains import td
-from tests import t
 
 from flext_db_oracle import (
     FlextDbOracleApi,
@@ -28,6 +27,7 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
 )
+from tests import t
 
 
 class TestFlextDbOracleApiRealFunctionality:
