@@ -1,7 +1,4 @@
-"""Test protocol definitions for flext-db-oracle.
-
-Provides TestsFlextDbOracleProtocols, combining p with
-FlextDbOracleProtocols for test-specific protocol definitions.
+"""Test protocols for flext-db-oracle.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,30 +6,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import p
+from flext_tests import FlextTestsProtocols
 
-from flext_db_oracle.protocols import FlextDbOracleProtocols
-
-
-class TestsFlextDbOracleProtocols(p, FlextDbOracleProtocols):
-    """Test protocols combining p and FlextDbOracleProtocols.
-
-    Provides access to:
-    - p.Tests.Docker.* (from p)
-    - p.Tests.Factory.* (from p)
-    - p.DbOracle.* (from FlextDbOracleProtocols)
-    """
-
-    class Tests(p.Tests):
-        """Project-specific test protocols.
-
-        Extends p.Tests with DbOracle-specific protocols.
-        """
-
-        class DbOracle:
-            """DbOracle-specific test protocols."""
+from flext_db_oracle import FlextDbOracleProtocols
 
 
-__all__ = ["TestsFlextDbOracleProtocols", "p"]
+class FlextDbOracleTestProtocols(FlextTestsProtocols, FlextDbOracleProtocols):
+    """Test protocols for flext-db-oracle."""
 
-p = TestsFlextDbOracleProtocols
+    class DbOracle(FlextDbOracleProtocols.DbOracle):
+        """DbOracle domain test protocols."""
+
+        class Tests:
+            """Test-specific protocols."""
+
+
+p = FlextDbOracleTestProtocols
+__all__ = ["FlextDbOracleTestProtocols", "p"]

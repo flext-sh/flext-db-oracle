@@ -178,7 +178,7 @@ class TestConstants:
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
-        tm.that(hasattr(FlextDbOracleConstants, "Validation"), eq=True)
+        tm.that(hasattr(FlextDbOracleConstants.DbOracle, "OracleValidation"), eq=True)
 
 
 class TestExceptions:

@@ -11,8 +11,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
     from flext_core.typings import FlextTypes
-
-    from flext_db_oracle import d, e, h, r, s, x
+    from flext_tests import d, e, h, r, s, x
 
     from . import e2e as e2e, integration as integration, unit as unit
     from .conftest import (
@@ -22,12 +21,12 @@ if TYPE_CHECKING:
         pytest_sessionstart,
         test_database_setup,
     )
-    from .constants import TestsFlextDbOracleConstants, TestsFlextDbOracleConstants as c
+    from .constants import FlextDbOracleTestConstants, FlextDbOracleTestConstants as c
     from .e2e.test_oracle import OperationTestError, TestOracleE2E
     from .integration.test_oracle import TestOracleIntegration
-    from .models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m, tm
-    from .protocols import TestsFlextDbOracleProtocols, TestsFlextDbOracleProtocols as p
-    from .typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
+    from .models import FlextDbOracleTestModels, FlextDbOracleTestModels as m
+    from .protocols import FlextDbOracleTestProtocols, FlextDbOracleTestProtocols as p
+    from .typings import FlextDbOracleTestTypes, FlextDbOracleTestTypes as t
     from .unit.conftest import (
         connected_oracle_api,
         docker_control,
@@ -102,9 +101,14 @@ if TYPE_CHECKING:
     )
     from .unit.test_typings import TestFlextDbOracleTypes
     from .unit.test_utilities import TestFlextDbOracleUtilities
-    from .utilities import TestsFlextDbOracleUtilities, TestsFlextDbOracleUtilities as u
+    from .utilities import FlextDbOracleTestUtilities, FlextDbOracleTestUtilities as u
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "FlextDbOracleTestConstants": ("tests.constants", "FlextDbOracleTestConstants"),
+    "FlextDbOracleTestModels": ("tests.models", "FlextDbOracleTestModels"),
+    "FlextDbOracleTestProtocols": ("tests.protocols", "FlextDbOracleTestProtocols"),
+    "FlextDbOracleTestTypes": ("tests.typings", "FlextDbOracleTestTypes"),
+    "FlextDbOracleTestUtilities": ("tests.utilities", "FlextDbOracleTestUtilities"),
     "HealthCheckReport": ("tests.unit.test_cli", "HealthCheckReport"),
     "NamedItem": ("tests.unit.test_cli", "NamedItem"),
     "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),
@@ -243,50 +247,49 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "TestUtilities": ("tests.unit.test_coverage_baseline", "TestUtilities"),
     "TestYamlModule": ("tests.unit.test_cli", "TestYamlModule"),
-    "TestsFlextDbOracleConstants": ("tests.constants", "TestsFlextDbOracleConstants"),
-    "TestsFlextDbOracleModels": ("tests.models", "TestsFlextDbOracleModels"),
-    "TestsFlextDbOracleProtocols": ("tests.protocols", "TestsFlextDbOracleProtocols"),
-    "TestsFlextDbOracleTypes": ("tests.typings", "TestsFlextDbOracleTypes"),
-    "TestsFlextDbOracleUtilities": ("tests.utilities", "TestsFlextDbOracleUtilities"),
-    "c": ("tests.constants", "TestsFlextDbOracleConstants"),
+    "c": ("tests.constants", "FlextDbOracleTestConstants"),
     "connected_oracle_api": ("tests.unit.conftest", "connected_oracle_api"),
-    "d": ("flext_db_oracle", "d"),
+    "d": ("flext_tests", "d"),
     "docker_control": ("tests.unit.conftest", "docker_control"),
-    "e": ("flext_db_oracle", "e"),
+    "e": ("flext_tests", "e"),
     "e2e": ("tests.e2e", ""),
     "ensure_shared_docker_container": (
         "tests.unit.conftest",
         "ensure_shared_docker_container",
     ),
     "flext_domains": ("tests.conftest", "flext_domains"),
-    "h": ("flext_db_oracle", "h"),
+    "h": ("flext_tests", "h"),
     "integration": ("tests.integration", ""),
     "logger": ("tests.unit.conftest", "logger"),
-    "m": ("tests.models", "TestsFlextDbOracleModels"),
+    "m": ("tests.models", "FlextDbOracleTestModels"),
     "mock_oracle_config": ("tests.unit.conftest", "mock_oracle_config"),
     "oracle_api": ("tests.unit.conftest", "oracle_api"),
     "oracle_available": ("tests.unit.conftest", "oracle_available"),
     "oracle_config": ("tests.unit.conftest", "oracle_config"),
     "oracle_container": ("tests.unit.conftest", "oracle_container"),
-    "p": ("tests.protocols", "TestsFlextDbOracleProtocols"),
+    "p": ("tests.protocols", "FlextDbOracleTestProtocols"),
     "pytest_configure": ("tests.conftest", "pytest_configure"),
     "pytest_runtest_makereport": ("tests.conftest", "pytest_runtest_makereport"),
     "pytest_sessionstart": ("tests.conftest", "pytest_sessionstart"),
-    "r": ("flext_db_oracle", "r"),
+    "r": ("flext_tests", "r"),
     "real_oracle_config": ("tests.unit.conftest", "real_oracle_config"),
-    "s": ("flext_db_oracle", "s"),
+    "s": ("flext_tests", "s"),
     "safe_get_first_value": ("tests.unit.test_oracle_example", "safe_get_first_value"),
     "shared_oracle_container": ("tests.unit.conftest", "shared_oracle_container"),
-    "t": ("tests.typings", "TestsFlextDbOracleTypes"),
+    "t": ("tests.typings", "FlextDbOracleTestTypes"),
     "test_cleanup": ("tests.unit.conftest", "test_cleanup"),
     "test_database_setup": ("tests.conftest", "test_database_setup"),
-    "tm": ("tests.models", "tm"),
-    "u": ("tests.utilities", "TestsFlextDbOracleUtilities"),
+    "u": ("tests.utilities", "FlextDbOracleTestUtilities"),
     "unit": ("tests.unit", ""),
-    "x": ("flext_db_oracle", "x"),
+    "x": ("flext_tests", "x"),
 }
 
 __all__ = [
+    "FlextDbOracleTestConstants",
+    "FlextDbOracleTestModels",
+    "FlextDbOracleTestProtocols",
+    "FlextDbOracleTestTypes",
+    "FlextDbOracleTestUtilities",
     "HealthCheckReport",
     "NamedItem",
     "OperationTestError",
@@ -338,11 +341,6 @@ __all__ = [
     "TestServiceErrorHandling",
     "TestUtilities",
     "TestYamlModule",
-    "TestsFlextDbOracleConstants",
-    "TestsFlextDbOracleModels",
-    "TestsFlextDbOracleProtocols",
-    "TestsFlextDbOracleTypes",
-    "TestsFlextDbOracleUtilities",
     "c",
     "connected_oracle_api",
     "d",
@@ -372,7 +370,6 @@ __all__ = [
     "t",
     "test_cleanup",
     "test_database_setup",
-    "tm",
     "u",
     "unit",
     "x",

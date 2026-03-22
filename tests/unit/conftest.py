@@ -18,7 +18,7 @@ from pathlib import Path
 import oracledb
 import pytest
 from flext_core import FlextLogger, p
-from flext_tests.docker import tk
+from flext_tests import tk
 from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
