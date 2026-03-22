@@ -406,11 +406,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 "connected": source.is_connected,
                 "plugin_count": plugin_count_value,
             }
-            return t.ConfigMap.model_validate({"root": payload})
+            return t.ConfigMap(root=payload)
         if isinstance(obj, BaseModel):
-            return t.ConfigMap.model_validate({"root": obj.model_dump(mode="python")})
+            return t.ConfigMap(root=obj.model_dump(mode="python"))
         if isinstance(obj, Mapping):
-            return t.ConfigMap.model_validate({"root": dict(obj)})
+            return t.ConfigMap(root=dict(obj))
         return t.ConfigMap(root={})
 
     def transaction(self) -> r[Mapping[str, t.ContainerValue]]:

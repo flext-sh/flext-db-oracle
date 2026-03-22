@@ -26,8 +26,11 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
 )
-from flext_db_oracle.cli import HealthCheckReport, NamedItem
+from flext_db_oracle.models import FlextDbOracleModels as m
 from tests import t
+
+HealthCheckReport = m.DbOracle.HealthCheckReport
+NamedItem = m.DbOracle.NamedItem
 
 
 class TestFlextDbOracleClientReal:

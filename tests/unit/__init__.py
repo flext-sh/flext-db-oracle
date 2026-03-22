@@ -41,6 +41,8 @@ if TYPE_CHECKING:
         TestFlextDbOracleApiWorking,
     )
     from .test_cli import (
+        HealthCheckReport,
+        NamedItem,
         TestCLIRealFunctionality,
         TestCliServiceOperations,
         TestFlextDbOracleCli,
@@ -93,6 +95,8 @@ if TYPE_CHECKING:
     from .test_utilities import TestFlextDbOracleUtilities
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "HealthCheckReport": ("tests.unit.test_cli", "HealthCheckReport"),
+    "NamedItem": ("tests.unit.test_cli", "NamedItem"),
     "TestApiModule": ("tests.unit.test_api", "TestApiModule"),
     "TestApiSurgicalSimple": ("tests.unit.test_api", "TestApiSurgicalSimple"),
     "TestBasicModelCreation": (
@@ -245,6 +249,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 __all__ = [
+    "HealthCheckReport",
+    "NamedItem",
     "TestApiModule",
     "TestApiSurgicalSimple",
     "TestBasicModelCreation",
