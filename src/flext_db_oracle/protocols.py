@@ -45,7 +45,7 @@ class FlextDbOracleProtocols(FlextProtocols):
 
             def dump(
                 self,
-                data: object,
+                data: Mapping[str, t.NormalizedValue] | list[t.NormalizedValue],
                 *,
                 default_flow_style: bool = True,
             ) -> str:
