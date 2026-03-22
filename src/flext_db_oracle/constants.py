@@ -427,6 +427,12 @@ class FlextDbOracleConstants(FlextConstants):
             LOCALHOST_IP: Final[str] = "127.0.0.1"
             LOOPBACK_IP: Final[str] = "127.0.0.1"
 
+        ConnectionTypeLiteral: Final = tuple(Lists.VALID_CONNECTION_TYPES)
+        QueryTypeLiteral: Final = tuple(Lists.VALID_QUERY_TYPES)
+        DataTypeLiteral: Final = tuple(Lists.VALID_DATA_TYPES)
+
+    Platform = DbOracle.Platform
+
     @unique
     class ProjectType(StrEnum):
         """Project type literals for package metadata."""
