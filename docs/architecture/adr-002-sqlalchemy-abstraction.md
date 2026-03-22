@@ -10,7 +10,7 @@
 - [Alternatives Considered](#alternatives-considered)
   - [Option 1: Repository Pattern with Full Abstraction](#option-1-repository-pattern-with-full-abstraction)
   - [Option 2: Direct SQLAlchemy Usage Throughout](#option-2-direct-sqlalchemy-usage-throughout)
-  - [Option 3: Query Object Pattern](#option-3-query-object-pattern)
+  - [Option 3: Query Object Pattern](#option-3-query-t.NormalizedValue-pattern)
   - [Option 4: CQRS with Separate Read/Write Models](#option-4-cqrs-with-separate-readwrite-models)
   - [Option 5: Data Mapper Pattern](#option-5-data-mapper-pattern)
 - [Consequences](#consequences)
@@ -136,7 +136,7 @@ This abstraction strategy provides the best balance of encapsulation, performanc
 
 **Description**: Create query objects that encapsulate SQLAlchemy usage
 **Pros**: Clean separation; testable query objects; domain-specific query APIs
-**Cons**: Complex query object hierarchies; performance overhead; maintenance burden
+**Cons**: Complex query t.NormalizedValue hierarchies; performance overhead; maintenance burden
 **Decision**: Considered but not selected - Single-entry-point provides better balance
 
 ### Option 4: CQRS with Separate Read/Write Models

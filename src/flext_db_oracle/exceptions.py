@@ -67,7 +67,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             object_type: str | None = None,
             **_kwargs: t.Scalar,
         ) -> None:
-            """Initialize metadata error with object name and type metadata."""
+            """Initialize metadata error with t.NormalizedValue name and type metadata."""
             super().__init__(message)
             self.object_name = object_name
             self.object_type = object_type

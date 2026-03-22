@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
 
 
 class OperationTestError(Exception):
@@ -161,7 +161,7 @@ class TestOracleE2E:
                 ("number", "NUMBER"),
                 ("boolean", "NUMBER(1)"),
                 ("array", "VARCHAR2(255)"),
-                ("object", "VARCHAR2(255)"),
+                ("t.NormalizedValue", "VARCHAR2(255)"),
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)
@@ -173,13 +173,13 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: dict[str, object] = {
+            singer_schema: dict[str, t.NormalizedValue] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},
                     "email": {"type": "string"},
                     "is_active": {"type": "boolean"},
-                    "metadata": {"type": "object"},
+                    "metadata": {"type": "t.NormalizedValue"},
                     "created_at": {"type": "string", "format": "date-time"},
                 }
             }

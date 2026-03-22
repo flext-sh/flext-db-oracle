@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from flext_core import FlextModels
 from pydantic import (
@@ -45,7 +45,7 @@ class FlextDbOracleModels(FlextModels):
         class FlextDbOracleBaseModel(BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
-            model_config = ConfigDict(
+            model_config: ClassVar[ConfigDict] = ConfigDict(
                 use_enum_values=True,
                 validate_default=True,
                 str_strip_whitespace=True,
@@ -96,7 +96,9 @@ class FlextDbOracleModels(FlextModels):
         class ConnectionStatus(FlextModels.Entity):
             """Connection status using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False, extra="ignore")
+            model_config: ClassVar[ConfigDict] = ConfigDict(
+                frozen=False, extra="ignore"
+            )
 
             is_connected: bool = False
             last_check: Annotated[
@@ -252,7 +254,9 @@ class FlextDbOracleModels(FlextModels):
         class QueryResult(FlextModels.Entity):
             """Query result using flext-core Entity."""
 
-            model_config = ConfigDict(frozen=False, extra="ignore")
+            model_config: ClassVar[ConfigDict] = ConfigDict(
+                frozen=False, extra="ignore"
+            )
 
             query: str
             result_data: Annotated[

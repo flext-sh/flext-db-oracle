@@ -115,7 +115,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
-        """Get connection object - public interface."""
+        """Get connection t.NormalizedValue - public interface."""
         return self._services if self._services.is_connected() else None
 
     @property
@@ -135,7 +135,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     @classmethod
     def from_config(cls, config: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Create API instance from an existing settings object."""
+        """Create API instance from an existing settings t.NormalizedValue."""
         return cls(config=config)
 
     @classmethod

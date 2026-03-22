@@ -88,7 +88,7 @@ class TestFlextDbOracleConstants:
         tm.that(mappings["number"] == "NUMBER", eq=True)
         tm.that(mappings["boolean"] == "NUMBER(1)", eq=True)
         tm.that(mappings["array"] == "CLOB", eq=True)
-        tm.that(mappings["object"] == "CLOB", eq=True)
+        tm.that(mappings["t.NormalizedValue"] == "CLOB", eq=True)
         tm.that(mappings["date-time"] == "TIMESTAMP", eq=True)
         tm.that(mappings["date"] == "DATE", eq=True)
 

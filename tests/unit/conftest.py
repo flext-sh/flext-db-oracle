@@ -22,6 +22,7 @@ from flext_tests import tk
 from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import t
 
 logger: p.Logger = FlextLogger(__name__)
 _PORT_BINDINGS_ADAPTER = TypeAdapter(dict[str, str])
@@ -31,7 +32,7 @@ def _workspace_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _normalized_port_bindings(value: object) -> dict[str, str]:
+def _normalized_port_bindings(value: t.NormalizedValue) -> dict[str, str]:
     try:
         return _PORT_BINDINGS_ADAPTER.validate_python(value)
     except ValidationError:

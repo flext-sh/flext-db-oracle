@@ -110,12 +110,12 @@ pep621_dev_dependency_groups = [ "dev" ]
 [tool.poetry]
 
 [tool.pyrefly]
+python-interpreter-path = "/home/marlonsc/flext/.venv/bin/python"
 ignore-errors-in-generated-code = true
 project-excludes = [
   "**/*_pb2*.py",
   "**/*_pb2_grpc*.py",
 ]
-python-interpreter-path = "/home/marlonsc/flext/.venv/bin/python"
 python-version = "3.13"
 search-path = [
   ".",

@@ -95,7 +95,7 @@ class FlextDbOracleConstants(FlextConstants):
                 "number": "NUMBER",
                 "boolean": "NUMBER(1)",
                 "array": "CLOB",
-                "object": "CLOB",
+                "t.NormalizedValue": "CLOB",
                 "date-time": "TIMESTAMP",
                 "date": "DATE",
                 "time": "TIMESTAMP",

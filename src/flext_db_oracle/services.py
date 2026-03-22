@@ -101,7 +101,7 @@ def _sqlalchemy_create_engine(url: str) -> SAEngine:
 
 
 def _sqlalchemy_text(statement: str) -> TextClause:
-    """Build SQL text object."""
+    """Build SQL text t.NormalizedValue."""
     return text(statement)
 
 
@@ -116,7 +116,7 @@ def _engine_begin(engine: SAEngine) -> contextlib.AbstractContextManager[SAConne
 
 
 def _context_enter[T](context_manager: contextlib.AbstractContextManager[T]) -> T:
-    """Enter dynamic context manager and return inner object."""
+    """Enter dynamic context manager and return inner t.NormalizedValue."""
     return context_manager.__enter__()
 
 

@@ -183,7 +183,7 @@ def flext_db_oracle_api() -> FlextDbOracleApi:
 
 
 @pytest.fixture
-def oracle_config_data() -> dict[str, object]:
+def oracle_config_data() -> dict[str, t.NormalizedValue]:
     """Sample Oracle configuration for testing."""
     return {
         "host": "localhost",

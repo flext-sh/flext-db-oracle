@@ -90,7 +90,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         tm.that(isinstance(config_obj, dict), eq=True)
         if isinstance(config_obj, dict):
-            config_dict: dict[str, object] = config_obj
+            config_dict: dict[str, t.NormalizedValue] = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"] == "test_host", eq=True)
@@ -513,8 +513,8 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: dict[str, object] = {
-            "type": "object",
+        test_schema: dict[str, t.NormalizedValue] = {
+            "type": "t.NormalizedValue",
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string", "maxLength": 100},
@@ -718,7 +718,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, object]:
+        def create_test_oracle_config() -> dict[str, t.NormalizedValue]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -1229,7 +1229,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: dict[str, object] = {
+        plugin: dict[str, t.NormalizedValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1337,7 +1337,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)
-        plugin: dict[str, object] = {
+        plugin: dict[str, t.NormalizedValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1525,7 +1525,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(isinstance(api_from_config, FlextDbOracleApi), eq=True)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, object] serialization methods."""
+        """Test dict[str, t.NormalizedValue] serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict is not None, eq=True)
 

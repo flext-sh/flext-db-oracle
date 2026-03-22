@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import Annotated, Self, override
+from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 import oracledb
@@ -60,7 +60,7 @@ class OraclePassword(BaseModel):
         return self._value
 
     @override
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: t.NormalizedValue) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, OraclePassword):
             return self._value == other._value
@@ -76,7 +76,7 @@ class OraclePassword(BaseModel):
 class FlextDbOracleSettings(FlextSettings):
     """Oracle settings contract consumed by API, client, and services."""
 
-    model_config = SettingsConfigDict(
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
         case_sensitive=False,
         extra="ignore",
