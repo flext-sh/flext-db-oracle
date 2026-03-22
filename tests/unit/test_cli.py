@@ -94,7 +94,7 @@ class TestFlextDbOracleClientReal:
         client = FlextDbOracleClient()
         result = client.execute_query("SELECT 1 FROM DUAL")
         tm.that(not result.is_success, eq=True)
-        tm.that(result.error, eq=True)
+        tm.that(result.error is not None, eq=True)
         tm.that(
             (
                 result.error is not None
@@ -104,15 +104,15 @@ class TestFlextDbOracleClientReal:
         )
         schemas_result = client.list_schemas()
         tm.that(not schemas_result.is_success, eq=True)
-        tm.that(schemas_result.error, eq=True)
+        tm.that(schemas_result.error is not None, eq=True)
         tm.that("No active Oracle connection" in (schemas_result.error or ""), eq=True)
         tables_result = client.list_tables()
         tm.that(not tables_result.is_success, eq=True)
-        tm.that(tables_result.error, eq=True)
+        tm.that(tables_result.error is not None, eq=True)
         tm.that("No active Oracle connection" in (tables_result.error or ""), eq=True)
         health_result = client.health_check()
         tm.that(not health_result.is_success, eq=True)
-        tm.that(health_result.error, eq=True)
+        tm.that(health_result.error is not None, eq=True)
         tm.that("No active Oracle connection" in (health_result.error or ""), eq=True)
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
