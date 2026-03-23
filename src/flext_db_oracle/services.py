@@ -153,9 +153,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self._db_config = config
         self._config = config
         self._engine: SAEngine | None = None
-        self._operations: Sequence[FlextDbOracleModels.DbOracle.OperationRecord] = []
-        self._plugins: Mapping[str, t.ContainerValue] = {}
-        self._metrics: Mapping[str, t.ContainerValue] = {}
+        self._operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = []
+        self._plugins: MutableMapping[str, t.ContainerValue] = {}
+        self._metrics: MutableMapping[str, t.ContainerValue] = {}
 
     @property
     def db_config(self) -> FlextDbOracleSettings:
