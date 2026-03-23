@@ -26,7 +26,7 @@ from flext_db_oracle import (
     FlextDbOracleSettings,
     FlextDbOracleUtilities,
 )
-from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.models import m
 from tests import t
 
 HealthCheckReport = m.DbOracle.HealthCheckReport

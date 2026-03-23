@@ -110,7 +110,6 @@ pep621_dev_dependency_groups = [ "dev" ]
 [tool.poetry]
 
 [tool.pyrefly]
-python-interpreter-path = "/home/marlonsc/flext/.venv/bin/python"
 ignore-errors-in-generated-code = true
 project-excludes = [
   "**/*_pb2*.py",
