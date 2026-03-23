@@ -17,7 +17,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from .test_oracle import TestOracleIntegration, mock_oracle_config
+    from tests.integration.test_oracle import TestOracleIntegration, mock_oracle_config
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "TestOracleIntegration": ("tests.integration.test_oracle", "TestOracleIntegration"),

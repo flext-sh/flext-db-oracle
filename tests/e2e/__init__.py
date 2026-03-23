@@ -17,7 +17,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from .test_oracle import OperationTestError, TestOracleE2E
+    from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),

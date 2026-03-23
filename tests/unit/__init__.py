@@ -19,7 +19,7 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from .conftest import (
+    from tests.unit.conftest import (
         connected_oracle_api,
         docker_control,
         ensure_shared_docker_container,
@@ -33,14 +33,14 @@ if TYPE_CHECKING:
         shared_oracle_container,
         test_cleanup,
     )
-    from .test_api import (
+    from tests.unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
         TestFlextDbOracleApiRealFunctionality,
         TestFlextDbOracleApiSafeMethods,
         TestFlextDbOracleApiWorking,
     )
-    from .test_cli import (
+    from tests.unit.test_cli import (
         HealthCheckReport,
         NamedItem,
         TestCLIRealFunctionality,
@@ -52,9 +52,9 @@ if TYPE_CHECKING:
         TestOutputFormatter,
         TestYamlModule,
     )
-    from .test_client import TestFlextDbOracleClientRealFunctionality
-    from .test_constants import TestFlextDbOracleConstants
-    from .test_coverage_baseline import (
+    from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
+    from tests.unit.test_constants import TestFlextDbOracleConstants
+    from tests.unit.test_coverage_baseline import (
         TestBasicModelCreation,
         TestConstants,
         TestExceptions,
@@ -62,23 +62,26 @@ if TYPE_CHECKING:
         TestModuleImports,
         TestUtilities,
     )
-    from .test_dispatcher import TestDispatcherSurgical
-    from .test_exceptions import TestFlextDbOracleExceptions
-    from .test_fields import TestFlextDbOracleFields
-    from .test_models import TestFlextDbOracleModels, TestFlextDbOracleSettings
-    from .test_oracle_example import (
+    from tests.unit.test_dispatcher import TestDispatcherSurgical
+    from tests.unit.test_exceptions import TestFlextDbOracleExceptions
+    from tests.unit.test_fields import TestFlextDbOracleFields
+    from tests.unit.test_models import (
+        TestFlextDbOracleModels,
+        TestFlextDbOracleSettings,
+    )
+    from tests.unit.test_oracle_example import (
         TestRealOracleApi,
         TestRealOracleConnection,
         TestRealOracleErrorHandling,
         safe_get_first_value,
     )
-    from .test_oracle_exceptions import (
+    from tests.unit.test_oracle_exceptions import (
         TestRealOracleExceptionHierarchy,
         TestRealOracleExceptionsAdvanced,
         TestRealOracleExceptionsCore,
     )
-    from .test_protocols import TestFlextDbOracleProtocols
-    from .test_services import (
+    from tests.unit.test_protocols import TestFlextDbOracleProtocols
+    from tests.unit.test_services import (
         TestDirectCoverageBoostAPI,
         TestDirectCoverageBoostConfig,
         TestDirectCoverageBoostConnection,
@@ -91,8 +94,8 @@ if TYPE_CHECKING:
         TestFlextDbOracleServicesPlaceholderRemovals,
         TestServiceErrorHandling,
     )
-    from .test_typings import TestFlextDbOracleTypes
-    from .test_utilities import TestFlextDbOracleUtilities
+    from tests.unit.test_typings import TestFlextDbOracleTypes
+    from tests.unit.test_utilities import TestFlextDbOracleUtilities
 
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "HealthCheckReport": ("tests.unit.test_cli", "HealthCheckReport"),
