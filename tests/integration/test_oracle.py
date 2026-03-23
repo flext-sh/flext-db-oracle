@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
@@ -174,7 +176,7 @@ class TestOracleIntegration:
     def test_database_operations_with_setup(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
-        test_database_setup: dict[str, str] | None,
+        test_database_setup: Mapping[str, str] | None,
     ) -> None:
         """Test database operations using test schema setup."""
         if connected_oracle_api is None or test_database_setup is None:
@@ -219,7 +221,7 @@ class TestOracleIntegration:
     def test_transaction_operations(
         self,
         connected_oracle_api: FlextDbOracleApi | None,
-        test_database_setup: dict[str, str] | None,
+        test_database_setup: Mapping[str, str] | None,
     ) -> None:
         """Test transaction operations with commit and rollback."""
         if connected_oracle_api is None or test_database_setup is None:

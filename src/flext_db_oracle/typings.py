@@ -14,12 +14,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Literal
 
 from flext_core import FlextTypes, t as _core_t
 from pydantic import TypeAdapter
 
-_ConfigMap = dict[str, _core_t.ContainerValue]
+_ConfigMap = Mapping[str, _core_t.ContainerValue]
 
 
 class FlextDbOracleTypes(FlextTypes):
@@ -39,103 +40,117 @@ class FlextDbOracleTypes(FlextTypes):
         type ConnectionConfiguration = _ConfigMap
         type ConnectionPool = _ConfigMap
         type ConnectionString = str
-        type ConnectionParams = dict[str, str | int | bool]
-        type SslConfiguration = dict[
+        type ConnectionParams = Mapping[str, str | int | bool]
+        type SslConfiguration = Mapping[
             str,
-            str | bool | dict[str, _core_t.ContainerValue],
+            str | bool | Mapping[str, _core_t.ContainerValue],
         ]
-        type AuthenticationConfig = dict[str, str | dict[str, _core_t.ContainerValue]]
+        type AuthenticationConfig = Mapping[
+            str, str | Mapping[str, _core_t.ContainerValue]
+        ]
 
         type SqlQuery = str
         type QueryParameters = _ConfigMap
         type QueryResult = _ConfigMap
-        type QueryMetadata = dict[str, str | int | dict[str, _core_t.ContainerValue]]
-        type PreparedStatement = dict[str, str | dict[str, _core_t.ContainerValue]]
-        type QueryExecution = dict[
+        type QueryMetadata = Mapping[
+            str, str | int | Mapping[str, _core_t.ContainerValue]
+        ]
+        type PreparedStatement = Mapping[
+            str, str | Mapping[str, _core_t.ContainerValue]
+        ]
+        type QueryExecution = Mapping[
             str,
-            str | int | bool | dict[str, _core_t.ContainerValue],
+            str | int | bool | Mapping[str, _core_t.ContainerValue],
         ]
 
-        type TransactionConfiguration = dict[str, str | int | bool]
-        type TransactionState = dict[
+        type TransactionConfiguration = Mapping[str, str | int | bool]
+        type TransactionState = Mapping[
             str,
-            str | bool | dict[str, _core_t.ContainerValue],
+            str | bool | Mapping[str, _core_t.ContainerValue],
         ]
         type IsolationLevel = str
-        type TransactionBlock = list[dict[str, str | dict[str, _core_t.ContainerValue]]]
-        type SavepointConfig = dict[str, str | int]
-        type RollbackConfig = dict[str, str | bool | list[str]]
+        type TransactionBlock = Sequence[
+            Mapping[str, str | Mapping[str, _core_t.ContainerValue]]
+        ]
+        type SavepointConfig = Mapping[str, str | int]
+        type RollbackConfig = Mapping[str, str | bool | Sequence[str]]
 
         type SchemaDefinition = _ConfigMap
-        type TableDefinition = dict[str, str | list[dict[str, str | bool | int]]]
-        type ColumnDefinition = dict[
-            str,
-            str | int | bool | dict[str, _core_t.ContainerValue],
+        type TableDefinition = Mapping[
+            str, str | Sequence[Mapping[str, str | bool | int]]
         ]
-        type IndexDefinition = dict[
+        type ColumnDefinition = Mapping[
             str,
-            str | list[str] | dict[str, _core_t.ContainerValue],
+            str | int | bool | Mapping[str, _core_t.ContainerValue],
         ]
-        type ConstraintDefinition = dict[str, str | list[str] | bool]
-        type ViewDefinition = dict[str, str | dict[str, _core_t.ContainerValue]]
+        type IndexDefinition = Mapping[
+            str,
+            str | Sequence[str] | Mapping[str, _core_t.ContainerValue],
+        ]
+        type ConstraintDefinition = Mapping[str, str | Sequence[str] | bool]
+        type ViewDefinition = Mapping[str, str | Mapping[str, _core_t.ContainerValue]]
 
-        type SessionConfiguration = dict[
+        type SessionConfiguration = Mapping[
             str,
-            str | int | bool | dict[str, _core_t.ContainerValue],
+            str | int | bool | Mapping[str, _core_t.ContainerValue],
         ]
-        type SessionState = dict[
+        type SessionState = Mapping[
             str,
-            _core_t.ContainerValue | dict[str, _core_t.ContainerValue],
+            _core_t.ContainerValue | Mapping[str, _core_t.ContainerValue],
         ]
-        type SessionVariables = dict[str, _core_t.ContainerValue]
-        type SessionMetrics = dict[str, int | float | str]
-        type SessionPooling = dict[
+        type SessionVariables = Mapping[str, _core_t.ContainerValue]
+        type SessionMetrics = Mapping[str, int | float | str]
+        type SessionPooling = Mapping[
             str,
-            int | bool | str | dict[str, _core_t.ContainerValue],
+            int | bool | str | Mapping[str, _core_t.ContainerValue],
         ]
-        type SessionTimeout = dict[str, int | str]
+        type SessionTimeout = Mapping[str, int | str]
 
-        type PerformanceMetrics = dict[
+        type PerformanceMetrics = Mapping[
             str,
-            int | float | dict[str, _core_t.ContainerValue],
+            int | float | Mapping[str, _core_t.ContainerValue],
         ]
-        type QueryPlan = dict[str, str | int | list[dict[str, _core_t.ContainerValue]]]
-        type ExecutionStats = dict[
+        type QueryPlan = Mapping[
+            str, str | int | Sequence[Mapping[str, _core_t.ContainerValue]]
+        ]
+        type ExecutionStats = Mapping[
             str,
-            int | float | str | dict[str, _core_t.ContainerValue],
+            int | float | str | Mapping[str, _core_t.ContainerValue],
         ]
-        type IndexUsage = dict[
+        type IndexUsage = Mapping[
             str,
-            str | int | bool | dict[str, _core_t.ContainerValue],
+            str | int | bool | Mapping[str, _core_t.ContainerValue],
         ]
-        type CacheConfiguration = dict[str, int | str | bool]
-        type OptimizationHints = dict[str, str | list[str]]
+        type CacheConfiguration = Mapping[str, int | str | bool]
+        type OptimizationHints = Mapping[str, str | Sequence[str]]
 
-        type UserPermissions = dict[str, list[str] | dict[str, bool]]
-        type RoleDefinition = dict[
+        type UserPermissions = Mapping[str, Sequence[str] | Mapping[str, bool]]
+        type RoleDefinition = Mapping[
             str,
-            str | list[str] | dict[str, _core_t.ContainerValue],
+            str | Sequence[str] | Mapping[str, _core_t.ContainerValue],
         ]
-        type PrivilegeConfiguration = dict[
+        type PrivilegeConfiguration = Mapping[
             str,
-            bool | list[str] | dict[str, _core_t.ContainerValue],
+            bool | Sequence[str] | Mapping[str, _core_t.ContainerValue],
         ]
-        type AccessPolicy = dict[str, str | bool | dict[str, _core_t.ContainerValue]]
-        type EncryptionConfig = dict[
-            str,
-            str | bool | dict[str, _core_t.ContainerValue],
+        type AccessPolicy = Mapping[
+            str, str | bool | Mapping[str, _core_t.ContainerValue]
         ]
-        type AuditConfiguration = dict[
+        type EncryptionConfig = Mapping[
             str,
-            bool | str | dict[str, _core_t.ContainerValue],
+            str | bool | Mapping[str, _core_t.ContainerValue],
+        ]
+        type AuditConfiguration = Mapping[
+            str,
+            bool | str | Mapping[str, _core_t.ContainerValue],
         ]
 
         type OracleDataType = str
         type PythonDataType = type
         type TypeMapping = _ConfigMap
-        type DataConversion = dict[str, _core_t.ContainerValue]
-        type TypeValidation = dict[str, bool | str | list[str]]
-        type NullHandling = dict[str, bool | _core_t.ContainerValue]
+        type DataConversion = Mapping[str, _core_t.ContainerValue]
+        type TypeValidation = Mapping[str, bool | str | Sequence[str]]
+        type NullHandling = Mapping[str, bool | _core_t.ContainerValue]
 
         type ProjectType = Literal[
             "library",
@@ -154,10 +169,12 @@ class FlextDbOracleTypes(FlextTypes):
             "sql-service",
             "data-connector",
         ]
-        type OracleProjectConfig = dict[str, _core_t.ContainerValue]
-        type DatabaseConfig = dict[str, str | int | bool | list[str]]
-        type SchemaConfig = dict[str, bool | str | dict[str, _core_t.ContainerValue]]
-        type ConnectionConfig = dict[str, _core_t.ContainerValue]
+        type OracleProjectConfig = Mapping[str, _core_t.ContainerValue]
+        type DatabaseConfig = Mapping[str, str | int | bool | Sequence[str]]
+        type SchemaConfig = Mapping[
+            str, bool | str | Mapping[str, _core_t.ContainerValue]
+        ]
+        type ConnectionConfig = Mapping[str, _core_t.ContainerValue]
 
         type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
         type QueryTypeLiteral = Literal[

@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping, Sequence
 from unittest.mock import Mock, patch
 
 import yaml
@@ -80,7 +81,7 @@ class TestFlextDbOracleClientReal:
             invalid_key="value", another_invalid="test"
         )
         tm.that(result.is_success, eq=True)
-        original_dict: dict[str, t.NormalizedValue] = (
+        original_dict: Mapping[str, t.NormalizedValue] = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
             else dict(original_prefs)
@@ -381,8 +382,8 @@ class TestOutputFormatter:
         tm.that("table2" in output, eq=True)
         tm.that("table3" in output, eq=True)
 
-    _JSON_ADAPTER: TypeAdapter[dict[str, t.NormalizedValue]] = TypeAdapter(
-        dict[str, t.NormalizedValue]
+    _JSON_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
+        Mapping[str, t.NormalizedValue]
     )
 
     def test_format_list_output_json_format(self) -> None:
@@ -419,9 +420,9 @@ class TestOutputFormatter:
         tm.that("item2" in output, eq=True)
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with dict[str, t.NormalizedValue] items."""
+        """Test list output formatting with Mapping[str, t.NormalizedValue] items."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        items: list[NamedItem] = [
+        items: Sequence[NamedItem] = [
             NamedItem(name="table1"),
             NamedItem(name="table2"),
             NamedItem(name="unnamed"),
@@ -432,8 +433,8 @@ class TestOutputFormatter:
         tm.that("table1" in output, eq=True)
         tm.that("table2" in output, eq=True)
 
-    _DATA_ADAPTER: TypeAdapter[dict[str, t.NormalizedValue]] = TypeAdapter(
-        dict[str, t.NormalizedValue]
+    _DATA_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
+        Mapping[str, t.NormalizedValue]
     )
 
     def test_format_data_json(self) -> None:
@@ -536,7 +537,7 @@ class TestCliServiceOperations:
         """Test successful schema listing."""
         cli_service = FlextDbOracleCli()
         mock_api = Mock()
-        mock_api.get_schemas.return_value = r[list[str]].ok([
+        mock_api.get_schemas.return_value = r[Sequence[str]].ok([
             "SCHEMA1",
             "SCHEMA2",
             "SCHEMA3",
@@ -547,7 +548,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[list[str]].ok([
+            mock_get_schemas.return_value = r[Sequence[str]].ok([
                 "SCHEMA1",
                 "SCHEMA2",
             ])
@@ -595,7 +596,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[list[str]].fail("Schema query failed")
+            mock_get_schemas.return_value = r[Sequence[str]].fail("Schema query failed")
             result = cli_service.execute_list_schemas(
                 host="localhost",
                 port=1521,
@@ -619,7 +620,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[list[str]].ok([
+            mock_get_tables.return_value = r[Sequence[str]].ok([
                 "TABLE1",
                 "TABLE2",
             ])
@@ -645,7 +646,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[list[str]].ok(["TABLE1"])
+            mock_get_tables.return_value = r[Sequence[str]].ok(["TABLE1"])
             result = cli_service.execute_list_tables(
                 host="localhost",
                 port=1521,
@@ -660,7 +661,7 @@ class TestCliServiceOperations:
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
         cli_service = FlextDbOracleCli()
-        mock_result: list[t.Dict] = [
+        mock_result: Sequence[t.Dict] = [
             t.Dict(root={"id": 1, "name": "test"}),
             t.Dict(root={"id": 2, "name": "test2"}),
         ]
@@ -670,7 +671,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "query") as mock_query,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_query.return_value = r[list[t.Dict]].ok(mock_result)
+            mock_query.return_value = r[Sequence[t.Dict]].ok(mock_result)
             result = cli_service.execute_query(
                 host="localhost",
                 port=1521,
@@ -752,7 +753,7 @@ class TestCLIRealFunctionality:
             "ORACLE_PASSWORD": "testpass",
             "ORACLE_SERVICE_NAME": "TESTDB",
         }
-        original_env: dict[str, str | None] = {}
+        original_env: Mapping[str, str | None] = {}
         for key, value in test_env_vars.items():
             original_env[key] = os.environ.get(key)
             os.environ[key] = value
@@ -879,7 +880,7 @@ class TestCLIRealFunctionality:
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
-        original_env: dict[str, str | None] = {}
+        original_env: Mapping[str, str | None] = {}
         env_vars = {
             "ORACLE_USERNAME": "testuser",
             "ORACLE_PASSWORD": "testpass",

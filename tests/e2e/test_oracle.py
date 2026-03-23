@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 
 import pytest
 
@@ -173,7 +174,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: dict[str, t.NormalizedValue] = {
+            singer_schema: Mapping[str, t.NormalizedValue] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

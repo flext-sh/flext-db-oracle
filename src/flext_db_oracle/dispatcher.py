@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, r
@@ -46,7 +46,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_connection_handlers(
         cls,
         services: FlextDbOracleServices,
-    ) -> dict[
+    ) -> Mapping[
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],
@@ -90,7 +90,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             raise TypeError(msg)
         dispatcher = disp
         _registry = FlextRegistry(dispatcher=dispatcher)
-        function_map: dict[
+        function_map: Mapping[
             type,
             tuple[
                 Callable[[t.ContainerValue], t.ContainerValue],
@@ -108,7 +108,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_query_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[
+    ) -> Mapping[
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],
@@ -161,7 +161,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters_list = command.parameters_list
             else:
                 sql = ""
-                parameters_list = list[Mapping[str, t.ContainerValue]]()
+                parameters_list = Sequence[Mapping[str, t.ContainerValue]]()
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {
@@ -183,7 +183,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
     def _create_schema_handlers(
         self,
         services: FlextDbOracleServices,
-    ) -> dict[
+    ) -> Mapping[
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],

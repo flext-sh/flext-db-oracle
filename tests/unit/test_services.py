@@ -10,6 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping, Sequence
 from types import SimpleNamespace
 from typing import ClassVar, cast
 from unittest.mock import MagicMock
@@ -46,7 +47,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: dict[str, t.NormalizedValue],
+        metadata: Mapping[str, t.NormalizedValue],
     ) -> None:
         self.name = name
         self.plugin_version = plugin_version
@@ -64,7 +65,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: dict[str, t.NormalizedValue],
+        metadata: Mapping[str, t.NormalizedValue],
     ) -> _StubPluginEntity:
         return cls(
             name=name,
@@ -79,7 +80,7 @@ class _StubPluginEntity:
 class _StubPluginApi:
     """In-memory plugin API stub used by service integration tests."""
 
-    _registry: ClassVar[dict[str, _StubPluginEntity]] = {}
+    _registry: ClassVar[Mapping[str, _StubPluginEntity]] = {}
 
     def register_plugin(self, plugin: _StubPluginEntity) -> _StubResult:
         self._registry[plugin.name] = plugin
@@ -93,7 +94,7 @@ class _StubPluginApi:
         del self._registry[plugin_name]
         return _StubResult()
 
-    def list_plugins(self) -> list[_StubPluginEntity]:
+    def list_plugins(self) -> Sequence[_StubPluginEntity]:
         return list(self._registry.values())
 
     def get_plugin(self, plugin_name: str) -> _StubPluginEntity | None:
@@ -166,7 +167,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.NormalizedValue] = {"id": 1, "name": "test"}
+        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that("WHERE" in select_result.value, eq=True)
@@ -182,7 +183,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.NormalizedValue] = {"id": 1, "status": "active"}
+        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -224,7 +225,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: dict[str, t.NormalizedValue] = {
+        singer_schema: Mapping[str, t.NormalizedValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -250,7 +251,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: list[dict[str, t.NormalizedValue]] = [
+        columns: Sequence[Mapping[str, t.NormalizedValue]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -443,7 +444,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, t.NormalizedValue] = {"id": 123}
+        params: Mapping[str, t.NormalizedValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(isinstance(hash_result.value, str), eq=True)
@@ -563,7 +564,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         service = self._make_service()
-        calls: list[dict[str, t.NormalizedValue]] = []
+        calls: Sequence[Mapping[str, t.NormalizedValue]] = []
 
         def fake_flext_metric(*, name: str, value: float, tags: t.Dict) -> _StubResult:
             calls.append({"name": name, "value": value, "tags": tags})
@@ -778,7 +779,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars: dict[str, str | None] = {}
+        original_vars: Mapping[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",
@@ -1206,8 +1207,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
         methods_to_test = [
-            ("get_schemas", cast("list[str]", [])),
-            ("get_tables", cast("list[str]", [])),
+            ("get_schemas", cast("Sequence[str]", [])),
+            ("get_tables", cast("Sequence[str]", [])),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:
@@ -1429,7 +1430,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.NormalizedValue] = {"id": 1, "name": "test"}
+        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that("WHERE" in select_result.value, eq=True)
@@ -1445,7 +1446,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: dict[str, t.NormalizedValue] = {"id": 1, "status": "active"}
+        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -1487,7 +1488,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: dict[str, t.NormalizedValue] = {
+        singer_schema: Mapping[str, t.NormalizedValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1513,7 +1514,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: list[dict[str, t.NormalizedValue]] = [
+        columns: Sequence[Mapping[str, t.NormalizedValue]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1706,7 +1707,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: dict[str, t.NormalizedValue] = {"id": 123}
+        params: Mapping[str, t.NormalizedValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(isinstance(hash_result.value, str), eq=True)
@@ -1762,9 +1763,9 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        invalid_schema: dict[str, t.NormalizedValue] = {"properties": "not_a_dict"}
+        invalid_schema: Mapping[str, t.NormalizedValue] = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         tm.that(mapping_result.is_failure, eq=True)
-        missing_props_schema: dict[str, t.NormalizedValue] = {}
+        missing_props_schema: Mapping[str, t.NormalizedValue] = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         tm.that(mapping_result.is_failure or len(mapping_result.value) == 0, eq=True)

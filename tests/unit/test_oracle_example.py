@@ -8,6 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Mapping, Sequence
 
 from flext_core import r
 from flext_tests import tm
@@ -21,7 +22,7 @@ from flext_db_oracle import (
 
 
 def safe_get_first_value(
-    data: t.Dict | list[t.Dict],
+    data: t.Dict | Sequence[t.Dict],
 ) -> t.ContainerValue:
     """Safely get first value from various data structures."""
     if hasattr(data, "root"):
@@ -115,7 +116,7 @@ class TestRealOracleConnection:
             if create_result.is_failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
-            params_list: list[dict[str, t.NormalizedValue]] = [
+            params_list: Sequence[Mapping[str, t.NormalizedValue]] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},
@@ -266,7 +267,7 @@ class TestRealOracleApi:
                 },
             ]
             ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts: list[str] = []
+            column_parts: Sequence[str] = []
             for col in columns:
                 col_def = f"{col['name']} {col['type']}"
                 if not col.get("nullable", True):

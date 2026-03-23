@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Mapping, Sequence
 
 import pytest
 from flext_tests import tm
@@ -40,7 +41,7 @@ class TestFlextDbOracleUtilities:
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""
-        params: dict[str, int] = {"id": 1}
+        params: Mapping[str, int] = {"id": 1}
         result = FlextDbOracleUtilities.DbOracle.generate_query_hash(
             "SELECT * FROM table WHERE id = :id", params
         )
@@ -52,8 +53,8 @@ class TestFlextDbOracleUtilities:
 
     def test_generate_query_hash_with_whitespace_normalization(self) -> None:
         """Test query hash does NOT normalize whitespace (hashes raw query)."""
-        params1: dict[str, int] = {"id": 1}
-        params2: dict[str, int] = {"id": 2}
+        params1: Mapping[str, int] = {"id": 1}
+        params2: Mapping[str, int] = {"id": 2}
         result1 = FlextDbOracleUtilities.DbOracle.generate_query_hash(
             "SELECT * FROM table", params1
         )
@@ -276,14 +277,14 @@ class TestFlextDbOracleUtilities:
         tm.ok(result)
 
     _JSON_RESULT_ADAPTER: TypeAdapter[
-        list[dict[str, int | str | bool]]
-        | list[dict[str, str]]
-        | list[dict[str, int]]
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[Mapping[str, str]]
+        | Sequence[Mapping[str, int]]
         | None
     ] = TypeAdapter(
-        list[dict[str, int | str | bool]]
-        | list[dict[str, str]]
-        | list[dict[str, int]]
+        Sequence[Mapping[str, int | str | bool]]
+        | Sequence[Mapping[str, str]]
+        | Sequence[Mapping[str, int]]
         | None
     )
 
@@ -298,7 +299,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_json_empty(self) -> None:
         """Test JSON formatting with empty data."""
-        data: list[dict[str, str]] = []
+        data: Sequence[Mapping[str, str]] = []
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -307,7 +308,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_json_non_serializable(self) -> None:
         """Test JSON formatting with non-serializable data."""
-        data: list[dict[str, str]] = [{"key": "non-serializable-test"}]
+        data: Sequence[Mapping[str, str]] = [{"key": "non-serializable-test"}]
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -324,7 +325,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
-        data: list[dict[str, str]] = []
+        data: Sequence[Mapping[str, str]] = []
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value

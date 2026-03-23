@@ -25,9 +25,11 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_GENERAL_LIST_ADAPTER: TypeAdapter[list[t.Container]] = TypeAdapter(list[t.Container])
-_CONFIG_DICT_ADAPTER: TypeAdapter[dict[str, t.ContainerValue]] = TypeAdapter(
-    dict[str, t.ContainerValue],
+_GENERAL_LIST_ADAPTER: TypeAdapter[Sequence[t.Container]] = TypeAdapter(
+    Sequence[t.Container]
+)
+_CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
+    Mapping[str, t.ContainerValue],
 )
 
 
@@ -43,7 +45,7 @@ def _validate_config_map(
         return None
 
 
-def _validate_general_list(value: t.ContainerValue) -> list[t.Container] | None:
+def _validate_general_list(value: t.ContainerValue) -> Sequence[t.Container] | None:
     """Validate list payload with Pydantic."""
     return _GENERAL_LIST_ADAPTER.validate_python(value)
 
@@ -72,7 +74,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         *,
         debug: bool = False,
         config_type: type[FlextSettings] | None = None,
-        config_overrides: dict[str, t.NormalizedValue] | None = None,
+        config_overrides: Mapping[str, t.NormalizedValue] | None = None,
         initial_context: p.Context | None = None,
         subproject: str | None = None,
         services: Mapping[str, t.RegisterableService] | None = None,
@@ -307,16 +309,16 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         )
         return self._format_and_display_result(operation_result, format_type)
 
-    def _adapt_data_for_table(self, data: t.ConfigMap) -> r[list[t.ConfigMap]]:
+    def _adapt_data_for_table(self, data: t.ConfigMap) -> r[Sequence[t.ConfigMap]]:
         """Adapt data for table display.
 
         Returns:
-        r[list[t.ConfigMap]]: Adapted data or error.
+        r[Sequence[t.ConfigMap]]: Adapted data or error.
 
         """
         try:
 
-            def adapt_schemas(raw_value: t.ContainerValue) -> list[t.ConfigMap]:
+            def adapt_schemas(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
                 schemas = _validate_general_list(raw_value)
                 if schemas is None:
                     return []
@@ -325,7 +327,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     for schema in schemas
                 ]
 
-            def adapt_tables(raw_value: t.ContainerValue) -> list[t.ConfigMap]:
+            def adapt_tables(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
                 tables = _validate_general_list(raw_value)
                 if tables is None:
                     return []
@@ -334,7 +336,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     for table in tables
                 ]
 
-            def adapt_health(raw_value: t.ContainerValue) -> list[t.ConfigMap]:
+            def adapt_health(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
                 try:
                     health_map = _CONFIG_DICT_ADAPTER.validate_python(raw_value)
                 except ValidationError:
@@ -349,8 +351,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     for key, value in health.items()
                 ]
 
-            adaptation_strategies: list[
-                tuple[str, Callable[[t.ContainerValue], list[t.ConfigMap]]]
+            adaptation_strategies: Sequence[
+                tuple[str, Callable[[t.ContainerValue], Sequence[t.ConfigMap]]]
             ] = [
                 ("schemas", adapt_schemas),
                 ("tables", adapt_tables),
@@ -361,21 +363,23 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 if key in data_root:
                     raw_value = data_root[key]
                     adapted_data = strategy(str(raw_value))
-                    return r[list[t.ConfigMap]].ok(adapted_data)
+                    return r[Sequence[t.ConfigMap]].ok(adapted_data)
             result = [
                 t.ConfigMap.model_validate({
                     "root": {"key": str(key), "value": str(value)}
                 })
                 for key, value in data_root.items()
             ]
-            return r[list[t.ConfigMap]].ok(result)
+            return r[Sequence[t.ConfigMap]].ok(result)
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
-            return r[list[t.ConfigMap]].fail(f"Data adaptation failed: {e}")
+            return r[Sequence[t.ConfigMap]].fail(f"Data adaptation failed: {e}")
 
-    def _build_table_string(self, adapted_data: list[t.ConfigMap]) -> str:
+    def _build_table_string(self, adapted_data: Sequence[t.ConfigMap]) -> str:
         """Build table string from adapted data."""
-        headers: list[str] = list(adapted_data[0].keys())
-        rows: list[list[str]] = [[str(row[h]) for h in headers] for row in adapted_data]
+        headers: Sequence[str] = list(adapted_data[0].keys())
+        rows: Sequence[Sequence[str]] = [
+            [str(row[h]) for h in headers] for row in adapted_data
+        ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
         result_str += "\n".join(["|".join(row) for row in rows])
         return result_str
@@ -514,7 +518,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
         """
         try:
-            formatter_strategies: list[tuple[str, Callable[[t.ConfigMap], r[str]]]] = [
+            formatter_strategies: Sequence[
+                tuple[str, Callable[[t.ConfigMap], r[str]]]
+            ] = [
                 ("table", self._format_as_table),
                 ("json", self._format_as_json),
                 ("plain", lambda data: r[str].ok(str(data))),
@@ -579,9 +585,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             try:
                 normalized_params = _CONFIG_DICT_ADAPTER.validate_python(raw_params)
             except ValidationError:
-                normalized_params: dict[str, t.ContainerValue] = {}
+                normalized_params: Mapping[str, t.ContainerValue] = {}
             params_map = t.ConfigMap.model_validate({"root": normalized_params})
-        query_params: dict[str, t.ContainerValue] = {
+        query_params: Mapping[str, t.ContainerValue] = {
             str(k): str(v) for k, v in params_map.root.items()
         }
         return self.current_connection.query(sql, query_params).map(
@@ -604,4 +610,4 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         return r[bool].ok(True)
 
 
-__all__: list[str] = ["FlextDbOracleClient"]
+__all__: Sequence[str] = ["FlextDbOracleClient"]

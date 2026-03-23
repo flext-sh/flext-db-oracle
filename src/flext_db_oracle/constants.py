@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from typing import ClassVar, Final
 
@@ -89,7 +90,7 @@ class FlextDbOracleConstants(FlextConstants):
             INTEGER_TYPE: Final[str] = "NUMBER(38)"
             BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
-            SINGER_TYPE_MAP: ClassVar[dict[str, str]] = {
+            SINGER_TYPE_MAP: ClassVar[Mapping[str, str]] = {
                 "string": "VARCHAR2(4000)",
                 "integer": "NUMBER(38)",
                 "number": "NUMBER",
@@ -252,7 +253,7 @@ class FlextDbOracleConstants(FlextConstants):
             READ_COMMITTED: Final[str] = "READ_COMMITTED"
             REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
             SERIALIZABLE: Final[str] = "SERIALIZABLE"
-            VALID_LEVELS: Final[list[str]] = [
+            VALID_LEVELS: Final[Sequence[str]] = [
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
@@ -271,7 +272,7 @@ class FlextDbOracleConstants(FlextConstants):
             ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
             ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
             ENV_SID: Final[str] = "ORACLE_SID"
-            ENV_MAPPING: ClassVar[dict[str, str]] = {
+            ENV_MAPPING: ClassVar[Mapping[str, str]] = {
                 "FLEXT_TARGET_ORACLE_HOST": "host",
                 "ORACLE_HOST": "host",
                 "FLEXT_TARGET_ORACLE_PORT": "port",
@@ -379,7 +380,7 @@ class FlextDbOracleConstants(FlextConstants):
             These lists are kept for backward compatibility and validation convenience.
             """
 
-            VALID_DATA_TYPES: Final[list[str]] = [
+            VALID_DATA_TYPES: Final[Sequence[str]] = [
                 "VARCHAR2",
                 "NUMBER",
                 "DATE",
@@ -389,8 +390,12 @@ class FlextDbOracleConstants(FlextConstants):
                 "CHAR",
                 "RAW",
             ]
-            VALID_CONNECTION_TYPES: Final[list[str]] = ["service_name", "sid", "tns"]
-            VALID_QUERY_TYPES: Final[list[str]] = [
+            VALID_CONNECTION_TYPES: Final[Sequence[str]] = [
+                "service_name",
+                "sid",
+                "tns",
+            ]
+            VALID_QUERY_TYPES: Final[Sequence[str]] = [
                 "SELECT",
                 "INSERT",
                 "UPDATE",
@@ -399,20 +404,20 @@ class FlextDbOracleConstants(FlextConstants):
                 "DROP",
                 "ALTER",
             ]
-            VALID_ISOLATION_LEVELS: Final[list[str]] = [
+            VALID_ISOLATION_LEVELS: Final[Sequence[str]] = [
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
                 "SERIALIZABLE",
             ]
-            SYSTEM_USERS: Final[list[str]] = [
+            SYSTEM_USERS: Final[Sequence[str]] = [
                 "SYS",
                 "SYSTEM",
                 "XDB",
                 "DBSNMP",
                 "OUTLN",
             ]
-            DEFAULT_SCHEMAS: Final[list[str]] = [
+            DEFAULT_SCHEMAS: Final[Sequence[str]] = [
                 "SYSTEM",
                 "SYS",
                 "PUBLIC",
@@ -456,4 +461,4 @@ class FlextDbOracleConstants(FlextConstants):
 
 c = FlextDbOracleConstants
 
-__all__: list[str] = ["FlextDbOracleConstants", "c"]
+__all__: Sequence[str] = ["FlextDbOracleConstants", "c"]

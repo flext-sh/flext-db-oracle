@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -210,7 +211,7 @@ class FlextDbOracleSettings(FlextSettings):
             keys["sid"].insert(0, "FLEXT_TARGET_ORACLE_SID")
 
         def _first_env(
-            candidates: list[str],
+            candidates: Sequence[str],
             fallback: str | None = None,
         ) -> str | None:
             for env_key in candidates:

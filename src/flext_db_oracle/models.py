@@ -26,7 +26,7 @@ from pydantic import (
 from flext_db_oracle import c, t
 
 
-def _default_parameters_list() -> list[Mapping[str, t.ContainerValue]]:
+def _default_parameters_list() -> Sequence[Mapping[str, t.ContainerValue]]:
     return []
 
 
@@ -61,7 +61,7 @@ class FlextDbOracleModels(FlextModels):
             """Structured output payload for formatter rendering."""
 
             title: Annotated[str, Field(default="")]
-            items: Annotated[list[str], Field(default_factory=list)]
+            items: Annotated[Sequence[str], Field(default_factory=list)]
 
         class HealthCheckReport(FlextDbOracleBaseModel):
             """Health-check result payload for CLI reporting."""
@@ -71,7 +71,9 @@ class FlextDbOracleModels(FlextModels):
             port: Annotated[int, Field(default=0)]
             service_name: Annotated[str, Field(default="")]
             response_time_ms: Annotated[float, Field(default=0.0)]
-            details: Annotated[dict[str, t.ContainerValue], Field(default_factory=dict)]
+            details: Annotated[
+                Mapping[str, t.ContainerValue], Field(default_factory=dict)
+            ]
             error: Annotated[str | None, Field(default=None)]
             timestamp: Annotated[str, Field(default="")]
 
@@ -267,7 +269,7 @@ class FlextDbOracleModels(FlextModels):
             execution_time_ms: int = 0
 
             # Additional Oracle-specific query result details
-            columns: Annotated[list[str], Field(default_factory=list)]
+            columns: Annotated[Sequence[str], Field(default_factory=list)]
             rows: Annotated[
                 Sequence[FlextDbOracleModels.DbOracle.RowData],
                 Field(default_factory=list),
@@ -418,7 +420,7 @@ class FlextDbOracleModels(FlextModels):
                 Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata],
                 Field(default_factory=list),
             ]
-            primary_keys: Annotated[list[str], Field(default_factory=list)]
+            primary_keys: Annotated[Sequence[str], Field(default_factory=list)]
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
@@ -450,7 +452,7 @@ class FlextDbOracleModels(FlextModels):
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
 
-            type: str | list[str] = "string"
+            type: str | Sequence[str] = "string"
 
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
@@ -493,7 +495,7 @@ class FlextDbOracleModels(FlextModels):
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
-                key_map: dict[str, t.ContainerValue] = {
+                key_map: Mapping[str, t.ContainerValue] = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -530,7 +532,7 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             index_name: str
-            columns: list[str]
+            columns: Sequence[str]
             unique: bool = False
             schema_name: Annotated[str, Field(default="", description="Schema name")]
             tablespace: Annotated[str, Field(default="", description="Tablespace name")]
@@ -547,9 +549,9 @@ class FlextDbOracleModels(FlextModels):
 
             target_table: str
             source_query: str
-            merge_conditions: list[str]
-            update_columns: Annotated[list[str], Field(default_factory=list)]
-            insert_columns: Annotated[list[str], Field(default_factory=list)]
+            merge_conditions: Sequence[str]
+            update_columns: Annotated[Sequence[str], Field(default_factory=list)]
+            insert_columns: Annotated[Sequence[str], Field(default_factory=list)]
 
         # Command classes for dispatcher integration
         class ConnectCommand(FlextModels.Entity):
@@ -565,19 +567,19 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute SELECT query."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: Mapping[str, t.ContainerValue] | None = None
 
         class FetchOneCommand(FlextModels.Entity):
             """Command to fetch single row."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: Mapping[str, t.ContainerValue] | None = None
 
         class ExecuteStatementCommand(FlextModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str
-            parameters: dict[str, t.ContainerValue] | None = None
+            parameters: Mapping[str, t.ContainerValue] | None = None
 
         class ExecuteManyCommand(FlextModels.Entity):
             """Command to execute batch statements."""

@@ -50,7 +50,7 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> r[list[t.Dict]]
+result = api.query(sql, parameters=None) -> r[Sequence[t.Dict]]
 
 # Execute single row SELECT
 result = api.query_one(sql, parameters=None) -> r[dict | None]
@@ -69,10 +69,10 @@ result = api.execute_many(sql, parameters_list) -> r[int]
 result = api.get_schemas() -> r[t.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> r[list[t.Dict]]
+result = api.get_tables(schema=None) -> r[Sequence[t.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> r[list[t.Dict]]
+result = api.get_columns(table, schema=None) -> r[Sequence[t.Dict]]
 
 # Get table metadata
 result = api.get_table_metadata(table, schema=None) -> r[t.Dict]

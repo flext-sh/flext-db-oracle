@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from collections.abc import Mapping, Sequence
 from threading import Thread
 
 import pytest
@@ -90,7 +91,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         tm.that(isinstance(config_obj, dict), eq=True)
         if isinstance(config_obj, dict):
-            config_dict: dict[str, t.NormalizedValue] = config_obj
+            config_dict: Mapping[str, t.NormalizedValue] = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"] == "test_host", eq=True)
@@ -513,7 +514,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: dict[str, t.NormalizedValue] = {
+        test_schema: Mapping[str, t.NormalizedValue] = {
             "type": "t.NormalizedValue",
             "properties": {
                 "id": {"type": "integer"},
@@ -718,7 +719,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> dict[str, t.NormalizedValue]:
+        def create_test_oracle_config() -> Mapping[str, t.NormalizedValue]:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -729,7 +730,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_query_data() -> dict[str, str | dict[str, int] | int]:
+        def create_test_query_data() -> Mapping[str, str | Mapping[str, int] | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",
@@ -738,7 +739,9 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_schema_data() -> dict[str, str | list[dict[str, str | bool]]]:
+        def create_test_schema_data() -> Mapping[
+            str, str | Sequence[Mapping[str, str | bool]]
+        ]:
             """Create test schema data."""
             return {
                 "table_name": "test_table",
@@ -820,7 +823,7 @@ class TestApiModule:
         api = FlextDbOracleApi(config=config)
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "query"):
-            result: r[list[t.Dict]] = api.query(str(test_query["query"]))
+            result: r[Sequence[t.Dict]] = api.query(str(test_query["query"]))
             tm.that(isinstance(result, r), eq=True)
 
     def test_flext_db_oracle_api_execute_update(self) -> None:
@@ -885,7 +888,7 @@ class TestApiModule:
         )
         api = FlextDbOracleApi(config=config)
         if hasattr(api, "get_tables"):
-            result: r[list[str]] = api.get_tables()
+            result: r[Sequence[str]] = api.get_tables()
             tm.that(isinstance(result, r), eq=True)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
@@ -906,10 +909,10 @@ class TestApiModule:
             connect_result: r[FlextDbOracleApi] = api.connect()
             tm.that(isinstance(connect_result, r), eq=True)
         if hasattr(api, "query"):
-            query_result: r[list[t.Dict]] = api.query(str(test_query["query"]))
+            query_result: r[Sequence[t.Dict]] = api.query(str(test_query["query"]))
             tm.that(isinstance(query_result, r), eq=True)
         if hasattr(api, "get_tables"):
-            schema_result: r[list[str]] = api.get_tables()
+            schema_result: r[Sequence[str]] = api.get_tables()
             tm.that(isinstance(schema_result, r), eq=True)
         if hasattr(api, "disconnect"):
             disconnect_result: r[bool] = api.disconnect()
@@ -931,7 +934,7 @@ class TestApiModule:
             result: r[FlextDbOracleApi] = api.connect()
             tm.that(isinstance(result, r), eq=True)
         if hasattr(api, "query"):
-            query_result: r[list[t.Dict]] = api.query(invalid_query)
+            query_result: r[Sequence[t.Dict]] = api.query(invalid_query)
             tm.that(isinstance(query_result, r), eq=True)
         if hasattr(api, "get_table_metadata"):
             metadata_result = api.get_table_metadata("non_existent_table")
@@ -1045,7 +1048,7 @@ class TestApiModule:
                 tm.that(isinstance(result, r), eq=True)
         if hasattr(api, "query"):
             for query_data in realistic_queries:
-                query_result: r[list[t.Dict]] = api.query(str(query_data["query"]))
+                query_result: r[Sequence[t.Dict]] = api.query(str(query_data["query"]))
                 tm.that(isinstance(query_result, r), eq=True)
 
     def test_flext_db_oracle_api_integration_patterns(self) -> None:
@@ -1117,10 +1120,10 @@ class TestApiModule:
         def execute_query(index: int) -> None:
             sql = f"SELECT {index} FROM dual"
             if hasattr(api, "query"):
-                result: r[list[t.Dict]] = api.query(sql)
+                result: r[Sequence[t.Dict]] = api.query(sql)
                 results.append(result)
 
-        threads: list[Thread] = []
+        threads: Sequence[Thread] = []
         for i in range(5):
             thread = threading.Thread(target=connect_to_database, args=(i,))
             threads.append(thread)
@@ -1229,7 +1232,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: dict[str, t.NormalizedValue] = {
+        plugin: Mapping[str, t.NormalizedValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1337,7 +1340,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)
-        plugin: dict[str, t.NormalizedValue] = {
+        plugin: Mapping[str, t.NormalizedValue] = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1525,7 +1528,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(isinstance(api_from_config, FlextDbOracleApi), eq=True)
 
     def test_dict_serialization(self) -> None:
-        """Test dict[str, t.NormalizedValue] serialization methods."""
+        """Test Mapping[str, t.NormalizedValue] serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict is not None, eq=True)
 
@@ -1639,7 +1642,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars: dict[str, str | None] = {}
+        original_vars: Mapping[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",

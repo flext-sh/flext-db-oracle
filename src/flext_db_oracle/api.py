@@ -73,7 +73,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._context_name = context_name or "oracle-api"
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
-        self._plugins: dict[str, t.ContainerValue] = {}
+        self._plugins: Mapping[str, t.ContainerValue] = {}
         self._registry = self._plugins
         self._context_fallback_mode = False
         type(self).to_dict_source = self
@@ -217,7 +217,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def convert_singer_type(
         self,
-        singer_type: str | list[str],
+        singer_type: str | Sequence[str],
         format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer JSON Schema type to Oracle SQL type."""
@@ -283,7 +283,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[list[FlextDbOracleModels.DbOracle.Column]]:
+    ) -> r[Sequence[FlextDbOracleModels.DbOracle.Column]]:
         """Get column information for specified table."""
         return self._services.get_columns(table, schema)
 
@@ -302,11 +302,13 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         plugin = self._plugins[name]
         return r[t.ContainerValue | None].ok(plugin)
 
-    def get_primary_keys(self, table: str, schema: str | None = None) -> r[list[str]]:
+    def get_primary_keys(
+        self, table: str, schema: str | None = None
+    ) -> r[Sequence[str]]:
         """Get primary key column names for specified table."""
         return self._services.get_primary_keys(table, schema)
 
-    def get_schemas(self) -> r[list[str]]:
+    def get_schemas(self) -> r[Sequence[str]]:
         """Get list of available schemas."""
         return self._services.get_schemas()
 
@@ -318,7 +320,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
-    def get_tables(self, schema: str | None = None) -> r[list[str]]:
+    def get_tables(self, schema: str | None = None) -> r[Sequence[str]]:
         """Get list of tables in specified schema."""
         return self._services.get_tables(schema)
 
@@ -329,9 +331,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             self._oracle_config.service_name,
         )
 
-    def list_plugins(self) -> r[list[str]]:
+    def list_plugins(self) -> r[Sequence[str]]:
         """List all registered plugin names."""
-        return r[list[str]].ok(list(self._plugins.keys()))
+        return r[Sequence[str]].ok(list(self._plugins.keys()))
 
     def map_singer_schema(self, schema: t.ContainerValue) -> r[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
@@ -350,10 +352,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: Mapping[str, t.ContainerValue] | None = None,
-    ) -> r[list[t.Dict]]:
+    ) -> r[Sequence[t.Dict]]:
         """Execute a SELECT query and return all results."""
         if self._context_fallback_mode and not self.is_connected:
-            return r[list[t.Dict]].ok([])
+            return r[Sequence[t.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
             t.ConfigMap.model_validate({"root": dict(parameters)})
@@ -395,13 +397,13 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         if obj is None and cls.to_dict_source is not None:
             source = cls.to_dict_source
             plugin_count_value = source.list_plugins().map(len).map_or(0)
-            config_payload: dict[str, t.ContainerValue] = {
+            config_payload: Mapping[str, t.ContainerValue] = {
                 "host": source.oracle_config.host,
                 "port": source.oracle_config.port,
                 "service_name": source.oracle_config.service_name,
                 "username": source.oracle_config.username,
             }
-            payload: dict[str, t.ContainerValue] = {
+            payload: Mapping[str, t.ContainerValue] = {
                 "config": config_payload,
                 "connected": source.is_connected,
                 "plugin_count": plugin_count_value,
@@ -416,7 +418,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def transaction(self) -> r[Mapping[str, t.ContainerValue]]:
         """Get transaction status information."""
         try:
-            status: dict[str, t.ContainerValue] = {
+            status: Mapping[str, t.ContainerValue] = {
                 "connected": self._services.is_connected(),
                 "transaction_available": True,
             }
@@ -436,7 +438,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def _convert_to_query_result(
         self,
         sql: str,
-        data: list[t.Dict],
+        data: Sequence[t.Dict],
     ) -> FlextDbOracleModels.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:
