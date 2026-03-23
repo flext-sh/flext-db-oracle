@@ -1,7 +1,6 @@
 # Architecture Overview
 
 <!-- TOC START -->
-
 - [Architecture Principles](#architecture-principles)
   - [Clean Architecture Layers](#clean-architecture-layers)
   - [FLEXT Pattern Integration](#flext-pattern-integration)
@@ -12,7 +11,7 @@
   - [Bounded Context](#bounded-context)
   - [Aggregates](#aggregates)
 - [Error Handling Strategy](#error-handling-strategy)
-  - [r Pattern](#flextresult-pattern)
+  - [r Pattern](#r-pattern)
   - [Exception Hierarchy](#exception-hierarchy)
 - [Technology Stack](#technology-stack)
   - [Current Implementation](#current-implementation)
@@ -28,7 +27,6 @@
 - [Future Architecture Evolution](#future-architecture-evolution)
   - [Planned Improvements](#planned-improvements)
 - [Related Documentation](#related-documentation)
-
 <!-- TOC END -->
 
 Clean Architecture implementation for Oracle Database integration in the FLEXT ecosystem.

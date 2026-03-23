@@ -1,7 +1,6 @@
 # Arc42 Documentation: 1. Introduction and Goals
 
 <!-- TOC START -->
-
 - [1.1 Purpose and Scope](#11-purpose-and-scope)
   - [Business Context](#business-context)
   - [Scope and Responsibilities](#scope-and-responsibilities)
@@ -28,7 +27,6 @@
   - [Architecture Terms](#architecture-terms)
   - [Oracle Database Terms](#oracle-database-terms)
   - [FLEXT Ecosystem Terms](#flext-ecosystem-terms)
-
 <!-- TOC END -->
 
 **flext-db-oracle - Enterprise Oracle Database Integration**

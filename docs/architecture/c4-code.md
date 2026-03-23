@@ -1,7 +1,6 @@
 # C4 Code Diagram - flext-db-oracle Implementation
 
 <!-- TOC START -->
-
 - [Code Structure Overview](#code-structure-overview)
 - [Code Module Details](#code-module-details)
   - [Entry Points](#entry-points)
@@ -25,7 +24,6 @@
   - [Memory and CPU Usage](#memory-and-cpu-usage)
   - [Scalability Metrics](#scalability-metrics)
   - [Optimization Opportunities](#optimization-opportunities)
-
 <!-- TOC END -->
 
 **Code-Level Architecture for Oracle Database Integration**

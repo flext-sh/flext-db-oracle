@@ -1,7 +1,6 @@
 # Architecture Decision Record: ADR-003
 
 <!-- TOC START -->
-
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -30,7 +29,6 @@
   - [Migration Strategy](#migration-strategy)
   - [Future Considerations](#future-considerations)
   - [Related Decisions](#related-decisions)
-
 <!-- TOC END -->
 
 **ADR Number**: 003

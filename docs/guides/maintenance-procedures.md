@@ -1,7 +1,6 @@
 # Documentation Maintenance Procedures
 
 <!-- TOC START -->
-
 - [Overview](#overview)
 - [Maintenance Framework](#maintenance-framework)
   - [Automated Maintenance System](#automated-maintenance-system)
@@ -35,7 +34,6 @@
 - [Success Metrics](#success-metrics)
   - [Quality Metrics](#quality-metrics)
   - [Process Metrics](#process-metrics)
-
 <!-- TOC END -->
 
 **Comprehensive maintenance framework for flext-db-oracle documentation quality assurance.**

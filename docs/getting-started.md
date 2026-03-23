@@ -1,7 +1,6 @@
 # Getting Started with flext-db-oracle
 
 <!-- TOC START -->
-
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Quick Connection Test](#quick-connection-test)
@@ -17,7 +16,6 @@
 - [Next Steps](#next-steps)
 - [Need Help](#need-help)
 - [Related Documentation](#related-documentation)
-
 <!-- TOC END -->
 
 Oracle Database integration for the FLEXT ecosystem - get connected in 5 minutes.

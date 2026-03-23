@@ -1,7 +1,6 @@
 # Development
 
 <!-- TOC START -->
-
 - [Setup](#setup)
 - [Quality Commands](#quality-commands)
 - [Implementation Status](#implementation-status)
@@ -28,7 +27,6 @@
   - [Performance Issues](#performance-issues)
   - [Architecture Issues](#architecture-issues)
   - [Current Test Issues Troubleshooting](#current-test-issues-troubleshooting)
-
 <!-- TOC END -->
 
 Development workflow and guidelines for flext-db-oracle.

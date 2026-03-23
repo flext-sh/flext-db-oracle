@@ -1,7 +1,6 @@
 # C4 Context Diagram - flext-db-oracle
 
 <!-- TOC START -->
-
 - [Context Overview](#context-overview)
 - [System Purpose](#system-purpose)
 - [External System Interactions](#external-system-interactions)
@@ -26,7 +25,6 @@
 - [Evolution and Roadmap](#evolution-and-roadmap)
   - [Current Version (0.9.0)](#current-version-090)
   - [Future Versions](#future-versions)
-
 <!-- TOC END -->
 
 **System Context for Oracle Database Integration in FLEXT Ecosystem**

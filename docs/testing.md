@@ -1,7 +1,6 @@
 # Testing Plan & Strategy - flext-db-oracle v0.9.0
 
 <!-- TOC START -->
-
 - [📊 Testing Overview](#testing-overview)
   - [Test Infrastructure Status](#test-infrastructure-status)
 - [🚨 Current Test Issues & Blockers](#current-test-issues-blockers)
@@ -40,7 +39,6 @@
 - [🔍 Test Maintenance & Evolution](#test-maintenance-evolution)
   - [Test Refactoring Guidelines](#test-refactoring-guidelines)
   - [Continuous Improvement](#continuous-improvement)
-
 <!-- TOC END -->
 
 **Last Updated**: 2025-10-10 | **Coverage Target**: 100% | **Test Files**: 30 | **Current Status**: Issues Detected

@@ -1,7 +1,6 @@
 # C4 Component Diagram - flext-db-oracle API
 
 <!-- TOC START -->
-
 - [Component Overview](#component-overview)
 - [Component Descriptions](#component-descriptions)
   - [Application Layer Components](#application-layer-components)
@@ -20,7 +19,6 @@
 - [Component Evolution](#component-evolution)
   - [Current State (v0.9.0)](#current-state-v090)
   - [Future Enhancements](#future-enhancements)
-
 <!-- TOC END -->
 
 **Component Architecture for flext-db-oracle Library**

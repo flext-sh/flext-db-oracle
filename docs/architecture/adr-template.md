@@ -1,7 +1,6 @@
 # Architecture Decision Record (ADR) Template
 
 <!-- TOC START -->
-
 - [Context](#context)
 - [Decision](#decision)
 - [Rationale](#rationale)
@@ -13,7 +12,6 @@
 - [Validation Criteria](#validation-criteria)
 - [References](#references)
 - [Notes](#notes)
-
 <!-- TOC END -->
 
 **ADR Number**: [NNN]

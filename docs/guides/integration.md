@@ -1,7 +1,6 @@
 # Integration
 
 <!-- TOC START -->
-
 - [FLEXT Core Integration](#flext-core-integration)
 - [Singer Ecosystem](#singer-ecosystem)
   - [flext-tap-oracle](#flext-tap-oracle)
@@ -10,7 +9,6 @@
 - [CLI Integration](#cli-integration)
 - [Connection Patterns](#connection-patterns)
 - [Available Operations](#available-operations)
-
 <!-- TOC END -->
 
 FLEXT ecosystem integration patterns for flext-db-oracle.
