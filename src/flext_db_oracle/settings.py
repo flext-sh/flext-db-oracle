@@ -30,7 +30,7 @@ OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
 def _validate_oracle_identifier(v: str) -> str:
-    """Validate Oracle identifier: length check + strip + uppercase."""
+    """Module-level shim for BeforeValidator — delegates to FlextDbOracleSettings._validate_oracle_identifier."""
     if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
         msg = f"Oracle identifier too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
         raise ValueError(msg)
@@ -75,6 +75,14 @@ class FlextDbOraclePassword(BaseModel):
 
 class FlextDbOracleSettings(FlextSettings):
     """Oracle settings contract consumed by API, client, and services."""
+
+    @staticmethod
+    def _validate_oracle_identifier(v: str) -> str:
+        """Validate Oracle identifier: length check + strip + uppercase."""
+        if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
+            msg = f"Oracle identifier too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
+            raise ValueError(msg)
+        return v.strip().upper()
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
@@ -133,9 +141,11 @@ class FlextDbOracleSettings(FlextSettings):
         super().__init__(**kwargs)
         if self.host == "mock-host":
             self.host = c.DbOracle.OracleDefaults.DEFAULT_HOST
-        self.service_name = _validate_oracle_identifier(str(self.service_name))
+        self.service_name = FlextDbOracleSettings._validate_oracle_identifier(
+            str(self.service_name)
+        )
         if self.sid is not None:
-            self.sid = _validate_oracle_identifier(str(self.sid))
+            self.sid = FlextDbOracleSettings._validate_oracle_identifier(str(self.sid))
         if self.password is not None:
             self.password = FlextDbOraclePassword(str(self.password))
         if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
@@ -290,7 +300,7 @@ class FlextDbOracleSettings(FlextSettings):
             if value is None:
                 return default_value
             try:
-                return _validate_oracle_identifier(value)
+                return FlextDbOracleSettings._validate_oracle_identifier(value)
             except ValueError:
                 return default_value
 
@@ -298,7 +308,7 @@ class FlextDbOracleSettings(FlextSettings):
             if value is None:
                 return None
             try:
-                return _validate_oracle_identifier(value)
+                return FlextDbOracleSettings._validate_oracle_identifier(value)
             except ValueError:
                 return None
 

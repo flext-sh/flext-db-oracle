@@ -33,29 +33,29 @@ _CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
 )
 
 
-def _validate_config_map(
-    value: Mapping[str, t.ContainerValue] | t.ConfigMap,
-) -> t.ConfigMap | None:
-    """Validate generic mapping payload with Pydantic."""
-    try:
-        if isinstance(value, t.ConfigMap):
-            return value
-        return t.ConfigMap.model_validate({"root": dict(value)})
-    except ValidationError:
-        return None
-
-
-def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
-    """Validate list payload with Pydantic."""
-    return _GENERAL_LIST_ADAPTER.validate_python(value)
-
-
 class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
     management using the flext-db-oracle foundation API with full flext-core integration.
     """
+
+    @staticmethod
+    def _validate_config_map(
+        value: Mapping[str, t.ContainerValue] | t.ConfigMap,
+    ) -> t.ConfigMap | None:
+        """Validate generic mapping payload with Pydantic."""
+        try:
+            if isinstance(value, t.ConfigMap):
+                return value
+            return t.ConfigMap.model_validate({"root": dict(value)})
+        except ValidationError:
+            return None
+
+    @staticmethod
+    def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
+        """Validate list payload with Pydantic."""
+        return _GENERAL_LIST_ADAPTER.validate_python(value)
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
@@ -319,7 +319,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         try:
 
             def adapt_schemas(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
-                schemas = _validate_general_list(raw_value)
+                schemas = FlextDbOracleClient._validate_general_list(raw_value)
                 if schemas is None:
                     return []
                 return [
@@ -328,7 +328,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 ]
 
             def adapt_tables(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
-                tables = _validate_general_list(raw_value)
+                tables = FlextDbOracleClient._validate_general_list(raw_value)
                 if tables is None:
                     return []
                 return [
@@ -341,7 +341,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     health_map = _CONFIG_DICT_ADAPTER.validate_python(raw_value)
                 except ValidationError:
                     return []
-                health = _validate_config_map(health_map)
+                health = FlextDbOracleClient._validate_config_map(health_map)
                 if health is None:
                     return []
                 return [
