@@ -110,18 +110,20 @@ class TestFlextDbOracleConstants:
         tm.that(val.IDENTIFIER_PATTERN, eq="^[A-Za-z][A-Za-z0-9_$#]*$")
         tm.that(val.SCHEMA_PATTERN, eq="^[A-Za-z][A-Za-z0-9_$#]*$")
         reserved = val.ORACLE_RESERVED
-        tm.that(reserved, has="SELECT")
-        tm.that(reserved, has="FROM")
-        tm.that(reserved, has="WHERE")
-        tm.that(reserved, has="INSERT")
-        tm.that(reserved, has="UPDATE")
-        tm.that(reserved, has="DELETE")
         tm.that(reserved, is_=frozenset)
+        reserved_list = sorted(reserved)
+        tm.that(reserved_list, has="SELECT")
+        tm.that(reserved_list, has="FROM")
+        tm.that(reserved_list, has="WHERE")
+        tm.that(reserved_list, has="INSERT")
+        tm.that(reserved_list, has="UPDATE")
+        tm.that(reserved_list, has="DELETE")
         sql_keywords = val.SQL_KEYWORDS
-        tm.that(sql_keywords, has="SELECT")
-        tm.that(sql_keywords, has="JOIN")
-        tm.that(sql_keywords, has="ORDER")
         tm.that(sql_keywords, is_=frozenset)
+        keywords_list = sorted(sql_keywords)
+        tm.that(keywords_list, has="SELECT")
+        tm.that(keywords_list, has="JOIN")
+        tm.that(keywords_list, has="ORDER")
 
     def test_error_messages_constants(self) -> None:
         """Test error message constants."""
