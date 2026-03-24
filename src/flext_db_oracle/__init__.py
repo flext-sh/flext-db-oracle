@@ -67,8 +67,14 @@ _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
     "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
-    "FlextDbOracleDispatcher": ("flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"),
-    "FlextDbOracleExceptions": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
+    "FlextDbOracleDispatcher": (
+        "flext_db_oracle.dispatcher",
+        "FlextDbOracleDispatcher",
+    ),
+    "FlextDbOracleExceptions": (
+        "flext_db_oracle.exceptions",
+        "FlextDbOracleExceptions",
+    ),
     "FlextDbOracleModels": ("flext_db_oracle.models", "FlextDbOracleModels"),
     "FlextDbOraclePassword": ("flext_db_oracle.settings", "FlextDbOraclePassword"),
     "FlextDbOracleProtocols": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
