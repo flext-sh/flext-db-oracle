@@ -214,7 +214,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> r[t.StrSequence]:
+            ) -> r[Sequence[str]]:
                 """Get primary key columns for Oracle table.
 
                 Args:
@@ -222,16 +222,16 @@ class FlextDbOracleProtocols(FlextProtocols):
                 schema: Schema name (optional)
 
                 Returns:
-                r[t.StrSequence]: Primary key column names or error
+                r[Sequence[str]]: Primary key column names or error
 
                 """
                 ...
 
-            def get_schemas(self) -> r[t.StrSequence]:
+            def get_schemas(self) -> r[Sequence[str]]:
                 """Get list of Oracle schemas.
 
                 Returns:
-                r[t.StrSequence]: Schema names or error
+                r[Sequence[str]]: Schema names or error
 
                 """
                 ...
@@ -253,14 +253,14 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
+            def get_tables(self, schema: str | None = None) -> r[Sequence[str]]:
                 """Get list of tables in Oracle schema.
 
                 Args:
                 schema: Schema name (optional)
 
                 Returns:
-                r[t.StrSequence]: Table names or error
+                r[Sequence[str]]: Table names or error
 
                 """
                 ...
@@ -302,7 +302,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             def build_select(
                 self,
                 table: str,
-                columns: t.StrSequence | None = None,
+                columns: Sequence[str] | None = None,
                 where_clause: str | None = None,
                 order_by: str | None = None,
                 limit: int | None = None,
@@ -348,7 +348,7 @@ class FlextDbOracleProtocols(FlextProtocols):
             def build_create_index_statement(
                 self,
                 table: str,
-                columns: t.StrSequence,
+                columns: Sequence[str],
                 index_name: str | None = None,
                 *,
                 unique: bool = False,
@@ -416,7 +416,7 @@ class FlextDbOracleProtocols(FlextProtocols):
                 self,
                 name: str,
                 value: float,
-                tags: t.StrMapping | None = None,
+                tags: Mapping[str, str] | None = None,
             ) -> r[bool]:
                 """Record Oracle database metric.
 
@@ -467,11 +467,11 @@ class FlextDbOracleProtocols(FlextProtocols):
                 """
                 ...
 
-            def list_plugins(self) -> r[t.StrSequence]:
+            def list_plugins(self) -> r[Sequence[str]]:
                 """List registered Oracle database plugins.
 
                 Returns:
-                r[t.StrSequence]: Plugin names or error
+                r[Sequence[str]]: Plugin names or error
 
                 """
                 ...

@@ -12,7 +12,7 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from pathlib import Path
 
 import oracledb
@@ -25,14 +25,14 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t
 
 logger: p.Logger = FlextLogger(__name__)
-_PORT_BINDINGS_ADAPTER = TypeAdapter(t.StrMapping)
+_PORT_BINDINGS_ADAPTER = TypeAdapter(Mapping[str, str])
 
 
 def _workspace_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _normalized_port_bindings(value: t.NormalizedValue) -> t.StrMapping:
+def _normalized_port_bindings(value: t.NormalizedValue) -> Mapping[str, str]:
     try:
         return _PORT_BINDINGS_ADAPTER.validate_python(value)
     except ValidationError:

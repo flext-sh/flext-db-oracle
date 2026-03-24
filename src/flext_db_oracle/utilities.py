@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from typing import Annotated
 
@@ -36,7 +36,7 @@ class _CountValue(RootModel[int | str]):
     root: int | str
 
 
-_STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+_STRING_LIST_ADAPTER: TypeAdapter[Sequence[str]] = TypeAdapter(Sequence[str])
 
 
 class FlextDbOracleUtilities(FlextUtilities):
@@ -206,7 +206,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 return 0
 
         @staticmethod
-        def _normalize_singer_type(value: str | t.StrSequence) -> str:
+        def _normalize_singer_type(value: str | Sequence[str]) -> str:
             """Normalize Singer type input to a single string value."""
             try:
                 values = _STRING_LIST_ADAPTER.validate_python(value)

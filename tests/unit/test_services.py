@@ -1195,8 +1195,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
         methods_to_test = [
-            ("get_schemas", cast("t.StrSequence", [])),
-            ("get_tables", cast("t.StrSequence", [])),
+            ("get_schemas", cast("Sequence[str]", [])),
+            ("get_tables", cast("Sequence[str]", [])),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:

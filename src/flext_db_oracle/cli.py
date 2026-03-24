@@ -145,7 +145,7 @@ class FlextDbOracleCli(FlextService[str]):
             data: m.DbOracle.OutputPayload
             | m.DbOracle.HealthCheckReport
             | Mapping[str, t.DbOracle.CliScalar]
-            | t.StrSequence
+            | Sequence[str]
             | str,
             output_format: str,
         ) -> r[str]:
@@ -167,7 +167,7 @@ class FlextDbOracleCli(FlextService[str]):
                     m.DbOracle.OutputPayload
                     | m.DbOracle.HealthCheckReport
                     | Mapping[str, t.DbOracle.CliScalar]
-                    | t.StrSequence
+                    | Sequence[str]
                     | str
                 )
                 match data:
@@ -190,7 +190,7 @@ class FlextDbOracleCli(FlextService[str]):
 
         def format_list_output(
             self,
-            items: t.StrSequence | Sequence[m.DbOracle.NamedItem],
+            items: Sequence[str] | Sequence[m.DbOracle.NamedItem],
             title: str,
             output_format: str = "table",
         ) -> r[str]:
@@ -200,7 +200,7 @@ class FlextDbOracleCli(FlextService[str]):
             r[str]: Formatted list output.
 
             """
-            string_items: t.StrSequence = []
+            string_items: Sequence[str] = []
             for item in items:
                 match item:
                     case str() as item_text:
@@ -508,7 +508,7 @@ class FlextDbOracleCli(FlextService[str]):
             return r[str].ok(formatted_result.value)
         return r[str].ok(f"Query executed successfully with {row_count} rows")
 
-    def run_cli(self, args: t.StrSequence | None = None) -> r[str]:
+    def run_cli(self, args: Sequence[str] | None = None) -> r[str]:
         """Run CLI with command line arguments simulation.
 
         Returns:

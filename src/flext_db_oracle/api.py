@@ -217,7 +217,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def convert_singer_type(
         self,
-        singer_type: str | t.StrSequence,
+        singer_type: str | Sequence[str],
         format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer JSON Schema type to Oracle SQL type."""
@@ -304,11 +304,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def get_primary_keys(
         self, table: str, schema: str | None = None
-    ) -> r[t.StrSequence]:
+    ) -> r[Sequence[str]]:
         """Get primary key column names for specified table."""
         return self._services.get_primary_keys(table, schema)
 
-    def get_schemas(self) -> r[t.StrSequence]:
+    def get_schemas(self) -> r[Sequence[str]]:
         """Get list of available schemas."""
         return self._services.get_schemas()
 
@@ -320,7 +320,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
-    def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
+    def get_tables(self, schema: str | None = None) -> r[Sequence[str]]:
         """Get list of tables in specified schema."""
         return self._services.get_tables(schema)
 
@@ -331,14 +331,14 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             self._oracle_config.service_name,
         )
 
-    def list_plugins(self) -> r[t.StrSequence]:
+    def list_plugins(self) -> r[Sequence[str]]:
         """List all registered plugin names."""
-        return r[t.StrSequence].ok(list(self._plugins.keys()))
+        return r[Sequence[str]].ok(list(self._plugins.keys()))
 
-    def map_singer_schema(self, schema: t.ContainerValue) -> r[t.StrMapping]:
+    def map_singer_schema(self, schema: t.ContainerValue) -> r[Mapping[str, str]]:
         """Map Singer JSON Schema to Oracle table schema."""
         if not isinstance(schema, dict):
-            return r[t.StrMapping].fail("Schema must be a mapping")
+            return r[Mapping[str, str]].fail("Schema must be a mapping")
         return self._services.map_singer_schema(schema).map(lambda value: value.mapping)
 
     def optimize_query(self, sql: str) -> r[str]:

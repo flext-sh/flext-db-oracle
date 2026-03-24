@@ -82,7 +82,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         resources: Mapping[str, t.ResourceCallable] | None = None,
         container_overrides: t.ConfigurationMapping | None = None,
         wire_modules: Sequence[ModuleType] | None = None,
-        wire_packages: t.StrSequence | None = None,
+        wire_packages: Sequence[str] | None = None,
         wire_classes: Sequence[type] | None = None,
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -376,8 +376,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     def _build_table_string(self, adapted_data: Sequence[t.ConfigMap]) -> str:
         """Build table string from adapted data."""
-        headers: t.StrSequence = list(adapted_data[0].keys())
-        rows: Sequence[t.StrSequence] = [
+        headers: Sequence[str] = list(adapted_data[0].keys())
+        rows: Sequence[Sequence[str]] = [
             [str(row[h]) for h in headers] for row in adapted_data
         ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
@@ -610,4 +610,4 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         return r[bool].ok(True)
 
 
-__all__: t.StrSequence = ["FlextDbOracleClient"]
+__all__: Sequence[str] = ["FlextDbOracleClient"]

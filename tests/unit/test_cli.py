@@ -530,7 +530,7 @@ class TestCliServiceOperations:
         """Test successful schema listing."""
         cli_service = FlextDbOracleCli()
         mock_api = Mock()
-        mock_api.get_schemas.return_value = r[t.StrSequence].ok([
+        mock_api.get_schemas.return_value = r[Sequence[str]].ok([
             "SCHEMA1",
             "SCHEMA2",
             "SCHEMA3",
@@ -541,7 +541,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[t.StrSequence].ok([
+            mock_get_schemas.return_value = r[Sequence[str]].ok([
                 "SCHEMA1",
                 "SCHEMA2",
             ])
@@ -589,7 +589,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_schemas") as mock_get_schemas,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(mock_api)
-            mock_get_schemas.return_value = r[t.StrSequence].fail("Schema query failed")
+            mock_get_schemas.return_value = r[Sequence[str]].fail("Schema query failed")
             result = cli_service.execute_list_schemas(
                 host="localhost",
                 port=1521,
@@ -613,7 +613,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[t.StrSequence].ok([
+            mock_get_tables.return_value = r[Sequence[str]].ok([
                 "TABLE1",
                 "TABLE2",
             ])
@@ -639,7 +639,7 @@ class TestCliServiceOperations:
             patch.object(FlextDbOracleApi, "get_tables") as mock_get_tables,
         ):
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
-            mock_get_tables.return_value = r[t.StrSequence].ok(["TABLE1"])
+            mock_get_tables.return_value = r[Sequence[str]].ok(["TABLE1"])
             result = cli_service.execute_list_tables(
                 host="localhost",
                 port=1521,
