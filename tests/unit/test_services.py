@@ -445,7 +445,7 @@ class TestFlextDbOracleServicesBasic:
         params: Mapping[str, t.NormalizedValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
-        tm.that(isinstance(hash_result.value, str), eq=True)
+        tm.that(hash_result.value, is_=str)
         tm.that(hash_result.value, eq=True)
 
     def test_service_column_definition_building(self) -> None:
@@ -654,7 +654,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that(list_result.value.root, eq={"sample": True})
         get_result = service.get_plugin("sample")
         tm.ok(get_result)
-        tm.that(isinstance(get_result.value, dict), eq=True)
+        tm.that(get_result.value, is_=dict)
         tm.that(get_result.value.get("name"), eq="sample")
         unregister_result = service.unregister_plugin("sample")
         tm.ok(unregister_result)
@@ -834,7 +834,7 @@ class TestDirectCoverageBoostConnection:
                 if hasattr(result, "is_failure") and hasattr(result, "is_success"):
                     tm.that(result.is_failure or result.is_success, eq=True)
                 elif isinstance(result, bool):
-                    tm.that(isinstance(result, bool), eq=True)
+                    tm.that(result, is_=bool)
                 else:
                     tm.that(result is not None or result is None, eq=True)
             except (AttributeError, TypeError):
@@ -907,7 +907,7 @@ class TestDirectCoverageBoostObservability:
             api = FlextDbOracleApi(config)
             metrics_result = api.get_observability_metrics()
             tm.ok(metrics_result)
-            tm.that(isinstance(metrics_result.value, dict), eq=True)
+            tm.that(metrics_result.value, is_=dict)
         except (TypeError, AttributeError):
             pass
 
@@ -1050,8 +1050,8 @@ class TestDirectCoverageBoostServices:
                 if isinstance(sql_content, tuple):
                     sql_text = sql_content[0]
                     sql_params = sql_content[1]
-                    tm.that(isinstance(sql_text, str), eq=True)
-                    tm.that(isinstance(sql_params, dict), eq=True)
+                    tm.that(sql_text, is_=str)
+                    tm.that(sql_params, is_=dict)
                 elif isinstance(sql_content, str):
                     sql_text = sql_content
                 else:
@@ -1294,7 +1294,7 @@ class TestFlextDbOracleConnectionSimple:
     def test_is_connected_method(self) -> None:
         """Test is_connected method behavior."""
         connected_status = self.connection.is_connected()
-        tm.that(isinstance(connected_status, bool), eq=True)
+        tm.that(connected_status, is_=bool)
 
     def test_disconnect_when_not_connected(self) -> None:
         """Test disconnect when not connected."""
@@ -1696,7 +1696,7 @@ class TestFlextDbOracleConnectionSimple:
         params: Mapping[str, t.NormalizedValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
-        tm.that(isinstance(hash_result.value, str), eq=True)
+        tm.that(hash_result.value, is_=str)
         tm.that(hash_result.value, eq=True)
 
     def test_service_column_definition_building(self) -> None:

@@ -116,12 +116,12 @@ class TestFlextDbOracleConstants:
         tm.that(reserved, has="INSERT")
         tm.that(reserved, has="UPDATE")
         tm.that(reserved, has="DELETE")
-        tm.that(isinstance(reserved, frozenset), eq=True)
+        tm.that(reserved, is_=frozenset)
         sql_keywords = val.SQL_KEYWORDS
         tm.that(sql_keywords, has="SELECT")
         tm.that(sql_keywords, has="JOIN")
         tm.that(sql_keywords, has="ORDER")
-        tm.that(isinstance(sql_keywords, frozenset), eq=True)
+        tm.that(sql_keywords, is_=frozenset)
 
     def test_error_messages_constants(self) -> None:
         """Test error message constants."""
@@ -221,12 +221,17 @@ class TestFlextDbOracleConstants:
     def test_literals_constants(self) -> None:
         """Test type-safe literal constants."""
         c = FlextDbOracleConstants
-        tm.that(c.DbOracle.ConnectionTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_CONNECTION_TYPES))
-        tm.that(c.DbOracle.QueryTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_QUERY_TYPES))
+        tm.that(
+            c.DbOracle.ConnectionTypeLiteral,
+            eq=tuple(c.DbOracle.Lists.VALID_CONNECTION_TYPES),
+        )
+        tm.that(
+            c.DbOracle.QueryTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_QUERY_TYPES)
+        )
         tm.that(c.DbOracle.DataTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_DATA_TYPES))
-        tm.that(isinstance(c.DbOracle.ConnectionTypeLiteral, tuple), eq=True)
-        tm.that(isinstance(c.DbOracle.QueryTypeLiteral, tuple), eq=True)
-        tm.that(isinstance(c.DbOracle.DataTypeLiteral, tuple), eq=True)
+        tm.that(c.DbOracle.ConnectionTypeLiteral, is_=tuple)
+        tm.that(c.DbOracle.QueryTypeLiteral, is_=tuple)
+        tm.that(c.DbOracle.DataTypeLiteral, is_=tuple)
         lit = c.DbOracle.Literals
         tm.that(
             lit.EnvironmentLiteral is FlextConstants.Environment is True,
@@ -286,20 +291,20 @@ class TestFlextDbOracleConstants:
         """Test Oracle enumeration classes."""
         enums = FlextDbOracleConstants.DbOracle.OracleEnums
         conn_type = enums.ConnectionType
-        tm.that(isinstance(conn_type, type), eq=True)
+        tm.that(conn_type, is_=type)
         tm.that(issubclass(conn_type, StrEnum), eq=True)
         tm.that(getattr(conn_type, "SERVICE_NAME"), eq="service_name")
         tm.that(getattr(conn_type, "SID"), eq="sid")
         tm.that(getattr(conn_type, "TNS"), eq="tns")
         query_type = enums.QueryType
-        tm.that(isinstance(query_type, type), eq=True)
+        tm.that(query_type, is_=type)
         tm.that(issubclass(query_type, StrEnum), eq=True)
         tm.that(getattr(query_type, "SELECT"), eq="SELECT")
         tm.that(getattr(query_type, "INSERT"), eq="INSERT")
         tm.that(getattr(query_type, "UPDATE"), eq="UPDATE")
         tm.that(getattr(query_type, "DELETE"), eq="DELETE")
         data_type = enums.DataType
-        tm.that(isinstance(data_type, type), eq=True)
+        tm.that(data_type, is_=type)
         tm.that(issubclass(data_type, StrEnum), eq=True)
         tm.that(getattr(data_type, "VARCHAR2"), eq="VARCHAR2")
         tm.that(getattr(data_type, "NUMBER"), eq="NUMBER")
@@ -345,10 +350,10 @@ class TestFlextDbOracleConstants:
         default_service = (
             FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
         )
-        tm.that(isinstance(default_service, str), eq=True)
+        tm.that(default_service, is_=str)
         tm.that(default_service, eq=True)
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
-        tm.that(isinstance(default_port, int), eq=True)
+        tm.that(default_port, is_=int)
         tm.that(
             (FlextConstants.MIN_PORT <= default_port <= FlextConstants.MAX_PORT),
             eq=True,
@@ -381,7 +386,7 @@ class TestFlextDbOracleConstants:
         max_length = (
             FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         )
-        tm.that(isinstance(max_length, int), eq=True)
+        tm.that(max_length, is_=int)
         tm.that(max_length, gt=0)
         long_name = "A" * (max_length - 10)
         escaped = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(long_name)

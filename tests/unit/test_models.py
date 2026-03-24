@@ -161,10 +161,13 @@ class TestFlextDbOracleModels:
         tm.that(result.row_count, eq=2)
         tm.that(result.execution_time_ms, eq=150)
         tm.that(result.columns, eq=["id", "name"])
-        tm.that(result.rows, eq=[
-            FlextDbOracleModels.DbOracle.RowData(values=[1, "John"]),
-            FlextDbOracleModels.DbOracle.RowData(values=[2, "Jane"]),
-        ])
+        tm.that(
+            result.rows,
+            eq=[
+                FlextDbOracleModels.DbOracle.RowData(values=[1, "John"]),
+                FlextDbOracleModels.DbOracle.RowData(values=[2, "Jane"]),
+            ],
+        )
         tm.that(result.query_hash, eq="abc123")
         tm.that(result.explain_plan, eq="TABLE ACCESS FULL")
 
@@ -379,12 +382,15 @@ class TestFlextDbOracleModels:
         )
         tm.that(result_model.has_results, eq=True)
         tm.that(result_model.column_count, eq=2)
-        tm.that({
-            "Excellent",
-            "Good",
-            "Acceptable",
-            "Slow",
-        }, has=result_model.performance_rating)
+        tm.that(
+            {
+                "Excellent",
+                "Good",
+                "Acceptable",
+                "Slow",
+            },
+            has=result_model.performance_rating,
+        )
 
     def test_table_model_real_oracle_integration(
         self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
@@ -520,7 +526,7 @@ class TestFlextDbOracleSettings:
         tm.ok(result)
         config = result.value
         tm.that(config.port, eq=1523)
-        tm.that(isinstance(config.port, int), eq=True)
+        tm.that(config.port, is_=int)
 
     def test_config_from_env_invalid_port(
         self, monkeypatch: pytest.MonkeyPatch

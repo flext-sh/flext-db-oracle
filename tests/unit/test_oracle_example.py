@@ -68,7 +68,7 @@ class TestRealOracleConnection:
                 msg = f"Query failed: {result.error}"
                 raise AssertionError(msg)
             query_data = result.value
-            tm.that(isinstance(query_data, list), eq=True)
+            tm.that(query_data, is_=list)
             tm.that(len(query_data), eq=1)
             first_row = safe_get_first_value(query_data)
             first_value = safe_get_first_value(first_row)
@@ -155,11 +155,7 @@ class TestRealOracleApi:
             query_data = query_result.value
             if query_data:
                 row = query_data[0]
-                if (
-                    hasattr(row, "__getitem__")
-                    and hasattr(row, "__len__")
-                    and (row)
-                ):
+                if hasattr(row, "__getitem__") and hasattr(row, "__len__") and (row):
                     cell = safe_get_first_value(row)
                     final_value = (
                         safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
@@ -190,7 +186,7 @@ class TestRealOracleApi:
             msg = f"Get tables failed: {tables_result.error}"
             raise AssertionError(msg)
         tables = tables_result.value
-        tm.that(isinstance(tables, list), eq=True)
+        tm.that(tables, is_=list)
         tm.that(tables, eq=True)
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:
@@ -221,7 +217,7 @@ class TestRealOracleApi:
             msg = f"Query with timing failed: {result.error}"
             raise AssertionError(msg)
         query_result = result.value
-        tm.that(isinstance(query_result, list), eq=True)
+        tm.that(query_result, is_=list)
         tm.that(query_result, eq=True)
 
     def test_real_api_singer_type_conversion(

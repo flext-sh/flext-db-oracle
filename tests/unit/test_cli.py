@@ -141,14 +141,14 @@ class TestFlextDbOracleClientReal:
         """Test creating client instances with real functionality."""
         client1 = FlextDbOracleClient()
         client2 = FlextDbOracleClient()
-        tm.that(isinstance(client1, FlextDbOracleClient), eq=True)
-        tm.that(isinstance(client2, FlextDbOracleClient), eq=True)
+        tm.that(client1, is_=FlextDbOracleClient)
+        tm.that(client2, is_=FlextDbOracleClient)
         tm.that(client1 is not client2, eq=True)
 
     def test_run_cli_command_real(self) -> None:
         """Test CLI command execution with real functionality."""
         result = FlextDbOracleClient.run_cli_command("health", timeout=30)
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
 
     def test_connection_wizard_real_validation(self) -> None:
         """Test connection wizard input validation."""
@@ -171,7 +171,7 @@ class TestFlextDbOracleClientReal:
         result = client.execute_query("")
         tm.that(result.is_success, eq=False)
         bad_result = client.configure_preferences(valid_key="")
-        tm.that(isinstance(bad_result, r), eq=True)
+        tm.that(bad_result, is_=r)
         tm.ok(bad_result)
 
     def test_client_preferences_persistence(self) -> None:
@@ -211,7 +211,7 @@ class TestFlextDbOracleClientIntegration:
             config.password.get_secret_value() if config.password else None,
         )
         tm.that(result.is_success, eq=False)
-        tm.that(isinstance(result.error, str), eq=True)
+        tm.that(result.error, is_=str)
 
 
 class TestFlextDbOracleCli:
@@ -234,7 +234,7 @@ class TestFlextDbOracleCli:
         """Test successful CLI main initialization."""
         cli_service = FlextDbOracleCli()
         result = cli_service._initialize_cli_main()
-        tm.that(isinstance(result, r), eq=True)
+        tm.that(result, is_=r)
 
     def test_initialize_cli_main_failure(self) -> None:
         """Test CLI main initialization failure handling."""
@@ -493,7 +493,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that(isinstance(output, HealthCheckReport), eq=True)
+        tm.that(output, is_=HealthCheckReport)
         tm.that(hasattr(output, "status") and output.status is not None, eq=True)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
@@ -508,7 +508,7 @@ class TestCliServiceOperations:
         )
         tm.ok(result)
         output = result.value
-        tm.that(isinstance(output, HealthCheckReport), eq=True)
+        tm.that(output, is_=HealthCheckReport)
         tm.that(hasattr(output, "status") and output.status is not None, eq=True)
 
     def test_execute_health_check_connection_failure(self) -> None:
@@ -722,7 +722,7 @@ class TestYamlModule:
         yaml_module = yaml
         data = {"test": "value"}
         result = yaml_module.dump(data, default_flow_style=True)
-        tm.that(isinstance(result, str), eq=True)
+        tm.that(result, is_=str)
         tm.that(result, has="test")
         tm.that(result, has="value")
 
@@ -737,7 +737,7 @@ class TestCLIRealFunctionality:
         get_history_method = getattr(oracle_cli, "get_command_history", None)
         if callable(get_history_method):
             history = get_history_method()
-            tm.that(isinstance(history, list), eq=True)
+            tm.that(history, is_=list)
         else:
             tm.that(callable(getattr(oracle_cli, "execute_query", None)), eq=True)
 
@@ -779,11 +779,11 @@ class TestCLIRealFunctionality:
         api = FlextDbOracleApi(config)
         metrics_result = api.get_observability_metrics()
         tm.ok(metrics_result)
-        tm.that(isinstance(metrics_result.value, t.NormalizedValue), eq=True)
+        tm.that(metrics_result.value, is_=t.NormalizedValue)
         connection_result = api.test_connection()
         tm.that(hasattr(connection_result, "is_success"), eq=True)
         is_valid = api.is_valid()
-        tm.that(isinstance(is_valid, bool), eq=True)
+        tm.that(is_valid, is_=bool)
         tm.that(is_valid, eq=True)
 
     def test_output_formatting_real(self) -> None:
@@ -794,7 +794,7 @@ class TestCLIRealFunctionality:
                 test_result, format_type=format_type
             )
             tm.ok(format_result)
-            tm.that(isinstance(format_result.value, str), eq=True)
+            tm.that(format_result.value, is_=str)
             tm.that(format_result.value, eq=True)
 
     def test_error_handling_real(self) -> None:
@@ -893,7 +893,7 @@ class TestCLIRealFunctionality:
             tm.ok(api_result)
             api = api_result.value
             tm.that(api.config.host, none=False)
-            tm.that(isinstance(api.config.port, int), eq=True)
+            tm.that(api.config.port, is_=int)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:

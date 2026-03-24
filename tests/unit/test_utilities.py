@@ -26,7 +26,7 @@ class TestFlextDbOracleUtilities:
         """Test utilities can be created."""
         utilities = FlextDbOracleUtilities()
         tm.that(utilities, none=False)
-        tm.that(isinstance(utilities, FlextDbOracleUtilities), eq=True)
+        tm.that(utilities, is_=FlextDbOracleUtilities)
 
     def test_utilities_has_required_methods(self) -> None:
         """Test utilities has all required static methods."""
@@ -47,7 +47,7 @@ class TestFlextDbOracleUtilities:
         )
         tm.ok(result)
         hash_value = result.value
-        tm.that(isinstance(hash_value, str), eq=True)
+        tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
         tm.that(hash_value.isalnum(), eq=True)
 
@@ -80,7 +80,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.generate_query_hash("SELECT 1", {})
         tm.ok(result)
         hash_value = result.value
-        tm.that(isinstance(hash_value, str), eq=True)
+        tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
 
     def test_generate_query_hash_params_order_independence(self) -> None:
@@ -103,7 +103,7 @@ class TestFlextDbOracleUtilities:
         )
         tm.ok(result)
         hash_value = result.value
-        tm.that(isinstance(hash_value, str), eq=True)
+        tm.that(hash_value, is_=str)
 
     def test_generate_query_hash_complex_query(self) -> None:
         """Test query hash with complex Oracle query."""
@@ -114,7 +114,7 @@ class TestFlextDbOracleUtilities:
         )
         tm.ok(result)
         hash_value = result.value
-        tm.that(isinstance(hash_value, str), eq=True)
+        tm.that(hash_value, is_=str)
         tm.that(len(hash_value), eq=16)
 
     def test_format_sql_for_oracle_basic_select(self) -> None:
@@ -312,7 +312,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
-        tm.that(isinstance(formatted, str), eq=True)
+        tm.that(formatted, is_=str)
 
     def test_format_query_result_table(self) -> None:
         """Test table formatting."""
@@ -320,7 +320,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
-        tm.that(isinstance(formatted, str), eq=True)
+        tm.that(formatted, is_=str)
         tm.that(formatted, eq=True)
 
     def test_format_query_result_table_empty(self) -> None:
@@ -329,7 +329,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
-        tm.that(isinstance(formatted, str), eq=True)
+        tm.that(formatted, is_=str)
 
     def test_format_query_result_unknown_format(self) -> None:
         """Test formatting with unknown format falls back to str()."""
@@ -337,7 +337,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
-        tm.that(isinstance(formatted, str), eq=True)
+        tm.that(formatted, is_=str)
         tm.that(formatted, eq=True)
 
     def test_format_query_result_none_data(self) -> None:
@@ -359,7 +359,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.create_config_from_env()
         tm.ok(result)
         config = result.value
-        tm.that(isinstance(config, FlextDbOracleSettings), eq=True)
+        tm.that(config, is_=FlextDbOracleSettings)
 
     def test_create_config_from_env_with_values(
         self, monkeypatch: pytest.MonkeyPatch
@@ -374,7 +374,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.create_config_from_env()
         tm.ok(result)
         config = result.value
-        tm.that(isinstance(config, FlextDbOracleSettings), eq=True)
+        tm.that(config, is_=FlextDbOracleSettings)
         tm.that(config.host, eq="test-host")
         tm.that(config.port, eq=1522)
         tm.that(config.username, eq="testuser")
@@ -389,7 +389,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.create_config_from_env()
         tm.ok(result)
         config = result.value
-        tm.that(isinstance(config, FlextDbOracleSettings), eq=True)
+        tm.that(config, is_=FlextDbOracleSettings)
         tm.that(config.host, eq="flext-host")
         tm.that(config.username, eq="flext-user")
 
@@ -403,7 +403,7 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.create_config_from_env()
         tm.ok(result)
         config = result.value
-        tm.that(isinstance(config, FlextDbOracleSettings), eq=True)
+        tm.that(config, is_=FlextDbOracleSettings)
         tm.that(config.host, eq="flext-host")
 
     def test_oracle_validation_validate_identifier_valid(self) -> None:

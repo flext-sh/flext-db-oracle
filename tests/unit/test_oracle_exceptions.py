@@ -212,7 +212,7 @@ class TestRealOracleExceptionsAdvanced:
         if columns_result.is_failure:
             msg = f"Get columns failed: {columns_result.error}"
             raise AssertionError(msg)
-        tm.that(isinstance(columns_result.value, list), eq=True)
+        tm.that(columns_result.value, is_=list)
         tm.that(len(columns_result.value), eq=0)
 
     def test_real_processing_error_scenario(
@@ -283,7 +283,7 @@ class TestRealOracleExceptionsAdvanced:
         for config_data in invalid_configs:
             try:
                 port_value = config_data.get("port", 1521)
-                tm.that(isinstance(port_value, int), eq=True)
+                tm.that(port_value, is_=int)
                 host_value = str(config_data.get("host", ""))
                 user_value = str(config_data.get("user", ""))
                 password_value = str(config_data.get("password", ""))
@@ -336,5 +336,5 @@ class TestRealOracleExceptionHierarchy:
         query_error = FlextExceptions.OracleQueryError("Query too complex")
         error_str = str(query_error)
         tm.that(error_str, has="Query too complex")
-        tm.that(isinstance(error_str, str), eq=True)
+        tm.that(error_str, is_=str)
         tm.that(error_str, eq=True)
