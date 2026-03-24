@@ -78,20 +78,13 @@ class TestFlextDbOracleClientReal:
     def test_configure_preferences_invalid_keys(self) -> None:
         """Test configuring preferences with invalid keys."""
         client = FlextDbOracleClient()
-        original_prefs = client.user_preferences.model_copy()
         result = client.configure_preferences(
             invalid_key="value",
             another_invalid="test",
         )
         tm.that(result.is_success, eq=True)
-        original_dict: t.ContainerMapping = (
-            original_prefs.model_dump()
-            if hasattr(original_prefs, "model_dump")
-            else dict(original_prefs)
-        )
-        original_dict["invalid_key"] = "value"
-        original_dict["another_invalid"] = "test"
-        tm.that(client.user_preferences.model_dump(), eq=original_dict)
+        assert not hasattr(client.user_preferences, "invalid_key")
+        assert not hasattr(client.user_preferences, "another_invalid")
 
     def test_connection_without_config(self) -> None:
         """Test connection methods without active connection."""
@@ -742,7 +735,7 @@ class TestCLIRealFunctionality:
         get_history_method = getattr(oracle_cli, "get_command_history", None)
         if callable(get_history_method):
             history = get_history_method()
-            tm.that(history, is_=list)
+            assert isinstance(history, list)
         else:
             tm.that(callable(getattr(oracle_cli, "execute_query", None)), eq=True)
 

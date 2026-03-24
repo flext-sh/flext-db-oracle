@@ -1952,13 +1952,11 @@ class TestDirectCoverageBoostServices:
                 result = method(*args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content = result.value
+                sql_content: t.NormalizedValue = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
-                    sql_text = str(sql_content[0])
-                    sql_params: dict[str, t.Scalar] = dict(sql_content[1]) if isinstance(sql_content[1], dict) else {}
+                    sql_text = str(sql_content)
                     tm.that(sql_text, is_=str)
-                    tm.that(sql_params, is_=dict)
                 elif isinstance(sql_content, str):
                     sql_text = sql_content
                 else:

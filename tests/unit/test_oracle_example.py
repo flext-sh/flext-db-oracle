@@ -21,17 +21,26 @@ from flext_db_oracle import (
 )
 
 
-def safe_get_first_value(
-    data: t.Dict | Sequence[t.Dict],
-) -> t.ContainerValue:
+def safe_get_first_value(data: t.NormalizedValue) -> t.NormalizedValue:
     """Safely get first value from various data structures."""
-    if hasattr(data, "root"):
-        data = data.root
-    if isinstance(data, (tuple, list)) and data:
+    if isinstance(data, (list, tuple)) and data:
         return data[0]
     if isinstance(data, dict) and data:
         return next(iter(data.values()))
     return data
+
+
+def _dict_first_value(row: t.Dict) -> t.NormalizedValue:
+    """Get first value from a t.Dict RootModel."""
+    root = row.root
+    if root:
+        val = next(iter(root.values()))
+        return (
+            val
+            if isinstance(val, (str, int, float, bool, dict, list, tuple, type(None)))
+            else None
+        )
+    return None
 
 
 class TestRealOracleConnection:
@@ -72,8 +81,8 @@ class TestRealOracleConnection:
             query_data = result.value
             tm.that(query_data, is_=list)
             tm.that(len(query_data), eq=1)
-            first_row = safe_get_first_value(query_data)
-            first_value = safe_get_first_value(first_row)
+            first_row = query_data[0]
+            first_value = _dict_first_value(first_row)
             tm.that(first_value, eq=1)
         finally:
             connection.disconnect()
@@ -160,12 +169,13 @@ class TestRealOracleApi:
             query_data = query_result.value
             if query_data:
                 row = query_data[0]
-                if hasattr(row, "__getitem__") and hasattr(row, "__len__") and (row):
-                    cell = safe_get_first_value(row)
-                    final_value = (
-                        safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
-                    )
-                    tm.that(str(final_value), has="Hello Oracle")
+                cell = _dict_first_value(row)
+                final_value = (
+                    safe_get_first_value(cell)
+                    if isinstance(cell, (list, dict, tuple))
+                    else cell
+                )
+                tm.that(str(final_value), has="Hello Oracle")
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle schema listing using utilities."""

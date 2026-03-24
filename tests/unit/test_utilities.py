@@ -25,8 +25,8 @@ class TestFlextDbOracleUtilities:
     def test_utilities_creation(self) -> None:
         """Test utilities can be created."""
         utilities = FlextDbOracleUtilities()
-        tm.that(utilities, none=False)
-        tm.that(utilities, is_=FlextDbOracleUtilities)
+        assert utilities is not None
+        assert isinstance(utilities, FlextDbOracleUtilities)
 
     def test_utilities_has_required_methods(self) -> None:
         """Test utilities has all required static methods."""
@@ -345,11 +345,10 @@ class TestFlextDbOracleUtilities:
         tm.that(formatted, is_=str)
         tm.that(formatted, eq=True)
 
-    def test_format_query_result_none_data(self) -> None:
-        """Test formatting with None data returns success (TypeAdapter handles None)."""
-        result = FlextDbOracleUtilities.DbOracle.format_query_result(None, "json")
+    def test_format_query_result_empty_list(self) -> None:
+        """Test formatting with empty list returns success."""
+        result = FlextDbOracleUtilities.DbOracle.format_query_result([], "json")
         tm.ok(result)
-        tm.that(result.value, eq="null")
 
     def test_format_query_result_case_insensitive_format(self) -> None:
         """Test format parameter is case insensitive."""

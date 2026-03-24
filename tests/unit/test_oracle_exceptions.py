@@ -131,7 +131,7 @@ class TestRealOracleExceptionsCore:
             ]
             for invalid_sql in invalid_queries:
                 result = connection.execute_query(invalid_sql)
-                tm.fail(result), f"Query should fail: {invalid_sql}"
+                tm.fail(result)
                 error_msg = (result.error or "").lower()
                 tm.that(
                     any(
@@ -233,7 +233,7 @@ class TestRealOracleExceptionsAdvanced:
             ]
             for invalid_operation in problematic_operations:
                 result = connected_oracle_api.query(invalid_operation)
-                tm.fail(result), f"Operation should fail: {invalid_operation}"
+                tm.fail(result)
                 error_msg = (result.error or "").lower()
                 tm.that(
                     any(
