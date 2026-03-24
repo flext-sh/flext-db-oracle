@@ -186,27 +186,6 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type ConnectionConfig = Mapping[str, FlextTypes.ContainerValue]
 
-        type ConnectionTypeLiteral = Literal["service_name", "sid", "tns"]
-        type QueryTypeLiteral = Literal[
-            "SELECT",
-            "INSERT",
-            "UPDATE",
-            "DELETE",
-            "CREATE",
-            "DROP",
-            "ALTER",
-        ]
-        type DataTypeLiteral = Literal[
-            "VARCHAR2",
-            "NUMBER",
-            "DATE",
-            "TIMESTAMP",
-            "CLOB",
-            "BLOB",
-            "CHAR",
-            "RAW",
-        ]
-
         type CliScalar = FlextTypes.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
 
