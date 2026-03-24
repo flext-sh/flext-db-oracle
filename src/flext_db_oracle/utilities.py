@@ -143,7 +143,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             return r[str].ok(normalized)
 
         HASH_PARAMS_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-            Mapping[str, t.ContainerValue],
+            t.ContainerValueMapping,
         )
 
         @staticmethod

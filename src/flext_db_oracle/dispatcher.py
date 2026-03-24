@@ -161,7 +161,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters_list = command.parameters_list
             else:
                 sql = ""
-                parameters_list = Sequence[Mapping[str, t.ContainerValue]]()
+                parameters_list = Sequence[t.ContainerValueMapping]()
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {

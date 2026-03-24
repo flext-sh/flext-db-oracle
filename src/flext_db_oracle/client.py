@@ -29,7 +29,7 @@ _GENERAL_LIST_ADAPTER: TypeAdapter[Sequence[t.Container]] = TypeAdapter(
     Sequence[t.Container]
 )
 _CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
-    Mapping[str, t.ContainerValue],
+    t.ContainerValueMapping,
 )
 
 

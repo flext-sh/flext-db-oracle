@@ -248,7 +248,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: Sequence[str] | None = None,
-        conditions: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
+        conditions: t.ConfigMap | t.ContainerValueMapping | None = None,
         schema_name: str | None = None,
     ) -> r[str]:
         """Build SELECT query - simplified implementation."""
@@ -366,7 +366,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         columns: Sequence[
-            FlextDbOracleModels.DbOracle.Column | Mapping[str, t.ContainerValue]
+            FlextDbOracleModels.DbOracle.Column | t.ContainerValueMapping
         ],
         schema: str | None = None,
     ) -> r[str]:
@@ -544,7 +544,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def generate_query_hash(
         self,
         sql: str = "",
-        params: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
+        params: t.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> r[str]:
         """Generate query hash - simplified."""
         typed_params = (
@@ -831,7 +831,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def map_singer_schema(
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
-        | Mapping[str, t.ContainerValue],
+        | t.ContainerValueMapping,
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
         raw_properties: Mapping[str, t.ContainerValue] | None = None
@@ -890,7 +890,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         _name: str,
         _value: float,
-        _tags: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
+        _tags: t.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> r[bool]:
         """Record metric through flext-observability when available."""
         if not _name:
@@ -980,7 +980,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         duration: float = 0.0,
         *,
         success: bool = True,
-        metadata: t.ConfigMap | Mapping[str, t.ContainerValue] | None = None,
+        metadata: t.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> r[bool]:
         """Track database operation for monitoring."""
 
