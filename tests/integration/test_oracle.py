@@ -255,8 +255,8 @@ class TestOracleIntegration:
         schemas = schemas_result.value
         assert isinstance(schemas, list)
         assert schemas
-        schema_names = [
-            s.get("name", str(s)) if isinstance(s, dict) else str(s) for s in schemas
+        schema_names: list[str] = [
+            str(s.get("name", str(s))) if isinstance(s, dict) else str(s) for s in schemas
         ]
         assert any(
             "SYS" in name.upper() or "SYSTEM" in name.upper() for name in schema_names

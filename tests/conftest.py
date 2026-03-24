@@ -126,7 +126,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             else:
                 logger.debug("No dirty containers to clean")
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
-        logger.warning("Docker cleanup skipped (unavailable): %s", e)
+        logger.warning("Docker cleanup skipped (unavailable): %s", str(e))
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
