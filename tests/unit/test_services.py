@@ -394,7 +394,7 @@ class TestFlextDbOracleServicesBasic:
         tm.ok(track_result)
         ops_result = service.get_operations()
         tm.ok(ops_result)
-        tm.that(len(ops_result.value) > 0, eq=True)
+        tm.that(ops_result.value, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -448,7 +448,7 @@ class TestFlextDbOracleServicesBasic:
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(isinstance(hash_result.value, str), eq=True)
-        tm.that(len(hash_result.value) > 0, eq=True)
+        tm.that(hash_result.value, eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -1068,7 +1068,7 @@ class TestDirectCoverageBoostServices:
                     sql_text = sql_content
                 else:
                     sql_text = str(sql_content)
-                tm.that(len(sql_text) > 0, eq=True)
+                tm.that(sql_text, eq=True)
                 if method_name.startswith("build_select"):
                     tm.that("SELECT" in sql_text.upper(), eq=True)
                 elif method_name.startswith("build_insert"):
@@ -1219,7 +1219,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             if method_name != "generate_ddl":
                 tm.that(not result.is_success, eq=True)
                 tm.that(result.error is not None, eq=True)
-                tm.that(len(result.error) > 0, eq=True)
+                tm.that(result.error, eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
@@ -1657,7 +1657,7 @@ class TestFlextDbOracleConnectionSimple:
         tm.ok(track_result)
         ops_result = service.get_operations()
         tm.ok(ops_result)
-        tm.that(len(ops_result.value) > 0, eq=True)
+        tm.that(ops_result.value, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -1711,7 +1711,7 @@ class TestFlextDbOracleConnectionSimple:
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(isinstance(hash_result.value, str), eq=True)
-        tm.that(len(hash_result.value) > 0, eq=True)
+        tm.that(hash_result.value, eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -1768,4 +1768,4 @@ class TestFlextDbOracleConnectionSimple:
         tm.that(mapping_result.is_failure, eq=True)
         missing_props_schema: Mapping[str, t.NormalizedValue] = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
-        tm.that(mapping_result.is_failure or len(mapping_result.value) == 0, eq=True)
+        tm.that(mapping_result.is_failure or not mapping_result.value, eq=True)

@@ -143,7 +143,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             if method_name != "generate_ddl":
                 tm.fail(result)
                 tm.that(result.error is not None, eq=True)
-                tm.that(len(result.error) > 0, eq=True)
+                tm.that(result.error, eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""

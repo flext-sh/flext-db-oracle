@@ -57,7 +57,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(hasattr(self.api, "_registry"), eq=True)
         plugins_result = self.api.list_plugins()
         tm.that(plugins_result.is_success, eq=True)
-        tm.that(len(plugins_result.value) == 0, eq=True)
+        tm.that(not plugins_result.value, eq=True)
 
     def test_config_property_access_real(self) -> None:
         """Test config property returns correct configuration."""
@@ -388,7 +388,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.ok(result)
         plugin_list = result.value
         tm.that(isinstance(plugin_list, list), eq=True)
-        tm.that(len(plugin_list) == 0, eq=True)
+        tm.that(not plugin_list, eq=True)
 
     def test_repr_method_disconnected_real(self) -> None:
         """Test __repr__ method when disconnected (default state)."""
@@ -476,7 +476,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test __repr__ method."""
         repr_str = repr(self.api)
         tm.that(isinstance(repr_str, str), eq=True)
-        tm.that(len(repr_str) > 0, eq=True)
+        tm.that(repr_str, eq=True)
         tm.that("FlextDbOracleApi" in repr_str, eq=True)
         tm.that(
             self.config.host in repr_str or "test_host" in repr_str is True, eq=True
@@ -493,7 +493,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 tm.ok(result)
                 oracle_type = result.value
                 tm.that(isinstance(oracle_type, str), eq=True)
-                tm.that(len(oracle_type) > 0, eq=True)
+                tm.that(oracle_type, eq=True)
                 tm.that(
                     any(
                         keyword in oracle_type.upper()
@@ -706,7 +706,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 tm.that(result.error is not None, eq=True)
                 tm.that(isinstance(result.error, str), eq=True)
                 if result.error is not None:
-                    tm.that(len(result.error) > 0, eq=True)
+                    tm.that(result.error, eq=True)
 
 
 "Unit tests for flext_db_oracle.api module.\n\nTests FlextDbOracleApi functionality with real implementations,\nno mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -967,7 +967,7 @@ class TestApiModule:
         """Test that FlextDbOracleApi has proper docstring."""
         tm.that(FlextDbOracleApi.__doc__ is not None, eq=True)
         if FlextDbOracleApi.__doc__ is not None:
-            tm.that(len(FlextDbOracleApi.__doc__.strip()) > 0, eq=True)
+            tm.that(FlextDbOracleApi.__doc__.strip(), eq=True)
 
     def test_flext_db_oracle_api_method_signatures(self) -> None:
         """Test that api methods have proper signatures."""
@@ -1939,7 +1939,7 @@ class TestDirectCoverageBoostServices:
                     sql_text = sql_content
                 else:
                     sql_text = str(sql_content)
-                tm.that(len(sql_text) > 0, eq=True)
+                tm.that(sql_text, eq=True)
                 if method_name.startswith("build_select"):
                     tm.that("SELECT" in sql_text.upper(), eq=True)
                 elif method_name.startswith("build_insert"):

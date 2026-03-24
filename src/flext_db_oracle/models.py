@@ -360,7 +360,7 @@ class FlextDbOracleModels(FlextModels):
                 """Validate query result consistency."""
                 if len(self.rows) != self.row_count:
                     self.row_count = len(self.rows)
-                if self.rows and len(self.columns) > 0:
+                if self.rows and self.columns:
                     for row in self.rows:
                         if isinstance(
                             row,

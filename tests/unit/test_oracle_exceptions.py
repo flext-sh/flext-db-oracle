@@ -337,4 +337,4 @@ class TestRealOracleExceptionHierarchy:
         error_str = str(query_error)
         tm.that("Query too complex" in error_str, eq=True)
         tm.that(isinstance(error_str, str), eq=True)
-        tm.that(len(error_str) > 0, eq=True)
+        tm.that(error_str, eq=True)

@@ -358,7 +358,7 @@ class TestFlextDbOracleConstants:
             FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
         )
         tm.that(isinstance(default_service, str), eq=True)
-        tm.that(len(default_service) > 0, eq=True)
+        tm.that(default_service, eq=True)
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         tm.that(isinstance(default_port, int), eq=True)
         tm.that(

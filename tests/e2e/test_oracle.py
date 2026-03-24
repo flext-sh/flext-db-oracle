@@ -56,7 +56,7 @@ class TestOracleE2E:
                 msg = "Schema discovery"
                 raise OperationTestError(msg, schemas_result.error or "Unknown error")
             schemas = schemas_result.value
-            assert len(schemas) > 0, "No schemas found"
+            assert schemas, "No schemas found"
             tables_result = api.get_tables()
             if tables_result.is_failure:
                 msg = "Table listing"

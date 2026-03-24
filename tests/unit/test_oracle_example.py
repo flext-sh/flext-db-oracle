@@ -27,7 +27,7 @@ def safe_get_first_value(
     """Safely get first value from various data structures."""
     if hasattr(data, "root"):
         data = data.root
-    if isinstance(data, (tuple, list)) and len(data) > 0:
+    if isinstance(data, (tuple, list)) and data:
         return data[0]
     if isinstance(data, dict) and data:
         return next(iter(data.values()))
@@ -153,12 +153,12 @@ class TestRealOracleApi:
                 msg = f"Query failed: {query_result.error}"
                 raise AssertionError(msg)
             query_data = query_result.value
-            if len(query_data) > 0:
+            if query_data:
                 row = query_data[0]
                 if (
                     hasattr(row, "__getitem__")
                     and hasattr(row, "__len__")
-                    and (len(row) > 0)
+                    and (row)
                 ):
                     cell = safe_get_first_value(row)
                     final_value = (
@@ -173,7 +173,7 @@ class TestRealOracleApi:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
         schemas = schemas_result.value
-        tm.that(len(schemas) > 0, eq=True)
+        tm.that(schemas, eq=True)
         system_schemas = ["SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB"]
         tm.that(
             any(
@@ -191,7 +191,7 @@ class TestRealOracleApi:
             raise AssertionError(msg)
         tables = tables_result.value
         tm.that(isinstance(tables, list), eq=True)
-        tm.that(len(tables) > 0, eq=True)
+        tm.that(tables, eq=True)
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:
             tm.that(any(table in str(t).upper() for t in tables), eq=True)
@@ -203,7 +203,7 @@ class TestRealOracleApi:
             msg = f"Get columns failed: {result.error}"
             raise AssertionError(msg)
         columns = result.value
-        tm.that(len(columns) > 0, eq=True)
+        tm.that(columns, eq=True)
         column_names = [
             str(col["column_name"]).upper() if "column_name" in col else ""
             for col in columns
@@ -222,7 +222,7 @@ class TestRealOracleApi:
             raise AssertionError(msg)
         query_result = result.value
         tm.that(isinstance(query_result, list), eq=True)
-        tm.that(len(query_result) > 0, eq=True)
+        tm.that(query_result, eq=True)
 
     def test_real_api_singer_type_conversion(
         self, connected_oracle_api: FlextDbOracleApi
@@ -298,7 +298,7 @@ class TestRealOracleApi:
                 msg = f"Get metadata failed: {metadata_result.error}"
                 raise AssertionError(msg)
             metadata = metadata_result.value
-            if len(metadata) > 0:
+            if metadata:
                 tm.that(str(metadata[0]).upper(), eq=table_name.upper())
         finally:
             with contextlib.suppress(Exception):

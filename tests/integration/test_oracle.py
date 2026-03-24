@@ -66,7 +66,7 @@ class TestOracleIntegration:
                 f"Get schemas failed: {schemas_result.error}"
             )
             schemas = schemas_result.value
-            assert len(schemas) > 0, "Should have at least one schema"
+            assert schemas, "Should have at least one schema"
             tables_result = connected_api.get_tables()
             assert tables_result.is_success, f"Get tables failed: {tables_result.error}"
             query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
@@ -254,7 +254,7 @@ class TestOracleIntegration:
         assert schemas_result.is_success, f"Get schemas failed: {schemas_result.error}"
         schemas = schemas_result.value
         assert isinstance(schemas, list)
-        assert len(schemas) > 0
+        assert schemas
         schema_names = [
             s.get("name", str(s)) if isinstance(s, dict) else str(s) for s in schemas
         ]

@@ -798,7 +798,7 @@ class TestCLIRealFunctionality:
             )
             tm.ok(format_result)
             tm.that(isinstance(format_result.value, str), eq=True)
-            tm.that(len(format_result.value) > 0, eq=True)
+            tm.that(format_result.value, eq=True)
 
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""

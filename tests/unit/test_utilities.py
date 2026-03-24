@@ -321,7 +321,7 @@ class TestFlextDbOracleUtilities:
         tm.ok(result)
         formatted = result.value
         tm.that(isinstance(formatted, str), eq=True)
-        tm.that(len(formatted) > 0, eq=True)
+        tm.that(formatted, eq=True)
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
@@ -338,7 +338,7 @@ class TestFlextDbOracleUtilities:
         tm.ok(result)
         formatted = result.value
         tm.that(isinstance(formatted, str), eq=True)
-        tm.that(len(formatted) > 0, eq=True)
+        tm.that(formatted, eq=True)
 
     def test_format_query_result_none_data(self) -> None:
         """Test formatting with None data returns success (TypeAdapter handles None)."""
