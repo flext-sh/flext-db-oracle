@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
@@ -255,7 +257,7 @@ class TestOracleIntegration:
         schemas = schemas_result.value
         assert isinstance(schemas, list)
         assert schemas
-        schema_names: list[str] = [str(s) for s in schemas]
+        schema_names: Sequence[str] = [str(s) for s in schemas]
         assert any(
             "SYS" in name.upper() or "SYSTEM" in name.upper() for name in schema_names
         )

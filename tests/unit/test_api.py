@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 import threading
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from threading import Thread
 
 import pytest
@@ -1116,7 +1116,7 @@ class TestApiModule:
             password=str(config_data["password"]),
         )
         api = FlextDbOracleApi(config=config)
-        results: list[r[FlextDbOracleApi] | r[Sequence[t.Dict]]] = []
+        results: MutableSequence[r[FlextDbOracleApi] | r[Sequence[t.Dict]]] = []
 
         def connect_to_database(_index: int) -> None:
             if hasattr(api, "connect"):

@@ -10,7 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from types import SimpleNamespace
 from typing import ClassVar, cast
 from unittest.mock import MagicMock
@@ -565,7 +565,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
-        calls: list[t.ContainerMapping] = []
+        calls: MutableSequence[t.ContainerMapping] = []
 
         def fake_flext_metric(*, name: str, value: float, tags: t.Dict) -> _StubResult:
             entry: t.ContainerMapping = {"name": name, "value": value}

@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import MutableMapping, Sequence
 from unittest.mock import Mock, patch
 
 import yaml
@@ -748,7 +748,7 @@ class TestCLIRealFunctionality:
             "ORACLE_PASSWORD": "testpass",
             "ORACLE_SERVICE_NAME": "TESTDB",
         }
-        original_env: Mapping[str, str | None] = {}
+        original_env: MutableMapping[str, str | None] = {}
         for key, value in test_env_vars.items():
             original_env[key] = os.environ.get(key)
             os.environ[key] = value
@@ -876,7 +876,7 @@ class TestCLIRealFunctionality:
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
-        original_env: Mapping[str, str | None] = {}
+        original_env: MutableMapping[str, str | None] = {}
         env_vars = {
             "ORACLE_USERNAME": "testuser",
             "ORACLE_PASSWORD": "testpass",
