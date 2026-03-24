@@ -24,21 +24,6 @@ from flext_db_oracle import c, t
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
-class _StrictIntValue(RootModel[int]):
-    """Strict integer parser via Pydantic validation."""
-
-    root: int
-
-
-class _CountValue(RootModel[int | str]):
-    """Numeric value parser accepting int or numeric string."""
-
-    root: int | str
-
-
-_STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
-
-
 class FlextDbOracleUtilities(FlextUtilities):
     """FlextDbOracle utilities extending FlextUtilities with Oracle-specific helpers.
 
@@ -61,6 +46,18 @@ class FlextDbOracleUtilities(FlextUtilities):
             parsed = u.Oracle.Args.parse_kwargs(kwargs, enum_fields)
 
         """
+
+        class _StrictIntValue(RootModel[int]):
+            """Strict integer parser via Pydantic validation."""
+
+            root: int
+
+        class _CountValue(RootModel[int | str]):
+            """Numeric value parser accepting int or numeric string."""
+
+            root: int | str
+
+        _STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
 
         @staticmethod
         def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -182,7 +179,9 @@ class FlextDbOracleUtilities(FlextUtilities):
             if isinstance(value, int):
                 return value
             try:
-                return _StrictIntValue.model_validate(value).root
+                return FlextDbOracleUtilities.DbOracle._StrictIntValue.model_validate(
+                    value
+                ).root
             except ValidationError:
                 return 0
 
@@ -197,7 +196,9 @@ class FlextDbOracleUtilities(FlextUtilities):
                 except ValueError:
                     return 0
             try:
-                validated = _CountValue.model_validate(value).root
+                validated = FlextDbOracleUtilities.DbOracle._CountValue.model_validate(
+                    value
+                ).root
             except ValidationError:
                 return 0
             try:
@@ -209,7 +210,9 @@ class FlextDbOracleUtilities(FlextUtilities):
         def _normalize_singer_type(value: str | t.StrSequence) -> str:
             """Normalize Singer type input to a single string value."""
             try:
-                values = _STRING_LIST_ADAPTER.validate_python(value)
+                values = FlextDbOracleUtilities.DbOracle._STRING_LIST_ADAPTER.validate_python(
+                    value
+                )
             except ValidationError:
                 return str(value)
             return values[0] if values else "string"

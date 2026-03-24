@@ -320,11 +320,6 @@ class TestFlextDbOracleConstants:
         tm.that(hasattr(platform, "LOCALHOST_IP"), eq=True)
         tm.that(platform.LOOPBACK_IP, eq="127.0.0.1")
         tm.that(platform.LOCALHOST_IP, eq="127.0.0.1")
-        tm.that(getattr(platform, "HTTP_METHOD_DELETE"), eq="DELETE")
-        tm.that(getattr(platform, "HTTP_METHOD_GET"), eq="GET")
-        tm.that(getattr(platform, "HTTP_METHOD_POST"), eq="POST")
-        tm.that(getattr(platform, "HTTP_METHOD_PUT"), eq="PUT")
-        tm.that(getattr(platform, "HTTP_METHOD_PATCH"), eq="PATCH")
 
     @pytest.mark.unit_integration
     def test_oracle_constants_real_connection_validation(

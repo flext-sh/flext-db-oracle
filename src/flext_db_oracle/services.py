@@ -43,113 +43,113 @@ from flext_db_oracle import c, t, u
 from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.settings import FlextDbOracleSettings
 
-OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-OracleInterfaceError: type[Exception] = oracledb.InterfaceError
-
-
-class _CountValue(RootModel[int | str]):
-    """Pydantic root model for count value (int or numeric string)."""
-
-    root: int | str
-
-
-_STRING_LIST_ADAPTER = TypeAdapter(t.StrSequence)
-
-
-def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
-    """Validate arbitrary mapping input as ConfigMap."""
-    if not isinstance(value, dict):
-        return None
-    try:
-        return t.ConfigMap.model_validate({"root": value})
-    except ValidationError:
-        return None
-
-
-def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
-    """Normalize optional parameters into ConfigMap."""
-    if params is not None:
-        return params
-    return t.ConfigMap(root={})
-
-
-def _parse_count_value(value: t.ContainerValue) -> int:
-    """Parse row count value accepting int or numeric string."""
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str):
-        try:
-            return int(value)
-        except ValueError:
-            return 0
-    try:
-        validated = _CountValue.model_validate(value).root
-    except ValidationError:
-        return 0
-    try:
-        return int(validated)
-    except (TypeError, ValueError):
-        return 0
-
-
-def _normalize_singer_type(value: str | t.StrSequence) -> str:
-    """Normalize Singer type input to a single string value."""
-    try:
-        values = _STRING_LIST_ADAPTER.validate_python(value)
-    except ValidationError:
-        return str(value)
-    return values[0] if values else "string"
-
-
-def _sqlalchemy_create_engine(url: str) -> SAEngine:
-    """Create SQLAlchemy engine."""
-    return create_engine(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
-
-
-def _sqlalchemy_text(statement: str) -> TextClause:
-    """Build SQL text t.NormalizedValue."""
-    return text(statement)
-
-
-def _engine_connect(engine: SAEngine) -> SAConnection:
-    """Open connection context manager from engine."""
-    return engine.connect()
-
-
-def _engine_begin(engine: SAEngine) -> contextlib.AbstractContextManager[SAConnection]:
-    """Open transaction context manager from engine."""
-    return engine.begin()
-
-
-def _context_enter[T](context_manager: contextlib.AbstractContextManager[T]) -> T:
-    """Enter dynamic context manager and return inner t.NormalizedValue."""
-    return context_manager.__enter__()
-
-
-def _context_exit(
-    context_manager: contextlib.AbstractContextManager[SAConnection],
-) -> None:
-    """Exit dynamic context manager safely."""
-    context_manager.__exit__(None, None, None)
-
-
-def _engine_dispose(engine: SAEngine) -> None:
-    """Dispose engine resources."""
-    engine.dispose()
-
-
-def _connection_execute(
-    connection: SAConnection,
-    statement: TextClause,
-    parameters: t.ConfigMap | None = None,
-) -> CursorResult[tuple[t.ContainerValue, ...]]:
-    """Execute statement on SQL connection."""
-    normalized_params = _normalize_params(parameters)
-    return connection.execute(statement, normalized_params.root)
-
 
 class FlextDbOracleServices(s[FlextDbOracleSettings]):
     """Generic Oracle database services using flext-core patterns."""
+
+    OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+    OracleInterfaceError: type[Exception] = oracledb.InterfaceError
+
+    class _CountValue(RootModel[int | str]):
+        """Pydantic root model for count value (int or numeric string)."""
+
+        root: int | str
+
+    _STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+
+    @staticmethod
+    def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
+        """Validate arbitrary mapping input as ConfigMap."""
+        if not isinstance(value, dict):
+            return None
+        try:
+            return t.ConfigMap.model_validate({"root": value})
+        except ValidationError:
+            return None
+
+    @staticmethod
+    def _normalize_params(params: t.ConfigMap | None) -> t.ConfigMap:
+        """Normalize optional parameters into ConfigMap."""
+        if params is not None:
+            return params
+        return t.ConfigMap(root={})
+
+    @staticmethod
+    def _parse_count_value(value: t.ContainerValue) -> int:
+        """Parse row count value accepting int or numeric string."""
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str):
+            try:
+                return int(value)
+            except ValueError:
+                return 0
+        try:
+            validated = FlextDbOracleServices._CountValue.model_validate(value).root
+        except ValidationError:
+            return 0
+        try:
+            return int(validated)
+        except (TypeError, ValueError):
+            return 0
+
+    @staticmethod
+    def _normalize_singer_type(value: str | t.StrSequence) -> str:
+        """Normalize Singer type input to a single string value."""
+        try:
+            values = FlextDbOracleServices._STRING_LIST_ADAPTER.validate_python(value)
+        except ValidationError:
+            return str(value)
+        return values[0] if values else "string"
+
+    @staticmethod
+    def _sqlalchemy_create_engine(url: str) -> SAEngine:
+        """Create SQLAlchemy engine."""
+        return create_engine(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
+
+    @staticmethod
+    def _sqlalchemy_text(statement: str) -> TextClause:
+        """Build SQL text t.NormalizedValue."""
+        return text(statement)
+
+    @staticmethod
+    def _engine_connect(engine: SAEngine) -> SAConnection:
+        """Open connection context manager from engine."""
+        return engine.connect()
+
+    @staticmethod
+    def _engine_begin(
+        engine: SAEngine,
+    ) -> contextlib.AbstractContextManager[SAConnection]:
+        """Open transaction context manager from engine."""
+        return engine.begin()
+
+    @staticmethod
+    def _context_enter[T](context_manager: contextlib.AbstractContextManager[T]) -> T:
+        """Enter dynamic context manager and return inner t.NormalizedValue."""
+        return context_manager.__enter__()
+
+    @staticmethod
+    def _context_exit(
+        context_manager: contextlib.AbstractContextManager[SAConnection],
+    ) -> None:
+        """Exit dynamic context manager safely."""
+        context_manager.__exit__(None, None, None)
+
+    @staticmethod
+    def _engine_dispose(engine: SAEngine) -> None:
+        """Dispose engine resources."""
+        engine.dispose()
+
+    @staticmethod
+    def _connection_execute(
+        connection: SAConnection,
+        statement: TextClause,
+        parameters: t.ConfigMap | None = None,
+    ) -> CursorResult[tuple[t.ContainerValue, ...]]:
+        """Execute statement on SQL connection."""
+        normalized_params = FlextDbOracleServices._normalize_params(parameters)
+        return connection.execute(statement, normalized_params.root)
 
     _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
 
@@ -286,19 +286,21 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         url_result = self._build_connection_url()
         if url_result.is_failure:
             return r[Self].fail(url_result.error or "Failed to build connection URL")
-        self._engine = _sqlalchemy_create_engine(url_result.value)
+        self._engine = self._sqlalchemy_create_engine(url_result.value)
         try:
-            connect_ctx = _engine_connect(self._engine)
-            conn = _context_enter(connect_ctx)
+            connect_ctx = self._engine_connect(self._engine)
+            conn = self._context_enter(connect_ctx)
             try:
-                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+                _ = self._connection_execute(
+                    conn, self._sqlalchemy_text("SELECT 1 FROM dual")
+                )
             finally:
-                _context_exit(connect_ctx)
+                self._context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             return r[Self].ok(self)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -314,24 +316,26 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 self.db_config.port = default_port
                 retry_url_result = self._build_connection_url()
                 if retry_url_result.is_success:
-                    self._engine = _sqlalchemy_create_engine(retry_url_result.value)
+                    self._engine = self._sqlalchemy_create_engine(
+                        retry_url_result.value
+                    )
                     try:
-                        connect_ctx = _engine_connect(self._engine)
-                        conn = _context_enter(connect_ctx)
+                        connect_ctx = self._engine_connect(self._engine)
+                        conn = self._context_enter(connect_ctx)
                         try:
-                            _ = _connection_execute(
+                            _ = self._connection_execute(
                                 conn,
-                                _sqlalchemy_text("SELECT 1 FROM dual"),
+                                self._sqlalchemy_text("SELECT 1 FROM dual"),
                             )
                         finally:
-                            _context_exit(connect_ctx)
+                            self._context_exit(connect_ctx)
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
                         return r[Self].ok(self)
                     except (
-                        OracleDatabaseError,
-                        OracleInterfaceError,
+                        FlextDbOracleServices.OracleDatabaseError,
+                        FlextDbOracleServices.OracleInterfaceError,
                         ConnectionError,
                         SQLAlchemyDatabaseError,
                         SQLAlchemyOperationalError,
@@ -349,7 +353,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         _format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
-        singer_type = _normalize_singer_type(singer_type)
+        singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
             return r[str].ok("TIMESTAMP")
         type_map = {
@@ -408,7 +412,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Disconnect from Oracle database."""
         engine = self._engine
         if engine is not None:
-            _engine_dispose(engine)
+            self._engine_dispose(engine)
             self._engine = None
             self.logger.info("Disconnected from Oracle database")
         return r[bool].ok(True)
@@ -441,8 +445,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if engine_result.is_failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
-            connect_ctx = _engine_connect(engine_result.value)
-            conn = _context_enter(connect_ctx)
+            connect_ctx = self._engine_connect(engine_result.value)
+            conn = self._context_enter(connect_ctx)
             try:
                 total_affected = 0
                 for params in params_list:
@@ -451,18 +455,18 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         if isinstance(params, t.ConfigMap)
                         else t.ConfigMap.model_validate({"root": dict(params)})
                     )
-                    result = _connection_execute(
+                    result = self._connection_execute(
                         conn,
-                        _sqlalchemy_text(sql),
+                        self._sqlalchemy_text(sql),
                         typed_params,
                     )
                     total_affected += max(result.rowcount, 0)
                 return r[int].ok(total_affected)
             finally:
-                _context_exit(connect_ctx)
+                self._context_exit(connect_ctx)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -485,17 +489,19 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 engine_result.error or "Failed to get database engine",
             )
         try:
-            connect_ctx = _engine_connect(engine_result.value)
-            conn = _context_enter(connect_ctx)
+            connect_ctx = self._engine_connect(engine_result.value)
+            conn = self._context_enter(connect_ctx)
             try:
-                result = _connection_execute(conn, _sqlalchemy_text(sql), params)
+                result = self._connection_execute(
+                    conn, self._sqlalchemy_text(sql), params
+                )
                 rows: Sequence[t.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[t.Dict]].ok(rows)
             finally:
-                _context_exit(connect_ctx)
+                self._context_exit(connect_ctx)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -512,17 +518,19 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if engine_result.is_failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
-            transaction_ctx = _engine_begin(engine_result.value)
-            conn = _context_enter(transaction_ctx)
+            transaction_ctx = self._engine_begin(engine_result.value)
+            conn = self._context_enter(transaction_ctx)
             try:
-                result = _connection_execute(conn, _sqlalchemy_text(sql), params)
+                result = self._connection_execute(
+                    conn, self._sqlalchemy_text(sql), params
+                )
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
             finally:
-                _context_exit(transaction_ctx)
+                self._context_exit(transaction_ctx)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -589,12 +597,12 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        connect_ctx = _engine_connect(engine)
-        connection = _context_enter(connect_ctx)
+        connect_ctx = self._engine_connect(engine)
+        connection = self._context_enter(connect_ctx)
         try:
             yield connection
         finally:
-            _context_exit(connect_ctx)
+            self._context_exit(connect_ctx)
 
     def get_connection_status(self) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
@@ -698,8 +706,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return u.try_(
             _fetch_keys,
             catch=(
-                OracleDatabaseError,
-                OracleInterfaceError,
+                FlextDbOracleServices.OracleDatabaseError,
+                FlextDbOracleServices.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyDatabaseError,
                 SQLAlchemyOperationalError,
@@ -749,8 +757,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return u.try_(
             _fetch_metadata,
             catch=(
-                OracleDatabaseError,
-                OracleInterfaceError,
+                FlextDbOracleServices.OracleDatabaseError,
+                FlextDbOracleServices.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,
@@ -776,8 +784,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return u.try_(
             _fetch_count,
             catch=(
-                OracleDatabaseError,
-                OracleInterfaceError,
+                FlextDbOracleServices.OracleDatabaseError,
+                FlextDbOracleServices.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,
@@ -937,7 +945,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Register plugin via flext-plugin when available."""
         if not _name:
             return r[bool].fail("Plugin name is required")
-        plugin_payload = _validate_config_map(_plugin)
+        plugin_payload = FlextDbOracleServices._validate_config_map(_plugin)
         if plugin_payload is None:
             return r[bool].fail("Plugin payload must be a mapping")
         try:
@@ -956,16 +964,18 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if engine_result.is_failure:
             return r[bool].fail("Not connected to database")
         try:
-            connect_ctx = _engine_connect(engine_result.value)
-            conn = _context_enter(connect_ctx)
+            connect_ctx = self._engine_connect(engine_result.value)
+            conn = self._context_enter(connect_ctx)
             try:
-                _ = _connection_execute(conn, _sqlalchemy_text("SELECT 1 FROM dual"))
+                _ = self._connection_execute(
+                    conn, self._sqlalchemy_text("SELECT 1 FROM dual")
+                )
             finally:
-                _context_exit(connect_ctx)
+                self._context_exit(connect_ctx)
             return r[bool].ok(True)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -1005,8 +1015,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return u.try_(
             _track,
             catch=(
-                OracleDatabaseError,
-                OracleInterfaceError,
+                FlextDbOracleServices.OracleDatabaseError,
+                FlextDbOracleServices.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,
@@ -1019,12 +1029,12 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if engine is None:
             msg = "No database connection established"
             raise RuntimeError(msg)
-        transaction_ctx = _engine_begin(engine)
-        transaction = _context_enter(transaction_ctx)
+        transaction_ctx = self._engine_begin(engine)
+        transaction = self._context_enter(transaction_ctx)
         try:
             yield transaction
         finally:
-            _context_exit(transaction_ctx)
+            self._context_exit(transaction_ctx)
 
     def unregister_plugin(self, _name: str) -> r[bool]:
         """Unregister plugin from local service registry."""
@@ -1053,8 +1063,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             url = f"{base}/?service_name={service_name}"
             return r[str].ok(url)
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            FlextDbOracleServices.OracleDatabaseError,
+            FlextDbOracleServices.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -1101,7 +1111,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         if count_raw is None:
             return 0
         count_str = str(count_raw)
-        return _parse_count_value(count_str)
+        return FlextDbOracleServices._parse_count_value(count_str)
 
 
 s = FlextDbOracleServices
