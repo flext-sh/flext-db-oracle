@@ -90,7 +90,9 @@ class FlextDbOracleSettings(FlextSettings):
         Field(default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME),
     ]
     username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
-    password: Annotated[FlextDbOraclePassword | None, Field(default=FlextDbOraclePassword(""))]
+    password: Annotated[
+        FlextDbOraclePassword | None, Field(default=FlextDbOraclePassword(""))
+    ]
     timeout: Annotated[
         t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
     ]
@@ -142,7 +144,9 @@ class FlextDbOracleSettings(FlextSettings):
 
     @field_validator("password", mode="before")
     @classmethod
-    def _parse_password(cls, value: t.ContainerValue | None) -> FlextDbOraclePassword | None:
+    def _parse_password(
+        cls, value: t.ContainerValue | None
+    ) -> FlextDbOraclePassword | None:
         if value is None:
             return None
         text = str(value)
@@ -352,9 +356,9 @@ class FlextDbOracleSettings(FlextSettings):
 
 
 __all__ = [
+    "FlextDbOraclePassword",
     "FlextDbOracleSettings",
     "OracleDatabaseError",
     "OracleIdentifier",
     "OracleInterfaceError",
-    "FlextDbOraclePassword",
 ]
