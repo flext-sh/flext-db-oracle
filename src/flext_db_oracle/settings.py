@@ -142,7 +142,7 @@ class FlextDbOracleSettings(FlextSettings):
         if self.host == "mock-host":
             self.host = c.DbOracle.OracleDefaults.DEFAULT_HOST
         self.service_name = FlextDbOracleSettings._validate_oracle_identifier(
-            str(self.service_name)
+            str(self.service_name),
         )
         if self.sid is not None:
             self.sid = FlextDbOracleSettings._validate_oracle_identifier(str(self.sid))
