@@ -365,9 +365,6 @@ class FlextDbOracleConstants(FlextConstants):
             Use: c.DbOracle.ConnectionTypeLiteral (not c.DbOracle.Literals.ConnectionTypeLiteral)
             """
 
-            EnvironmentLiteral = FlextConstants.Environment
-            LogLevelLiteral = FlextConstants.LogLevel
-
         class Lists:
             """Lists of constants for validation and iteration.
 
