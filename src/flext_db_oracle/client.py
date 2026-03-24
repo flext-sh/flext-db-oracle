@@ -117,7 +117,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         return self._oracle_config
 
     @classmethod
-    def run_cli_command(cls, operation: str, **params: str | int | bool) -> r[str]:
+    def run_cli_command(cls, operation: str, **params: t.Scalar) -> r[str]:
         """Run Oracle CLI command with proper error handling.
 
         Returns:
@@ -145,7 +145,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
             return r[str].fail(f"CLI command failed: {e}")
 
-    def configure_preferences(self, **preferences: str | int | bool) -> r[bool]:
+    def configure_preferences(self, **preferences: t.Scalar) -> r[bool]:
         """Configure client preferences.
 
         Returns:

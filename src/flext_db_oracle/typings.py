@@ -40,7 +40,7 @@ class FlextDbOracleTypes(FlextTypes):
         type ConnectionConfiguration = _ConfigMap
         type ConnectionPool = _ConfigMap
         type ConnectionString = str
-        type ConnectionParams = Mapping[str, str | int | bool]
+        type ConnectionParams = Mapping[str, t.Scalar]
         type SslConfiguration = Mapping[
             str,
             str | bool | Mapping[str, _core_t.ContainerValue],
@@ -60,10 +60,10 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type QueryExecution = Mapping[
             str,
-            str | int | bool | Mapping[str, _core_t.ContainerValue],
+            t.Scalar | Mapping[str, _core_t.ContainerValue],
         ]
 
-        type TransactionConfiguration = Mapping[str, str | int | bool]
+        type TransactionConfiguration = Mapping[str, t.Scalar]
         type TransactionState = Mapping[
             str,
             str | bool | Mapping[str, _core_t.ContainerValue],
@@ -81,7 +81,7 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type ColumnDefinition = Mapping[
             str,
-            str | int | bool | Mapping[str, _core_t.ContainerValue],
+            t.Scalar | Mapping[str, _core_t.ContainerValue],
         ]
         type IndexDefinition = Mapping[
             str,
@@ -92,7 +92,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type SessionConfiguration = Mapping[
             str,
-            str | int | bool | Mapping[str, _core_t.ContainerValue],
+            t.Scalar | Mapping[str, _core_t.ContainerValue],
         ]
         type SessionState = Mapping[
             str,
@@ -119,7 +119,7 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type IndexUsage = Mapping[
             str,
-            str | int | bool | Mapping[str, _core_t.ContainerValue],
+            t.Scalar | Mapping[str, _core_t.ContainerValue],
         ]
         type CacheConfiguration = Mapping[str, int | str | bool]
         type OptimizationHints = Mapping[str, str | Sequence[str]]
@@ -170,7 +170,7 @@ class FlextDbOracleTypes(FlextTypes):
             "data-connector",
         ]
         type OracleProjectConfig = Mapping[str, _core_t.ContainerValue]
-        type DatabaseConfig = Mapping[str, str | int | bool | Sequence[str]]
+        type DatabaseConfig = Mapping[str, t.Scalar | Sequence[str]]
         type SchemaConfig = Mapping[
             str, bool | str | Mapping[str, _core_t.ContainerValue]
         ]

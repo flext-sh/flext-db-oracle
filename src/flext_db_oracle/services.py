@@ -9,7 +9,13 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import time
-from collections.abc import Generator, Mapping, Sequence
+from collections.abc import (
+    Generator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from importlib import import_module
