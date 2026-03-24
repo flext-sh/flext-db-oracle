@@ -25,19 +25,19 @@ class TestFlextDbOracleExceptions:
     def test_error_creation(self) -> None:
         """Test Error can be created."""
         error = FlextDbOracleExceptions.Error("Test error")
-        tm.that(error is not None, eq=True)
-        tm.that("Test error" in str(error), eq=True)
+        tm.that(error, none=False)
+        tm.that(str(error), has="Test error")
 
     def test_error_with_oracle_code(self) -> None:
         """Test Error with oracle error code."""
         error = FlextDbOracleExceptions.Error(
             "Test error", oracle_error_code="ORA-12345"
         )
-        tm.that(error is not None, eq=True)
+        tm.that(error, none=False)
         tm.that(error.oracle_error_code, eq="ORA-12345")
 
     def test_connection_error_creation(self) -> None:
         """Test OracleConnectionError can be created."""
         error = FlextDbOracleExceptions.OracleConnectionError("Connection failed")
-        tm.that(error is not None, eq=True)
-        tm.that("Connection failed" in str(error), eq=True)
+        tm.that(error, none=False)
+        tm.that(str(error), has="Connection failed")

@@ -17,4 +17,4 @@ class TestFlextDbOracleTypes:
 
     def test_types_access(self) -> None:
         """Test types can be accessed."""
-        tm.that(FlextDbOracleTypes is not None, eq=True)
+        tm.that(FlextDbOracleTypes, none=False)

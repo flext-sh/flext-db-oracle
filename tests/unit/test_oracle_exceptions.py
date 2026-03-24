@@ -325,16 +325,16 @@ class TestRealOracleExceptionHierarchy:
     def test_real_exception_instantiation(self) -> None:
         """Test that Oracle exceptions can be instantiated with context."""
         query_error = FlextExceptions.OracleQueryError("Invalid SQL syntax")
-        tm.that("Invalid SQL syntax" in str(query_error), eq=True)
+        tm.that(str(query_error), has="Invalid SQL syntax")
         metadata_error = FlextExceptions.OracleMetadataError("Schema not found")
-        tm.that("Schema not found" in str(metadata_error), eq=True)
+        tm.that(str(metadata_error), has="Schema not found")
         base_error = FlextExceptions.Error("General Oracle error")
-        tm.that("General Oracle error" in str(base_error), eq=True)
+        tm.that(str(base_error), has="General Oracle error")
 
     def test_real_exception_context_handling(self) -> None:
         """Test that Oracle exceptions handle context parameters properly."""
         query_error = FlextExceptions.OracleQueryError("Query too complex")
         error_str = str(query_error)
-        tm.that("Query too complex" in error_str, eq=True)
+        tm.that(error_str, has="Query too complex")
         tm.that(isinstance(error_str, str), eq=True)
         tm.that(error_str, eq=True)

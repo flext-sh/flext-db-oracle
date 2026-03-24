@@ -17,4 +17,4 @@ class TestFlextDbOracleProtocols:
 
     def test_protocols_access(self) -> None:
         """Test protocols can be accessed."""
-        tm.that(FlextDbOracleProtocols is not None, eq=True)
+        tm.that(FlextDbOracleProtocols, none=False)

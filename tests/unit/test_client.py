@@ -20,13 +20,13 @@ class TestFlextDbOracleClientRealFunctionality:
             host="test-host", username="test-user", password="test-password"
         )
         client = FlextDbOracleClient()
-        tm.that(client is not None, eq=True)
+        tm.that(client, none=False)
         tm.that(hasattr(client, "logger"), eq=True)
 
     def test_client_creation_default_config(self) -> None:
         """Test client can be created with default config."""
         client = FlextDbOracleClient()
-        tm.that(client is not None, eq=True)
+        tm.that(client, none=False)
         tm.that(hasattr(client, "debug"), eq=True)
         tm.that(hasattr(client, "current_connection"), eq=True)
 

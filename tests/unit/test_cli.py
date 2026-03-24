@@ -41,26 +41,26 @@ class TestFlextDbOracleClientReal:
         """Test CLI client initialization in debug mode."""
         client = FlextDbOracleClient(debug=True)
         tm.that(client.debug, eq=True)
-        tm.that(client.current_connection is None, eq=True)
-        tm.that(client.user_preferences["default_output_format"] == "table", eq=True)
-        tm.that(client.user_preferences["show_execution_time"] == "True", eq=True)
-        tm.that(client.container is not None, eq=True)
-        tm.that(client.logger is not None, eq=True)
+        tm.that(client.current_connection, none=True)
+        tm.that(client.user_preferences["default_output_format"], eq="table")
+        tm.that(client.user_preferences["show_execution_time"], eq="True")
+        tm.that(client.container, none=False)
+        tm.that(client.logger, none=False)
 
     def test_client_initialization_production_mode(self) -> None:
         """Test CLI client initialization in production mode."""
         client = FlextDbOracleClient(debug=False)
         tm.that(client.debug is False, eq=True)
-        tm.that(client.user_preferences["auto_confirm_operations"] == "False", eq=True)
-        tm.that(client.user_preferences["connection_timeout"] == 30, eq=True)
-        tm.that(client.user_preferences["query_limit"] == 1000, eq=True)
+        tm.that(client.user_preferences["auto_confirm_operations"], eq="False")
+        tm.that(client.user_preferences["connection_timeout"], eq=30)
+        tm.that(client.user_preferences["query_limit"], eq=1000)
 
     def test_client_initialization_real(self) -> None:
         """Test actual CLI client initialization."""
         client = FlextDbOracleClient()
-        tm.that(client.container is not None, eq=True)
-        tm.that(client.logger is not None, eq=True)
-        tm.that(client.current_connection is None, eq=True)
+        tm.that(client.container, none=False)
+        tm.that(client.logger, none=False)
+        tm.that(client.current_connection, none=True)
 
     def test_configure_preferences_real(self) -> None:
         """Test configuring user preferences with real values."""
@@ -69,8 +69,8 @@ class TestFlextDbOracleClientReal:
             default_output_format="json", query_limit=2000, show_execution_time=False
         )
         tm.that(result.is_success, eq=True)
-        tm.that(client.user_preferences["default_output_format"] == "json", eq=True)
-        tm.that(client.user_preferences["query_limit"] == 2000, eq=True)
+        tm.that(client.user_preferences["default_output_format"], eq="json")
+        tm.that(client.user_preferences["query_limit"], eq=2000)
         tm.that(client.user_preferences["show_execution_time"] is False, eq=True)
 
     def test_configure_preferences_invalid_keys(self) -> None:
@@ -88,14 +88,14 @@ class TestFlextDbOracleClientReal:
         )
         original_dict["invalid_key"] = "value"
         original_dict["another_invalid"] = "test"
-        tm.that(client.user_preferences.model_dump() == original_dict, eq=True)
+        tm.that(client.user_preferences.model_dump(), eq=original_dict)
 
     def test_connection_without_config(self) -> None:
         """Test connection methods without active connection."""
         client = FlextDbOracleClient()
         result = client.execute_query("SELECT 1 FROM DUAL")
-        tm.that(not result.is_success, eq=True)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.is_success, eq=False)
+        tm.that(result.error, none=False)
         tm.that(
             (
                 result.error is not None
@@ -104,17 +104,17 @@ class TestFlextDbOracleClientReal:
             eq=True,
         )
         schemas_result = client.list_schemas()
-        tm.that(not schemas_result.is_success, eq=True)
-        tm.that(schemas_result.error is not None, eq=True)
-        tm.that("No active Oracle connection" in (schemas_result.error or ""), eq=True)
+        tm.that(schemas_result.is_success, eq=False)
+        tm.that(schemas_result.error, none=False)
+        tm.that((schemas_result.error or ""), has="No active Oracle connection")
         tables_result = client.list_tables()
-        tm.that(not tables_result.is_success, eq=True)
-        tm.that(tables_result.error is not None, eq=True)
-        tm.that("No active Oracle connection" in (tables_result.error or ""), eq=True)
+        tm.that(tables_result.is_success, eq=False)
+        tm.that(tables_result.error, none=False)
+        tm.that((tables_result.error or ""), has="No active Oracle connection")
         health_result = client.health_check()
-        tm.that(not health_result.is_success, eq=True)
-        tm.that(health_result.error is not None, eq=True)
-        tm.that("No active Oracle connection" in (health_result.error or ""), eq=True)
+        tm.that(health_result.is_success, eq=False)
+        tm.that(health_result.error, none=False)
+        tm.that((health_result.error or ""), has="No active Oracle connection")
 
     def test_connect_to_oracle_invalid_credentials(self) -> None:
         """Test Oracle connection with invalid credentials (real connection attempt)."""
@@ -126,7 +126,7 @@ class TestFlextDbOracleClientReal:
             username="invalid_user",
             password="invalid_password",
         )
-        tm.that(not result.is_success, eq=True)
+        tm.that(result.is_success, eq=False)
         tm.that(result.error, eq=True)
         tm.that(
             (
@@ -169,7 +169,7 @@ class TestFlextDbOracleClientReal:
         """Test real error handling in client methods."""
         client = FlextDbOracleClient()
         result = client.execute_query("")
-        tm.that(not result.is_success, eq=True)
+        tm.that(result.is_success, eq=False)
         bad_result = client.configure_preferences(valid_key="")
         tm.that(isinstance(bad_result, r), eq=True)
         tm.ok(bad_result)
@@ -182,9 +182,9 @@ class TestFlextDbOracleClientReal:
         client.configure_preferences(
             default_output_format="json", connection_timeout=60
         )
-        tm.that(client.user_preferences["default_output_format"] == "json", eq=True)
-        tm.that(client.user_preferences["connection_timeout"] == 60, eq=True)
-        tm.that(client.user_preferences["query_limit"] == 1000, eq=True)
+        tm.that(client.user_preferences["default_output_format"], eq="json")
+        tm.that(client.user_preferences["connection_timeout"], eq=60)
+        tm.that(client.user_preferences["query_limit"], eq=1000)
 
 
 class TestFlextDbOracleClientIntegration:
@@ -210,7 +210,7 @@ class TestFlextDbOracleClientIntegration:
             config.username,
             config.password.get_secret_value() if config.password else None,
         )
-        tm.that(not result.is_success, eq=True)
+        tm.that(result.is_success, eq=False)
         tm.that(isinstance(result.error, str), eq=True)
 
 
@@ -220,14 +220,14 @@ class TestFlextDbOracleCli:
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service is not None, eq=True)
-        tm.that(cli_service._container is not None, eq=True)
-        tm.that(cli_service.logger is not None, eq=True)
+        tm.that(cli_service, none=False)
+        tm.that(cli_service._container, none=False)
+        tm.that(cli_service.logger, none=False)
 
     def test_cli_service_initialization_basic(self) -> None:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service is not None, eq=True)
+        tm.that(cli_service, none=False)
         tm.that(hasattr(cli_service, "logger"), eq=True)
 
     def test_initialize_cli_main_success(self) -> None:
@@ -243,10 +243,7 @@ class TestFlextDbOracleCli:
             mock_cli_main.side_effect = Exception("Initialization error")
             result = cli_service._initialize_cli_main()
             tm.that(result.is_failure, eq=True)
-            tm.that(
-                "FlextCliCommands initialization failed" in str(result.error) is True,
-                eq=True,
-            )
+            tm.that(str(result.error), has="FlextCliCommands initialization failed")
 
 
 class TestOracleConnectionHelper:
@@ -263,13 +260,13 @@ class TestOracleConnectionHelper:
         )
         tm.ok(result)
         config = result.value
-        tm.that(config.host == "test-host", eq=True)
-        tm.that(config.port == 1522, eq=True)
-        tm.that(config.service_name == "TEST_SERVICE", eq=True)
-        tm.that(config.username == "test_user", eq=True)
-        tm.that(config.password is not None, eq=True)
+        tm.that(config.host, eq="test-host")
+        tm.that(config.port, eq=1522)
+        tm.that(config.service_name, eq="TEST_SERVICE")
+        tm.that(config.username, eq="test_user")
+        tm.that(config.password, none=False)
         if config.password is not None:
-            tm.that(config.password.get_secret_value() == "test_password", eq=True)
+            tm.that(config.password.get_secret_value(), eq="test_password")
 
     def test_create_config_from_params_defaults(self) -> None:
         """Test config creation with default parameters."""
@@ -278,10 +275,10 @@ class TestOracleConnectionHelper:
         )
         tm.ok(result)
         config = result.value
-        tm.that(config.host == "localhost", eq=True)
-        tm.that(config.port == 1521, eq=True)
-        tm.that(config.service_name == "XEPDB1", eq=True)
-        tm.that(config.username == "system", eq=True)
+        tm.that(config.host, eq="localhost")
+        tm.that(config.port, eq=1521)
+        tm.that(config.service_name, eq="XEPDB1")
+        tm.that(config.username, eq="system")
 
     def test_create_config_from_params_no_password(self) -> None:
         """Test config creation fails without password."""
@@ -289,7 +286,7 @@ class TestOracleConnectionHelper:
             host="test-host", username="test_user"
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Password is required" in str(result.error), eq=True)
+        tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_empty_password(self) -> None:
         """Test config creation fails with empty password."""
@@ -297,7 +294,7 @@ class TestOracleConnectionHelper:
             host="test-host", username="test_user", password=""
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Password is required" in str(result.error), eq=True)
+        tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_validation_error(self) -> None:
         """Test config creation handles validation errors."""
@@ -305,7 +302,7 @@ class TestOracleConnectionHelper:
             host="", password="test_password"
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("Configuration creation failed" in str(result.error), eq=True)
+        tm.that(str(result.error), has="Configuration creation failed")
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
@@ -339,7 +336,7 @@ class TestOracleConnectionHelper:
                 config
             )
         tm.that(result.is_failure, eq=True)
-        tm.that("Connection failed" in str(result.error), eq=True)
+        tm.that(str(result.error), has="Connection failed")
 
 
 class TestOutputFormatter:
@@ -354,21 +351,21 @@ class TestOutputFormatter:
     def test_formatter_initialization_without_cli_main(self) -> None:
         """Test formatter initialization without CLI main."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        tm.that(formatter._cli_main is None, eq=True)
+        tm.that(formatter._cli_main, none=True)
 
     def test_format_success_message(self) -> None:
         """Test success message formatting."""
         formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_success_message("Operation completed")
         tm.ok(result)
-        tm.that(result.value == "✅ Operation completed", eq=True)
+        tm.that(result.value, eq="✅ Operation completed")
 
     def test_format_error_message(self) -> None:
         """Test error message formatting."""
         formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_error_message("Something went wrong")
         tm.ok(result)
-        tm.that(result.value == "❌ Something went wrong", eq=True)
+        tm.that(result.value, eq="❌ Something went wrong")
 
     def test_format_list_output_table_format(self) -> None:
         """Test list output formatting in table format."""
@@ -377,10 +374,10 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Database Tables", "table")
         tm.ok(result)
         output = result.value
-        tm.that("Database Tables" in output, eq=True)
-        tm.that("table1" in output, eq=True)
-        tm.that("table2" in output, eq=True)
-        tm.that("table3" in output, eq=True)
+        tm.that(output, has="Database Tables")
+        tm.that(output, has="table1")
+        tm.that(output, has="table2")
+        tm.that(output, has="table3")
 
     _JSON_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
         Mapping[str, t.NormalizedValue]
@@ -394,8 +391,8 @@ class TestOutputFormatter:
         tm.ok(result)
         output = result.value
         data = self._JSON_ADAPTER.validate_json(output)
-        tm.that(data["title"] == "Schemas", eq=True)
-        tm.that(data["items"] == ["schema1", "schema2"], eq=True)
+        tm.that(data["title"], eq="Schemas")
+        tm.that(data["items"], eq=["schema1", "schema2"])
 
     def test_format_list_output_yaml_format(self) -> None:
         """Test list output formatting in YAML format."""
@@ -405,8 +402,8 @@ class TestOutputFormatter:
         tm.ok(result)
         output = result.value
         data = yaml.safe_load(output)
-        tm.that(data["title"] == "Test Items", eq=True)
-        tm.that(data["items"] == ["item1", "item2"], eq=True)
+        tm.that(data["title"], eq="Test Items")
+        tm.that(data["items"], eq=["item1", "item2"])
 
     def test_format_list_output_plain_format(self) -> None:
         """Test list output formatting in plain format."""
@@ -415,9 +412,9 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Test Items", "plain")
         tm.ok(result)
         output = result.value
-        tm.that("Test Items" in output, eq=True)
-        tm.that("item1" in output, eq=True)
-        tm.that("item2" in output, eq=True)
+        tm.that(output, has="Test Items")
+        tm.that(output, has="item1")
+        tm.that(output, has="item2")
 
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with Mapping[str, t.NormalizedValue] items."""
@@ -430,8 +427,8 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Database Objects", "table")
         tm.ok(result)
         output = result.value
-        tm.that("table1" in output, eq=True)
-        tm.that("table2" in output, eq=True)
+        tm.that(output, has="table1")
+        tm.that(output, has="table2")
 
     _DATA_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
         Mapping[str, t.NormalizedValue]
@@ -444,8 +441,8 @@ class TestOutputFormatter:
         result = formatter.format_data(data, "json")
         tm.ok(result)
         parsed_data = self._DATA_ADAPTER.validate_json(result.value)
-        tm.that(parsed_data["key"] == "value", eq=True)
-        tm.that(parsed_data["number"] == 42, eq=True)
+        tm.that(parsed_data["key"], eq="value")
+        tm.that(parsed_data["number"], eq=42)
 
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""
@@ -454,7 +451,7 @@ class TestOutputFormatter:
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
         parsed_data = yaml.safe_load(result.value)
-        tm.that(parsed_data == data, eq=True)
+        tm.that(parsed_data, eq=data)
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""
@@ -462,7 +459,7 @@ class TestOutputFormatter:
         data = {"key": "value"}
         result = formatter.format_data(data, "plain")
         tm.ok(result)
-        tm.that(str(data) == result.value, eq=True)
+        tm.that(str(data), eq=result.value)
 
     def test_display_message(self) -> None:
         """Test message display functionality."""
@@ -562,7 +559,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 2 schemas successfully" in output, eq=True)
+        tm.that(output, has="Listed 2 schemas successfully")
 
     def test_execute_list_schemas_connection_failure(self) -> None:
         """Test schema listing with connection failure."""
@@ -635,7 +632,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 2 tables" in output, eq=True)
+        tm.that(output, has="Listed 2 tables")
 
     def test_execute_list_tables_no_schema(self) -> None:
         """Test table listing without schema name."""
@@ -656,7 +653,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that("Listed 1 tables" in output, eq=True)
+        tm.that(output, has="Listed 1 tables")
 
     def test_execute_query_success(self) -> None:
         """Test successful query execution."""
@@ -700,7 +697,7 @@ class TestCliServiceOperations:
             sql="",
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("SQL query cannot be empty" in str(result.error), eq=True)
+        tm.that(str(result.error), has="SQL query cannot be empty")
 
     def test_execute_query_whitespace_sql(self) -> None:
         """Test query execution with whitespace-only SQL."""
@@ -714,7 +711,7 @@ class TestCliServiceOperations:
             sql="   \n\t  ",
         )
         tm.that(result.is_failure, eq=True)
-        tm.that("SQL query cannot be empty" in str(result.error), eq=True)
+        tm.that(str(result.error), has="SQL query cannot be empty")
 
 
 class TestYamlModule:
@@ -726,8 +723,8 @@ class TestYamlModule:
         data = {"test": "value"}
         result = yaml_module.dump(data, default_flow_style=True)
         tm.that(isinstance(result, str), eq=True)
-        tm.that("test" in result, eq=True)
-        tm.that("value" in result, eq=True)
+        tm.that(result, has="test")
+        tm.that(result, has="value")
 
 
 class TestCLIRealFunctionality:
@@ -761,7 +758,7 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host is not None, eq=True)
+            tm.that(api.config.host, none=False)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -812,7 +809,7 @@ class TestCLIRealFunctionality:
         api = FlextDbOracleApi(invalid_config)
         query_result = api.query("SELECT 1 FROM DUAL")
         tm.that(query_result.is_failure, eq=True)
-        tm.that(query_result.error is not None, eq=True)
+        tm.that(query_result.error, none=False)
         tm.that(
             (
                 "not connected" in query_result.error.lower()
@@ -845,10 +842,10 @@ class TestCLIRealFunctionality:
             password=str(config_data["password"]),
         )
         api = FlextDbOracleApi(config=config)
-        tm.that(api.config.host == "param_test_host", eq=True)
-        tm.that(api.config.port == 1521, eq=True)
-        tm.that(api.config.service_name == "PARAM_TEST", eq=True)
-        tm.that(api.config.username == "param_user", eq=True)
+        tm.that(api.config.host, eq="param_test_host")
+        tm.that(api.config.port, eq=1521)
+        tm.that(api.config.service_name, eq="PARAM_TEST")
+        tm.that(api.config.username, eq="param_user")
 
     def test_comprehensive_api_coverage_real(self) -> None:
         """Comprehensive API coverage test using real functionality - NO MOCKS."""
@@ -876,7 +873,7 @@ class TestCLIRealFunctionality:
                     eq=True,
                 )
             else:
-                tm.that(result is not None, eq=True)
+                tm.that(result, none=False)
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
@@ -895,7 +892,7 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host is not None, eq=True)
+            tm.that(api.config.host, none=False)
             tm.that(isinstance(api.config.port, int), eq=True)
         finally:
             for key, original_value in original_env.items():
@@ -911,9 +908,9 @@ class TestCLIRealFunctionality:
             password="pass",
         )
         url_api = FlextDbOracleApi(config=config_for_url)
-        tm.that(url_api.config.host == "host", eq=True)
-        tm.that(url_api.config.port == 1521, eq=True)
-        tm.that(url_api.config.service_name == "SERVICE", eq=True)
+        tm.that(url_api.config.host, eq="host")
+        tm.that(url_api.config.port, eq=1521)
+        tm.that(url_api.config.service_name, eq="SERVICE")
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
@@ -931,11 +928,11 @@ class TestCLIRealFunctionality:
         list_result = api.list_plugins()
         tm.ok(list_result)
         plugin_list = list_result.value
-        tm.that("test_plugin" in plugin_list, eq=True)
+        tm.that(plugin_list, has="test_plugin")
         get_result = api.get_plugin("test_plugin")
         tm.ok(get_result)
         retrieved_plugin = get_result.value
-        tm.that(retrieved_plugin == test_plugin, eq=True)
+        tm.that(retrieved_plugin, eq=test_plugin)
         unregister_result = api.unregister_plugin("test_plugin")
         tm.ok(unregister_result)
         final_list = api.list_plugins()

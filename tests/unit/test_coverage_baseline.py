@@ -29,28 +29,28 @@ class TestModuleImports:
 
     def test_api_import(self) -> None:
         """Test that API module imports correctly."""
-        tm.that(FlextDbOracleApi is not None, eq=True)
+        tm.that(FlextDbOracleApi, none=False)
 
     def test_models_import(self) -> None:
         """Test that models module imports correctly."""
-        tm.that(FlextDbOracleModels is not None, eq=True)
-        tm.that(Models is not None, eq=True)
+        tm.that(FlextDbOracleModels, none=False)
+        tm.that(Models, none=False)
 
     def test_services_import(self) -> None:
         """Test that services module imports correctly."""
-        tm.that(FlextDbOracleServices is not None, eq=True)
+        tm.that(FlextDbOracleServices, none=False)
 
     def test_exceptions_import(self) -> None:
         """Test that exceptions module imports correctly."""
-        tm.that(FlextDbOracleExceptions is not None, eq=True)
+        tm.that(FlextDbOracleExceptions, none=False)
 
     def test_constants_import(self) -> None:
         """Test that constants module imports correctly."""
-        tm.that(FlextDbOracleConstants is not None, eq=True)
+        tm.that(FlextDbOracleConstants, none=False)
 
     def test_utilities_import(self) -> None:
         """Test that utilities module imports correctly."""
-        tm.that(FlextDbOracleUtilities is not None, eq=True)
+        tm.that(FlextDbOracleUtilities, none=False)
 
 
 class TestBasicModelCreation:
@@ -69,7 +69,7 @@ class TestBasicModelCreation:
         tm.that(config.port, eq=1521)
         tm.that(config.service_name, eq="TEST")
         tm.that(config.username, eq="testuser")
-        tm.that(config.password is not None, eq=True)
+        tm.that(config.password, none=False)
         if config.password is not None:
             tm.that(config.password.get_secret_value(), eq="testpass")
 
@@ -109,7 +109,7 @@ class TestFlextDbOracleServices:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        tm.that(service is not None, eq=True)
+        tm.that(service, none=False)
         tm.that(service._db_config, eq=config)
 
     def test_service_is_not_connected_initially(self) -> None:
@@ -152,9 +152,9 @@ class TestFlextDbOracleServices:
         result = service.build_select("USERS", ["ID", "NAME"])
         tm.ok(result)
         sql = result.value
-        tm.that("SELECT" in sql, eq=True)
-        tm.that("FROM" in sql, eq=True)
-        tm.that("USERS" in sql, eq=True)
+        tm.that(sql, has="SELECT")
+        tm.that(sql, has="FROM")
+        tm.that(sql, has="USERS")
 
 
 class TestUtilities:
@@ -162,7 +162,7 @@ class TestUtilities:
 
     def test_utilities_module_exists(self) -> None:
         """Test utilities module can be accessed."""
-        tm.that(FlextDbOracleUtilities is not None, eq=True)
+        tm.that(FlextDbOracleUtilities, none=False)
 
     def test_utilities_has_methods(self) -> None:
         """Test utilities has expected methods."""
@@ -174,7 +174,7 @@ class TestConstants:
 
     def test_constants_module_exists(self) -> None:
         """Test constants module can be accessed."""
-        tm.that(FlextDbOracleConstants is not None, eq=True)
+        tm.that(FlextDbOracleConstants, none=False)
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
@@ -186,4 +186,4 @@ class TestExceptions:
 
     def test_exceptions_module_exists(self) -> None:
         """Test exceptions module can be accessed."""
-        tm.that(FlextDbOracleExceptions is not None, eq=True)
+        tm.that(FlextDbOracleExceptions, none=False)

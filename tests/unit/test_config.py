@@ -18,7 +18,7 @@ class TestFlextDbOracleSettings:
     def test_config_creation(self) -> None:
         """Test config can be created."""
         config = FlextDbOracleSettings()
-        tm.that(config is not None, eq=True)
+        tm.that(config, none=False)
 
     def test_config_attributes(self) -> None:
         """Test config has required attributes."""

@@ -43,7 +43,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_metadata_manager_initialization(self) -> None:
         """Test metadata manager initialization with real connection."""
-        tm.that(self.manager is not None, eq=True)
+        tm.that(self.manager, none=False)
         tm.that(self.manager, eq=self.services)
         tm.that(hasattr(self.manager, "config"), eq=True)
         tm.that(hasattr(self.manager, "connect"), eq=True)
@@ -54,7 +54,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(hasattr(result, "error"), eq=True)
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.error, none=False)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -118,7 +118,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         result = self.manager.get_tables("TEST_SCHEMA")
         tm.that(hasattr(result, "is_success"), eq=True)
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 
@@ -142,14 +142,14 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             tm.that(hasattr(result, "error"), eq=True)
             if method_name != "generate_ddl":
                 tm.fail(result)
-                tm.that(result.error is not None, eq=True)
+                tm.that(result.error, none=False)
                 tm.that(result.error, eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
         tm.that(self.manager is self.services, eq=True)
         tm.that(hasattr(self.manager, "get_connection_status"), eq=True)
-        tm.that(self.manager is not None, eq=True)
+        tm.that(self.manager, none=False)
         existing_methods = [
             "get_schemas",
             "get_tables",
@@ -185,7 +185,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(len(table.columns), eq=4)
         result = self.manager.get_tables("APP_SCHEMA")
         tm.fail(result)
-        tm.that(result.error is not None, eq=True)
+        tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that("connection" in error_lower or "connected" in error_lower, eq=True)
 

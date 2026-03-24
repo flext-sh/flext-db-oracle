@@ -25,7 +25,7 @@ class TestFlextDbOracleUtilities:
     def test_utilities_creation(self) -> None:
         """Test utilities can be created."""
         utilities = FlextDbOracleUtilities()
-        tm.that(utilities is not None, eq=True)
+        tm.that(utilities, none=False)
         tm.that(isinstance(utilities, FlextDbOracleUtilities), eq=True)
 
     def test_utilities_has_required_methods(self) -> None:
@@ -63,7 +63,7 @@ class TestFlextDbOracleUtilities:
         )
         tm.ok(result1)
         tm.ok(result2)
-        tm.that(result1.value != result2.value, eq=True)
+        tm.that(result1.value, ne=result2.value)
 
     def test_generate_query_hash_case_insensitive_keywords(self) -> None:
         """Test query hash handles case variations in keywords."""
@@ -73,7 +73,7 @@ class TestFlextDbOracleUtilities:
         result2 = FlextDbOracleUtilities.DbOracle.generate_query_hash(query2, {})
         tm.ok(result1)
         tm.ok(result2)
-        tm.that(result1.value != result2.value, eq=True)
+        tm.that(result1.value, ne=result2.value)
 
     def test_generate_query_hash_with_params(self) -> None:
         """Test query hash generation with parameters."""
@@ -148,12 +148,12 @@ class TestFlextDbOracleUtilities:
         result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(result)
         formatted = result.value
-        tm.that("SELECT" in formatted.upper(), eq=True)
-        tm.that("FROM" in formatted.upper(), eq=True)
+        tm.that(formatted.upper(), has="SELECT")
+        tm.that(formatted.upper(), has="FROM")
         tm.that("INNER" in formatted.upper() and "JOIN" in formatted.upper(), eq=True)
-        tm.that("WHERE" in formatted.upper(), eq=True)
+        tm.that(formatted.upper(), has="WHERE")
         tm.that("GROUP" in formatted.upper() and "BY" in formatted.upper(), eq=True)
-        tm.that("HAVING" in formatted.upper(), eq=True)
+        tm.that(formatted.upper(), has="HAVING")
         tm.that("ORDER" in formatted.upper() and "BY" in formatted.upper(), eq=True)
 
     def test_format_sql_for_oracle_empty_string(self) -> None:
@@ -486,7 +486,7 @@ class TestFlextDbOracleUtilities:
         params3 = {"active": 0}
         hash3_result = FlextDbOracleUtilities.DbOracle.generate_query_hash(sql, params3)
         tm.ok(hash3_result)
-        tm.that(hash1_result.value != hash3_result.value, eq=True)
+        tm.that(hash1_result.value, ne=hash3_result.value)
 
     @pytest.mark.unit_integration
     def test_real_oracle_format_sql_integration(
@@ -499,7 +499,7 @@ class TestFlextDbOracleUtilities:
         format_result = FlextDbOracleUtilities.DbOracle.format_sql_for_oracle(sql)
         tm.ok(format_result)
         formatted_sql = format_result.value
-        tm.that("select" in formatted_sql.lower(), eq=True)
-        tm.that("from" in formatted_sql.lower(), eq=True)
-        tm.that("group by" in formatted_sql.lower(), eq=True)
-        tm.that("order by" in formatted_sql.lower(), eq=True)
+        tm.that(formatted_sql.lower(), has="select")
+        tm.that(formatted_sql.lower(), has="from")
+        tm.that(formatted_sql.lower(), has="group by")
+        tm.that(formatted_sql.lower(), has="order by")

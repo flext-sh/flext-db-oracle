@@ -51,7 +51,7 @@ class TestRealOracleConnection:
         if disconnect_result.is_failure:
             msg = f"Disconnect failed: {disconnect_result.error}"
             raise AssertionError(msg)
-        tm.that(not connection.is_connected(), eq=True)
+        tm.that(connection.is_connected(), eq=False)
 
     def test_real_connection_execute_query(
         self, real_oracle_config: FlextDbOracleSettings
@@ -164,7 +164,7 @@ class TestRealOracleApi:
                     final_value = (
                         safe_get_first_value(cell) if hasattr(cell, "__len__") else cell
                     )
-                    tm.that("Hello Oracle" in str(final_value), eq=True)
+                    tm.that(str(final_value), has="Hello Oracle")
 
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle schema listing using utilities."""
@@ -210,7 +210,7 @@ class TestRealOracleApi:
         ]
         expected_columns = ["EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"]
         for col in expected_columns:
-            tm.that(col in column_names, eq=True)
+            tm.that(column_names, has=col)
 
     def test_real_api_query_with_timing(
         self, connected_oracle_api: FlextDbOracleApi
@@ -248,7 +248,7 @@ class TestRealOracleApi:
                 msg = f"Type conversion failed for {singer_type}: {result.error}"
                 raise AssertionError(msg)
             oracle_type = result.value
-            tm.that(expected in oracle_type, eq=True)
+            tm.that(oracle_type, has=expected)
 
     def test_real_api_table_operations(
         self, connected_oracle_api: FlextDbOracleApi
@@ -292,7 +292,7 @@ class TestRealOracleApi:
                 raise AssertionError(msg)
             tables_data = tables_result.value
             table_names = [str(t).upper() for t in tables_data]
-            tm.that(table_name.upper() in table_names, eq=True)
+            tm.that(table_names, has=table_name.upper())
             metadata_result = connected_oracle_api.get_tables(table_name)
             if metadata_result.is_failure:
                 msg = f"Get metadata failed: {metadata_result.error}"
@@ -366,7 +366,7 @@ class TestRealOracleErrorHandling:
         api = FlextDbOracleApi(real_oracle_config)
         result = api.query("SELECT 1 FROM DUAL")
         tm.fail(result)
-        tm.that("not connected" in (result.error or "").lower(), eq=True)
+        tm.that((result.error or "").lower(), has="not connected")
         tables_result = api.get_tables()
         tm.fail(tables_result)
         tm.that(

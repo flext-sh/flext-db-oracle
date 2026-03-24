@@ -25,7 +25,7 @@ class TestDispatcherSurgical:
         )
         services = FlextDbOracleServices(config=config)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
-        tm.that(dispatcher is not None, eq=True)
+        tm.that(dispatcher, none=False)
 
     def test_dispatcher_has_command_classes(self) -> None:
         """Test dispatcher has command classes."""
@@ -39,4 +39,4 @@ class TestDispatcherSurgical:
             sql="SELECT 1 FROM DUAL", parameters=None
         )
         tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
-        tm.that(cmd.parameters is None, eq=True)
+        tm.that(cmd.parameters, none=True)
