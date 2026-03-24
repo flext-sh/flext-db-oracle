@@ -18,12 +18,11 @@ from pathlib import Path
 import oracledb
 import pytest
 from flext_core import FlextLogger
-from tests import p
 from flext_tests import tk
 from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import t
+from tests import p, t
 
 logger: p.Logger = FlextLogger(__name__)
 _PORT_BINDINGS_ADAPTER = TypeAdapter(Mapping[str, str])
