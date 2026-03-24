@@ -52,9 +52,9 @@ if TYPE_CHECKING:
     )
     from flext_db_oracle.services import FlextDbOracleServices
     from flext_db_oracle.settings import (
+        FlextDbOraclePassword,
         FlextDbOracleSettings,
         OracleIdentifier,
-        OraclePassword,
     )
     from flext_db_oracle.typings import FlextDbOracleTypes, FlextDbOracleTypes as t
     from flext_db_oracle.utilities import (
@@ -67,15 +67,10 @@ _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
     "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
     "FlextDbOracleClient": ("flext_db_oracle.client", "FlextDbOracleClient"),
     "FlextDbOracleConstants": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
-    "FlextDbOracleDispatcher": (
-        "flext_db_oracle.dispatcher",
-        "FlextDbOracleDispatcher",
-    ),
-    "FlextDbOracleExceptions": (
-        "flext_db_oracle.exceptions",
-        "FlextDbOracleExceptions",
-    ),
+    "FlextDbOracleDispatcher": ("flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"),
+    "FlextDbOracleExceptions": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
     "FlextDbOracleModels": ("flext_db_oracle.models", "FlextDbOracleModels"),
+    "FlextDbOraclePassword": ("flext_db_oracle.settings", "FlextDbOraclePassword"),
     "FlextDbOracleProtocols": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
     "FlextDbOracleServices": ("flext_db_oracle.services", "FlextDbOracleServices"),
     "FlextDbOracleSettings": ("flext_db_oracle.settings", "FlextDbOracleSettings"),
@@ -84,7 +79,6 @@ _LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
     "OracleDatabaseError": ("flext_db_oracle.client", "OracleDatabaseError"),
     "OracleIdentifier": ("flext_db_oracle.settings", "OracleIdentifier"),
     "OracleInterfaceError": ("flext_db_oracle.client", "OracleInterfaceError"),
-    "OraclePassword": ("flext_db_oracle.settings", "OraclePassword"),
     "__all__": ("flext_db_oracle.__version__", "__all__"),
     "__author__": ("flext_db_oracle.__version__", "__author__"),
     "__author_email__": ("flext_db_oracle.__version__", "__author_email__"),
@@ -115,6 +109,7 @@ __all__ = [
     "FlextDbOracleDispatcher",
     "FlextDbOracleExceptions",
     "FlextDbOracleModels",
+    "FlextDbOraclePassword",
     "FlextDbOracleProtocols",
     "FlextDbOracleServices",
     "FlextDbOracleSettings",
@@ -123,7 +118,6 @@ __all__ = [
     "OracleDatabaseError",
     "OracleIdentifier",
     "OracleInterfaceError",
-    "OraclePassword",
     "__all__",
     "__author__",
     "__author_email__",

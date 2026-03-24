@@ -40,7 +40,7 @@ def _validate_oracle_identifier(v: str) -> str:
 OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
 
 
-class OraclePassword(BaseModel):
+class FlextDbOraclePassword(BaseModel):
     """String-compatible password wrapper for Oracle settings."""
 
     _value: str = ""
@@ -62,7 +62,7 @@ class OraclePassword(BaseModel):
     @override
     def __eq__(self, other: t.NormalizedValue) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
-        if isinstance(other, OraclePassword):
+        if isinstance(other, FlextDbOraclePassword):
             return self._value == other._value
         if isinstance(other, str):
             return self._value == other
@@ -90,7 +90,7 @@ class FlextDbOracleSettings(FlextSettings):
         Field(default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME),
     ]
     username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
-    password: Annotated[OraclePassword | None, Field(default=OraclePassword(""))]
+    password: Annotated[FlextDbOraclePassword | None, Field(default=FlextDbOraclePassword(""))]
     timeout: Annotated[
         t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
     ]
@@ -131,7 +131,7 @@ class FlextDbOracleSettings(FlextSettings):
         if self.sid is not None:
             self.sid = _validate_oracle_identifier(str(self.sid))
         if self.password is not None:
-            self.password = OraclePassword(str(self.password))
+            self.password = FlextDbOraclePassword(str(self.password))
         if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
             self.ssl_server_cert_dn = self.ssl_cert_file
         self._enforce_business_rules()
@@ -142,23 +142,23 @@ class FlextDbOracleSettings(FlextSettings):
 
     @field_validator("password", mode="before")
     @classmethod
-    def _parse_password(cls, value: t.ContainerValue | None) -> OraclePassword | None:
+    def _parse_password(cls, value: t.ContainerValue | None) -> FlextDbOraclePassword | None:
         if value is None:
             return None
         text = str(value)
-        return OraclePassword(text)
+        return FlextDbOraclePassword(text)
 
     @field_validator("password", mode="after")
     @classmethod
     def _ensure_password_wrapper(
         cls,
-        value: OraclePassword | str | None,
-    ) -> OraclePassword | None:
+        value: FlextDbOraclePassword | str | None,
+    ) -> FlextDbOraclePassword | None:
         if value is None:
             return None
-        if isinstance(value, OraclePassword):
+        if isinstance(value, FlextDbOraclePassword):
             return value
-        return OraclePassword(str(value))
+        return FlextDbOraclePassword(str(value))
 
     @model_validator(mode="after")
     def validate_business_rules(self) -> FlextDbOracleSettings:
@@ -356,5 +356,5 @@ __all__ = [
     "OracleDatabaseError",
     "OracleIdentifier",
     "OracleInterfaceError",
-    "OraclePassword",
+    "FlextDbOraclePassword",
 ]
