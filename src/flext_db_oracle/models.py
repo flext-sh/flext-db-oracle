@@ -26,10 +26,6 @@ from pydantic import (
 from flext_db_oracle import c, t
 
 
-def _default_parameters_list() -> Sequence[Mapping[str, t.ContainerValue]]:
-    return []
-
-
 class FlextDbOracleModels(FlextModels):
     """Oracle database models using flext-core exclusively.
 
@@ -68,9 +64,9 @@ class FlextDbOracleModels(FlextModels):
 
             status: Annotated[str, Field(default="unknown")]
             host: Annotated[str, Field(default="")]
-            port: Annotated[int, Field(default=0)]
+            port: Annotated[t.NonNegativeInt, Field(default=0)]
             service_name: Annotated[str, Field(default="")]
-            response_time_ms: Annotated[float, Field(default=0.0)]
+            response_time_ms: Annotated[t.NonNegativeFloat, Field(default=0.0)]
             details: Annotated[
                 Mapping[str, t.ContainerValue], Field(default_factory=dict)
             ]
@@ -117,7 +113,7 @@ class FlextDbOracleModels(FlextModels):
 
             # Additional Oracle-specific connection details
             connection_time: Annotated[
-                float,
+                t.NonNegativeFloat,
                 Field(
                     default=0.0,
                     description="Connection establishment time in seconds",
@@ -265,8 +261,8 @@ class FlextDbOracleModels(FlextModels):
                 Sequence[t.ContainerValue],
                 Field(default_factory=list),
             ]
-            row_count: int = 0
-            execution_time_ms: int = 0
+            row_count: t.NonNegativeInt = 0
+            execution_time_ms: t.NonNegativeInt = 0
 
             # Additional Oracle-specific query result details
             columns: Annotated[Sequence[str], Field(default_factory=list)]
@@ -587,7 +583,7 @@ class FlextDbOracleModels(FlextModels):
             sql: str
             parameters_list: Annotated[
                 Sequence[Mapping[str, t.ContainerValue]],
-                Field(default_factory=_default_parameters_list),
+                Field(default_factory=list),
             ]
 
         class GetSchemasCommand(FlextModels.Entity):
