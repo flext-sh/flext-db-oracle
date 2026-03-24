@@ -25,8 +25,8 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
-_GENERAL_LIST_ADAPTER: TypeAdapter[Sequence[t.Container]] = TypeAdapter(
-    Sequence[t.Container]
+_GENERAL_LIST_ADAPTER: TypeAdapter[t.FlatContainerList] = TypeAdapter(
+    t.FlatContainerList
 )
 _CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
     t.ContainerValueMapping,
@@ -45,7 +45,7 @@ def _validate_config_map(
         return None
 
 
-def _validate_general_list(value: t.ContainerValue) -> Sequence[t.Container] | None:
+def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
     """Validate list payload with Pydantic."""
     return _GENERAL_LIST_ADAPTER.validate_python(value)
 
@@ -80,9 +80,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         services: Mapping[str, t.RegisterableService] | None = None,
         factories: Mapping[str, t.FactoryCallable] | None = None,
         resources: Mapping[str, t.ResourceCallable] | None = None,
-        container_overrides: Mapping[str, t.Scalar] | None = None,
+        container_overrides: t.ConfigurationMapping | None = None,
         wire_modules: Sequence[ModuleType] | None = None,
-        wire_packages: Sequence[str] | None = None,
+        wire_packages: t.StrSequence | None = None,
         wire_classes: Sequence[type] | None = None,
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
@@ -376,8 +376,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     def _build_table_string(self, adapted_data: Sequence[t.ConfigMap]) -> str:
         """Build table string from adapted data."""
-        headers: Sequence[str] = list(adapted_data[0].keys())
-        rows: Sequence[Sequence[str]] = [
+        headers: t.StrSequence = list(adapted_data[0].keys())
+        rows: Sequence[t.StrSequence] = [
             [str(row[h]) for h in headers] for row in adapted_data
         ]
         result_str = f"{'|'.join(headers)}\n{'|'.join(['---'] * len(headers))}\n"
@@ -610,4 +610,4 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         return r[bool].ok(True)
 
 
-__all__: Sequence[str] = ["FlextDbOracleClient"]
+__all__: t.StrSequence = ["FlextDbOracleClient"]

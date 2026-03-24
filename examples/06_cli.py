@@ -122,7 +122,7 @@ def _check_oracle_env() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def run_cli_command(cmd: Sequence[str]) -> tuple[int, str, str]:
+def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
     """Run CLI command and return exit code, stdout, stderr (no shell).
 
     Returns:

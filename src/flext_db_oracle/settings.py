@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -85,16 +84,22 @@ class FlextDbOracleSettings(FlextSettings):
     )
 
     host: Annotated[str, Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)]
-    port: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_PORT)]
+    port: Annotated[t.PortNumber, Field(default=c.DbOracle.Connection.DEFAULT_PORT)]
     service_name: Annotated[
         OracleIdentifier,
         Field(default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME),
     ]
     username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
     password: Annotated[OraclePassword | None, Field(default=OraclePassword(""))]
-    timeout: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)]
-    pool_min: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)]
-    pool_max: Annotated[int, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)]
+    timeout: Annotated[
+        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
+    ]
+    pool_min: Annotated[
+        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)
+    ]
+    pool_max: Annotated[
+        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)
+    ]
     sid: Annotated[OracleIdentifier | None, Field(default=None)]
     name: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)]
     ssl_cert_file: Annotated[str | None, Field(default=None)]
@@ -211,7 +216,7 @@ class FlextDbOracleSettings(FlextSettings):
             keys["sid"].insert(0, "FLEXT_TARGET_ORACLE_SID")
 
         def _first_env(
-            candidates: Sequence[str],
+            candidates: t.StrSequence,
             fallback: str | None = None,
         ) -> str | None:
             for env_key in candidates:

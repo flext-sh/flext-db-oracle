@@ -263,7 +263,7 @@ class TestRealOracleApi:
                 },
             ]
             ddl_parts = [f"CREATE TABLE {table_name} ("]
-            column_parts: Sequence[str] = []
+            column_parts: t.StrSequence = []
             for col in columns:
                 col_def = f"{col['name']} {col['type']}"
                 if not col.get("nullable", True):

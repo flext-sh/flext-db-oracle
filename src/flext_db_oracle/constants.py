@@ -11,11 +11,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from enum import StrEnum, unique
 from typing import ClassVar, Final
 
-from flext_core import FlextConstants, c as core_c
+from flext_core import FlextConstants, FlextTypes as t, c as core_c
 
 
 class FlextDbOracleConstants(FlextConstants):
@@ -90,7 +90,7 @@ class FlextDbOracleConstants(FlextConstants):
             INTEGER_TYPE: Final[str] = "NUMBER(38)"
             BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
-            SINGER_TYPE_MAP: ClassVar[Mapping[str, str]] = {
+            SINGER_TYPE_MAP: ClassVar[t.StrMapping] = {
                 "string": "VARCHAR2(4000)",
                 "integer": "NUMBER(38)",
                 "number": "NUMBER",
@@ -272,7 +272,7 @@ class FlextDbOracleConstants(FlextConstants):
             ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
             ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
             ENV_SID: Final[str] = "ORACLE_SID"
-            ENV_MAPPING: ClassVar[Mapping[str, str]] = {
+            ENV_MAPPING: ClassVar[t.StrMapping] = {
                 "FLEXT_TARGET_ORACLE_HOST": "host",
                 "ORACLE_HOST": "host",
                 "FLEXT_TARGET_ORACLE_PORT": "port",

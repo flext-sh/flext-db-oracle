@@ -888,7 +888,7 @@ class TestApiModule:
         )
         api = FlextDbOracleApi(config=config)
         if hasattr(api, "get_tables"):
-            result: r[Sequence[str]] = api.get_tables()
+            result: r[t.StrSequence] = api.get_tables()
             tm.that(result, is_=r)
 
     def test_flext_db_oracle_api_comprehensive_scenario(self) -> None:
@@ -912,7 +912,7 @@ class TestApiModule:
             query_result: r[Sequence[t.Dict]] = api.query(str(test_query["query"]))
             tm.that(query_result, is_=r)
         if hasattr(api, "get_tables"):
-            schema_result: r[Sequence[str]] = api.get_tables()
+            schema_result: r[t.StrSequence] = api.get_tables()
             tm.that(schema_result, is_=r)
         if hasattr(api, "disconnect"):
             disconnect_result: r[bool] = api.disconnect()

@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator, Mapping
+from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +24,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t
 
 logger = FlextLogger(__name__)
-_PORT_BINDINGS_ADAPTER = TypeAdapter(Mapping[str, str])
+_PORT_BINDINGS_ADAPTER = TypeAdapter(t.StrMapping)
 
 
 class OperationTestError(Exception):
@@ -37,7 +37,7 @@ class OperationTestError(Exception):
         self.error = error
 
 
-def _normalized_port_bindings(value: t.NormalizedValue) -> Mapping[str, str]:
+def _normalized_port_bindings(value: t.NormalizedValue) -> t.StrMapping:
     try:
         return _PORT_BINDINGS_ADAPTER.validate_python(value)
     except ValidationError:
@@ -369,7 +369,7 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
 @pytest.fixture
 def test_database_setup(
     connected_oracle_api: FlextDbOracleApi | None,
-) -> Generator[Mapping[str, str] | None]:
+) -> Generator[t.StrMapping | None]:
     """Set up test database schema and return test table info."""
     if connected_oracle_api is None:
         yield None
