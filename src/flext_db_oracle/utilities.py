@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence, Mapping
 from enum import StrEnum
 from typing import Annotated
 

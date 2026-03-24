@@ -73,7 +73,7 @@ class FlextDbOracleTypes(FlextTypes):
             Mapping[str, str | Mapping[str, _core_t.ContainerValue]]
         ]
         type SavepointConfig = Mapping[str, str | int]
-        type RollbackConfig = Mapping[str, str | bool | Sequence[str]]
+        type RollbackConfig = Mapping[str, str | bool | t.StrSequence]
 
         type SchemaDefinition = _ConfigMap
         type TableDefinition = Mapping[
@@ -85,9 +85,9 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type IndexDefinition = Mapping[
             str,
-            str | Sequence[str] | Mapping[str, _core_t.ContainerValue],
+            str | t.StrSequence | Mapping[str, _core_t.ContainerValue],
         ]
-        type ConstraintDefinition = Mapping[str, str | Sequence[str] | bool]
+        type ConstraintDefinition = Mapping[str, str | t.StrSequence | bool]
         type ViewDefinition = Mapping[str, str | Mapping[str, _core_t.ContainerValue]]
 
         type SessionConfiguration = Mapping[
@@ -122,16 +122,16 @@ class FlextDbOracleTypes(FlextTypes):
             t.Scalar | Mapping[str, _core_t.ContainerValue],
         ]
         type CacheConfiguration = Mapping[str, int | str | bool]
-        type OptimizationHints = Mapping[str, str | Sequence[str]]
+        type OptimizationHints = Mapping[str, str | t.StrSequence]
 
-        type UserPermissions = Mapping[str, Sequence[str] | Mapping[str, bool]]
+        type UserPermissions = Mapping[str, t.StrSequence | Mapping[str, bool]]
         type RoleDefinition = Mapping[
             str,
-            str | Sequence[str] | Mapping[str, _core_t.ContainerValue],
+            str | t.StrSequence | Mapping[str, _core_t.ContainerValue],
         ]
         type PrivilegeConfiguration = Mapping[
             str,
-            bool | Sequence[str] | Mapping[str, _core_t.ContainerValue],
+            bool | t.StrSequence | Mapping[str, _core_t.ContainerValue],
         ]
         type AccessPolicy = Mapping[
             str, str | bool | Mapping[str, _core_t.ContainerValue]
@@ -149,7 +149,7 @@ class FlextDbOracleTypes(FlextTypes):
         type PythonDataType = type
         type TypeMapping = _ConfigMap
         type DataConversion = Mapping[str, _core_t.ContainerValue]
-        type TypeValidation = Mapping[str, bool | str | Sequence[str]]
+        type TypeValidation = Mapping[str, bool | str | t.StrSequence]
         type NullHandling = Mapping[str, bool | _core_t.ContainerValue]
 
         type ProjectType = Literal[
@@ -170,7 +170,7 @@ class FlextDbOracleTypes(FlextTypes):
             "data-connector",
         ]
         type OracleProjectConfig = Mapping[str, _core_t.ContainerValue]
-        type DatabaseConfig = Mapping[str, t.Scalar | Sequence[str]]
+        type DatabaseConfig = Mapping[str, t.Scalar | t.StrSequence]
         type SchemaConfig = Mapping[
             str, bool | str | Mapping[str, _core_t.ContainerValue]
         ]

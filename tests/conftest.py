@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator, Mapping
+from collections.abc import Mapping, Generator
 from pathlib import Path
 from typing import Any
 
