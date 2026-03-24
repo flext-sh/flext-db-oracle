@@ -113,7 +113,8 @@ class TestRealOracleExceptionsCore:
             pass
 
     def test_real_query_error_scenario(
-        self, real_oracle_config: FlextDbOracleSettings | None
+        self,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test FlextExceptions.OracleQueryError with real invalid SQL."""
         if real_oracle_config is None:
@@ -150,7 +151,8 @@ class TestRealOracleExceptionsCore:
             connection.disconnect()
 
     def test_real_timeout_error_scenario(
-        self, real_oracle_config: FlextDbOracleSettings | None
+        self,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test FlextExceptions.TimeoutError with real long-running query."""
         if real_oracle_config is None:
@@ -198,7 +200,8 @@ class TestRealOracleExceptionsAdvanced:
     """Teste real de exceções avançadas Oracle - SEM MOCKS."""
 
     def test_real_metadata_error_scenario(
-        self, connected_oracle_api: FlextDbOracleApi | None
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test FlextExceptions.OracleMetadataError with real metadata operations."""
         if connected_oracle_api is None:
@@ -216,7 +219,8 @@ class TestRealOracleExceptionsAdvanced:
         tm.that(len(columns_result.value), eq=0)
 
     def test_real_processing_error_scenario(
-        self, connected_oracle_api: FlextDbOracleApi | None
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test FlextExceptions.ProcessingError with real data processing errors."""
         if connected_oracle_api is None:

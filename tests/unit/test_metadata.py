@@ -106,14 +106,20 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test generate_ddl method structure and validation."""
         columns = [
             FlextDbOracleModels.DbOracle.Column(
-                name="ID", data_type="NUMBER", nullable=False
+                name="ID",
+                data_type="NUMBER",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="NAME", data_type="VARCHAR2", nullable=True
+                name="NAME",
+                data_type="VARCHAR2",
+                nullable=True,
             ),
         ]
         _ = FlextDbOracleModels.DbOracle.Table(
-            name="TEST_TABLE", owner="TEST_SCHEMA", columns=columns
+            name="TEST_TABLE",
+            owner="TEST_SCHEMA",
+            columns=columns,
         )
         result = self.manager.get_tables("TEST_SCHEMA")
         tm.that(hasattr(result, "is_success"), eq=True)
@@ -164,20 +170,30 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test comprehensive DDL generation functionality using model methods."""
         columns = [
             FlextDbOracleModels.DbOracle.Column(
-                name="ID", data_type="NUMBER", nullable=False
+                name="ID",
+                data_type="NUMBER",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="CODE", data_type="VARCHAR2", nullable=False
+                name="CODE",
+                data_type="VARCHAR2",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="CREATED_DATE", data_type="DATE", nullable=True
+                name="CREATED_DATE",
+                data_type="DATE",
+                nullable=True,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="AMOUNT", data_type="NUMBER", nullable=True
+                name="AMOUNT",
+                data_type="NUMBER",
+                nullable=True,
             ),
         ]
         table = FlextDbOracleModels.DbOracle.Table(
-            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
+            name="COMPLEX_TABLE",
+            owner="APP_SCHEMA",
+            columns=columns,
         )
         tm.that(len(columns), eq=4)
         tm.that(table.name, eq="COMPLEX_TABLE")

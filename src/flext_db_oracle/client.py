@@ -26,7 +26,7 @@ from flext_db_oracle.settings import FlextDbOracleSettings
 OracleDatabaseError = oracledb.DatabaseError
 OracleInterfaceError = oracledb.InterfaceError
 _GENERAL_LIST_ADAPTER: TypeAdapter[t.FlatContainerList] = TypeAdapter(
-    t.FlatContainerList
+    t.FlatContainerList,
 )
 _CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
     t.ContainerValueMapping,
@@ -346,7 +346,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     return []
                 return [
                     t.ConfigMap.model_validate({
-                        "root": {"key": str(key), "value": str(value)}
+                        "root": {"key": str(key), "value": str(value)},
                     })
                     for key, value in health.items()
                 ]
@@ -366,7 +366,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     return r[Sequence[t.ConfigMap]].ok(adapted_data)
             result = [
                 t.ConfigMap.model_validate({
-                    "root": {"key": str(key), "value": str(value)}
+                    "root": {"key": str(key), "value": str(value)},
                 })
                 for key, value in data_root.items()
             ]
@@ -550,7 +550,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             return r[t.ConfigMap].fail("No active database connection")
         return self.current_connection.get_schemas().map(
             lambda schemas: t.ConfigMap.model_validate({
-                "root": {"schemas": list(schemas)}
+                "root": {"schemas": list(schemas)},
             }),
         )
 
@@ -564,7 +564,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         schema = str(params.get("schema", ""))
         return self.current_connection.get_tables(schema or None).map(
             lambda tables: t.ConfigMap.model_validate({
-                "root": {"tables": list(tables)}
+                "root": {"tables": list(tables)},
             }),
         )
 

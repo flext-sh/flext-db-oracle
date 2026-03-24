@@ -81,14 +81,16 @@ def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
     config.addinivalue_line("markers", "oracle: Oracle database integration tests")
     config.addinivalue_line(
-        "markers", "unit_pure: Pure unit tests with no external dependencies"
+        "markers",
+        "unit_pure: Pure unit tests with no external dependencies",
     )
     config.addinivalue_line(
         "markers",
         "unit_integration: Unit tests that can use real Oracle when available",
     )
     config.addinivalue_line(
-        "markers", "slow: Slow-running tests that should be run separately"
+        "markers",
+        "slow: Slow-running tests that should be run separately",
     )
     os.environ["SKIP_E2E_TESTS"] = "false"
     os.environ["ORACLE_INTEGRATION_TESTS"] = "1"
@@ -110,7 +112,8 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             if status.status == docker.ContainerStatus.RUNNING:
                 docker.mark_container_clean(container_name)
                 logger.info(
-                    f"Container {container_name} is healthy, cleared dirty state"
+                    "Container %s is healthy, cleared dirty state",
+                    container_name,
                 )
                 return
         cleanup_result = docker.cleanup_dirty_containers()
@@ -119,11 +122,11 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         else:
             cleaned = cleanup_result.value
             if cleaned:
-                logger.info(f"Recreated dirty containers: {cleaned}")
+                logger.info("Recreated dirty containers: %s", cleaned)
             else:
                 logger.debug("No dirty containers to clean")
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
-        logger.warning(f"Docker cleanup skipped (unavailable): {e}")
+        logger.warning("Docker cleanup skipped (unavailable): %s", e)
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
@@ -149,7 +152,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> 
             docker = tk(workspace_root=Path(__file__).resolve().parents[2])
             docker.mark_container_dirty("flext-oracle-db-test")
             logger.error(
-                f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}"
+                f"ORACLE SERVICE FAILURE detected in {item.nodeid}, container marked DIRTY for recreation: {exc_msg}",
             )
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         pass
@@ -178,12 +181,13 @@ def shared_oracle_container(docker_control: tk) -> str:
     is_dirty = docker_control.is_container_dirty(container_name)
     if is_dirty:
         logger.info(
-            f"Container {container_name} is dirty, recreating with fresh volumes"
+            "Container %s is dirty, recreating with fresh volumes",
+            container_name,
         )
         cleanup_result = docker_control.cleanup_dirty_containers()
         if cleanup_result.is_failure:
             pytest.skip(
-                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}"
+                f"Failed to recreate dirty container {container_name}: {cleanup_result.error}",
             )
     else:
         status = docker_control.get_container_status(container_name)
@@ -194,31 +198,36 @@ def shared_oracle_container(docker_control: tk) -> str:
         )
         if not container_running:
             logger.info(
-                f"Container {container_name} is not running (but not dirty), starting..."
+                "Container %s is not running (but not dirty), starting...",
+                container_name,
             )
             service_name = str(container_config.get("service", ""))
             compose_result = docker_control.compose_up(
-                compose_file, service=service_name or None
+                compose_file,
+                service=service_name or None,
             )
             if compose_result.is_failure:
                 pytest.skip(
-                    f"Failed to start container {container_name}: {compose_result.error}"
+                    f"Failed to start container {container_name}: {compose_result.error}",
                 )
         else:
             logger.debug(
-                f"Container {container_name} is running and clean, no action needed"
+                "Container %s is running and clean, no action needed",
+                container_name,
             )
     resolved_port = _resolve_oracle_test_port(docker_control, container_name)
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
     max_wait: int = 300
     wait_interval: float = 5.0
     waited: float = 0.0
-    logger.info(f"Waiting for container {container_name} to be ready...")
+    logger.info("Waiting for container %s to be ready...", container_name)
     while waited < max_wait:
         try:
             dsn = oracledb.makedsn("localhost", resolved_port, service_name="FLEXTDB")
             connection = oracledb.connect(
-                user="flext_test", password="flext_test_password", dsn=dsn
+                user="flext_test",
+                password="flext_test_password",
+                dsn=dsn,
             )
             connection.close()
             logger.info(f"Container {container_name} is ready after {waited:.1f}s")
@@ -226,13 +235,13 @@ def shared_oracle_container(docker_control: tk) -> str:
         except (oracledb.Error, ConnectionError, TimeoutError, OSError) as e:
             if waited % 30 == 0:
                 logger.debug(
-                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}"
+                    f"Container {container_name} not ready yet (waited {waited:.1f}s): {e}",
                 )
         time.sleep(wait_interval)
         waited += wait_interval
     if waited >= max_wait:
         pytest.skip(
-            f"Container {container_name} did not become ready within {max_wait}s"
+            f"Container {container_name} did not become ready within {max_wait}s",
         )
     return container_name
 

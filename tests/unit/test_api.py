@@ -405,7 +405,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 service_name="testbuilder_service",
                 username="testbuilder_user",
                 password="testbuilder_password",
-            )
+            ),
         )
         tm.ok(config_result)
         config = config_result.value
@@ -479,7 +479,8 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(repr_str, eq=True)
         tm.that(repr_str, has="FlextDbOracleApi")
         tm.that(
-            self.config.host in repr_str or "test_host" in repr_str is True, eq=True
+            self.config.host in repr_str or "test_host" in repr_str is True,
+            eq=True,
         )
 
     def test_convert_singer_type_method_real(self) -> None:
@@ -652,7 +653,11 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_api_configuration_variations_real(self) -> None:
         """Test API with various configuration scenarios."""
         minimal_config = FlextDbOracleSettings(
-            host="m", port=1, service_name="S", username="u", password="p"
+            host="m",
+            port=1,
+            service_name="S",
+            username="u",
+            password="p",
         )
         minimal_api = FlextDbOracleApi(minimal_config)
         tm.that(minimal_api.is_valid(), eq=True)
@@ -740,7 +745,8 @@ class TestApiModule:
 
         @staticmethod
         def create_test_schema_data() -> Mapping[
-            str, str | Sequence[Mapping[str, str | bool]]
+            str,
+            str | Sequence[Mapping[str, str | bool]],
         ]:
             """Create test schema data."""
             return {
@@ -1559,7 +1565,8 @@ class TestDirectCoverageBoostAPI:
         tm.that(result4.is_failure or result4.is_success, eq=True)
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
         if oracle_api is None:
@@ -1590,7 +1597,8 @@ class TestDirectCoverageBoostAPI:
             connected_api.disconnect()
 
     def test_api_query_optimization_758_798(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test API query optimization paths (lines 758-798)."""
         if oracle_api is None:
@@ -1676,7 +1684,8 @@ class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
     def test_connection_edge_cases(
-        self, real_oracle_config: FlextDbOracleSettings | None
+        self,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test connection edge cases for missed lines."""
         if real_oracle_config is None:
@@ -1725,21 +1734,28 @@ class TestDirectCoverageBoostTypes:
         """Test comprehensive type validation for missed lines."""
         try:
             column = FlextDbOracleModels.DbOracle.Column(
-                name="TEST_COLUMN", data_type="VARCHAR2", nullable=True
+                name="TEST_COLUMN",
+                data_type="VARCHAR2",
+                nullable=True,
             )
             tm.that(column.name, eq="TEST_COLUMN")
         except (TypeError, ValueError):
             pass
         try:
             table = FlextDbOracleModels.DbOracle.Table(
-                name="TEST_TABLE", owner="TEST_SCHEMA", columns=[]
+                name="TEST_TABLE",
+                owner="TEST_SCHEMA",
+                columns=[],
             )
             tm.that(table.name, eq="TEST_TABLE")
         except (TypeError, ValueError):
             pass
         try:
             column2 = FlextDbOracleModels.DbOracle.Column(
-                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
+                name="EDGE_COL",
+                data_type="NUMBER",
+                nullable=False,
+                default_value="0",
             )
             tm.that(hasattr(column2, "name"), eq=True)
             tm.that(hasattr(column2, "data_type"), eq=True)
@@ -1749,7 +1765,9 @@ class TestDirectCoverageBoostTypes:
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
         column = FlextDbOracleModels.DbOracle.Column(
-            name="ID", data_type="NUMBER", nullable=False
+            name="ID",
+            data_type="NUMBER",
+            nullable=False,
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
@@ -1789,7 +1807,8 @@ class TestDirectCoverageBoostObservability:
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api: FlextDbOracleApi | None
+        self,
+        oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test observability metrics collection."""
         if oracle_api is None:
@@ -1843,7 +1862,9 @@ class TestDirectCoverageBoostServices:
             tm.ok(result)
             tm.that(result.value.lower(), has=identifier.lower())
         table_ref_result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema"
+            "test_table",
+            ["col1"],
+            schema_name="test_schema",
         )
         tm.ok(table_ref_result)
         sql_result = table_ref_result.value
@@ -1870,7 +1891,7 @@ class TestDirectCoverageBoostServices:
                     username="user",
                     password="pass",
                     ssl_server_cert_dn=None,
-                )
+                ),
             ),
             r.ok(
                 FlextDbOracleSettings(
@@ -1880,7 +1901,7 @@ class TestDirectCoverageBoostServices:
                     username="a",
                     password="b",
                     ssl_server_cert_dn="test_dn",
-                )
+                ),
             ),
         ]
         for config_result in configs:

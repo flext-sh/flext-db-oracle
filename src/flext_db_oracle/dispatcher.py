@@ -121,7 +121,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteQueryCommand):
                 sql = command.sql
                 parameters = t.ConfigMap.model_validate({
-                    "root": command.parameters or {}
+                    "root": command.parameters or {},
                 })
             else:
                 sql = ""
@@ -133,7 +133,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             if isinstance(command, FlextDbOracleModels.DbOracle.FetchOneCommand):
                 sql = command.sql
                 parameters = t.ConfigMap.model_validate({
-                    "root": command.parameters or {}
+                    "root": command.parameters or {},
                 })
             else:
                 sql = ""
@@ -148,7 +148,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             ):
                 sql = command.sql
                 parameters = t.ConfigMap.model_validate({
-                    "root": command.parameters or {}
+                    "root": command.parameters or {},
                 })
             else:
                 sql = ""

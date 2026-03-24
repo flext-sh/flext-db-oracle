@@ -133,7 +133,11 @@ def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
     def _run() -> tuple[int, str, str]:
         try:
             process = subprocess.run(
-                cmd, capture_output=True, check=False, timeout=30.0, text=True
+                cmd,
+                capture_output=True,
+                check=False,
+                timeout=30.0,
+                text=True,
             )
             return (process.returncode, process.stdout, process.stderr)
         except Exception as e:

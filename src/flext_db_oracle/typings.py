@@ -46,17 +46,20 @@ class FlextDbOracleTypes(FlextTypes):
             str | bool | Mapping[str, FlextTypes.ContainerValue],
         ]
         type AuthenticationConfig = Mapping[
-            str, str | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            str | Mapping[str, FlextTypes.ContainerValue],
         ]
 
         type SqlQuery = str
         type QueryParameters = _ConfigMap
         type QueryResult = _ConfigMap
         type QueryMetadata = Mapping[
-            str, str | int | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            str | int | Mapping[str, FlextTypes.ContainerValue],
         ]
         type PreparedStatement = Mapping[
-            str, str | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            str | Mapping[str, FlextTypes.ContainerValue],
         ]
         type QueryExecution = Mapping[
             str,
@@ -77,7 +80,8 @@ class FlextDbOracleTypes(FlextTypes):
 
         type SchemaDefinition = _ConfigMap
         type TableDefinition = Mapping[
-            str, str | Sequence[Mapping[str, str | bool | int]]
+            str,
+            str | Sequence[Mapping[str, str | bool | int]],
         ]
         type ColumnDefinition = Mapping[
             str,
@@ -89,7 +93,8 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type ConstraintDefinition = Mapping[str, str | FlextTypes.StrSequence | bool]
         type ViewDefinition = Mapping[
-            str, str | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            str | Mapping[str, FlextTypes.ContainerValue],
         ]
 
         type SessionConfiguration = Mapping[
@@ -113,7 +118,8 @@ class FlextDbOracleTypes(FlextTypes):
             int | float | Mapping[str, FlextTypes.ContainerValue],
         ]
         type QueryPlan = Mapping[
-            str, str | int | Sequence[Mapping[str, FlextTypes.ContainerValue]]
+            str,
+            str | int | Sequence[Mapping[str, FlextTypes.ContainerValue]],
         ]
         type ExecutionStats = Mapping[
             str,
@@ -136,7 +142,8 @@ class FlextDbOracleTypes(FlextTypes):
             bool | FlextTypes.StrSequence | Mapping[str, FlextTypes.ContainerValue],
         ]
         type AccessPolicy = Mapping[
-            str, str | bool | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            str | bool | Mapping[str, FlextTypes.ContainerValue],
         ]
         type EncryptionConfig = Mapping[
             str,
@@ -174,7 +181,8 @@ class FlextDbOracleTypes(FlextTypes):
         type OracleProjectConfig = Mapping[str, FlextTypes.ContainerValue]
         type DatabaseConfig = Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
         type SchemaConfig = Mapping[
-            str, bool | str | Mapping[str, FlextTypes.ContainerValue]
+            str,
+            bool | str | Mapping[str, FlextTypes.ContainerValue],
         ]
         type ConnectionConfig = Mapping[str, FlextTypes.ContainerValue]
 

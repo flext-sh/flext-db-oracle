@@ -180,7 +180,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 return value
             try:
                 return FlextDbOracleUtilities.DbOracle._StrictIntValue.model_validate(  # noqa: SLF001
-                    value
+                    value,
                 ).root
             except ValidationError:
                 return 0
@@ -197,7 +197,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                     return 0
             try:
                 validated = FlextDbOracleUtilities.DbOracle._CountValue.model_validate(  # noqa: SLF001
-                    value
+                    value,
                 ).root
             except ValidationError:
                 return 0
@@ -211,7 +211,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             """Normalize Singer type input to a single string value."""
             try:
                 values = FlextDbOracleUtilities.DbOracle._STRING_LIST_ADAPTER.validate_python(  # noqa: SLF001
-                    value
+                    value,
                 )
             except ValidationError:
                 return str(value)

@@ -38,7 +38,8 @@ class TestRealOracleConnection:
     """Testes reais de conexão Oracle - SEM MOCKS."""
 
     def test_real_connection_connect_disconnect(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle connection and disconnection."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -54,7 +55,8 @@ class TestRealOracleConnection:
         tm.that(not connection.is_connected(), eq=True)
 
     def test_real_connection_execute_query(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle query execution."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -77,7 +79,8 @@ class TestRealOracleConnection:
             connection.disconnect()
 
     def test_real_connection_fetch_one(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle fetch_one."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -99,7 +102,8 @@ class TestRealOracleConnection:
             connection.disconnect()
 
     def test_real_connection_execute_many(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -111,7 +115,7 @@ class TestRealOracleConnection:
             with contextlib.suppress(Exception):
                 connection.execute_statement("DROP TABLE temp_test_table")
             create_result = connection.execute_statement(
-                "\n                CREATE TABLE temp_test_table (\n                    id NUMBER,\n                    name VARCHAR2(100)\n                )\n            "
+                "\n                CREATE TABLE temp_test_table (\n                    id NUMBER,\n                    name VARCHAR2(100)\n                )\n            ",
             )
             if create_result.is_failure:
                 msg = f"Table creation failed: {create_result.error}"
@@ -140,7 +144,8 @@ class TestRealOracleApi:
     """Testes reais da API Oracle - SEM MOCKS."""
 
     def test_real_api_connect_context_manager(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle API with context manager."""
         with FlextDbOracleApi(real_oracle_config) as api:
@@ -209,7 +214,8 @@ class TestRealOracleApi:
             tm.that(column_names, has=col)
 
     def test_real_api_query_with_timing(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Oracle query with timing."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
@@ -221,7 +227,8 @@ class TestRealOracleApi:
         tm.that(query_result, eq=True)
 
     def test_real_api_singer_type_conversion(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Singer type conversion."""
         test_cases = [
@@ -238,7 +245,8 @@ class TestRealOracleApi:
             else:
                 singer_type, format_hint, expected = args
                 result = connected_oracle_api.convert_singer_type(
-                    singer_type, format_hint
+                    singer_type,
+                    format_hint,
                 )
             if result.is_failure:
                 msg = f"Type conversion failed for {singer_type}: {result.error}"
@@ -247,7 +255,8 @@ class TestRealOracleApi:
             tm.that(oracle_type, has=expected)
 
     def test_real_api_table_operations(
-        self, connected_oracle_api: FlextDbOracleApi
+        self,
+        connected_oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test real Oracle table operations."""
         table_name = "TEST_TEMP_TABLE"
@@ -332,7 +341,8 @@ class TestRealOracleErrorHandling:
         )
 
     def test_real_connection_invalid_sql(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test execution with invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -342,7 +352,7 @@ class TestRealOracleErrorHandling:
             raise AssertionError(msg)
         try:
             result = connection.execute_query(
-                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST"
+                "SELECT FROM INVALID_TABLE_THAT_DOES_NOT_EXIST",
             )
             tm.fail(result)
             tm.that(
@@ -356,7 +366,8 @@ class TestRealOracleErrorHandling:
             connection.disconnect()
 
     def test_real_api_not_connected_operations(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test API operations when not connected."""
         api = FlextDbOracleApi(real_oracle_config)

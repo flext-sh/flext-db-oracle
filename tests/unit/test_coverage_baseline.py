@@ -88,7 +88,10 @@ class TestBasicModelCreation:
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
         column = Models.DbOracle.Column(
-            name="ID", data_type="NUMBER", nullable=False, default_value="1"
+            name="ID",
+            data_type="NUMBER",
+            nullable=False,
+            default_value="1",
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")

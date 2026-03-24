@@ -81,7 +81,9 @@ class TestFlextDbOracleModels:
     def test_connection_status_performance_info(self) -> None:
         """Test ConnectionStatus performance rating."""
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
-            is_connected=True, host="localhost", connection_time=0.05
+            is_connected=True,
+            host="localhost",
+            connection_time=0.05,
         )
         tm.that(status.performance_info, has="Excellent")
         status.connection_time = 0.3
@@ -96,21 +98,28 @@ class TestFlextDbOracleModels:
     def test_connection_status_validation(self) -> None:
         """Test ConnectionStatus validation."""
         status = FlextDbOracleModels.DbOracle.ConnectionStatus(
-            is_connected=True, host="localhost", port=1521
+            is_connected=True,
+            host="localhost",
+            port=1521,
         )
         validated = FlextDbOracleModels.DbOracle.ConnectionStatus.model_validate(
-            status.model_dump()
+            status.model_dump(),
         )
         tm.that(validated.is_connected, eq=True)
         with pytest.raises(
-            ValueError, match="Connected status requires host information"
+            ValueError,
+            match="Connected status requires host information",
         ):
             FlextDbOracleModels.DbOracle.ConnectionStatus(
-                is_connected=True, host="", port=1521
+                is_connected=True,
+                host="",
+                port=1521,
             )
         with pytest.raises(ValueError, match="Invalid port number"):
             FlextDbOracleModels.DbOracle.ConnectionStatus(
-                is_connected=True, host="localhost", port=99999
+                is_connected=True,
+                host="localhost",
+                port=99999,
             )
         with pytest.raises(ValueError, match="Connection time cannot be negative"):
             FlextDbOracleModels.DbOracle.ConnectionStatus(connection_time=-1.0)
@@ -195,7 +204,8 @@ class TestFlextDbOracleModels:
     def test_query_result_performance_ratings(self) -> None:
         """Test QueryResult performance rating categories."""
         result = FlextDbOracleModels.DbOracle.QueryResult(
-            query="SELECT 1", execution_time_ms=50
+            query="SELECT 1",
+            execution_time_ms=50,
         )
         tm.that(result.performance_rating, eq="Excellent")
         result.execution_time_ms = 300
@@ -217,12 +227,13 @@ class TestFlextDbOracleModels:
             execution_time_ms=100,
         )
         validated = FlextDbOracleModels.DbOracle.QueryResult.model_validate(
-            result.model_dump()
+            result.model_dump(),
         )
         tm.that(validated.row_count, eq=2)
         with pytest.raises(ValueError, match="Execution time cannot be negative"):
             FlextDbOracleModels.DbOracle.QueryResult(
-                query="SELECT 1", execution_time_ms=-100
+                query="SELECT 1",
+                execution_time_ms=-100,
             )
         with pytest.raises(ValueError, match=r"Row length.*doesn't match column count"):
             FlextDbOracleModels.DbOracle.QueryResult(
@@ -237,7 +248,8 @@ class TestFlextDbOracleModels:
     def test_query_result_serialization(self) -> None:
         """Test QueryResult field serialization."""
         result = FlextDbOracleModels.DbOracle.QueryResult(
-            query="SELECT 1", execution_time_ms=1500
+            query="SELECT 1",
+            execution_time_ms=1500,
         )
         serialized = result.model_dump(mode="json")
         tm.that(serialized, has="execution_time_ms")
@@ -255,12 +267,16 @@ class TestFlextDbOracleModels:
         """Test Table with columns."""
         columns = [
             FlextDbOracleModels.DbOracle.Column(
-                name="id", data_type="NUMBER", nullable=False
+                name="id",
+                data_type="NUMBER",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(name="name", data_type="VARCHAR2(100)"),
         ]
         table = FlextDbOracleModels.DbOracle.Table(
-            name="users", owner="hr", columns=columns
+            name="users",
+            owner="hr",
+            columns=columns,
         )
         tm.that(len(table.columns), eq=2)
         tm.that(table.columns[0].name, eq="id")
@@ -271,7 +287,10 @@ class TestFlextDbOracleModels:
     def test_column_creation(self) -> None:
         """Test Column model creation."""
         column = FlextDbOracleModels.DbOracle.Column(
-            name="user_id", data_type="NUMBER(38)", nullable=False, default_value="NULL"
+            name="user_id",
+            data_type="NUMBER(38)",
+            nullable=False,
+            default_value="NULL",
         )
         tm.that(column.name, eq="user_id")
         tm.that(column.data_type, eq="NUMBER(38)")
@@ -330,7 +349,9 @@ class TestFlextDbOracleModels:
         tm.that(config.insert_columns, eq=["id", "name"])
 
     def test_connection_status_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test ConnectionStatus with real Oracle connection."""
         if not oracle_available or connected_oracle_api is None:
@@ -361,13 +382,15 @@ class TestFlextDbOracleModels:
         )
 
     def test_query_result_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test QueryResult with real Oracle data."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         query_result = connected_oracle_api.query(
-            "SELECT 1 as id, 'test' as name FROM DUAL"
+            "SELECT 1 as id, 'test' as name FROM DUAL",
         )
         tm.ok(query_result)
         data = query_result.value
@@ -393,7 +416,9 @@ class TestFlextDbOracleModels:
         )
 
     def test_table_model_real_oracle_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Table model with real Oracle schema data."""
         if not oracle_available or connected_oracle_api is None:
@@ -489,7 +514,8 @@ class TestFlextDbOracleSettings:
         tm.that(config.name, eq="ORCL")
 
     def test_config_from_env_flext_prefix(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
@@ -501,7 +527,8 @@ class TestFlextDbOracleSettings:
         tm.that(config.username, eq="flext-user")
 
     def test_config_from_env_mixed_prefixes(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with mixed prefixes."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
@@ -515,7 +542,8 @@ class TestFlextDbOracleSettings:
         tm.that(config.username, eq="flext-user")
 
     def test_config_from_env_port_conversion(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test port conversion from environment string to int."""
         for key in list(os.environ.keys()):
@@ -529,7 +557,8 @@ class TestFlextDbOracleSettings:
         tm.that(config.port, is_=int)
 
     def test_config_from_env_invalid_port(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with invalid port."""
         for key in list(os.environ.keys()):
@@ -544,7 +573,10 @@ class TestFlextDbOracleSettings:
     def test_config_serialization(self) -> None:
         """Test config serialization."""
         config = FlextDbOracleSettings(
-            host="test.com", port=1522, username="user", password="pass"
+            host="test.com",
+            port=1522,
+            username="user",
+            password="pass",
         )
         serialized = config.model_dump()
         tm.that(serialized["host"], eq="test.com")

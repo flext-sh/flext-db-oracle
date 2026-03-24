@@ -32,7 +32,8 @@ class TestOracleIntegration:
     """Integration tests for Oracle database operations using REAL Oracle connectivity."""
 
     def test_api_instantiation_mock(
-        self, mock_oracle_config: FlextDbOracleSettings
+        self,
+        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test API instantiation with mock config."""
         api = FlextDbOracleApi(config=mock_oracle_config)
@@ -75,7 +76,7 @@ class TestOracleIntegration:
         else:
             assert api is not None
             pytest.skip(
-                "Oracle container not available - tested API instantiation only"
+                "Oracle container not available - tested API instantiation only",
             )
 
     @pytest.mark.oracle
@@ -100,7 +101,7 @@ class TestOracleIntegration:
         error_msg = invalid_query_result.error or ""
         assert "ORA-" in error_msg or "syntax" in error_msg.lower()
         nonexistent_table_result = connected_api.query(
-            "SELECT * FROM NONEXISTENT_TABLE_12345"
+            "SELECT * FROM NONEXISTENT_TABLE_12345",
         )
         if nonexistent_table_result.is_success:
             msg = "Query on non-existent table should fail"
@@ -118,7 +119,7 @@ class TestOracleIntegration:
         api = FlextDbOracleApi(config=config)
         if real_oracle_config is None:
             pytest.skip(
-                "Oracle container not available - skipping context manager test"
+                "Oracle container not available - skipping context manager test",
             )
         with api:
             test_result = api.test_connection()
@@ -141,7 +142,7 @@ class TestOracleIntegration:
         api = FlextDbOracleApi(config=config)
         if real_oracle_config is None:
             pytest.skip(
-                "Oracle container not available - skipping metadata operations test"
+                "Oracle container not available - skipping metadata operations test",
             )
         connect_result = api.connect()
         if connect_result.is_failure:
@@ -179,15 +180,15 @@ class TestOracleIntegration:
         """Test database operations using test schema setup."""
         if connected_oracle_api is None or test_database_setup is None:
             pytest.skip(
-                "Oracle container not available - skipping database operations test"
+                "Oracle container not available - skipping database operations test",
             )
         assert "test_table" in test_database_setup
         insert_result = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')"
+            "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
         )
         assert insert_result.is_success, f"Insert failed: {insert_result.error}"
         query_result = connected_oracle_api.query(
-            "SELECT id, name FROM test_table WHERE id = 1"
+            "SELECT id, name FROM test_table WHERE id = 1",
         )
         assert query_result.is_success, f"Query failed: {query_result.error}"
         data = query_result.value
@@ -195,21 +196,21 @@ class TestOracleIntegration:
         assert data[0]["id"] == 1
         assert data[0]["name"] == "Test User"
         update_result = connected_oracle_api.execute_statement(
-            "UPDATE test_table SET name = 'Updated User' WHERE id = 1"
+            "UPDATE test_table SET name = 'Updated User' WHERE id = 1",
         )
         assert update_result.is_success, f"Update failed: {update_result.error}"
         query_result = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 1"
+            "SELECT name FROM test_table WHERE id = 1",
         )
         assert query_result.is_success
         data = query_result.value
         assert data[0]["name"] == "Updated User"
         delete_result = connected_oracle_api.execute_statement(
-            "DELETE FROM test_table WHERE id = 1"
+            "DELETE FROM test_table WHERE id = 1",
         )
         assert delete_result.is_success, f"Delete failed: {delete_result.error}"
         query_result = connected_oracle_api.query(
-            "SELECT COUNT(*) as count FROM test_table"
+            "SELECT COUNT(*) as count FROM test_table",
         )
         assert query_result.is_success
         data = query_result.value
@@ -225,13 +226,13 @@ class TestOracleIntegration:
         if connected_oracle_api is None or test_database_setup is None:
             pytest.skip("Oracle container not available - skipping transaction test")
         insert_result = connected_oracle_api.execute_statement(
-            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')"
+            "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
         assert insert_result.is_success
         commit_result = connected_oracle_api.execute_statement("COMMIT")
         assert commit_result.is_success
         query_result = connected_oracle_api.query(
-            "SELECT name FROM test_table WHERE id = 100"
+            "SELECT name FROM test_table WHERE id = 100",
         )
         assert query_result.is_success
         data = query_result.value
@@ -241,12 +242,13 @@ class TestOracleIntegration:
 
     @pytest.mark.oracle
     def test_schema_operations(
-        self, connected_oracle_api: FlextDbOracleApi | None
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
     ) -> None:
         """Test schema/metadata operations."""
         if connected_oracle_api is None:
             pytest.skip(
-                "Oracle container not available - skipping schema operations test"
+                "Oracle container not available - skipping schema operations test",
             )
         schemas_result = connected_oracle_api.get_schemas()
         assert schemas_result.is_success, f"Get schemas failed: {schemas_result.error}"
@@ -262,7 +264,8 @@ class TestOracleIntegration:
 
     @pytest.mark.oracle
     def test_api_performance_operations(
-        self, real_oracle_config: FlextDbOracleSettings | None
+        self,
+        real_oracle_config: FlextDbOracleSettings | None,
     ) -> None:
         """Test performance-related operations with real Oracle."""
         if real_oracle_config is None:

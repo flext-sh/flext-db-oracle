@@ -43,7 +43,8 @@ class TestFlextDbOracleUtilities:
         """Test basic SELECT query hash generation."""
         params: Mapping[str, int] = {"id": 1}
         result = FlextDbOracleUtilities.DbOracle.generate_query_hash(
-            "SELECT * FROM table WHERE id = :id", params
+            "SELECT * FROM table WHERE id = :id",
+            params,
         )
         tm.ok(result)
         hash_value = result.value
@@ -56,10 +57,12 @@ class TestFlextDbOracleUtilities:
         params1: Mapping[str, int] = {"id": 1}
         params2: Mapping[str, int] = {"id": 2}
         result1 = FlextDbOracleUtilities.DbOracle.generate_query_hash(
-            "SELECT * FROM table", params1
+            "SELECT * FROM table",
+            params1,
         )
         result2 = FlextDbOracleUtilities.DbOracle.generate_query_hash(
-            "SELECT * FROM table", params2
+            "SELECT * FROM table",
+            params2,
         )
         tm.ok(result1)
         tm.ok(result2)
@@ -99,7 +102,8 @@ class TestFlextDbOracleUtilities:
     def test_generate_query_hash_empty_params(self) -> None:
         """Test query hash with empty parameters."""
         result = FlextDbOracleUtilities.DbOracle.generate_query_hash(
-            "SELECT 1 FROM DUAL", {}
+            "SELECT 1 FROM DUAL",
+            {},
         )
         tm.ok(result)
         hash_value = result.value
@@ -110,7 +114,8 @@ class TestFlextDbOracleUtilities:
         complex_query = "\n        SELECT u.id, u.name, COUNT(o.id) as order_count\n        FROM users u\n        LEFT JOIN orders o ON u.id = o.user_id\n        WHERE u.created_date >= :start_date\n          AND u.status = :status\n        GROUP BY u.id, u.name\n        ORDER BY order_count DESC\n        "
         params = {"start_date": "2023-01-01", "status": "active"}
         result = FlextDbOracleUtilities.DbOracle.generate_query_hash(
-            complex_query, params
+            complex_query,
+            params,
         )
         tm.ok(result)
         hash_value = result.value
@@ -259,7 +264,7 @@ class TestFlextDbOracleUtilities:
         max_len = FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         long_identifier = "a" * max_len
         result = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(
-            long_identifier
+            long_identifier,
         )
         tm.ok(result)
         escaped = result.value
@@ -272,7 +277,7 @@ class TestFlextDbOracleUtilities:
             + 1
         )
         result = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(
-            long_identifier
+            long_identifier,
         )
         tm.ok(result)
 
@@ -285,7 +290,7 @@ class TestFlextDbOracleUtilities:
         Sequence[Mapping[str, int | str | bool]]
         | Sequence[Mapping[str, str]]
         | Sequence[Mapping[str, int]]
-        | None
+        | None,
     )
 
     def test_format_query_result_json(self) -> None:
@@ -353,7 +358,8 @@ class TestFlextDbOracleUtilities:
         tm.ok(result)
 
     def test_create_config_from_env_no_env_vars(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation returns FlextDbOracleSettings (not dict)."""
         result = FlextDbOracleUtilities.DbOracle.create_config_from_env()
@@ -362,7 +368,8 @@ class TestFlextDbOracleUtilities:
         tm.that(config, is_=FlextDbOracleSettings)
 
     def test_create_config_from_env_with_values(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT_DB_ORACLE_* environment variables."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
@@ -380,7 +387,8 @@ class TestFlextDbOracleUtilities:
         tm.that(config.username, eq="testuser")
 
     def test_create_config_from_env_flext_prefix(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT_DB_ORACLE prefix."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
@@ -394,7 +402,8 @@ class TestFlextDbOracleUtilities:
         tm.that(config.username, eq="flext-user")
 
     def test_create_config_from_env_mixed_prefixes(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation reads FLEXT_DB_ORACLE_ prefix only."""
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
@@ -450,13 +459,15 @@ class TestFlextDbOracleUtilities:
 
     @pytest.mark.unit_integration
     def test_real_oracle_escape_identifier_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test identifier escaping with real Oracle when available."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         test_table = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(
-            "test_table"
+            "test_table",
         )
         tm.ok(test_table)
         escaped_name = test_table.value
@@ -465,12 +476,15 @@ class TestFlextDbOracleUtilities:
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
         tm.that(
-            result.is_success or "already exists" in str(result.error).lower(), eq=True
+            result.is_success or "already exists" in str(result.error).lower(),
+            eq=True,
         )
 
     @pytest.mark.unit_integration
     def test_real_oracle_query_hash_consistency(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that query hashing produces consistent results with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
@@ -490,7 +504,9 @@ class TestFlextDbOracleUtilities:
 
     @pytest.mark.unit_integration
     def test_real_oracle_format_sql_integration(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test SQL formatting works with real Oracle queries."""
         if not oracle_available or connected_oracle_api is None:

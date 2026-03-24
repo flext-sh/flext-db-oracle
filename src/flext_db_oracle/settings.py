@@ -91,16 +91,20 @@ class FlextDbOracleSettings(FlextSettings):
     ]
     username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
     password: Annotated[
-        FlextDbOraclePassword | None, Field(default=FlextDbOraclePassword(""))
+        FlextDbOraclePassword | None,
+        Field(default=FlextDbOraclePassword("")),
     ]
     timeout: Annotated[
-        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
+        t.PositiveInt,
+        Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT),
     ]
     pool_min: Annotated[
-        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)
+        t.PositiveInt,
+        Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN),
     ]
     pool_max: Annotated[
-        t.PositiveInt, Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)
+        t.PositiveInt,
+        Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX),
     ]
     sid: Annotated[OracleIdentifier | None, Field(default=None)]
     name: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)]
@@ -145,7 +149,8 @@ class FlextDbOracleSettings(FlextSettings):
     @field_validator("password", mode="before")
     @classmethod
     def _parse_password(
-        cls, value: t.ContainerValue | None
+        cls,
+        value: t.ContainerValue | None,
     ) -> FlextDbOraclePassword | None:
         if value is None:
             return None

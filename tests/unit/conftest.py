@@ -111,7 +111,8 @@ def _ensure_shared_oracle_container() -> str | None:
     if not container_running:
         service_name = str(container_config.get("service", ""))
         compose_result = docker_control.compose_up(
-            compose_file, service=service_name or None
+            compose_file,
+            service=service_name or None,
         )
         if compose_result.is_failure:
             return None

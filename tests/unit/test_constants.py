@@ -228,7 +228,8 @@ class TestFlextDbOracleConstants:
             eq=tuple(c.DbOracle.Lists.VALID_CONNECTION_TYPES),
         )
         tm.that(
-            c.DbOracle.QueryTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_QUERY_TYPES)
+            c.DbOracle.QueryTypeLiteral,
+            eq=tuple(c.DbOracle.Lists.VALID_QUERY_TYPES),
         )
         tm.that(c.DbOracle.DataTypeLiteral, eq=tuple(c.DbOracle.Lists.VALID_DATA_TYPES))
         tm.that(c.DbOracle.ConnectionTypeLiteral, is_=tuple)
@@ -323,7 +324,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_constants_real_connection_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle constants work with real connections."""
         if not oracle_available or connected_oracle_api is None:
@@ -339,7 +342,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_constants_default_values_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that default constant values work with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
@@ -358,7 +363,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_data_types_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle data type constants are valid."""
         if not oracle_available or connected_oracle_api is None:
@@ -375,7 +382,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_validation_constants_real_usage(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Oracle validation constants with real database."""
         if not oracle_available or connected_oracle_api is None:
@@ -395,7 +404,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_performance_constants_real_timing(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test Oracle performance constants with real query timing."""
         if not oracle_available or connected_oracle_api is None:
@@ -415,7 +426,9 @@ class TestFlextDbOracleConstants:
 
     @pytest.mark.unit_integration
     def test_oracle_reserved_words_real_validation(
-        self, connected_oracle_api: FlextDbOracleApi | None, oracle_available: bool
+        self,
+        connected_oracle_api: FlextDbOracleApi | None,
+        oracle_available: bool,
     ) -> None:
         """Test that Oracle reserved words are actually reserved."""
         if not oracle_available or connected_oracle_api is None:

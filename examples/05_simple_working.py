@@ -25,7 +25,9 @@ def demonstrate_real_functionality() -> None:
             logger.info(f"✅ Configuration created: {config.host}:{config.port}")
         else:
             config = FlextDbOracleSettings(
-                host="demo-host", username="demo-user", password="demo-password"
+                host="demo-host",
+                username="demo-user",
+                password="demo-password",
             )
             logger.info("✅ Demo configuration created")
         logger.info(f"📋 Host: {config.host}")

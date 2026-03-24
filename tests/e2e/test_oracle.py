@@ -31,7 +31,8 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     def test_complete_oracle_workflow(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test complete Oracle workflow end-to-end.
 
@@ -77,10 +78,10 @@ class TestOracleE2E:
                     insert_result = api.execute_statement(insert_sql)
                     if insert_result.is_failure:
                         raise AssertionError(
-                            f"Data insertion failed: {insert_result.error}"
+                            f"Data insertion failed: {insert_result.error}",
                         )
                 select_result = api.query(
-                    f"SELECT * FROM {test_table_name} ORDER BY ID"
+                    f"SELECT * FROM {test_table_name} ORDER BY ID",
                 )
                 if select_result.is_failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
@@ -90,7 +91,7 @@ class TestOracleE2E:
                 )
                 assert len(query_data) == 3, f"Expected 3 rows, got {len(query_data)}"
                 count_result = api.query(
-                    f"SELECT COUNT(*) as row_count FROM {test_table_name}"
+                    f"SELECT COUNT(*) as row_count FROM {test_table_name}",
                 )
                 if count_result.is_failure:
                     raise AssertionError(f"Count query failed: {count_result.error}")
@@ -100,13 +101,13 @@ class TestOracleE2E:
                 )
                 assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
                 count_value = count_data[0].get("ROW_COUNT") or count_data[0].get(
-                    "row_count"
+                    "row_count",
                 )
                 assert count_value == 3, f"Expected count 3, got {count_value}"
                 metadata_result = api.get_table_metadata(test_table_name)
                 if metadata_result.is_failure:
                     raise AssertionError(
-                        f"Metadata query failed: {metadata_result.error}"
+                        f"Metadata query failed: {metadata_result.error}",
                     )
                 table_metadata = metadata_result.value
                 assert table_metadata["table_name"] == test_table_name
@@ -130,11 +131,11 @@ class TestOracleE2E:
                     if update_result.is_failure:
                         raise AssertionError(f"Update failed: {update_result.error}")
                 verify_result = api.query(
-                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3"
+                    f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
                 )
                 if verify_result.is_failure:
                     raise AssertionError(
-                        f"Verification query failed: {verify_result.error}"
+                        f"Verification query failed: {verify_result.error}",
                     )
                 email_data = verify_result.value
                 assert isinstance(email_data, list), (
@@ -151,7 +152,8 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     def test_singer_type_conversion_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
         with FlextDbOracleApi(config=real_oracle_config) as api:
@@ -167,7 +169,7 @@ class TestOracleE2E:
                 result = api.convert_singer_type(singer_type)
                 if result.is_failure:
                     raise AssertionError(
-                        f"Type conversion failed for {singer_type}: {result.error}"
+                        f"Type conversion failed for {singer_type}: {result.error}",
                     )
                 oracle_type = result.value
                 assert expected_oracle_type in oracle_type, (
@@ -181,7 +183,7 @@ class TestOracleE2E:
                     "is_active": {"type": "boolean"},
                     "metadata": {"type": "t.NormalizedValue"},
                     "created_at": {"type": "string", "format": "date-time"},
-                }
+                },
             }
             schema_result = api.map_singer_schema(singer_schema)
             if schema_result.is_failure:
@@ -251,7 +253,8 @@ class TestOracleE2E:
 
     @pytest.mark.e2e
     def test_concurrent_operations_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test concurrent database operations."""
         api1 = FlextDbOracleApi(real_oracle_config, context_name="connection1")
@@ -275,7 +278,8 @@ class TestOracleE2E:
     @pytest.mark.e2e
     @pytest.mark.benchmark
     def test_performance_benchmark_e2e(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         try:

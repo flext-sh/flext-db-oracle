@@ -68,7 +68,8 @@ class FlextDbOracleModels(FlextModels):
             service_name: Annotated[str, Field(default="")]
             response_time_ms: Annotated[t.NonNegativeFloat, Field(default=0.0)]
             details: Annotated[
-                Mapping[str, t.ContainerValue], Field(default_factory=dict)
+                Mapping[str, t.ContainerValue],
+                Field(default_factory=dict),
             ]
             error: Annotated[str | None, Field(default=None)]
             timestamp: Annotated[str, Field(default="")]
@@ -95,7 +96,8 @@ class FlextDbOracleModels(FlextModels):
             """Connection status using flext-core Entity."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
-                frozen=False, extra="ignore"
+                frozen=False,
+                extra="ignore",
             )
 
             is_connected: bool = False
@@ -253,7 +255,8 @@ class FlextDbOracleModels(FlextModels):
             """Query result using flext-core Entity."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
-                frozen=False, extra="ignore"
+                frozen=False,
+                extra="ignore",
             )
 
             query: str

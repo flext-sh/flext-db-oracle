@@ -303,7 +303,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         return r[t.ContainerValue | None].ok(plugin)
 
     def get_primary_keys(
-        self, table: str, schema: str | None = None
+        self,
+        table: str,
+        schema: str | None = None,
     ) -> r[t.StrSequence]:
         """Get primary key column names for specified table."""
         return self._services.get_primary_keys(table, schema)

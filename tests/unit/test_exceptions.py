@@ -31,7 +31,8 @@ class TestFlextDbOracleExceptions:
     def test_error_with_oracle_code(self) -> None:
         """Test Error with oracle error code."""
         error = FlextDbOracleExceptions.Error(
-            "Test error", oracle_error_code="ORA-12345"
+            "Test error",
+            oracle_error_code="ORA-12345",
         )
         tm.that(error, none=False)
         tm.that(error.oracle_error_code, eq="ORA-12345")

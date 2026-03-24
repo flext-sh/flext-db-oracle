@@ -292,7 +292,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             conn = self._context_enter(connect_ctx)
             try:
                 _ = self._connection_execute(
-                    conn, self._sqlalchemy_text("SELECT 1 FROM dual")
+                    conn,
+                    self._sqlalchemy_text("SELECT 1 FROM dual"),
                 )
             finally:
                 self._context_exit(connect_ctx)
@@ -317,7 +318,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 retry_url_result = self._build_connection_url()
                 if retry_url_result.is_success:
                     self._engine = self._sqlalchemy_create_engine(
-                        retry_url_result.value
+                        retry_url_result.value,
                     )
                     try:
                         connect_ctx = self._engine_connect(self._engine)
@@ -493,7 +494,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             conn = self._context_enter(connect_ctx)
             try:
                 result = self._connection_execute(
-                    conn, self._sqlalchemy_text(sql), params
+                    conn,
+                    self._sqlalchemy_text(sql),
+                    params,
                 )
                 rows: Sequence[t.Dict] = self._normalize_query_rows(result)
                 return r[Sequence[t.Dict]].ok(rows)
@@ -522,7 +525,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             conn = self._context_enter(transaction_ctx)
             try:
                 result = self._connection_execute(
-                    conn, self._sqlalchemy_text(sql), params
+                    conn,
+                    self._sqlalchemy_text(sql),
+                    params,
                 )
                 rowcount = max(result.rowcount, 0)
                 return r[int].ok(rowcount)
@@ -670,7 +675,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             _ = import_module("flext_plugin.api")
         except ModuleNotFoundError:
             return r[t.ContainerValue].fail(
-                "flext-plugin integration unavailable; install flext-plugin"
+                "flext-plugin integration unavailable; install flext-plugin",
             )
         if _name not in self._plugins:
             return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
@@ -968,7 +973,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             conn = self._context_enter(connect_ctx)
             try:
                 _ = self._connection_execute(
-                    conn, self._sqlalchemy_text("SELECT 1 FROM dual")
+                    conn,
+                    self._sqlalchemy_text("SELECT 1 FROM dual"),
                 )
             finally:
                 self._context_exit(connect_ctx)
@@ -999,7 +1005,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 metadata
                 if isinstance(metadata, t.ConfigMap)
                 else t.ConfigMap.model_validate({
-                    "root": dict(metadata) if metadata else {}
+                    "root": dict(metadata) if metadata else {},
                 })
             )
             operation = FlextDbOracleModels.DbOracle.OperationRecord(
@@ -1084,7 +1090,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return r[SAEngine].ok(self._engine)
 
     def _normalize_query_rows(
-        self, query_result: CursorResult[tuple[t.ContainerValue, ...]]
+        self,
+        query_result: CursorResult[tuple[t.ContainerValue, ...]],
     ) -> Sequence[t.Dict]:
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()

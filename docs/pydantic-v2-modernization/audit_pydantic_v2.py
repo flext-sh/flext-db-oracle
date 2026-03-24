@@ -48,10 +48,12 @@ class AuditResult(BaseModel):
     high: Sequence[AuditViolation] = []
     medium: Sequence[AuditViolation] = []
     recommendations: t.StrSequence = Field(
-        default_factory=list, description="Audit recommendations"
+        default_factory=list,
+        description="Audit recommendations",
     )
     stats: Mapping[str, t.Primitives] = Field(
-        default_factory=dict, description="Audit statistics"
+        default_factory=dict,
+        description="Audit statistics",
     )
 
     @property

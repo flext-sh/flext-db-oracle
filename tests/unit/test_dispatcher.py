@@ -21,7 +21,9 @@ class TestDispatcherSurgical:
     def test_dispatcher_creation(self) -> None:
         """Test dispatcher can be created."""
         config = FlextDbOracleSettings(
-            host="test-host", username="test-user", password="test-password"
+            host="test-host",
+            username="test-user",
+            password="test-password",
         )
         services = FlextDbOracleServices(config=config)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
@@ -36,7 +38,8 @@ class TestDispatcherSurgical:
     def test_command_creation(self) -> None:
         """Test command objects can be created."""
         cmd = FlextDbOracleDispatcher.ExecuteQueryCommand(
-            sql="SELECT 1 FROM DUAL", parameters=None
+            sql="SELECT 1 FROM DUAL",
+            parameters=None,
         )
         tm.that(cmd.sql, eq="SELECT 1 FROM DUAL")
         tm.that(cmd.parameters, none=True)

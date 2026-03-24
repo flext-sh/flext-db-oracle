@@ -66,7 +66,9 @@ class TestFlextDbOracleClientReal:
         """Test configuring user preferences with real values."""
         client = FlextDbOracleClient()
         result = client.configure_preferences(
-            default_output_format="json", query_limit=2000, show_execution_time=False
+            default_output_format="json",
+            query_limit=2000,
+            show_execution_time=False,
         )
         tm.that(result.is_success, eq=True)
         tm.that(client.user_preferences["default_output_format"], eq="json")
@@ -78,7 +80,8 @@ class TestFlextDbOracleClientReal:
         client = FlextDbOracleClient()
         original_prefs = client.user_preferences.model_copy()
         result = client.configure_preferences(
-            invalid_key="value", another_invalid="test"
+            invalid_key="value",
+            another_invalid="test",
         )
         tm.that(result.is_success, eq=True)
         original_dict: t.ContainerMapping = (
@@ -180,7 +183,8 @@ class TestFlextDbOracleClientReal:
         client.user_preferences["default_output_format"]
         client.user_preferences["connection_timeout"]
         client.configure_preferences(
-            default_output_format="json", connection_timeout=60
+            default_output_format="json",
+            connection_timeout=60,
         )
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["connection_timeout"], eq=60)
@@ -271,7 +275,7 @@ class TestOracleConnectionHelper:
     def test_create_config_from_params_defaults(self) -> None:
         """Test config creation with default parameters."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
-            password="test_password"
+            password="test_password",
         )
         tm.ok(result)
         config = result.value
@@ -283,7 +287,8 @@ class TestOracleConnectionHelper:
     def test_create_config_from_params_no_password(self) -> None:
         """Test config creation fails without password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
-            host="test-host", username="test_user"
+            host="test-host",
+            username="test_user",
         )
         tm.that(result.is_failure, eq=True)
         tm.that(str(result.error), has="Password is required")
@@ -291,7 +296,9 @@ class TestOracleConnectionHelper:
     def test_create_config_from_params_empty_password(self) -> None:
         """Test config creation fails with empty password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
-            host="test-host", username="test_user", password=""
+            host="test-host",
+            username="test_user",
+            password="",
         )
         tm.that(result.is_failure, eq=True)
         tm.that(str(result.error), has="Password is required")
@@ -299,7 +306,8 @@ class TestOracleConnectionHelper:
     def test_create_config_from_params_validation_error(self) -> None:
         """Test config creation handles validation errors."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
-            host="", password="test_password"
+            host="",
+            password="test_password",
         )
         tm.that(result.is_failure, eq=True)
         tm.that(str(result.error), has="Configuration creation failed")
@@ -316,7 +324,7 @@ class TestOracleConnectionHelper:
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
-                config
+                config,
             )
         tm.ok(result)
         tm.that(result.value, eq=True)
@@ -333,7 +341,7 @@ class TestOracleConnectionHelper:
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
             mock_connect.return_value = r[FlextDbOracleApi].fail("Connection failed")
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
-                config
+                config,
             )
         tm.that(result.is_failure, eq=True)
         tm.that(str(result.error), has="Connection failed")
@@ -477,7 +485,8 @@ class TestCliServiceOperations:
             password="test_password",
         )
         with patch.object(
-            FlextDbOracleCli._OracleConnectionHelper, "validate_connection"
+            FlextDbOracleCli._OracleConnectionHelper,
+            "validate_connection",
         ) as mock_validate:
             mock_validate.return_value = r[bool].ok(True)
             result = cli_service.execute_health_check(
@@ -787,7 +796,8 @@ class TestCLIRealFunctionality:
         test_result = {"column1": "value1", "column2": "value2"}
         for format_type in ["table", "json", "csv"]:
             format_result = FlextDbOracleUtilities.DbOracle.format_query_result(
-                test_result, format_type=format_type
+                test_result,
+                format_type=format_type,
             )
             tm.ok(format_result)
             tm.that(format_result.value, is_=str)

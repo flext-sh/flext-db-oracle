@@ -89,7 +89,8 @@ class _StubPluginApi:
     def unregister_plugin(self, plugin_name: str) -> _StubResult:
         if plugin_name not in self._registry:
             return _StubResult(
-                is_failure=True, error=f"Plugin '{plugin_name}' not found"
+                is_failure=True,
+                error=f"Plugin '{plugin_name}' not found",
             )
         del self._registry[plugin_name]
         return _StubResult()
@@ -229,7 +230,7 @@ class TestFlextDbOracleServicesBasic:
                 "name": {"type": "string"},
                 "created_at": {"type": "string", "format": "date-time"},
                 "is_active": {"type": "boolean"},
-            }
+            },
         }
         mapping_result = service.map_singer_schema(singer_schema)
         tm.ok(mapping_result)
@@ -296,7 +297,9 @@ class TestFlextDbOracleServicesBasic:
         set_columns = ["name", "email"]
         where_columns = ["id"]
         update_result = service.build_update_statement(
-            "USERS", set_columns, where_columns
+            "USERS",
+            set_columns,
+            where_columns,
         )
         tm.ok(update_result)
         tm.that(update_result.value, has="UPDATE")
@@ -387,7 +390,10 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         track_result = service.track_operation(
-            "SELECT", 25.0, success=True, metadata={"table": "users"}
+            "SELECT",
+            25.0,
+            success=True,
+            metadata={"table": "users"},
         )
         tm.ok(track_result)
         ops_result = service.get_operations()
@@ -505,7 +511,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 service_name="TEST",
                 username="testuser",
                 password="testpass",
-            )
+            ),
         )
 
     def test_build_create_index_statement_builds_real_sql(self) -> None:
@@ -539,7 +545,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that((result.error or ""), has="at least one column")
 
     def test_record_metric_fails_when_observability_missing(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
 
@@ -554,7 +561,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that((result.error or ""), has="flext-observability integration unavailable")
 
     def test_record_metric_uses_observability_when_available(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
         calls: Sequence[t.ContainerMapping] = []
@@ -570,14 +578,17 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         result = service.record_metric(
-            "db_query_duration", 12.5, t.ConfigMap(root={"k": "v"})
+            "db_query_duration",
+            12.5,
+            t.ConfigMap(root={"k": "v"}),
         )
         tm.ok(result)
         tm.that(len(calls), eq=1)
         tm.that(calls[0]["name"], eq="db_query_duration")
 
     def test_get_metrics_fails_when_observability_missing(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
 
@@ -592,7 +603,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that((result.error or ""), has="flext-observability integration unavailable")
 
     def test_get_metrics_returns_health_status_when_observability_available(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
 
@@ -607,7 +619,8 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that(result.value.status.endswith("_with_observability"), eq=True)
 
     def test_plugin_methods_fail_when_plugin_integration_missing(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
 
@@ -618,21 +631,23 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
 
         monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
         tm.that(
-            service.register_plugin("sample", {"version": "1.0.0"}).is_failure, eq=True
+            service.register_plugin("sample", {"version": "1.0.0"}).is_failure,
+            eq=True,
         )
         tm.that(service.unregister_plugin("sample").is_failure, eq=True)
         tm.that(service.list_plugins().is_failure, eq=True)
         tm.that(service.get_plugin("sample").is_failure, eq=True)
 
     def test_plugin_methods_wire_to_flext_plugin_when_available(
-        self, monkeypatch: pytest.MonkeyPatch
+        self,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
         _StubPluginApi._registry = {}
         plugin_models = SimpleNamespace(
             FlextPluginModels=SimpleNamespace(
-                Plugin=SimpleNamespace(Plugin=_StubPluginEntity)
-            )
+                Plugin=SimpleNamespace(Plugin=_StubPluginEntity),
+            ),
         )
         plugin_api = SimpleNamespace(FlextPluginApi=_StubPluginApi)
 
@@ -686,7 +701,8 @@ class TestDirectCoverageBoostAPI:
         tm.that(result4.is_failure or result4.is_success, eq=True)
 
     def test_api_schema_operations_1038_1058(
-        self, oracle_api: FlextDbOracleApi
+        self,
+        oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
         if oracle_api is None:
@@ -801,7 +817,8 @@ class TestDirectCoverageBoostConnection:
     """Direct tests for Connection module missed lines (54% → higher)."""
 
     def test_connection_edge_cases(
-        self, real_oracle_config: FlextDbOracleSettings
+        self,
+        real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test connection edge cases for missed lines."""
         connection = FlextDbOracleServices(config=real_oracle_config)
@@ -848,21 +865,28 @@ class TestDirectCoverageBoostTypes:
         """Test comprehensive type validation for missed lines."""
         try:
             column = FlextDbOracleModels.DbOracle.Column(
-                name="TEST_COLUMN", data_type="VARCHAR2", nullable=True
+                name="TEST_COLUMN",
+                data_type="VARCHAR2",
+                nullable=True,
             )
             tm.that(column.name, eq="TEST_COLUMN")
         except (TypeError, ValueError):
             pass
         try:
             table = FlextDbOracleModels.DbOracle.Table(
-                name="TEST_TABLE", owner="TEST_SCHEMA", columns=[]
+                name="TEST_TABLE",
+                owner="TEST_SCHEMA",
+                columns=[],
             )
             tm.that(table.name, eq="TEST_TABLE")
         except (TypeError, ValueError):
             pass
         try:
             column2 = FlextDbOracleModels.DbOracle.Column(
-                name="EDGE_COL", data_type="NUMBER", nullable=False, default_value="0"
+                name="EDGE_COL",
+                data_type="NUMBER",
+                nullable=False,
+                default_value="0",
             )
             tm.that(hasattr(column2, "name"), eq=True)
             tm.that(hasattr(column2, "data_type"), eq=True)
@@ -872,7 +896,9 @@ class TestDirectCoverageBoostTypes:
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
         column = FlextDbOracleModels.DbOracle.Column(
-            name="ID", data_type="NUMBER", nullable=False
+            name="ID",
+            data_type="NUMBER",
+            nullable=False,
         )
         tm.that(column.name, eq="ID")
         tm.that(column.data_type, eq="NUMBER")
@@ -912,7 +938,8 @@ class TestDirectCoverageBoostObservability:
             pass
 
     def test_observability_metrics_collection(
-        self, oracle_api: FlextDbOracleApi
+        self,
+        oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test observability metrics collection."""
         if oracle_api is None:
@@ -966,7 +993,9 @@ class TestDirectCoverageBoostServices:
             tm.ok(result)
             tm.that(result.value, has=identifier.upper())
         table_ref_result = services.build_select(
-            "test_table", ["col1"], schema_name="test_schema"
+            "test_table",
+            ["col1"],
+            schema_name="test_schema",
         )
         tm.ok(table_ref_result)
         sql_result = table_ref_result.value
@@ -1067,7 +1096,8 @@ class TestDirectCoverageBoostServices:
                     tm.that(
                         (
                             getattr(
-                                FlextDbOracleConstants.Platform, "HTTP_METHOD_DELETE"
+                                FlextDbOracleConstants.Platform,
+                                "HTTP_METHOD_DELETE",
                             )
                             in sql_text.upper()
                         ),
@@ -1168,14 +1198,20 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test generate_ddl method structure and validation."""
         columns = [
             FlextDbOracleModels.DbOracle.Column(
-                name="ID", data_type="NUMBER", nullable=False
+                name="ID",
+                data_type="NUMBER",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="NAME", data_type="VARCHAR2", nullable=True
+                name="NAME",
+                data_type="VARCHAR2",
+                nullable=True,
             ),
         ]
         _ = FlextDbOracleModels.DbOracle.Table(
-            name="TEST_TABLE", owner="TEST_SCHEMA", columns=columns
+            name="TEST_TABLE",
+            owner="TEST_SCHEMA",
+            columns=columns,
         )
         result = self.manager.get_tables("TEST_SCHEMA")
         tm.that(hasattr(result, "is_success"), eq=True)
@@ -1183,7 +1219,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
-            "connection" in error_lower or "connected" in error_lower is True, eq=True
+            "connection" in error_lower or "connected" in error_lower is True,
+            eq=True,
         )
 
     def test_test_connection_structure(self) -> None:
@@ -1228,20 +1265,30 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test comprehensive DDL generation functionality using model methods."""
         columns = [
             FlextDbOracleModels.DbOracle.Column(
-                name="ID", data_type="NUMBER", nullable=False
+                name="ID",
+                data_type="NUMBER",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="CODE", data_type="VARCHAR2", nullable=False
+                name="CODE",
+                data_type="VARCHAR2",
+                nullable=False,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="CREATED_DATE", data_type="DATE", nullable=True
+                name="CREATED_DATE",
+                data_type="DATE",
+                nullable=True,
             ),
             FlextDbOracleModels.DbOracle.Column(
-                name="AMOUNT", data_type="NUMBER", nullable=True
+                name="AMOUNT",
+                data_type="NUMBER",
+                nullable=True,
             ),
         ]
         table = FlextDbOracleModels.DbOracle.Table(
-            name="COMPLEX_TABLE", owner="APP_SCHEMA", columns=columns
+            name="COMPLEX_TABLE",
+            owner="APP_SCHEMA",
+            columns=columns,
         )
         tm.that(len(columns), eq=4)
         tm.that(table.name, eq="COMPLEX_TABLE")
@@ -1252,7 +1299,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
-            "connection" in error_lower or "connected" in error_lower is True, eq=True
+            "connection" in error_lower or "connected" in error_lower is True,
+            eq=True,
         )
 
     def test_validation_logic_comprehensive(self) -> None:
@@ -1480,7 +1528,7 @@ class TestFlextDbOracleConnectionSimple:
                 "name": {"type": "string"},
                 "created_at": {"type": "string", "format": "date-time"},
                 "is_active": {"type": "boolean"},
-            }
+            },
         }
         mapping_result = service.map_singer_schema(singer_schema)
         tm.ok(mapping_result)
@@ -1547,7 +1595,9 @@ class TestFlextDbOracleConnectionSimple:
         set_columns = ["name", "email"]
         where_columns = ["id"]
         update_result = service.build_update_statement(
-            "USERS", set_columns, where_columns
+            "USERS",
+            set_columns,
+            where_columns,
         )
         tm.ok(update_result)
         tm.that(update_result.value, has="UPDATE")
@@ -1638,7 +1688,10 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         track_result = service.track_operation(
-            "SELECT", 25.0, success=True, metadata={"table": "users"}
+            "SELECT",
+            25.0,
+            success=True,
+            metadata={"table": "users"},
         )
         tm.ok(track_result)
         ops_result = service.get_operations()

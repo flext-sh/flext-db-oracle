@@ -17,7 +17,9 @@ class TestFlextDbOracleClientRealFunctionality:
     def test_client_creation(self) -> None:
         """Test client can be created."""
         FlextDbOracleSettings(
-            host="test-host", username="test-user", password="test-password"
+            host="test-host",
+            username="test-user",
+            password="test-password",
         )
         client = FlextDbOracleClient()
         tm.that(client, none=False)
