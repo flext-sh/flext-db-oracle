@@ -20,9 +20,9 @@ if TYPE_CHECKING:
 
     from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
-_LAZY_IMPORTS: Mapping[str, tuple[str, str]] = {
-    "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),
-    "TestOracleE2E": ("tests.e2e.test_oracle", "TestOracleE2E"),
+_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
+    "OperationTestError": ["tests.e2e.test_oracle", "OperationTestError"],
+    "TestOracleE2E": ["tests.e2e.test_oracle", "TestOracleE2E"],
 }
 
 __all__ = [
