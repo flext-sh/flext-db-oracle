@@ -60,7 +60,7 @@ class FlextDbOraclePassword(BaseModel):
         return self._value
 
     @override
-    def __eq__(self, other: t.NormalizedValue) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, FlextDbOraclePassword):
             return self._value == other._value

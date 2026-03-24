@@ -70,10 +70,11 @@ class FlextDbOracleUtilities(FlextUtilities):
                 An Annotated type that validates and coerces string values to the enum.
 
             """
-            return Annotated[
+            annotated_type: type[E] = Annotated[  # pyright: ignore[reportAssignmentType]
                 enum_cls,
                 BeforeValidator(FlextUtilities.coerce_validator(enum_cls)),
             ]
+            return annotated_type
 
         @classmethod
         def dispatcher_enabled(cls) -> bool:

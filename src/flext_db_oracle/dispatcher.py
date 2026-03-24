@@ -102,7 +102,17 @@ class FlextDbOracleDispatcher(FlextService[None]):
         function_map.update(instance._create_query_handlers(services))
         function_map.update(instance._create_schema_handlers(services))
         for handler_fn, _metadata in function_map.values():
-            dispatcher.register_handler(handler_fn)
+
+            def _wrap(
+                fn: Callable[[t.ContainerValue], t.ContainerValue],
+            ) -> t.HandlerLike:
+                def wrapped(*args: t.ContainerValue) -> t.ConfigMap:
+                    result = fn(*args)
+                    return t.ConfigMap(root={"result": result})
+
+                return wrapped
+
+            dispatcher.register_handler(_wrap(handler_fn))
         return dispatcher
 
     def _create_query_handlers(
@@ -161,7 +171,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
                 parameters_list = command.parameters_list
             else:
                 sql = ""
-                parameters_list = Sequence[t.ContainerValueMapping]()
+                parameters_list: Sequence[t.ContainerValueMapping] = []
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {

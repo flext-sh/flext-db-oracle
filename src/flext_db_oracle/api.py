@@ -405,7 +405,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
                 "service_name": source.oracle_config.service_name,
                 "username": source.oracle_config.username,
             }
-            payload: Mapping[str, t.ContainerValue] = {
+            payload: MutableMapping[str, t.NormalizedValue | BaseModel] = {
                 "config": config_payload,
                 "connected": source.is_connected,
                 "plugin_count": plugin_count_value,
