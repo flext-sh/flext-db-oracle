@@ -81,7 +81,7 @@ class TestFlextDbOracleClientReal:
             invalid_key="value", another_invalid="test"
         )
         tm.that(result.is_success, eq=True)
-        original_dict: Mapping[str, t.NormalizedValue] = (
+        original_dict: t.ContainerMapping = (
             original_prefs.model_dump()
             if hasattr(original_prefs, "model_dump")
             else dict(original_prefs)
@@ -94,7 +94,7 @@ class TestFlextDbOracleClientReal:
         """Test connection methods without active connection."""
         client = FlextDbOracleClient()
         result = client.execute_query("SELECT 1 FROM DUAL")
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         tm.that(
             (
@@ -104,15 +104,15 @@ class TestFlextDbOracleClientReal:
             eq=True,
         )
         schemas_result = client.list_schemas()
-        tm.that(schemas_result.is_success, eq=False)
+        tm.that(not schemas_result.is_success, eq=True)
         tm.that(schemas_result.error, none=False)
         tm.that((schemas_result.error or ""), has="No active Oracle connection")
         tables_result = client.list_tables()
-        tm.that(tables_result.is_success, eq=False)
+        tm.that(not tables_result.is_success, eq=True)
         tm.that(tables_result.error, none=False)
         tm.that((tables_result.error or ""), has="No active Oracle connection")
         health_result = client.health_check()
-        tm.that(health_result.is_success, eq=False)
+        tm.that(not health_result.is_success, eq=True)
         tm.that(health_result.error, none=False)
         tm.that((health_result.error or ""), has="No active Oracle connection")
 
@@ -126,7 +126,7 @@ class TestFlextDbOracleClientReal:
             username="invalid_user",
             password="invalid_password",
         )
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, eq=True)
         tm.that(
             (
@@ -169,7 +169,7 @@ class TestFlextDbOracleClientReal:
         """Test real error handling in client methods."""
         client = FlextDbOracleClient()
         result = client.execute_query("")
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         bad_result = client.configure_preferences(valid_key="")
         tm.that(bad_result, is_=r)
         tm.ok(bad_result)
@@ -210,7 +210,7 @@ class TestFlextDbOracleClientIntegration:
             config.username,
             config.password.get_secret_value() if config.password else None,
         )
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, is_=str)
 
 
@@ -379,9 +379,7 @@ class TestOutputFormatter:
         tm.that(output, has="table2")
         tm.that(output, has="table3")
 
-    _JSON_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
-        Mapping[str, t.NormalizedValue]
-    )
+    _JSON_ADAPTER: TypeAdapter[t.ContainerMapping] = TypeAdapter(t.ContainerMapping)
 
     def test_format_list_output_json_format(self) -> None:
         """Test list output formatting in JSON format."""
@@ -417,7 +415,7 @@ class TestOutputFormatter:
         tm.that(output, has="item2")
 
     def test_format_list_output_dict_items(self) -> None:
-        """Test list output formatting with Mapping[str, t.NormalizedValue] items."""
+        """Test list output formatting with t.ContainerMapping items."""
         formatter = FlextDbOracleCli._OutputFormatter()
         items: Sequence[NamedItem] = [
             NamedItem(name="table1"),
@@ -430,9 +428,7 @@ class TestOutputFormatter:
         tm.that(output, has="table1")
         tm.that(output, has="table2")
 
-    _DATA_ADAPTER: TypeAdapter[Mapping[str, t.NormalizedValue]] = TypeAdapter(
-        Mapping[str, t.NormalizedValue]
-    )
+    _DATA_ADAPTER: TypeAdapter[t.ContainerMapping] = TypeAdapter(t.ContainerMapping)
 
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""

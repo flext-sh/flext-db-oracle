@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from flext_core import r
 from flext_tests import tm
@@ -51,7 +51,7 @@ class TestRealOracleConnection:
         if disconnect_result.is_failure:
             msg = f"Disconnect failed: {disconnect_result.error}"
             raise AssertionError(msg)
-        tm.that(connection.is_connected(), eq=False)
+        tm.that(not connection.is_connected(), eq=True)
 
     def test_real_connection_execute_query(
         self, real_oracle_config: FlextDbOracleSettings
@@ -116,7 +116,7 @@ class TestRealOracleConnection:
             if create_result.is_failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
-            params_list: Sequence[Mapping[str, t.NormalizedValue]] = [
+            params_list: Sequence[t.ContainerMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

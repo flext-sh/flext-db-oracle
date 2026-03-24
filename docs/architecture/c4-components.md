@@ -152,7 +152,7 @@ graph TB
 ```python
 class FlextDbOracleApi(FlextService):
     def connect(self, config: OracleConfig) -> r[Connection]
-    def execute_query(self, sql: str, params: Mapping[str, t.NormalizedValue] = None) -> r[QueryResult]
+    def execute_query(self, sql: str, params: t.ContainerMapping = None) -> r[QueryResult]
     def get_schema_info(self, schema: str) -> r[SchemaInfo]
     def close_connection(self) -> r[bool]
 ```

@@ -47,7 +47,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: Mapping[str, t.NormalizedValue],
+        metadata: t.ContainerMapping,
     ) -> None:
         self.name = name
         self.plugin_version = plugin_version
@@ -65,7 +65,7 @@ class _StubPluginEntity:
         description: str,
         author: str,
         plugin_type: str,
-        metadata: Mapping[str, t.NormalizedValue],
+        metadata: t.ContainerMapping,
     ) -> _StubPluginEntity:
         return cls(
             name=name,
@@ -127,7 +127,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        tm.that(service.is_connected(), eq=False)
+        tm.that(not service.is_connected(), eq=True)
 
     def test_service_connection_building(self) -> None:
         """Test connection URL building."""
@@ -167,7 +167,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "name": "test"}
+        conditions: t.ContainerMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -183,7 +183,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "status": "active"}
+        conditions: t.ContainerMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -223,7 +223,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: Mapping[str, t.NormalizedValue] = {
+        singer_schema: t.ContainerMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -249,7 +249,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[Mapping[str, t.NormalizedValue]] = [
+        columns: Sequence[t.ContainerMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -442,7 +442,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: Mapping[str, t.NormalizedValue] = {"id": 123}
+        params: t.ContainerMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -557,7 +557,7 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         service = self._make_service()
-        calls: Sequence[Mapping[str, t.NormalizedValue]] = []
+        calls: Sequence[t.ContainerMapping] = []
 
         def fake_flext_metric(*, name: str, value: float, tags: t.Dict) -> _StubResult:
             calls.append({"name": name, "value": value, "tags": tags})
@@ -1007,7 +1007,7 @@ class TestDirectCoverageBoostServices:
             tm.that(services, none=False)
             tm.that(hasattr(services, "config"), eq=True)
             tm.that(services.config, eq=config)
-            tm.that(services.is_connected(), eq=False)
+            tm.that(not services.is_connected(), eq=True)
             connection_result = services.connect()
             tm.that(hasattr(connection_result, "is_failure"), eq=True)
             tm.that(connection_result.is_failure, eq=True)
@@ -1115,7 +1115,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         result = self.manager.get_schemas()
         tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(hasattr(result, "error"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         tm.that(
             (
@@ -1132,37 +1132,37 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test get_tables method structure and error handling."""
         result = self.manager.get_tables()
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        tm.that(result_with_schema.is_success, eq=False)
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_columns_structure(self) -> None:
         """Test get_columns method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        tm.that(result_with_schema.is_success, eq=False)
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
-        tm.that(result_with_schema.is_success, eq=False)
+        tm.that(not result_with_schema.is_success, eq=True)
 
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_COLUMN")
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
         result = self.manager.get_schemas()
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
 
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
@@ -1179,7 +1179,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         )
         result = self.manager.get_tables("TEST_SCHEMA")
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
@@ -1190,7 +1190,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test test_connection method structure."""
         result = self.manager.get_schemas()
         tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
@@ -1205,7 +1205,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             tm.that(hasattr(result, "is_success"), eq=True)
             tm.that(hasattr(result, "error"), eq=True)
             if method_name != "generate_ddl":
-                tm.that(result.is_success, eq=False)
+                tm.that(not result.is_success, eq=True)
                 tm.that(result.error, none=False)
                 tm.that(result.error, eq=True)
 
@@ -1248,7 +1248,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(table.owner, eq="APP_SCHEMA")
         tm.that(len(table.columns), eq=4)
         result = self.manager.get_tables("APP_SCHEMA")
-        tm.that(result.is_success, eq=False)
+        tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
@@ -1258,11 +1258,11 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_validation_logic_comprehensive(self) -> None:
         """Test validation logic in metadata operations."""
         result_empty_table = self.manager.get_tables("")
-        tm.that(result_empty_table.is_success, eq=False)
+        tm.that(not result_empty_table.is_success, eq=True)
         result_empty_schema = self.manager.get_tables("")
-        tm.that(result_empty_schema.is_success, eq=False)
+        tm.that(not result_empty_schema.is_success, eq=True)
         result_none_table = self.manager.get_tables(None)
-        tm.that(result_none_table.is_success, eq=False)
+        tm.that(not result_none_table.is_success, eq=True)
 
 
 "Simplified tests for FlextDbOracleServices connection functionality.\n\nThis module tests the connection functionality with real code paths,\nfocusing on the actual available methods and attributes.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -1378,7 +1378,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        tm.that(service.is_connected(), eq=False)
+        tm.that(not service.is_connected(), eq=True)
 
     def test_service_connection_building(self) -> None:
         """Test connection URL building."""
@@ -1418,7 +1418,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "name": "test"}
+        conditions: t.ContainerMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -1434,7 +1434,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.NormalizedValue] = {"id": 1, "status": "active"}
+        conditions: t.ContainerMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -1474,7 +1474,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: Mapping[str, t.NormalizedValue] = {
+        singer_schema: t.ContainerMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1500,7 +1500,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[Mapping[str, t.NormalizedValue]] = [
+        columns: Sequence[t.ContainerMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1693,7 +1693,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: Mapping[str, t.NormalizedValue] = {"id": 123}
+        params: t.ContainerMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -1749,9 +1749,9 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        invalid_schema: Mapping[str, t.NormalizedValue] = {"properties": "not_a_dict"}
+        invalid_schema: t.ContainerMapping = {"properties": "not_a_dict"}
         mapping_result = service.map_singer_schema(invalid_schema)
         tm.that(mapping_result.is_failure, eq=True)
-        missing_props_schema: Mapping[str, t.NormalizedValue] = {}
+        missing_props_schema: t.ContainerMapping = {}
         mapping_result = service.map_singer_schema(missing_props_schema)
         tm.that(mapping_result.is_failure or not mapping_result.value, eq=True)

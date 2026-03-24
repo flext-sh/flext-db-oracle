@@ -270,7 +270,7 @@ class TestFlextDbOracleConstants:
 
     def test_feature_flags_functionality(self) -> None:
         """Test feature flag functionality."""
-        tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=False)
+        tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
         original_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
@@ -278,9 +278,9 @@ class TestFlextDbOracleConstants:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "true"
             tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "0"
-            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=False)
+            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "false"
-            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=False)
+            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
         finally:
             if original_value is not None:
                 os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = original_value

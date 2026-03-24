@@ -23,7 +23,7 @@ class TestFlextDbOracleModels:
     def test_connection_status_creation_defaults(self) -> None:
         """Test ConnectionStatus creation with defaults."""
         status = FlextDbOracleModels.DbOracle.ConnectionStatus()
-        tm.that(status.is_connected, eq=False)
+        tm.that(not status.is_connected, eq=True)
         tm.that(status.error_message, eq="")
         tm.that(abs(status.connection_time - 0.0), lt=1e-9)
         tm.that(status.session_id, eq="")

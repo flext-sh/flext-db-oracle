@@ -57,7 +57,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(hasattr(self.api, "_registry"), eq=True)
         plugins_result = self.api.list_plugins()
         tm.that(plugins_result.is_success, eq=True)
-        tm.that(plugins_result.value, eq=False)
+        tm.that(not plugins_result.value, eq=True)
 
     def test_config_property_access_real(self) -> None:
         """Test config property returns correct configuration."""
@@ -91,7 +91,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["config"]
         tm.that(config_obj, is_=dict)
         if isinstance(config_obj, dict):
-            config_dict: Mapping[str, t.NormalizedValue] = config_obj
+            config_dict: t.ContainerMapping = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"], eq="test_host")
@@ -388,7 +388,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.ok(result)
         plugin_list = result.value
         tm.that(plugin_list, is_=list)
-        tm.that(plugin_list, eq=False)
+        tm.that(not plugin_list, eq=True)
 
     def test_repr_method_disconnected_real(self) -> None:
         """Test __repr__ method when disconnected (default state)."""
@@ -514,7 +514,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: Mapping[str, t.NormalizedValue] = {
+        test_schema: t.ContainerMapping = {
             "type": "t.NormalizedValue",
             "properties": {
                 "id": {"type": "integer"},
@@ -637,7 +637,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test optimize_query with edge cases."""
         empty_result = self.api.optimize_query("")
         tm.ok(empty_result)
-        tm.that(empty_result.value, eq=False)
+        tm.that(not empty_result.value, eq=True)
         whitespace_query = "SELECT   \n\n   *    \n  FROM   \n   employees    \n\n"
         whitespace_result = self.api.optimize_query(whitespace_query)
         tm.ok(whitespace_result)
@@ -719,7 +719,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> Mapping[str, t.NormalizedValue]:
+        def create_test_oracle_config() -> t.ContainerMapping:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -1155,7 +1155,7 @@ class TestFlextDbOracleApiSafeMethods:
         api = FlextDbOracleApi(config=config)
         tm.that(api, none=False)
         tm.that(api.config, eq=config)
-        tm.that(api.is_connected, eq=False)
+        tm.that(not api.is_connected, eq=True)
 
     def test_api_class_methods_with_config(self) -> None:
         """Test API creation via with_config class method."""
@@ -1232,7 +1232,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: Mapping[str, t.NormalizedValue] = {
+        plugin: t.ContainerMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1288,7 +1288,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="prop_pass",
         )
         api = FlextDbOracleApi(config)
-        tm.that(api.is_connected, eq=False)
+        tm.that(not api.is_connected, eq=True)
         conn = api.connection
         tm.that(conn, none=True)
         tm.that(hasattr(api, "connection"), eq=True)
@@ -1340,7 +1340,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)
-        plugin: Mapping[str, t.NormalizedValue] = {
+        plugin: t.ContainerMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1528,7 +1528,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(api_from_config, is_=FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test Mapping[str, t.NormalizedValue] serialization methods."""
+        """Test t.ContainerMapping serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict, none=False)
 
@@ -1890,7 +1890,7 @@ class TestDirectCoverageBoostServices:
             tm.that(services, none=False)
             tm.that(hasattr(services, "config"), eq=True)
             tm.that(services._db_config, eq=config)
-            tm.that(services.is_connected(), eq=False)
+            tm.that(not services.is_connected(), eq=True)
             connection_result = services.connect()
             tm.that(hasattr(connection_result, "is_failure"), eq=True)
             tm.that(connection_result.is_failure, eq=True)
