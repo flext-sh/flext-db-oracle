@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, r
@@ -90,7 +90,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             raise TypeError(msg)
         dispatcher = disp
         _registry = FlextRegistry(dispatcher=dispatcher)
-        function_map: Mapping[
+        function_map: MutableMapping[
             type,
             tuple[
                 Callable[[t.ContainerValue], t.ContainerValue],

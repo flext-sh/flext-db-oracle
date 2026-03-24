@@ -13,7 +13,7 @@ from __future__ import annotations
 import contextlib
 import os
 import types
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
@@ -73,7 +73,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._context_name = context_name or "oracle-api"
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
-        self._plugins: Mapping[str, t.ContainerValue] = {}
+        self._plugins: MutableMapping[str, t.ContainerValue] = {}
         self._registry = self._plugins
         self._context_fallback_mode = False
         type(self).to_dict_source = self

@@ -375,8 +375,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
-        col_defs: t.StrSequence = []
-        primary_keys: t.StrSequence = []
+        col_defs: MutableSequence[str] = []
+        primary_keys: MutableSequence[str] = []
         for col in columns:
             if isinstance(col, FlextDbOracleModels.DbOracle.Column):
                 name = col.name or c.IDENTIFIER_UNKNOWN
@@ -659,7 +659,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     ) -> r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]].ok(
-            self._operations.copy(),
+            [op for op in self._operations],  # noqa: C416
         )
 
     def get_plugin(self, _name: str) -> r[t.ContainerValue]:
@@ -852,7 +852,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                     "Singer schema properties must be a mapping",
                 )
             raw_properties = raw_props_value
-            normalized_properties: Mapping[
+            normalized_properties: MutableMapping[
                 str,
                 FlextDbOracleModels.DbOracle.SingerField,
             ] = {}
@@ -1089,7 +1089,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        result: Sequence[t.Dict] = []
+        result: MutableSequence[t.Dict] = []
         for row in rows:
             row_dict: t.StrMapping = {
                 str(key): str(val) for key, val in dict(row).items()

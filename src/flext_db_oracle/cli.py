@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import sys
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from typing import override
 
@@ -200,7 +200,7 @@ class FlextDbOracleCli(FlextService[str]):
             r[str]: Formatted list output.
 
             """
-            string_items: t.StrSequence = []
+            string_items: MutableSequence[str] = []
             for item in items:
                 match item:
                     case str() as item_text:
