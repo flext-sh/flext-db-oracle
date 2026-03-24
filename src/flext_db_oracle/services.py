@@ -53,7 +53,7 @@ class _CountValue(RootModel[int | str]):
     root: int | str
 
 
-_STRING_LIST_ADAPTER = TypeAdapter(Sequence[str])
+_STRING_LIST_ADAPTER = TypeAdapter(t.StrSequence)
 
 
 def _validate_config_map(value: t.ContainerValue) -> t.ConfigMap | None:
@@ -92,7 +92,7 @@ def _parse_count_value(value: t.ContainerValue) -> int:
         return 0
 
 
-def _normalize_singer_type(value: str | Sequence[str]) -> str:
+def _normalize_singer_type(value: str | t.StrSequence) -> str:
     """Normalize Singer type input to a single string value."""
     try:
         values = _STRING_LIST_ADAPTER.validate_python(value)
@@ -180,7 +180,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             if not isinstance(_config, Mapping):
                 return r[str].fail("Invalid CREATE INDEX config payload")
             raw_columns = _config.get("columns", [])
-            columns_list: Sequence[str] = (
+            columns_list: t.StrSequence = (
                 [str(col) for col in raw_columns]
                 if isinstance(raw_columns, list)
                 else []
@@ -218,7 +218,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def build_delete_statement(
         self,
         table_name: str,
-        where_columns: Sequence[str],
+        where_columns: t.StrSequence,
         schema: str | None = None,
     ) -> r[str]:
         """Build DELETE statement - simplified."""
@@ -230,9 +230,9 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def build_insert_statement(
         self,
         table_name: str,
-        columns: Sequence[str],
+        columns: t.StrSequence,
         schema: str | None = None,
-        returning_columns: Sequence[str] | None = None,
+        returning_columns: t.StrSequence | None = None,
     ) -> r[str]:
         """Build INSERT statement - simplified."""
         cols = ", ".join(columns)
@@ -247,7 +247,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def build_select(
         self,
         table_name: str,
-        columns: Sequence[str] | None = None,
+        columns: t.StrSequence | None = None,
         conditions: t.ConfigMap | t.ContainerValueMapping | None = None,
         schema_name: str | None = None,
     ) -> r[str]:
@@ -270,8 +270,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     def build_update_statement(
         self,
         table_name: str,
-        set_columns: Sequence[str],
-        where_columns: Sequence[str],
+        set_columns: t.StrSequence,
+        where_columns: t.StrSequence,
         schema: str | None = None,
     ) -> r[str]:
         """Build UPDATE statement - simplified."""
@@ -345,7 +345,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
 
     def convert_singer_type(
         self,
-        singer_type: str | Sequence[str] = "string",
+        singer_type: str | t.StrSequence = "string",
         _format_hint: str | None = None,
     ) -> r[str]:
         """Convert Singer type to Oracle type - simplified."""
@@ -371,8 +371,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         schema: str | None = None,
     ) -> r[str]:
         """Generate CREATE TABLE DDL - simplified."""
-        col_defs: Sequence[str] = []
-        primary_keys: Sequence[str] = []
+        col_defs: t.StrSequence = []
+        primary_keys: t.StrSequence = []
         for col in columns:
             if isinstance(col, FlextDbOracleModels.DbOracle.Column):
                 name = col.name or c.IDENTIFIER_UNKNOWN
@@ -632,7 +632,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 "flext-observability does not expose flext_metric",
             )
         status = "connected" if self.is_connected() else "disconnected"
-        metrics_payload: Mapping[str, str] = {
+        metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()
         }
@@ -672,7 +672,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[Sequence[str]]:
+    ) -> r[t.StrSequence]:
         """Alias for get_primary_keys."""
         return self.get_primary_keys(table_name, schema_name)
 
@@ -680,10 +680,10 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> r[Sequence[str]]:
+    ) -> r[t.StrSequence]:
         """Get primary key column names for specified table."""
 
-        def _fetch_keys() -> Sequence[str]:
+        def _fetch_keys() -> t.StrSequence:
             if schema:
                 sql = "\n                SELECT column_name\n                FROM all_constraints c, all_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                AND c.owner = UPPER(:schema)\n                ORDER BY cc.position\n                "
                 params = t.ConfigMap(root={"table_name": table_name, "schema": schema})
@@ -709,7 +709,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to get primary keys: {e}")
 
-    def get_schemas(self) -> r[Sequence[str]]:
+    def get_schemas(self) -> r[t.StrSequence]:
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
         return self.execute_query(sql).map(
@@ -785,7 +785,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"Failed to get row count: {e}")
 
-    def get_tables(self, schema: str | None = None) -> r[Sequence[str]]:
+    def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
         """Get list of tables in Oracle schema."""
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"
@@ -912,7 +912,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             if isinstance(_tags, t.ConfigMap) or _tags is None
             else t.ConfigMap.model_validate({"root": dict(_tags)})
         )
-        tags_str: Mapping[str, str] = (
+        tags_str: t.StrMapping = (
             {str(k): str(v) for k, v in typed_tags.root.items()}
             if typed_tags is not None
             else {}
@@ -1081,7 +1081,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         rows = mapping_result.all()
         result: Sequence[t.Dict] = []
         for row in rows:
-            row_dict: Mapping[str, str] = {
+            row_dict: t.StrMapping = {
                 str(key): str(val) for key, val in dict(row).items()
             }
             result.append(t.Dict.model_validate({"root": row_dict}))

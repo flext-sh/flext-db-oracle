@@ -57,7 +57,7 @@ class FlextDbOracleModels(FlextModels):
             """Structured output payload for formatter rendering."""
 
             title: Annotated[str, Field(default="")]
-            items: Annotated[Sequence[str], Field(default_factory=list)]
+            items: Annotated[t.StrSequence, Field(default_factory=list)]
 
         class HealthCheckReport(FlextDbOracleBaseModel):
             """Health-check result payload for CLI reporting."""
@@ -265,7 +265,7 @@ class FlextDbOracleModels(FlextModels):
             execution_time_ms: t.NonNegativeInt = 0
 
             # Additional Oracle-specific query result details
-            columns: Annotated[Sequence[str], Field(default_factory=list)]
+            columns: Annotated[t.StrSequence, Field(default_factory=list)]
             rows: Annotated[
                 Sequence[FlextDbOracleModels.DbOracle.RowData],
                 Field(default_factory=list),
@@ -416,7 +416,7 @@ class FlextDbOracleModels(FlextModels):
                 Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata],
                 Field(default_factory=list),
             ]
-            primary_keys: Annotated[Sequence[str], Field(default_factory=list)]
+            primary_keys: Annotated[t.StrSequence, Field(default_factory=list)]
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
@@ -431,7 +431,7 @@ class FlextDbOracleModels(FlextModels):
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: Annotated[Mapping[str, str], Field(default_factory=dict)]
+            mapping: Annotated[t.StrMapping, Field(default_factory=dict)]
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
@@ -448,7 +448,7 @@ class FlextDbOracleModels(FlextModels):
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
 
-            type: str | Sequence[str] = "string"
+            type: str | t.StrSequence = "string"
 
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
@@ -528,7 +528,7 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             index_name: str
-            columns: Sequence[str]
+            columns: t.StrSequence
             unique: bool = False
             schema_name: Annotated[str, Field(default="", description="Schema name")]
             tablespace: Annotated[str, Field(default="", description="Tablespace name")]
@@ -545,9 +545,9 @@ class FlextDbOracleModels(FlextModels):
 
             target_table: str
             source_query: str
-            merge_conditions: Sequence[str]
-            update_columns: Annotated[Sequence[str], Field(default_factory=list)]
-            insert_columns: Annotated[Sequence[str], Field(default_factory=list)]
+            merge_conditions: t.StrSequence
+            update_columns: Annotated[t.StrSequence, Field(default_factory=list)]
+            insert_columns: Annotated[t.StrSequence, Field(default_factory=list)]
 
         # Command classes for dispatcher integration
         class ConnectCommand(FlextModels.Entity):
