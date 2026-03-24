@@ -17,7 +17,8 @@ from pathlib import Path
 
 import oracledb
 import pytest
-from flext_core import FlextLogger, p
+from flext_core import FlextLogger
+from tests import p
 from flext_tests import tk
 from pydantic import TypeAdapter, ValidationError
 
