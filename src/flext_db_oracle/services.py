@@ -664,7 +664,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
     ) -> r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]].ok(
-            [op for op in self._operations],  # noqa: C416
+            list(self._operations),
         )
 
     def get_plugin(self, _name: str) -> r[t.ContainerValue]:
