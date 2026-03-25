@@ -15,8 +15,10 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
+
 if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, h, r, s, x
+    from flext_core import FlextTypes
+    from flext_core import d, h, r, s, x
 
     from flext_db_oracle.__version__ import (
         __all__,
@@ -67,14 +69,8 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "FlextDbOracleCli": ["flext_db_oracle.cli", "FlextDbOracleCli"],
     "FlextDbOracleClient": ["flext_db_oracle.client", "FlextDbOracleClient"],
     "FlextDbOracleConstants": ["flext_db_oracle.constants", "FlextDbOracleConstants"],
-    "FlextDbOracleDispatcher": [
-        "flext_db_oracle.dispatcher",
-        "FlextDbOracleDispatcher",
-    ],
-    "FlextDbOracleExceptions": [
-        "flext_db_oracle.exceptions",
-        "FlextDbOracleExceptions",
-    ],
+    "FlextDbOracleDispatcher": ["flext_db_oracle.dispatcher", "FlextDbOracleDispatcher"],
+    "FlextDbOracleExceptions": ["flext_db_oracle.exceptions", "FlextDbOracleExceptions"],
     "FlextDbOracleModels": ["flext_db_oracle.models", "FlextDbOracleModels"],
     "FlextDbOraclePassword": ["flext_db_oracle.settings", "FlextDbOraclePassword"],
     "FlextDbOracleProtocols": ["flext_db_oracle.protocols", "FlextDbOracleProtocols"],
@@ -164,7 +160,6 @@ def __getattr__(name: str) -> FlextTypes.ModuleExport:
 
     Raises:
         AttributeError: If attribute not registered.
-
     """
     if name in _LAZY_CACHE:
         return _LAZY_CACHE[name]
@@ -179,7 +174,6 @@ def __dir__() -> Sequence[str]:
 
     Returns:
         List of public names from module exports.
-
     """
     return sorted(__all__)
 

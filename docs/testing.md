@@ -306,7 +306,11 @@ ______________________________________________________________________
 # pytest.ini_options coverage exclusions
 exclude_lines = [
     "@(abc\\.)?abstractmethod",  # Abstract methods
+<<<<<<< Updated upstream
     "class .*\\b\\):",  # Protocol classes
+=======
+    "class .*\\bProtocol\\):",  # Protocol classes
+>>>>>>> Stashed changes
     "def __repr__",  # Debug representations
     "if self.debug:",  # Debug-only code
     "raise AssertionError",  # Assertion messages
