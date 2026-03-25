@@ -873,7 +873,7 @@ class TestCLIRealFunctionality:
                     eq=True,
                 )
             else:
-                tm.that(result, none=False)
+                assert result is not None
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""

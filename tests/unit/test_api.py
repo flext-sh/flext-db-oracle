@@ -701,8 +701,7 @@ class TestFlextDbOracleApiRealFunctionality:
         result5 = self.api.register_plugin("test", {"plugin": "data"})
         tm.that(hasattr(result5, "is_success"), eq=True)
         tm.that(hasattr(result5, "error"), eq=True)
-        all_results: list[r[t.NormalizedValue]] = [result1, result2, result3, result4, result5]
-        for res in all_results:
+        for res in (result1, result2, result3, result4, result5):
             tm.that(hasattr(res, "is_success"), eq=True)
             tm.that(hasattr(res, "error"), eq=True)
             if res.is_success:
@@ -1239,7 +1238,7 @@ class TestFlextDbOracleApiSafeMethods:
                 ),
                 eq=True,
             )
-        plugin: t.ContainerMapping = {
+        plugin: t.ContainerValueMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1347,7 +1346,7 @@ class TestFlextDbOracleApiSafeMethods:
             password="helper_pass",
         )
         api = FlextDbOracleApi(config)
-        plugin: t.ContainerMapping = {
+        plugin: t.ContainerValueMapping = {
             "name": "performance_monitor",
             "version": "1.0.0",
             "type": "monitoring",
@@ -1651,7 +1650,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars: Mapping[str, str | None] = {}
+        original_vars: dict[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",
@@ -1930,7 +1929,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(config=config)
-        sql_test_cases = [
+        sql_test_cases: list[dict[str, t.NormalizedValue]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),

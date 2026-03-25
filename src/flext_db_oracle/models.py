@@ -240,7 +240,7 @@ class FlextDbOracleModels(FlextModels):
             # Additional Oracle-specific query result details
             columns: t.StrSequence = Field(default_factory=list)
             rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = Field(
-                default_factory=list
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
             )
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
@@ -324,10 +324,7 @@ class FlextDbOracleModels(FlextModels):
                     self.row_count = len(self.rows)
                 if self.rows and self.columns:
                     for row in self.rows:
-                        if isinstance(
-                            row,
-                            FlextDbOracleModels.DbOracle.RowData,
-                        ) and len(row.values) != len(self.columns):
+                        if len(row.values) != len(self.columns):
                             msg = f"Row length {len(row.values)} doesn't match column count {len(self.columns)}"
                             raise ValueError(msg)
                 if self.execution_time_ms < 0:
@@ -373,7 +370,7 @@ class FlextDbOracleModels(FlextModels):
             table_name: str
             schema_name: str = ""
             columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=list
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.ColumnMetadata](),
             )
             primary_keys: t.StrSequence = Field(default_factory=list)
 
@@ -422,7 +419,7 @@ class FlextDbOracleModels(FlextModels):
             name: str
             owner: str = ""
             columns: Sequence[FlextDbOracleModels.DbOracle.Column] = Field(
-                default_factory=list
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Column](),
             )
 
         class Column(FlextModels.Entity):
@@ -470,7 +467,7 @@ class FlextDbOracleModels(FlextModels):
 
             name: str
             tables: Sequence[FlextDbOracleModels.DbOracle.Table] = Field(
-                default_factory=list
+                default_factory=lambda: list[FlextDbOracleModels.DbOracle.Table](),
             )
 
         class CreateIndexConfig(FlextModels.Entity):
@@ -529,7 +526,7 @@ class FlextDbOracleModels(FlextModels):
 
             sql: str
             parameters_list: Sequence[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=list
+                default_factory=lambda: list[Mapping[str, t.ContainerValue]](),
             )
 
         class GetSchemasCommand(FlextModels.Entity):

@@ -285,7 +285,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
-            return r[Self].fail(url_result.error or "Failed to build connection URL")  # type: ignore[return-value]
+            return r[Self].fail(url_result.error or "Failed to build connection URL")
         self._engine = self._sqlalchemy_create_engine(url_result.value)
         try:
             connect_ctx = self._engine_connect(self._engine)
@@ -298,7 +298,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 self._context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
-            return r[Self].ok(self)  # type: ignore[return-value,arg-type]
+            return r[Self].ok(self)
         except (
             oracledb.DatabaseError,
             oracledb.InterfaceError,
@@ -333,7 +333,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
-                        return r[Self].ok(self)  # type: ignore[return-value,arg-type]
+                        return r[Self].ok(self)
                     except (
                         FlextDbOracleServices.OracleDatabaseError,
                         FlextDbOracleServices.OracleInterfaceError,
@@ -346,7 +346,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r[Self].fail(f"Connection failed: {e}")  # type: ignore[return-value]
+            return r[Self].fail(f"Connection failed: {e}")
 
     def convert_singer_type(
         self,
@@ -385,7 +385,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 nullable = "" if col.nullable else " NOT NULL"
                 if col.primary_key:
                     primary_keys.append(name)
-            elif isinstance(col, Mapping):
+            else:
                 name_value = col.get("name") or col.get("column_name")
                 data_type_value = col.get("data_type")
                 nullable_value = col.get("nullable", True)
@@ -400,8 +400,6 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 nullable = "" if bool(nullable_value) else " NOT NULL"
                 if bool(col.get("primary_key", False)):
                     primary_keys.append(name)
-            else:
-                continue
             col_defs.append(f"{name} {data_type}{nullable}")
         if primary_keys:
             col_defs.append(f"PRIMARY KEY ({', '.join(primary_keys)})")

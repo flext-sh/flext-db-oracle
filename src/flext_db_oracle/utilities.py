@@ -70,7 +70,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 An Annotated type that validates and coerces string values to the enum.
 
             """
-            return Annotated[  # type: ignore[return-value]
+            return Annotated[
                 enum_cls,
                 BeforeValidator(FlextUtilities.coerce_validator(enum_cls)),
             ]
