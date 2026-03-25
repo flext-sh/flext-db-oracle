@@ -68,7 +68,7 @@ class TestOracleE2E:
             if execute_result.is_failure:
                 raise AssertionError(f"Table creation failed: {execute_result.error}")
             try:
-                test_data = [
+                test_data: list[dict[str, str | int | None]] = [
                     {"id": 1, "name": "John Doe", "email": "john@example.com"},
                     {"id": 2, "name": "Jane Smith", "email": "jane@example.com"},
                     {"id": 3, "name": "Bob Wilson", "email": None},
