@@ -57,7 +57,7 @@ class FlextDbOracleModels(FlextModels):
             """Structured output payload for formatter rendering."""
 
             title: Annotated[str, Field(default="")]
-            items: Annotated[t.StrSequence, Field(default_factory=list)]
+            items: t.StrSequence = Field(default_factory=list)
 
         class HealthCheckReport(FlextDbOracleBaseModel):
             """Health-check result payload for CLI reporting."""
@@ -67,17 +67,16 @@ class FlextDbOracleModels(FlextModels):
             port: Annotated[t.NonNegativeInt, Field(default=0)]
             service_name: Annotated[str, Field(default="")]
             response_time_ms: Annotated[t.NonNegativeFloat, Field(default=0.0)]
-            details: Annotated[
-                Mapping[str, t.ContainerValue],
-                Field(default_factory=dict),
-            ]
+            details: Annotated[Mapping[str, t.ContainerValue]] = Field(
+                default_factory=dict
+            )
             error: Annotated[str | None, Field(default=None)]
             timestamp: Annotated[str, Field(default="")]
 
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
 
-            values: Annotated[Sequence[t.ContainerValue], Field(default_factory=list)]
+            values: Sequence[t.ContainerValue] = Field(default_factory=list)
 
         class ColumnMetadata(FlextDbOracleBaseModel):
             """Typed column metadata payload."""
@@ -101,10 +100,7 @@ class FlextDbOracleModels(FlextModels):
             )
 
             is_connected: bool = False
-            last_check: Annotated[
-                datetime,
-                Field(default_factory=lambda: datetime.now(UTC)),
-            ]
+            last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
             error_message: Annotated[
                 str,
                 Field(
@@ -121,10 +117,7 @@ class FlextDbOracleModels(FlextModels):
                     description="Connection establishment time in seconds",
                 ),
             ]
-            last_activity: Annotated[
-                datetime,
-                Field(default_factory=lambda: datetime.now(UTC)),
-            ]
+            last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
             session_id: Annotated[
                 str,
                 Field(default="", description="Oracle session identifier"),
@@ -260,19 +253,15 @@ class FlextDbOracleModels(FlextModels):
             )
 
             query: str
-            result_data: Annotated[
-                Sequence[t.ContainerValue],
-                Field(default_factory=list),
-            ]
+            result_data: Sequence[t.ContainerValue] = Field(default_factory=list)
             row_count: t.NonNegativeInt = 0
             execution_time_ms: t.NonNegativeInt = 0
 
             # Additional Oracle-specific query result details
-            columns: Annotated[t.StrSequence, Field(default_factory=list)]
-            rows: Annotated[
-                Sequence[FlextDbOracleModels.DbOracle.RowData],
-                Field(default_factory=list),
-            ]
+            columns: t.StrSequence = Field(default_factory=list)
+            rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = Field(
+                default_factory=list
+            )
             query_hash: Annotated[
                 str,
                 Field(default="", description="Query hash for caching"),
@@ -391,10 +380,9 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Annotated[
-                Mapping[str, t.ContainerValue],
-                Field(default_factory=dict),
-            ]
+            metrics: Annotated[Mapping[str, t.ContainerValue]] = Field(
+                default_factory=dict
+            )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
@@ -415,11 +403,10 @@ class FlextDbOracleModels(FlextModels):
 
             table_name: str
             schema_name: str = ""
-            columns: Annotated[
-                Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata],
-                Field(default_factory=list),
-            ]
-            primary_keys: Annotated[t.StrSequence, Field(default_factory=list)]
+            columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
+                default_factory=list
+            )
+            primary_keys: t.StrSequence = Field(default_factory=list)
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
@@ -434,7 +421,7 @@ class FlextDbOracleModels(FlextModels):
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: Annotated[t.StrMapping, Field(default_factory=dict)]
+            mapping: t.StrMapping = Field(default_factory=dict)
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
@@ -457,19 +444,17 @@ class FlextDbOracleModels(FlextModels):
             """Singer schema container with typed properties."""
 
             properties: Annotated[
-                Mapping[str, FlextDbOracleModels.DbOracle.SingerField],
-                Field(default_factory=dict),
-            ]
+                Mapping[str, FlextDbOracleModels.DbOracle.SingerField]
+            ] = Field(default_factory=dict)
 
         class Table(FlextModels.Entity):
             """Table metadata using flext-core Entity."""
 
             name: str
             owner: str = ""
-            columns: Annotated[
-                Sequence[FlextDbOracleModels.DbOracle.Column],
-                Field(default_factory=list),
-            ]
+            columns: Sequence[FlextDbOracleModels.DbOracle.Column] = Field(
+                default_factory=list
+            )
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
@@ -521,10 +506,9 @@ class FlextDbOracleModels(FlextModels):
             """Schema metadata using flext-core Entity."""
 
             name: str
-            tables: Annotated[
-                Sequence[FlextDbOracleModels.DbOracle.Table],
-                Field(default_factory=list),
-            ]
+            tables: Sequence[FlextDbOracleModels.DbOracle.Table] = Field(
+                default_factory=list
+            )
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
@@ -549,8 +533,8 @@ class FlextDbOracleModels(FlextModels):
             target_table: str
             source_query: str
             merge_conditions: t.StrSequence
-            update_columns: Annotated[t.StrSequence, Field(default_factory=list)]
-            insert_columns: Annotated[t.StrSequence, Field(default_factory=list)]
+            update_columns: t.StrSequence = Field(default_factory=list)
+            insert_columns: t.StrSequence = Field(default_factory=list)
 
         # Command classes for dispatcher integration
         class ConnectCommand(FlextModels.Entity):
@@ -584,10 +568,9 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: Annotated[
-                Sequence[Mapping[str, t.ContainerValue]],
-                Field(default_factory=list),
-            ]
+            parameters_list: Annotated[Sequence[Mapping[str, t.ContainerValue]]] = (
+                Field(default_factory=list)
+            )
 
         class GetSchemasCommand(FlextModels.Entity):
             """Command to retrieve all schemas."""

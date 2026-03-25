@@ -1096,12 +1096,12 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Normalize SQLAlchemy query result rows into typed mapping models."""
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
-        result: MutableSequence[t.Dict] = []
-        for row in rows:
-            row_dict: t.StrMapping = {
-                str(key): str(val) for key, val in dict(row).items()
-            }
-            result.append(t.Dict.model_validate({"root": row_dict}))
+        result: Sequence[t.Dict] = [
+            t.Dict.model_validate({
+                "root": {str(key): str(val) for key, val in dict(row).items()},
+            })
+            for row in rows
+        ]
         return result
 
     def _normalize_row(self, row: Mapping[str, t.ContainerValue]) -> t.Dict:
