@@ -51,25 +51,25 @@ class FlextDbOracleModels(FlextModels):
         class NamedItem(FlextDbOracleBaseModel):
             """Named item payload for list formatting."""
 
-            name: Annotated[str, Field(default="")]
+            name: str = ""
 
         class OutputPayload(FlextDbOracleBaseModel):
             """Structured output payload for formatter rendering."""
 
-            title: Annotated[str, Field(default="")]
+            title: str = ""
             items: t.StrSequence = Field(default_factory=list)
 
         class HealthCheckReport(FlextDbOracleBaseModel):
             """Health-check result payload for CLI reporting."""
 
-            status: Annotated[str, Field(default="unknown")]
-            host: Annotated[str, Field(default="")]
-            port: Annotated[t.NonNegativeInt, Field(default=0)]
-            service_name: Annotated[str, Field(default="")]
-            response_time_ms: Annotated[t.NonNegativeFloat, Field(default=0.0)]
+            status: str = "unknown"
+            host: str = ""
+            port: t.NonNegativeInt = 0
+            service_name: str = ""
+            response_time_ms: t.NonNegativeFloat = 0.0
             details: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
-            error: Annotated[str | None, Field(default=None)]
-            timestamp: Annotated[str, Field(default="")]
+            error: str | None = None
+            timestamp: str = ""
 
         class RowData(FlextDbOracleBaseModel):
             """Typed row payload for query results."""
@@ -99,44 +99,26 @@ class FlextDbOracleModels(FlextModels):
 
             is_connected: bool = False
             last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
-            error_message: Annotated[
-                str,
-                Field(
-                    default="",
-                    description="Error message when disconnected",
-                ),
-            ]
+            error_message: str = Field(
+                default="",
+                description="Error message when disconnected",
+            )
 
             # Additional Oracle-specific connection details
-            connection_time: Annotated[
-                t.NonNegativeFloat,
-                Field(
-                    default=0.0,
-                    description="Connection establishment time in seconds",
-                ),
-            ]
+            connection_time: t.NonNegativeFloat = Field(
+                default=0.0,
+                description="Connection establishment time in seconds",
+            )
             last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
-            session_id: Annotated[
-                str,
-                Field(default="", description="Oracle session identifier"),
-            ]
-            host: Annotated[str, Field(default="", description="Database host")]
-            port: Annotated[
-                t.PortNumber,
-                Field(
-                    default=c.DbOracle.Connection.DEFAULT_PORT,
-                    description="Database port",
-                ),
-            ]
-            service_name: Annotated[
-                str,
-                Field(default="", description="Oracle service name"),
-            ]
-            username: Annotated[str, Field(default="", description="Database username")]
-            db_version: Annotated[
-                str,
-                Field(default="", description="Oracle database version"),
-            ]
+            session_id: str = Field(default="", description="Oracle session identifier")
+            host: str = Field(default="", description="Database host")
+            port: t.PortNumber = Field(
+                default=c.DbOracle.Connection.DEFAULT_PORT,
+                description="Database port",
+            )
+            service_name: str = Field(default="", description="Oracle service name")
+            username: str = Field(default="", description="Database username")
+            db_version: str = Field(default="", description="Oracle database version")
 
             @property
             def connection_age_seconds(self) -> float:
@@ -260,14 +242,8 @@ class FlextDbOracleModels(FlextModels):
             rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = Field(
                 default_factory=list
             )
-            query_hash: Annotated[
-                str,
-                Field(default="", description="Query hash for caching"),
-            ]
-            explain_plan: Annotated[
-                str,
-                Field(default="", description="Query execution plan"),
-            ]
+            query_hash: str = Field(default="", description="Query hash for caching")
+            explain_plan: str = Field(default="", description="Query execution plan")
 
             @property
             def column_count(self) -> int:
@@ -365,10 +341,7 @@ class FlextDbOracleModels(FlextModels):
             operation_type: str
             duration: float
             success: bool
-            metadata_info: Annotated[
-                str,
-                Field(default="", description="Operation metadata"),
-            ]
+            metadata_info: str = Field(default="", description="Operation metadata")
             timestamp: str
 
         class HealthStatus(FlextModels.Entity):
@@ -439,9 +412,9 @@ class FlextDbOracleModels(FlextModels):
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
 
-            properties: Mapping[
-                str, FlextDbOracleModels.DbOracle.SingerField
-            ] = Field(default_factory=dict)
+            properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
+                default_factory=dict
+            )
 
         class Table(FlextModels.Entity):
             """Table metadata using flext-core Entity."""
