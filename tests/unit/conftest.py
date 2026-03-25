@@ -25,7 +25,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import p, t
 
 logger: p.Logger = FlextLogger(__name__)
-_PORT_BINDINGS_ADAPTER = TypeAdapter(Mapping[str, str])
+_PORT_BINDINGS_ADAPTER: TypeAdapter[Mapping[str, str]] = TypeAdapter(Mapping[str, str])
 
 
 def _workspace_root() -> Path:

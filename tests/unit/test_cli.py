@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Callable, MutableMapping, Sequence
 from unittest.mock import Mock, patch
 
 import yaml
@@ -448,7 +448,8 @@ class TestOutputFormatter:
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
         parsed_data = yaml.safe_load(result.value)
-        tm.that(parsed_data, eq={"key": "value", "number": 42})
+        expected: dict[str, str | int] = {"key": "value", "number": 42}
+        tm.that(parsed_data, eq=expected)
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""
@@ -857,7 +858,7 @@ class TestCLIRealFunctionality:
             password="comp_pass",
         )
         api = FlextDbOracleApi(config)
-        methods_to_test = [
+        methods_to_test: list[tuple[str, Callable[[], object]]] = [
             ("is_valid", api.is_valid),
             ("to_dict", api.to_dict),
             ("get_observability_metrics", api.get_observability_metrics),

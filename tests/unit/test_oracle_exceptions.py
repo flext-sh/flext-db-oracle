@@ -286,7 +286,7 @@ class TestRealOracleExceptionsAdvanced:
         ]
         for config_data in invalid_configs:
             try:
-                port_value = int(config_data.get("port", 1521))
+                port_value = int(str(config_data.get("port", 1521)))
                 tm.that(port_value, is_=int)
                 host_value = str(config_data.get("host", ""))
                 user_value = str(config_data.get("user", ""))

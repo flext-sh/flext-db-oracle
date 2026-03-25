@@ -515,7 +515,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
-        test_schema: t.ContainerMapping = {
+        test_schema: t.ContainerValueMapping = {
             "type": "t.NormalizedValue",
             "properties": {
                 "id": {"type": "integer"},
@@ -701,17 +701,18 @@ class TestFlextDbOracleApiRealFunctionality:
         result5 = self.api.register_plugin("test", {"plugin": "data"})
         tm.that(hasattr(result5, "is_success"), eq=True)
         tm.that(hasattr(result5, "error"), eq=True)
-        for result in [result1, result2, result3, result4, result5]:
-            tm.that(hasattr(result, "is_success"), eq=True)
-            tm.that(hasattr(result, "error"), eq=True)
-            if result.is_success:
-                tm.that(result.error, none=True)
-                _ = getattr(result, "value", None)
+        all_results: list[r[t.NormalizedValue]] = [result1, result2, result3, result4, result5]
+        for res in all_results:
+            tm.that(hasattr(res, "is_success"), eq=True)
+            tm.that(hasattr(res, "error"), eq=True)
+            if res.is_success:
+                tm.that(res.error, none=True)
+                _ = getattr(res, "value", None)
             else:
-                tm.that(result.error, none=False)
-                tm.that(result.error, is_=str)
-                if result.error is not None:
-                    tm.that(result.error, eq=True)
+                tm.that(res.error, none=False)
+                tm.that(res.error, is_=str)
+                if res.error is not None:
+                    tm.that(res.error, eq=True)
 
 
 "Unit tests for flext_db_oracle.api module.\n\nTests FlextDbOracleApi functionality with real implementations,\nno mocks or legacy patterns. Achieves near 100% coverage following FLEXT standards.\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -966,8 +967,8 @@ class TestApiModule:
             result = api.connect()
             tm.that(result, is_=r)
         if hasattr(api, "query"):
-            result = api.query(str(test_query["query"]))
-            tm.that(result, is_=r)
+            query_result = api.query(str(test_query["query"]))
+            tm.that(query_result, is_=r)
 
     def test_flext_db_oracle_api_docstring(self) -> None:
         """Test that FlextDbOracleApi has proper docstring."""
@@ -1129,7 +1130,7 @@ class TestApiModule:
                 query_result: r[Sequence[t.Dict]] = api.query(sql)
                 results.append(query_result)
 
-        threads: Sequence[Thread] = []
+        threads: MutableSequence[Thread] = []
         for i in range(5):
             thread = threading.Thread(target=connect_to_database, args=(i,))
             threads.append(thread)

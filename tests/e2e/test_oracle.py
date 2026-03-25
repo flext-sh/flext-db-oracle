@@ -11,10 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 
 import pytest
-
-from collections.abc import Mapping
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
 
