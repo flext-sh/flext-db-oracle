@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
 if TYPE_CHECKING:
-    from flext_core import FlextTypes, d, h, r, s, x
+    from flext_core import FlextTypes, d, h, r, x
 
     from flext_db_oracle.__version__ import (
         __all__,
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
         FlextDbOracleProtocols,
         FlextDbOracleProtocols as p,
     )
-    from flext_db_oracle.services import FlextDbOracleServices
+    from flext_db_oracle.services import FlextDbOracleServices, s
     from flext_db_oracle.settings import (
         FlextDbOraclePassword,
         FlextDbOracleSettings,
@@ -101,7 +101,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "m": ["flext_db_oracle.models", "FlextDbOracleModels"],
     "p": ["flext_db_oracle.protocols", "FlextDbOracleProtocols"],
     "r": ["flext_core", "r"],
-    "s": ["flext_core", "s"],
+    "s": ["flext_db_oracle.services", "s"],
     "t": ["flext_db_oracle.typings", "FlextDbOracleTypes"],
     "u": ["flext_db_oracle.utilities", "FlextDbOracleUtilities"],
     "x": ["flext_core", "x"],
