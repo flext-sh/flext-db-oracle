@@ -438,27 +438,25 @@ class FlextDbOracleConstants(FlextConstants):
         QueryTypeLiteral: Final = tuple(Lists.VALID_QUERY_TYPES)
         DataTypeLiteral: Final = tuple(Lists.VALID_DATA_TYPES)
 
-    Platform = DbOracle.Platform
+        @unique
+        class ProjectType(StrEnum):
+            """Project type literals for package metadata."""
 
-    @unique
-    class ProjectType(StrEnum):
-        """Project type literals for package metadata."""
-
-        LIBRARY = "library"
-        APPLICATION = "application"
-        SERVICE = "service"
-        ORACLE_SERVICE = "oracle-service"
-        DATABASE_SERVICE = "database-service"
-        DATA_WAREHOUSE = "data-warehouse"
-        ETL_SERVICE = "etl-service"
-        ORACLE_CLIENT = "oracle-client"
-        DB_MIGRATION = "db-migration"
-        SCHEMA_MANAGER = "schema-manager"
-        DATA_PIPELINE = "data-pipeline"
-        ORACLE_API = "oracle-api"
-        DATABASE_API = "database-api"
-        SQL_SERVICE = "sql-service"
-        DATA_CONNECTOR = "data-connector"
+            LIBRARY = "library"
+            APPLICATION = "application"
+            SERVICE = "service"
+            ORACLE_SERVICE = "oracle-service"
+            DATABASE_SERVICE = "database-service"
+            DATA_WAREHOUSE = "data-warehouse"
+            ETL_SERVICE = "etl-service"
+            ORACLE_CLIENT = "oracle-client"
+            DB_MIGRATION = "db-migration"
+            SCHEMA_MANAGER = "schema-manager"
+            DATA_PIPELINE = "data-pipeline"
+            ORACLE_API = "oracle-api"
+            DATABASE_API = "database-api"
+            SQL_SERVICE = "sql-service"
+            DATA_CONNECTOR = "data-connector"
 
 
 c = FlextDbOracleConstants
