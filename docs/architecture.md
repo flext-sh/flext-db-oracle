@@ -159,11 +159,7 @@ from flext_core import t
 from flext_core import u
 
 
-<<<<<<< Updated upstream
 def query_operation() -> r[List[Dict]]:
-=======
-def query_operation() -> FlextResult[List[Dict]]:
->>>>>>> Stashed changes
     # No try/catch - explicit error handling
     connection_result = self._get_connection()
     if connection_result.is_failure:
