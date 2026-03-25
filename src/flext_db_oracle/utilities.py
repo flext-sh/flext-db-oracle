@@ -7,10 +7,9 @@ import hashlib
 import os
 from collections.abc import Mapping
 from enum import StrEnum
-from typing import Annotated
 
 from flext_core import FlextUtilities, r
-from pydantic import BeforeValidator, RootModel, TypeAdapter, ValidationError
+from pydantic import RootModel, TypeAdapter, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -61,19 +60,16 @@ class FlextDbOracleUtilities(FlextUtilities):
 
         @staticmethod
         def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
-            """Create an Annotated StrEnum type with automatic coercion.
+            """Create a coerced enum type with validation.
 
             Args:
-                enum_cls: The StrEnum class to create an annotated type for.
+                enum_cls: The StrEnum class to create a coerced type for.
 
             Returns:
-                An Annotated type that validates and coerces string values to the enum.
+                The enum class itself (callers apply Annotated+BeforeValidator as needed).
 
             """
-            return Annotated[
-                enum_cls,
-                BeforeValidator(FlextUtilities.coerce_validator(enum_cls)),
-            ]
+            return enum_cls
 
         @classmethod
         def dispatcher_enabled(cls) -> bool:
