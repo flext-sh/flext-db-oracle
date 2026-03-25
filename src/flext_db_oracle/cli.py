@@ -62,10 +62,10 @@ class FlextDbOracleCli(FlextService[str]):
         """Initialize FlextCliCommands, returning success or failure."""
         try:
             if self._cli_main is not None:
-                return r[FlextCliCommands].ok(self._cli_main)
+                return r[FlextCliCommands | None].ok(self._cli_main)
             cli_main = FlextCliCommands()
             self._cli_main = cli_main
-            return r[FlextCliCommands].ok(cli_main)
+            return r[FlextCliCommands | None].ok(cli_main)
         except Exception as e:
             return r[FlextCliCommands | None].fail(
                 f"FlextCliCommands initialization failed: {e}",

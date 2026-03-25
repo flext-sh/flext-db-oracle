@@ -439,8 +439,8 @@ class FlextDbOracleModels(FlextModels):
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
 
-            properties: Annotated[
-                Mapping[str, FlextDbOracleModels.DbOracle.SingerField]
+            properties: Mapping[
+                str, FlextDbOracleModels.DbOracle.SingerField
             ] = Field(default_factory=dict)
 
         class Table(FlextModels.Entity):
@@ -564,8 +564,8 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: Annotated[Sequence[Mapping[str, t.ContainerValue]]] = (
-                Field(default_factory=list)
+            parameters_list: Sequence[Mapping[str, t.ContainerValue]] = Field(
+                default_factory=list
             )
 
         class GetSchemasCommand(FlextModels.Entity):

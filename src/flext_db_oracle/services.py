@@ -23,7 +23,7 @@ from typing import Self, override
 from urllib.parse import quote_plus
 
 import oracledb
-from flext_core import r, s
+from flext_core import FlextService, r
 from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
@@ -44,7 +44,7 @@ from flext_db_oracle.models import FlextDbOracleModels
 from flext_db_oracle.settings import FlextDbOracleSettings
 
 
-class FlextDbOracleServices(s[FlextDbOracleSettings]):
+class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
     """Generic Oracle database services using flext-core patterns."""
 
     OracleDatabaseError: type[Exception] = oracledb.DatabaseError
@@ -285,7 +285,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
-            return r[Self].fail(url_result.error or "Failed to build connection URL")
+            return r[Self].fail(url_result.error or "Failed to build connection URL")  # type: ignore[return-value]
         self._engine = self._sqlalchemy_create_engine(url_result.value)
         try:
             connect_ctx = self._engine_connect(self._engine)
@@ -298,10 +298,10 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             finally:
                 self._context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
-            return r[Self].ok(self)
+            return r[Self].ok(self)  # type: ignore[return-value,arg-type]
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -333,7 +333,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
-                        return r[Self].ok(self)
+                        return r[Self].ok(self)  # type: ignore[return-value,arg-type]
                     except (
                         FlextDbOracleServices.OracleDatabaseError,
                         FlextDbOracleServices.OracleInterfaceError,
@@ -346,7 +346,7 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                         self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r[Self].fail(f"Connection failed: {e}")
+            return r[Self].fail(f"Connection failed: {e}")  # type: ignore[return-value]
 
     def convert_singer_type(
         self,
@@ -466,8 +466,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             finally:
                 self._context_exit(connect_ctx)
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -503,8 +503,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             finally:
                 self._context_exit(connect_ctx)
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -534,8 +534,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             finally:
                 self._context_exit(transaction_ctx)
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -980,8 +980,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
                 self._context_exit(connect_ctx)
             return r[bool].ok(True)
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -1069,8 +1069,8 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
             url = f"{base}/?service_name={service_name}"
             return r[str].ok(url)
         except (
-            FlextDbOracleServices.OracleDatabaseError,
-            FlextDbOracleServices.OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -1121,6 +1121,6 @@ class FlextDbOracleServices(s[FlextDbOracleSettings]):
         return FlextDbOracleServices._parse_count_value(count_str)
 
 
-s = FlextDbOracleServices
+s: type[FlextDbOracleServices] = FlextDbOracleServices
 
 __all__ = ["FlextDbOracleServices", "s"]

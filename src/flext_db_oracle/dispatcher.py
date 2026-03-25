@@ -168,10 +168,12 @@ class FlextDbOracleDispatcher(FlextService[None]):
         def execute_many_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, FlextDbOracleModels.DbOracle.ExecuteManyCommand):
                 sql = command.sql
-                parameters_list = command.parameters_list
+                parameters_list: Sequence[t.ContainerValueMapping] = list(
+                    command.parameters_list
+                )
             else:
                 sql = ""
-                parameters_list: Sequence[t.ContainerValueMapping] = []
+                parameters_list = []
             return services.execute_many(sql, parameters_list).map_or(0)
 
         return {

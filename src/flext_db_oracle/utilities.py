@@ -70,11 +70,10 @@ class FlextDbOracleUtilities(FlextUtilities):
                 An Annotated type that validates and coerces string values to the enum.
 
             """
-            annotated_type: type[E] = Annotated[
+            return Annotated[  # type: ignore[return-value]
                 enum_cls,
                 BeforeValidator(FlextUtilities.coerce_validator(enum_cls)),
             ]
-            return annotated_type
 
         @classmethod
         def dispatcher_enabled(cls) -> bool:
