@@ -47,17 +47,17 @@ class FlextDbOracleUtilities(FlextUtilities):
 
         """
 
-        class _StrictIntValue(RootModel[int]):
+        class StrictIntValue(RootModel[int]):
             """Strict integer parser via Pydantic validation."""
 
             root: int
 
-        class _CountValue(RootModel[int | str]):
+        class CountValue(RootModel[int | str]):
             """Numeric value parser accepting int or numeric string."""
 
             root: int | str
 
-        _STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+        STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
 
         @staticmethod
         def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -180,7 +180,7 @@ class FlextDbOracleUtilities(FlextUtilities):
             if isinstance(value, int):
                 return value
             try:
-                return FlextDbOracleUtilities.DbOracle._StrictIntValue.model_validate(
+                return FlextDbOracleUtilities.DbOracle.StrictIntValue.model_validate(
                     value,
                 ).root
             except ValidationError:
@@ -197,7 +197,7 @@ class FlextDbOracleUtilities(FlextUtilities):
                 except ValueError:
                     return 0
             try:
-                validated = FlextDbOracleUtilities.DbOracle._CountValue.model_validate(
+                validated = FlextDbOracleUtilities.DbOracle.CountValue.model_validate(
                     value,
                 ).root
             except ValidationError:
@@ -211,8 +211,10 @@ class FlextDbOracleUtilities(FlextUtilities):
         def _normalize_singer_type(value: str | t.StrSequence) -> str:
             """Normalize Singer type input to a single string value."""
             try:
-                values = FlextDbOracleUtilities.DbOracle._STRING_LIST_ADAPTER.validate_python(
-                    value,
+                values = (
+                    FlextDbOracleUtilities.DbOracle.STRING_LIST_ADAPTER.validate_python(
+                        value,
+                    )
                 )
             except ValidationError:
                 return str(value)
