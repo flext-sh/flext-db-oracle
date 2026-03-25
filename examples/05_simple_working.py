@@ -39,7 +39,7 @@ def demonstrate_real_functionality() -> None:
             logger.info("✅ Configuration is valid")
         else:
             logger.error("❌ Configuration is invalid")
-    except Exception:
+    except (ValueError, OSError, RuntimeError):
         logger.exception("❌ Unexpected error")
 
 

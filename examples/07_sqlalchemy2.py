@@ -26,7 +26,7 @@ def create_oracle_config() -> FlextDbOracleSettings:
         config_result = FlextDbOracleSettings.from_env()
         if config_result.is_success:
             return config_result.value
-    except Exception:
+    except (ValueError, OSError, RuntimeError):
         logger.debug("Could not load config from environment, using demo config")
     return FlextDbOracleSettings(
         host="demo-oracle.example.com",
@@ -47,7 +47,7 @@ def demonstrate_sqlalchemy_setup() -> None:
         logger.info(f"📍 Host: {config.host}:{config.port}")
         logger.info(f"📚 Service: {config.service_name}")
         logger.info("📚 Ready for SQLAlchemy 2.0 integration")
-    except Exception:
+    except (ValueError, OSError, RuntimeError):
         logger.exception("❌ Configuration setup failed")
 
 
