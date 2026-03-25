@@ -128,6 +128,9 @@ plugins = [
   "pydantic.mypy",
 ]
 python_version = "3.13"
+exclude = [
+  "docs",
+]
 
 [tool.poetry]
 

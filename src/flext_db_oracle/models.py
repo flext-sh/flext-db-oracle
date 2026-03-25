@@ -67,9 +67,7 @@ class FlextDbOracleModels(FlextModels):
             port: Annotated[t.NonNegativeInt, Field(default=0)]
             service_name: Annotated[str, Field(default="")]
             response_time_ms: Annotated[t.NonNegativeFloat, Field(default=0.0)]
-            details: Annotated[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=dict
-            )
+            details: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
             error: Annotated[str | None, Field(default=None)]
             timestamp: Annotated[str, Field(default="")]
 
@@ -380,9 +378,7 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Annotated[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=dict
-            )
+            metrics: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
