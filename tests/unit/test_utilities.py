@@ -10,6 +10,7 @@ import contextlib
 from collections.abc import Mapping, Sequence
 
 import pytest
+from flext_core import t
 from flext_tests import tm
 from pydantic import TypeAdapter
 
@@ -88,8 +89,8 @@ class TestFlextDbOracleUtilities:
 
     def test_generate_query_hash_params_order_independence(self) -> None:
         """Test query hash is independent of parameter order."""
-        params1 = {"id": 1, "name": "test", "active": True}
-        params2 = {"name": "test", "active": True, "id": 1}
+        params1: dict[str, t.ContainerValue] = {"id": 1, "name": "test", "active": True}
+        params2: dict[str, t.ContainerValue] = {"name": "test", "active": True, "id": 1}
         query = (
             "SELECT * FROM users WHERE id = :id AND name = :name AND active = :active"
         )
@@ -295,12 +296,12 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""
-        data = [{"id": 1, "name": "John", "active": True}]
+        data: list[dict[str, t.ContainerValue]] = [{"id": 1, "name": "John", "active": True}]
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
         parsed = self._JSON_RESULT_ADAPTER.validate_json(formatted)
-        tm.that(parsed, eq=data)
+        tm.that(parsed, eq=[{"id": 1, "name": "John", "active": True}])
 
     def test_format_query_result_json_empty(self) -> None:
         """Test JSON formatting with empty data."""
@@ -321,7 +322,7 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_table(self) -> None:
         """Test table formatting."""
-        data = [{"id": 1, "name": "John"}]
+        data: list[dict[str, t.ContainerValue]] = [{"id": 1, "name": "John"}]
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value

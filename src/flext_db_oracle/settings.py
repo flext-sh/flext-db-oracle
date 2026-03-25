@@ -91,33 +91,20 @@ class FlextDbOracleSettings(FlextSettings):
         validate_assignment=False,
     )
 
-    host: Annotated[str, Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)]
-    port: Annotated[t.PortNumber, Field(default=c.DbOracle.Connection.DEFAULT_PORT)]
-    service_name: Annotated[
-        OracleIdentifier,
-        Field(default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME),
-    ]
-    username: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)]
-    password: Annotated[
-        FlextDbOraclePassword | None,
-        Field(default=FlextDbOraclePassword("")),
-    ]
-    timeout: Annotated[
-        t.PositiveInt,
-        Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT),
-    ]
-    pool_min: Annotated[
-        t.PositiveInt,
-        Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN),
-    ]
-    pool_max: Annotated[
-        t.PositiveInt,
-        Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX),
-    ]
-    sid: Annotated[OracleIdentifier | None, Field(default=None)]
-    name: Annotated[str, Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)]
-    ssl_cert_file: Annotated[str | None, Field(default=None)]
-    ssl_server_cert_dn: Annotated[str | None, Field(default=None)]
+    host: str = Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)
+    port: t.PortNumber = Field(default=c.DbOracle.Connection.DEFAULT_PORT)
+    service_name: OracleIdentifier = Field(
+        default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+    )
+    username: str = Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)
+    password: FlextDbOraclePassword | None = Field(default=FlextDbOraclePassword(""))
+    timeout: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
+    pool_min: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)
+    pool_max: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)
+    sid: OracleIdentifier | None = Field(default=None)
+    name: str = Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)
+    ssl_cert_file: str | None = Field(default=None)
+    ssl_server_cert_dn: str | None = Field(default=None)
 
     @override
     def __new__(cls, **_kwargs: t.Scalar | None) -> Self:

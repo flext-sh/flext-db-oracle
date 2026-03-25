@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Annotated, ClassVar
+from typing import ClassVar
 
 from flext_core import FlextModels
 from pydantic import (
@@ -431,20 +431,14 @@ class FlextDbOracleModels(FlextModels):
             name: str
             data_type: str
             nullable: bool = True
-            primary_key: Annotated[
-                bool,
-                Field(
-                    default=False,
-                    description="Whether this column is a primary key",
-                ),
-            ]
-            default_value: Annotated[
-                str,
-                Field(
-                    default="",
-                    description="Default value for the column",
-                ),
-            ]
+            primary_key: bool = Field(
+                default=False,
+                description="Whether this column is a primary key",
+            )
+            default_value: str = Field(
+                default="",
+                description="Default value for the column",
+            )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
@@ -486,15 +480,12 @@ class FlextDbOracleModels(FlextModels):
             index_name: str
             columns: t.StrSequence
             unique: bool = False
-            schema_name: Annotated[str, Field(default="", description="Schema name")]
-            tablespace: Annotated[str, Field(default="", description="Tablespace name")]
-            parallel: Annotated[
-                t.PositiveInt,
-                Field(
-                    default=1,
-                    description="Parallel degree for index creation",
-                ),
-            ]
+            schema_name: str = Field(default="", description="Schema name")
+            tablespace: str = Field(default="", description="Tablespace name")
+            parallel: t.PositiveInt = Field(
+                default=1,
+                description="Parallel degree for index creation",
+            )
 
         class MergeStatementConfig(FlextModels.Entity):
             """Merge statement config using flext-core Entity."""

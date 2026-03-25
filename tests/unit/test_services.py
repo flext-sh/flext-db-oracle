@@ -168,7 +168,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: t.ContainerMapping = {"id": 1, "name": "test"}
+        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -184,7 +184,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: t.ContainerMapping = {"id": 1, "status": "active"}
+        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -224,7 +224,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: t.ContainerMapping = {
+        singer_schema: Mapping[str, t.ContainerValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -250,7 +250,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[t.ContainerMapping] = [
+        columns: Sequence[Mapping[str, t.ContainerValue]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -448,7 +448,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: t.ContainerMapping = {"id": 123}
+        params: Mapping[str, t.ContainerValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -691,7 +691,7 @@ class TestDirectCoverageBoostAPI:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         bad_config = FlextDbOracleSettings(
-            host=getattr(FlextDbOracleConstants.Platform, "LOOPBACK_IP"),
+            host=getattr(FlextDbOracleConstants.DbOracle.Platform, "LOOPBACK_IP"),
             port=9999,
             username="invalid",
             password="invalid",
@@ -790,7 +790,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars: Mapping[str, str | None] = {}
+        original_vars: MutableMapping[str, str | None] = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",
@@ -1061,20 +1061,20 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(config=config)
-        sql_test_cases = [
+        sql_test_cases: list[dict[str, str | tuple[str, ...]]] = [
             {
                 "method": "build_select",
-                "args": ("test_table", ["id", "name"], {"id": 1}),
+                "args": ("test_table", "id", "name"),
             },
             {
                 "method": "build_insert_statement",
-                "args": ("test_table", ["id", "name"]),
+                "args": ("test_table", "id", "name"),
             },
             {
                 "method": "build_update_statement",
-                "args": ("test_table", ["name"], ["id"]),
+                "args": ("test_table", "name", "id"),
             },
-            {"method": "build_delete_statement", "args": ("test_table", ["id"])},
+            {"method": "build_delete_statement", "args": ("test_table", "id")},
         ]
         for case_dict in sql_test_cases:
             method_name = str(case_dict["method"])
@@ -1104,7 +1104,7 @@ class TestDirectCoverageBoostServices:
                     tm.that(
                         (
                             getattr(
-                                FlextDbOracleConstants.Platform,
+                                FlextDbOracleConstants.DbOracle.Platform,
                                 "HTTP_METHOD_DELETE",
                             )
                             in sql_text.upper()
@@ -1474,7 +1474,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: t.ContainerMapping = {"id": 1, "name": "test"}
+        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -1490,7 +1490,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: t.ContainerMapping = {"id": 1, "status": "active"}
+        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -1530,7 +1530,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: t.ContainerMapping = {
+        singer_schema: Mapping[str, t.ContainerValue] = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1556,7 +1556,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[t.ContainerMapping] = [
+        columns: Sequence[Mapping[str, t.ContainerValue]] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1754,7 +1754,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: t.ContainerMapping = {"id": 123}
+        params: Mapping[str, t.ContainerValue] = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
