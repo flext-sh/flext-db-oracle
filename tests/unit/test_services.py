@@ -1062,10 +1062,18 @@ class TestDirectCoverageBoostServices:
         )
         services = FlextDbOracleServices(config=config)
         sql_test_cases: Sequence[SimpleNamespace] = [
-            SimpleNamespace(method="build_select", args=("test_table", ["id", "name"], {"id": 1})),
-            SimpleNamespace(method="build_insert_statement", args=("test_table", ["id", "name"])),
-            SimpleNamespace(method="build_update_statement", args=("test_table", ["name"], ["id"])),
-            SimpleNamespace(method="build_delete_statement", args=("test_table", ["id"])),
+            SimpleNamespace(
+                method="build_select", args=("test_table", ["id", "name"], {"id": 1})
+            ),
+            SimpleNamespace(
+                method="build_insert_statement", args=("test_table", ["id", "name"])
+            ),
+            SimpleNamespace(
+                method="build_update_statement", args=("test_table", ["name"], ["id"])
+            ),
+            SimpleNamespace(
+                method="build_delete_statement", args=("test_table", ["id"])
+            ),
         ]
         for case in sql_test_cases:
             method_name = case.method

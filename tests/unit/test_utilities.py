@@ -296,7 +296,9 @@ class TestFlextDbOracleUtilities:
 
     def test_format_query_result_json(self) -> None:
         """Test JSON formatting."""
-        data: list[dict[str, t.ContainerValue]] = [{"id": 1, "name": "John", "active": True}]
+        data: list[dict[str, t.ContainerValue]] = [
+            {"id": 1, "name": "John", "active": True}
+        ]
         result = FlextDbOracleUtilities.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value

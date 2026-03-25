@@ -370,7 +370,9 @@ class FlextDbOracleModels(FlextModels):
             table_name: str
             schema_name: str = ""
             columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
-                default_factory=lambda: list[FlextDbOracleModels.DbOracle.ColumnMetadata](),
+                default_factory=lambda: list[
+                    FlextDbOracleModels.DbOracle.ColumnMetadata
+                ](),
             )
             primary_keys: t.StrSequence = Field(default_factory=list)
 
