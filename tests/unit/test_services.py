@@ -1061,24 +1061,15 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(config=config)
-        sql_test_cases: list[dict[str, str | tuple[str, ...]]] = [
-            {
-                "method": "build_select",
-                "args": ("test_table", "id", "name"),
-            },
-            {
-                "method": "build_insert_statement",
-                "args": ("test_table", "id", "name"),
-            },
-            {
-                "method": "build_update_statement",
-                "args": ("test_table", "name", "id"),
-            },
-            {"method": "build_delete_statement", "args": ("test_table", "id")},
+        sql_test_cases: Sequence[SimpleNamespace] = [
+            SimpleNamespace(method="build_select", args=("test_table", ["id", "name"], {"id": 1})),
+            SimpleNamespace(method="build_insert_statement", args=("test_table", ["id", "name"])),
+            SimpleNamespace(method="build_update_statement", args=("test_table", ["name"], ["id"])),
+            SimpleNamespace(method="build_delete_statement", args=("test_table", ["id"])),
         ]
-        for case_dict in sql_test_cases:
-            method_name = str(case_dict["method"])
-            args = case_dict["args"]
+        for case in sql_test_cases:
+            method_name = case.method
+            args = case.args
             try:
                 method = getattr(services, method_name)
                 result = method(*args)

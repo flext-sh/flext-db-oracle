@@ -24,7 +24,7 @@ from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t
 
 logger = FlextLogger(__name__)
-_PORT_BINDINGS_ADAPTER = TypeAdapter(Mapping[str, str])
+_PORT_BINDINGS_ADAPTER: TypeAdapter[Mapping[str, str]] = TypeAdapter(Mapping[str, str])
 
 
 class OperationTestError(Exception):
@@ -126,7 +126,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             else:
                 logger.debug("No dirty containers to clean")
     except (ConnectionError, TimeoutError, OSError, RuntimeError) as e:
-        logger.warning("Docker cleanup skipped (unavailable): %s", e)
+        logger.warning("Docker cleanup skipped (unavailable): %s", str(e))
 
 
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:

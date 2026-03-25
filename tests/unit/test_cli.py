@@ -434,7 +434,7 @@ class TestOutputFormatter:
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        data = {"key": "value", "number": 42}
+        data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         tm.ok(result)
         parsed_data = self._DATA_ADAPTER.validate_json(result.value)
@@ -444,11 +444,11 @@ class TestOutputFormatter:
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        data = {"key": "value", "number": 42}
+        data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
         parsed_data = yaml.safe_load(result.value)
-        tm.that(parsed_data, eq=data)
+        tm.that(parsed_data, eq={"key": "value", "number": 42})
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""

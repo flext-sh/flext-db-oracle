@@ -14,6 +14,8 @@ import os
 
 import pytest
 
+from collections.abc import Mapping
+
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
 
 
@@ -175,7 +177,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: t.ContainerMapping = {
+            singer_schema: Mapping[str, t.ContainerValue] = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},
