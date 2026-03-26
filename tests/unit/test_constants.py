@@ -13,7 +13,6 @@ import time
 from enum import StrEnum
 
 import pytest
-from flext_core import FlextConstants
 from flext_tests import tm
 
 from flext_db_oracle import (
@@ -352,7 +351,7 @@ class TestFlextDbOracleConstants:
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         tm.that(default_port, is_=int)
         tm.that(
-            (FlextConstants.MIN_PORT <= default_port <= FlextConstants.MAX_PORT),
+            (FlextDbOracleConstants.MIN_PORT <= default_port <= FlextDbOracleConstants.MAX_PORT),
             eq=True,
         )
 
