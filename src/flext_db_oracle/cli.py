@@ -18,7 +18,7 @@ from typing import override
 
 import oracledb
 import yaml
-from flext_cli import FlextCliCommands
+from flext_cli import FlextCli
 from flext_core import FlextService, r
 from pydantic import TypeAdapter, ValidationError
 
@@ -56,20 +56,7 @@ class FlextDbOracleCli(FlextService[str]):
             wire_packages=None,
             wire_classes=None,
         )
-        self._cli_main: FlextCliCommands | None = None
-
-    def _initialize_cli_main(self) -> r[FlextCliCommands | None]:
-        """Initialize FlextCliCommands, returning success or failure."""
-        try:
-            if self._cli_main is not None:
-                return r[FlextCliCommands | None].ok(self._cli_main)
-            cli_main = FlextCliCommands()
-            self._cli_main = cli_main
-            return r[FlextCliCommands | None].ok(cli_main)
-        except Exception as e:
-            return r[FlextCliCommands | None].fail(
-                f"FlextCliCommands initialization failed: {e}",
-            )
+        self._cli = FlextCli()
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""
@@ -131,14 +118,13 @@ class FlextDbOracleCli(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
-        def __init__(self, cli_main: FlextCliCommands | None = None) -> None:
-            """Initialize output formatter without external dependencies."""
-            self._cli_main = cli_main
+        def __init__(self, cli: FlextCli) -> None:
+            """Initialize output formatter with FlextCli."""
+            self._cli = cli
 
         def display_message(self, message: str) -> None:
-            """Display message to user - direct output for CLI."""
-            _ = sys.stdout.write(f"{message}\n")
-            sys.stdout.flush()
+            """Display message to user via FlextCli."""
+            self._cli.print(message)
 
         def format_data(
             self,
@@ -338,7 +324,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Schemas list or error.
 
         """
-        formatter = self._OutputFormatter(self._cli_main)
+        formatter = self._OutputFormatter(self._cli)
         config_result = self._OracleConnectionHelper.create_config_from_params(
             host,
             port,
@@ -398,7 +384,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Tables list or error.
 
         """
-        formatter = self._OutputFormatter(self._cli_main)
+        formatter = self._OutputFormatter(self._cli)
         config_result = self._OracleConnectionHelper.create_config_from_params(
             host,
             port,
@@ -458,7 +444,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Query results or error.
 
         """
-        formatter = self._OutputFormatter(self._cli_main)
+        formatter = self._OutputFormatter(self._cli)
         if not sql.strip():
             return self._handle_error_and_fail(
                 formatter,
@@ -519,7 +505,7 @@ class FlextDbOracleCli(FlextService[str]):
             args = sys.argv[1:]
         if not args:
             help_msg = "Oracle Database CLI - Enterprise Oracle operations.\n\nAvailable commands:\n health Check Oracle database health\n schemas List Oracle schemas\n tables List Oracle tables in a schema\n query Execute SQL query\n\nUse --help with any command for detailed options.\n"
-            self._OutputFormatter(self._cli_main).display_message(help_msg)
+            self._OutputFormatter(self._cli).display_message(help_msg)
             return r[str].ok("Help displayed")
         command = args[0].lower()
         if command == "health":
@@ -535,11 +521,11 @@ class FlextDbOracleCli(FlextService[str]):
             min_query_args = 2
             if len(args) < min_query_args:
                 error_msg = "SQL query is required for query command"
-                self._OutputFormatter(self._cli_main).display_message(f"{error_msg}")
+                self._OutputFormatter(self._cli).display_message(f"{error_msg}")
                 return r[str].fail(error_msg)
             return self.execute_query(args[1])
         error_msg = f"Unknown command: {command}"
-        self._OutputFormatter(self._cli_main).display_message(f"{error_msg}")
+        self._OutputFormatter(self._cli).display_message(f"{error_msg}")
         return r[str].fail(error_msg)
 
     def _handle_error_and_fail(
