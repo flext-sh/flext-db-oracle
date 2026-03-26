@@ -117,12 +117,13 @@ class FlextDbOracleCli(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
-        def display_message(self, message: str) -> None:
+        @staticmethod
+        def display_message(message: str) -> None:
             """Display message to user via cli."""
             cli.print(message)
 
+        @staticmethod
         def format_data(
-            self,
             data: m.DbOracle.OutputPayload
             | m.DbOracle.HealthCheckReport
             | Mapping[str, t.DbOracle.CliScalar]
@@ -159,7 +160,8 @@ class FlextDbOracleCli(FlextService[str]):
                 return r[str].ok(yaml.dump(yaml_payload, default_flow_style=False))
             return r[str].ok(str(data))
 
-        def format_error_message(self, error: str) -> r[str]:
+        @staticmethod
+        def format_error_message(error: str) -> r[str]:
             """Format error message using simple formatting.
 
             Returns:
@@ -169,8 +171,8 @@ class FlextDbOracleCli(FlextService[str]):
             formatted_msg = f"❌ {error}"
             return r[str].ok(formatted_msg)
 
+        @staticmethod
         def format_list_output(
-            self,
             items: t.StrSequence | Sequence[m.DbOracle.NamedItem],
             title: str,
             output_format: str = "table",
@@ -207,7 +209,8 @@ class FlextDbOracleCli(FlextService[str]):
             output_lines = [title, *string_items]
             return r[str].ok("\n".join(output_lines))
 
-        def format_success_message(self, message: str) -> r[str]:
+        @staticmethod
+        def format_success_message(message: str) -> r[str]:
             """Format success message using simple formatting.
 
             Returns:
@@ -525,7 +528,7 @@ class FlextDbOracleCli(FlextService[str]):
 
     def _handle_error_and_fail(
         self,
-        formatter: _OutputFormatter,
+        formatter: type[_OutputFormatter],
         error_message: str,
         display_message: str | None = None,
     ) -> r[str]:

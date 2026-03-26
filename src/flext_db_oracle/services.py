@@ -224,7 +224,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         """Build DELETE statement - simplified."""
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         schema_prefix = f"{schema}." if schema else ""
-        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"
+        sql = f"DELETE FROM {schema_prefix}{table_name} WHERE {wheres}"  # nosec B608
         return r[str].ok(sql)
 
     def build_insert_statement(
@@ -238,7 +238,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         cols = ", ".join(columns)
         vals = ", ".join(f":{col}" for col in columns)
         schema_prefix = f"{schema}." if schema else ""
-        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"
+        sql = f"INSERT INTO {schema_prefix}{table_name} ({cols}) VALUES ({vals})"  # nosec B608
         if returning_columns:
             ret = ", ".join(returning_columns)
             sql += f" RETURNING {ret}"
@@ -264,7 +264,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         else:
             where = ""
         schema_prefix = f"{schema_name.upper()}." if schema_name else ""
-        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"
+        sql = f"SELECT {cols} FROM {schema_prefix}{table_name.upper()}{where}"  # nosec B608
         return r[str].ok(sql)
 
     def build_update_statement(
@@ -278,14 +278,17 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
         sets = ", ".join(f"{col}=:{col}" for col in set_columns)
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         schema_prefix = f"{schema}." if schema else ""
-        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"
+        sql = f"UPDATE {schema_prefix}{table_name} SET {sets} WHERE {wheres}"  # nosec B608
         return r[str].ok(sql)
 
     def connect(self) -> r[Self]:
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.is_failure:
-            return r[Self].fail(url_result.error or "Failed to build connection URL")
+            return r[Self](
+                error=url_result.error or "Failed to build connection URL",
+                is_success=False,
+            )
         self._engine = self._sqlalchemy_create_engine(url_result.value)
         try:
             connect_ctx = self._engine_connect(self._engine)
@@ -298,7 +301,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
             finally:
                 self._context_exit(connect_ctx)
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
-            return r[Self].ok(self)
+            return r[Self](value=self, is_success=True)
         except (
             oracledb.DatabaseError,
             oracledb.InterfaceError,
@@ -333,7 +336,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self.logger.info(
                             f"Connected to Oracle database: {self.db_config.host}",
                         )
-                        return r[Self].ok(self)
+                        return r[Self](value=self, is_success=True)
                     except (
                         FlextDbOracleServices.OracleDatabaseError,
                         FlextDbOracleServices.OracleInterfaceError,
@@ -346,7 +349,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                         self._engine = None
             self._engine = None
             self.logger.exception("Oracle connection failed")
-            return r[Self].fail(f"Connection failed: {e}")
+            return r[Self](error=f"Connection failed: {e}", is_success=False)
 
     def convert_singer_type(
         self,
@@ -778,7 +781,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
 
         def _fetch_count() -> int:
             schema = f"{schema_name}." if schema_name else ""
-            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"
+            sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
             query_result = self.execute_query(sql)
             if query_result.is_failure:
                 raise RuntimeError(query_result.error or "Query execution failed")

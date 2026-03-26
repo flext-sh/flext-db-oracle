@@ -339,13 +339,9 @@ class TestFlextDbOracleApiRealFunctionality:
         result = self.api.unregister_plugin("nonexistent_plugin")
         tm.fail(result)
         tm.that(result.error, none=False)
+        assert result.error is not None
         tm.that(
-            (
-                result.error is not None
-                and "plugin 'nonexistent_plugin' not found" in result.error.lower()
-                if result.error is not None
-                else ""
-            ),
+            "plugin 'nonexistent_plugin' not found" in result.error.lower(),
             eq=True,
         )
 
@@ -398,7 +394,7 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_api_creation_using_testbuilders_real(self) -> None:
         """Test API creation using direct r."""
-        config_result = r.ok(
+        config_result = r[FlextDbOracleSettings].ok(
             FlextDbOracleSettings(
                 host="testbuilder_host",
                 port=1521,
@@ -408,7 +404,7 @@ class TestFlextDbOracleApiRealFunctionality:
             ),
         )
         tm.ok(config_result)
-        config = config_result.value
+        config: FlextDbOracleSettings = config_result.value
         tm.that(config, is_=FlextDbOracleSettings)
         api = FlextDbOracleApi(config)
         tm.that(api, none=False)
@@ -476,10 +472,10 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test __repr__ method."""
         repr_str = repr(self.api)
         tm.that(repr_str, is_=str)
-        tm.that(repr_str, eq=True)
+        tm.that(len(repr_str) > 0, eq=True)
         tm.that(repr_str, has="FlextDbOracleApi")
         tm.that(
-            self.config.host in repr_str or "test_host" in repr_str is True,
+            self.config.host in repr_str or "test_host" in repr_str,
             eq=True,
         )
 
@@ -494,7 +490,7 @@ class TestFlextDbOracleApiRealFunctionality:
                 tm.ok(result)
                 oracle_type = result.value
                 tm.that(oracle_type, is_=str)
-                tm.that(oracle_type, eq=True)
+                tm.that(len(oracle_type) > 0, eq=True)
                 tm.that(
                     any(
                         keyword in oracle_type.upper()
@@ -1258,7 +1254,6 @@ class TestFlextDbOracleApiSafeMethods:
                 else "",
                 eq=True,
             )
-        plugin["name"] if isinstance(plugin, dict) else "performance_monitor"
         get_result = api.get_plugin("performance_monitor")
         tm.that(get_result.is_success, eq=True)
         tm.that(get_result.value, eq=plugin)
@@ -1724,7 +1719,7 @@ class TestDirectCoverageBoostConnection:
                 elif isinstance(result, bool):
                     tm.that(result, is_=bool)
                 else:
-                    tm.that(result is not None or result is None, eq=True)
+                    assert result is not None or result is None  # any value accepted
             except (AttributeError, TypeError):
                 pass
 
@@ -1872,7 +1867,7 @@ class TestDirectCoverageBoostServices:
         sql_result = table_ref_result.value
         tm.that(
             ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result)
-            or "test_schema.test_table" in sql_result is True,
+            or ("test_schema.test_table" in sql_result),
             eq=True,
         )
         test_columns = ["col1", "col2", "col3"]
@@ -1884,8 +1879,8 @@ class TestDirectCoverageBoostServices:
 
     def test_services_configuration_and_connection_paths(self) -> None:
         """Test services configuration and connection paths for complete coverage."""
-        configs = [
-            r.ok(
+        configs: list[r[FlextDbOracleSettings]] = [
+            r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
                     host="test_host",
                     port=1521,
@@ -1895,7 +1890,7 @@ class TestDirectCoverageBoostServices:
                     ssl_server_cert_dn=None,
                 ),
             ),
-            r.ok(
+            r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
                     host="localhost",
                     port=1,
@@ -1908,7 +1903,7 @@ class TestDirectCoverageBoostServices:
         ]
         for config_result in configs:
             tm.ok(config_result)
-            config = config_result.value
+            config: FlextDbOracleSettings = config_result.value
             services = FlextDbOracleServices(config=config)
             tm.that(services, none=False)
             tm.that(hasattr(services, "config"), eq=True)
@@ -1946,10 +1941,11 @@ class TestDirectCoverageBoostServices:
         ]
         for case_dict in sql_test_cases:
             method_name = str(case_dict["method"])
-            args = case_dict["args"]
+            raw_args = case_dict["args"]
+            assert isinstance(raw_args, tuple)
             try:
                 method = getattr(services, method_name)
-                result = method(*args)
+                result = method(*raw_args)
                 tm.that(result, none=False)
                 tm.ok(result)
                 sql_content: t.NormalizedValue = result.value
@@ -1961,7 +1957,7 @@ class TestDirectCoverageBoostServices:
                     sql_text = sql_content
                 else:
                     sql_text = str(sql_content)
-                tm.that(sql_text, eq=True)
+                tm.that(len(sql_text) > 0, eq=True)
                 if method_name.startswith("build_select"):
                     tm.that(sql_text.upper(), has="SELECT")
                 elif method_name.startswith("build_insert"):

@@ -329,28 +329,27 @@ class TestOutputFormatter:
     """Test output formatter functionality."""
 
     def test_formatter_initialization_with_cli(self) -> None:
-        """Test formatter initialization with cli."""
-        mock_cli = Mock()
-        formatter = FlextDbOracleCli._OutputFormatter(mock_cli)
-        tm.that(formatter._cli is mock_cli, eq=True)
+        """Test formatter initialization (static methods, no state)."""
+        formatter = FlextDbOracleCli._OutputFormatter()
+        assert formatter is not None
 
     def test_format_success_message(self) -> None:
         """Test success message formatting."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_success_message("Operation completed")
         tm.ok(result)
         tm.that(result.value, eq="✅ Operation completed")
 
     def test_format_error_message(self) -> None:
         """Test error message formatting."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         result = formatter.format_error_message("Something went wrong")
         tm.ok(result)
         tm.that(result.value, eq="❌ Something went wrong")
 
     def test_format_list_output_table_format(self) -> None:
         """Test list output formatting in table format."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         items = ["table1", "table2", "table3"]
         result = formatter.format_list_output(items, "Database Tables", "table")
         tm.ok(result)
@@ -364,7 +363,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_json_format(self) -> None:
         """Test list output formatting in JSON format."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         items = ["schema1", "schema2"]
         result = formatter.format_list_output(items, "Schemas", "json")
         tm.ok(result)
@@ -375,7 +374,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_yaml_format(self) -> None:
         """Test list output formatting in YAML format."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "yaml")
         tm.ok(result)
@@ -386,7 +385,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_plain_format(self) -> None:
         """Test list output formatting in plain format."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "plain")
         tm.ok(result)
@@ -397,7 +396,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with t.ContainerMapping items."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         items: Sequence[NamedItem] = [
             NamedItem(name="table1"),
             NamedItem(name="table2"),
@@ -413,7 +412,7 @@ class TestOutputFormatter:
 
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         tm.ok(result)
@@ -423,7 +422,7 @@ class TestOutputFormatter:
 
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
@@ -433,7 +432,7 @@ class TestOutputFormatter:
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         data = {"key": "value"}
         result = formatter.format_data(data, "plain")
         tm.ok(result)
@@ -441,7 +440,7 @@ class TestOutputFormatter:
 
     def test_display_message(self) -> None:
         """Test message display functionality."""
-        formatter = FlextDbOracleCli._OutputFormatter(Mock())
+        formatter = FlextDbOracleCli._OutputFormatter()
         formatter.display_message("Test message")
 
 
@@ -473,7 +472,7 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(output, is_=HealthCheckReport)
-        tm.that(hasattr(output, "status") and output.status is not None, eq=True)
+        tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
         """Test health check with config creation failure."""
@@ -488,7 +487,7 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(output, is_=HealthCheckReport)
-        tm.that(hasattr(output, "status") and output.status is not None, eq=True)
+        tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""
@@ -503,9 +502,9 @@ class TestCliServiceOperations:
                 password="test_password",
             )
         tm.that(result.is_failure, eq=True)
+        assert result.error is not None
         tm.that(
-            result.error is not None
-            and "Database unreachable" in (result.error or "") is True,
+            "Database unreachable" in result.error,
             eq=True,
         )
 
@@ -556,9 +555,9 @@ class TestCliServiceOperations:
                 password="test_password",
             )
         tm.that(result.is_failure, eq=True)
+        assert result.error is not None
         tm.that(
-            result.error is not None
-            and "Connection failed" in (result.error or "") is True,
+            "Connection failed" in result.error,
             eq=True,
         )
 
@@ -581,9 +580,9 @@ class TestCliServiceOperations:
                 password="test_password",
             )
         tm.that(result.is_failure, eq=True)
+        assert result.error is not None
         tm.that(
-            result.error is not None
-            and "Schema query failed" in (result.error or "") is True,
+            "Schema query failed" in result.error,
             eq=True,
         )
 
@@ -660,7 +659,7 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(
-            "Query executed successfully" in output or "rows" in output.lower() is True,
+            "Query executed successfully" in output or "rows" in output.lower(),
             eq=True,
         )
 

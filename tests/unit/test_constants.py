@@ -290,20 +290,20 @@ class TestFlextDbOracleConstants:
         enums = FlextDbOracleConstants.DbOracle.OracleEnums
         conn_type = enums.ConnectionType
         tm.that(conn_type, is_=type)
-        tm.that(issubclass(conn_type, StrEnum), eq=True)
+        assert issubclass(conn_type, StrEnum)  # type narrowing
         tm.that(getattr(conn_type, "SERVICE_NAME"), eq="service_name")
         tm.that(getattr(conn_type, "SID"), eq="sid")
         tm.that(getattr(conn_type, "TNS"), eq="tns")
         query_type = enums.QueryType
         tm.that(query_type, is_=type)
-        tm.that(issubclass(query_type, StrEnum), eq=True)
+        assert issubclass(query_type, StrEnum)  # type narrowing
         tm.that(getattr(query_type, "SELECT"), eq="SELECT")
         tm.that(getattr(query_type, "INSERT"), eq="INSERT")
         tm.that(getattr(query_type, "UPDATE"), eq="UPDATE")
         tm.that(getattr(query_type, "DELETE"), eq="DELETE")
         data_type = enums.DataType
         tm.that(data_type, is_=type)
-        tm.that(issubclass(data_type, StrEnum), eq=True)
+        assert issubclass(data_type, StrEnum)  # type narrowing
         tm.that(getattr(data_type, "VARCHAR2"), eq="VARCHAR2")
         tm.that(getattr(data_type, "NUMBER"), eq="NUMBER")
         tm.that(getattr(data_type, "DATE"), eq="DATE")
@@ -371,7 +371,7 @@ class TestFlextDbOracleConstants:
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement("DROP TABLE test_data_types")
         tm.that(
-            result.is_success or "already exists" in str(result.error).lower() is True,
+            result.is_success or ("already exists" in str(result.error).lower()),
             eq=True,
         )
 
@@ -435,7 +435,8 @@ class TestFlextDbOracleConstants:
         for word in test_words[:3]:
             result = FlextDbOracleUtilities.DbOracle.validate_identifier(word)
             tm.that(result.is_failure, eq=True)
+            assert result.error is not None
             tm.that(
-                result.error is not None and "reserved word" in result.error is True,
+                "reserved word" in result.error,
                 eq=True,
             )

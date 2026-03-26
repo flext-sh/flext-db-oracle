@@ -308,22 +308,22 @@ class TestRealOracleExceptionHierarchy:
 
     def test_real_exception_inheritance(self) -> None:
         """Test that Oracle exceptions inherit properly from base Exception classes."""
-        tm.that(issubclass(FlextExceptions.Error, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.AuthenticationError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.ConfigurationError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.OracleConnectionError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.OracleMetadataError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.ProcessingError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.OracleQueryError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.OracleTimeoutError, Exception), eq=True)
-        tm.that(issubclass(FlextExceptions.ValidationError, Exception), eq=True)
-        tm.that(
-            issubclass(FlextExceptions.OracleQueryError, FlextExceptions.BaseError),
-            eq=True,
+        assert issubclass(FlextExceptions.Error, Exception)
+        assert issubclass(FlextExceptions.AuthenticationError, Exception)
+        assert issubclass(FlextExceptions.ConfigurationError, Exception)
+        assert issubclass(FlextExceptions.OracleConnectionError, Exception)
+        assert issubclass(FlextExceptions.OracleMetadataError, Exception)
+        assert issubclass(FlextExceptions.ProcessingError, Exception)
+        assert issubclass(FlextExceptions.OracleQueryError, Exception)
+        assert issubclass(FlextExceptions.OracleTimeoutError, Exception)
+        assert issubclass(FlextExceptions.ValidationError, Exception)
+        assert issubclass(
+            FlextExceptions.OracleQueryError,
+            FlextExceptions.BaseError,
         )
-        tm.that(
-            issubclass(FlextExceptions.OracleMetadataError, FlextExceptions.BaseError),
-            eq=True,
+        assert issubclass(
+            FlextExceptions.OracleMetadataError,
+            FlextExceptions.BaseError,
         )
 
     def test_real_exception_instantiation(self) -> None:

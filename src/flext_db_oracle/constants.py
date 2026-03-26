@@ -286,8 +286,8 @@ class FlextDbOracleConstants(FlextConstants):
                 "ORACLE_SERVICE_NAME": "service_name",
                 "FLEXT_TARGET_ORACLE_USERNAME": "username",
                 "ORACLE_USERNAME": "username",
-                "FLEXT_TARGET_ORACLE_PASSWORD": "password",
-                "ORACLE_PASSWORD": "password",
+                "FLEXT_TARGET_ORACLE_PASSWORD": "password",  # nosec B105
+                "ORACLE_PASSWORD": "password",  # nosec B105
             }
 
         class OracleDefaults:

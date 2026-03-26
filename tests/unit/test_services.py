@@ -712,8 +712,7 @@ class TestDirectCoverageBoostAPI:
         oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test API schema operations (lines 1038-1058)."""
-        if oracle_api is None:
-            return
+        assert oracle_api is not None
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -741,8 +740,7 @@ class TestDirectCoverageBoostAPI:
 
     def test_api_query_optimization_758_798(self, oracle_api: FlextDbOracleApi) -> None:
         """Test API query optimization paths (lines 758-798)."""
-        if oracle_api is None:
-            return
+        assert oracle_api is not None
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -862,7 +860,7 @@ class TestDirectCoverageBoostConnection:
                 elif isinstance(result, bool):
                     tm.that(result, is_=bool)
                 else:
-                    tm.that(result is not None or result is None, eq=True)
+                    assert result is not None or result is None  # any value accepted
             except (AttributeError, TypeError):
                 pass
 
@@ -951,8 +949,7 @@ class TestDirectCoverageBoostObservability:
         oracle_api: FlextDbOracleApi,
     ) -> None:
         """Test observability metrics collection."""
-        if oracle_api is None:
-            return
+        assert oracle_api is not None
         connect_result = oracle_api.connect()
         if not connect_result.is_success:
             return
@@ -1010,7 +1007,7 @@ class TestDirectCoverageBoostServices:
         sql_result = table_ref_result.value
         tm.that(
             ("TEST_SCHEMA" in sql_result and "TEST_TABLE" in sql_result)
-            or "test_schema.test_table" in sql_result is True,
+            or ("test_schema.test_table" in sql_result),
             eq=True,
         )
         test_columns = ["col1", "col2", "col3"]
@@ -1226,7 +1223,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
-            "connection" in error_lower or "connected" in error_lower is True,
+            "connection" in error_lower or "connected" in error_lower,
             eq=True,
         )
 
@@ -1306,7 +1303,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
         tm.that(
-            "connection" in error_lower or "connected" in error_lower is True,
+            "connection" in error_lower or "connected" in error_lower,
             eq=True,
         )
 
