@@ -351,7 +351,11 @@ class TestFlextDbOracleConstants:
         default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
         tm.that(default_port, is_=int)
         tm.that(
-            (FlextDbOracleConstants.MIN_PORT <= default_port <= FlextDbOracleConstants.MAX_PORT),
+            (
+                FlextDbOracleConstants.MIN_PORT
+                <= default_port
+                <= FlextDbOracleConstants.MAX_PORT
+            ),
             eq=True,
         )
 
