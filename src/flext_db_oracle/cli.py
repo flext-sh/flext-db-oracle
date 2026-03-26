@@ -56,7 +56,6 @@ class FlextDbOracleCli(FlextService[str]):
             wire_packages=None,
             wire_classes=None,
         )
-        self._cli = cli()
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""
@@ -118,13 +117,9 @@ class FlextDbOracleCli(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
-        def __init__(self, cli: cli) -> None:
-            """Initialize output formatter with cli."""
-            self._cli = cli
-
         def display_message(self, message: str) -> None:
             """Display message to user via cli."""
-            self._cli.print(message)
+            cli.print(message)
 
         def format_data(
             self,
@@ -324,7 +319,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Schemas list or error.
 
         """
-        formatter = self._OutputFormatter(self._cli)
+        formatter = self._OutputFormatter
         config_result = self._OracleConnectionHelper.create_config_from_params(
             host,
             port,
@@ -384,7 +379,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Tables list or error.
 
         """
-        formatter = self._OutputFormatter(self._cli)
+        formatter = self._OutputFormatter
         config_result = self._OracleConnectionHelper.create_config_from_params(
             host,
             port,
@@ -444,7 +439,7 @@ class FlextDbOracleCli(FlextService[str]):
         r[str]: Query results or error.
 
         """
-        formatter = self._OutputFormatter(self._cli)
+        formatter = self._OutputFormatter
         if not sql.strip():
             return self._handle_error_and_fail(
                 formatter,
@@ -505,7 +500,7 @@ class FlextDbOracleCli(FlextService[str]):
             args = sys.argv[1:]
         if not args:
             help_msg = "Oracle Database CLI - Enterprise Oracle operations.\n\nAvailable commands:\n health Check Oracle database health\n schemas List Oracle schemas\n tables List Oracle tables in a schema\n query Execute SQL query\n\nUse --help with any command for detailed options.\n"
-            self._OutputFormatter(self._cli).display_message(help_msg)
+            self._OutputFormatter.display_message(help_msg)
             return r[str].ok("Help displayed")
         command = args[0].lower()
         if command == "health":
@@ -521,11 +516,11 @@ class FlextDbOracleCli(FlextService[str]):
             min_query_args = 2
             if len(args) < min_query_args:
                 error_msg = "SQL query is required for query command"
-                self._OutputFormatter(self._cli).display_message(f"{error_msg}")
+                self._OutputFormatter.display_message(f"{error_msg}")
                 return r[str].fail(error_msg)
             return self.execute_query(args[1])
         error_msg = f"Unknown command: {command}"
-        self._OutputFormatter(self._cli).display_message(f"{error_msg}")
+        self._OutputFormatter.display_message(f"{error_msg}")
         return r[str].fail(error_msg)
 
     def _handle_error_and_fail(
