@@ -227,21 +227,6 @@ class TestFlextDbOracleCli:
         tm.that(cli_service, none=False)
         tm.that(hasattr(cli_service, "logger"), eq=True)
 
-    def test_initialize_cli_main_success(self) -> None:
-        """Test successful CLI main initialization."""
-        cli_service = FlextDbOracleCli()
-        result = cli_service._initialize_cli_main()
-        tm.that(result, is_=r)
-
-    def test_initialize_cli_main_failure(self) -> None:
-        """Test CLI main initialization failure handling."""
-        cli_service = FlextDbOracleCli()
-        with patch("flext_db_oracle.cli.FlextCliCommands") as mock_cli_main:
-            mock_cli_main.side_effect = Exception("Initialization error")
-            result = cli_service._initialize_cli_main()
-            tm.that(result.is_failure, eq=True)
-            tm.that(str(result.error), has="FlextCliCommands initialization failed")
-
 
 class TestOracleConnectionHelper:
     """Test Oracle connection helper functionality."""
@@ -343,34 +328,29 @@ class TestOracleConnectionHelper:
 class TestOutputFormatter:
     """Test output formatter functionality."""
 
-    def test_formatter_initialization_with_cli_main(self) -> None:
-        """Test formatter initialization with CLI main."""
-        mock_cli_main = Mock()
-        formatter = FlextDbOracleCli._OutputFormatter(mock_cli_main)
-        tm.that(formatter._cli_main is mock_cli_main, eq=True)
-
-    def test_formatter_initialization_without_cli_main(self) -> None:
-        """Test formatter initialization without CLI main."""
-        formatter = FlextDbOracleCli._OutputFormatter()
-        tm.that(formatter._cli_main, none=True)
+    def test_formatter_initialization_with_cli(self) -> None:
+        """Test formatter initialization with cli."""
+        mock_cli = Mock()
+        formatter = FlextDbOracleCli._OutputFormatter(mock_cli)
+        tm.that(formatter._cli is mock_cli, eq=True)
 
     def test_format_success_message(self) -> None:
         """Test success message formatting."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         result = formatter.format_success_message("Operation completed")
         tm.ok(result)
         tm.that(result.value, eq="✅ Operation completed")
 
     def test_format_error_message(self) -> None:
         """Test error message formatting."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         result = formatter.format_error_message("Something went wrong")
         tm.ok(result)
         tm.that(result.value, eq="❌ Something went wrong")
 
     def test_format_list_output_table_format(self) -> None:
         """Test list output formatting in table format."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         items = ["table1", "table2", "table3"]
         result = formatter.format_list_output(items, "Database Tables", "table")
         tm.ok(result)
@@ -384,7 +364,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_json_format(self) -> None:
         """Test list output formatting in JSON format."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         items = ["schema1", "schema2"]
         result = formatter.format_list_output(items, "Schemas", "json")
         tm.ok(result)
@@ -395,7 +375,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_yaml_format(self) -> None:
         """Test list output formatting in YAML format."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "yaml")
         tm.ok(result)
@@ -406,7 +386,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_plain_format(self) -> None:
         """Test list output formatting in plain format."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         items = ["item1", "item2"]
         result = formatter.format_list_output(items, "Test Items", "plain")
         tm.ok(result)
@@ -417,7 +397,7 @@ class TestOutputFormatter:
 
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with t.ContainerMapping items."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         items: Sequence[NamedItem] = [
             NamedItem(name="table1"),
             NamedItem(name="table2"),
@@ -433,7 +413,7 @@ class TestOutputFormatter:
 
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         tm.ok(result)
@@ -443,7 +423,7 @@ class TestOutputFormatter:
 
     def test_format_data_yaml(self) -> None:
         """Test data formatting as YAML."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
@@ -453,7 +433,7 @@ class TestOutputFormatter:
 
     def test_format_data_plain(self) -> None:
         """Test data formatting as plain text."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         data = {"key": "value"}
         result = formatter.format_data(data, "plain")
         tm.ok(result)
@@ -461,7 +441,7 @@ class TestOutputFormatter:
 
     def test_display_message(self) -> None:
         """Test message display functionality."""
-        formatter = FlextDbOracleCli._OutputFormatter()
+        formatter = FlextDbOracleCli._OutputFormatter(Mock())
         formatter.display_message("Test message")
 
 

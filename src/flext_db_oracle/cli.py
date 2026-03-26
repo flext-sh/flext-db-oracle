@@ -18,7 +18,7 @@ from typing import override
 
 import oracledb
 import yaml
-from flext_cli import FlextCli
+from flext_cli import cli
 from flext_core import FlextService, r
 from pydantic import TypeAdapter, ValidationError
 
@@ -56,7 +56,7 @@ class FlextDbOracleCli(FlextService[str]):
             wire_packages=None,
             wire_classes=None,
         )
-        self._cli = FlextCli()
+        self._cli = cli()
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""
@@ -118,12 +118,12 @@ class FlextDbOracleCli(FlextService[str]):
     class _OutputFormatter:
         """Nested helper class for formatting Oracle CLI output."""
 
-        def __init__(self, cli: FlextCli) -> None:
-            """Initialize output formatter with FlextCli."""
+        def __init__(self, cli: cli) -> None:
+            """Initialize output formatter with cli."""
             self._cli = cli
 
         def display_message(self, message: str) -> None:
-            """Display message to user via FlextCli."""
+            """Display message to user via cli."""
             self._cli.print(message)
 
         def format_data(
