@@ -225,32 +225,29 @@ class TestRealOracleExceptionsAdvanced:
         """Test FlextExceptions.ProcessingError with real data processing errors."""
         if connected_oracle_api is None:
             pytest.skip("Connected Oracle API unavailable")
-        try:
-            problematic_operations = [
-                "SELECT * FROM NON_EXISTENT_TABLE_12345",
-                "INSERT INTO dual VALUES (1, 2)",
-                "CREATE TABLE invalid..syntax ERROR",
-            ]
-            for invalid_operation in problematic_operations:
-                result = connected_oracle_api.query(invalid_operation)
-                tm.fail(result)
-                error_msg = (result.error or "").lower()
-                tm.that(
-                    any(
-                        keyword in error_msg
-                        for keyword in [
-                            "ora-",
-                            "invalid",
-                            "not exist",
-                            "table",
-                            "syntax",
-                            "error",
-                        ]
-                    ),
-                    eq=True,
-                )
-        finally:
-            pass
+        problematic_operations = [
+            "SELECT * FROM NON_EXISTENT_TABLE_12345",
+            "INSERT INTO dual VALUES (1, 2)",
+            "CREATE TABLE invalid..syntax ERROR",
+        ]
+        for invalid_operation in problematic_operations:
+            result = connected_oracle_api.query(invalid_operation)
+            tm.fail(result)
+            error_msg = (result.error or "").lower()
+            tm.that(
+                any(
+                    keyword in error_msg
+                    for keyword in [
+                        "ora-",
+                        "invalid",
+                        "not exist",
+                        "table",
+                        "syntax",
+                        "error",
+                    ]
+                ),
+                eq=True,
+            )
 
     def test_real_validation_error_scenario(self) -> None:
         """Test FlextExceptions.ValidationError with real config validation."""
