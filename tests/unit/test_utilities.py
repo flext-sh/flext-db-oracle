@@ -10,13 +10,13 @@ import contextlib
 from collections.abc import Mapping, Sequence
 
 import pytest
-from flext_core import t
 from flext_tests import tm
 from pydantic import TypeAdapter
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
 from flext_db_oracle.constants import FlextDbOracleConstants
 from flext_db_oracle.settings import FlextDbOracleSettings
+from tests import t
 
 
 @pytest.mark.unit_pure
