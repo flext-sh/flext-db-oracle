@@ -75,7 +75,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
         self._plugins: MutableMapping[str, t.ContainerValue] = {}
         self._registry = self._plugins
-        self._context_fallback_mode = False
         type(self).to_dict_source = self
 
     @override
@@ -87,7 +86,9 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def __enter__(self) -> Self:
         """Context manager entry."""
         connect_result = self.connect()
-        self._context_fallback_mode = connect_result.is_failure
+        if connect_result.is_failure:
+            msg = connect_result.error or "Failed to connect to Oracle database"
+            raise RuntimeError(msg)
         return self
 
     def __exit__(
@@ -100,7 +101,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         with contextlib.suppress(Exception):
             self.logger.debug("Disconnecting on context exit")
             self._services.disconnect()
-        self._context_fallback_mode = False
 
     @property
     def _dispatch_enabled(self) -> bool:
@@ -356,8 +356,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         parameters: Mapping[str, t.ContainerValue] | None = None,
     ) -> r[Sequence[t.Dict]]:
         """Execute a SELECT query and return all results."""
-        if self._context_fallback_mode and not self.is_connected:
-            return r[Sequence[t.Dict]].ok([])
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
             t.ConfigMap.model_validate({"root": dict(parameters)})
@@ -386,8 +384,6 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
 
     def test_connection(self) -> r[bool]:
         """Test Oracle database connection."""
-        if self._context_fallback_mode and not self.is_connected:
-            return r[bool].ok(True)
         return self._services.test_connection()
 
     @classmethod
