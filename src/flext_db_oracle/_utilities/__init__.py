@@ -13,27 +13,27 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from flext_db_oracle._utilities.cli import FlextDbOracleCli
-    from flext_db_oracle._utilities.client import (
+    from flext_db_oracle.cli import FlextDbOracleCli
+    from flext_db_oracle.client import (
         FlextDbOracleClient,
         OracleDatabaseError,
         OracleInterfaceError,
     )
-    from flext_db_oracle._utilities.services import FlextDbOracleServices, s
+    from flext_db_oracle.services import FlextDbOracleServices, s
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "FlextDbOracleCli": ["flext_db_oracle._utilities.cli", "FlextDbOracleCli"],
-    "FlextDbOracleClient": ["flext_db_oracle._utilities.client", "FlextDbOracleClient"],
+    "FlextDbOracleCli": ["flext_db_oracle.cli", "FlextDbOracleCli"],
+    "FlextDbOracleClient": ["flext_db_oracle.client", "FlextDbOracleClient"],
     "FlextDbOracleServices": [
-        "flext_db_oracle._utilities.services",
+        "flext_db_oracle.services",
         "FlextDbOracleServices",
     ],
-    "OracleDatabaseError": ["flext_db_oracle._utilities.client", "OracleDatabaseError"],
+    "OracleDatabaseError": ["flext_db_oracle.client", "OracleDatabaseError"],
     "OracleInterfaceError": [
-        "flext_db_oracle._utilities.client",
+        "flext_db_oracle.client",
         "OracleInterfaceError",
     ],
-    "s": ["flext_db_oracle._utilities.services", "s"],
+    "s": ["flext_db_oracle.services", "s"],
 }
 
 __all__ = [
