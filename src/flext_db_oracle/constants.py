@@ -49,7 +49,7 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_DATABASE_NAME: Final[str] = "XE"
             DEFAULT_SID: Final[str] = "XE"
             DEFAULT_USERNAME: Final[str] = "system"
-            DEFAULT_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
+            DEFAULT_TIMEOUT: Final[int] = FlextConstants.DEFAULT_TIMEOUT_SECONDS
             DEFAULT_POOL_MIN: Final[int] = 2
             DEFAULT_POOL_MAX: Final[int] = 20
             DEFAULT_POOL_INCREMENT: Final[int] = 1
@@ -229,9 +229,7 @@ class FlextDbOracleConstants(FlextConstants):
             """Oracle-specific performance tuning constants."""
 
             MILLISECONDS_TO_SECONDS_THRESHOLD: Final[int] = 1000
-            DEFAULT_BATCH_SIZE: Final[int] = (
-                c.DEFAULT_SIZE or FlextConstants.DEFAULT_SIZE
-            )
+            DEFAULT_BATCH_SIZE: Final[int] = FlextConstants.DEFAULT_SIZE
             MAX_BATCH_SIZE: Final[int] = (
                 FlextConstants.DEFAULT_MAX_COMMAND_RETRIES or 1000
             )
@@ -307,9 +305,7 @@ class FlextDbOracleConstants(FlextConstants):
             DEFAULT_COMMIT_SIZE: Final[int] = 1000
             DEFAULT_POOL_RECYCLE: Final[int] = 3600
             DEFAULT_SLOW_QUERY_THRESHOLD: Final[float] = 2.0
-            DEFAULT_BATCH_SIZE: Final[int] = (
-                c.DEFAULT_SIZE or FlextConstants.DEFAULT_SIZE
-            )
+            DEFAULT_BATCH_SIZE: Final[int] = FlextConstants.DEFAULT_SIZE
 
         class OracleEnums:
             """Oracle-specific enumerations."""
