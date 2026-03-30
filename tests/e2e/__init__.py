@@ -18,16 +18,19 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from tests.e2e import test_oracle
     from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
 _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "OperationTestError": ["tests.e2e.test_oracle", "OperationTestError"],
     "TestOracleE2E": ["tests.e2e.test_oracle", "TestOracleE2E"],
+    "test_oracle": ["tests.e2e.test_oracle", ""],
 }
 
 __all__ = [
     "OperationTestError",
     "TestOracleE2E",
+    "test_oracle",
 ]
 
 

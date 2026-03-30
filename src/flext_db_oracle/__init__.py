@@ -29,6 +29,20 @@ from flext_db_oracle.__version__ import (
 if TYPE_CHECKING:
     from flext_core import FlextTypes, d, h, r, x
 
+    from flext_db_oracle import (
+        api,
+        cli,
+        client,
+        constants,
+        dispatcher,
+        exceptions,
+        models,
+        protocols,
+        services,
+        settings,
+        typings,
+        utilities,
+    )
     from flext_db_oracle.api import FlextDbOracleApi
     from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import (
@@ -85,16 +99,28 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "OracleDatabaseError": ["flext_db_oracle.client", "OracleDatabaseError"],
     "OracleIdentifier": ["flext_db_oracle.settings", "OracleIdentifier"],
     "OracleInterfaceError": ["flext_db_oracle.client", "OracleInterfaceError"],
+    "api": ["flext_db_oracle.api", ""],
     "c": ["flext_db_oracle.constants", "FlextDbOracleConstants"],
+    "cli": ["flext_db_oracle.cli", ""],
+    "client": ["flext_db_oracle.client", ""],
+    "constants": ["flext_db_oracle.constants", ""],
     "d": ["flext_core", "d"],
+    "dispatcher": ["flext_db_oracle.dispatcher", ""],
     "e": ["flext_db_oracle.exceptions", "FlextDbOracleExceptions"],
+    "exceptions": ["flext_db_oracle.exceptions", ""],
     "h": ["flext_core", "h"],
     "m": ["flext_db_oracle.models", "FlextDbOracleModels"],
+    "models": ["flext_db_oracle.models", ""],
     "p": ["flext_db_oracle.protocols", "FlextDbOracleProtocols"],
+    "protocols": ["flext_db_oracle.protocols", ""],
     "r": ["flext_core", "r"],
     "s": ["flext_db_oracle.services", "s"],
+    "services": ["flext_db_oracle.services", ""],
+    "settings": ["flext_db_oracle.settings", ""],
     "t": ["flext_db_oracle.typings", "FlextDbOracleTypes"],
+    "typings": ["flext_db_oracle.typings", ""],
     "u": ["flext_db_oracle.utilities", "FlextDbOracleUtilities"],
+    "utilities": ["flext_db_oracle.utilities", ""],
     "x": ["flext_core", "x"],
 }
 
@@ -123,16 +149,28 @@ __all__ = [
     "__url__",
     "__version__",
     "__version_info__",
+    "api",
     "c",
+    "cli",
+    "client",
+    "constants",
     "d",
+    "dispatcher",
     "e",
+    "exceptions",
     "h",
     "m",
+    "models",
     "p",
+    "protocols",
     "r",
     "s",
+    "services",
+    "settings",
     "t",
+    "typings",
     "u",
+    "utilities",
     "x",
 ]
 

@@ -20,6 +20,26 @@ from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 if TYPE_CHECKING:
     from flext_core import FlextTypes
 
+    from tests.unit import (
+        conftest,
+        test_api,
+        test_cli,
+        test_client,
+        test_config,
+        test_constants,
+        test_coverage_baseline,
+        test_dispatcher,
+        test_exceptions,
+        test_fields,
+        test_metadata,
+        test_models,
+        test_oracle_example,
+        test_oracle_exceptions,
+        test_protocols,
+        test_services,
+        test_typings,
+        test_utilities,
+    )
     from tests.unit.conftest import (
         connected_oracle_api,
         docker_control,
@@ -234,6 +254,7 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     ],
     "TestUtilities": ["tests.unit.test_coverage_baseline", "TestUtilities"],
     "TestYamlModule": ["tests.unit.test_cli", "TestYamlModule"],
+    "conftest": ["tests.unit.conftest", ""],
     "connected_oracle_api": ["tests.unit.conftest", "connected_oracle_api"],
     "docker_control": ["tests.unit.conftest", "docker_control"],
     "ensure_shared_docker_container": [
@@ -249,7 +270,24 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "real_oracle_config": ["tests.unit.conftest", "real_oracle_config"],
     "safe_get_first_value": ["tests.unit.test_oracle_example", "safe_get_first_value"],
     "shared_oracle_container": ["tests.unit.conftest", "shared_oracle_container"],
+    "test_api": ["tests.unit.test_api", ""],
     "test_cleanup": ["tests.unit.conftest", "test_cleanup"],
+    "test_cli": ["tests.unit.test_cli", ""],
+    "test_client": ["tests.unit.test_client", ""],
+    "test_config": ["tests.unit.test_config", ""],
+    "test_constants": ["tests.unit.test_constants", ""],
+    "test_coverage_baseline": ["tests.unit.test_coverage_baseline", ""],
+    "test_dispatcher": ["tests.unit.test_dispatcher", ""],
+    "test_exceptions": ["tests.unit.test_exceptions", ""],
+    "test_fields": ["tests.unit.test_fields", ""],
+    "test_metadata": ["tests.unit.test_metadata", ""],
+    "test_models": ["tests.unit.test_models", ""],
+    "test_oracle_example": ["tests.unit.test_oracle_example", ""],
+    "test_oracle_exceptions": ["tests.unit.test_oracle_exceptions", ""],
+    "test_protocols": ["tests.unit.test_protocols", ""],
+    "test_services": ["tests.unit.test_services", ""],
+    "test_typings": ["tests.unit.test_typings", ""],
+    "test_utilities": ["tests.unit.test_utilities", ""],
 }
 
 __all__ = [
@@ -301,6 +339,7 @@ __all__ = [
     "TestServiceErrorHandling",
     "TestUtilities",
     "TestYamlModule",
+    "conftest",
     "connected_oracle_api",
     "docker_control",
     "ensure_shared_docker_container",
@@ -313,7 +352,24 @@ __all__ = [
     "real_oracle_config",
     "safe_get_first_value",
     "shared_oracle_container",
+    "test_api",
     "test_cleanup",
+    "test_cli",
+    "test_client",
+    "test_config",
+    "test_constants",
+    "test_coverage_baseline",
+    "test_dispatcher",
+    "test_exceptions",
+    "test_fields",
+    "test_metadata",
+    "test_models",
+    "test_oracle_example",
+    "test_oracle_exceptions",
+    "test_protocols",
+    "test_services",
+    "test_typings",
+    "test_utilities",
 ]
 
 
