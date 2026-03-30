@@ -261,6 +261,6 @@ class FlextDbOracleUtilities(FlextUtilities):
             return connection.execute(statement, normalized_params.root)
 
 
-__all__ = ["FlextDbOracleUtilities", "u"]
-
 u = FlextDbOracleUtilities
+
+__all__ = ["FlextDbOracleUtilities", "u"]

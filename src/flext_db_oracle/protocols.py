@@ -524,6 +524,6 @@ class FlextDbOracleProtocols(FlextProtocols):
                 ...
 
 
-__all__ = ["FlextDbOracleProtocols", "p"]
-
 p = FlextDbOracleProtocols
+
+__all__ = ["FlextDbOracleProtocols", "p"]

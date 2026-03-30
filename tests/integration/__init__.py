@@ -16,23 +16,14 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from tests.integration import test_oracle as test_oracle
-    from tests.integration.test_oracle import (
-        TestOracleIntegration as TestOracleIntegration,
-        mock_oracle_config as mock_oracle_config,
-    )
+    from tests.integration import test_oracle
+    from tests.integration.test_oracle import *
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "TestOracleIntegration": ["tests.integration.test_oracle", "TestOracleIntegration"],
-    "mock_oracle_config": ["tests.integration.test_oracle", "mock_oracle_config"],
-    "test_oracle": ["tests.integration.test_oracle", ""],
+_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+    "TestOracleIntegration": "tests.integration.test_oracle",
+    "mock_oracle_config": "tests.integration.test_oracle",
+    "test_oracle": "tests.integration.test_oracle",
 }
 
-_EXPORTS: Sequence[str] = [
-    "TestOracleIntegration",
-    "mock_oracle_config",
-    "test_oracle",
-]
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, _EXPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, sorted(_LAZY_IMPORTS))

@@ -195,4 +195,5 @@ class FlextDbOracleTypes(FlextTypes):
 
 
 t = FlextDbOracleTypes
+
 __all__ = ["FlextDbOracleTypes", "t"]

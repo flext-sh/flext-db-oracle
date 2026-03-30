@@ -546,9 +546,9 @@ class FlextDbOracleModels(FlextModels):
             schema_name: str | None = None
 
 
+m = FlextDbOracleModels
+
 __all__ = [
     "FlextDbOracleModels",
     "m",
 ]
-
-m = FlextDbOracleModels
