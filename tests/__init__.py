@@ -13,60 +13,15 @@ from flext_core.lazy import install_lazy_exports
 if TYPE_CHECKING:
     from flext_tests import *
 
-    from tests import (
-        conftest,
-        constants,
-        e2e,
-        integration,
-        models,
-        protocols,
-        typings,
-        unit,
-        utilities,
-    )
+    from tests import conftest, constants, models, protocols, typings, utilities
     from tests.conftest import *
     from tests.constants import *
-    from tests.e2e import test_oracle
-    from tests.e2e.test_oracle import *
-    from tests.integration.test_oracle import *
+    from tests.e2e import *
+    from tests.integration import *
     from tests.models import *
     from tests.protocols import *
     from tests.typings import *
-    from tests.unit import (
-        test_api,
-        test_cli,
-        test_client,
-        test_config,
-        test_constants,
-        test_coverage_baseline,
-        test_dispatcher,
-        test_exceptions,
-        test_fields,
-        test_metadata,
-        test_models,
-        test_oracle_example,
-        test_oracle_exceptions,
-        test_protocols,
-        test_services,
-        test_typings,
-        test_utilities,
-    )
-    from tests.unit.conftest import *
-    from tests.unit.test_api import *
-    from tests.unit.test_cli import *
-    from tests.unit.test_client import *
-    from tests.unit.test_constants import *
-    from tests.unit.test_coverage_baseline import *
-    from tests.unit.test_dispatcher import *
-    from tests.unit.test_exceptions import *
-    from tests.unit.test_fields import *
-    from tests.unit.test_models import *
-    from tests.unit.test_oracle_example import *
-    from tests.unit.test_oracle_exceptions import *
-    from tests.unit.test_protocols import *
-    from tests.unit.test_services import *
-    from tests.unit.test_typings import *
-    from tests.unit.test_utilities import *
+    from tests.unit import *
     from tests.utilities import *
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
