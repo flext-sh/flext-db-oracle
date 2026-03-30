@@ -55,19 +55,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration and complete flext-core integration."""
-        super().__init__(
-            config_type=None,
-            config_overrides=None,
-            initial_context=None,
-            subproject=None,
-            services=None,
-            factories=None,
-            resources=None,
-            container_overrides=None,
-            wire_modules=None,
-            wire_packages=None,
-            wire_classes=None,
-        )
+        super().__init__()
         self._oracle_config = config
         self._services = FlextDbOracleServices(config=self._oracle_config)
         self._context_name = context_name or "oracle-api"

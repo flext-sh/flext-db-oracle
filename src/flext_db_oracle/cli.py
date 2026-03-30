@@ -43,19 +43,7 @@ class FlextDbOracleCli(FlextService[str]):
     @override
     def __init__(self) -> None:
         """Initialize Oracle CLI Service."""
-        super().__init__(
-            config_type=None,
-            config_overrides=None,
-            initial_context=None,
-            subproject=None,
-            services=None,
-            factories=None,
-            resources=None,
-            container_overrides=None,
-            wire_modules=None,
-            wire_packages=None,
-            wire_classes=None,
-        )
+        super().__init__()
 
     class _OracleConnectionHelper:
         """Nested helper class for Oracle connection operations."""

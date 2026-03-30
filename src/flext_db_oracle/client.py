@@ -11,15 +11,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from types import ModuleType
 from typing import override
 
 import oracledb
-from flext_core import FlextService, FlextSettings, r
+from flext_core import FlextService, r
 from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import c, p, t, u
+from flext_db_oracle import c, t, u
 from flext_db_oracle.api import FlextDbOracleApi
 from flext_db_oracle.settings import FlextDbOracleSettings
 
@@ -73,33 +72,10 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         self,
         *,
         debug: bool = False,
-        config_type: type[FlextSettings] | None = None,
-        config_overrides: t.ContainerMapping | None = None,
-        initial_context: p.Context | None = None,
-        subproject: str | None = None,
-        services: Mapping[str, t.RegisterableService] | None = None,
-        factories: Mapping[str, t.FactoryCallable] | None = None,
-        resources: Mapping[str, t.ResourceCallable] | None = None,
-        container_overrides: t.ConfigurationMapping | None = None,
-        wire_modules: Sequence[ModuleType] | None = None,
-        wire_packages: t.StrSequence | None = None,
-        wire_classes: Sequence[type] | None = None,
     ) -> None:
         """Initialize Oracle CLI client with proper composition."""
         self._oracle_config = FlextDbOracleSettings()
-        super().__init__(
-            config_type=config_type,
-            config_overrides=config_overrides,
-            initial_context=initial_context,
-            subproject=subproject,
-            services=services,
-            factories=factories,
-            resources=resources,
-            container_overrides=container_overrides,
-            wire_modules=wire_modules,
-            wire_packages=wire_packages,
-            wire_classes=wire_classes,
-        )
+        super().__init__()
         self.debug = debug
         self.user_preferences = t.ConfigMap(
             root={

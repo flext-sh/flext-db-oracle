@@ -180,7 +180,7 @@ def main() -> None:
     else:
         env_vars = ["FLEXT_TARGET_ORACLE_HOST", "FLEXT_TARGET_ORACLE_USERNAME"]
         configured = sum(1 for var in env_vars if os.getenv(var))
-        configured == 0 or configured == len(env_vars)
+        _ = configured == 0 or configured == len(env_vars)
 
 
 if __name__ == "__main__":
