@@ -15,34 +15,8 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
 
-from flext_db_oracle.__version__ import (
-    __author__,
-    __author_email__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-    __version_info__,
-)
-
 if TYPE_CHECKING:
-    from flext_core import *
-
-    from flext_db_oracle import (
-        api,
-        cli,
-        client,
-        constants,
-        dispatcher,
-        exceptions,
-        models,
-        protocols,
-        services,
-        settings,
-        typings,
-        utilities,
-    )
+    from flext_db_oracle.__version__ import *
     from flext_db_oracle.api import *
     from flext_db_oracle.cli import *
     from flext_db_oracle.client import *
@@ -73,6 +47,14 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "OracleDatabaseError": "flext_db_oracle.client",
     "OracleIdentifier": "flext_db_oracle.settings",
     "OracleInterfaceError": "flext_db_oracle.client",
+    "__author__": "flext_db_oracle.__version__",
+    "__author_email__": "flext_db_oracle.__version__",
+    "__description__": "flext_db_oracle.__version__",
+    "__license__": "flext_db_oracle.__version__",
+    "__title__": "flext_db_oracle.__version__",
+    "__url__": "flext_db_oracle.__version__",
+    "__version__": "flext_db_oracle.__version__",
+    "__version_info__": "flext_db_oracle.__version__",
     "api": "flext_db_oracle.api",
     "c": ["flext_db_oracle.constants", "FlextDbOracleConstants"],
     "cli": "flext_db_oracle.cli",
@@ -99,4 +81,4 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
 }
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, sorted(_LAZY_IMPORTS))
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
