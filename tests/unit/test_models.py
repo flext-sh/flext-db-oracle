@@ -12,8 +12,12 @@ from datetime import UTC, datetime
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleModels, FlextDbOracleSettings
-from flext_db_oracle.constants import FlextDbOracleConstants
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConstants,
+    FlextDbOracleModels,
+    FlextDbOracleSettings,
+)
 
 
 @pytest.mark.unit_pure

@@ -25,7 +25,7 @@ class FlextDbOracleProtocols(FlextProtocols):
     - ADDS: Oracle-specific protocols in DbOracle namespace
 
     Usage:
-    from flext_db_oracle.protocols import FlextDbOracleProtocols
+    from flext_db_oracle import FlextDbOracleProtocols
 
     # Foundation protocols (inherited)
     result: FlextDbOracleProtocols.Result[str]

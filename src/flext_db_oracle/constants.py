@@ -26,7 +26,7 @@ class FlextDbOracleConstants(FlextConstants):
 
     Usage:
     ```python
-    from flext_db_oracle.constants import FlextDbOracleConstants
+    from flext_db_oracle import FlextDbOracleConstants
 
     port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
     query = FlextDbOracleConstants.DbOracle.Query.TEST_QUERY

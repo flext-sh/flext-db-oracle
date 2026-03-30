@@ -27,7 +27,7 @@ export ORACLE_PASSWORD="Oracle123"
 
 ```python
 from flext_db_oracle import FlextDbOracleApi
-from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle import FlextDbOracleModels
 
 # From environment
 config_result = FlextDbOracleModels.OracleConfig.from_env()

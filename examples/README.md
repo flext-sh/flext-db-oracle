@@ -232,7 +232,7 @@ Demonstrates:
 5. Performance optimization techniques
 """
 
-from flext_db_oracle.typings import FlextDbOracleTypes
+from flext_db_oracle import FlextDbOracleTypes
 from sqlalchemy import text, select
 from sqlalchemy.orm import Session
 
@@ -380,7 +380,7 @@ def setup_production_environment():
     api = FlextDbOracleApi(config, context_name="production")
 
     # Register monitoring plugins
-from flext_db_oracle.plugins import register_all_oracle_plugins
+from flext_db_oracle import register_all_oracle_plugins
     register_all_oracle_plugins(api)
 
     return api

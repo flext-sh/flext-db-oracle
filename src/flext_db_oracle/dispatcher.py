@@ -14,7 +14,7 @@ from flext_core import FlextContainer, FlextRegistry, FlextService, r
 from flext_db_oracle import FlextDbOracleModels, p, t
 
 if TYPE_CHECKING:
-    from flext_db_oracle.services import FlextDbOracleServices
+    from flext_db_oracle import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(FlextService[None]):

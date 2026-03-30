@@ -39,9 +39,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_db_oracle import c, t, u
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, c, t, u
 
 
 class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):

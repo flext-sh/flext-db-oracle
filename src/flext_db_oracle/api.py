@@ -21,11 +21,15 @@ import oracledb
 from flext_core import FlextService, r
 from pydantic import BaseModel
 
-from flext_db_oracle import c, t, u
-from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.services import FlextDbOracleServices
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import (
+    FlextDbOracleDispatcher,
+    FlextDbOracleModels,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    c,
+    t,
+    u,
+)
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError

@@ -111,18 +111,18 @@ All modules integrate with FLEXT Core patterns:
 
 ```python
 # Primary imports (direct imports only - STRICT RULE)
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes
+from flext_db_oracle import FlextDbOracleApi
+from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleTypes
 
 # Metadata operations (direct imports only)
 # Use FlextDbOracleApi for metadata operations - NO aliases allowed
 
 # Plugin system
-from flext_db_oracle.plugins import register_all_oracle_plugins
+from flext_db_oracle import register_all_oracle_plugins
 
 # Type definitions
-from flext_db_oracle.types import TDbOracleQueryResult, TDbOracleConnectionStatus
+from flext_db_oracle import TDbOracleQueryResult, TDbOracleConnectionStatus
 ```
 
 ## 📊 Code Quality Standards

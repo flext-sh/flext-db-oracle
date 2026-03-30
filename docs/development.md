@@ -466,7 +466,7 @@ class ExceptionParams(FlextModels.Entity):
 
 ```bash
 # Check actual constant values
-PYTHONPATH=src python -c "from flext_db_oracle.constants import FlextDbOracleConstants; print(FlextDbOracleConstants.Network.MIN_PORT)"
+PYTHONPATH=src python -c "from flext_db_oracle import FlextDbOracleConstants; print(FlextDbOracleConstants.Network.MIN_PORT)"
 
 # Fix: Either update constants or correct test expectations
 # Option 1: Update constant to match test expectation

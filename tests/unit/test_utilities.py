@@ -13,9 +13,12 @@ import pytest
 from flext_tests import tm
 from pydantic import TypeAdapter
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleUtilities
-from flext_db_oracle.constants import FlextDbOracleConstants
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConstants,
+    FlextDbOracleSettings,
+    FlextDbOracleUtilities,
+)
 from tests import t
 
 

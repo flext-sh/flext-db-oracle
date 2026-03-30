@@ -19,8 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_db_oracle import c, t
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings, c, t
 
 
 class FlextDbOracleUtilities(FlextUtilities):
@@ -40,7 +39,7 @@ class FlextDbOracleUtilities(FlextUtilities):
         and cross-project access. Access via u.Oracle.* pattern.
 
         Example:
-            from flext_db_oracle.utilities import u
+            from flext_db_oracle import u
             result = u.Oracle.Collection.parse_sequence(Status, ["active", "pending"])
             parsed = u.Oracle.Args.parse_kwargs(kwargs, enum_fields)
 
