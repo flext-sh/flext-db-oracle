@@ -15,20 +15,20 @@ from typing import TYPE_CHECKING
 
 from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
 
+from flext_db_oracle.__version__ import (
+    __author__,
+    __author_email__,
+    __description__,
+    __license__,
+    __title__,
+    __url__,
+    __version__,
+    __version_info__,
+)
+
 if TYPE_CHECKING:
     from flext_core import FlextTypes, d, h, r, x
 
-    from flext_db_oracle.__version__ import (
-        __all__,
-        __author__,
-        __author_email__,
-        __description__,
-        __license__,
-        __title__,
-        __url__,
-        __version__,
-        __version_info__,
-    )
     from flext_db_oracle.api import FlextDbOracleApi
     from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import (
@@ -85,15 +85,6 @@ _LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
     "OracleDatabaseError": ["flext_db_oracle.client", "OracleDatabaseError"],
     "OracleIdentifier": ["flext_db_oracle.settings", "OracleIdentifier"],
     "OracleInterfaceError": ["flext_db_oracle.client", "OracleInterfaceError"],
-    "__all__": ["flext_db_oracle.__version__", "__all__"],
-    "__author__": ["flext_db_oracle.__version__", "__author__"],
-    "__author_email__": ["flext_db_oracle.__version__", "__author_email__"],
-    "__description__": ["flext_db_oracle.__version__", "__description__"],
-    "__license__": ["flext_db_oracle.__version__", "__license__"],
-    "__title__": ["flext_db_oracle.__version__", "__title__"],
-    "__url__": ["flext_db_oracle.__version__", "__url__"],
-    "__version__": ["flext_db_oracle.__version__", "__version__"],
-    "__version_info__": ["flext_db_oracle.__version__", "__version_info__"],
     "c": ["flext_db_oracle.constants", "FlextDbOracleConstants"],
     "d": ["flext_core", "d"],
     "e": ["flext_db_oracle.exceptions", "FlextDbOracleExceptions"],
@@ -124,7 +115,6 @@ __all__ = [
     "OracleDatabaseError",
     "OracleIdentifier",
     "OracleInterfaceError",
-    "__all__",
     "__author__",
     "__author_email__",
     "__description__",
