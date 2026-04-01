@@ -23,7 +23,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
-from flext_db_oracle import c, t
+from flext_db_oracle import c, t, u
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
@@ -277,12 +277,6 @@ class FlextDbOracleSettings(FlextSettings):
             else str(c.DbOracle.Connection.DEFAULT_POOL_MAX)
         )
 
-        def _safe_int(value: str, default_value: int) -> int:
-            try:
-                return int(value)
-            except ValueError:
-                return default_value
-
         def _safe_identifier(value: str | None, default_value: str) -> str:
             if value is None:
                 return default_value
@@ -302,7 +296,7 @@ class FlextDbOracleSettings(FlextSettings):
         try:
             settings = cls.model_validate({
                 "host": host,
-                "port": _safe_int(port_text, c.DbOracle.Connection.DEFAULT_PORT),
+                "port": u.to_int(port_text, default=c.DbOracle.Connection.DEFAULT_PORT),
                 "service_name": _safe_identifier(
                     service_name,
                     c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
@@ -311,17 +305,17 @@ class FlextDbOracleSettings(FlextSettings):
                 "password": password,
                 "name": database_name,
                 "sid": _safe_optional_identifier(sid_value),
-                "timeout": _safe_int(
+                "timeout": u.to_int(
                     timeout_text,
-                    c.DbOracle.Connection.DEFAULT_TIMEOUT,
+                    default=c.DbOracle.Connection.DEFAULT_TIMEOUT,
                 ),
-                "pool_min": _safe_int(
+                "pool_min": u.to_int(
                     pool_min_text,
-                    c.DbOracle.Connection.DEFAULT_POOL_MIN,
+                    default=c.DbOracle.Connection.DEFAULT_POOL_MIN,
                 ),
-                "pool_max": _safe_int(
+                "pool_max": u.to_int(
                     pool_max_text,
-                    c.DbOracle.Connection.DEFAULT_POOL_MAX,
+                    default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
                 ),
             })
             return r[FlextDbOracleSettings].ok(settings)

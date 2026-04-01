@@ -184,9 +184,7 @@ class FlextDbOracleServices(FlextService[FlextDbOracleSettings]):
                 else []
             )
             raw_parallel = _config.get("parallel", 1)
-            parallel_value = (
-                int(raw_parallel) if isinstance(raw_parallel, (int, str)) else 1
-            )
+            parallel_value = u.to_int(raw_parallel, default=1)
             payload = {
                 "table_name": str(_config.get("table_name", "")),
                 "index_name": str(_config.get("index_name", "")),
