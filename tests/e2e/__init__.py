@@ -18,7 +18,7 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from tests.e2e.test_oracle import *
+    from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "OperationTestError": "tests.e2e.test_oracle",

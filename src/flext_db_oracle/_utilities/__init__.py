@@ -11,27 +11,13 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
-    from flext_db_oracle.cli import FlextDbOracleCli
-    from flext_db_oracle.client import (
-        FlextDbOracleClient,
-        OracleDatabaseError,
-        OracleInterfaceError,
-    )
-    from flext_db_oracle.services import FlextDbOracleServices, s
+    from flext_core import FlextTypes
 
-_LAZY_IMPORTS: Mapping[str, Sequence[str]] = {
-    "FlextDbOracleCli": ["flext_db_oracle.cli", "FlextDbOracleCli"],
-    "FlextDbOracleClient": ["flext_db_oracle.client", "FlextDbOracleClient"],
-    "FlextDbOracleServices": [
-        "flext_db_oracle.services",
-        "FlextDbOracleServices",
-    ],
-    "OracleDatabaseError": ["flext_db_oracle.client", "OracleDatabaseError"],
-    "OracleInterfaceError": [
-        "flext_db_oracle.client",
-        "OracleInterfaceError",
-    ],
-    "s": ["flext_db_oracle.services", "s"],
+    from flext_db_oracle._utilities.db_oracle import *
+
+_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+    "FlextDbOracleUtilitiesDbOracle": "flext_db_oracle._utilities.db_oracle",
+    "db_oracle": "flext_db_oracle._utilities.db_oracle",
 }
 
 
