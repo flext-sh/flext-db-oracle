@@ -20,7 +20,40 @@ from flext_core.lazy import install_lazy_exports
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
 
-    from tests.unit.conftest import *
+    from tests.unit import (
+        conftest,
+        test_api,
+        test_cli,
+        test_client,
+        test_config,
+        test_constants,
+        test_coverage_baseline,
+        test_dispatcher,
+        test_exceptions,
+        test_fields,
+        test_metadata,
+        test_models,
+        test_oracle_example,
+        test_oracle_exceptions,
+        test_protocols,
+        test_services,
+        test_typings,
+        test_utilities,
+    )
+    from tests.unit.conftest import (
+        connected_oracle_api,
+        docker_control,
+        ensure_shared_docker_container,
+        logger,
+        mock_oracle_config,
+        oracle_api,
+        oracle_available,
+        oracle_config,
+        oracle_container,
+        real_oracle_config,
+        shared_oracle_container,
+        test_cleanup,
+    )
     from tests.unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,

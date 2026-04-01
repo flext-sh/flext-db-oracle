@@ -14,15 +14,120 @@ if _TYPE_CHECKING:
     from flext_core import FlextTypes
     from flext_tests import d, e, h, r, s, x
 
-    from tests.conftest import *
-    from tests.constants import *
-    from tests.e2e import *
-    from tests.integration import *
-    from tests.models import *
-    from tests.protocols import *
-    from tests.typings import *
-    from tests.unit import *
-    from tests.utilities import *
+    from tests import (
+        conftest,
+        constants,
+        e2e,
+        integration,
+        models,
+        protocols,
+        typings,
+        unit,
+        utilities,
+    )
+    from tests.conftest import (
+        flext_domains,
+        pytest_configure,
+        pytest_runtest_makereport,
+        pytest_sessionstart,
+        test_database_setup,
+    )
+    from tests.constants import (
+        FlextDbOracleTestConstants,
+        FlextDbOracleTestConstants as c,
+    )
+    from tests.e2e import OperationTestError, TestOracleE2E, test_oracle
+    from tests.integration import TestOracleIntegration
+    from tests.models import FlextDbOracleTestModels, FlextDbOracleTestModels as m
+    from tests.protocols import (
+        FlextDbOracleTestProtocols,
+        FlextDbOracleTestProtocols as p,
+    )
+    from tests.typings import FlextDbOracleTestTypes, FlextDbOracleTestTypes as t
+    from tests.unit import (
+        HealthCheckReport,
+        NamedItem,
+        TestApiModule,
+        TestApiSurgicalSimple,
+        TestBasicModelCreation,
+        TestCLIRealFunctionality,
+        TestCliServiceOperations,
+        TestConstants,
+        TestDirectCoverageBoostAPI,
+        TestDirectCoverageBoostConfig,
+        TestDirectCoverageBoostConnection,
+        TestDirectCoverageBoostObservability,
+        TestDirectCoverageBoostServices,
+        TestDirectCoverageBoostTypes,
+        TestDispatcherSurgical,
+        TestExceptions,
+        TestFlextDbOracleApiRealFunctionality,
+        TestFlextDbOracleApiSafeMethods,
+        TestFlextDbOracleApiWorking,
+        TestFlextDbOracleCli,
+        TestFlextDbOracleClientIntegration,
+        TestFlextDbOracleClientReal,
+        TestFlextDbOracleClientRealFunctionality,
+        TestFlextDbOracleConnectionSimple,
+        TestFlextDbOracleConstants,
+        TestFlextDbOracleExceptions,
+        TestFlextDbOracleFields,
+        TestFlextDbOracleMetadataManagerComprehensive,
+        TestFlextDbOracleModels,
+        TestFlextDbOracleProtocols,
+        TestFlextDbOracleServices,
+        TestFlextDbOracleServicesBasic,
+        TestFlextDbOracleServicesPlaceholderRemovals,
+        TestFlextDbOracleSettings,
+        TestFlextDbOracleTypes,
+        TestFlextDbOracleUtilities,
+        TestModuleImports,
+        TestOracleConnectionHelper,
+        TestOutputFormatter,
+        TestRealOracleApi,
+        TestRealOracleConnection,
+        TestRealOracleErrorHandling,
+        TestRealOracleExceptionHierarchy,
+        TestRealOracleExceptionsAdvanced,
+        TestRealOracleExceptionsCore,
+        TestServiceErrorHandling,
+        TestUtilities,
+        TestYamlModule,
+        connected_oracle_api,
+        docker_control,
+        ensure_shared_docker_container,
+        logger,
+        mock_oracle_config,
+        oracle_api,
+        oracle_available,
+        oracle_config,
+        oracle_container,
+        real_oracle_config,
+        safe_get_first_value,
+        shared_oracle_container,
+        test_api,
+        test_cleanup,
+        test_cli,
+        test_client,
+        test_config,
+        test_constants,
+        test_coverage_baseline,
+        test_dispatcher,
+        test_exceptions,
+        test_fields,
+        test_metadata,
+        test_models,
+        test_oracle_example,
+        test_oracle_exceptions,
+        test_protocols,
+        test_services,
+        test_typings,
+        test_utilities,
+    )
+    from tests.utilities import (
+        FlextDbOracleTestUtilities,
+        FlextDbOracleTestUtilities as u,
+    )
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
     (
