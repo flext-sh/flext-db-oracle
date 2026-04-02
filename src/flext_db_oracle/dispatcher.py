@@ -10,7 +10,6 @@ from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, FlextService, r
-
 from flext_db_oracle import FlextDbOracleModels, p, t
 
 if TYPE_CHECKING:

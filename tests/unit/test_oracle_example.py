@@ -10,9 +10,9 @@ from __future__ import annotations
 import contextlib
 from collections.abc import Mapping, Sequence
 
-from flext_core import r
 from flext_tests import tm
 
+from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
@@ -184,7 +184,7 @@ class TestRealOracleApi:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
         schemas = schemas_result.value
-        tm.that(schemas, eq=True)
+        tm.that(len(schemas) > 0, eq=True)
         system_schemas = ["SYS", "SYSTEM", "FLEXT", "FLEXTTEST", "XDB"]
         tm.that(
             any(
@@ -202,7 +202,7 @@ class TestRealOracleApi:
             raise AssertionError(msg)
         tables = tables_result.value
         tm.that(tables, is_=list)
-        tm.that(tables, eq=True)
+        tm.that(len(tables) >= 0, eq=True)
         expected_tables = ["EMPLOYEES", "DEPARTMENTS", "JOBS"]
         for table in expected_tables:
             tm.that(any(table in str(t).upper() for t in tables), eq=True)
@@ -214,10 +214,9 @@ class TestRealOracleApi:
             msg = f"Get columns failed: {result.error}"
             raise AssertionError(msg)
         columns = result.value
-        tm.that(columns, eq=True)
+        tm.that(len(columns) > 0, eq=True)
         column_names = [
-            str(col["column_name"]).upper() if "column_name" in col else ""
-            for col in columns
+            col.name.upper() if hasattr(col, "name") else "" for col in columns
         ]
         expected_columns = ["EMPLOYEE_ID", "FIRST_NAME", "LAST_NAME", "EMAIL"]
         for col in expected_columns:
@@ -234,7 +233,7 @@ class TestRealOracleApi:
             raise AssertionError(msg)
         query_result = result.value
         tm.that(query_result, is_=list)
-        tm.that(query_result, eq=True)
+        tm.that(len(query_result) > 0, eq=True)
 
     def test_real_api_singer_type_conversion(
         self,

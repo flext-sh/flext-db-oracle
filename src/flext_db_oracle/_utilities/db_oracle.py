@@ -8,7 +8,6 @@ import os
 from collections.abc import Mapping
 from enum import StrEnum
 
-from flext_core import r
 from pydantic import RootModel, TypeAdapter, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
@@ -19,6 +18,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
+from flext_core import r
 from flext_db_oracle import c, t
 
 
@@ -141,7 +141,7 @@ class FlextDbOracleUtilitiesDbOracle:
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap.model_validate({"root": value})
+            return t.ConfigMap(root=value)
         except ValidationError:
             return None
 

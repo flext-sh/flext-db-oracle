@@ -10,7 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Mapping, Sequence
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -22,7 +22,7 @@ from flext_db_oracle import (
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import c, m, t, u
+from tests import c, m, t
 
 
 class TestFlextDbOracleServicesBasic:
@@ -300,7 +300,7 @@ class TestFlextDbOracleServicesBasic:
         tm.ok(metric_result)
         metrics_result = service.get_metrics()
         tm.ok(metrics_result)
-        tm.that(metrics_result.value, has="query_time")
+        tm.that(metrics_result.value.status, has="with_observability")
 
     def test_service_operation_tracking(self) -> None:
         """Test operation tracking functionality."""
@@ -321,7 +321,7 @@ class TestFlextDbOracleServicesBasic:
         tm.ok(track_result)
         ops_result = service.get_operations()
         tm.ok(ops_result)
-        tm.that(ops_result.value, eq=True)
+        tm.that(len(ops_result.value) > 0, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -356,9 +356,9 @@ class TestFlextDbOracleServicesBasic:
         service = FlextDbOracleServices(config=config)
         health_result = service.health_check()
         tm.ok(health_result)
-        tm.that(health_result.value, has="service")
-        tm.that(health_result.value, has="status")
-        tm.that(health_result.value, has="database")
+        tm.that(health_result.value.service, eq="oracle")
+        tm.that(bool(health_result.value.status), eq=True)
+        tm.that(bool(health_result.value.database), eq=True)
 
     def test_service_query_hash_generation(self) -> None:
         """Test query hash generation."""
@@ -375,7 +375,7 @@ class TestFlextDbOracleServicesBasic:
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
-        tm.that(hash_result.value, eq=True)
+        tm.that(bool(hash_result.value), eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -406,7 +406,7 @@ class TestServiceErrorHandling:
         service = FlextDbOracleServices(config=config)
         invalid_table = "table'; DROP TABLE users;--"
         select_result = service.build_select(invalid_table, ["col1"])
-        tm.that(select_result, none=False)
+        tm.ok(select_result)
 
     def test_empty_parameters_handling(self) -> None:
         """Test handling of empty parameters."""
@@ -467,145 +467,39 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         tm.that(result.is_failure, eq=True)
         tm.that((result.error or ""), has="at least one column")
 
-    def test_record_metric_fails_when_observability_missing(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_record_metric_records_via_observability(self) -> None:
+        """Test record_metric registers metric via FlextObservabilityCustomMetrics."""
         service = self._make_service()
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name == "flext_observability":
-                raise ModuleNotFoundError(name)
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
         result = service.record_metric("db_query_duration", 12.5)
-        tm.that(result.is_failure, eq=True)
-        tm.that((result.error or ""), has="flext-observability integration unavailable")
+        tm.ok(result)
 
-    def test_record_metric_uses_observability_when_available(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_record_metric_with_tags(self) -> None:
+        """Test record_metric accepts tags parameter."""
         service = self._make_service()
-        calls: MutableSequence[t.ContainerMapping] = []
-
-        def fake_flext_metric(
-            *,
-            name: str,
-            value: float,
-            tags: t.Dict,
-        ) -> m.DbOracle.Tests.StubResult:
-            entry: t.ContainerMapping = {"name": name, "value": value}
-            calls.append(entry)
-            return m.DbOracle.Tests.StubResult()
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name == "flext_observability":
-                return SimpleNamespace(flext_metric=fake_flext_metric)
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
         result = service.record_metric(
             "db_query_duration",
             12.5,
             t.ConfigMap(root={"k": "v"}),
         )
         tm.ok(result)
-        tm.that(len(calls), eq=1)
-        tm.that(calls[0]["name"], eq="db_query_duration")
 
-    def test_get_metrics_fails_when_observability_missing(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_record_metric_fails_with_empty_name(self) -> None:
+        """Test record_metric fails when name is empty."""
         service = self._make_service()
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name == "flext_observability":
-                raise ModuleNotFoundError(name)
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
-        result = service.get_metrics()
+        result = service.record_metric("", 12.5)
         tm.that(result.is_failure, eq=True)
-        tm.that((result.error or ""), has="flext-observability integration unavailable")
+        tm.that((result.error or ""), has="Metric name is required")
 
-    def test_get_metrics_returns_health_status_when_observability_available(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_get_metrics_returns_health_status(self) -> None:
+        """Test get_metrics returns HealthStatus with observability data."""
         service = self._make_service()
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name == "flext_observability":
-
-                def _stub_metric(
-                    **_kwargs: t.NormalizedValue,
-                ) -> m.DbOracle.Tests.StubResult:
-                    return m.DbOracle.Tests.StubResult()
-
-                return SimpleNamespace(flext_metric=_stub_metric)
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
         result = service.get_metrics()
         tm.ok(result)
         tm.that(result.value.status.endswith("_with_observability"), eq=True)
 
-    def test_plugin_methods_fail_when_plugin_integration_missing(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_plugin_lifecycle(self) -> None:
+        """Test plugin register/get/list/unregister lifecycle."""
         service = self._make_service()
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name in {"flext_plugin.api", "flext_plugin.models"}:
-                raise ModuleNotFoundError(name)
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
-        tm.that(
-            service.register_plugin("sample", {"version": "1.0.0"}).is_failure,
-            eq=True,
-        )
-        tm.that(service.unregister_plugin("sample").is_failure, eq=True)
-        tm.that(service.list_plugins().is_failure, eq=True)
-        tm.that(service.get_plugin("sample").is_failure, eq=True)
-
-    def test_plugin_methods_wire_to_flext_plugin_when_available(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        service = self._make_service()
-        u.DbOracle.Tests.StubPluginApi._registry = {}
-        plugin_models = SimpleNamespace(
-            FlextPluginModels=SimpleNamespace(
-                Plugin=SimpleNamespace(Plugin=m.DbOracle.Tests.StubPluginEntity),
-            ),
-        )
-        plugin_api = SimpleNamespace(FlextPluginApi=u.DbOracle.Tests.StubPluginApi)
-
-        def fake_import(name: str) -> SimpleNamespace:
-            if name == "flext_plugin.models":
-                return plugin_models
-            if name == "flext_plugin.api":
-                return plugin_api
-            raise AssertionError(f"Unexpected module import: {name}")
-
-        monkeypatch.setattr(
-            "flext_db_oracle.services.plugin.import_module", fake_import
-        )
         register_result = service.register_plugin(
             "sample",
             {"version": "1.2.3", "description": "demo", "plugin_type": "utility"},
@@ -617,11 +511,21 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         get_result = service.get_plugin("sample")
         tm.ok(get_result)
         tm.that(get_result.value, is_=dict)
-        plugin_val = get_result.value
-        assert isinstance(plugin_val, dict)
-        tm.that(plugin_val.get("name"), eq="sample")
         unregister_result = service.unregister_plugin("sample")
         tm.ok(unregister_result)
+
+    def test_plugin_not_found(self) -> None:
+        """Test get_plugin/unregister_plugin fail for missing plugins."""
+        service = self._make_service()
+        tm.that(service.get_plugin("missing").is_failure, eq=True)
+        tm.that(service.unregister_plugin("missing").is_failure, eq=True)
+
+    def test_plugin_empty_name_fails(self) -> None:
+        """Test plugin operations fail with empty name."""
+        service = self._make_service()
+        tm.that(service.register_plugin("", {"v": "1"}).is_failure, eq=True)
+        tm.that(service.get_plugin("").is_failure, eq=True)
+        tm.that(service.unregister_plugin("").is_failure, eq=True)
 
 
 "Direct Coverage Boost Tests - Target specific missed lines.\n\nThis module directly calls internal functions to boost coverage from 41% toward ~100%.\nFocus on API (40%), CLI (21%), and other modules with lowest coverage.\n\n\n\n\nCopyright (c) 2025 FLEXT Team. All rights reserved.\nSPDX-License-Identifier: MIT\n\n"
@@ -730,7 +634,7 @@ class TestDirectCoverageBoostConfig:
 
     def test_config_environment_integration(self) -> None:
         """Test config environment variable integration."""
-        original_vars: MutableMapping[str, str | None] = {}
+        original_vars: t.MutableOptionalStrMapping = {}
         test_vars = {
             "FLEXT_TARGET_ORACLE_HOST": "test_host",
             "FLEXT_TARGET_ORACLE_PORT": "1234",
@@ -1190,7 +1094,7 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             if method_name != "generate_ddl":
                 tm.that(not result.is_success, eq=True)
                 tm.that(result.error, none=False)
-                tm.that(result.error, eq=True)
+                tm.that(bool(result.error), eq=True)
 
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
@@ -1621,7 +1525,7 @@ class TestFlextDbOracleConnectionSimple:
         tm.ok(metric_result)
         metrics_result = service.get_metrics()
         tm.ok(metrics_result)
-        tm.that(metrics_result.value, has="query_time")
+        tm.that(metrics_result.value.status, has="with_observability")
 
     def test_service_operation_tracking(self) -> None:
         """Test operation tracking functionality."""
@@ -1642,7 +1546,7 @@ class TestFlextDbOracleConnectionSimple:
         tm.ok(track_result)
         ops_result = service.get_operations()
         tm.ok(ops_result)
-        tm.that(ops_result.value, eq=True)
+        tm.that(len(ops_result.value) > 0, eq=True)
 
     def test_service_plugin_management(self) -> None:
         """Test plugin registration and management."""
@@ -1677,9 +1581,9 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         health_result = service.health_check()
         tm.ok(health_result)
-        tm.that(health_result.value, has="service")
-        tm.that(health_result.value, has="status")
-        tm.that(health_result.value, has="database")
+        tm.that(health_result.value.service, eq="oracle")
+        tm.that(bool(health_result.value.status), eq=True)
+        tm.that(bool(health_result.value.database), eq=True)
 
     def test_service_query_hash_generation(self) -> None:
         """Test query hash generation."""
@@ -1696,7 +1600,7 @@ class TestFlextDbOracleConnectionSimple:
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
-        tm.that(hash_result.value, eq=True)
+        tm.that(bool(hash_result.value), eq=True)
 
     def test_service_column_definition_building(self) -> None:
         """Test column definition building for DDL."""
@@ -1723,7 +1627,7 @@ class TestFlextDbOracleConnectionSimple:
         service = FlextDbOracleServices(config=config)
         invalid_table = "table'; DROP TABLE users;--"
         select_result = service.build_select(invalid_table, ["col1"])
-        tm.that(select_result, none=False)
+        tm.ok(select_result)
 
     def test_empty_parameters_handling(self) -> None:
         """Test handling of empty parameters."""

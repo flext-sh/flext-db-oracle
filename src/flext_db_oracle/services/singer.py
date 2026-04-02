@@ -11,7 +11,6 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping
 
 from flext_core import r
-
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, t
 
 

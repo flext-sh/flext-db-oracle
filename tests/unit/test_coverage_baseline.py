@@ -165,7 +165,7 @@ class TestUtilities:
 
     def test_utilities_has_methods(self) -> None:
         """Test utilities has expected methods."""
-        tm.that(hasattr(u, "generate_query_hash"), eq=True)
+        tm.that(hasattr(u.DbOracle, "generate_query_hash"), eq=True)
 
 
 class TestConstants:

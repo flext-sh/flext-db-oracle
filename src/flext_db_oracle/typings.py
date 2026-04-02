@@ -17,8 +17,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Literal
 
-from flext_core import FlextTypes
 from pydantic import TypeAdapter
+
+from flext_core import FlextTypes
 
 
 class FlextDbOracleTypes(FlextTypes):
@@ -73,7 +74,7 @@ class FlextDbOracleTypes(FlextTypes):
         type TransactionBlock = Sequence[
             Mapping[str, str | Mapping[str, FlextTypes.ContainerValue]]
         ]
-        type SavepointConfig = Mapping[str, str | int]
+        type SavepointConfig = FlextTypes.HeaderMapping
         type RollbackConfig = Mapping[str, str | bool | FlextTypes.StrSequence]
 
         type SchemaDefinition = FlextTypes.ContainerValueMapping
@@ -104,7 +105,7 @@ class FlextDbOracleTypes(FlextTypes):
             FlextTypes.ContainerValue | Mapping[str, FlextTypes.ContainerValue],
         ]
         type SessionVariables = Mapping[str, FlextTypes.ContainerValue]
-        type SessionMetrics = Mapping[str, int | float | str]
+        type SessionMetrics = FlextTypes.ConfigValueMapping
         type SessionPooling = Mapping[
             str,
             int | bool | str | Mapping[str, FlextTypes.ContainerValue],

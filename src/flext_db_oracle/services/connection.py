@@ -16,7 +16,6 @@ from typing import Self, override
 from urllib.parse import quote_plus
 
 import oracledb
-from flext_core import r
 from sqlalchemy import Connection as SAConnection
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -24,6 +23,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
+from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServiceBase,

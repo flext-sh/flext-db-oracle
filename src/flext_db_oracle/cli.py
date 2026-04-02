@@ -19,9 +19,9 @@ from typing import override
 import oracledb
 import yaml
 from flext_cli import cli
-from flext_core import FlextService, r
 from pydantic import TypeAdapter, ValidationError
 
+from flext_core import FlextService, r
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, m, t
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError

@@ -11,12 +11,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_core import r
 from flext_observability import FlextObservabilityCustomMetrics
 from sqlalchemy.exc import (
     OperationalError as SQLAlchemyOperationalError,
 )
 
+from flext_core import r
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, t, u
 
 

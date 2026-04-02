@@ -15,7 +15,6 @@ from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 import oracledb
-from flext_core import FlextSettings, r
 from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
@@ -23,6 +22,7 @@ from pydantic_settings import (
     SettingsConfigDict,
 )
 
+from flext_core import FlextSettings, r
 from flext_db_oracle import c, t, u
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError

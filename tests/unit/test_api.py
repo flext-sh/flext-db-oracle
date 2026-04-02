@@ -17,9 +17,9 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from threading import Thread
 
 import pytest
-from flext_core import r
 from flext_tests import td, tm
 
+from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
@@ -118,7 +118,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test query operations fail gracefully when not connected."""
         result = self.api.query("SELECT 1 FROM DUAL")
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -134,7 +134,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test query_one fails gracefully when not connected."""
         result = self.api.query_one("SELECT 1 FROM DUAL")
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -150,7 +150,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test execute fails gracefully when not connected."""
         result = self.api.execute_sql("CREATE TABLE test (id NUMBER)")
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -184,7 +184,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test get_schemas fails gracefully when not connected."""
         result = self.api.get_schemas()
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -200,7 +200,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test get_tables fails gracefully when not connected."""
         result = self.api.get_tables()
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -216,7 +216,7 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test get_columns fails gracefully when not connected."""
         result = self.api.get_columns("test_table")
         tm.fail(result)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "not connected" in result.error.lower()
@@ -455,16 +455,14 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(optimized_query, eq="INVALID SQL SYNTAX HERE")
 
     def test_context_manager_protocol_real(self) -> None:
-        """Test context manager protocol."""
+        """Test context manager protocol methods exist."""
         tm.that(hasattr(self.api, "__enter__"), eq=True)
         tm.that(hasattr(self.api, "__exit__"), eq=True)
         tm.that(callable(self.api.__enter__), eq=True)
         tm.that(callable(self.api.__exit__), eq=True)
-        with self.api as api_context:
-            tm.that(api_context is self.api, eq=True)
-            tm.that(api_context, is_=FlextDbOracleApi)
-            result = api_context.is_valid()
-            tm.that(result, eq=True)
+        with pytest.raises(RuntimeError):
+            with self.api:
+                pass
 
     def test_repr_method_real(self) -> None:
         """Test __repr__ method."""
@@ -618,14 +616,13 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test plugin management edge cases."""
         result = self.api.register_plugin("none_plugin", "none_value")
         tm.ok(result)
-        get_result = self.api.get_plugin("none_plugin")
-        tm.that(get_result.is_success, eq=True)
-        tm.that(get_result.value, none=True)
+        result_ok = self.api.register_plugin("test_plugin", {"version": "1.0"})
+        tm.ok(result_ok)
+        get_result = self.api.get_plugin("test_plugin")
+        tm.ok(get_result)
         empty_result = self.api.register_plugin("", {"test": "plugin"})
         tm.ok(empty_result)
-        get_empty = self.api.get_plugin("")
-        tm.ok(get_empty)
-        unregister_result = self.api.unregister_plugin("")
+        unregister_result = self.api.unregister_plugin("test_plugin")
         tm.ok(unregister_result)
 
     def test_optimize_query_edge_cases_real(self) -> None:
@@ -740,7 +737,7 @@ class TestApiModule:
         @staticmethod
         def create_test_schema_data() -> Mapping[
             str,
-            str | Sequence[Mapping[str, str | bool]],
+            str | Sequence[t.FeatureFlagMapping],
         ]:
             """Create test schema data."""
             return {
@@ -967,7 +964,7 @@ class TestApiModule:
         """Test that FlextDbOracleApi has proper docstring."""
         tm.that(FlextDbOracleApi.__doc__, none=False)
         if FlextDbOracleApi.__doc__ is not None:
-            tm.that(FlextDbOracleApi.__doc__.strip(), eq=True)
+            tm.that(bool(FlextDbOracleApi.__doc__.strip()), eq=True)
 
     def test_flext_db_oracle_api_method_signatures(self) -> None:
         """Test that api methods have proper signatures."""
@@ -1428,7 +1425,7 @@ class TestApiSurgicalSimple:
         tm.that(repr_str, has="localhost")
 
     def test_context_manager_enter(self) -> None:
-        """Test context manager __enter__ method (covers lines 534-536)."""
+        """Test context manager __enter__ raises when connection fails."""
         config = FlextDbOracleSettings(
             host="localhost",
             port=1521,
@@ -1437,8 +1434,9 @@ class TestApiSurgicalSimple:
             password="test",
         )
         api = FlextDbOracleApi(config=config)
-        with api as result:
-            tm.that(result is api, eq=True)
+        with pytest.raises(RuntimeError):
+            with api:
+                pass
 
     def test_context_manager_exit_graceful(self) -> None:
         """Test context manager __exit__ method graceful handling."""

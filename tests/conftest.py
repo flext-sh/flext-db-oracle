@@ -15,9 +15,9 @@ from pathlib import Path
 
 import oracledb
 import pytest
-from flext_core import FlextLogger
 from flext_tests import td, tk
 
+from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import u
 

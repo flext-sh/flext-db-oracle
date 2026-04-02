@@ -14,7 +14,6 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import ClassVar
 
-from flext_core import FlextModels
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -23,6 +22,7 @@ from pydantic import (
     model_validator,
 )
 
+from flext_core import FlextModels
 from flext_db_oracle import c, t
 
 

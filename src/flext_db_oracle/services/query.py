@@ -14,7 +14,6 @@ from collections.abc import Mapping, Sequence
 from typing import override
 
 import oracledb
-from flext_core import r
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -22,6 +21,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
+from flext_core import r
 from flext_db_oracle import FlextDbOracleServiceBase, t
 
 
@@ -52,7 +52,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
                     typed_params = (
                         params
                         if isinstance(params, t.ConfigMap)
-                        else t.ConfigMap.model_validate({"root": dict(params)})
+                        else t.ConfigMap(root=dict(params))
                     )
                     result = self._connection_execute(
                         conn,
@@ -162,7 +162,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         typed_params = (
             params
             if isinstance(params, t.ConfigMap) or params is None
-            else t.ConfigMap.model_validate({"root": dict(params)})
+            else t.ConfigMap(root=dict(params))
         )
         hash_input = f"{sql}_{typed_params!s}"
         return r[str].ok(hashlib.sha256(hash_input.encode()).hexdigest()[:16])
@@ -175,18 +175,14 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         mapping_result = query_result.mappings()
         rows = mapping_result.all()
         result: Sequence[t.Dict] = [
-            t.Dict.model_validate({
-                "root": {str(key): str(val) for key, val in dict(row).items()},
-            })
+            t.Dict(root={str(key): str(val) for key, val in dict(row).items()})
             for row in rows
         ]
         return result
 
     def _normalize_row(self, row: Mapping[str, t.ContainerValue]) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
-        return t.Dict.model_validate(
-            {"root": {str(key): value for key, value in row.items()}},
-        )
+        return t.Dict(root={str(key): value for key, value in row.items()})
 
 
 __all__ = ["FlextDbOracleServiceQuery"]

@@ -25,8 +25,7 @@ class Testc:
 
     def test_constants_inheritance(self) -> None:
         """Test constants properly extends FlextConstants."""
-        tm.that(hasattr(c, "Network"), eq=True)
-        tm.that(hasattr(c, "Platform"), eq=True)
+        tm.that(hasattr(c.DbOracle, "Platform"), eq=True)
         tm.that(hasattr(c.DbOracle, "Connection"), eq=True)
         tm.that(hasattr(c.DbOracle, "Query"), eq=True)
         tm.that(hasattr(c.DbOracle, "DataTypes"), eq=True)

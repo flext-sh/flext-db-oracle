@@ -12,14 +12,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Sequence
 from unittest.mock import Mock, patch
 
 import yaml
-from flext_core import r
 from flext_tests import tm
 from pydantic import TypeAdapter
 
+from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,
@@ -118,7 +118,7 @@ class TestFlextDbOracleClientReal:
             password="invalid_password",
         )
         tm.that(not result.is_success, eq=True)
-        tm.that(result.error, eq=True)
+        tm.that(bool(result.error), eq=True)
         tm.that(
             (
                 "Connection failed" in (result.error or "")
@@ -723,7 +723,7 @@ class TestCLIRealFunctionality:
             "ORACLE_PASSWORD": "testpass",
             "ORACLE_SERVICE_NAME": "TESTDB",
         }
-        original_env: MutableMapping[str, str | None] = {}
+        original_env: t.MutableOptionalStrMapping = {}
         for key, value in test_env_vars.items():
             original_env[key] = os.environ.get(key)
             os.environ[key] = value
@@ -752,7 +752,7 @@ class TestCLIRealFunctionality:
         api = FlextDbOracleApi(config)
         metrics_result = api.get_observability_metrics()
         tm.ok(metrics_result)
-        tm.that(metrics_result.value, is_=t.NormalizedValue)
+        tm.that(metrics_result.value, is_=dict)
         connection_result = api.test_connection()
         tm.that(hasattr(connection_result, "is_success"), eq=True)
         is_valid = api.is_valid()
@@ -769,7 +769,7 @@ class TestCLIRealFunctionality:
             )
             tm.ok(format_result)
             tm.that(format_result.value, is_=str)
-            tm.that(format_result.value, eq=True)
+            tm.that(bool(format_result.value), eq=True)
 
     def test_error_handling_real(self) -> None:
         """Test error handling using real functionality - NO MOCKS."""
@@ -851,7 +851,7 @@ class TestCLIRealFunctionality:
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
-        original_env: MutableMapping[str, str | None] = {}
+        original_env: t.MutableOptionalStrMapping = {}
         env_vars = {
             "ORACLE_USERNAME": "testuser",
             "ORACLE_PASSWORD": "testpass",

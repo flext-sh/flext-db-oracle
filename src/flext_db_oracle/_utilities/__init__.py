@@ -12,11 +12,10 @@ from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
-
     from flext_db_oracle._utilities import db_oracle
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 
-_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "FlextDbOracleUtilitiesDbOracle": "flext_db_oracle._utilities.db_oracle",
     "db_oracle": "flext_db_oracle._utilities.db_oracle",
 }

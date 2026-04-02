@@ -13,7 +13,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 
 from flext_core import FlextExceptions
-
 from flext_db_oracle import t
 
 

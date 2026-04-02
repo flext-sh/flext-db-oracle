@@ -19,7 +19,6 @@ from flext_core.lazy import install_lazy_exports
 
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
-
     from flext_db_oracle.services import (
         base,
         connection,
@@ -37,7 +36,7 @@ if _TYPE_CHECKING:
     from flext_db_oracle.services.singer import FlextDbOracleServiceSinger
     from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
 
-_LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
+_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "FlextDbOracleServiceBase": "flext_db_oracle.services.base",
     "FlextDbOracleServiceConnection": "flext_db_oracle.services.connection",
     "FlextDbOracleServicePlugin": "flext_db_oracle.services.plugin",

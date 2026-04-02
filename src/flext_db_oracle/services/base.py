@@ -15,7 +15,6 @@ from collections.abc import MutableMapping, MutableSequence, Sequence
 from typing import ClassVar
 
 import oracledb
-from flext_core import FlextService, r
 from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
@@ -26,6 +25,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
+from flext_core import FlextService, r
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, t
 
 
@@ -55,7 +55,9 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
 
         root: int | str
 
-    _STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
+    _STRING_LIST_ADAPTER: ClassVar[TypeAdapter[t.StrSequence]] = TypeAdapter(
+        t.StrSequence
+    )
 
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
@@ -82,7 +84,7 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap.model_validate({"root": value})
+            return t.ConfigMap(root=value)
         except ValidationError:
             return None
 

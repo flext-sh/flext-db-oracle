@@ -17,10 +17,10 @@ from pathlib import Path
 
 import oracledb
 import pytest
-from flext_core import FlextLogger
 from flext_tests import tk
 from pydantic import TypeAdapter, ValidationError
 
+from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import p, t
 

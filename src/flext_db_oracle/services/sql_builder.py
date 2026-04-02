@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 
-from flext_core import r
 from pydantic import ValidationError
 
+from flext_core import r
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, c, t, u
 
 
@@ -104,7 +104,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         typed_conditions = (
             conditions
             if isinstance(conditions, t.ConfigMap) or conditions is None
-            else t.ConfigMap.model_validate({"root": dict(conditions)})
+            else t.ConfigMap(root=dict(conditions))
         )
         cols = ", ".join(columns) if columns else "*"
         if typed_conditions and typed_conditions.root:

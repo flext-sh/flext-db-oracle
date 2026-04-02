@@ -18,9 +18,9 @@ from datetime import UTC, datetime
 from typing import Self, override
 
 import oracledb
-from flext_core import FlextService, r
 from pydantic import BaseModel
 
+from flext_core import FlextService, r
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleModels,
@@ -235,8 +235,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         typed_params_list = [
-            t.ConfigMap.model_validate({"root": dict(params)})
-            for params in parameters_list
+            t.ConfigMap(root=dict(params)) for params in parameters_list
         ]
         return self._services.execute_many(sql, typed_params_list)
 
@@ -248,7 +247,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
         query_params = (
-            t.ConfigMap.model_validate({"root": dict(parameters)})
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
             else t.ConfigMap(root={})
         )
@@ -263,7 +262,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         try:
             sql_text = str(sql)
             query_params = (
-                t.ConfigMap.model_validate({"root": dict(parameters)})
+                t.ConfigMap(root=dict(parameters))
                 if parameters is not None
                 else t.ConfigMap(root={})
             )
@@ -350,7 +349,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         query_params = (
-            t.ConfigMap.model_validate({"root": dict(parameters)})
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
             else t.ConfigMap(root={})
         )
@@ -363,7 +362,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
-            t.ConfigMap.model_validate({"root": dict(parameters)})
+            t.ConfigMap(root=dict(parameters))
             if parameters is not None
             else t.ConfigMap(root={})
         )

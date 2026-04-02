@@ -11,13 +11,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_core import r
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
     OperationalError as SQLAlchemyOperationalError,
     SQLAlchemyError,
 )
 
+from flext_core import r
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, t, u
 
 
@@ -45,11 +45,20 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         return self.execute_query(sql, params).map(
             lambda rows: [
                 FlextDbOracleModels.DbOracle.Column(
-                    name=str(row.root.get("column_name", "")),
-                    data_type=str(row.root.get("data_type", "")),
-                    nullable=str(row.root.get("nullable", "Y")) == "Y",
+                    name=str(
+                        row.root.get("COLUMN_NAME") or row.root.get("column_name", "")
+                    ),
+                    data_type=str(
+                        row.root.get("DATA_TYPE") or row.root.get("data_type", "")
+                    ),
+                    nullable=str(
+                        row.root.get("NULLABLE") or row.root.get("nullable", "Y")
+                    )
+                    == "Y",
                     primary_key=False,
-                    default_value=str(row.root.get("data_default", "")),
+                    default_value=str(
+                        row.root.get("DATA_DEFAULT") or row.root.get("data_default", "")
+                    ),
                 )
                 for row in rows
             ],
@@ -100,7 +109,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
         return self.execute_query(sql).map(
-            lambda rows: [str(row.root["schema_name"]) for row in rows],
+            lambda rows: [
+                str(row.root.get("SCHEMA_NAME") or row.root.get("schema_name", ""))
+                for row in rows
+            ],
         )
 
     def get_table_metadata(
@@ -181,7 +193,10 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             sql = "SELECT table_name FROM user_tables ORDER BY table_name"
             params = None
         return self.execute_query(sql, params).map(
-            lambda rows: [str(row.root["table_name"]) for row in rows],
+            lambda rows: [
+                str(row.root.get("TABLE_NAME") or row.root.get("table_name", ""))
+                for row in rows
+            ],
         )
 
 

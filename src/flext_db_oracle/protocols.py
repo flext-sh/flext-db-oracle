@@ -10,7 +10,6 @@ from collections.abc import Mapping, Sequence
 from typing import Protocol, runtime_checkable
 
 from flext_core import FlextProtocols, r
-
 from flext_db_oracle import m, t
 
 

@@ -39,7 +39,7 @@ class Testu:
             "validate_identifier",
         ]
         for method in required_methods:
-            tm.that(hasattr(u, method), eq=True)
+            tm.that(hasattr(u.DbOracle, method), eq=True)
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""
@@ -329,7 +329,7 @@ class Testu:
         tm.ok(result)
         formatted = result.value
         tm.that(formatted, is_=str)
-        tm.that(formatted, eq=True)
+        tm.that(bool(formatted), eq=True)
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
@@ -346,7 +346,7 @@ class Testu:
         tm.ok(result)
         formatted = result.value
         tm.that(formatted, is_=str)
-        tm.that(formatted, eq=True)
+        tm.that(bool(formatted), eq=True)
 
     def test_format_query_result_empty_list(self) -> None:
         """Test formatting with empty list returns success."""
@@ -384,10 +384,10 @@ class Testu:
 
     def test_oracle_validation_validate_identifier_empty(self) -> None:
         """Test empty identifier validation."""
-        result = u.DbOracle.validate_identifier("VALID_TABLE")
+        result = u.DbOracle.validate_identifier("")
         tm.that(result.is_failure, eq=True)
         tm.that(
-            result.error is not None and "Empty Oracle identifier" in result.error,
+            result.error is not None and "Empty" in result.error,
             eq=True,
         )
 
@@ -406,9 +406,9 @@ class Testu:
 
     def test_oracle_validation_validate_identifier_reserved_word(self) -> None:
         """Test reserved word identifier validation."""
-        result = u.DbOracle.validate_identifier("VALID_TABLE")
+        result = u.DbOracle.validate_identifier("SELECT")
         tm.that(result.is_failure, eq=True)
-        tm.that(result.error is not None and "reserved word" in result.error, eq=True)
+        tm.that(result.error is not None and "reserved" in result.error, eq=True)
 
     def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
         """Test lowercase identifier conversion to uppercase."""
