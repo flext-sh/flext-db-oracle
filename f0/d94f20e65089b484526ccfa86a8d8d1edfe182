@@ -1,0 +1,55 @@
+src/flext_db_oracle/client.py
+  bce025263ce5d18b 48,234,299,305,512,558
+tests/unit/test_models.py
+  bce025263ce5d18b 121,127,236,401-402
+tests/unit/test_cli.py
+  bce025263ce5d18b 121,755,772
+tests/unit/test_metadata.py
+  bce025263ce5d18b 149
+tests/unit/test_services.py
+  bce025263ce5d18b 303,324,359-361,378,409,470-471,474,476-477,486-487,489,491,493-494,500-501,517-528,1097,1528,1549,1584-1586,1603,1630
+tests/unit/test_oracle_example.py
+  bce025263ce5d18b 187,205,217,219,236
+tests/unit/test_constants.py
+  bce025263ce5d18b 28
+src/flext_db_oracle/services/query.py
+  bce025263ce5d18b 55,165,178,185
+tests/unit/test_utilities.py
+  bce025263ce5d18b 42,332,349,387,390,409,411
+tests/integration/test_oracle.py
+  bce025263ce5d18b 199-201,211-212,222-224,247-248,267
+src/flext_db_oracle/api.py
+  bce025263ce5d18b 238,250,265,352,365
+tests/unit/test_api.py
+  bce025263ce5d18b 121,137,153,187,203,219,458,463-465,619-622,625,967,1428,1437-1439
+src/flext_db_oracle/services/base.py
+  bce025263ce5d18b 58,87
+src/flext_db_oracle/_utilities/db_oracle.py
+  bce025263ce5d18b 144
+tests/unit/test_coverage_baseline.py
+  bce025263ce5d18b 168
+src/flext_db_oracle/services/schema.py
+  bce025263ce5d18b 48-57,60,113,197
+src/flext_db_oracle/services/sql_builder.py
+  bce025263ce5d18b 107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "f0d94f20e65089b484526ccfa86a8d8d1edfe182",
+  "prompts": {
+    "bce025263ce5d18b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110c144c-5b33-4bbc-8c7f-99856935f344",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 137,
+      "total_deletions": 231,
+      "accepted_lines": 129,
+      "overriden_lines": 0
+    }
+  }
+}
