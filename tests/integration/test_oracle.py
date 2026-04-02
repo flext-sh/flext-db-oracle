@@ -14,7 +14,8 @@ from collections.abc import Sequence
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import t
 
 
 @pytest.fixture

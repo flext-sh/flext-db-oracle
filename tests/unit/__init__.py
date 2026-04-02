@@ -62,8 +62,6 @@ if _TYPE_CHECKING:
         TestFlextDbOracleApiWorking,
     )
     from tests.unit.test_cli import (
-        HealthCheckReport,
-        NamedItem,
         TestCLIRealFunctionality,
         TestCliServiceOperations,
         TestFlextDbOracleCli,
@@ -74,7 +72,7 @@ if _TYPE_CHECKING:
         TestYamlModule,
     )
     from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
-    from tests.unit.test_constants import TestFlextDbOracleConstants
+    from tests.unit.test_constants import Testc
     from tests.unit.test_coverage_baseline import (
         TestBasicModelCreation,
         TestConstants,
@@ -84,12 +82,9 @@ if _TYPE_CHECKING:
         TestUtilities,
     )
     from tests.unit.test_dispatcher import TestDispatcherSurgical
-    from tests.unit.test_exceptions import TestFlextDbOracleExceptions
+    from tests.unit.test_exceptions import Teste
     from tests.unit.test_fields import TestFlextDbOracleFields
-    from tests.unit.test_models import (
-        TestFlextDbOracleModels,
-        TestFlextDbOracleSettings,
-    )
+    from tests.unit.test_models import TestFlextDbOracleSettings, Testm
     from tests.unit.test_oracle_example import (
         TestRealOracleApi,
         TestRealOracleConnection,
@@ -116,11 +111,9 @@ if _TYPE_CHECKING:
         TestServiceErrorHandling,
     )
     from tests.unit.test_typings import TestFlextDbOracleTypes
-    from tests.unit.test_utilities import TestFlextDbOracleUtilities
+    from tests.unit.test_utilities import Testu
 
 _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
-    "HealthCheckReport": "tests.unit.test_cli",
-    "NamedItem": "tests.unit.test_cli",
     "TestApiModule": "tests.unit.test_api",
     "TestApiSurgicalSimple": "tests.unit.test_api",
     "TestBasicModelCreation": "tests.unit.test_coverage_baseline",
@@ -143,18 +136,14 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "TestFlextDbOracleClientReal": "tests.unit.test_cli",
     "TestFlextDbOracleClientRealFunctionality": "tests.unit.test_client",
     "TestFlextDbOracleConnectionSimple": "tests.unit.test_services",
-    "TestFlextDbOracleConstants": "tests.unit.test_constants",
-    "TestFlextDbOracleExceptions": "tests.unit.test_exceptions",
     "TestFlextDbOracleFields": "tests.unit.test_fields",
     "TestFlextDbOracleMetadataManagerComprehensive": "tests.unit.test_services",
-    "TestFlextDbOracleModels": "tests.unit.test_models",
     "TestFlextDbOracleProtocols": "tests.unit.test_protocols",
     "TestFlextDbOracleServices": "tests.unit.test_coverage_baseline",
     "TestFlextDbOracleServicesBasic": "tests.unit.test_services",
     "TestFlextDbOracleServicesPlaceholderRemovals": "tests.unit.test_services",
     "TestFlextDbOracleSettings": "tests.unit.test_models",
     "TestFlextDbOracleTypes": "tests.unit.test_typings",
-    "TestFlextDbOracleUtilities": "tests.unit.test_utilities",
     "TestModuleImports": "tests.unit.test_coverage_baseline",
     "TestOracleConnectionHelper": "tests.unit.test_cli",
     "TestOutputFormatter": "tests.unit.test_cli",
@@ -167,6 +156,10 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = {
     "TestServiceErrorHandling": "tests.unit.test_services",
     "TestUtilities": "tests.unit.test_coverage_baseline",
     "TestYamlModule": "tests.unit.test_cli",
+    "Testc": "tests.unit.test_constants",
+    "Teste": "tests.unit.test_exceptions",
+    "Testm": "tests.unit.test_models",
+    "Testu": "tests.unit.test_utilities",
     "conftest": "tests.unit.conftest",
     "connected_oracle_api": "tests.unit.conftest",
     "docker_control": "tests.unit.conftest",

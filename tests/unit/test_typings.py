@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleTypes
+from tests import t
 
 
 class TestFlextDbOracleTypes:
@@ -17,4 +17,4 @@ class TestFlextDbOracleTypes:
 
     def test_types_access(self) -> None:
         """Test types can be accessed."""
-        tm.that(FlextDbOracleTypes, none=False)
+        tm.that(t, none=False)

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleProtocols
+from tests import p
 
 
 class TestFlextDbOracleProtocols:
@@ -17,4 +17,4 @@ class TestFlextDbOracleProtocols:
 
     def test_protocols_access(self) -> None:
         """Test protocols can be accessed."""
-        tm.that(FlextDbOracleProtocols, none=False)
+        tm.that(p, none=False)

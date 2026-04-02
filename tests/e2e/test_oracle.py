@@ -15,7 +15,8 @@ from collections.abc import Mapping
 
 import pytest
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, t
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
+from tests import t
 
 
 class OperationTestError(Exception):

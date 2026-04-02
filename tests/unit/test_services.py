@@ -12,7 +12,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from types import SimpleNamespace
-from typing import ClassVar, cast
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,86 +20,10 @@ from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleConstants,
-    FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
 )
-from tests import t
-
-
-class _StubResult:
-    """Minimal result stub for dynamic integration tests."""
-
-    def __init__(self, *, is_failure: bool = False, error: str = "") -> None:
-        self.is_failure = is_failure
-        self.error = error
-
-
-class _StubPluginEntity:
-    """Stub plugin entity compatible with db-oracle service integration."""
-
-    def __init__(
-        self,
-        *,
-        name: str,
-        plugin_version: str,
-        description: str,
-        author: str,
-        plugin_type: str,
-        metadata: t.ContainerMapping,
-    ) -> None:
-        self.name = name
-        self.plugin_version = plugin_version
-        self.description = description
-        self.author = author
-        self.plugin_type = plugin_type
-        self.metadata = metadata
-
-    @classmethod
-    def create(
-        cls,
-        *,
-        name: str,
-        plugin_version: str,
-        description: str,
-        author: str,
-        plugin_type: str,
-        metadata: t.ContainerMapping,
-    ) -> _StubPluginEntity:
-        return cls(
-            name=name,
-            plugin_version=plugin_version,
-            description=description,
-            author=author,
-            plugin_type=plugin_type,
-            metadata=metadata,
-        )
-
-
-class _StubPluginApi:
-    """In-memory plugin API stub used by service integration tests."""
-
-    _registry: ClassVar[MutableMapping[str, _StubPluginEntity]] = {}
-
-    def register_plugin(self, plugin: _StubPluginEntity) -> _StubResult:
-        self._registry[plugin.name] = plugin
-        return _StubResult()
-
-    def unregister_plugin(self, plugin_name: str) -> _StubResult:
-        if plugin_name not in self._registry:
-            return _StubResult(
-                is_failure=True,
-                error=f"Plugin '{plugin_name}' not found",
-            )
-        del self._registry[plugin_name]
-        return _StubResult()
-
-    def list_plugins(self) -> Sequence[_StubPluginEntity]:
-        return list(self._registry.values())
-
-    def get_plugin(self, plugin_name: str) -> _StubPluginEntity | None:
-        return self._registry.get(plugin_name)
+from tests import c, m, t, u
 
 
 class TestFlextDbOracleServicesBasic:
@@ -567,10 +491,15 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         service = self._make_service()
         calls: MutableSequence[t.ContainerMapping] = []
 
-        def fake_flext_metric(*, name: str, value: float, tags: t.Dict) -> _StubResult:
+        def fake_flext_metric(
+            *,
+            name: str,
+            value: float,
+            tags: t.Dict,
+        ) -> m.DbOracle.Tests.StubResult:
             entry: t.ContainerMapping = {"name": name, "value": value}
             calls.append(entry)
-            return _StubResult()
+            return m.DbOracle.Tests.StubResult()
 
         def fake_import(name: str) -> SimpleNamespace:
             if name == "flext_observability":
@@ -612,8 +541,10 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         def fake_import(name: str) -> SimpleNamespace:
             if name == "flext_observability":
 
-                def _stub_metric(**_kwargs: t.NormalizedValue) -> _StubResult:
-                    return _StubResult()
+                def _stub_metric(
+                    **_kwargs: t.NormalizedValue,
+                ) -> m.DbOracle.Tests.StubResult:
+                    return m.DbOracle.Tests.StubResult()
 
                 return SimpleNamespace(flext_metric=_stub_metric)
             raise AssertionError(f"Unexpected module import: {name}")
@@ -648,13 +579,13 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         service = self._make_service()
-        _StubPluginApi._registry = {}
+        u.DbOracle.Tests.StubPluginApi._registry = {}
         plugin_models = SimpleNamespace(
             FlextPluginModels=SimpleNamespace(
-                Plugin=SimpleNamespace(Plugin=_StubPluginEntity),
+                Plugin=SimpleNamespace(Plugin=m.DbOracle.Tests.StubPluginEntity),
             ),
         )
-        plugin_api = SimpleNamespace(FlextPluginApi=_StubPluginApi)
+        plugin_api = SimpleNamespace(FlextPluginApi=u.DbOracle.Tests.StubPluginApi)
 
         def fake_import(name: str) -> SimpleNamespace:
             if name == "flext_plugin.models":
@@ -691,7 +622,7 @@ class TestDirectCoverageBoostAPI:
     def test_api_connection_error_paths_571_610(self) -> None:
         """Test API connection error handling paths (lines 571-610)."""
         bad_config = FlextDbOracleSettings(
-            host=getattr(FlextDbOracleConstants.DbOracle.Platform, "LOOPBACK_IP"),
+            host=getattr(c.DbOracle.Platform, "LOOPBACK_IP"),
             port=9999,
             username="invalid",
             password="invalid",
@@ -871,7 +802,7 @@ class TestDirectCoverageBoostTypes:
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
         try:
-            column = FlextDbOracleModels.DbOracle.Column(
+            column = m.DbOracle.Column(
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -880,7 +811,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            table = FlextDbOracleModels.DbOracle.Table(
+            table = m.DbOracle.Table(
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[],
@@ -889,7 +820,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            column2 = FlextDbOracleModels.DbOracle.Column(
+            column2 = m.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
@@ -902,7 +833,7 @@ class TestDirectCoverageBoostTypes:
 
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
-        column = FlextDbOracleModels.DbOracle.Column(
+        column = m.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -914,7 +845,7 @@ class TestDirectCoverageBoostTypes:
         tm.that(str_repr, none=False)
         repr_str = repr(column)
         tm.that(repr_str, none=False)
-        column_with_default = FlextDbOracleModels.DbOracle.Column(
+        column_with_default = m.DbOracle.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,
@@ -1100,7 +1031,7 @@ class TestDirectCoverageBoostServices:
                     tm.that(
                         (
                             getattr(
-                                FlextDbOracleConstants.DbOracle.Platform,
+                                c.DbOracle.Platform,
                                 "HTTP_METHOD_DELETE",
                             )
                             in sql_text.upper()
@@ -1201,18 +1132,18 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
         columns = [
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
             ),
         ]
-        _ = FlextDbOracleModels.DbOracle.Table(
+        _ = m.DbOracle.Table(
             name="TEST_TABLE",
             owner="TEST_SCHEMA",
             columns=columns,
@@ -1268,28 +1199,28 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
         columns = [
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="CODE",
                 data_type="VARCHAR2",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="CREATED_DATE",
                 data_type="DATE",
                 nullable=True,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="AMOUNT",
                 data_type="NUMBER",
                 nullable=True,
             ),
         ]
-        table = FlextDbOracleModels.DbOracle.Table(
+        table = m.DbOracle.Table(
             name="COMPLEX_TABLE",
             owner="APP_SCHEMA",
             columns=columns,

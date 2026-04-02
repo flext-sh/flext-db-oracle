@@ -14,14 +14,10 @@ from flext_tests import tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleConstants,
-    FlextDbOracleExceptions,
-    FlextDbOracleModels,
-    FlextDbOracleModels as Models,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    FlextDbOracleUtilities,
 )
+from tests import c, e, m, u
 
 
 class TestModuleImports:
@@ -33,8 +29,8 @@ class TestModuleImports:
 
     def test_models_import(self) -> None:
         """Test that models module imports correctly."""
-        tm.that(FlextDbOracleModels, none=False)
-        tm.that(Models, none=False)
+        tm.that(m, none=False)
+        tm.that(m, none=False)
 
     def test_services_import(self) -> None:
         """Test that services module imports correctly."""
@@ -42,15 +38,15 @@ class TestModuleImports:
 
     def test_exceptions_import(self) -> None:
         """Test that exceptions module imports correctly."""
-        tm.that(FlextDbOracleExceptions, none=False)
+        tm.that(e, none=False)
 
     def test_constants_import(self) -> None:
         """Test that constants module imports correctly."""
-        tm.that(FlextDbOracleConstants, none=False)
+        tm.that(c, none=False)
 
     def test_utilities_import(self) -> None:
         """Test that utilities module imports correctly."""
-        tm.that(FlextDbOracleUtilities, none=False)
+        tm.that(u, none=False)
 
 
 class TestBasicModelCreation:
@@ -87,7 +83,7 @@ class TestBasicModelCreation:
 
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
-        column = Models.DbOracle.Column(
+        column = m.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -165,11 +161,11 @@ class TestUtilities:
 
     def test_utilities_module_exists(self) -> None:
         """Test utilities module can be accessed."""
-        tm.that(FlextDbOracleUtilities, none=False)
+        tm.that(u, none=False)
 
     def test_utilities_has_methods(self) -> None:
         """Test utilities has expected methods."""
-        tm.that(hasattr(FlextDbOracleUtilities, "generate_query_hash"), eq=True)
+        tm.that(hasattr(u, "generate_query_hash"), eq=True)
 
 
 class TestConstants:
@@ -177,11 +173,11 @@ class TestConstants:
 
     def test_constants_module_exists(self) -> None:
         """Test constants module can be accessed."""
-        tm.that(FlextDbOracleConstants, none=False)
+        tm.that(c, none=False)
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
-        tm.that(hasattr(FlextDbOracleConstants.DbOracle, "OracleValidation"), eq=True)
+        tm.that(hasattr(c.DbOracle, "OracleValidation"), eq=True)
 
 
 class TestExceptions:
@@ -189,4 +185,4 @@ class TestExceptions:
 
     def test_exceptions_module_exists(self) -> None:
         """Test exceptions module can be accessed."""
-        tm.that(FlextDbOracleExceptions, none=False)
+        tm.that(e, none=False)

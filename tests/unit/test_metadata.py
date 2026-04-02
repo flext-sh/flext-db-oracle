@@ -15,11 +15,10 @@ from typing import cast
 from flext_tests import tm
 
 from flext_db_oracle import (
-    FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    t,
 )
+from tests import m, t
 
 
 class TestFlextDbOracleMetadataManagerComprehensive:
@@ -105,18 +104,18 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_generate_ddl_structure(self) -> None:
         """Test generate_ddl method structure and validation."""
         columns = [
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="NAME",
                 data_type="VARCHAR2",
                 nullable=True,
             ),
         ]
-        _ = FlextDbOracleModels.DbOracle.Table(
+        _ = m.DbOracle.Table(
             name="TEST_TABLE",
             owner="TEST_SCHEMA",
             columns=columns,
@@ -169,28 +168,28 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
         columns = [
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="ID",
                 data_type="NUMBER",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="CODE",
                 data_type="VARCHAR2",
                 nullable=False,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="CREATED_DATE",
                 data_type="DATE",
                 nullable=True,
             ),
-            FlextDbOracleModels.DbOracle.Column(
+            m.DbOracle.Column(
                 name="AMOUNT",
                 data_type="NUMBER",
                 nullable=True,
             ),
         ]
-        table = FlextDbOracleModels.DbOracle.Table(
+        table = m.DbOracle.Table(
             name="COMPLEX_TABLE",
             owner="APP_SCHEMA",
             columns=columns,

@@ -22,12 +22,10 @@ from flext_tests import td, tm
 
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    FlextDbOracleUtilities,
 )
-from tests import t
+from tests import m, t, u
 
 
 class TestFlextDbOracleApiRealFunctionality:
@@ -170,7 +168,7 @@ class TestFlextDbOracleApiRealFunctionality:
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
             tm.that(
-                FlextDbOracleUtilities.DbOracle.dispatcher_enabled(),
+                u.DbOracle.dispatcher_enabled(),
                 eq=True,
             )
             api = FlextDbOracleApi(self.config)
@@ -1730,7 +1728,7 @@ class TestDirectCoverageBoostTypes:
     def test_types_validation_comprehensive(self) -> None:
         """Test comprehensive type validation for missed lines."""
         try:
-            column = FlextDbOracleModels.DbOracle.Column(
+            column = m.DbOracle.Column(
                 name="TEST_COLUMN",
                 data_type="VARCHAR2",
                 nullable=True,
@@ -1739,7 +1737,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            table = FlextDbOracleModels.DbOracle.Table(
+            table = m.DbOracle.Table(
                 name="TEST_TABLE",
                 owner="TEST_SCHEMA",
                 columns=[],
@@ -1748,7 +1746,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            column2 = FlextDbOracleModels.DbOracle.Column(
+            column2 = m.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
@@ -1761,7 +1759,7 @@ class TestDirectCoverageBoostTypes:
 
     def test_types_property_methods(self) -> None:
         """Test type property methods for missed lines."""
-        column = FlextDbOracleModels.DbOracle.Column(
+        column = m.DbOracle.Column(
             name="ID",
             data_type="NUMBER",
             nullable=False,
@@ -1773,7 +1771,7 @@ class TestDirectCoverageBoostTypes:
         tm.that(str_repr, none=False)
         repr_str = repr(column)
         tm.that(repr_str, none=False)
-        column_with_default = FlextDbOracleModels.DbOracle.Column(
+        column_with_default = m.DbOracle.Column(
             name="TEST_COL",
             data_type="VARCHAR2",
             nullable=True,

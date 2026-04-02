@@ -12,12 +12,13 @@ from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 
 if _TYPE_CHECKING:
     from flext_core import FlextTypes
-    from flext_tests import d, e, h, r, s, x
+    from flext_tests import d, h, r, s, x
 
     from tests import (
         conftest,
         constants,
         e2e,
+        exceptions,
         integration,
         models,
         protocols,
@@ -37,6 +38,10 @@ if _TYPE_CHECKING:
         FlextDbOracleTestConstants as c,
     )
     from tests.e2e import OperationTestError, TestOracleE2E, test_oracle
+    from tests.exceptions import (
+        FlextDbOracleTestExceptions,
+        FlextDbOracleTestExceptions as e,
+    )
     from tests.integration import TestOracleIntegration
     from tests.models import FlextDbOracleTestModels, FlextDbOracleTestModels as m
     from tests.protocols import (
@@ -45,11 +50,10 @@ if _TYPE_CHECKING:
     )
     from tests.typings import FlextDbOracleTestTypes, FlextDbOracleTestTypes as t
     from tests.unit import (
-        HealthCheckReport,
-        NamedItem,
         TestApiModule,
         TestApiSurgicalSimple,
         TestBasicModelCreation,
+        Testc,
         TestCLIRealFunctionality,
         TestCliServiceOperations,
         TestConstants,
@@ -60,6 +64,7 @@ if _TYPE_CHECKING:
         TestDirectCoverageBoostServices,
         TestDirectCoverageBoostTypes,
         TestDispatcherSurgical,
+        Teste,
         TestExceptions,
         TestFlextDbOracleApiRealFunctionality,
         TestFlextDbOracleApiSafeMethods,
@@ -69,18 +74,15 @@ if _TYPE_CHECKING:
         TestFlextDbOracleClientReal,
         TestFlextDbOracleClientRealFunctionality,
         TestFlextDbOracleConnectionSimple,
-        TestFlextDbOracleConstants,
-        TestFlextDbOracleExceptions,
         TestFlextDbOracleFields,
         TestFlextDbOracleMetadataManagerComprehensive,
-        TestFlextDbOracleModels,
         TestFlextDbOracleProtocols,
         TestFlextDbOracleServices,
         TestFlextDbOracleServicesBasic,
         TestFlextDbOracleServicesPlaceholderRemovals,
         TestFlextDbOracleSettings,
         TestFlextDbOracleTypes,
-        TestFlextDbOracleUtilities,
+        Testm,
         TestModuleImports,
         TestOracleConnectionHelper,
         TestOutputFormatter,
@@ -91,6 +93,7 @@ if _TYPE_CHECKING:
         TestRealOracleExceptionsAdvanced,
         TestRealOracleExceptionsCore,
         TestServiceErrorHandling,
+        Testu,
         TestUtilities,
         TestYamlModule,
         connected_oracle_api,
@@ -137,6 +140,7 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
     ),
     {
         "FlextDbOracleTestConstants": "tests.constants",
+        "FlextDbOracleTestExceptions": "tests.exceptions",
         "FlextDbOracleTestModels": "tests.models",
         "FlextDbOracleTestProtocols": "tests.protocols",
         "FlextDbOracleTestTypes": "tests.typings",
@@ -145,8 +149,9 @@ _LAZY_IMPORTS: Mapping[str, str | Sequence[str]] = merge_lazy_imports(
         "conftest": "tests.conftest",
         "constants": "tests.constants",
         "d": "flext_tests",
-        "e": "flext_tests",
+        "e": ("tests.exceptions", "FlextDbOracleTestExceptions"),
         "e2e": "tests.e2e",
+        "exceptions": "tests.exceptions",
         "flext_domains": "tests.conftest",
         "h": "flext_tests",
         "integration": "tests.integration",

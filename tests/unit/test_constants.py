@@ -15,28 +15,25 @@ from enum import StrEnum
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleConstants,
-    FlextDbOracleUtilities,
-)
+from flext_db_oracle import FlextDbOracleApi
+from tests import c, u
 
 
 @pytest.mark.unit_pure
-class TestFlextDbOracleConstants:
-    """Comprehensive test FlextDbOracleConstants functionality and values."""
+class Testc:
+    """Comprehensive test c functionality and values."""
 
     def test_constants_inheritance(self) -> None:
         """Test constants properly extends FlextConstants."""
-        tm.that(hasattr(FlextDbOracleConstants, "Network"), eq=True)
-        tm.that(hasattr(FlextDbOracleConstants, "Platform"), eq=True)
-        tm.that(hasattr(FlextDbOracleConstants.DbOracle, "Connection"), eq=True)
-        tm.that(hasattr(FlextDbOracleConstants.DbOracle, "Query"), eq=True)
-        tm.that(hasattr(FlextDbOracleConstants.DbOracle, "DataTypes"), eq=True)
+        tm.that(hasattr(c, "Network"), eq=True)
+        tm.that(hasattr(c, "Platform"), eq=True)
+        tm.that(hasattr(c.DbOracle, "Connection"), eq=True)
+        tm.that(hasattr(c.DbOracle, "Query"), eq=True)
+        tm.that(hasattr(c.DbOracle, "DataTypes"), eq=True)
 
     def test_connection_constants(self) -> None:
         """Test connection-related constants."""
-        conn = FlextDbOracleConstants.DbOracle.Connection
+        conn = c.DbOracle.Connection
         tm.that(conn.DEFAULT_CHARSET, eq="UTF8")
         tm.that(conn.DEFAULT_SERVICE_NAME, eq="XEPDB1")
         tm.that(conn.DEFAULT_PORT, eq=1521)
@@ -52,7 +49,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_network_constants(self) -> None:
         """Test Oracle-specific network constants."""
-        net = FlextDbOracleConstants.DbOracle.OracleNetwork
+        net = c.DbOracle.OracleNetwork
         tm.that(net.MIN_PORT, eq=1)
         tm.that(net.MAX_PORT, eq=65535)
         tm.that(net.DEFAULT_PORT, eq=1521)
@@ -61,7 +58,7 @@ class TestFlextDbOracleConstants:
 
     def test_query_constants(self) -> None:
         """Test query-related constants."""
-        query = FlextDbOracleConstants.DbOracle.Query
+        query = c.DbOracle.Query
         tm.that(query.TEST_QUERY, eq="SELECT 1 FROM DUAL")
         tm.that(query.DUAL_TABLE, eq="DUAL")
         tm.that(query.DEFAULT_ARRAY_SIZE, eq=100)
@@ -72,7 +69,7 @@ class TestFlextDbOracleConstants:
 
     def test_data_types_constants(self) -> None:
         """Test Oracle data type constants."""
-        dt = FlextDbOracleConstants.DbOracle.DataTypes
+        dt = c.DbOracle.DataTypes
         tm.that(dt.DATE_TYPE, eq="DATE")
         tm.that(dt.TIMESTAMP_TYPE, eq="TIMESTAMP")
         tm.that(dt.DEFAULT_VARCHAR_TYPE, eq="VARCHAR2(4000)")
@@ -93,7 +90,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_validation_constants(self) -> None:
         """Test Oracle validation constants."""
-        val = FlextDbOracleConstants.DbOracle.OracleValidation
+        val = c.DbOracle.OracleValidation
         tm.that(val.MAX_ORACLE_IDENTIFIER_LENGTH, eq=30)
         tm.that(val.MAX_IDENTIFIER_LENGTH, eq=128)
         tm.that(val.MAX_TABLE_NAME_LENGTH, eq=128)
@@ -126,7 +123,7 @@ class TestFlextDbOracleConstants:
 
     def test_error_messages_constants(self) -> None:
         """Test error message constants."""
-        err = FlextDbOracleConstants.DbOracle.ErrorMessages
+        err = c.DbOracle.ErrorMessages
         tm.that(err.HOST_EMPTY, eq="Host cannot be empty")
         tm.that(err.USERNAME_EMPTY, eq="Username cannot be empty")
         tm.that(err.COLUMN_NAME_EMPTY, eq="Column name cannot be empty")
@@ -147,7 +144,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_performance_constants(self) -> None:
         """Test Oracle performance constants."""
-        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
+        perf = c.DbOracle.OraclePerformance
         tm.that(perf.DEFAULT_COMMIT_SIZE, eq=1000)
         tm.that(abs(perf.PERFORMANCE_WARNING_THRESHOLD_SECONDS - 5.0), lt=1e-9)
         tm.that(perf.MAX_DISPLAY_ROWS, eq=1000)
@@ -167,7 +164,7 @@ class TestFlextDbOracleConstants:
 
     def test_isolation_levels_constants(self) -> None:
         """Test transaction isolation level constants."""
-        iso = FlextDbOracleConstants.DbOracle.IsolationLevels
+        iso = c.DbOracle.IsolationLevels
         tm.that(iso.READ_UNCOMMITTED, eq="READ_UNCOMMITTED")
         tm.that(iso.READ_COMMITTED, eq="READ_COMMITTED")
         tm.that(iso.REPEATABLE_READ, eq="REPEATABLE_READ")
@@ -179,7 +176,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_environment_constants(self) -> None:
         """Test Oracle environment variable constants."""
-        env = FlextDbOracleConstants.DbOracle.OracleEnvironment
+        env = c.DbOracle.OracleEnvironment
         tm.that(env.PREFIX_ORACLE, eq="ORACLE_")
         tm.that(env.PREFIX_FLEXT_TARGET_ORACLE, eq="FLEXT_TARGET_ORACLE_")
         tm.that(env.ENV_HOST, eq="ORACLE_HOST")
@@ -203,7 +200,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_defaults_constants(self) -> None:
         """Test Oracle default configuration constants."""
-        defaults = FlextDbOracleConstants.DbOracle.OracleDefaults
+        defaults = c.DbOracle.OracleDefaults
         tm.that(defaults.DEFAULT_HOST, eq="localhost")
         tm.that(defaults.DEFAULT_PORT, eq=1521)
         tm.that(defaults.DEFAULT_USERNAME, eq="system")
@@ -221,7 +218,6 @@ class TestFlextDbOracleConstants:
 
     def test_literals_constants(self) -> None:
         """Test type-safe literal constants."""
-        c = FlextDbOracleConstants
         tm.that(
             c.DbOracle.ConnectionTypeLiteral,
             eq=tuple(c.DbOracle.Lists.VALID_CONNECTION_TYPES),
@@ -238,7 +234,7 @@ class TestFlextDbOracleConstants:
 
     def test_lists_constants(self) -> None:
         """Test list-type constants."""
-        lists = FlextDbOracleConstants.DbOracle.Lists
+        lists = c.DbOracle.Lists
         valid_types = lists.VALID_DATA_TYPES
         tm.that(valid_types, has="VARCHAR2")
         tm.that(valid_types, has="NUMBER")
@@ -267,17 +263,17 @@ class TestFlextDbOracleConstants:
 
     def test_feature_flags_functionality(self) -> None:
         """Test feature flag functionality."""
-        tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
+        tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
         original_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
         try:
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
-            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
+            tm.that(u.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "true"
-            tm.that(FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
+            tm.that(u.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "0"
-            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
+            tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
             os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "false"
-            tm.that(not FlextDbOracleUtilities.DbOracle.dispatcher_enabled(), eq=True)
+            tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
         finally:
             if original_value is not None:
                 os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = original_value
@@ -286,7 +282,7 @@ class TestFlextDbOracleConstants:
 
     def test_oracle_enums(self) -> None:
         """Test Oracle enumeration classes."""
-        enums = FlextDbOracleConstants.DbOracle.OracleEnums
+        enums = c.DbOracle.OracleEnums
         conn_type = enums.ConnectionType
         tm.that(conn_type, is_=type)
         assert issubclass(conn_type, StrEnum)  # type narrowing
@@ -310,7 +306,7 @@ class TestFlextDbOracleConstants:
 
     def test_platform_extension(self) -> None:
         """Test Oracle-specific platform constants extending base Platform."""
-        platform = FlextDbOracleConstants.DbOracle.Platform
+        platform = c.DbOracle.Platform
         tm.that(hasattr(platform, "LOOPBACK_IP"), eq=True)
         tm.that(hasattr(platform, "LOCALHOST_IP"), eq=True)
         tm.that(platform.LOOPBACK_IP, eq="127.0.0.1")
@@ -325,12 +321,12 @@ class TestFlextDbOracleConstants:
         """Test that Oracle constants work with real connections."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        test_query = FlextDbOracleConstants.DbOracle.Query.TEST_QUERY
+        test_query = c.DbOracle.Query.TEST_QUERY
         result = connected_oracle_api.query(test_query)
         tm.ok(result)
         data = result.value
         tm.that(len(data), eq=1)
-        dual_query = f"SELECT 1 FROM {FlextDbOracleConstants.DbOracle.Query.DUAL_TABLE}"
+        dual_query = f"SELECT 1 FROM {c.DbOracle.Query.DUAL_TABLE}"
         result = connected_oracle_api.query(dual_query)
         tm.ok(result)
 
@@ -343,19 +339,13 @@ class TestFlextDbOracleConstants:
         """Test that default constant values work with real Oracle."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        default_service = (
-            FlextDbOracleConstants.DbOracle.Connection.DEFAULT_SERVICE_NAME
-        )
+        default_service = c.DbOracle.Connection.DEFAULT_SERVICE_NAME
         tm.that(default_service, is_=str)
         tm.that(default_service, eq=True)
-        default_port = FlextDbOracleConstants.DbOracle.Connection.DEFAULT_PORT
+        default_port = c.DbOracle.Connection.DEFAULT_PORT
         tm.that(default_port, is_=int)
         tm.that(
-            (
-                FlextDbOracleConstants.MIN_PORT
-                <= default_port
-                <= FlextDbOracleConstants.MAX_PORT
-            ),
+            (c.MIN_PORT <= default_port <= c.MAX_PORT),
             eq=True,
         )
 
@@ -368,7 +358,7 @@ class TestFlextDbOracleConstants:
         """Test that Oracle data type constants are valid."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        dt = FlextDbOracleConstants.DbOracle.DataTypes
+        dt = c.DbOracle.DataTypes
         create_sql = f"\n        CREATE TABLE test_data_types (\n            id {dt.NUMBER_TYPE} PRIMARY KEY,\n            name {dt.DEFAULT_VARCHAR_TYPE},\n            active_flag {dt.BOOLEAN_TYPE},\n            created_date {dt.DATE_TYPE},\n            data_blob {dt.BLOB_TYPE}\n        )\n        "
         result = connected_oracle_api.execute_statement(create_sql)
         with contextlib.suppress(Exception):
@@ -387,17 +377,13 @@ class TestFlextDbOracleConstants:
         """Test Oracle validation constants with real database."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        max_length = (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
-        )
+        max_length = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         tm.that(max_length, is_=int)
         tm.that(max_length, gt=0)
         long_name = "A" * (max_length - 10)
-        escaped = FlextDbOracleUtilities.DbOracle.escape_oracle_identifier(long_name)
+        escaped = u.DbOracle.escape_oracle_identifier(long_name)
         tm.ok(escaped)
-        max_varchar = (
-            FlextDbOracleConstants.DbOracle.OracleValidation.MAX_VARCHAR_LENGTH
-        )
+        max_varchar = c.DbOracle.OracleValidation.MAX_VARCHAR_LENGTH
         tm.that(max_varchar, eq=4000)
 
     @pytest.mark.unit_integration
@@ -414,7 +400,7 @@ class TestFlextDbOracleConstants:
         end_time = time.time()
         tm.ok(result)
         execution_ms = (end_time - start_time) * 1000
-        perf = FlextDbOracleConstants.DbOracle.OraclePerformance
+        perf = c.DbOracle.OraclePerformance
         if execution_ms < perf.QUERY_EXCELLENT_THRESHOLD_MS:
             tm.that(execution_ms, lt=100)
         elif execution_ms < perf.QUERY_GOOD_THRESHOLD_MS:
@@ -431,12 +417,12 @@ class TestFlextDbOracleConstants:
         """Test that Oracle reserved words are actually reserved."""
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
-        reserved = FlextDbOracleConstants.DbOracle.OracleValidation.ORACLE_RESERVED
+        reserved = c.DbOracle.OracleValidation.ORACLE_RESERVED
         test_words = ["SELECT", "FROM", "WHERE", "TABLE", "INDEX"]
         for word in test_words:
             tm.that(reserved, has=word)
         for word in test_words[:3]:
-            result = FlextDbOracleUtilities.DbOracle.validate_identifier(word)
+            result = u.DbOracle.validate_identifier(word)
             tm.that(result.is_failure, eq=True)
             assert result.error is not None
             tm.that(

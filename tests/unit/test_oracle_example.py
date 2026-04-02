@@ -17,8 +17,8 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
-    t,
 )
+from tests import t
 
 
 def safe_get_first_value(data: t.NormalizedValue) -> t.NormalizedValue:

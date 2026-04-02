@@ -25,13 +25,8 @@ from flext_db_oracle import (
     FlextDbOracleCli,
     FlextDbOracleClient,
     FlextDbOracleSettings,
-    FlextDbOracleUtilities,
-    m,
 )
-from tests import t
-
-HealthCheckReport = m.DbOracle.HealthCheckReport
-NamedItem = m.DbOracle.NamedItem
+from tests import m, t, u
 
 
 class TestFlextDbOracleClientReal:
@@ -397,10 +392,10 @@ class TestOutputFormatter:
     def test_format_list_output_dict_items(self) -> None:
         """Test list output formatting with t.ContainerMapping items."""
         formatter = FlextDbOracleCli._OutputFormatter()
-        items: Sequence[NamedItem] = [
-            NamedItem(name="table1"),
-            NamedItem(name="table2"),
-            NamedItem(name="unnamed"),
+        items: Sequence[m.DbOracle.NamedItem] = [
+            m.DbOracle.NamedItem(name="table1"),
+            m.DbOracle.NamedItem(name="table2"),
+            m.DbOracle.NamedItem(name="unnamed"),
         ]
         result = formatter.format_list_output(items, "Database Objects", "table")
         tm.ok(result)
@@ -471,7 +466,7 @@ class TestCliServiceOperations:
             )
         tm.ok(result)
         output = result.value
-        tm.that(output, is_=HealthCheckReport)
+        tm.that(output, is_=m.DbOracle.HealthCheckReport)
         tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
@@ -486,7 +481,7 @@ class TestCliServiceOperations:
         )
         tm.ok(result)
         output = result.value
-        tm.that(output, is_=HealthCheckReport)
+        tm.that(output, is_=m.DbOracle.HealthCheckReport)
         tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_connection_failure(self) -> None:
@@ -768,7 +763,7 @@ class TestCLIRealFunctionality:
         """Test output formatting using real functionality."""
         test_result = {"column1": "value1", "column2": "value2"}
         for format_type in ["table", "json", "csv"]:
-            format_result = FlextDbOracleUtilities.DbOracle.format_query_result(
+            format_result = u.DbOracle.format_query_result(
                 test_result,
                 format_type=format_type,
             )
