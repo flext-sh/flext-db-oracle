@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
 
 import pytest
 
@@ -102,10 +101,17 @@ class TestOracleE2E:
                     f"Expected list, got {type(count_data)}"
                 )
                 assert len(count_data) == 1, f"Expected 1 row, got {len(count_data)}"
-                count_value = count_data[0].get("ROW_COUNT") or count_data[0].get(
-                    "row_count",
+                row = (
+                    count_data[0].root
+                    if hasattr(count_data[0], "root")
+                    else count_data[0]
                 )
-                assert count_value == 3, f"Expected count 3, got {count_value}"
+                count_value = (
+                    row.get("ROW_COUNT") or row.get("row_count") or row.get("COUNT(*)")
+                )
+                assert int(str(count_value)) == 3, (
+                    f"Expected count 3, got {count_value}"
+                )
                 metadata_result = api.get_table_metadata(test_table_name)
                 if metadata_result.is_failure:
                     raise AssertionError(
@@ -177,7 +183,7 @@ class TestOracleE2E:
                 assert expected_oracle_type in oracle_type, (
                     f"Expected {expected_oracle_type} in {oracle_type}"
                 )
-            singer_schema: Mapping[str, t.ContainerValue] = {
+            singer_schema: t.ContainerValueMapping = {
                 "properties": {
                     "id": {"type": "integer"},
                     "name": {"type": "string"},

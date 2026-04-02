@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from enum import StrEnum, unique
 from typing import TYPE_CHECKING, ClassVar, Final
 
@@ -256,7 +255,7 @@ class FlextDbOracleConstants(FlextConstants):
             READ_COMMITTED: Final[str] = "READ_COMMITTED"
             REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
             SERIALIZABLE: Final[str] = "SERIALIZABLE"
-            VALID_LEVELS: Final[Sequence[str]] = [
+            VALID_LEVELS: Final[t.StrSequence] = [
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
@@ -378,7 +377,7 @@ class FlextDbOracleConstants(FlextConstants):
             These lists are kept for backward compatibility and validation convenience.
             """
 
-            VALID_DATA_TYPES: Final[Sequence[str]] = [
+            VALID_DATA_TYPES: Final[t.StrSequence] = [
                 "VARCHAR2",
                 "NUMBER",
                 "DATE",
@@ -388,12 +387,12 @@ class FlextDbOracleConstants(FlextConstants):
                 "CHAR",
                 "RAW",
             ]
-            VALID_CONNECTION_TYPES: Final[Sequence[str]] = [
+            VALID_CONNECTION_TYPES: Final[t.StrSequence] = [
                 "service_name",
                 "sid",
                 "tns",
             ]
-            VALID_QUERY_TYPES: Final[Sequence[str]] = [
+            VALID_QUERY_TYPES: Final[t.StrSequence] = [
                 "SELECT",
                 "INSERT",
                 "UPDATE",
@@ -402,20 +401,20 @@ class FlextDbOracleConstants(FlextConstants):
                 "DROP",
                 "ALTER",
             ]
-            VALID_ISOLATION_LEVELS: Final[Sequence[str]] = [
+            VALID_ISOLATION_LEVELS: Final[t.StrSequence] = [
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
                 "SERIALIZABLE",
             ]
-            SYSTEM_USERS: Final[Sequence[str]] = [
+            SYSTEM_USERS: Final[t.StrSequence] = [
                 "SYS",
                 "SYSTEM",
                 "XDB",
                 "DBSNMP",
                 "OUTLN",
             ]
-            DEFAULT_SCHEMAS: Final[Sequence[str]] = [
+            DEFAULT_SCHEMAS: Final[t.StrSequence] = [
                 "SYSTEM",
                 "SYS",
                 "PUBLIC",
@@ -457,4 +456,4 @@ class FlextDbOracleConstants(FlextConstants):
 
 c = FlextDbOracleConstants
 
-__all__: Sequence[str] = ["FlextDbOracleConstants", "c"]
+__all__: t.StrSequence = ["FlextDbOracleConstants", "c"]

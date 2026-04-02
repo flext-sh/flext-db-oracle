@@ -49,7 +49,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],
-            Mapping[str, t.ContainerValue] | None,
+            t.ContainerValueMapping | None,
         ],
     ]:
         """Create connection-related handler functions."""
@@ -93,7 +93,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
             type,
             tuple[
                 Callable[[t.ContainerValue], t.ContainerValue],
-                Mapping[str, t.ContainerValue] | None,
+                t.ContainerValueMapping | None,
             ],
         ] = {}
         function_map.update(cls._create_connection_handlers(services))
@@ -121,7 +121,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],
-            Mapping[str, t.ContainerValue] | None,
+            t.ContainerValueMapping | None,
         ],
     ]:
         """Create query-related handler functions."""
@@ -198,7 +198,7 @@ class FlextDbOracleDispatcher(FlextService[None]):
         type,
         tuple[
             Callable[[t.ContainerValue], t.ContainerValue],
-            Mapping[str, t.ContainerValue] | None,
+            t.ContainerValueMapping | None,
         ],
     ]:
         """Create schema/metadata handler functions."""

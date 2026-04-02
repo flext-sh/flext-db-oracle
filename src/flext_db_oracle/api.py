@@ -65,7 +65,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self._context_name = context_name or "oracle-api"
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
-        self._plugins: MutableMapping[str, t.ContainerValue] = {}
+        self._plugins: t.MutableContainerValueMapping = {}
         self._registry = self._plugins
         type(self).to_dict_source = self
 
@@ -230,7 +230,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_many(
         self,
         sql: str,
-        parameters_list: Sequence[Mapping[str, t.ContainerValue]],
+        parameters_list: Sequence[t.ContainerValueMapping],
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
@@ -242,7 +242,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_sql(
         self,
         sql: str,
-        parameters: Mapping[str, t.ContainerValue] | None = None,
+        parameters: t.ContainerValueMapping | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         self.logger.debug("Executing SQL statement", statement_length=len(sql))
@@ -256,7 +256,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def execute_statement(
         self,
         sql: str | t.ContainerValue,
-        parameters: Mapping[str, t.ContainerValue] | None = None,
+        parameters: t.ContainerValueMapping | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
         try:
@@ -282,7 +282,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         """Get database connection health status."""
         return self._services.get_connection_status()
 
-    def get_observability_metrics(self) -> r[Mapping[str, t.ContainerValue]]:
+    def get_observability_metrics(self) -> r[t.ContainerValueMapping]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
@@ -344,7 +344,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query(
         self,
         sql: str,
-        parameters: Mapping[str, t.ContainerValue] | None = None,
+        parameters: t.ContainerValueMapping | None = None,
     ) -> r[Sequence[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
@@ -358,7 +358,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def query_one(
         self,
         sql: str,
-        parameters: Mapping[str, t.ContainerValue] | None = None,
+        parameters: t.ContainerValueMapping | None = None,
     ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         query_params = (
@@ -386,7 +386,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         if obj is None and cls.to_dict_source is not None:
             source = cls.to_dict_source
             plugin_count_value = source.list_plugins().map(len).map_or(0)
-            config_payload: Mapping[str, t.ContainerValue] = {
+            config_payload: t.ContainerValueMapping = {
                 "host": source.oracle_config.host,
                 "port": source.oracle_config.port,
                 "service_name": source.oracle_config.service_name,
@@ -404,10 +404,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
             return t.ConfigMap(root=dict(obj))
         return t.ConfigMap(root={})
 
-    def transaction(self) -> r[Mapping[str, t.ContainerValue]]:
+    def transaction(self) -> r[t.ContainerValueMapping]:
         """Get transaction status information."""
         try:
-            status: Mapping[str, t.ContainerValue] = {
+            status: t.ContainerValueMapping = {
                 "connected": self._services.is_connected(),
                 "transaction_available": True,
             }

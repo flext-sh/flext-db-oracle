@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import contextlib
 import time
-from collections.abc import MutableMapping, MutableSequence, Sequence
+from collections.abc import MutableSequence, Sequence
 from typing import ClassVar
 
 import oracledb
@@ -47,8 +47,8 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
     _operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = (
         PrivateAttr(default_factory=list)
     )
-    _plugins: MutableMapping[str, t.ContainerValue] = PrivateAttr(default_factory=dict)
-    _metrics: MutableMapping[str, t.ContainerValue] = PrivateAttr(default_factory=dict)
+    _plugins: t.MutableContainerValueMapping = PrivateAttr(default_factory=dict)
+    _metrics: t.MutableContainerValueMapping = PrivateAttr(default_factory=dict)
 
     class _CountValue(RootModel[int | str]):
         """Pydantic root model for count value (int or numeric string)."""

@@ -67,7 +67,7 @@ class FlextDbOracleModels(FlextModels):
             port: t.NonNegativeInt = 0
             service_name: str = ""
             response_time_ms: t.NonNegativeFloat = 0.0
-            details: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
+            details: t.ContainerValueMapping = Field(default_factory=dict)
             error: str | None = None
             timestamp: str = ""
 
@@ -348,7 +348,7 @@ class FlextDbOracleModels(FlextModels):
             timestamp: str
             service: str = "oracle"
             database: str = "oracle"
-            metrics: Mapping[str, t.ContainerValue] = Field(default_factory=dict)
+            metrics: t.ContainerValueMapping = Field(default_factory=dict)
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
@@ -441,7 +441,7 @@ class FlextDbOracleModels(FlextModels):
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from column metadata."""
-                key_map: Mapping[str, t.ContainerValue] = {
+                key_map: t.ContainerValueMapping = {
                     "column_name": self.name,
                     "name": self.name,
                     "data_type": self.data_type,
@@ -509,26 +509,26 @@ class FlextDbOracleModels(FlextModels):
             """Command to execute SELECT query."""
 
             sql: str
-            parameters: Mapping[str, t.ContainerValue] | None = None
+            parameters: t.ContainerValueMapping | None = None
 
         class FetchOneCommand(FlextModels.Entity):
             """Command to fetch single row."""
 
             sql: str
-            parameters: Mapping[str, t.ContainerValue] | None = None
+            parameters: t.ContainerValueMapping | None = None
 
         class ExecuteStatementCommand(FlextModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
             sql: str
-            parameters: Mapping[str, t.ContainerValue] | None = None
+            parameters: t.ContainerValueMapping | None = None
 
         class ExecuteManyCommand(FlextModels.Entity):
             """Command to execute batch statements."""
 
             sql: str
-            parameters_list: Sequence[Mapping[str, t.ContainerValue]] = Field(
-                default_factory=lambda: list[Mapping[str, t.ContainerValue]](),
+            parameters_list: Sequence[t.ContainerValueMapping] = Field(
+                default_factory=lambda: list[t.ContainerValueMapping](),
             )
 
         class GetSchemasCommand(FlextModels.Entity):

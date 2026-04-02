@@ -5,7 +5,6 @@ from __future__ import annotations
 import contextlib
 import hashlib
 import os
-from collections.abc import Mapping
 from enum import StrEnum
 
 from pydantic import RootModel, TypeAdapter, ValidationError
@@ -117,7 +116,7 @@ class FlextDbOracleUtilitiesDbOracle:
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
-    HASH_PARAMS_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
+    HASH_PARAMS_ADAPTER: TypeAdapter[t.ContainerValueMapping] = TypeAdapter(
         t.ContainerValueMapping,
     )
 
@@ -125,7 +124,7 @@ class FlextDbOracleUtilitiesDbOracle:
     def generate_query_hash(
         cls,
         query: str,
-        params: Mapping[str, t.ContainerValue] | None,
+        params: t.ContainerValueMapping | None,
     ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))

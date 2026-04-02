@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 
 from flext_tests import tm
 
@@ -83,7 +83,7 @@ class TestRealOracleConnection:
             tm.that(len(query_data), eq=1)
             first_row = query_data[0]
             first_value = _dict_first_value(first_row)
-            tm.that(first_value, eq=1)
+            tm.that(int(str(first_value)), eq=1)
         finally:
             connection.disconnect()
 
@@ -106,7 +106,7 @@ class TestRealOracleConnection:
             if fetch_data:
                 tm.that(hasattr(fetch_data, "__getitem__"), eq=True)
                 first_value = next(iter(fetch_data.values()))
-                tm.that(first_value, eq=42)
+                tm.that(int(str(first_value)), eq=42)
         finally:
             connection.disconnect()
 
@@ -129,7 +129,7 @@ class TestRealOracleConnection:
             if create_result.is_failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
-            params_list: Sequence[Mapping[str, t.ContainerValue]] = [
+            params_list: Sequence[t.ContainerValueMapping] = [
                 {"id": 1, "name": "Test 1"},
                 {"id": 2, "name": "Test 2"},
                 {"id": 3, "name": "Test 3"},

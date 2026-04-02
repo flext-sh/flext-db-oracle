@@ -10,7 +10,7 @@ a real Oracle database connection, using mocked connections and result data.
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -91,7 +91,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "name": "test"}
+        conditions: t.ContainerValueMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -107,7 +107,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "status": "active"}
+        conditions: t.ContainerValueMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -147,7 +147,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: Mapping[str, t.ContainerValue] = {
+        singer_schema: t.ContainerValueMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -173,7 +173,7 @@ class TestFlextDbOracleServicesBasic:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[Mapping[str, t.ContainerValue]] = [
+        columns: Sequence[t.ContainerValueMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -371,7 +371,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: Mapping[str, t.ContainerValue] = {"id": 123}
+        params: t.ContainerValueMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)
@@ -1316,7 +1316,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "name": "test"}
+        conditions: t.ContainerValueMapping = {"id": 1, "name": "test"}
         select_result = service.build_select("TEST_TABLE", ["col1", "col2"], conditions)
         tm.ok(select_result)
         tm.that(select_result.value, has="WHERE")
@@ -1332,7 +1332,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        conditions: Mapping[str, t.ContainerValue] = {"id": 1, "status": "active"}
+        conditions: t.ContainerValueMapping = {"id": 1, "status": "active"}
         safe_result = service.build_select("USERS", ["id", "name", "email"], conditions)
         tm.ok(safe_result)
         sql = safe_result.value
@@ -1372,7 +1372,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        singer_schema: Mapping[str, t.ContainerValue] = {
+        singer_schema: t.ContainerValueMapping = {
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string"},
@@ -1398,7 +1398,7 @@ class TestFlextDbOracleConnectionSimple:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        columns: Sequence[Mapping[str, t.ContainerValue]] = [
+        columns: Sequence[t.ContainerValueMapping] = [
             {
                 "name": "id",
                 "data_type": "NUMBER",
@@ -1596,7 +1596,7 @@ class TestFlextDbOracleConnectionSimple:
         )
         service = FlextDbOracleServices(config=config)
         sql = "SELECT * FROM users WHERE id = :id"
-        params: Mapping[str, t.ContainerValue] = {"id": 123}
+        params: t.ContainerValueMapping = {"id": 123}
         hash_result = service.generate_query_hash(sql, params)
         tm.ok(hash_result)
         tm.that(hash_result.value, is_=str)

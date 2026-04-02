@@ -726,7 +726,7 @@ class TestApiModule:
             }
 
         @staticmethod
-        def create_test_query_data() -> Mapping[str, str | Mapping[str, int] | int]:
+        def create_test_query_data() -> Mapping[str, str | t.IntMapping | int]:
             """Create test query data."""
             return {
                 "query": "SELECT * FROM test_table WHERE id = :id",

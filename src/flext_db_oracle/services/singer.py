@@ -45,7 +45,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         | t.ContainerValueMapping,
     ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
-        raw_properties: Mapping[str, t.ContainerValue] | None = None
+        raw_properties: t.ContainerValueMapping | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):
             schema_model = singer_schema
         else:

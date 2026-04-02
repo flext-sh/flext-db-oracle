@@ -42,11 +42,11 @@ class FlextDbOracleTypes(FlextTypes):
         type ConnectionParams = FlextTypes.ConfigurationMapping
         type SslConfiguration = Mapping[
             str,
-            str | bool | Mapping[str, FlextTypes.ContainerValue],
+            str | bool | FlextTypes.ContainerValueMapping,
         ]
         type AuthenticationConfig = Mapping[
             str,
-            str | Mapping[str, FlextTypes.ContainerValue],
+            str | FlextTypes.ContainerValueMapping,
         ]
 
         type SqlQuery = str
@@ -54,25 +54,25 @@ class FlextDbOracleTypes(FlextTypes):
         type QueryResult = FlextTypes.ContainerValueMapping
         type QueryMetadata = Mapping[
             str,
-            str | int | Mapping[str, FlextTypes.ContainerValue],
+            str | int | FlextTypes.ContainerValueMapping,
         ]
         type PreparedStatement = Mapping[
             str,
-            str | Mapping[str, FlextTypes.ContainerValue],
+            str | FlextTypes.ContainerValueMapping,
         ]
         type QueryExecution = Mapping[
             str,
-            FlextTypes.Scalar | Mapping[str, FlextTypes.ContainerValue],
+            FlextTypes.Scalar | FlextTypes.ContainerValueMapping,
         ]
 
         type TransactionConfiguration = FlextTypes.ConfigurationMapping
         type TransactionState = Mapping[
             str,
-            str | bool | Mapping[str, FlextTypes.ContainerValue],
+            str | bool | FlextTypes.ContainerValueMapping,
         ]
         type IsolationLevel = str
         type TransactionBlock = Sequence[
-            Mapping[str, str | Mapping[str, FlextTypes.ContainerValue]]
+            Mapping[str, str | FlextTypes.ContainerValueMapping]
         ]
         type SavepointConfig = FlextTypes.HeaderMapping
         type RollbackConfig = Mapping[str, str | bool | FlextTypes.StrSequence]
@@ -84,79 +84,79 @@ class FlextDbOracleTypes(FlextTypes):
         ]
         type ColumnDefinition = Mapping[
             str,
-            FlextTypes.Scalar | Mapping[str, FlextTypes.ContainerValue],
+            FlextTypes.Scalar | FlextTypes.ContainerValueMapping,
         ]
         type IndexDefinition = Mapping[
             str,
-            str | FlextTypes.StrSequence | Mapping[str, FlextTypes.ContainerValue],
+            str | FlextTypes.StrSequence | FlextTypes.ContainerValueMapping,
         ]
         type ConstraintDefinition = Mapping[str, str | FlextTypes.StrSequence | bool]
         type ViewDefinition = Mapping[
             str,
-            str | Mapping[str, FlextTypes.ContainerValue],
+            str | FlextTypes.ContainerValueMapping,
         ]
 
         type SessionConfiguration = Mapping[
             str,
-            FlextTypes.Scalar | Mapping[str, FlextTypes.ContainerValue],
+            FlextTypes.Scalar | FlextTypes.ContainerValueMapping,
         ]
         type SessionState = Mapping[
             str,
-            FlextTypes.ContainerValue | Mapping[str, FlextTypes.ContainerValue],
+            FlextTypes.ContainerValue | FlextTypes.ContainerValueMapping,
         ]
-        type SessionVariables = Mapping[str, FlextTypes.ContainerValue]
+        type SessionVariables = FlextTypes.ContainerValueMapping
         type SessionMetrics = FlextTypes.ConfigValueMapping
         type SessionPooling = Mapping[
             str,
-            int | bool | str | Mapping[str, FlextTypes.ContainerValue],
+            int | bool | str | FlextTypes.ContainerValueMapping,
         ]
-        type SessionTimeout = Mapping[str, int | str]
+        type SessionTimeout = t.HeaderMapping
 
         type PerformanceMetrics = Mapping[
             str,
-            int | float | Mapping[str, FlextTypes.ContainerValue],
+            t.Numeric | FlextTypes.ContainerValueMapping,
         ]
         type QueryPlan = Mapping[
             str,
-            str | int | Sequence[Mapping[str, FlextTypes.ContainerValue]],
+            str | int | Sequence[FlextTypes.ContainerValueMapping],
         ]
         type ExecutionStats = Mapping[
             str,
-            int | float | str | Mapping[str, FlextTypes.ContainerValue],
+            t.Numeric | str | FlextTypes.ContainerValueMapping,
         ]
         type IndexUsage = Mapping[
             str,
-            FlextTypes.Scalar | Mapping[str, FlextTypes.ContainerValue],
+            FlextTypes.Scalar | FlextTypes.ContainerValueMapping,
         ]
         type CacheConfiguration = Mapping[str, int | str | bool]
         type OptimizationHints = Mapping[str, str | FlextTypes.StrSequence]
 
-        type UserPermissions = Mapping[str, FlextTypes.StrSequence | Mapping[str, bool]]
+        type UserPermissions = Mapping[str, FlextTypes.StrSequence | t.BoolMapping]
         type RoleDefinition = Mapping[
             str,
-            str | FlextTypes.StrSequence | Mapping[str, FlextTypes.ContainerValue],
+            str | FlextTypes.StrSequence | FlextTypes.ContainerValueMapping,
         ]
         type PrivilegeConfiguration = Mapping[
             str,
-            bool | FlextTypes.StrSequence | Mapping[str, FlextTypes.ContainerValue],
+            bool | FlextTypes.StrSequence | FlextTypes.ContainerValueMapping,
         ]
         type AccessPolicy = Mapping[
             str,
-            str | bool | Mapping[str, FlextTypes.ContainerValue],
+            str | bool | FlextTypes.ContainerValueMapping,
         ]
         type EncryptionConfig = Mapping[
             str,
-            str | bool | Mapping[str, FlextTypes.ContainerValue],
+            str | bool | FlextTypes.ContainerValueMapping,
         ]
         type AuditConfiguration = Mapping[
             str,
-            bool | str | Mapping[str, FlextTypes.ContainerValue],
+            bool | str | FlextTypes.ContainerValueMapping,
         ]
 
         type OracleDataType = str
         type PythonDataType = type
         type TypeMapping = FlextTypes.ContainerValueMapping
-        type DataConversion = Mapping[str, FlextTypes.ContainerValue]
+        type DataConversion = FlextTypes.ContainerValueMapping
         type TypeValidation = Mapping[str, bool | str | FlextTypes.StrSequence]
         type NullHandling = Mapping[str, bool | FlextTypes.ContainerValue]
 
@@ -177,13 +177,7 @@ class FlextDbOracleTypes(FlextTypes):
             "sql-service",
             "data-connector",
         ]
-        type OracleProjectConfig = Mapping[str, FlextTypes.ContainerValue]
-        type DatabaseConfig = Mapping[str, FlextTypes.Scalar | FlextTypes.StrSequence]
-        type SchemaConfig = Mapping[
-            str,
-            bool | str | Mapping[str, FlextTypes.ContainerValue],
-        ]
-        type ConnectionConfig = Mapping[str, FlextTypes.ContainerValue]
+        type OracleProjectConfig = FlextTypes.ContainerValueMapping
 
         type CliScalar = FlextTypes.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."

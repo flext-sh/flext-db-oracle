@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_core import FlextExceptions
 from flext_db_oracle import t
 
@@ -95,7 +93,7 @@ class FlextDbOracleExceptions(FlextExceptions):
             message: str,
             *,
             sql_text: str | None = None,
-            bind_variables: Mapping[str, t.ContainerValue] | None = None,
+            bind_variables: t.ContainerValueMapping | None = None,
             **_kwargs: t.Scalar,
         ) -> None:
             """Initialize query error with SQL text and bind variables metadata."""

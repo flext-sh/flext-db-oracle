@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import override
 
 import oracledb
@@ -35,7 +35,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
     def execute_many(
         self,
         sql: str,
-        params_list: Sequence[Mapping[str, t.ContainerValue] | t.ConfigMap],
+        params_list: Sequence[t.ContainerValueMapping | t.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
         if not self.is_connected():
@@ -180,7 +180,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         ]
         return result
 
-    def _normalize_row(self, row: Mapping[str, t.ContainerValue]) -> t.Dict:
+    def _normalize_row(self, row: t.ContainerValueMapping) -> t.Dict:
         """Normalize a single SQLAlchemy mapping row into a typed map."""
         return t.Dict(root={str(key): value for key, value in row.items()})
 

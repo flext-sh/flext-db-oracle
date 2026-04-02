@@ -43,7 +43,7 @@ class Testu:
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""
-        params: Mapping[str, int] = {"id": 1}
+        params: t.IntMapping = {"id": 1}
         result = u.DbOracle.generate_query_hash(
             "SELECT * FROM table WHERE id = :id",
             params,
@@ -56,8 +56,8 @@ class Testu:
 
     def test_generate_query_hash_with_whitespace_normalization(self) -> None:
         """Test query hash does NOT normalize whitespace (hashes raw query)."""
-        params1: Mapping[str, int] = {"id": 1}
-        params2: Mapping[str, int] = {"id": 2}
+        params1: t.IntMapping = {"id": 1}
+        params2: t.IntMapping = {"id": 2}
         result1 = u.DbOracle.generate_query_hash(
             "SELECT * FROM table",
             params1,
@@ -284,13 +284,13 @@ class Testu:
 
     _JSON_RESULT_ADAPTER: TypeAdapter[
         Sequence[Mapping[str, int | str | bool]]
-        | Sequence[Mapping[str, str]]
-        | Sequence[Mapping[str, int]]
+        | Sequence[t.StrMapping]
+        | Sequence[t.IntMapping]
         | None
     ] = TypeAdapter(
         Sequence[Mapping[str, int | str | bool]]
-        | Sequence[Mapping[str, str]]
-        | Sequence[Mapping[str, int]]
+        | Sequence[t.StrMapping]
+        | Sequence[t.IntMapping]
         | None,
     )
 
@@ -307,7 +307,7 @@ class Testu:
 
     def test_format_query_result_json_empty(self) -> None:
         """Test JSON formatting with empty data."""
-        data: Sequence[Mapping[str, str]] = []
+        data: Sequence[t.StrMapping] = []
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -316,7 +316,7 @@ class Testu:
 
     def test_format_query_result_json_non_serializable(self) -> None:
         """Test JSON formatting with non-serializable data."""
-        data: Sequence[Mapping[str, str]] = [{"key": "non-serializable-test"}]
+        data: Sequence[t.StrMapping] = [{"key": "non-serializable-test"}]
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value
@@ -333,7 +333,7 @@ class Testu:
 
     def test_format_query_result_table_empty(self) -> None:
         """Test table formatting with empty data."""
-        data: Sequence[Mapping[str, str]] = []
+        data: Sequence[t.StrMapping] = []
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
         formatted = result.value

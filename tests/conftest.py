@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator, Mapping
+from collections.abc import Generator
 from pathlib import Path
 
 import oracledb
@@ -19,7 +19,7 @@ from flext_tests import td, tk
 
 from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import u
+from tests import t, u
 
 logger = FlextLogger(__name__)
 
@@ -338,7 +338,7 @@ def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[Non
 @pytest.fixture
 def test_database_setup(
     connected_oracle_api: FlextDbOracleApi | None,
-) -> Generator[Mapping[str, str] | None]:
+) -> Generator[t.StrMapping | None]:
     """Set up test database schema and return test table info."""
     if connected_oracle_api is None:
         yield None

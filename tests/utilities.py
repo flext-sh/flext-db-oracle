@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import MutableMapping, Sequence
 from typing import ClassVar
 
 from flext_tests import FlextTestsUtilities, tk
@@ -27,15 +27,15 @@ class FlextDbOracleTestUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         class Tests:
             """Test-specific utilities."""
 
-            _PORT_BINDINGS_ADAPTER: ClassVar[TypeAdapter[Mapping[str, str]]] = (
-                TypeAdapter(Mapping[str, str])
+            _PORT_BINDINGS_ADAPTER: ClassVar[TypeAdapter[t.StrMapping]] = TypeAdapter(
+                t.StrMapping
             )
 
             @classmethod
             def normalize_port_bindings(
                 cls,
                 value: t.NormalizedValue,
-            ) -> Mapping[str, str]:
+            ) -> t.StrMapping:
                 """Normalize Docker port bindings into a typed mapping."""
                 try:
                     return cls._PORT_BINDINGS_ADAPTER.validate_python(value)

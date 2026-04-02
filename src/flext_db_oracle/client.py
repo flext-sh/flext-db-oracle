@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Sequence
 from typing import override
 
 import oracledb
@@ -20,12 +20,10 @@ from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 from flext_core import FlextService, r
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, t, u
 
-OracleDatabaseError = oracledb.DatabaseError
-OracleInterfaceError = oracledb.InterfaceError
 _GENERAL_LIST_ADAPTER: TypeAdapter[t.FlatContainerList] = TypeAdapter(
     t.FlatContainerList,
 )
-_CONFIG_DICT_ADAPTER: TypeAdapter[Mapping[str, t.ContainerValue]] = TypeAdapter(
+_CONFIG_DICT_ADAPTER: TypeAdapter[t.ContainerValueMapping] = TypeAdapter(
     t.ContainerValueMapping,
 )
 
@@ -39,7 +37,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
     @staticmethod
     def _validate_config_map(
-        value: Mapping[str, t.ContainerValue] | t.ConfigMap,
+        value: t.ContainerValueMapping | t.ConfigMap,
     ) -> t.ConfigMap | None:
         """Validate generic mapping payload with Pydantic."""
         try:
@@ -116,7 +114,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     unused_params=str(params),
                 )
             return r[str].fail(f"Unknown CLI operation: {operation}")
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[str].fail(f"CLI command failed: {e}")
 
     def configure_preferences(self, **preferences: t.Scalar) -> r[bool]:
@@ -133,7 +131,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 preferences_info=str(preferences),
             )
             return r[bool].ok(True)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[bool].fail(f"Preference configuration failed: {e}")
 
     def connect_to_oracle(
@@ -188,8 +186,8 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 f"Oracle connection failed: {connect_result.error}",
             )
         except (
-            OracleDatabaseError,
-            OracleInterfaceError,
+            oracledb.DatabaseError,
+            oracledb.InterfaceError,
             ConnectionError,
             OSError,
             SQLAlchemyOperationalError,
@@ -339,7 +337,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 for key, value in data_root.items()
             ]
             return r[Sequence[t.ConfigMap]].ok(result)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[Sequence[t.ConfigMap]].fail(f"Data adaptation failed: {e}")
 
     def _build_table_string(self, adapted_data: Sequence[t.ConfigMap]) -> str:
@@ -379,7 +377,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                 },
             )
             return r[t.ConfigMap].ok(health_data)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Health check failed: {e}")
 
     def _execute_operation(
@@ -405,7 +403,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             if operation == "health_check":
                 return self._handle_health_check_operation()
             return r[t.ConfigMap].fail(f"Unknown operation: {operation}")
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[t.ConfigMap].fail(f"Operation failed: {e}")
 
     def _execute_with_chain(
@@ -454,7 +452,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         """
         return u.try_(
             lambda: data.model_dump_json(indent=2),
-            catch=(OracleDatabaseError, OracleInterfaceError, ConnectionError),
+            catch=(oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
     def _format_as_table(self, data: t.ConfigMap) -> r[str]:
@@ -472,7 +470,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
                     else str(adapted_data)
                 ),
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     def _get_formatter_strategy(
@@ -499,7 +497,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Formatter strategy error: {e}",
             )
@@ -550,13 +548,13 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         if isinstance(raw_params, t.ConfigMap):
             params_map = raw_params
         else:
-            normalized_params: Mapping[str, t.ContainerValue]
+            normalized_params: t.ContainerValueMapping
             try:
                 normalized_params = _CONFIG_DICT_ADAPTER.validate_python(raw_params)
             except ValidationError:
                 normalized_params = {}
             params_map = t.ConfigMap(root=normalized_params)
-        query_params: Mapping[str, t.ContainerValue] = {
+        query_params: t.ContainerValueMapping = {
             str(k): str(v) for k, v in params_map.root.items()
         }
         return self.current_connection.query(sql, query_params).map(
