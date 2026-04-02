@@ -14,21 +14,14 @@ from collections.abc import Callable, Sequence
 from typing import override
 
 import oracledb
-from pydantic import TypeAdapter, ValidationError
+from pydantic import ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_core import FlextService, r
+from flext_core import r, s
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, t, u
 
-_GENERAL_LIST_ADAPTER: TypeAdapter[t.FlatContainerList] = TypeAdapter(
-    t.FlatContainerList,
-)
-_CONFIG_DICT_ADAPTER: TypeAdapter[t.ContainerValueMapping] = TypeAdapter(
-    t.ContainerValueMapping,
-)
 
-
-class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
+class FlextDbOracleClient(s[FlextDbOracleSettings]):
     """Oracle Database CLI client with complete FLEXT ecosystem integration.
 
     This client provides command-line interface operations for Oracle Database
@@ -50,7 +43,7 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
     @staticmethod
     def _validate_general_list(value: t.ContainerValue) -> t.FlatContainerList | None:
         """Validate list payload with Pydantic."""
-        return _GENERAL_LIST_ADAPTER.validate_python(value)
+        return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
 
     debug: bool = False
     current_connection: FlextDbOracleApi | None = None
@@ -304,7 +297,9 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
 
             def adapt_health(raw_value: t.ContainerValue) -> Sequence[t.ConfigMap]:
                 try:
-                    health_map = _CONFIG_DICT_ADAPTER.validate_python(raw_value)
+                    health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                        raw_value
+                    )
                 except ValidationError:
                     return []
                 health = FlextDbOracleClient._validate_config_map(health_map)
@@ -550,10 +545,12 @@ class FlextDbOracleClient(FlextService[FlextDbOracleSettings]):
         else:
             normalized_params: t.ContainerValueMapping
             try:
-                normalized_params = _CONFIG_DICT_ADAPTER.validate_python(raw_params)
+                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                    raw_params
+                )
             except ValidationError:
                 normalized_params = {}
-            params_map = t.ConfigMap(root=normalized_params)
+            params_map = t.ConfigMap.model_validate({"root": normalized_params})
         query_params: t.ContainerValueMapping = {
             str(k): str(v) for k, v in params_map.root.items()
         }

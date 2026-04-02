@@ -7,7 +7,7 @@ import hashlib
 import os
 from enum import StrEnum
 
-from pydantic import RootModel, TypeAdapter, ValidationError
+from pydantic import RootModel, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -43,8 +43,6 @@ class FlextDbOracleUtilitiesDbOracle:
         """Numeric value parser accepting int or numeric string."""
 
         root: int | str
-
-    STRING_LIST_ADAPTER: TypeAdapter[t.StrSequence] = TypeAdapter(t.StrSequence)
 
     @staticmethod
     def coerced_enum[E: StrEnum](enum_cls: type[E]) -> type[E]:
@@ -91,10 +89,6 @@ class FlextDbOracleUtilitiesDbOracle:
         max_len = c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH
         return r[str].ok(identifier[:max_len])
 
-    QUERY_RESULT_ADAPTER: TypeAdapter[t.ContainerValue] = TypeAdapter(
-        t.ContainerValue,
-    )
-
     @classmethod
     def format_query_result(
         cls,
@@ -104,7 +98,7 @@ class FlextDbOracleUtilitiesDbOracle:
         """Format a query result to string or JSON."""
         if format_type == "json":
             return r[str].ok(
-                cls.QUERY_RESULT_ADAPTER.dump_json(
+                t.CONTAINER_VALUE_ADAPTER.dump_json(
                     result,
                 ).decode(),
             )
@@ -116,10 +110,6 @@ class FlextDbOracleUtilitiesDbOracle:
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
 
-    HASH_PARAMS_ADAPTER: TypeAdapter[t.ContainerValueMapping] = TypeAdapter(
-        t.ContainerValueMapping,
-    )
-
     @classmethod
     def generate_query_hash(
         cls,
@@ -128,7 +118,7 @@ class FlextDbOracleUtilitiesDbOracle:
     ) -> r[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
-        serialized = cls.HASH_PARAMS_ADAPTER.dump_json(
+        serialized = t.CONTAINER_VALUE_MAPPING_ADAPTER.dump_json(
             sorted_params,
         ).decode()
         payload = f"{query}|{serialized}".encode()
@@ -140,7 +130,7 @@ class FlextDbOracleUtilitiesDbOracle:
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap(root=value)
+            return t.ConfigMap.model_validate({"root": value})
         except ValidationError:
             return None
 
@@ -188,7 +178,7 @@ class FlextDbOracleUtilitiesDbOracle:
     def _normalize_singer_type(cls, value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
         try:
-            values = cls.STRING_LIST_ADAPTER.validate_python(
+            values = t.STR_SEQUENCE_ADAPTER.validate_python(
                 value,
             )
         except ValidationError:

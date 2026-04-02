@@ -20,13 +20,13 @@ from typing import Self, override
 import oracledb
 from pydantic import BaseModel
 
-from flext_core import FlextService, r
+from flext_core import r, s
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
-    FlextDbOracleModels,
     FlextDbOracleServices,
     FlextDbOracleSettings,
     c,
+    m,
     t,
     u,
 )
@@ -35,7 +35,7 @@ OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
+class FlextDbOracleApi(s[FlextDbOracleSettings]):
     """Oracle Database API with complete flext-core integration.
 
     This API provides a unified interface to Oracle database operations,
@@ -274,11 +274,11 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[Sequence[FlextDbOracleModels.DbOracle.Column]]:
+    ) -> r[Sequence[m.DbOracle.Column]]:
         """Get column information for specified table."""
         return self._services.get_columns(table, schema)
 
-    def get_health_status(self) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
+    def get_health_status(self) -> r[m.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
         return self._services.get_connection_status()
 
@@ -309,7 +309,7 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
+    ) -> r[m.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
@@ -428,10 +428,10 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         self,
         sql: str,
         data: Sequence[t.Dict],
-    ) -> FlextDbOracleModels.DbOracle.QueryResult:
+    ) -> m.DbOracle.QueryResult:
         """Convert raw query data to QueryResult model."""
         if not data:
-            return FlextDbOracleModels.DbOracle.QueryResult(
+            return m.DbOracle.QueryResult(
                 query=sql,
                 columns=[],
                 rows=[],
@@ -446,12 +446,12 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
         first_row = data[0].root
         columns = list(first_row.keys())
         rows = [
-            FlextDbOracleModels.DbOracle.RowData(
+            m.DbOracle.RowData(
                 values=[str(value) for value in row.root.values()],
             )
             for row in data
         ]
-        return FlextDbOracleModels.DbOracle.QueryResult(
+        return m.DbOracle.QueryResult(
             query=sql,
             columns=columns,
             rows=rows,
@@ -467,13 +467,13 @@ class FlextDbOracleApi(FlextService[FlextDbOracleSettings]):
     def _execute_query_sql(
         self,
         sql: str,
-    ) -> r[FlextDbOracleModels.DbOracle.QueryResult]:
+    ) -> r[m.DbOracle.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         try:
             return self._services.execute_query(sql).map(
                 lambda data: self._convert_to_query_result(sql, data),
             )
         except Exception as e:
-            return r[FlextDbOracleModels.DbOracle.QueryResult].fail(
+            return r[m.DbOracle.QueryResult].fail(
                 f"SQL execution error: {e}",
             )

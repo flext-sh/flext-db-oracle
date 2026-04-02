@@ -15,7 +15,7 @@ from collections.abc import MutableSequence, Sequence
 from typing import ClassVar
 
 import oracledb
-from pydantic import PrivateAttr, RootModel, TypeAdapter, ValidationError
+from pydantic import PrivateAttr, RootModel, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -55,10 +55,6 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
 
         root: int | str
 
-    _STRING_LIST_ADAPTER: ClassVar[TypeAdapter[t.StrSequence]] = TypeAdapter(
-        t.StrSequence
-    )
-
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
         super().__init__()
@@ -84,7 +80,7 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
         if not isinstance(value, dict):
             return None
         try:
-            return t.ConfigMap(root=value)
+            return t.ConfigMap.model_validate({"root": value})
         except ValidationError:
             return None
 
@@ -127,9 +123,7 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
     def _normalize_singer_type(value: str | t.StrSequence) -> str:
         """Normalize Singer type input to a single string value."""
         try:
-            values = FlextDbOracleServiceBase._STRING_LIST_ADAPTER.validate_python(
-                value
-            )
+            values = t.STR_SEQUENCE_ADAPTER.validate_python(value)
         except ValidationError:
             return str(value)
         return values[0] if values else "string"

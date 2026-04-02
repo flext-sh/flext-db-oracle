@@ -25,10 +25,10 @@ from sqlalchemy.exc import (
 
 from flext_core import r
 from flext_db_oracle import (
-    FlextDbOracleModels,
     FlextDbOracleServiceBase,
     FlextDbOracleSettings,
     c,
+    m,
     t,
 )
 
@@ -143,11 +143,11 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         finally:
             self._context_exit(connect_ctx)
 
-    def get_connection_status(self) -> r[FlextDbOracleModels.DbOracle.ConnectionStatus]:
+    def get_connection_status(self) -> r[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         now = datetime.now(UTC)
-        return r[FlextDbOracleModels.DbOracle.ConnectionStatus].ok(
-            FlextDbOracleModels.DbOracle.ConnectionStatus(
+        return r[m.DbOracle.ConnectionStatus].ok(
+            m.DbOracle.ConnectionStatus(
                 is_connected=self.is_connected(),
                 last_check=now,
                 connection_time=0.0,
@@ -162,10 +162,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def health_check(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
+    def health_check(self) -> r[m.DbOracle.HealthStatus]:
         """Perform health check."""
-        return r[FlextDbOracleModels.DbOracle.HealthStatus].ok(
-            FlextDbOracleModels.DbOracle.HealthStatus(
+        return r[m.DbOracle.HealthStatus].ok(
+            m.DbOracle.HealthStatus(
                 status="healthy" if self.is_connected() else "unhealthy",
                 timestamp=self._get_current_timestamp(),
                 service="oracle",

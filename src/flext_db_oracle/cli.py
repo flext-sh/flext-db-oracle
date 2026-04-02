@@ -21,14 +21,14 @@ import yaml
 from flext_cli import cli
 from pydantic import TypeAdapter, ValidationError
 
-from flext_core import FlextService, r
+from flext_core import r, s
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, m, t
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
-class FlextDbOracleCli(FlextService[str]):
+class FlextDbOracleCli(s[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
     Zero Tolerance COMPLIANCE:
@@ -219,7 +219,7 @@ class FlextDbOracleCli(FlextService[str]):
 
     @override
     def execute(self, **_kwargs: str | float | bool) -> r[str]:
-        """Execute domain service - required by FlextService.
+        """Execute domain service - required by s.
 
         Returns:
         r[str]: Service status.

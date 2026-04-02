@@ -182,8 +182,17 @@ class FlextDbOracleTypes(FlextTypes):
         type CliScalar = FlextTypes.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
 
-    _QUERY_RESULT_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
+    CONTAINER_VALUE_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
         FlextTypes.ContainerValue,
+    )
+    CONTAINER_VALUE_MAPPING_ADAPTER: TypeAdapter[FlextTypes.ContainerValueMapping] = (
+        TypeAdapter(FlextTypes.ContainerValueMapping)
+    )
+    FLAT_CONTAINER_LIST_ADAPTER: TypeAdapter[FlextTypes.FlatContainerList] = (
+        TypeAdapter(FlextTypes.FlatContainerList)
+    )
+    STR_SEQUENCE_ADAPTER: TypeAdapter[FlextTypes.StrSequence] = TypeAdapter(
+        FlextTypes.StrSequence,
     )
 
 

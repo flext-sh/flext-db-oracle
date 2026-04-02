@@ -17,7 +17,7 @@ from sqlalchemy.exc import (
 )
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, t, u
+from flext_db_oracle import FlextDbOracleServiceBase, m, t, u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -27,15 +27,15 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     record_metric, get_metrics, track_operation, get_operations.
     """
 
-    def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
+    def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
         status = "connected" if self.is_connected() else "disconnected"
         metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()
         }
-        return r[FlextDbOracleModels.DbOracle.HealthStatus].ok(
-            FlextDbOracleModels.DbOracle.HealthStatus.model_validate({
+        return r[m.DbOracle.HealthStatus].ok(
+            m.DbOracle.HealthStatus.model_validate({
                 "status": f"{status}_with_observability",
                 "timestamp": self._get_current_timestamp(),
                 "service": "oracle",
@@ -46,9 +46,9 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
     def get_operations(
         self,
-    ) -> r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]]:
+    ) -> r[Sequence[m.DbOracle.OperationRecord]]:
         """Get tracked operations."""
-        return r[Sequence[FlextDbOracleModels.DbOracle.OperationRecord]].ok(
+        return r[Sequence[m.DbOracle.OperationRecord]].ok(
             list(self._operations),
         )
 
@@ -110,7 +110,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
                     "root": dict(metadata) if metadata else {},
                 })
             )
-            operation = FlextDbOracleModels.DbOracle.OperationRecord(
+            operation = m.DbOracle.OperationRecord(
                 operation_type=operation_type,
                 duration=duration,
                 success=success,
