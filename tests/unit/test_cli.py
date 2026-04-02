@@ -17,7 +17,6 @@ from unittest.mock import Mock, patch
 
 import yaml
 from flext_tests import tm
-from pydantic import TypeAdapter
 
 from flext_core import r
 from flext_db_oracle import (
@@ -354,8 +353,6 @@ class TestOutputFormatter:
         tm.that(output, has="table2")
         tm.that(output, has="table3")
 
-    _JSON_ADAPTER: TypeAdapter[t.ContainerMapping] = TypeAdapter(t.ContainerMapping)
-
     def test_format_list_output_json_format(self) -> None:
         """Test list output formatting in JSON format."""
         formatter = FlextDbOracleCli._OutputFormatter()
@@ -363,7 +360,7 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Schemas", "json")
         tm.ok(result)
         output = result.value
-        data = self._JSON_ADAPTER.validate_json(output)
+        data = t.CONTAINER_MAPPING_ADAPTER.validate_json(output)
         tm.that(data["title"], eq="Schemas")
         tm.that(data["items"], eq=["schema1", "schema2"])
 
@@ -403,15 +400,13 @@ class TestOutputFormatter:
         tm.that(output, has="table1")
         tm.that(output, has="table2")
 
-    _DATA_ADAPTER: TypeAdapter[t.ContainerMapping] = TypeAdapter(t.ContainerMapping)
-
     def test_format_data_json(self) -> None:
         """Test data formatting as JSON."""
         formatter = FlextDbOracleCli._OutputFormatter()
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         tm.ok(result)
-        parsed_data = self._DATA_ADAPTER.validate_json(result.value)
+        parsed_data = t.CONTAINER_MAPPING_ADAPTER.validate_json(result.value)
         tm.that(parsed_data["key"], eq="value")
         tm.that(parsed_data["number"], eq=42)
 
