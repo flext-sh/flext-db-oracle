@@ -6,7 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import FlextTestsTypes
+from collections.abc import Callable, Mapping
+
+from flext_tests import FlextTestsTypes, r
 
 from flext_db_oracle import FlextDbOracleTypes
 
@@ -19,6 +21,15 @@ class FlextDbOracleTestTypes(FlextTestsTypes, FlextDbOracleTypes):
 
         class Tests:
             """Test-specific type aliases."""
+
+            type ApiCoverageReturn = (
+                bool
+                | FlextDbOracleTypes.ConfigMap
+                | r[Mapping[str, FlextDbOracleTypes.ContainerValue]]
+                | r[str]
+                | r[FlextDbOracleTypes.StrSequence]
+            )
+            type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
 
 
 t = FlextDbOracleTestTypes

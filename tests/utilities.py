@@ -6,13 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping, Sequence
+import os
+import time
+from collections.abc import Mapping, MutableMapping, Sequence
 from typing import ClassVar
 
-from flext_tests import FlextTestsUtilities
+from flext_tests import FlextTestsUtilities, tk
+from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleUtilities
-from tests.models import FlextDbOracleTestModels
+from tests import m, t
 
 
 class FlextDbOracleTestUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
@@ -24,47 +27,107 @@ class FlextDbOracleTestUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
         class Tests:
             """Test-specific utilities."""
 
+            _PORT_BINDINGS_ADAPTER: ClassVar[TypeAdapter[Mapping[str, str]]] = (
+                TypeAdapter(Mapping[str, str])
+            )
+
+            @classmethod
+            def normalize_port_bindings(
+                cls,
+                value: t.NormalizedValue,
+            ) -> Mapping[str, str]:
+                """Normalize Docker port bindings into a typed mapping."""
+                try:
+                    return cls._PORT_BINDINGS_ADAPTER.validate_python(value)
+                except ValidationError:
+                    return {}
+
+            @classmethod
+            def resolve_oracle_test_port(
+                cls,
+                docker_control: tk,
+                container_name: str,
+            ) -> int:
+                """Resolve the exposed Oracle test port from Docker state."""
+                env_port = os.getenv("TEST_ORACLE_PORT")
+                if env_port is not None and env_port.isdigit():
+                    env_port_int = int(env_port)
+                    status_result = docker_control.get_container_status(container_name)
+                    if status_result.is_success:
+                        status_value = status_result.value
+                        ports = cls.normalize_port_bindings(
+                            getattr(status_value, "ports", {}),
+                        )
+                        for container_port, host_port in ports.items():
+                            if (
+                                container_port.startswith("1521")
+                                and host_port.isdigit()
+                                and int(host_port) == env_port_int
+                            ):
+                                return env_port_int
+                fallback_port = 1522
+                container_config = tk.SHARED_CONTAINERS.get(container_name)
+                if container_config is not None:
+                    configured_port = container_config.get("port")
+                    if isinstance(configured_port, int):
+                        fallback_port = configured_port
+                for _ in range(30):
+                    status_result = docker_control.get_container_status(container_name)
+                    if status_result.is_success:
+                        status_value = status_result.value
+                        ports = cls.normalize_port_bindings(
+                            getattr(status_value, "ports", {}),
+                        )
+                        for container_port, host_port in ports.items():
+                            if (
+                                container_port.startswith("1521")
+                                and host_port.isdigit()
+                            ):
+                                return int(host_port)
+                    time.sleep(2)
+                return fallback_port
+
             class StubPluginApi:
                 """In-memory plugin API stub used by service integration tests."""
 
                 _registry: ClassVar[
                     MutableMapping[
                         str,
-                        FlextDbOracleTestModels.DbOracle.Tests.StubPluginEntity,
+                        m.DbOracle.Tests.StubPluginEntity,
                     ]
                 ] = {}
 
                 def register_plugin(
                     self,
-                    plugin: FlextDbOracleTestModels.DbOracle.Tests.StubPluginEntity,
-                ) -> FlextDbOracleTestModels.DbOracle.Tests.StubResult:
+                    plugin: m.DbOracle.Tests.StubPluginEntity,
+                ) -> m.DbOracle.Tests.StubResult:
                     """Register a plugin in the in-memory registry."""
                     self._registry[plugin.name] = plugin
-                    return FlextDbOracleTestModels.DbOracle.Tests.StubResult()
+                    return m.DbOracle.Tests.StubResult()
 
                 def unregister_plugin(
                     self,
                     plugin_name: str,
-                ) -> FlextDbOracleTestModels.DbOracle.Tests.StubResult:
+                ) -> m.DbOracle.Tests.StubResult:
                     """Remove a plugin from the in-memory registry."""
                     if plugin_name not in self._registry:
-                        return FlextDbOracleTestModels.DbOracle.Tests.StubResult(
+                        return m.DbOracle.Tests.StubResult(
                             is_failure=True,
                             error=f"Plugin '{plugin_name}' not found",
                         )
                     del self._registry[plugin_name]
-                    return FlextDbOracleTestModels.DbOracle.Tests.StubResult()
+                    return m.DbOracle.Tests.StubResult()
 
                 def list_plugins(
                     self,
-                ) -> Sequence[FlextDbOracleTestModels.DbOracle.Tests.StubPluginEntity]:
+                ) -> Sequence[m.DbOracle.Tests.StubPluginEntity]:
                     """Return all registered plugins."""
                     return list(self._registry.values())
 
                 def get_plugin(
                     self,
                     plugin_name: str,
-                ) -> FlextDbOracleTestModels.DbOracle.Tests.StubPluginEntity | None:
+                ) -> m.DbOracle.Tests.StubPluginEntity | None:
                     """Return a plugin by name when present."""
                     return self._registry.get(plugin_name)
 

@@ -10,9 +10,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
-from importlib import import_module
 
 from flext_core import r
+from flext_observability import FlextObservabilityCustomMetrics
 from sqlalchemy.exc import (
     OperationalError as SQLAlchemyOperationalError,
 )
@@ -28,21 +28,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     """
 
     def get_metrics(self) -> r[FlextDbOracleModels.DbOracle.HealthStatus]:
-        """Get metrics status with explicit observability integration check."""
-        try:
-            observability_module = import_module("flext_observability")
-        except ModuleNotFoundError:
-            return r[FlextDbOracleModels.DbOracle.HealthStatus].fail(
-                "flext-observability integration unavailable; install flext-observability",
-            )
-        metric_factory = getattr(observability_module, "flext_metric", None)
-        if not callable(metric_factory):
-            core_module = import_module("flext_observability._core")
-            metric_factory = getattr(core_module, "flext_metric", None)
-        if not callable(metric_factory):
-            return r[FlextDbOracleModels.DbOracle.HealthStatus].fail(
-                "flext-observability does not expose flext_metric",
-            )
+        """Get metrics status with observability integration."""
         status = "connected" if self.is_connected() else "disconnected"
         metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
@@ -70,24 +56,12 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         """Get plugin data from local service registry."""
         if not _name:
             return r[t.ContainerValue].fail("Plugin name is required")
-        try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r[t.ContainerValue].fail(
-                "flext-plugin integration unavailable; install flext-plugin",
-            )
         if _name not in self._plugins:
             return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
         return r[t.ContainerValue].ok(self._plugins[_name])
 
     def list_plugins(self) -> r[t.ConfigMap]:
         """List plugin names from local service registry."""
-        try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r[t.ConfigMap].fail(
-                "flext-plugin integration unavailable; install flext-plugin",
-            )
         plugin_names = list(self._plugins.keys())
         return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
 
@@ -97,62 +71,25 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         _value: float,
         _tags: t.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> r[bool]:
-        """Record metric through flext-observability when available."""
+        """Record metric via FlextObservabilityCustomMetrics."""
         if not _name:
             return r[bool].fail("Metric name is required")
-        try:
-            observability_module = import_module("flext_observability")
-        except ModuleNotFoundError:
-            return r[bool].fail(
-                "flext-observability integration unavailable; install flext-observability",
-            )
-        metric_factory = getattr(observability_module, "flext_metric", None)
-        if not callable(metric_factory):
-            core_module = import_module("flext_observability._core")
-            metric_factory = getattr(core_module, "flext_metric", None)
-        if not callable(metric_factory):
-            return r[bool].fail("flext-observability does not expose flext_metric")
-        typed_tags = (
-            _tags
-            if isinstance(_tags, t.ConfigMap) or _tags is None
-            else t.ConfigMap.model_validate({"root": dict(_tags)})
-        )
-        tags_str: t.StrMapping = (
-            {str(k): str(v) for k, v in typed_tags.root.items()}
-            if typed_tags is not None
-            else {}
-        )
-        metric_result = metric_factory(
+        FlextObservabilityCustomMetrics.register_metric(
             name=_name,
-            value=_value,
-            tags=t.Dict.model_validate({"root": tags_str}),
+            metric_type="gauge",
+            description=f"Oracle metric: {_name}",
         )
-        if getattr(metric_result, "is_failure", False):
-            return r[bool].fail(
-                getattr(
-                    metric_result,
-                    "error",
-                    "Metric recording failed in observability",
-                ),
-            )
         self._metrics[_name] = self._get_current_timestamp()
         return r[bool].ok(True)
 
     def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> r[bool]:
-        """Register plugin via flext-plugin when available."""
+        """Register plugin in local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")
         plugin_payload = FlextDbOracleServiceBase._validate_config_map(_plugin)
         if plugin_payload is None:
             return r[bool].fail("Plugin payload must be a mapping")
-        try:
-            _ = import_module("flext_plugin.api")
-            _ = import_module("flext_plugin.models")
-        except ModuleNotFoundError:
-            return r[bool].fail(
-                "flext-plugin integration unavailable; install flext-plugin",
-            )
-        self._plugins[_name] = _name
+        self._plugins[_name] = _plugin
         return r[bool].ok(True)
 
     def track_operation(
@@ -198,12 +135,6 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         """Unregister plugin from local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")
-        try:
-            _ = import_module("flext_plugin.api")
-        except ModuleNotFoundError:
-            return r[bool].fail(
-                "flext-plugin integration unavailable; install flext-plugin",
-            )
         if _name not in self._plugins:
             return r[bool].fail(f"Plugin '{_name}' not found")
         self._plugins.pop(_name)

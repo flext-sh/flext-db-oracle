@@ -12,19 +12,16 @@ import os
 import time
 from collections.abc import Generator, Mapping
 from pathlib import Path
-from typing import Any
 
 import oracledb
 import pytest
 from flext_core import FlextLogger
 from flext_tests import td, tk
-from pydantic import TypeAdapter, ValidationError
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import t
+from tests import u
 
 logger = FlextLogger(__name__)
-_PORT_BINDINGS_ADAPTER: TypeAdapter[Mapping[str, str]] = TypeAdapter(Mapping[str, str])
 
 
 class OperationTestError(Exception):
@@ -35,46 +32,6 @@ class OperationTestError(Exception):
         super().__init__(f"{operation} failed: {error}")
         self.operation = operation
         self.error = error
-
-
-def _normalized_port_bindings(value: t.NormalizedValue) -> Mapping[str, str]:
-    try:
-        return _PORT_BINDINGS_ADAPTER.validate_python(value)
-    except ValidationError:
-        return {}
-
-
-def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
-    env_port = os.getenv("TEST_ORACLE_PORT")
-    if env_port is not None and env_port.isdigit():
-        env_port_int = int(env_port)
-        status_result = docker_control.get_container_status(container_name)
-        if status_result.is_success:
-            status_value = status_result.value
-            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
-            for container_port, host_port in ports.items():
-                if (
-                    container_port.startswith("1521")
-                    and host_port.isdigit()
-                    and int(host_port) == env_port_int
-                ):
-                    return env_port_int
-    fallback_port = 1522
-    container_config = tk.SHARED_CONTAINERS.get(container_name)
-    if container_config is not None:
-        configured_port = container_config.get("port")
-        if isinstance(configured_port, int):
-            fallback_port = configured_port
-    for _ in range(30):
-        status_result = docker_control.get_container_status(container_name)
-        if status_result.is_success:
-            status_value = status_result.value
-            ports = _normalized_port_bindings(getattr(status_value, "ports", {}))
-            for container_port, host_port in ports.items():
-                if container_port.startswith("1521") and host_port.isdigit():
-                    return int(host_port)
-        time.sleep(2)
-    return fallback_port
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -129,7 +86,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         logger.warning(f"Docker cleanup skipped (unavailable): {e}")
 
 
-def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]) -> None:
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[None]) -> None:
     """Mark container dirty on Oracle service failures."""
     if call.excinfo is None:
         return
@@ -215,7 +172,10 @@ def shared_oracle_container(docker_control: tk) -> str:
                 "Container %s is running and clean, no action needed",
                 container_name,
             )
-    resolved_port = _resolve_oracle_test_port(docker_control, container_name)
+    resolved_port = u.DbOracle.Tests.resolve_oracle_test_port(
+        docker_control,
+        container_name,
+    )
     os.environ["TEST_ORACLE_PORT"] = str(resolved_port)
     max_wait: int = 300
     wait_interval: float = 5.0

@@ -20,8 +20,6 @@ from typing import Literal
 from flext_core import FlextTypes
 from pydantic import TypeAdapter
 
-_ConfigMap = Mapping[str, FlextTypes.ContainerValue]
-
 
 class FlextDbOracleTypes(FlextTypes):
     """Oracle database-specific type definitions extending FlextTypes.
@@ -34,11 +32,11 @@ class FlextDbOracleTypes(FlextTypes):
     class DbOracle:
         """Oracle connection complex types.
 
-        Python 3.13+ best practice: Use TypeAlias for better type checking.
+        Python 3.13+ best practice: keep contracts centralized in inherited `t.*`.
         """
 
-        type ConnectionConfiguration = _ConfigMap
-        type ConnectionPool = _ConfigMap
+        type ConnectionConfiguration = FlextTypes.ContainerValueMapping
+        type ConnectionPool = FlextTypes.ContainerValueMapping
         type ConnectionString = str
         type ConnectionParams = FlextTypes.ConfigurationMapping
         type SslConfiguration = Mapping[
@@ -51,8 +49,8 @@ class FlextDbOracleTypes(FlextTypes):
         ]
 
         type SqlQuery = str
-        type QueryParameters = _ConfigMap
-        type QueryResult = _ConfigMap
+        type QueryParameters = FlextTypes.ContainerValueMapping
+        type QueryResult = FlextTypes.ContainerValueMapping
         type QueryMetadata = Mapping[
             str,
             str | int | Mapping[str, FlextTypes.ContainerValue],
@@ -78,7 +76,7 @@ class FlextDbOracleTypes(FlextTypes):
         type SavepointConfig = Mapping[str, str | int]
         type RollbackConfig = Mapping[str, str | bool | FlextTypes.StrSequence]
 
-        type SchemaDefinition = _ConfigMap
+        type SchemaDefinition = FlextTypes.ContainerValueMapping
         type TableDefinition = Mapping[
             str,
             str | Sequence[Mapping[str, str | bool | int]],
@@ -156,7 +154,7 @@ class FlextDbOracleTypes(FlextTypes):
 
         type OracleDataType = str
         type PythonDataType = type
-        type TypeMapping = _ConfigMap
+        type TypeMapping = FlextTypes.ContainerValueMapping
         type DataConversion = Mapping[str, FlextTypes.ContainerValue]
         type TypeValidation = Mapping[str, bool | str | FlextTypes.StrSequence]
         type NullHandling = Mapping[str, bool | FlextTypes.ContainerValue]

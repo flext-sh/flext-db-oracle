@@ -12,7 +12,6 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from types import SimpleNamespace
-from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -479,7 +478,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         result = service.record_metric("db_query_duration", 12.5)
         tm.that(result.is_failure, eq=True)
         tm.that((result.error or ""), has="flext-observability integration unavailable")
@@ -506,7 +507,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 return SimpleNamespace(flext_metric=fake_flext_metric)
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         result = service.record_metric(
             "db_query_duration",
             12.5,
@@ -527,7 +530,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         result = service.get_metrics()
         tm.that(result.is_failure, eq=True)
         tm.that((result.error or ""), has="flext-observability integration unavailable")
@@ -549,7 +554,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 return SimpleNamespace(flext_metric=_stub_metric)
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         result = service.get_metrics()
         tm.ok(result)
         tm.that(result.value.status.endswith("_with_observability"), eq=True)
@@ -565,7 +572,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 raise ModuleNotFoundError(name)
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         tm.that(
             service.register_plugin("sample", {"version": "1.0.0"}).is_failure,
             eq=True,
@@ -594,7 +603,9 @@ class TestFlextDbOracleServicesPlaceholderRemovals:
                 return plugin_api
             raise AssertionError(f"Unexpected module import: {name}")
 
-        monkeypatch.setattr("flext_db_oracle.services.import_module", fake_import)
+        monkeypatch.setattr(
+            "flext_db_oracle.services.plugin.import_module", fake_import
+        )
         register_result = service.register_plugin(
             "sample",
             {"version": "1.2.3", "description": "demo", "plugin_type": "utility"},
@@ -1166,9 +1177,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
-        methods_to_test = [
-            ("get_schemas", cast("t.StrSequence", [])),
-            ("get_tables", cast("t.StrSequence", [])),
+        methods_to_test: list[tuple[str, t.StrSequence]] = [
+            ("get_schemas", []),
+            ("get_tables", []),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:

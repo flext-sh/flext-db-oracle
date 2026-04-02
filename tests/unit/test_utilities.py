@@ -36,7 +36,7 @@ class Testu:
             "generate_query_hash",
             "format_sql_for_oracle",
             "escape_oracle_identifier",
-            "create_config_from_env",
+            "validate_identifier",
         ]
         for method in required_methods:
             tm.that(hasattr(u, method), eq=True)
@@ -359,63 +359,22 @@ class Testu:
         result = u.DbOracle.format_query_result(data, "json")
         tm.ok(result)
 
-    def test_create_config_from_env_no_env_vars(
+    def test_settings_from_env(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test config creation returns FlextDbOracleSettings (not dict)."""
-        result = u.DbOracle.create_config_from_env()
-        tm.ok(result)
-        config = result.value
-        tm.that(config, is_=FlextDbOracleSettings)
-
-    def test_create_config_from_env_with_values(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test config creation with FLEXT_DB_ORACLE_* environment variables."""
+        """Test FlextDbOracleSettings.from_env creates config from environment."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_PASSWORD", "testpass")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_SERVICE_NAME", "TESTSERVICE")
         FlextDbOracleSettings.reset_for_testing()
-        result = u.DbOracle.create_config_from_env()
+        result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
         tm.ok(result)
         config = result.value
         tm.that(config, is_=FlextDbOracleSettings)
         tm.that(config.host, eq="test-host")
         tm.that(config.port, eq=1522)
         tm.that(config.username, eq="testuser")
-
-    def test_create_config_from_env_flext_prefix(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test config creation with FLEXT_DB_ORACLE prefix."""
-        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "flext-user")
-        FlextDbOracleSettings.reset_for_testing()
-        result = u.DbOracle.create_config_from_env()
-        tm.ok(result)
-        config = result.value
-        tm.that(config, is_=FlextDbOracleSettings)
-        tm.that(config.host, eq="flext-host")
-        tm.that(config.username, eq="flext-user")
-
-    def test_create_config_from_env_mixed_prefixes(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
-        """Test config creation reads FLEXT_DB_ORACLE_ prefix only."""
-        monkeypatch.setenv("ORACLE_HOST", "oracle-host")
-        monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "flext-host")
-        FlextDbOracleSettings.reset_for_testing()
-        result = u.DbOracle.create_config_from_env()
-        tm.ok(result)
-        config = result.value
-        tm.that(config, is_=FlextDbOracleSettings)
-        tm.that(config.host, eq="flext-host")
 
     def test_oracle_validation_validate_identifier_valid(self) -> None:
         """Test valid identifier validation."""

@@ -341,7 +341,7 @@ class Testc:
             pytest.skip("Oracle not available for integration test")
         default_service = c.DbOracle.Connection.DEFAULT_SERVICE_NAME
         tm.that(default_service, is_=str)
-        tm.that(default_service, eq=True)
+        tm.that(bool(default_service), eq=True)
         default_port = c.DbOracle.Connection.DEFAULT_PORT
         tm.that(default_port, is_=int)
         tm.that(

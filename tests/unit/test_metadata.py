@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from flext_tests import tm
 
 from flext_db_oracle import (
@@ -135,9 +133,9 @@ class TestFlextDbOracleMetadataManagerComprehensive:
 
     def test_error_handling_patterns(self) -> None:
         """Test consistent error handling patterns across methods."""
-        methods_to_test = [
-            ("get_schemas", cast("t.StrSequence", [])),
-            ("get_tables", cast("t.StrSequence", [])),
+        methods_to_test: list[tuple[str, t.StrSequence]] = [
+            ("get_schemas", []),
+            ("get_tables", []),
             ("get_tables", ["TEST_SCHEMA"]),
         ]
         for method_name, args in methods_to_test:

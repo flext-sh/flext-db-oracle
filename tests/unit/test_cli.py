@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Callable, MutableMapping, Sequence
+from collections.abc import MutableMapping, Sequence
 from unittest.mock import Mock, patch
 
 import yaml
@@ -832,7 +832,7 @@ class TestCLIRealFunctionality:
             password="comp_pass",
         )
         api = FlextDbOracleApi(config)
-        methods_to_test: list[tuple[str, Callable[[], object]]] = [
+        methods_to_test: Sequence[tuple[str, t.DbOracle.Tests.ApiCoverageCallable]] = [
             ("is_valid", api.is_valid),
             ("to_dict", api.to_dict),
             ("get_observability_metrics", api.get_observability_metrics),

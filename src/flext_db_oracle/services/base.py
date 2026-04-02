@@ -12,6 +12,7 @@ from __future__ import annotations
 import contextlib
 import time
 from collections.abc import MutableMapping, MutableSequence, Sequence
+from typing import ClassVar
 
 import oracledb
 from flext_core import FlextService, r
@@ -39,8 +40,8 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
     - Count parsing utilities
     """
 
-    OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-    OracleInterfaceError: type[Exception] = oracledb.InterfaceError
+    OracleDatabaseError: ClassVar[type[Exception]] = oracledb.DatabaseError
+    OracleInterfaceError: ClassVar[type[Exception]] = oracledb.InterfaceError
     _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
     _engine: SAEngine | None = PrivateAttr(default=None)
     _operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = (

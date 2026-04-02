@@ -19,7 +19,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_db_oracle import FlextDbOracleSettings, c, t
+from flext_db_oracle import c, t
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -81,14 +81,6 @@ class FlextDbOracleUtilitiesDbOracle:
         if identifier.upper() in c.DbOracle.OracleValidation.ORACLE_RESERVED:
             return r[bool].fail("Oracle identifier is reserved word")
         return r[bool].ok(True)
-
-    @staticmethod
-    def create_config_from_env() -> r[FlextDbOracleSettings]:
-        """Create Oracle settings directly from the environment variables."""
-        config_result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
-        if config_result.is_failure:
-            return r[FlextDbOracleSettings].fail(config_result.error)
-        return r[FlextDbOracleSettings].ok(config_result.value)
 
     @staticmethod
     def escape_oracle_identifier(identifier: str) -> r[str]:
