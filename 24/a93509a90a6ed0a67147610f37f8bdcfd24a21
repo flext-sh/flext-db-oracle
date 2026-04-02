@@ -1,0 +1,25 @@
+tests/e2e/test_oracle.py
+  bce025263ce5d18b 105-107,110
+tests/unit/test_oracle_example.py
+  bce025263ce5d18b 86,109
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "24a93509a90a6ed0a67147610f37f8bdcfd24a21",
+  "prompts": {
+    "bce025263ce5d18b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110c144c-5b33-4bbc-8c7f-99856935f344",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 6,
+      "accepted_lines": 6,
+      "overriden_lines": 3
+    }
+  }
+}
