@@ -5,27 +5,220 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING as _TYPE_CHECKING
+import typing as _t
 
+from flext_core.constants import FlextConstants as c
+from flext_core.decorators import FlextDecorators as d
+from flext_core.exceptions import FlextExceptions as e
+from flext_core.handlers import FlextHandlers as h
 from flext_core.lazy import install_lazy_exports
+from flext_core.mixins import FlextMixins as x
+from flext_core.models import FlextModels as m
+from flext_core.protocols import FlextProtocols as p
+from flext_core.result import FlextResult as r
+from flext_core.service import FlextService as s
+from flext_core.typings import FlextTypes as t
+from flext_core.utilities import FlextUtilities as u
+from tests.unit.conftest import (
+    connected_oracle_api,
+    docker_control,
+    ensure_shared_docker_container,
+    logger,
+    mock_oracle_config,
+    oracle_api,
+    oracle_available,
+    oracle_config,
+    oracle_container,
+    real_oracle_config,
+    shared_oracle_container,
+    test_cleanup,
+)
+from tests.unit.test_api import (
+    TestApiModule,
+    TestApiSurgicalSimple,
+    TestFlextDbOracleApiRealFunctionality,
+    TestFlextDbOracleApiSafeMethods,
+    TestFlextDbOracleApiWorking,
+)
+from tests.unit.test_cli import (
+    TestCLIRealFunctionality,
+    TestCliServiceOperations,
+    TestFlextDbOracleCli,
+    TestFlextDbOracleClientIntegration,
+    TestFlextDbOracleClientReal,
+    TestOracleConnectionHelper,
+    TestOutputFormatter,
+    TestYamlModule,
+)
+from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
+from tests.unit.test_constants import Testc
+from tests.unit.test_coverage_baseline import (
+    TestBasicModelCreation,
+    TestConstants,
+    TestExceptions,
+    TestFlextDbOracleServices,
+    TestModuleImports,
+    TestUtilities,
+)
+from tests.unit.test_dispatcher import TestDispatcherSurgical
+from tests.unit.test_exceptions import Teste
+from tests.unit.test_fields import TestFlextDbOracleFields
+from tests.unit.test_models import TestFlextDbOracleSettings, Testm
+from tests.unit.test_oracle_example import (
+    TestRealOracleApi,
+    TestRealOracleConnection,
+    TestRealOracleErrorHandling,
+    safe_get_first_value,
+)
+from tests.unit.test_oracle_exceptions import (
+    TestRealOracleExceptionHierarchy,
+    TestRealOracleExceptionsAdvanced,
+    TestRealOracleExceptionsCore,
+)
+from tests.unit.test_protocols import TestFlextDbOracleProtocols
+from tests.unit.test_services import (
+    TestDirectCoverageBoostAPI,
+    TestDirectCoverageBoostConfig,
+    TestDirectCoverageBoostConnection,
+    TestDirectCoverageBoostObservability,
+    TestDirectCoverageBoostServices,
+    TestDirectCoverageBoostTypes,
+    TestFlextDbOracleConnectionSimple,
+    TestFlextDbOracleMetadataManagerComprehensive,
+    TestFlextDbOracleServicesBasic,
+    TestFlextDbOracleServicesPlaceholderRemovals,
+    TestServiceErrorHandling,
+)
+from tests.unit.test_typings import TestFlextDbOracleTypes
+from tests.unit.test_utilities import Testu
 
-if _TYPE_CHECKING:
-    from flext_core import FlextTypes
-    from flext_core.constants import FlextConstants as c
-    from flext_core.decorators import FlextDecorators as d
-    from flext_core.exceptions import FlextExceptions as e
-    from flext_core.handlers import FlextHandlers as h
-    from flext_core.mixins import FlextMixins as x
-    from flext_core.models import FlextModels as m
-    from flext_core.protocols import FlextProtocols as p
-    from flext_core.result import FlextResult as r
-    from flext_core.service import FlextService as s
-    from flext_core.typings import FlextTypes as t
-    from flext_core.utilities import FlextUtilities as u
-    from tests.unit import (
+if _t.TYPE_CHECKING:
+    import tests.unit.conftest as _tests_unit_conftest
+
+    conftest = _tests_unit_conftest
+    import tests.unit.test_api as _tests_unit_test_api
+
+    test_api = _tests_unit_test_api
+    import tests.unit.test_cli as _tests_unit_test_cli
+
+    test_cli = _tests_unit_test_cli
+    import tests.unit.test_client as _tests_unit_test_client
+
+    test_client = _tests_unit_test_client
+    import tests.unit.test_config as _tests_unit_test_config
+
+    test_config = _tests_unit_test_config
+    import tests.unit.test_constants as _tests_unit_test_constants
+
+    test_constants = _tests_unit_test_constants
+    import tests.unit.test_coverage_baseline as _tests_unit_test_coverage_baseline
+
+    test_coverage_baseline = _tests_unit_test_coverage_baseline
+    import tests.unit.test_dispatcher as _tests_unit_test_dispatcher
+
+    test_dispatcher = _tests_unit_test_dispatcher
+    import tests.unit.test_exceptions as _tests_unit_test_exceptions
+
+    test_exceptions = _tests_unit_test_exceptions
+    import tests.unit.test_fields as _tests_unit_test_fields
+
+    test_fields = _tests_unit_test_fields
+    import tests.unit.test_metadata as _tests_unit_test_metadata
+
+    test_metadata = _tests_unit_test_metadata
+    import tests.unit.test_models as _tests_unit_test_models
+
+    test_models = _tests_unit_test_models
+    import tests.unit.test_oracle_example as _tests_unit_test_oracle_example
+
+    test_oracle_example = _tests_unit_test_oracle_example
+    import tests.unit.test_oracle_exceptions as _tests_unit_test_oracle_exceptions
+
+    test_oracle_exceptions = _tests_unit_test_oracle_exceptions
+    import tests.unit.test_protocols as _tests_unit_test_protocols
+
+    test_protocols = _tests_unit_test_protocols
+    import tests.unit.test_services as _tests_unit_test_services
+
+    test_services = _tests_unit_test_services
+    import tests.unit.test_typings as _tests_unit_test_typings
+
+    test_typings = _tests_unit_test_typings
+    import tests.unit.test_utilities as _tests_unit_test_utilities
+
+    test_utilities = _tests_unit_test_utilities
+
+    _ = (
+        TestApiModule,
+        TestApiSurgicalSimple,
+        TestBasicModelCreation,
+        TestCLIRealFunctionality,
+        TestCliServiceOperations,
+        TestConstants,
+        TestDirectCoverageBoostAPI,
+        TestDirectCoverageBoostConfig,
+        TestDirectCoverageBoostConnection,
+        TestDirectCoverageBoostObservability,
+        TestDirectCoverageBoostServices,
+        TestDirectCoverageBoostTypes,
+        TestDispatcherSurgical,
+        TestExceptions,
+        TestFlextDbOracleApiRealFunctionality,
+        TestFlextDbOracleApiSafeMethods,
+        TestFlextDbOracleApiWorking,
+        TestFlextDbOracleCli,
+        TestFlextDbOracleClientIntegration,
+        TestFlextDbOracleClientReal,
+        TestFlextDbOracleClientRealFunctionality,
+        TestFlextDbOracleConnectionSimple,
+        TestFlextDbOracleFields,
+        TestFlextDbOracleMetadataManagerComprehensive,
+        TestFlextDbOracleProtocols,
+        TestFlextDbOracleServices,
+        TestFlextDbOracleServicesBasic,
+        TestFlextDbOracleServicesPlaceholderRemovals,
+        TestFlextDbOracleSettings,
+        TestFlextDbOracleTypes,
+        TestModuleImports,
+        TestOracleConnectionHelper,
+        TestOutputFormatter,
+        TestRealOracleApi,
+        TestRealOracleConnection,
+        TestRealOracleErrorHandling,
+        TestRealOracleExceptionHierarchy,
+        TestRealOracleExceptionsAdvanced,
+        TestRealOracleExceptionsCore,
+        TestServiceErrorHandling,
+        TestUtilities,
+        TestYamlModule,
+        Testc,
+        Teste,
+        Testm,
+        Testu,
+        c,
         conftest,
+        connected_oracle_api,
+        d,
+        docker_control,
+        e,
+        ensure_shared_docker_container,
+        h,
+        logger,
+        m,
+        mock_oracle_config,
+        oracle_api,
+        oracle_available,
+        oracle_config,
+        oracle_container,
+        p,
+        r,
+        real_oracle_config,
+        s,
+        safe_get_first_value,
+        shared_oracle_container,
+        t,
         test_api,
+        test_cleanup,
         test_cli,
         test_client,
         test_config,
@@ -42,81 +235,10 @@ if _TYPE_CHECKING:
         test_services,
         test_typings,
         test_utilities,
+        u,
+        x,
     )
-    from tests.unit.conftest import (
-        connected_oracle_api,
-        docker_control,
-        ensure_shared_docker_container,
-        logger,
-        mock_oracle_config,
-        oracle_api,
-        oracle_available,
-        oracle_config,
-        oracle_container,
-        real_oracle_config,
-        shared_oracle_container,
-        test_cleanup,
-    )
-    from tests.unit.test_api import (
-        TestApiModule,
-        TestApiSurgicalSimple,
-        TestFlextDbOracleApiRealFunctionality,
-        TestFlextDbOracleApiSafeMethods,
-        TestFlextDbOracleApiWorking,
-    )
-    from tests.unit.test_cli import (
-        TestCLIRealFunctionality,
-        TestCliServiceOperations,
-        TestFlextDbOracleCli,
-        TestFlextDbOracleClientIntegration,
-        TestFlextDbOracleClientReal,
-        TestOracleConnectionHelper,
-        TestOutputFormatter,
-        TestYamlModule,
-    )
-    from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
-    from tests.unit.test_constants import Testc
-    from tests.unit.test_coverage_baseline import (
-        TestBasicModelCreation,
-        TestConstants,
-        TestExceptions,
-        TestFlextDbOracleServices,
-        TestModuleImports,
-        TestUtilities,
-    )
-    from tests.unit.test_dispatcher import TestDispatcherSurgical
-    from tests.unit.test_exceptions import Teste
-    from tests.unit.test_fields import TestFlextDbOracleFields
-    from tests.unit.test_models import TestFlextDbOracleSettings, Testm
-    from tests.unit.test_oracle_example import (
-        TestRealOracleApi,
-        TestRealOracleConnection,
-        TestRealOracleErrorHandling,
-        safe_get_first_value,
-    )
-    from tests.unit.test_oracle_exceptions import (
-        TestRealOracleExceptionHierarchy,
-        TestRealOracleExceptionsAdvanced,
-        TestRealOracleExceptionsCore,
-    )
-    from tests.unit.test_protocols import TestFlextDbOracleProtocols
-    from tests.unit.test_services import (
-        TestDirectCoverageBoostAPI,
-        TestDirectCoverageBoostConfig,
-        TestDirectCoverageBoostConnection,
-        TestDirectCoverageBoostObservability,
-        TestDirectCoverageBoostServices,
-        TestDirectCoverageBoostTypes,
-        TestFlextDbOracleConnectionSimple,
-        TestFlextDbOracleMetadataManagerComprehensive,
-        TestFlextDbOracleServicesBasic,
-        TestFlextDbOracleServicesPlaceholderRemovals,
-        TestServiceErrorHandling,
-    )
-    from tests.unit.test_typings import TestFlextDbOracleTypes
-    from tests.unit.test_utilities import Testu
-
-_LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
+_LAZY_IMPORTS = {
     "TestApiModule": "tests.unit.test_api",
     "TestApiSurgicalSimple": "tests.unit.test_api",
     "TestBasicModelCreation": "tests.unit.test_coverage_baseline",
@@ -206,6 +328,97 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "u": ("flext_core.utilities", "FlextUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),
 }
+
+__all__ = [
+    "TestApiModule",
+    "TestApiSurgicalSimple",
+    "TestBasicModelCreation",
+    "TestCLIRealFunctionality",
+    "TestCliServiceOperations",
+    "TestConstants",
+    "TestDirectCoverageBoostAPI",
+    "TestDirectCoverageBoostConfig",
+    "TestDirectCoverageBoostConnection",
+    "TestDirectCoverageBoostObservability",
+    "TestDirectCoverageBoostServices",
+    "TestDirectCoverageBoostTypes",
+    "TestDispatcherSurgical",
+    "TestExceptions",
+    "TestFlextDbOracleApiRealFunctionality",
+    "TestFlextDbOracleApiSafeMethods",
+    "TestFlextDbOracleApiWorking",
+    "TestFlextDbOracleCli",
+    "TestFlextDbOracleClientIntegration",
+    "TestFlextDbOracleClientReal",
+    "TestFlextDbOracleClientRealFunctionality",
+    "TestFlextDbOracleConnectionSimple",
+    "TestFlextDbOracleFields",
+    "TestFlextDbOracleMetadataManagerComprehensive",
+    "TestFlextDbOracleProtocols",
+    "TestFlextDbOracleServices",
+    "TestFlextDbOracleServicesBasic",
+    "TestFlextDbOracleServicesPlaceholderRemovals",
+    "TestFlextDbOracleSettings",
+    "TestFlextDbOracleTypes",
+    "TestModuleImports",
+    "TestOracleConnectionHelper",
+    "TestOutputFormatter",
+    "TestRealOracleApi",
+    "TestRealOracleConnection",
+    "TestRealOracleErrorHandling",
+    "TestRealOracleExceptionHierarchy",
+    "TestRealOracleExceptionsAdvanced",
+    "TestRealOracleExceptionsCore",
+    "TestServiceErrorHandling",
+    "TestUtilities",
+    "TestYamlModule",
+    "Testc",
+    "Teste",
+    "Testm",
+    "Testu",
+    "c",
+    "conftest",
+    "connected_oracle_api",
+    "d",
+    "docker_control",
+    "e",
+    "ensure_shared_docker_container",
+    "h",
+    "logger",
+    "m",
+    "mock_oracle_config",
+    "oracle_api",
+    "oracle_available",
+    "oracle_config",
+    "oracle_container",
+    "p",
+    "r",
+    "real_oracle_config",
+    "s",
+    "safe_get_first_value",
+    "shared_oracle_container",
+    "t",
+    "test_api",
+    "test_cleanup",
+    "test_cli",
+    "test_client",
+    "test_config",
+    "test_constants",
+    "test_coverage_baseline",
+    "test_dispatcher",
+    "test_exceptions",
+    "test_fields",
+    "test_metadata",
+    "test_models",
+    "test_oracle_example",
+    "test_oracle_exceptions",
+    "test_protocols",
+    "test_services",
+    "test_typings",
+    "test_utilities",
+    "u",
+    "x",
+]
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
