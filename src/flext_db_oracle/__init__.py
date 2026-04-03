@@ -81,6 +81,7 @@ if _TYPE_CHECKING:
     )
     from flext_db_oracle.settings import (
         FlextDbOraclePassword,
+        FlextDbOracleSettings,
         OracleDatabaseError,
         OracleIdentifier,
         OracleInterfaceError,
@@ -105,6 +106,7 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
         "FlextDbOracleExceptions": "flext_db_oracle.exceptions",
         "FlextDbOracleModels": "flext_db_oracle.models",
         "FlextDbOraclePassword": "flext_db_oracle.settings",
+        "FlextDbOracleSettings": "flext_db_oracle.settings",
         "FlextDbOracleProtocols": "flext_db_oracle.protocols",
         "FlextDbOracleServices": "flext_db_oracle.service",
         "FlextDbOracleTypes": "flext_db_oracle.typings",

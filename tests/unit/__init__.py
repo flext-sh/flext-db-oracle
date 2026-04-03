@@ -23,7 +23,7 @@ if _TYPE_CHECKING:
     from flext_core.service import FlextService as s
     from flext_core.typings import FlextTypes as t
     from flext_core.utilities import FlextUtilities as u
-    from flext_db_oracle import (
+    from tests.unit import (
         conftest,
         test_api,
         test_cli,
@@ -43,10 +43,7 @@ if _TYPE_CHECKING:
         test_typings,
         test_utilities,
     )
-    from flext_db_oracle.conftest import (
-        cleanup_queries,
-        connect_result,
-        connected_api,
+    from tests.unit.conftest import (
         connected_oracle_api,
         docker_control,
         ensure_shared_docker_container,
@@ -56,106 +53,101 @@ if _TYPE_CHECKING:
         oracle_available,
         oracle_config,
         oracle_container,
-        plsql_query,
         real_oracle_config,
         shared_oracle_container,
         test_cleanup,
     )
-    from flext_db_oracle.test_api import (
+    from tests.unit.test_api import (
         TestApiModule,
         TestApiSurgicalSimple,
         TestFlextDbOracleApiRealFunctionality,
         TestFlextDbOracleApiSafeMethods,
         TestFlextDbOracleApiWorking,
     )
-    from flext_db_oracle.test_cli import TestFlextDbOracleClientReal
-    from flext_db_oracle.test_client import TestFlextDbOracleClientRealFunctionality
-    from flext_db_oracle.test_config import TestFlextDbOracleSettings
-    from flext_db_oracle.test_constants import Testc
-    from flext_db_oracle.test_coverage_baseline import TestModuleImports
-    from flext_db_oracle.test_dispatcher import TestDispatcherSurgical
-    from flext_db_oracle.test_exceptions import Teste
-    from flext_db_oracle.test_fields import TestFlextDbOracleFields
-    from flext_db_oracle.test_models import Testm
-    from flext_db_oracle.test_oracle_example import safe_get_first_value
-    from flext_db_oracle.test_oracle_exceptions import TestRealOracleExceptionsCore
-    from flext_db_oracle.test_protocols import TestFlextDbOracleProtocols
-    from flext_db_oracle.test_services import (
+    from tests.unit.test_cli import TestFlextDbOracleClientReal
+    from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
+    from tests.unit.test_config import TestFlextDbOracleSettings
+    from tests.unit.test_constants import Testc
+    from tests.unit.test_coverage_baseline import TestModuleImports
+    from tests.unit.test_dispatcher import TestDispatcherSurgical
+    from tests.unit.test_exceptions import Teste
+    from tests.unit.test_fields import TestFlextDbOracleFields
+    from tests.unit.test_models import Testm
+    from tests.unit.test_oracle_example import safe_get_first_value
+    from tests.unit.test_oracle_exceptions import TestRealOracleExceptionsCore
+    from tests.unit.test_protocols import TestFlextDbOracleProtocols
+    from tests.unit.test_services import (
         TestDirectCoverageBoostAPI,
         TestFlextDbOracleConnectionSimple,
         TestFlextDbOracleMetadataManagerComprehensive,
         TestFlextDbOracleServicesBasic,
     )
-    from flext_db_oracle.test_typings import TestFlextDbOracleTypes
-    from flext_db_oracle.test_utilities import Testu
+    from tests.unit.test_typings import TestFlextDbOracleTypes
+    from tests.unit.test_utilities import Testu
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
-    "TestApiModule": "flext_db_oracle.test_api",
-    "TestApiSurgicalSimple": "flext_db_oracle.test_api",
-    "TestDirectCoverageBoostAPI": "flext_db_oracle.test_services",
-    "TestDispatcherSurgical": "flext_db_oracle.test_dispatcher",
-    "TestFlextDbOracleApiRealFunctionality": "flext_db_oracle.test_api",
-    "TestFlextDbOracleApiSafeMethods": "flext_db_oracle.test_api",
-    "TestFlextDbOracleApiWorking": "flext_db_oracle.test_api",
-    "TestFlextDbOracleClientReal": "flext_db_oracle.test_cli",
-    "TestFlextDbOracleClientRealFunctionality": "flext_db_oracle.test_client",
-    "TestFlextDbOracleConnectionSimple": "flext_db_oracle.test_services",
-    "TestFlextDbOracleFields": "flext_db_oracle.test_fields",
-    "TestFlextDbOracleMetadataManagerComprehensive": "flext_db_oracle.test_services",
-    "TestFlextDbOracleProtocols": "flext_db_oracle.test_protocols",
-    "TestFlextDbOracleServicesBasic": "flext_db_oracle.test_services",
-    "TestFlextDbOracleSettings": "flext_db_oracle.test_config",
-    "TestFlextDbOracleTypes": "flext_db_oracle.test_typings",
-    "TestModuleImports": "flext_db_oracle.test_coverage_baseline",
-    "TestRealOracleExceptionsCore": "flext_db_oracle.test_oracle_exceptions",
-    "Testc": "flext_db_oracle.test_constants",
-    "Teste": "flext_db_oracle.test_exceptions",
-    "Testm": "flext_db_oracle.test_models",
-    "Testu": "flext_db_oracle.test_utilities",
+    "TestApiModule": "tests.unit.test_api",
+    "TestApiSurgicalSimple": "tests.unit.test_api",
+    "TestDirectCoverageBoostAPI": "tests.unit.test_services",
+    "TestDispatcherSurgical": "tests.unit.test_dispatcher",
+    "TestFlextDbOracleApiRealFunctionality": "tests.unit.test_api",
+    "TestFlextDbOracleApiSafeMethods": "tests.unit.test_api",
+    "TestFlextDbOracleApiWorking": "tests.unit.test_api",
+    "TestFlextDbOracleClientReal": "tests.unit.test_cli",
+    "TestFlextDbOracleClientRealFunctionality": "tests.unit.test_client",
+    "TestFlextDbOracleConnectionSimple": "tests.unit.test_services",
+    "TestFlextDbOracleFields": "tests.unit.test_fields",
+    "TestFlextDbOracleMetadataManagerComprehensive": "tests.unit.test_services",
+    "TestFlextDbOracleProtocols": "tests.unit.test_protocols",
+    "TestFlextDbOracleServicesBasic": "tests.unit.test_services",
+    "TestFlextDbOracleSettings": "tests.unit.test_config",
+    "TestFlextDbOracleTypes": "tests.unit.test_typings",
+    "TestModuleImports": "tests.unit.test_coverage_baseline",
+    "TestRealOracleExceptionsCore": "tests.unit.test_oracle_exceptions",
+    "Testc": "tests.unit.test_constants",
+    "Teste": "tests.unit.test_exceptions",
+    "Testm": "tests.unit.test_models",
+    "Testu": "tests.unit.test_utilities",
     "c": ("flext_core.constants", "FlextConstants"),
-    "cleanup_queries": "flext_db_oracle.conftest",
-    "conftest": "flext_db_oracle.conftest",
-    "connect_result": "flext_db_oracle.conftest",
-    "connected_api": "flext_db_oracle.conftest",
-    "connected_oracle_api": "flext_db_oracle.conftest",
+    "conftest": "tests.unit.conftest",
+    "connected_oracle_api": "tests.unit.conftest",
     "d": ("flext_core.decorators", "FlextDecorators"),
-    "docker_control": "flext_db_oracle.conftest",
+    "docker_control": "tests.unit.conftest",
     "e": ("flext_core.exceptions", "FlextExceptions"),
-    "ensure_shared_docker_container": "flext_db_oracle.conftest",
+    "ensure_shared_docker_container": "tests.unit.conftest",
     "h": ("flext_core.handlers", "FlextHandlers"),
-    "logger": "flext_db_oracle.conftest",
+    "logger": "tests.unit.conftest",
     "m": ("flext_core.models", "FlextModels"),
-    "mock_oracle_config": "flext_db_oracle.conftest",
-    "oracle_api": "flext_db_oracle.conftest",
-    "oracle_available": "flext_db_oracle.conftest",
-    "oracle_config": "flext_db_oracle.conftest",
-    "oracle_container": "flext_db_oracle.conftest",
+    "mock_oracle_config": "tests.unit.conftest",
+    "oracle_api": "tests.unit.conftest",
+    "oracle_available": "tests.unit.conftest",
+    "oracle_config": "tests.unit.conftest",
+    "oracle_container": "tests.unit.conftest",
     "p": ("flext_core.protocols", "FlextProtocols"),
-    "plsql_query": "flext_db_oracle.conftest",
     "r": ("flext_core.result", "FlextResult"),
-    "real_oracle_config": "flext_db_oracle.conftest",
+    "real_oracle_config": "tests.unit.conftest",
     "s": ("flext_core.service", "FlextService"),
-    "safe_get_first_value": "flext_db_oracle.test_oracle_example",
-    "shared_oracle_container": "flext_db_oracle.conftest",
+    "safe_get_first_value": "tests.unit.test_oracle_example",
+    "shared_oracle_container": "tests.unit.conftest",
     "t": ("flext_core.typings", "FlextTypes"),
-    "test_api": "flext_db_oracle.test_api",
-    "test_cleanup": "flext_db_oracle.conftest",
-    "test_cli": "flext_db_oracle.test_cli",
-    "test_client": "flext_db_oracle.test_client",
-    "test_config": "flext_db_oracle.test_config",
-    "test_constants": "flext_db_oracle.test_constants",
-    "test_coverage_baseline": "flext_db_oracle.test_coverage_baseline",
-    "test_dispatcher": "flext_db_oracle.test_dispatcher",
-    "test_exceptions": "flext_db_oracle.test_exceptions",
-    "test_fields": "flext_db_oracle.test_fields",
-    "test_metadata": "flext_db_oracle.test_metadata",
-    "test_models": "flext_db_oracle.test_models",
-    "test_oracle_example": "flext_db_oracle.test_oracle_example",
-    "test_oracle_exceptions": "flext_db_oracle.test_oracle_exceptions",
-    "test_protocols": "flext_db_oracle.test_protocols",
-    "test_services": "flext_db_oracle.test_services",
-    "test_typings": "flext_db_oracle.test_typings",
-    "test_utilities": "flext_db_oracle.test_utilities",
+    "test_api": "tests.unit.test_api",
+    "test_cleanup": "tests.unit.conftest",
+    "test_cli": "tests.unit.test_cli",
+    "test_client": "tests.unit.test_client",
+    "test_config": "tests.unit.test_config",
+    "test_constants": "tests.unit.test_constants",
+    "test_coverage_baseline": "tests.unit.test_coverage_baseline",
+    "test_dispatcher": "tests.unit.test_dispatcher",
+    "test_exceptions": "tests.unit.test_exceptions",
+    "test_fields": "tests.unit.test_fields",
+    "test_metadata": "tests.unit.test_metadata",
+    "test_models": "tests.unit.test_models",
+    "test_oracle_example": "tests.unit.test_oracle_example",
+    "test_oracle_exceptions": "tests.unit.test_oracle_exceptions",
+    "test_protocols": "tests.unit.test_protocols",
+    "test_services": "tests.unit.test_services",
+    "test_typings": "tests.unit.test_typings",
+    "test_utilities": "tests.unit.test_utilities",
     "u": ("flext_core.utilities", "FlextUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),
 }

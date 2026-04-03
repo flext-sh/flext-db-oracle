@@ -23,22 +23,22 @@ if _TYPE_CHECKING:
     from flext_core.service import FlextService as s
     from flext_core.typings import FlextTypes as t
     from flext_core.utilities import FlextUtilities as u
-    from flext_db_oracle import test_oracle
-    from flext_db_oracle.test_oracle import TestOracleIntegration, mock_oracle_config
+    from tests.integration import test_oracle
+    from tests.integration.test_oracle import TestOracleIntegration, mock_oracle_config
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
-    "TestOracleIntegration": "flext_db_oracle.test_oracle",
+    "TestOracleIntegration": "tests.integration.test_oracle",
     "c": ("flext_core.constants", "FlextConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),
     "h": ("flext_core.handlers", "FlextHandlers"),
     "m": ("flext_core.models", "FlextModels"),
-    "mock_oracle_config": "flext_db_oracle.test_oracle",
+    "mock_oracle_config": "tests.integration.test_oracle",
     "p": ("flext_core.protocols", "FlextProtocols"),
     "r": ("flext_core.result", "FlextResult"),
     "s": ("flext_core.service", "FlextService"),
     "t": ("flext_core.typings", "FlextTypes"),
-    "test_oracle": "flext_db_oracle.test_oracle",
+    "test_oracle": "tests.integration.test_oracle",
     "u": ("flext_core.utilities", "FlextUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),
 }
