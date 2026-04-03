@@ -24,10 +24,11 @@ if _TYPE_CHECKING:
     from flext_core.typings import FlextTypes as t
     from flext_core.utilities import FlextUtilities as u
     from tests.e2e import test_oracle
-    from tests.e2e.test_oracle import OperationTestError
+    from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "OperationTestError": "tests.e2e.test_oracle",
+    "TestOracleE2E": "tests.e2e.test_oracle",
     "c": ("flext_core.constants", "FlextConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),

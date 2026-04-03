@@ -64,23 +64,54 @@ if _TYPE_CHECKING:
         TestFlextDbOracleApiSafeMethods,
         TestFlextDbOracleApiWorking,
     )
-    from tests.unit.test_cli import TestFlextDbOracleClientReal
+    from tests.unit.test_cli import (
+        TestCLIRealFunctionality,
+        TestCliServiceOperations,
+        TestFlextDbOracleCli,
+        TestFlextDbOracleClientIntegration,
+        TestFlextDbOracleClientReal,
+        TestOracleConnectionHelper,
+        TestOutputFormatter,
+        TestYamlModule,
+    )
     from tests.unit.test_client import TestFlextDbOracleClientRealFunctionality
-    from tests.unit.test_config import TestFlextDbOracleSettings
     from tests.unit.test_constants import Testc
-    from tests.unit.test_coverage_baseline import TestModuleImports
+    from tests.unit.test_coverage_baseline import (
+        TestBasicModelCreation,
+        TestConstants,
+        TestExceptions,
+        TestFlextDbOracleServices,
+        TestModuleImports,
+        TestUtilities,
+    )
     from tests.unit.test_dispatcher import TestDispatcherSurgical
     from tests.unit.test_exceptions import Teste
     from tests.unit.test_fields import TestFlextDbOracleFields
-    from tests.unit.test_models import Testm
-    from tests.unit.test_oracle_example import safe_get_first_value
-    from tests.unit.test_oracle_exceptions import TestRealOracleExceptionsCore
+    from tests.unit.test_models import TestFlextDbOracleSettings, Testm
+    from tests.unit.test_oracle_example import (
+        TestRealOracleApi,
+        TestRealOracleConnection,
+        TestRealOracleErrorHandling,
+        safe_get_first_value,
+    )
+    from tests.unit.test_oracle_exceptions import (
+        TestRealOracleExceptionHierarchy,
+        TestRealOracleExceptionsAdvanced,
+        TestRealOracleExceptionsCore,
+    )
     from tests.unit.test_protocols import TestFlextDbOracleProtocols
     from tests.unit.test_services import (
         TestDirectCoverageBoostAPI,
+        TestDirectCoverageBoostConfig,
+        TestDirectCoverageBoostConnection,
+        TestDirectCoverageBoostObservability,
+        TestDirectCoverageBoostServices,
+        TestDirectCoverageBoostTypes,
         TestFlextDbOracleConnectionSimple,
         TestFlextDbOracleMetadataManagerComprehensive,
         TestFlextDbOracleServicesBasic,
+        TestFlextDbOracleServicesPlaceholderRemovals,
+        TestServiceErrorHandling,
     )
     from tests.unit.test_typings import TestFlextDbOracleTypes
     from tests.unit.test_utilities import Testu
@@ -88,22 +119,46 @@ if _TYPE_CHECKING:
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
     "TestApiModule": "tests.unit.test_api",
     "TestApiSurgicalSimple": "tests.unit.test_api",
+    "TestBasicModelCreation": "tests.unit.test_coverage_baseline",
+    "TestCLIRealFunctionality": "tests.unit.test_cli",
+    "TestCliServiceOperations": "tests.unit.test_cli",
+    "TestConstants": "tests.unit.test_coverage_baseline",
     "TestDirectCoverageBoostAPI": "tests.unit.test_services",
+    "TestDirectCoverageBoostConfig": "tests.unit.test_services",
+    "TestDirectCoverageBoostConnection": "tests.unit.test_services",
+    "TestDirectCoverageBoostObservability": "tests.unit.test_services",
+    "TestDirectCoverageBoostServices": "tests.unit.test_services",
+    "TestDirectCoverageBoostTypes": "tests.unit.test_services",
     "TestDispatcherSurgical": "tests.unit.test_dispatcher",
+    "TestExceptions": "tests.unit.test_coverage_baseline",
     "TestFlextDbOracleApiRealFunctionality": "tests.unit.test_api",
     "TestFlextDbOracleApiSafeMethods": "tests.unit.test_api",
     "TestFlextDbOracleApiWorking": "tests.unit.test_api",
+    "TestFlextDbOracleCli": "tests.unit.test_cli",
+    "TestFlextDbOracleClientIntegration": "tests.unit.test_cli",
     "TestFlextDbOracleClientReal": "tests.unit.test_cli",
     "TestFlextDbOracleClientRealFunctionality": "tests.unit.test_client",
     "TestFlextDbOracleConnectionSimple": "tests.unit.test_services",
     "TestFlextDbOracleFields": "tests.unit.test_fields",
     "TestFlextDbOracleMetadataManagerComprehensive": "tests.unit.test_services",
     "TestFlextDbOracleProtocols": "tests.unit.test_protocols",
+    "TestFlextDbOracleServices": "tests.unit.test_coverage_baseline",
     "TestFlextDbOracleServicesBasic": "tests.unit.test_services",
-    "TestFlextDbOracleSettings": "tests.unit.test_config",
+    "TestFlextDbOracleServicesPlaceholderRemovals": "tests.unit.test_services",
+    "TestFlextDbOracleSettings": "tests.unit.test_models",
     "TestFlextDbOracleTypes": "tests.unit.test_typings",
     "TestModuleImports": "tests.unit.test_coverage_baseline",
+    "TestOracleConnectionHelper": "tests.unit.test_cli",
+    "TestOutputFormatter": "tests.unit.test_cli",
+    "TestRealOracleApi": "tests.unit.test_oracle_example",
+    "TestRealOracleConnection": "tests.unit.test_oracle_example",
+    "TestRealOracleErrorHandling": "tests.unit.test_oracle_example",
+    "TestRealOracleExceptionHierarchy": "tests.unit.test_oracle_exceptions",
+    "TestRealOracleExceptionsAdvanced": "tests.unit.test_oracle_exceptions",
     "TestRealOracleExceptionsCore": "tests.unit.test_oracle_exceptions",
+    "TestServiceErrorHandling": "tests.unit.test_services",
+    "TestUtilities": "tests.unit.test_coverage_baseline",
+    "TestYamlModule": "tests.unit.test_cli",
     "Testc": "tests.unit.test_constants",
     "Teste": "tests.unit.test_exceptions",
     "Testm": "tests.unit.test_models",
