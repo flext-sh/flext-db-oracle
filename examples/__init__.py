@@ -1,7 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make gen
 #
-"""Services package."""
+"""Examples package."""
 
 from __future__ import annotations
 
@@ -23,46 +23,16 @@ if _TYPE_CHECKING:
     from flext_core.service import FlextService as s
     from flext_core.typings import FlextTypes as t
     from flext_core.utilities import FlextUtilities as u
-    from flext_db_oracle import (
-        base,
-        connection,
-        plugin,
-        query,
-        schema,
-        singer,
-        sql_builder,
-    )
-    from flext_db_oracle.base import FlextDbOracleServiceBase
-    from flext_db_oracle.connection import FlextDbOracleServiceConnection
-    from flext_db_oracle.plugin import FlextDbOracleServicePlugin
-    from flext_db_oracle.query import FlextDbOracleServiceQuery
-    from flext_db_oracle.schema import FlextDbOracleServiceSchema
-    from flext_db_oracle.singer import FlextDbOracleServiceSinger
-    from flext_db_oracle.sql_builder import FlextDbOracleServiceSqlBuilder
 
 _LAZY_IMPORTS: FlextTypes.LazyImportIndex = {
-    "FlextDbOracleServiceBase": "flext_db_oracle.base",
-    "FlextDbOracleServiceConnection": "flext_db_oracle.connection",
-    "FlextDbOracleServicePlugin": "flext_db_oracle.plugin",
-    "FlextDbOracleServiceQuery": "flext_db_oracle.query",
-    "FlextDbOracleServiceSchema": "flext_db_oracle.schema",
-    "FlextDbOracleServiceSinger": "flext_db_oracle.singer",
-    "FlextDbOracleServiceSqlBuilder": "flext_db_oracle.sql_builder",
-    "base": "flext_db_oracle.base",
     "c": ("flext_core.constants", "FlextConstants"),
-    "connection": "flext_db_oracle.connection",
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),
     "h": ("flext_core.handlers", "FlextHandlers"),
     "m": ("flext_core.models", "FlextModels"),
     "p": ("flext_core.protocols", "FlextProtocols"),
-    "plugin": "flext_db_oracle.plugin",
-    "query": "flext_db_oracle.query",
     "r": ("flext_core.result", "FlextResult"),
     "s": ("flext_core.service", "FlextService"),
-    "schema": "flext_db_oracle.schema",
-    "singer": "flext_db_oracle.singer",
-    "sql_builder": "flext_db_oracle.sql_builder",
     "t": ("flext_core.typings", "FlextTypes"),
     "u": ("flext_core.utilities", "FlextUtilities"),
     "x": ("flext_core.mixins", "FlextMixins"),

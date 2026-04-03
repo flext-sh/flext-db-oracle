@@ -1,12 +1,7 @@
 # AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
 # Regenerate with: make gen
 #
-"""Enterprise Oracle Database integration library for FLEXT ecosystem.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Flext db oracle package."""
 
 from __future__ import annotations
 
@@ -15,6 +10,7 @@ from typing import TYPE_CHECKING as _TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 from flext_db_oracle.__version__ import (
+    __all__,
     __author__,
     __author_email__,
     __description__,
@@ -34,26 +30,30 @@ if _TYPE_CHECKING:
     from flext_db_oracle import (
         _utilities,
         api,
+        base,
         cli,
         client,
+        connection,
         constants,
+        db_oracle,
         dispatcher,
         exceptions,
         models,
+        plugin,
         protocols,
+        query,
+        schema,
         service,
         services,
         settings,
+        singer,
+        sql_builder,
         typings,
         utilities,
     )
-    from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle, db_oracle
+    from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi
-    from flext_db_oracle.cli import (
-        FlextDbOracleCli,
-        OracleDatabaseError,
-        OracleInterfaceError,
-    )
+    from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import FlextDbOracleClient
     from flext_db_oracle.constants import (
         FlextDbOracleConstants,
@@ -78,18 +78,12 @@ if _TYPE_CHECKING:
         FlextDbOracleServiceSchema,
         FlextDbOracleServiceSinger,
         FlextDbOracleServiceSqlBuilder,
-        base,
-        connection,
-        plugin,
-        query,
-        schema,
-        singer,
-        sql_builder,
     )
     from flext_db_oracle.settings import (
         FlextDbOraclePassword,
-        FlextDbOracleSettings,
+        OracleDatabaseError,
         OracleIdentifier,
+        OracleInterfaceError,
     )
     from flext_db_oracle.typings import FlextDbOracleTypes, FlextDbOracleTypes as t
     from flext_db_oracle.utilities import (
@@ -113,19 +107,21 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
         "FlextDbOraclePassword": "flext_db_oracle.settings",
         "FlextDbOracleProtocols": "flext_db_oracle.protocols",
         "FlextDbOracleServices": "flext_db_oracle.service",
-        "FlextDbOracleSettings": "flext_db_oracle.settings",
         "FlextDbOracleTypes": "flext_db_oracle.typings",
         "FlextDbOracleUtilities": "flext_db_oracle.utilities",
-        "OracleDatabaseError": "flext_db_oracle.cli",
+        "OracleDatabaseError": "flext_db_oracle.settings",
         "OracleIdentifier": "flext_db_oracle.settings",
-        "OracleInterfaceError": "flext_db_oracle.cli",
+        "OracleInterfaceError": "flext_db_oracle.settings",
         "_utilities": "flext_db_oracle._utilities",
         "api": "flext_db_oracle.api",
+        "base": "flext_db_oracle.base",
         "c": ("flext_db_oracle.constants", "FlextDbOracleConstants"),
         "cli": "flext_db_oracle.cli",
         "client": "flext_db_oracle.client",
+        "connection": "flext_db_oracle.connection",
         "constants": "flext_db_oracle.constants",
         "d": ("flext_core.decorators", "FlextDecorators"),
+        "db_oracle": "flext_db_oracle.db_oracle",
         "dispatcher": "flext_db_oracle.dispatcher",
         "e": ("flext_db_oracle.exceptions", "FlextDbOracleExceptions"),
         "exceptions": "flext_db_oracle.exceptions",
@@ -133,12 +129,17 @@ _LAZY_IMPORTS: FlextTypes.LazyImportIndex = merge_lazy_imports(
         "m": ("flext_db_oracle.models", "FlextDbOracleModels"),
         "models": "flext_db_oracle.models",
         "p": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
+        "plugin": "flext_db_oracle.plugin",
         "protocols": "flext_db_oracle.protocols",
+        "query": "flext_db_oracle.query",
         "r": ("flext_core.result", "FlextResult"),
         "s": "flext_db_oracle.service",
+        "schema": "flext_db_oracle.schema",
         "service": "flext_db_oracle.service",
         "services": "flext_db_oracle.services",
         "settings": "flext_db_oracle.settings",
+        "singer": "flext_db_oracle.singer",
+        "sql_builder": "flext_db_oracle.sql_builder",
         "t": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
         "typings": "flext_db_oracle.typings",
         "u": ("flext_db_oracle.utilities", "FlextDbOracleUtilities"),
@@ -153,6 +154,7 @@ install_lazy_exports(
     globals(),
     _LAZY_IMPORTS,
     [
+        "__all__",
         "__author__",
         "__author_email__",
         "__description__",
