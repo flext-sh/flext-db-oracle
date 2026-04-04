@@ -35,7 +35,8 @@ class FlextDbOracleProtocols(FlextProtocols):
     query: FlextDbOracleProtocols.Database.QueryExecutor
     """
 
-    class DbOracle:
+    @runtime_checkable
+    class DbOracle(Protocol):
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
