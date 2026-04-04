@@ -23,13 +23,13 @@ class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
         class Tests:
             """Test-specific models."""
 
-            class StubResult(FlextDbOracleModels.DbOracle.FlextDbOracleBaseModel):
+            class StubResult(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
                 """Minimal result stub for dynamic integration tests."""
 
                 is_failure: bool = False
                 error: str = ""
 
-            class StubPluginEntity(FlextDbOracleModels.DbOracle.FlextDbOracleBaseModel):
+            class StubPluginEntity(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
                 """Stub plugin entity compatible with service integration tests."""
 
                 name: str

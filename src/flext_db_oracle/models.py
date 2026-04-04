@@ -38,7 +38,7 @@ class FlextDbOracleModels(FlextModels):
     class DbOracle:
         """DbOracle domain namespace."""
 
-        class FlextDbOracleBaseModel(BaseModel):
+        class DbOracleDomainModel(BaseModel):
             """Base model for FlextDbOracle with standard Pydantic v2 configuration."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
@@ -48,18 +48,18 @@ class FlextDbOracleModels(FlextModels):
                 extra="forbid",
             )
 
-        class NamedItem(FlextDbOracleBaseModel):
+        class NamedItem(DbOracleDomainModel):
             """Named item payload for list formatting."""
 
             name: str = ""
 
-        class OutputPayload(FlextDbOracleBaseModel):
+        class OutputPayload(DbOracleDomainModel):
             """Structured output payload for formatter rendering."""
 
             title: str = ""
             items: t.StrSequence = Field(default_factory=list)
 
-        class HealthCheckReport(FlextDbOracleBaseModel):
+        class HealthCheckReport(DbOracleDomainModel):
             """Health-check result payload for CLI reporting."""
 
             status: str = "unknown"
@@ -71,19 +71,19 @@ class FlextDbOracleModels(FlextModels):
             error: str | None = None
             timestamp: str = ""
 
-        class RowData(FlextDbOracleBaseModel):
+        class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
             values: Sequence[t.ContainerValue] = Field(default_factory=list)
 
-        class ColumnMetadata(FlextDbOracleBaseModel):
+        class ColumnMetadata(DbOracleDomainModel):
             """Typed column metadata payload."""
 
             name: str
             data_type: str
             nullable: bool = True
 
-        class SingerSchemaField(FlextDbOracleBaseModel):
+        class SingerSchemaField(DbOracleDomainModel):
             """Typed singer schema field."""
 
             name: str
