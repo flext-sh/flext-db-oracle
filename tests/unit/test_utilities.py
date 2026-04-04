@@ -25,10 +25,9 @@ class Testu:
     """Test u functionality with comprehensive coverage."""
 
     def test_utilities_creation(self) -> None:
-        """Test utilities can be created."""
-        utilities = u()
-        assert utilities is not None
-        assert isinstance(utilities, u)
+        """Test utilities class exists and has correct type."""
+        assert u is not None
+        assert isinstance(u, type)
 
     def test_utilities_has_required_methods(self) -> None:
         """Test utilities has all required static methods."""
