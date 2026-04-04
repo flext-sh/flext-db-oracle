@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum, unique
+from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
 from flext_core import FlextConstants
@@ -92,7 +93,7 @@ class FlextDbOracleConstants(FlextConstants):
             INTEGER_TYPE: Final[str] = "NUMBER(38)"
             BOOLEAN_TYPE: Final[str] = "NUMBER(1)"
 
-            SINGER_TYPE_MAP: ClassVar[t.StrMapping] = {
+            SINGER_TYPE_MAP: ClassVar[t.StrMapping] = MappingProxyType({
                 "string": "VARCHAR2(4000)",
                 "integer": "NUMBER(38)",
                 "number": "NUMBER",
@@ -102,7 +103,7 @@ class FlextDbOracleConstants(FlextConstants):
                 "date-time": "TIMESTAMP",
                 "date": "DATE",
                 "time": "TIMESTAMP",
-            }
+            })
 
         class OracleValidation:
             """Oracle-specific validation limits and patterns."""
@@ -255,12 +256,12 @@ class FlextDbOracleConstants(FlextConstants):
             READ_COMMITTED: Final[str] = "READ_COMMITTED"
             REPEATABLE_READ: Final[str] = "REPEATABLE_READ"
             SERIALIZABLE: Final[str] = "SERIALIZABLE"
-            VALID_LEVELS: Final[t.StrSequence] = [
+            VALID_LEVELS: Final[t.StrSequence] = (
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
                 "SERIALIZABLE",
-            ]
+            )
 
         class OracleEnvironment:
             """Oracle-specific environment variable names and defaults."""
@@ -274,7 +275,7 @@ class FlextDbOracleConstants(FlextConstants):
             ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
             ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
             ENV_SID: Final[str] = "ORACLE_SID"
-            ENV_MAPPING: ClassVar[t.StrMapping] = {
+            ENV_MAPPING: ClassVar[t.StrMapping] = MappingProxyType({
                 "FLEXT_TARGET_ORACLE_HOST": "host",
                 "ORACLE_HOST": "host",
                 "FLEXT_TARGET_ORACLE_PORT": "port",
@@ -285,7 +286,7 @@ class FlextDbOracleConstants(FlextConstants):
                 "ORACLE_USERNAME": "username",
                 "FLEXT_TARGET_ORACLE_PASSWORD": "password",  # nosec B105
                 "ORACLE_PASSWORD": "password",  # nosec B105
-            }
+            })
 
         class OracleDefaults:
             """Oracle-specific default configuration values."""
@@ -377,7 +378,7 @@ class FlextDbOracleConstants(FlextConstants):
             These lists are kept for backward compatibility and validation convenience.
             """
 
-            VALID_DATA_TYPES: Final[t.StrSequence] = [
+            VALID_DATA_TYPES: Final[t.StrSequence] = (
                 "VARCHAR2",
                 "NUMBER",
                 "DATE",
@@ -386,13 +387,13 @@ class FlextDbOracleConstants(FlextConstants):
                 "BLOB",
                 "CHAR",
                 "RAW",
-            ]
-            VALID_CONNECTION_TYPES: Final[t.StrSequence] = [
+            )
+            VALID_CONNECTION_TYPES: Final[t.StrSequence] = (
                 "service_name",
                 "sid",
                 "tns",
-            ]
-            VALID_QUERY_TYPES: Final[t.StrSequence] = [
+            )
+            VALID_QUERY_TYPES: Final[t.StrSequence] = (
                 "SELECT",
                 "INSERT",
                 "UPDATE",
@@ -400,25 +401,25 @@ class FlextDbOracleConstants(FlextConstants):
                 "CREATE",
                 "DROP",
                 "ALTER",
-            ]
-            VALID_ISOLATION_LEVELS: Final[t.StrSequence] = [
+            )
+            VALID_ISOLATION_LEVELS: Final[t.StrSequence] = (
                 "READ_UNCOMMITTED",
                 "READ_COMMITTED",
                 "REPEATABLE_READ",
                 "SERIALIZABLE",
-            ]
-            SYSTEM_USERS: Final[t.StrSequence] = [
+            )
+            SYSTEM_USERS: Final[t.StrSequence] = (
                 "SYS",
                 "SYSTEM",
                 "XDB",
                 "DBSNMP",
                 "OUTLN",
-            ]
-            DEFAULT_SCHEMAS: Final[t.StrSequence] = [
+            )
+            DEFAULT_SCHEMAS: Final[t.StrSequence] = (
                 "SYSTEM",
                 "SYS",
                 "PUBLIC",
-            ]
+            )
 
         class FeatureFlags:
             """Internal feature flags for the connection pool."""
