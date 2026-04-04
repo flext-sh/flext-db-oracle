@@ -12,16 +12,6 @@ from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
     import flext_db_oracle._utilities as _flext_db_oracle__utilities
-    from flext_db_oracle.__version__ import (
-        __author__,
-        __author_email__,
-        __description__,
-        __license__,
-        __title__,
-        __url__,
-        __version__,
-        __version_info__,
-    )
 
     _utilities = _flext_db_oracle__utilities
     import flext_db_oracle.api as _flext_db_oracle_api
