@@ -433,8 +433,10 @@ class Testu:
         result = connected_oracle_api.execute_statement(ddl)
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
+        error_msg = str(result.error).lower() if result.is_failure else ""
+        table_exists = "already exists" in error_msg or "ora-00955" in error_msg
         tm.that(
-            result.is_success or "already exists" in str(result.error).lower(),
+            result.is_success or table_exists,
             eq=True,
         )
 
