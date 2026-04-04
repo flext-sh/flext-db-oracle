@@ -17,8 +17,7 @@ from datetime import UTC, datetime
 from typing import override
 
 import oracledb
-import yaml
-from flext_cli import cli
+from flext_cli import FlextCliUtilities, cli
 from pydantic import TypeAdapter, ValidationError
 
 from flext_core import r, s
@@ -131,19 +130,24 @@ class FlextDbOracleCli(s[str]):
                         adapter = TypeAdapter(type(data))
                         return r[str].ok(adapter.dump_json(data, indent=2).decode())
             if output_format == "yaml":
-                yaml_payload: (
-                    m.DbOracle.OutputPayload
-                    | m.DbOracle.HealthCheckReport
-                    | Mapping[str, t.DbOracle.CliScalar]
-                    | t.StrSequence
-                    | str
-                )
                 match data:
                     case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
-                        yaml_payload = data.model_dump(mode="python")
+                        return r[str].ok(
+                            FlextCliUtilities.Cli.yaml_dump_str(
+                                data.model_dump(mode="python")
+                            ),
+                        )
+                    case str() as text:
+                        return r[str].ok(FlextCliUtilities.Cli.yaml_dump_str(text))
+                    case [*_] as items:
+                        return r[str].ok(FlextCliUtilities.Cli.yaml_dump_str(items))
                     case _:
-                        yaml_payload = data
-                return r[str].ok(yaml.dump(yaml_payload, default_flow_style=False))
+                        serializable: Mapping[str, t.Scalar] = {
+                            k: v for k, v in data.items() if v is not None
+                        }
+                        return r[str].ok(
+                            FlextCliUtilities.Cli.yaml_dump_str(serializable)
+                        )
             return r[str].ok(str(data))
 
         @staticmethod
@@ -190,7 +194,7 @@ class FlextDbOracleCli(s[str]):
             if output_format == "yaml":
                 data = m.DbOracle.OutputPayload(title=title, items=string_items)
                 return r[str].ok(
-                    yaml.dump(data.model_dump(mode="python"), default_flow_style=False),
+                    FlextCliUtilities.Cli.yaml_dump_str(data.model_dump(mode="python")),
                 )
             output_lines = [title, *string_items]
             return r[str].ok("\n".join(output_lines))

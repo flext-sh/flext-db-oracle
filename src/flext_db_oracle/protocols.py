@@ -39,19 +39,6 @@ class FlextDbOracleProtocols(FlextProtocols):
         """Oracle database domain-specific protocols."""
 
         @runtime_checkable
-        class YamlModule(Protocol):
-            """Protocol for YAML module interface."""
-
-            def dump(
-                self,
-                data: t.ContainerMapping | t.ContainerList,
-                *,
-                default_flow_style: bool = True,
-            ) -> str:
-                """Dump data as YAML string."""
-                ...
-
-        @runtime_checkable
         class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 

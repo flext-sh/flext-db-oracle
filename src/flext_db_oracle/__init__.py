@@ -24,11 +24,8 @@ if _t.TYPE_CHECKING:
     )
 
     _utilities = _flext_db_oracle__utilities
-    import flext_db_oracle._utilities.db_oracle as _flext_db_oracle__utilities_db_oracle
-
-    db_oracle = _flext_db_oracle__utilities_db_oracle
     import flext_db_oracle.api as _flext_db_oracle_api
-    from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+    from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle, db_oracle
 
     api = _flext_db_oracle_api
     import flext_db_oracle.cli as _flext_db_oracle_cli
@@ -80,38 +77,24 @@ if _t.TYPE_CHECKING:
     from flext_db_oracle.service import FlextDbOracleServices
 
     services = _flext_db_oracle_services
-    import flext_db_oracle.services.base as _flext_db_oracle_services_base
-
-    base = _flext_db_oracle_services_base
-    import flext_db_oracle.services.connection as _flext_db_oracle_services_connection
-    from flext_db_oracle.services.base import (
+    import flext_db_oracle.settings as _flext_db_oracle_settings
+    from flext_db_oracle.services import (
         FlextDbOracleServiceBase,
         FlextDbOracleServiceBase as s,
+        FlextDbOracleServiceConnection,
+        FlextDbOracleServicePlugin,
+        FlextDbOracleServiceQuery,
+        FlextDbOracleServiceSchema,
+        FlextDbOracleServiceSinger,
+        FlextDbOracleServiceSqlBuilder,
+        base,
+        connection,
+        plugin,
+        query,
+        schema,
+        singer,
+        sql_builder,
     )
-
-    connection = _flext_db_oracle_services_connection
-    import flext_db_oracle.services.plugin as _flext_db_oracle_services_plugin
-    from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
-
-    plugin = _flext_db_oracle_services_plugin
-    import flext_db_oracle.services.query as _flext_db_oracle_services_query
-    from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
-
-    query = _flext_db_oracle_services_query
-    import flext_db_oracle.services.schema as _flext_db_oracle_services_schema
-    from flext_db_oracle.services.query import FlextDbOracleServiceQuery
-
-    schema = _flext_db_oracle_services_schema
-    import flext_db_oracle.services.singer as _flext_db_oracle_services_singer
-    from flext_db_oracle.services.schema import FlextDbOracleServiceSchema
-
-    singer = _flext_db_oracle_services_singer
-    import flext_db_oracle.services.sql_builder as _flext_db_oracle_services_sql_builder
-    from flext_db_oracle.services.singer import FlextDbOracleServiceSinger
-
-    sql_builder = _flext_db_oracle_services_sql_builder
-    import flext_db_oracle.settings as _flext_db_oracle_settings
-    from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
 
     settings = _flext_db_oracle_settings
     import flext_db_oracle.typings as _flext_db_oracle_typings
