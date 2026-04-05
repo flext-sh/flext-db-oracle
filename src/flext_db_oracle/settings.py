@@ -15,100 +15,132 @@ from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
 import oracledb
-from pydantic import BaseModel, BeforeValidator, Field, field_validator, model_validator
+from pydantic import (
+    Field,
+    RootModel,
+    StringConstraints,
+    field_validator,
+    model_validator,
+)
 from pydantic_settings import (
     BaseSettings,
+    EnvSettingsSource,
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
 
 from flext_core import FlextSettings, r
-from flext_db_oracle import c, t, u
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
-
-def _validate_oracle_identifier(v: str) -> str:
-    """Module-level shim for BeforeValidator — delegates to FlextDbOracleSettings._validate_oracle_identifier."""
-    if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-        msg = f"Oracle identifier too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-        raise ValueError(msg)
-    return v.strip().upper()
-
-
-OracleIdentifier = Annotated[str, BeforeValidator(_validate_oracle_identifier)]
+OracleIdentifier = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        to_upper=True,
+        max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+    ),
+]
 
 
-class FlextDbOraclePassword(BaseModel):
-    """String-compatible password wrapper for Oracle settings."""
+class FlextDbOraclePassword(RootModel[str]):
+    """Password value object used by Oracle settings."""
 
-    _value: str = ""
-
-    def __init__(self, data: str = "") -> None:
-        """Initialize password wrapper with raw string value."""
-        super().__init__()
-        object.__setattr__(self, "_value", data)
+    root: str = Field(default="", description="Oracle database password")
 
     @override
     def __str__(self) -> str:
         """Return wrapped password as plain string."""
-        return self._value
+        return self.root
 
     def get_secret_value(self) -> str:
         """Return wrapped password for secret consumers."""
-        return self._value
+        return self.root
 
     @override
     def __eq__(self, other: object) -> bool:
         """Compare wrapped password value with wrappers and raw strings."""
         if isinstance(other, FlextDbOraclePassword):
-            return self._value == other._value
+            return self.root == other.root
         if isinstance(other, str):
-            return self._value == other
+            return self.root == other
         return False
 
     def __hash__(self) -> int:
         """Return hash based on wrapped password value."""
-        return hash(self._value)
+        return hash(self.root)
 
 
+@FlextSettings.auto_register("db-oracle")
 class FlextDbOracleSettings(FlextSettings):
     """Oracle settings contract consumed by API, client, and services."""
 
-    @staticmethod
-    def _validate_oracle_identifier(v: str) -> str:
-        """Validate Oracle identifier: length check + strip + uppercase."""
-        if len(v) > c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH:
-            msg = f"Oracle identifier too long (max {c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH} chars)"
-            raise ValueError(msg)
-        return v.strip().upper()
+    _singleton_enabled: ClassVar[bool] = False
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
         case_sensitive=False,
         extra="ignore",
         validate_assignment=False,
+        populate_by_name=True,
     )
 
-    host: str = Field(default=c.DbOracle.OracleDefaults.DEFAULT_HOST)
-    port: t.PortNumber = Field(default=c.DbOracle.Connection.DEFAULT_PORT)
+    host: str = Field(
+        default=c.DbOracle.OracleDefaults.DEFAULT_HOST,
+        description="Oracle database host address",
+    )
+    port: t.PortNumber = Field(
+        default=c.DbOracle.Connection.DEFAULT_PORT,
+        description="Oracle database listener port",
+    )
     service_name: OracleIdentifier = Field(
-        default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME
+        default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+        description="Oracle service name for connection",
     )
-    username: str = Field(default=c.DbOracle.Connection.DEFAULT_USERNAME)
-    password: FlextDbOraclePassword | None = Field(default=FlextDbOraclePassword(""))
-    timeout: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_TIMEOUT)
-    pool_min: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MIN)
-    pool_max: t.PositiveInt = Field(default=c.DbOracle.Connection.DEFAULT_POOL_MAX)
-    sid: OracleIdentifier | None = Field(default=None)
-    name: str = Field(default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME)
-    ssl_cert_file: str | None = Field(default=None)
-    ssl_server_cert_dn: str | None = Field(default=None)
-
-    @override
-    def __new__(cls, **_kwargs: t.Scalar | None) -> Self:
-        return object.__new__(cls)
+    username: str = Field(
+        default=c.DbOracle.Connection.DEFAULT_USERNAME,
+        description="Oracle database username",
+    )
+    password: FlextDbOraclePassword | None = Field(
+        default_factory=lambda: FlextDbOraclePassword(""),
+        description="Oracle database password",
+    )
+    timeout: t.PositiveInt = Field(
+        default=c.DbOracle.Connection.DEFAULT_TIMEOUT,
+        description="Connection timeout in seconds",
+    )
+    pool_min: t.PositiveInt = Field(
+        default=c.DbOracle.Connection.DEFAULT_POOL_MIN,
+        description="Minimum connection pool size",
+    )
+    pool_max: t.PositiveInt = Field(
+        default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
+        description="Maximum connection pool size",
+    )
+    sid: OracleIdentifier | None = Field(
+        default=None,
+        description="Oracle SID for legacy connections",
+    )
+    name: str = Field(
+        default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
+        description="Oracle database name identifier",
+        validation_alias="DATABASE_NAME",
+    )
+    ssl_cert_file: str | None = Field(
+        default=None,
+        description="Path to SSL certificate file",
+    )
+    ssl_server_cert_dn: str | None = Field(
+        default=None,
+        description="Distinguished name of server SSL certificate",
+    )
+    enable_dispatcher: bool = Field(
+        default=False,
+        description="Enable dispatcher integration for CQRS patterns",
+    )
 
     @classmethod
     @override
@@ -123,42 +155,11 @@ class FlextDbOracleSettings(FlextSettings):
         del settings_cls, env_settings, dotenv_settings, file_secret_settings
         return (init_settings,)
 
-    def __init__(self, **kwargs: t.Scalar | None) -> None:
-        """Initialize settings and normalize password wrapper type."""
-        super().__init__(**kwargs)
-        if self.host == "mock-host":
-            self.host = c.DbOracle.OracleDefaults.DEFAULT_HOST
-        self.service_name = FlextDbOracleSettings._validate_oracle_identifier(
-            str(self.service_name),
-        )
-        if self.sid is not None:
-            self.sid = FlextDbOracleSettings._validate_oracle_identifier(str(self.sid))
-        if self.password is not None:
-            self.password = FlextDbOraclePassword(str(self.password))
-        if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
-            self.ssl_server_cert_dn = self.ssl_cert_file
-        self._enforce_business_rules()
-
-    def __bool__(self) -> bool:
-        """Ensure settings instances are always truthy in fallback expressions."""
-        return True
-
     @field_validator("password", mode="before")
     @classmethod
     def _parse_password(
         cls,
-        value: t.ContainerValue | None,
-    ) -> FlextDbOraclePassword | None:
-        if value is None:
-            return None
-        text = str(value)
-        return FlextDbOraclePassword(text)
-
-    @field_validator("password", mode="after")
-    @classmethod
-    def _ensure_password_wrapper(
-        cls,
-        value: FlextDbOraclePassword | str | None,
+        value: FlextDbOraclePassword | t.ContainerValue | None,
     ) -> FlextDbOraclePassword | None:
         if value is None:
             return None
@@ -167,8 +168,10 @@ class FlextDbOracleSettings(FlextSettings):
         return FlextDbOraclePassword(str(value))
 
     @model_validator(mode="after")
-    def validate_business_rules(self) -> FlextDbOracleSettings:
+    def validate_business_rules(self) -> Self:
         """Enforce host, username, and Oracle port constraints."""
+        if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
+            self.ssl_server_cert_dn = self.ssl_cert_file
         self._enforce_business_rules()
         return self
 
@@ -196,130 +199,36 @@ class FlextDbOracleSettings(FlextSettings):
 
     @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> r[FlextDbOracleSettings]:
-        """Create settings from environment variables with typed parsing."""
-        keys = {
-            "host": [f"{prefix}HOST"],
-            "port": [f"{prefix}PORT"],
-            "service_name": [f"{prefix}SERVICE_NAME"],
-            "username": [f"{prefix}USERNAME"],
-            "password": [f"{prefix}PASSWORD"],
-            "timeout": [f"{prefix}TIMEOUT"],
-            "pool_min": [f"{prefix}POOL_MIN"],
-            "pool_max": [f"{prefix}POOL_MAX"],
-            "name": [f"{prefix}DATABASE_NAME"],
-            "sid": [f"{prefix}SID"],
-        }
-        if prefix == "ORACLE_":
-            keys["host"].insert(0, "FLEXT_TARGET_ORACLE_HOST")
-            keys["port"].insert(0, "FLEXT_TARGET_ORACLE_PORT")
-            keys["service_name"].insert(0, "FLEXT_TARGET_ORACLE_SERVICE_NAME")
-            keys["username"].insert(0, "FLEXT_TARGET_ORACLE_USERNAME")
-            keys["password"].insert(0, "FLEXT_TARGET_ORACLE_PASSWORD")
-            keys["timeout"].insert(0, "FLEXT_TARGET_ORACLE_TIMEOUT")
-            keys["pool_min"].insert(0, "FLEXT_TARGET_ORACLE_POOL_MIN")
-            keys["pool_max"].insert(0, "FLEXT_TARGET_ORACLE_POOL_MAX")
-            keys["name"].insert(0, "FLEXT_TARGET_ORACLE_DATABASE_NAME")
-            keys["sid"].insert(0, "FLEXT_TARGET_ORACLE_SID")
+        """Create settings from environment variables via Pydantic EnvSettingsSource.
 
-        def _first_env(
-            candidates: t.StrSequence,
-            fallback: str | None = None,
-        ) -> str | None:
-            for env_key in candidates:
-                env_value = os.environ.get(env_key)
-                if env_value is not None:
-                    return env_value
-            return fallback
-
-        host = _first_env(keys["host"], c.DbOracle.OracleDefaults.DEFAULT_HOST)
-        port_value = _first_env(keys["port"], str(c.DbOracle.Connection.DEFAULT_PORT))
-        service_name = _first_env(
-            keys["service_name"],
-            c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-        )
-        username = _first_env(keys["username"], c.DbOracle.Connection.DEFAULT_USERNAME)
-        password = _first_env(keys["password"])
-        database_name = _first_env(
-            keys["name"],
-            c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
-        )
-        sid_value = _first_env(keys["sid"])
-        timeout_value = _first_env(
-            keys["timeout"],
-            str(c.DbOracle.Connection.DEFAULT_TIMEOUT),
-        )
-        pool_min_value = _first_env(
-            keys["pool_min"],
-            str(c.DbOracle.Connection.DEFAULT_POOL_MIN),
-        )
-        pool_max_value = _first_env(
-            keys["pool_max"],
-            str(c.DbOracle.Connection.DEFAULT_POOL_MAX),
-        )
-        port_text = (
-            port_value
-            if port_value is not None
-            else str(c.DbOracle.Connection.DEFAULT_PORT)
-        )
-        timeout_text = (
-            timeout_value
-            if timeout_value is not None
-            else str(c.DbOracle.Connection.DEFAULT_TIMEOUT)
-        )
-        pool_min_text = (
-            pool_min_value
-            if pool_min_value is not None
-            else str(c.DbOracle.Connection.DEFAULT_POOL_MIN)
-        )
-        pool_max_text = (
-            pool_max_value
-            if pool_max_value is not None
-            else str(c.DbOracle.Connection.DEFAULT_POOL_MAX)
-        )
-
-        def _safe_identifier(value: str | None, default_value: str) -> str:
-            if value is None:
-                return default_value
-            try:
-                return FlextDbOracleSettings._validate_oracle_identifier(value)
-            except ValueError:
-                return default_value
-
-        def _safe_optional_identifier(value: str | None) -> str | None:
-            if value is None:
-                return None
-            try:
-                return FlextDbOracleSettings._validate_oracle_identifier(value)
-            except ValueError:
-                return None
-
+        Reads env vars with the given prefix. When prefix is "ORACLE_",
+        also reads FLEXT_TARGET_ORACLE_* with higher priority.
+        Pydantic handles all type coercion and validation natively.
+        """
         try:
-            settings = cls.model_validate({
-                "host": host,
-                "port": u.to_int(port_text, default=c.DbOracle.Connection.DEFAULT_PORT),
-                "service_name": _safe_identifier(
-                    service_name,
-                    c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
-                ),
-                "username": username,
-                "password": password,
-                "name": database_name,
-                "sid": _safe_optional_identifier(sid_value),
-                "timeout": u.to_int(
-                    timeout_text,
-                    default=c.DbOracle.Connection.DEFAULT_TIMEOUT,
-                ),
-                "pool_min": u.to_int(
-                    pool_min_text,
-                    default=c.DbOracle.Connection.DEFAULT_POOL_MIN,
-                ),
-                "pool_max": u.to_int(
-                    pool_max_text,
-                    default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
-                ),
-            })
-            return r[FlextDbOracleSettings].ok(settings)
-        except ValueError as e:
+            source = EnvSettingsSource(
+                settings_cls=cls,
+                env_prefix=prefix,
+                case_sensitive=False,
+            )
+            values = {k: v for k, v in source().items() if v is not None}
+            database_name = os.getenv(f"{prefix}DATABASE_NAME")
+            if database_name is not None:
+                values["name"] = database_name
+            if prefix == "ORACLE_":
+                flext_source = EnvSettingsSource(
+                    settings_cls=cls,
+                    env_prefix="FLEXT_TARGET_ORACLE_",
+                    case_sensitive=False,
+                )
+                values.update(
+                    {k: v for k, v in flext_source().items() if v is not None},
+                )
+                flext_database_name = os.getenv("FLEXT_TARGET_ORACLE_DATABASE_NAME")
+                if flext_database_name is not None:
+                    values["name"] = flext_database_name
+            return r[FlextDbOracleSettings].ok(cls(**values))
+        except (ValueError, TypeError) as e:
             return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
 
     @classmethod

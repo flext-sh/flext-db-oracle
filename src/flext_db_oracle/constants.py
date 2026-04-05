@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, ClassVar, Final
 from flext_core import FlextConstants
 
 if TYPE_CHECKING:
-    from flext_db_oracle import t
+    from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleConstants(FlextConstants):
@@ -275,6 +275,7 @@ class FlextDbOracleConstants(FlextConstants):
             ENV_SERVICE_NAME: Final[str] = "ORACLE_SERVICE_NAME"
             ENV_DATABASE_NAME: Final[str] = "ORACLE_DATABASE_NAME"
             ENV_SID: Final[str] = "ORACLE_SID"
+            ENV_ENABLE_DISPATCHER: Final[str] = "FLEXT_DB_ORACLE_ENABLE_DISPATCHER"
             ENV_MAPPING: ClassVar[t.StrMapping] = MappingProxyType({
                 "FLEXT_TARGET_ORACLE_HOST": "host",
                 "ORACLE_HOST": "host",
@@ -286,6 +287,8 @@ class FlextDbOracleConstants(FlextConstants):
                 "ORACLE_USERNAME": "username",
                 "FLEXT_TARGET_ORACLE_PASSWORD": "password",  # nosec B105
                 "ORACLE_PASSWORD": "password",  # nosec B105
+                "FLEXT_TARGET_ORACLE_DATABASE_NAME": "name",
+                "ORACLE_DATABASE_NAME": "name",
             })
 
         class OracleDefaults:

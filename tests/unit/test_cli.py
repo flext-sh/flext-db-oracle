@@ -717,6 +717,13 @@ class TestCLIRealFunctionality:
             "ORACLE_PASSWORD": "testpass",
             "ORACLE_SERVICE_NAME": "TESTDB",
         }
+        inherited_flext_env = {
+            key: value
+            for key, value in os.environ.items()
+            if key.startswith("FLEXT_TARGET_ORACLE_")
+        }
+        for key in inherited_flext_env:
+            del os.environ[key]
         original_env: t.MutableOptionalStrMapping = {}
         for key, value in test_env_vars.items():
             original_env[key] = os.environ.get(key)
@@ -733,6 +740,7 @@ class TestCLIRealFunctionality:
                         del os.environ[key]
                 else:
                     os.environ[key] = original_value
+            os.environ.update(inherited_flext_env)
 
     def test_api_observability_and_connection_real(self) -> None:
         """Test API observability and connection functionality - REAL IMPLEMENTATION."""
@@ -845,6 +853,13 @@ class TestCLIRealFunctionality:
 
     def test_factory_methods_real(self) -> None:
         """Test factory methods using real functionality - NO MOCKS."""
+        inherited_flext_env = {
+            key: value
+            for key, value in os.environ.items()
+            if key.startswith("FLEXT_TARGET_ORACLE_")
+        }
+        for key in inherited_flext_env:
+            del os.environ[key]
         original_env: t.MutableOptionalStrMapping = {}
         env_vars = {
             "ORACLE_USERNAME": "testuser",
@@ -868,6 +883,7 @@ class TestCLIRealFunctionality:
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = original_value
+            os.environ.update(inherited_flext_env)
         config_for_url = FlextDbOracleSettings(
             host="host",
             port=1521,

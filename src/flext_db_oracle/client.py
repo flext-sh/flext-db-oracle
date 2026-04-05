@@ -14,11 +14,15 @@ from collections.abc import Callable, Sequence
 from typing import override
 
 import oracledb
-from pydantic import ValidationError
+from pydantic import Field, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from flext_core import r, s
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, t, u
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle.utilities import FlextDbOracleUtilities as u
 
 
 class FlextDbOracleClient(s[FlextDbOracleSettings]):
@@ -45,16 +49,22 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """Validate list payload with Pydantic."""
         return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
 
-    debug: bool = False
-    current_connection: FlextDbOracleApi | None = None
-    user_preferences: t.ConfigMap = t.ConfigMap(
-        root={
-            "default_output_format": "table",
-            "show_execution_time": "True",
-            "auto_confirm_operations": "False",
-            "connection_timeout": 30,
-            "query_limit": 1000,
-        },
+    debug: bool = Field(default=False, description="Enable debug output")
+    current_connection: FlextDbOracleApi | None = Field(
+        default=None,
+        description="Active Oracle API connection instance",
+    )
+    user_preferences: t.ConfigMap = Field(
+        default_factory=lambda: t.ConfigMap(
+            root={
+                "default_output_format": "table",
+                "show_execution_time": "True",
+                "auto_confirm_operations": "False",
+                "connection_timeout": 30,
+                "query_limit": 1000,
+            },
+        ),
+        description="User preference settings for CLI output",
     )
 
     def __init__(

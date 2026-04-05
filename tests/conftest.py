@@ -10,7 +10,7 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from pathlib import Path
 
 import oracledb
@@ -20,6 +20,17 @@ from flext_tests import td, tk
 from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t, u
+
+pytest_plugins = ["flext_tests.conftest_plugin"]
+
+
+@pytest.fixture
+def db_oracle_settings(
+    settings_factory: Callable[..., FlextDbOracleSettings],
+) -> FlextDbOracleSettings:
+    """Provide clean FlextDbOracleSettings for tests."""
+    return settings_factory(FlextDbOracleSettings)
+
 
 logger = FlextLogger(__name__)
 
@@ -288,7 +299,7 @@ def oracle_config(
     mock_oracle_config: FlextDbOracleSettings,
 ) -> FlextDbOracleSettings:
     """Provide Oracle config - real if available, mock otherwise."""
-    return real_oracle_config or mock_oracle_config
+    return real_oracle_config if real_oracle_config is not None else mock_oracle_config
 
 
 @pytest.fixture

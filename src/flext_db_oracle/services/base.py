@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import contextlib
 import time
-from collections.abc import MutableSequence, Sequence
+from collections.abc import MutableMapping, MutableSequence, Sequence
 from typing import ClassVar
 
 import oracledb
@@ -26,7 +26,9 @@ from sqlalchemy import (
 from sqlalchemy.engine import CursorResult
 
 from flext_core import FlextService, r
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, t
+from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
@@ -45,10 +47,18 @@ class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
     _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
     _engine: SAEngine | None = PrivateAttr(default=None)
     _operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = (
-        PrivateAttr(default_factory=list)
+        PrivateAttr(
+            default_factory=lambda: list[
+                FlextDbOracleModels.DbOracle.OperationRecord
+            ](),
+        )
     )
-    _plugins: t.MutableContainerValueMapping = PrivateAttr(default_factory=dict)
-    _metrics: t.MutableContainerValueMapping = PrivateAttr(default_factory=dict)
+    _plugins: MutableMapping[str, t.ContainerValue] = PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue](),
+    )
+    _metrics: MutableMapping[str, t.ContainerValue] = PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue](),
+    )
 
     class _CountValue(RootModel[int | str]):
         """Pydantic root model for count value (int or numeric string)."""

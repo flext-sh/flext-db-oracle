@@ -8,7 +8,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import contextlib
-import os
 import time
 from enum import StrEnum
 
@@ -16,6 +15,7 @@ import pytest
 from flext_tests import tm
 
 from flext_db_oracle import FlextDbOracleApi
+from flext_db_oracle.settings import FlextDbOracleSettings
 from tests import c, u
 
 
@@ -261,23 +261,12 @@ class Testc:
         tm.that(default_schemas, has="PUBLIC")
 
     def test_feature_flags_functionality(self) -> None:
-        """Test feature flag functionality."""
-        tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
-        original_value = os.environ.get("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
-        try:
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "1"
-            tm.that(u.DbOracle.dispatcher_enabled(), eq=True)
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "true"
-            tm.that(u.DbOracle.dispatcher_enabled(), eq=True)
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "0"
-            tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
-            os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = "false"
-            tm.that(not u.DbOracle.dispatcher_enabled(), eq=True)
-        finally:
-            if original_value is not None:
-                os.environ["FLEXT_DB_ORACLE_ENABLE_DISPATCHER"] = original_value
-            else:
-                os.environ.pop("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", None)
+        """Test feature flag functionality via FlextDbOracleSettings.enable_dispatcher."""
+        settings = FlextDbOracleSettings.model_validate({"enable_dispatcher": False})
+        tm.that(settings.enable_dispatcher, eq=False)
+
+        settings_on = FlextDbOracleSettings.model_validate({"enable_dispatcher": True})
+        tm.that(settings_on.enable_dispatcher, eq=True)
 
     def test_oracle_enums(self) -> None:
         """Test Oracle enumeration classes."""

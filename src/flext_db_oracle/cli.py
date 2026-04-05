@@ -21,7 +21,11 @@ from flext_cli import FlextCliUtilities, cli
 from pydantic import TypeAdapter, ValidationError
 
 from flext_core import r, s
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, m, t
+from flext_db_oracle.api import FlextDbOracleApi
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError

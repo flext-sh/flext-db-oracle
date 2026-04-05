@@ -22,7 +22,8 @@ from sqlalchemy.exc import (
 )
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleServiceBase, t
+from flext_db_oracle.services.base import FlextDbOracleServiceBase
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):

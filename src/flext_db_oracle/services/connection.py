@@ -24,13 +24,11 @@ from sqlalchemy.exc import (
 )
 
 from flext_core import r
-from flext_db_oracle import (
-    FlextDbOracleServiceBase,
-    FlextDbOracleSettings,
-    c,
-    m,
-    t,
-)
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.services.base import FlextDbOracleServiceBase
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):

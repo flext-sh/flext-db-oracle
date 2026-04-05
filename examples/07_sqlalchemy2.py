@@ -27,12 +27,14 @@ def create_oracle_config() -> FlextDbOracleSettings:
             return config_result.value
     except (ValueError, OSError, RuntimeError):
         logger.debug("Could not load config from environment, using demo config")
-    return FlextDbOracleSettings(
-        host="demo-oracle.example.com",
-        port=1521,
-        service_name="DEMO",
-        username="demo_user",
-        password="demo_password",
+    return FlextDbOracleSettings.model_validate(
+        {
+            "host": "demo-oracle.example.com",
+            "port": 1521,
+            "service_name": "DEMO",
+            "username": "demo_user",
+            "password": "demo_password",
+        },
     )
 
 

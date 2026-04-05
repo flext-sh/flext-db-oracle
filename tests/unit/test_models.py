@@ -521,6 +521,9 @@ class TestFlextDbOracleSettings:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with FLEXT prefix environment variables."""
+        for key in list(os.environ.keys()):
+            if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
+                monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-db.example.com")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
         result = FlextDbOracleSettings.from_env()
@@ -534,6 +537,9 @@ class TestFlextDbOracleSettings:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test config creation with mixed prefixes."""
+        for key in list(os.environ.keys()):
+            if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
+                monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("ORACLE_HOST", "oracle-host")
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_HOST", "flext-host")
         monkeypatch.setenv("ORACLE_USERNAME", "oracle-user")
@@ -569,9 +575,8 @@ class TestFlextDbOracleSettings:
                 monkeypatch.delenv(key, raising=False)
         monkeypatch.setenv("ORACLE_PORT", "invalid")
         result = FlextDbOracleSettings.from_env()
-        tm.ok(result)
-        config = result.value
-        tm.that(config.port, eq=1521)
+        tm.fail(result)
+        tm.that(result.error or "", has="port")
 
     def test_config_serialization(self) -> None:
         """Test config serialization."""

@@ -11,13 +11,15 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_observability import FlextObservabilityCustomMetrics
 from sqlalchemy.exc import (
     OperationalError as SQLAlchemyOperationalError,
 )
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleServiceBase, m, t, u
+from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.services.base import FlextDbOracleServiceBase
+from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle.utilities import FlextDbOracleUtilities as u
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
@@ -71,15 +73,10 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         _value: float,
         _tags: t.ConfigMap | t.ContainerValueMapping | None = None,
     ) -> r[bool]:
-        """Record metric via FlextObservabilityCustomMetrics."""
+        """Record metric in the local service metrics registry."""
         if not _name:
             return r[bool].fail("Metric name is required")
-        FlextObservabilityCustomMetrics.register_metric(
-            name=_name,
-            metric_type="gauge",
-            description=f"Oracle metric: {_name}",
-        )
-        self._metrics[_name] = self._get_current_timestamp()
+        self._metrics[_name] = _value
         return r[bool].ok(True)
 
     def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> r[bool]:

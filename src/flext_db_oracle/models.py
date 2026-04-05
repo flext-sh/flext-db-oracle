@@ -23,7 +23,8 @@ from pydantic import (
 )
 
 from flext_core import FlextModels
-from flext_db_oracle import c, t
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleModels(FlextModels):
@@ -57,7 +58,9 @@ class FlextDbOracleModels(FlextModels):
             """Structured output payload for formatter rendering."""
 
             title: str = ""
-            items: t.StrSequence = Field(default_factory=list)
+            items: t.StrSequence = Field(
+                default_factory=list, description="List of named items for display"
+            )
 
         class HealthCheckReport(DbOracleDomainModel):
             """Health-check result payload for CLI reporting."""
@@ -67,14 +70,18 @@ class FlextDbOracleModels(FlextModels):
             port: t.NonNegativeInt = 0
             service_name: str = ""
             response_time_ms: t.NonNegativeFloat = 0.0
-            details: t.ContainerValueMapping = Field(default_factory=dict)
+            details: t.ContainerValueMapping = Field(
+                default_factory=dict, description="Health check detail key-value pairs"
+            )
             error: str | None = None
             timestamp: str = ""
 
         class RowData(DbOracleDomainModel):
             """Typed row payload for query results."""
 
-            values: Sequence[t.ContainerValue] = Field(default_factory=list)
+            values: Sequence[t.ContainerValue] = Field(
+                default_factory=list, description="Row column values"
+            )
 
         class ColumnMetadata(DbOracleDomainModel):
             """Typed column metadata payload."""
@@ -89,16 +96,21 @@ class FlextDbOracleModels(FlextModels):
             name: str
             definition: FlextDbOracleModels.DbOracle.SingerField
 
-        class ConnectionStatus(FlextModels.Entity):
+        class ConnectionStatus(FlextModels.Entity, FlextModels.FlexibleModel):
             """Connection status using flext-core Entity."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
                 frozen=False,
-                extra="ignore",
             )
 
-            is_connected: bool = False
-            last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            is_connected: bool = Field(
+                default=False,
+                description="Whether connection is active",
+            )
+            last_check: datetime = Field(
+                default_factory=lambda: datetime.now(UTC),
+                description="Timestamp of last connection check",
+            )
             error_message: str = Field(
                 default="",
                 description="Error message when disconnected",
@@ -109,7 +121,10 @@ class FlextDbOracleModels(FlextModels):
                 default=0.0,
                 description="Connection establishment time in seconds",
             )
-            last_activity: datetime = Field(default_factory=lambda: datetime.now(UTC))
+            last_activity: datetime = Field(
+                default_factory=lambda: datetime.now(UTC),
+                description="Timestamp of last database activity",
+            )
             session_id: str = Field(default="", description="Oracle session identifier")
             host: str = Field(default="", description="Database host")
             port: t.PortNumber = Field(
@@ -224,23 +239,35 @@ class FlextDbOracleModels(FlextModels):
                     raise ValueError(msg)
                 return self
 
-        class QueryResult(FlextModels.Entity):
+        class QueryResult(FlextModels.Entity, FlextModels.FlexibleModel):
             """Query result using flext-core Entity."""
 
             model_config: ClassVar[ConfigDict] = ConfigDict(
                 frozen=False,
-                extra="ignore",
             )
 
-            query: str
-            result_data: Sequence[t.ContainerValue] = Field(default_factory=list)
-            row_count: t.NonNegativeInt = 0
-            execution_time_ms: t.NonNegativeInt = 0
+            query: str = Field(description="SQL query that produced the result")
+            result_data: Sequence[t.ContainerValue] = Field(
+                default_factory=list,
+                description="Raw result data from query execution",
+            )
+            row_count: t.NonNegativeInt = Field(
+                default=0,
+                description="Number of rows returned",
+            )
+            execution_time_ms: t.NonNegativeInt = Field(
+                default=0,
+                description="Query execution time in milliseconds",
+            )
 
             # Additional Oracle-specific query result details
-            columns: t.StrSequence = Field(default_factory=list)
+            columns: t.StrSequence = Field(
+                default_factory=list,
+                description="Column names in result set",
+            )
             rows: Sequence[FlextDbOracleModels.DbOracle.RowData] = Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.RowData](),
+                description="Typed row data from query result",
             )
             query_hash: str = Field(default="", description="Query hash for caching")
             explain_plan: str = Field(default="", description="Query execution plan")
@@ -335,20 +362,29 @@ class FlextDbOracleModels(FlextModels):
         class OperationRecord(FlextModels.Entity):
             """Operation tracking record for observability workflows."""
 
-            operation_type: str
-            duration: float
-            success: bool
+            operation_type: str = Field(description="Type of database operation")
+            duration: float = Field(description="Operation duration in seconds")
+            success: bool = Field(description="Whether the operation succeeded")
             metadata_info: str = Field(default="", description="Operation metadata")
-            timestamp: str
+            timestamp: str = Field(description="ISO timestamp of operation")
 
         class HealthStatus(FlextModels.Entity):
             """Service health status record."""
 
-            status: str
-            timestamp: str
-            service: str = "oracle"
-            database: str = "oracle"
-            metrics: t.ContainerValueMapping = Field(default_factory=dict)
+            status: str = Field(description="Health status indicator")
+            timestamp: str = Field(description="ISO timestamp of health check")
+            service: str = Field(
+                default="oracle",
+                description="Service name being checked",
+            )
+            database: str = Field(
+                default="oracle",
+                description="Database engine identifier",
+            )
+            metrics: t.ContainerValueMapping = Field(
+                default_factory=dict,
+                description="Health check metric values",
+            )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from health status."""
@@ -367,14 +403,18 @@ class FlextDbOracleModels(FlextModels):
         class TableMetadata(FlextModels.Entity):
             """Complete table metadata for Oracle introspection."""
 
-            table_name: str
-            schema_name: str = ""
+            table_name: str = Field(description="Oracle table name")
+            schema_name: str = Field(default="", description="Oracle schema name")
             columns: Sequence[FlextDbOracleModels.DbOracle.ColumnMetadata] = Field(
                 default_factory=lambda: list[
                     FlextDbOracleModels.DbOracle.ColumnMetadata
                 ](),
+                description="Column metadata for the table",
             )
-            primary_keys: t.StrSequence = Field(default_factory=list)
+            primary_keys: t.StrSequence = Field(
+                default_factory=list,
+                description="Primary key column names",
+            )
 
             def __getitem__(self, key: str) -> t.ContainerValue:
                 """Get item from table metadata."""
@@ -389,7 +429,10 @@ class FlextDbOracleModels(FlextModels):
         class TypeMapping(FlextModels.Entity):
             """Singer-to-Oracle type mapping."""
 
-            mapping: t.StrMapping = Field(default_factory=dict)
+            mapping: t.StrMapping = Field(
+                default_factory=dict,
+                description="Singer-to-Oracle type conversion map",
+            )
 
             def __getitem__(self, key: str) -> str:
                 """Get mapped type for key."""
@@ -406,30 +449,38 @@ class FlextDbOracleModels(FlextModels):
         class SingerField(FlextModels.Entity):
             """Singer field definition."""
 
-            type: str | t.StrSequence = "string"
+            type: str | t.StrSequence = Field(
+                default="string",
+                description="Singer JSON Schema type or type array",
+            )
 
         class SingerSchema(FlextModels.Entity):
             """Singer schema container with typed properties."""
 
             properties: Mapping[str, FlextDbOracleModels.DbOracle.SingerField] = Field(
-                default_factory=dict
+                default_factory=dict,
+                description="Singer schema property definitions",
             )
 
         class Table(FlextModels.Entity):
             """Table metadata using flext-core Entity."""
 
-            name: str
-            owner: str = ""
+            name: str = Field(description="Table name")
+            owner: str = Field(default="", description="Table owner or schema")
             columns: Sequence[FlextDbOracleModels.DbOracle.Column] = Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.Column](),
+                description="Column definitions for the table",
             )
 
         class Column(FlextModels.Entity):
             """Column metadata using flext-core Entity."""
 
-            name: str
-            data_type: str
-            nullable: bool = True
+            name: str = Field(description="Column name")
+            data_type: str = Field(description="Oracle data type")
+            nullable: bool = Field(
+                default=True,
+                description="Whether the column allows NULL values",
+            )
             primary_key: bool = Field(
                 default=False,
                 description="Whether this column is a primary key",
@@ -467,18 +518,24 @@ class FlextDbOracleModels(FlextModels):
         class Schema(FlextModels.Entity):
             """Schema metadata using flext-core Entity."""
 
-            name: str
+            name: str = Field(description="Schema name")
             tables: Sequence[FlextDbOracleModels.DbOracle.Table] = Field(
                 default_factory=lambda: list[FlextDbOracleModels.DbOracle.Table](),
+                description="Tables within this schema",
             )
 
         class CreateIndexConfig(FlextModels.Entity):
             """Create index config using flext-core Entity."""
 
-            table_name: str
-            index_name: str
-            columns: t.StrSequence
-            unique: bool = False
+            table_name: str = Field(description="Target table for the index")
+            index_name: str = Field(description="Name of the index to create")
+            columns: t.StrSequence = Field(
+                description="Columns to include in the index",
+            )
+            unique: bool = Field(
+                default=False,
+                description="Whether the index enforces uniqueness",
+            )
             schema_name: str = Field(default="", description="Schema name")
             tablespace: str = Field(default="", description="Tablespace name")
             parallel: t.PositiveInt = Field(
@@ -489,11 +546,19 @@ class FlextDbOracleModels(FlextModels):
         class MergeStatementConfig(FlextModels.Entity):
             """Merge statement config using flext-core Entity."""
 
-            target_table: str
-            source_query: str
-            merge_conditions: t.StrSequence
-            update_columns: t.StrSequence = Field(default_factory=list)
-            insert_columns: t.StrSequence = Field(default_factory=list)
+            target_table: str = Field(description="Target table for MERGE operation")
+            source_query: str = Field(description="Source query for MERGE data")
+            merge_conditions: t.StrSequence = Field(
+                description="Join conditions for MERGE matching",
+            )
+            update_columns: t.StrSequence = Field(
+                default_factory=list,
+                description="Columns to update on match",
+            )
+            insert_columns: t.StrSequence = Field(
+                default_factory=list,
+                description="Columns to insert on no match",
+            )
 
         # Command classes for dispatcher integration
         class ConnectCommand(FlextModels.Entity):
@@ -508,27 +573,37 @@ class FlextDbOracleModels(FlextModels):
         class ExecuteQueryCommand(FlextModels.Entity):
             """Command to execute SELECT query."""
 
-            sql: str
-            parameters: t.ContainerValueMapping | None = None
+            sql: str = Field(description="SQL SELECT query to execute")
+            parameters: t.ContainerValueMapping | None = Field(
+                default=None,
+                description="Query bind parameters",
+            )
 
         class FetchOneCommand(FlextModels.Entity):
             """Command to fetch single row."""
 
-            sql: str
-            parameters: t.ContainerValueMapping | None = None
+            sql: str = Field(description="SQL query to fetch a single row")
+            parameters: t.ContainerValueMapping | None = Field(
+                default=None,
+                description="Query bind parameters",
+            )
 
         class ExecuteStatementCommand(FlextModels.Entity):
             """Command to execute INSERT/UPDATE/DELETE."""
 
-            sql: str
-            parameters: t.ContainerValueMapping | None = None
+            sql: str = Field(description="SQL DML statement to execute")
+            parameters: t.ContainerValueMapping | None = Field(
+                default=None,
+                description="Statement bind parameters",
+            )
 
         class ExecuteManyCommand(FlextModels.Entity):
             """Command to execute batch statements."""
 
-            sql: str
+            sql: str = Field(description="SQL statement for batch execution")
             parameters_list: Sequence[t.ContainerValueMapping] = Field(
                 default_factory=lambda: list[t.ContainerValueMapping](),
+                description="List of parameter sets for batch execution",
             )
 
         class GetSchemasCommand(FlextModels.Entity):
@@ -537,13 +612,19 @@ class FlextDbOracleModels(FlextModels):
         class GetTablesCommand(FlextModels.Entity):
             """Command to retrieve tables in schema."""
 
-            schema_name: str | None = None
+            schema_name: str | None = Field(
+                default=None,
+                description="Schema to list tables from",
+            )
 
         class GetColumnsCommand(FlextModels.Entity):
             """Command to retrieve columns in table."""
 
-            table: str
-            schema_name: str | None = None
+            table: str = Field(description="Table to retrieve columns from")
+            schema_name: str | None = Field(
+                default=None,
+                description="Schema containing the table",
+            )
 
 
 m = FlextDbOracleModels

@@ -10,10 +10,12 @@ from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_core import FlextContainer, FlextRegistry, r, s
-from flext_db_oracle import m, p, t
+from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.protocols import FlextDbOracleProtocols as p
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleServices
+    from flext_db_oracle.service import FlextDbOracleServices
 
 
 class FlextDbOracleDispatcher(s[None]):

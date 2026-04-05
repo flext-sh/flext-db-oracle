@@ -15,8 +15,10 @@ if _t.TYPE_CHECKING:
     conftest = _tests_conftest
     import tests.constants as _tests_constants
     from tests.conftest import (
+        db_oracle_settings,
         flext_domains,
         pytest_configure,
+        pytest_plugins,
         pytest_runtest_makereport,
         pytest_sessionstart,
         test_database_setup,
@@ -167,6 +169,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "conftest": "tests.conftest",
         "constants": "tests.constants",
         "d": ("flext_core.decorators", "FlextDecorators"),
+        "db_oracle_settings": "tests.conftest",
         "e": ("tests.exceptions", "FlextDbOracleTestExceptions"),
         "e2e": "tests.e2e",
         "exceptions": "tests.exceptions",
@@ -178,6 +181,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "p": ("tests.protocols", "FlextDbOracleTestProtocols"),
         "protocols": "tests.protocols",
         "pytest_configure": "tests.conftest",
+        "pytest_plugins": "tests.conftest",
         "pytest_runtest_makereport": "tests.conftest",
         "pytest_sessionstart": "tests.conftest",
         "r": ("flext_core.result", "FlextResult"),
@@ -253,6 +257,7 @@ __all__ = [
     "connected_oracle_api",
     "constants",
     "d",
+    "db_oracle_settings",
     "docker_control",
     "e",
     "e2e",
@@ -272,6 +277,7 @@ __all__ = [
     "p",
     "protocols",
     "pytest_configure",
+    "pytest_plugins",
     "pytest_runtest_makereport",
     "pytest_sessionstart",
     "r",

@@ -14,7 +14,11 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from pydantic import ValidationError
 
 from flext_core import r
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleServiceBase, c, t, u
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.models import FlextDbOracleModels
+from flext_db_oracle.services.base import FlextDbOracleServiceBase
+from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle.utilities import FlextDbOracleUtilities as u
 
 
 class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):

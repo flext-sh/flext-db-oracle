@@ -18,8 +18,8 @@ __version_info__ = tuple(
 )
 __title__ = _metadata["Name"]
 __description__ = _metadata["Summary"]
-__author__ = _metadata["Author"]
-__author_email__ = _metadata["Author-Email"]
+__author__ = _metadata.get("Author", "")
+__author_email__ = _metadata.get("Author-Email", "")
 __license__ = _metadata.get("License", "")
 __url__ = _metadata.get("Home-Page", "")
 __all__ = [

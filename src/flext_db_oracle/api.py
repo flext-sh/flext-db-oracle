@@ -13,23 +13,22 @@ from __future__ import annotations
 import contextlib
 import os
 import types
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
 import oracledb
-from pydantic import BaseModel
+from pydantic import ValidationError
 
-from flext_core import r, s
-from flext_db_oracle import (
-    FlextDbOracleDispatcher,
-    FlextDbOracleServices,
-    FlextDbOracleSettings,
-    c,
-    m,
-    t,
-    u,
-)
+from flext_core.result import FlextResult as r
+from flext_core.service import FlextService as s
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
+from flext_db_oracle.models import FlextDbOracleModels as m
+from flext_db_oracle.service import FlextDbOracleServices
+from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle.utilities import FlextDbOracleUtilities as u
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError
@@ -46,11 +45,9 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     - Extends s for domain service patterns
     - Uses r railway pattern for error handling
     - Integrates FlextContext, FlextBus for enterprise features
-    - Delegates to FlextDbOracleServices for Oracle operations
+    - Delegates to s for Oracle operations
     - Optional FlextDispatcher integration for CQRS patterns
     """
-
-    to_dict_source: FlextDbOracleApi | None = None
 
     @override
     def __init__(
@@ -67,7 +64,6 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
         self._plugins: t.MutableContainerValueMapping = {}
         self._registry = self._plugins
-        type(self).to_dict_source = self
 
     @override
     def __repr__(self) -> str:
@@ -131,6 +127,53 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return cls(config=config)
 
     @classmethod
+    def _build_api_result(
+        cls,
+        config: FlextDbOracleSettings,
+    ) -> r[FlextDbOracleApi]:
+        """Create API instance from validated settings."""
+        if not config.username:
+            return r[FlextDbOracleApi].fail(
+                "Oracle username is required but not configured",
+            )
+        password = config.password
+        if password is None or not str(password):
+            return r[FlextDbOracleApi].fail(
+                "Oracle password is required but not configured",
+            )
+        return r[FlextDbOracleApi].ok(cls(config=config))
+
+    @staticmethod
+    def _normalize_parameters(
+        parameters: t.ContainerValueMapping | None = None,
+    ) -> r[t.ConfigMap]:
+        """Normalize query parameters into the canonical ConfigMap contract."""
+        if parameters is None:
+            return r[t.ConfigMap].ok(t.ConfigMap(root={}))
+        try:
+            return r[t.ConfigMap].ok(
+                t.ConfigMap.model_validate({"root": dict(parameters)}),
+            )
+        except (TypeError, ValidationError) as error:
+            return r[t.ConfigMap].fail(f"Invalid query parameters: {error}")
+
+    @classmethod
+    def _normalize_parameters_list(
+        cls,
+        parameters_list: Sequence[t.ContainerValueMapping],
+    ) -> r[Sequence[t.ConfigMap]]:
+        """Normalize bulk query parameters into canonical ConfigMap values."""
+        normalized: list[t.ConfigMap] = []
+        for parameters in parameters_list:
+            result = cls._normalize_parameters(parameters)
+            if result.is_failure:
+                return r[Sequence[t.ConfigMap]].fail(
+                    result.error or "Invalid bulk query parameters",
+                )
+            normalized.append(result.value)
+        return r[Sequence[t.ConfigMap]].ok(normalized)
+
+    @classmethod
     def from_env(cls, prefix: str = "ORACLE_") -> r[FlextDbOracleApi]:
         """Create API instance from environment variables.
 
@@ -141,41 +184,24 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             r[FlextDbOracleApi]: API instance or error.
 
         """
-        try:
-            username_keys = [f"{prefix}USERNAME"]
-            password_keys = [f"{prefix}PASSWORD"]
-            if prefix == "ORACLE_":
-                username_keys.append("FLEXT_TARGET_ORACLE_USERNAME")
-                password_keys.append("FLEXT_TARGET_ORACLE_PASSWORD")
-            username_set = any(os.environ.get(key) for key in username_keys)
-            password_set = any(os.environ.get(key) for key in password_keys)
-            if not username_set:
-                return r[FlextDbOracleApi].fail(
-                    "Oracle username is required but not configured",
-                )
-            if not password_set:
-                return r[FlextDbOracleApi].fail(
-                    "Oracle password is required but not configured",
-                )
-            config_result = FlextDbOracleSettings.from_env(prefix)
-            if config_result.is_failure:
-                return r[FlextDbOracleApi].fail(
-                    f"Config creation failed: {config_result.error}",
-                )
-            config = config_result.value
-            if not config.username:
-                return r[FlextDbOracleApi].fail(
-                    "Oracle username is required but not configured",
-                )
-            if not config.password:
-                return r[FlextDbOracleApi].fail(
-                    "Oracle password is required but not configured",
-                )
-            return r[FlextDbOracleApi].ok(cls(config=config))
-        except Exception as e:
+        username = os.getenv(f"{prefix}USERNAME")
+        password = os.getenv(f"{prefix}PASSWORD")
+        if prefix == c.DbOracle.OracleEnvironment.PREFIX_ORACLE:
+            flext_username = os.getenv("FLEXT_TARGET_ORACLE_USERNAME")
+            flext_password = os.getenv("FLEXT_TARGET_ORACLE_PASSWORD")
+            if flext_username is not None:
+                username = flext_username
+            if flext_password is not None:
+                password = flext_password
+        if username is None or not username.strip():
             return r[FlextDbOracleApi].fail(
-                f"API creation from environment failed: {e}",
+                "Oracle username is required but not configured",
             )
+        if password is None or not password.strip():
+            return r[FlextDbOracleApi].fail(
+                "Oracle password is required but not configured",
+            )
+        return FlextDbOracleSettings.from_env(prefix).flat_map(cls._build_api_result)
 
     @classmethod
     def from_url(cls, url: str) -> r[FlextDbOracleApi]:
@@ -188,16 +214,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         r[FlextDbOracleApi]: API instance or error.
 
         """
-        try:
-            config_result = FlextDbOracleSettings.from_url(url)
-            if config_result.is_failure:
-                return r[FlextDbOracleApi].fail(
-                    f"Config creation from URL failed: {config_result.error}",
-                )
-            config = config_result.value
-            return r[FlextDbOracleApi].ok(cls(config=config))
-        except Exception as e:
-            return r[FlextDbOracleApi].fail(f"API creation from URL failed: {e}")
+        return FlextDbOracleSettings.from_url(url).flat_map(cls._build_api_result)
 
     def connect(self) -> r[FlextDbOracleApi]:
         """Connect to Oracle database."""
@@ -234,10 +251,12 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     ) -> r[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
-        typed_params_list = [
-            t.ConfigMap(root=dict(params)) for params in parameters_list
-        ]
-        return self._services.execute_many(sql, typed_params_list)
+        return self._normalize_parameters_list(parameters_list).flat_map(
+            lambda normalized_parameters: self._services.execute_many(
+                sql,
+                normalized_parameters,
+            ),
+        )
 
     def execute_sql(
         self,
@@ -245,13 +264,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         parameters: t.ContainerValueMapping | None = None,
     ) -> r[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
-        self.logger.debug("Executing SQL statement", statement_length=len(sql))
-        query_params = (
-            t.ConfigMap(root=dict(parameters))
-            if parameters is not None
-            else t.ConfigMap(root={})
-        )
-        return self._services.execute_statement(sql, query_params)
+        return self.execute_statement(sql, parameters)
 
     def execute_statement(
         self,
@@ -259,16 +272,14 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         parameters: t.ContainerValueMapping | None = None,
     ) -> r[int]:
         """Execute SQL statement directly and return affected rows."""
-        try:
-            sql_text = str(sql)
-            query_params = (
-                t.ConfigMap(root=dict(parameters))
-                if parameters is not None
-                else t.ConfigMap(root={})
-            )
-            return self._services.execute_statement(sql_text, query_params)
-        except Exception as e:
-            return r[int].fail(f"Statement execution failed: {e}")
+        sql_text = str(sql)
+        self.logger.debug("Executing SQL statement", statement_length=len(sql_text))
+        return self._normalize_parameters(parameters).flat_map(
+            lambda normalized_parameters: self._services.execute_statement(
+                sql_text,
+                normalized_parameters,
+            ),
+        )
 
     def get_columns(
         self,
@@ -348,12 +359,12 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     ) -> r[Sequence[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
-        query_params = (
-            t.ConfigMap(root=dict(parameters))
-            if parameters is not None
-            else t.ConfigMap(root={})
+        return self._normalize_parameters(parameters).flat_map(
+            lambda normalized_parameters: self._services.execute_query(
+                sql,
+                normalized_parameters,
+            ),
         )
-        return self._services.execute_query(sql, query_params)
 
     def query_one(
         self,
@@ -361,12 +372,12 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         parameters: t.ContainerValueMapping | None = None,
     ) -> r[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
-        query_params = (
-            t.ConfigMap(root=dict(parameters))
-            if parameters is not None
-            else t.ConfigMap(root={})
+        return self._normalize_parameters(parameters).flat_map(
+            lambda normalized_parameters: self._services.fetch_one(
+                sql,
+                normalized_parameters,
+            ),
         )
-        return self._services.fetch_one(sql, query_params)
 
     def register_plugin(self, name: str, plugin: t.ContainerValue) -> r[bool]:
         """Register a plugin in local API registry."""
@@ -377,45 +388,32 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         """Test Oracle database connection."""
         return self._services.test_connection()
 
-    @classmethod
     def to_dict(
-        cls,
-        obj: BaseModel | t.ContainerValueMapping | None = None,
+        self,
+        obj: t.ContainerValueMapping | None = None,
     ) -> t.ConfigMap:
-        """Convert supported objects to ConfigMap via flext-core mixins."""
-        if obj is None and cls.to_dict_source is not None:
-            source = cls.to_dict_source
-            plugin_count_value = source.list_plugins().map(len).map_or(0)
-            config_payload: t.ContainerValueMapping = {
-                "host": source.oracle_config.host,
-                "port": source.oracle_config.port,
-                "service_name": source.oracle_config.service_name,
-                "username": source.oracle_config.username,
-            }
-            payload: MutableMapping[str, t.NormalizedValue | BaseModel] = {
-                "config": config_payload,
-                "connected": source.is_connected,
-                "plugin_count": plugin_count_value,
-            }
-            return t.ConfigMap(root=payload)
-        if isinstance(obj, BaseModel):
-            return t.ConfigMap(root=obj.model_dump(mode="python"))
-        if isinstance(obj, Mapping):
+        """Serialize API state or explicit mapping into the canonical ConfigMap."""
+        if obj is not None:
             return t.ConfigMap(root=dict(obj))
-        return t.ConfigMap(root={})
+        return t.ConfigMap(
+            root={
+                "config": self.oracle_config.model_dump(
+                    exclude={"password"},
+                    mode="python",
+                ),
+                "connected": self.is_connected,
+                "plugin_count": len(self._plugins),
+            },
+        )
 
     def transaction(self) -> r[t.ContainerValueMapping]:
         """Get transaction status information."""
-        try:
-            status: t.ContainerValueMapping = {
+        return r[t.ContainerValueMapping].ok(
+            {
                 "connected": self._services.is_connected(),
                 "transaction_available": True,
-            }
-            return r[t.ContainerValueMapping].ok(status)
-        except (AttributeError, RuntimeError, ValueError) as e:
-            return r[t.ContainerValueMapping].fail(
-                f"Transaction status check failed: {e}",
-            )
+            },
+        )
 
     def unregister_plugin(self, name: str) -> r[bool]:
         """Unregister a plugin from local API registry."""
@@ -469,11 +467,6 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         sql: str,
     ) -> r[m.DbOracle.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
-        try:
-            return self._services.execute_query(sql).map(
-                lambda data: self._convert_to_query_result(sql, data),
-            )
-        except Exception as e:
-            return r[m.DbOracle.QueryResult].fail(
-                f"SQL execution error: {e}",
-            )
+        return self._services.execute_query(sql).map(
+            lambda data: self._convert_to_query_result(sql, data),
+        )

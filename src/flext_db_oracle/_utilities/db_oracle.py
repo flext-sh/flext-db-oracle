@@ -18,7 +18,8 @@ from sqlalchemy import (
 from sqlalchemy.engine import CursorResult
 
 from flext_core import r
-from flext_db_oracle import c, t
+from flext_db_oracle.constants import FlextDbOracleConstants as c
+from flext_db_oracle.typings import FlextDbOracleTypes as t
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -57,16 +58,13 @@ class FlextDbOracleUtilitiesDbOracle:
         """
         return enum_cls
 
-    @classmethod
-    def dispatcher_enabled(cls) -> bool:
-        """Return True when dispatcher integration should be used."""
-        return cls._env_enabled("FLEXT_DB_ORACLE_ENABLE_DISPATCHER")
-
     @staticmethod
-    def _env_enabled(flag_name: str, default: str = "0") -> bool:
-        """Check if environment flag is enabled."""
-        value = os.environ.get(flag_name, default)
-        return value.lower() not in {"0", "false", "no"}
+    def dispatcher_enabled() -> bool:
+        """Return True when dispatcher integration should be used."""
+        value = os.getenv(c.DbOracle.OracleEnvironment.ENV_ENABLE_DISPATCHER)
+        if value is None:
+            return False
+        return value.strip().lower() in {"1", "true", "yes", "on"}
 
     @staticmethod
     def validate_identifier(identifier: str) -> r[bool]:

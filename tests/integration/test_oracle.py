@@ -46,12 +46,11 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_full_workflow(
         self,
+        oracle_config: FlextDbOracleSettings,
         real_oracle_config: FlextDbOracleSettings | None,
-        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test complete API workflow with real Oracle connection or skip if not available."""
-        config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(config=oracle_config)
         if real_oracle_config is not None:
             connect_result = api.connect()
             if connect_result.is_failure:
@@ -83,12 +82,11 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_error_handling(
         self,
+        oracle_config: FlextDbOracleSettings,
         real_oracle_config: FlextDbOracleSettings | None,
-        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test error handling with real Oracle connection or skip if not available."""
-        config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(config=oracle_config)
         if real_oracle_config is None:
             pytest.skip("Oracle container not available - skipping error handling test")
         connect_result = api.connect()
@@ -112,12 +110,11 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_context_manager(
         self,
+        oracle_config: FlextDbOracleSettings,
         real_oracle_config: FlextDbOracleSettings | None,
-        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test API context manager functionality with real Oracle or skip if not available."""
-        config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(config=oracle_config)
         if real_oracle_config is None:
             pytest.skip(
                 "Oracle container not available - skipping context manager test",
@@ -135,12 +132,11 @@ class TestOracleIntegration:
     @pytest.mark.oracle
     def test_api_metadata_operations(
         self,
+        oracle_config: FlextDbOracleSettings,
         real_oracle_config: FlextDbOracleSettings | None,
-        mock_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test metadata operations with real Oracle or skip if not available."""
-        config = real_oracle_config or mock_oracle_config
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(config=oracle_config)
         if real_oracle_config is None:
             pytest.skip(
                 "Oracle container not available - skipping metadata operations test",

@@ -239,7 +239,7 @@ def oracle_config(
     mock_oracle_config: FlextDbOracleSettings,
 ) -> FlextDbOracleSettings:
     """Provide Oracle config - real if available, mock otherwise."""
-    return real_oracle_config or mock_oracle_config
+    return real_oracle_config if real_oracle_config is not None else mock_oracle_config
 
 
 @pytest.fixture(autouse=True)
