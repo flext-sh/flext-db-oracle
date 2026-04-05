@@ -1,0 +1,25 @@
+src/flext_db_oracle/settings.py
+  9a954a2992caac77 92-93,96-97,100-101,104-105,109,112-113,116-117,120-121,124-125,128-129,133-134,137-138
+src/flext_db_oracle/models.py
+  9a954a2992caac77 62,74,83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "3997fb0d25d4f8c4d75a124b2905f1b1c2740a85",
+  "prompts": {
+    "9a954a2992caac77": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "96cd52da-bde6-4c41-a6a9-6cbe307afb2c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "FLEXT Bot",
+      "messages": [],
+      "total_additions": 59,
+      "total_deletions": 20,
+      "accepted_lines": 27,
+      "overriden_lines": 0
+    }
+  }
+}
