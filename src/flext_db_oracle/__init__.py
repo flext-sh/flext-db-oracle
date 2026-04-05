@@ -64,13 +64,12 @@ if _t.TYPE_CHECKING:
 
     service = _flext_db_oracle_service
     import flext_db_oracle.services as _flext_db_oracle_services
-    from flext_db_oracle.service import FlextDbOracleServices
+    from flext_db_oracle.service import FlextDbOracleServices, s
 
     services = _flext_db_oracle_services
     import flext_db_oracle.settings as _flext_db_oracle_settings
     from flext_db_oracle.services import (
         FlextDbOracleServiceBase,
-        FlextDbOracleServiceBase as s,
         FlextDbOracleServiceConnection,
         FlextDbOracleServicePlugin,
         FlextDbOracleServiceQuery,
@@ -153,6 +152,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "p": ("flext_db_oracle.protocols", "FlextDbOracleProtocols"),
         "protocols": "flext_db_oracle.protocols",
         "r": ("flext_core.result", "FlextResult"),
+        "s": "flext_db_oracle.service",
         "service": "flext_db_oracle.service",
         "services": "flext_db_oracle.services",
         "settings": "flext_db_oracle.settings",
