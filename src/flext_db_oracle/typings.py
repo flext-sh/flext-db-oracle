@@ -5,7 +5,7 @@ Follows FLEXT standards:
 - Domain-specific complex types only
 - No simple aliases to primitive types
 - Python 3.13+ syntax
-- Extends t properly
+- Extends FlextInfraTypes properly
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,13 +18,13 @@ from collections.abc import Mapping, Sequence
 from typing import Literal
 
 import oracledb
-from flext_cli import t as _cli_t
+from flext_cli import FlextInfraTypes
 from pydantic import TypeAdapter
 
 from flext_core import FlextTypes
 
 
-class FlextDbOracleTypes(_cli_t):
+class FlextDbOracleTypes(FlextInfraTypes):
     """Oracle database-specific type definitions extending FlextTypes.
 
     Domain-specific type system for Oracle database operations.
@@ -35,7 +35,7 @@ class FlextDbOracleTypes(_cli_t):
     class DbOracle:
         """Oracle connection complex types.
 
-        Python 3.13+ best practice: keep contracts centralized in inherited `t.*`.
+        Python 3.13+ best practice: keep contracts centralized in inherited `FlextInfraTypes.*`.
         """
 
         OracleDatabaseError: type[Exception] = oracledb.DatabaseError
@@ -115,11 +115,11 @@ class FlextDbOracleTypes(_cli_t):
             str,
             int | bool | str | FlextTypes.ContainerValueMapping,
         ]
-        type SessionTimeout = t.HeaderMapping
+        type SessionTimeout = FlextInfraTypes.HeaderMapping
 
         type PerformanceMetrics = Mapping[
             str,
-            t.Numeric | FlextTypes.ContainerValueMapping,
+            FlextInfraTypes.Numeric | FlextTypes.ContainerValueMapping,
         ]
         type QueryPlan = Mapping[
             str,
@@ -127,7 +127,7 @@ class FlextDbOracleTypes(_cli_t):
         ]
         type ExecutionStats = Mapping[
             str,
-            t.Numeric | str | FlextTypes.ContainerValueMapping,
+            FlextInfraTypes.Numeric | str | FlextTypes.ContainerValueMapping,
         ]
         type IndexUsage = Mapping[
             str,
@@ -136,7 +136,9 @@ class FlextDbOracleTypes(_cli_t):
         type CacheConfiguration = Mapping[str, int | str | bool]
         type OptimizationHints = Mapping[str, str | FlextTypes.StrSequence]
 
-        type UserPermissions = Mapping[str, FlextTypes.StrSequence | t.BoolMapping]
+        type UserPermissions = Mapping[
+            str, FlextTypes.StrSequence | FlextInfraTypes.BoolMapping
+        ]
         type RoleDefinition = Mapping[
             str,
             str | FlextTypes.StrSequence | FlextTypes.ContainerValueMapping,
