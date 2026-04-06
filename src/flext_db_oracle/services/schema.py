@@ -99,8 +99,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         return u.try_(
             _fetch_keys,
             catch=(
-                FlextDbOracleServiceBase.OracleDatabaseError,
-                FlextDbOracleServiceBase.OracleInterfaceError,
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyDatabaseError,
                 SQLAlchemyOperationalError,
@@ -153,8 +153,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         return u.try_(
             _fetch_metadata,
             catch=(
-                FlextDbOracleServiceBase.OracleDatabaseError,
-                FlextDbOracleServiceBase.OracleInterfaceError,
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,
@@ -180,8 +180,8 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         return u.try_(
             _fetch_count,
             catch=(
-                FlextDbOracleServiceBase.OracleDatabaseError,
-                FlextDbOracleServiceBase.OracleInterfaceError,
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,

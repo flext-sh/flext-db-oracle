@@ -15,17 +15,15 @@ import os
 from collections.abc import Sequence
 from unittest.mock import Mock, patch
 
-from flext_cli import FlextCliUtilities
 from flext_tests import tm
 
-from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleCli,
     FlextDbOracleClient,
     FlextDbOracleSettings,
 )
-from tests import m, t, u
+from tests import m, r, t, u
 
 
 class TestFlextDbOracleClientReal:
@@ -371,7 +369,7 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Test Items", "yaml")
         tm.ok(result)
         output = result.value
-        data = FlextCliUtilities.Cli.yaml_parse(output).unwrap_or({})
+        data = u.Cli.yaml_parse(output).unwrap_or({})
         tm.that(data["title"], eq="Test Items")
         tm.that(data["items"], eq=["item1", "item2"])
 
@@ -416,7 +414,7 @@ class TestOutputFormatter:
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "yaml")
         tm.ok(result)
-        parsed_data = FlextCliUtilities.Cli.yaml_parse(result.value).unwrap_or({})
+        parsed_data = u.Cli.yaml_parse(result.value).unwrap_or({})
         expected: dict[str, str | int] = {"key": "value", "number": 42}
         tm.that(parsed_data, eq=expected)
 
@@ -688,7 +686,7 @@ class TestYamlModule:
     def test_yaml_module_protocol_interface(self) -> None:
         """Test that yaml dump produces valid YAML string."""
         data: dict[str, str] = {"test": "value"}
-        result = FlextCliUtilities.Cli.yaml_dump_str(data)
+        result = u.Cli.yaml_dump_str(data)
         tm.that(result, is_=str)
         tm.that(result, has="test")
         tm.that(result, has="value")

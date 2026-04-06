@@ -17,6 +17,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Literal
 
+import oracledb
 from pydantic import TypeAdapter
 
 from flext_core import FlextTypes
@@ -35,6 +36,9 @@ class FlextDbOracleTypes(FlextTypes):
 
         Python 3.13+ best practice: keep contracts centralized in inherited `t.*`.
         """
+
+        OracleDatabaseError: type[Exception] = oracledb.DatabaseError
+        OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
         type ConnectionConfiguration = FlextTypes.ContainerValueMapping
         type ConnectionPool = FlextTypes.ContainerValueMapping

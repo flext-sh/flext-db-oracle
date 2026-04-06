@@ -17,7 +17,6 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
-import oracledb
 from pydantic import ValidationError
 
 from flext_core import FlextResult as r, FlextService as s
@@ -30,9 +29,6 @@ from flext_db_oracle import (
     FlextDbOracleTypes as t,
     FlextDbOracleUtilities as u,
 )
-
-OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
 class FlextDbOracleApi(s[FlextDbOracleSettings]):

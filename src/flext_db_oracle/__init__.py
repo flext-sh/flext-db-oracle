@@ -23,11 +23,7 @@ if _t.TYPE_CHECKING:
 
     cli = _flext_db_oracle_cli
     import flext_db_oracle.client as _flext_db_oracle_client
-    from flext_db_oracle.cli import (
-        FlextDbOracleCli,
-        OracleDatabaseError,
-        OracleInterfaceError,
-    )
+    from flext_db_oracle.cli import FlextDbOracleCli
 
     client = _flext_db_oracle_client
     import flext_db_oracle.constants as _flext_db_oracle_constants
@@ -140,9 +136,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
             "flext_db_oracle.utilities",
             "FlextDbOracleUtilities",
         ),
-        "OracleDatabaseError": ("flext_db_oracle.cli", "OracleDatabaseError"),
         "OracleIdentifier": ("flext_db_oracle.settings", "OracleIdentifier"),
-        "OracleInterfaceError": ("flext_db_oracle.cli", "OracleInterfaceError"),
         "__author__": ("flext_db_oracle.__version__", "__author__"),
         "__author_email__": ("flext_db_oracle.__version__", "__author_email__"),
         "__description__": ("flext_db_oracle.__version__", "__description__"),
@@ -207,9 +201,7 @@ __all__ = [
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
     "FlextDbOracleUtilitiesDbOracle",
-    "OracleDatabaseError",
     "OracleIdentifier",
-    "OracleInterfaceError",
     "__author__",
     "__author_email__",
     "__description__",

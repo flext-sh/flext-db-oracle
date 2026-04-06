@@ -16,21 +16,18 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from typing import override
 
-import oracledb
 from flext_cli import FlextCliUtilities, cli
 from pydantic import TypeAdapter, ValidationError
 
-from flext_core import r, s
 from flext_db_oracle import (
     FlextDbOracleApi,
-    FlextDbOracleConstants as c,
-    FlextDbOracleModels as m,
     FlextDbOracleSettings,
-    FlextDbOracleTypes as t,
+    c,
+    m,
+    r,
+    s,
+    t,
 )
-
-OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 
 class FlextDbOracleCli(s[str]):
@@ -79,8 +76,8 @@ class FlextDbOracleCli(s[str]):
                 })
                 return r[FlextDbOracleSettings].ok(config)
             except (
-                OracleDatabaseError,
-                OracleInterfaceError,
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
                 ConnectionError,
                 ValidationError,
                 ValueError,
@@ -140,7 +137,7 @@ class FlextDbOracleCli(s[str]):
                     case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
                         return r[str].ok(
                             FlextCliUtilities.Cli.yaml_dump_str(
-                                data.model_dump(mode="python")
+                                data.model_dump(mode="python"),
                             ),
                         )
                     case str() as text:
@@ -152,7 +149,7 @@ class FlextDbOracleCli(s[str]):
                             k: v for k, v in data.items() if v is not None
                         }
                         return r[str].ok(
-                            FlextCliUtilities.Cli.yaml_dump_str(serializable)
+                            FlextCliUtilities.Cli.yaml_dump_str(serializable),
                         )
             return r[str].ok(str(data))
 
@@ -200,7 +197,9 @@ class FlextDbOracleCli(s[str]):
             if output_format == "yaml":
                 data = m.DbOracle.OutputPayload(title=title, items=string_items)
                 return r[str].ok(
-                    FlextCliUtilities.Cli.yaml_dump_str(data.model_dump(mode="python")),
+                    FlextCliUtilities.Cli.yaml_dump_str(
+                        data.model_dump(mode="python"),
+                    ),
                 )
             output_lines = [title, *string_items]
             return r[str].ok("\n".join(output_lines))
@@ -289,7 +288,11 @@ class FlextDbOracleCli(s[str]):
                 "timestamp": datetime.now(UTC).isoformat(),
             })
             return r[m.DbOracle.HealthCheckReport].ok(result)
-        except (OracleDatabaseError, OracleInterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             elapsed_time = time.time() - start_time
             error_result = m.DbOracle.HealthCheckReport(
                 status="unhealthy",

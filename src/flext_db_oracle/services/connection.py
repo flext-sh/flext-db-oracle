@@ -15,7 +15,6 @@ from datetime import UTC, datetime
 from typing import Self, override
 from urllib.parse import quote_plus
 
-import oracledb
 from sqlalchemy import Connection as SAConnection
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -65,8 +64,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             self.logger.info(f"Connected to Oracle database: {self.db_config.host}")
             return r[Self](value=self, is_success=True)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -101,8 +100,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                         )
                         return r[Self](value=self, is_success=True)
                     except (
-                        FlextDbOracleServiceBase.OracleDatabaseError,
-                        FlextDbOracleServiceBase.OracleInterfaceError,
+                        t.DbOracle.OracleDatabaseError,
+                        t.DbOracle.OracleInterfaceError,
                         ConnectionError,
                         SQLAlchemyDatabaseError,
                         SQLAlchemyOperationalError,
@@ -199,8 +198,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 self._context_exit(connect_ctx)
             return r[bool].ok(True)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -234,8 +233,8 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             url = f"{base}/?service_name={service_name}"
             return r[str].ok(url)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,

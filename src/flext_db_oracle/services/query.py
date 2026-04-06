@@ -13,7 +13,6 @@ import hashlib
 from collections.abc import Sequence
 from typing import override
 
-import oracledb
 from sqlalchemy.engine import CursorResult
 from sqlalchemy.exc import (
     DatabaseError as SQLAlchemyDatabaseError,
@@ -64,8 +63,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             finally:
                 self._context_exit(connect_ctx)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -102,8 +101,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             finally:
                 self._context_exit(connect_ctx)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,
@@ -133,8 +132,8 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
             finally:
                 self._context_exit(transaction_ctx)
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             SQLAlchemyDatabaseError,
             SQLAlchemyOperationalError,

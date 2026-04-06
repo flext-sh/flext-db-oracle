@@ -122,8 +122,8 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         return u.try_(
             _track,
             catch=(
-                FlextDbOracleServiceBase.OracleDatabaseError,
-                FlextDbOracleServiceBase.OracleInterfaceError,
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
                 ConnectionError,
                 SQLAlchemyOperationalError,
                 OSError,

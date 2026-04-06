@@ -14,7 +14,6 @@ import os
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
-import oracledb
 from pydantic import (
     Field,
     RootModel,
@@ -31,9 +30,6 @@ from pydantic_settings import (
 
 from flext_core import FlextSettings, r
 from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
-
-OracleDatabaseError: type[Exception] = oracledb.DatabaseError
-OracleInterfaceError: type[Exception] = oracledb.InterfaceError
 
 OracleIdentifier = Annotated[
     str,
@@ -262,7 +258,5 @@ class FlextDbOracleSettings(FlextSettings):
 __all__ = [
     "FlextDbOraclePassword",
     "FlextDbOracleSettings",
-    "OracleDatabaseError",
     "OracleIdentifier",
-    "OracleInterfaceError",
 ]

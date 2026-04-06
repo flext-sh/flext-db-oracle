@@ -13,7 +13,6 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import override
 
-import oracledb
 from pydantic import Field, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
@@ -119,7 +118,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                     unused_params=str(params),
                 )
             return r[str].fail(f"Unknown CLI operation: {operation}")
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[str].fail(f"CLI command failed: {e}")
 
     def configure_preferences(self, **preferences: t.Scalar) -> r[bool]:
@@ -136,7 +139,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 preferences_info=str(preferences),
             )
             return r[bool].ok(True)
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[bool].fail(f"Preference configuration failed: {e}")
 
     def connect_to_oracle(
@@ -191,8 +198,8 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 f"Oracle connection failed: {connect_result.error}",
             )
         except (
-            oracledb.DatabaseError,
-            oracledb.InterfaceError,
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
             ConnectionError,
             OSError,
             SQLAlchemyOperationalError,
@@ -344,7 +351,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 for key, value in data_root.items()
             ]
             return r[Sequence[t.ConfigMap]].ok(result)
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[Sequence[t.ConfigMap]].fail(f"Data adaptation failed: {e}")
 
     def _build_table_string(self, adapted_data: Sequence[t.ConfigMap]) -> str:
@@ -384,7 +395,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 },
             )
             return r[t.ConfigMap].ok(health_data)
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[t.ConfigMap].fail(f"Health check failed: {e}")
 
     def _execute_operation(
@@ -410,7 +425,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             if operation == "health_check":
                 return self._handle_health_check_operation()
             return r[t.ConfigMap].fail(f"Unknown operation: {operation}")
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[t.ConfigMap].fail(f"Operation failed: {e}")
 
     def _execute_with_chain(
@@ -459,7 +478,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """
         return u.try_(
             lambda: data.model_dump_json(indent=2),
-            catch=(oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError),
+            catch=(
+                t.DbOracle.OracleDatabaseError,
+                t.DbOracle.OracleInterfaceError,
+                ConnectionError,
+            ),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
     def _format_as_table(self, data: t.ConfigMap) -> r[str]:
@@ -477,7 +500,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                     else str(adapted_data)
                 ),
             )
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[str].fail(f"Table formatting failed: {e}")
 
     def _get_formatter_strategy(
@@ -504,7 +531,11 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Unsupported format: {format_type}",
             )
-        except (oracledb.DatabaseError, oracledb.InterfaceError, ConnectionError) as e:
+        except (
+            t.DbOracle.OracleDatabaseError,
+            t.DbOracle.OracleInterfaceError,
+            ConnectionError,
+        ) as e:
             return r[Callable[[t.ConfigMap], r[str]]].fail(
                 f"Formatter strategy error: {e}",
             )
