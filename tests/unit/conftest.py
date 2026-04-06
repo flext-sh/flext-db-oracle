@@ -166,7 +166,7 @@ def shared_oracle_container() -> str | None:
     return _ensure_shared_oracle_container()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def ensure_shared_docker_container() -> None:
     _ = _ensure_shared_oracle_container()
 
@@ -242,7 +242,7 @@ def oracle_config(
     return real_oracle_config if real_oracle_config is not None else mock_oracle_config
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def test_cleanup(
     connected_oracle_api: FlextDbOracleApi | None,
 ) -> None:

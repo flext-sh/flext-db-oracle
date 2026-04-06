@@ -174,17 +174,19 @@ class FlextDbOracleModels(FlextModels):
                 """Connection performance information."""
                 if not self.is_connected or self.connection_time <= 0:
                     return "No performance data"
-                # thresholds = c.DbOracle.OraclePerformance
                 if (
                     self.connection_time
-                    < thresholds.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
+                    < c.DbOracle.OraclePerformance.CONNECTION_EXCELLENT_THRESHOLD_SECONDS
                 ):
                     return f"Excellent ({self.connection_time:.3f}s)"
-                if self.connection_time < thresholds.CONNECTION_GOOD_THRESHOLD_SECONDS:
+                if (
+                    self.connection_time
+                    < c.DbOracle.OraclePerformance.CONNECTION_GOOD_THRESHOLD_SECONDS
+                ):
                     return f"Good ({self.connection_time:.3f}s)"
                 if (
                     self.connection_time
-                    < thresholds.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
+                    < c.DbOracle.OraclePerformance.CONNECTION_ACCEPTABLE_THRESHOLD_SECONDS
                 ):
                     return f"Acceptable ({self.connection_time:.3f}s)"
                 return f"Slow ({self.connection_time:.3f}s)"
@@ -312,9 +314,8 @@ class FlextDbOracleModels(FlextModels):
             @property
             def performance_rating(self) -> str:
                 """Query performance rating."""
-                # thresholds = c.DbOracle.OraclePerformance
                 result_acceptance_threshold_ms = (
-                    thresholds.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
+                    c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS + 500
                 )
                 if (
                     self.has_results
@@ -323,11 +324,14 @@ class FlextDbOracleModels(FlextModels):
                     return "Acceptable"
                 return (
                     "Excellent"
-                    if self.execution_time_ms < thresholds.QUERY_EXCELLENT_THRESHOLD_MS
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_EXCELLENT_THRESHOLD_MS
                     else "Good"
-                    if self.execution_time_ms < thresholds.QUERY_GOOD_THRESHOLD_MS
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_GOOD_THRESHOLD_MS
                     else "Acceptable"
-                    if self.execution_time_ms < thresholds.QUERY_ACCEPTABLE_THRESHOLD_MS
+                    if self.execution_time_ms
+                    < c.DbOracle.OraclePerformance.QUERY_ACCEPTABLE_THRESHOLD_MS
                     else "Slow"
                 )
 

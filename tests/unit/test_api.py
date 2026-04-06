@@ -42,6 +42,7 @@ class TestFlextDbOracleApiRealFunctionality:
             service_name="TEST",
             username="test_user",
             password="test_password",
+            timeout=1,
         )
         self.api = FlextDbOracleApi(self.config)
 
@@ -1499,6 +1500,7 @@ class TestFlextDbOracleApiWorking:
             service_name="TEST",
             username="test_user",
             password="test_password",
+            timeout=1,
         )
         self.api = FlextDbOracleApi(self.config)
 

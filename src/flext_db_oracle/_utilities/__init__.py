@@ -15,7 +15,10 @@ if _t.TYPE_CHECKING:
     db_oracle = _flext_db_oracle__utilities_db_oracle
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 _LAZY_IMPORTS = {
-    "FlextDbOracleUtilitiesDbOracle": "flext_db_oracle._utilities.db_oracle",
+    "FlextDbOracleUtilitiesDbOracle": (
+        "flext_db_oracle._utilities.db_oracle",
+        "FlextDbOracleUtilitiesDbOracle",
+    ),
     "db_oracle": "flext_db_oracle._utilities.db_oracle",
 }
 

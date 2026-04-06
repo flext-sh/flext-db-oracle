@@ -26,8 +26,8 @@ if _t.TYPE_CHECKING:
     from flext_core.utilities import FlextUtilities as u
     from tests.e2e.test_oracle import OperationTestError, TestOracleE2E
 _LAZY_IMPORTS = {
-    "OperationTestError": "tests.e2e.test_oracle",
-    "TestOracleE2E": "tests.e2e.test_oracle",
+    "OperationTestError": ("tests.e2e.test_oracle", "OperationTestError"),
+    "TestOracleE2E": ("tests.e2e.test_oracle", "TestOracleE2E"),
     "c": ("flext_core.constants", "FlextConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),

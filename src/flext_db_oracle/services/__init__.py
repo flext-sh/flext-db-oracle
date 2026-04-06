@@ -52,13 +52,34 @@ if _t.TYPE_CHECKING:
     from flext_core.utilities import FlextUtilities as u
     from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
 _LAZY_IMPORTS = {
-    "FlextDbOracleServiceBase": "flext_db_oracle.services.base",
-    "FlextDbOracleServiceConnection": "flext_db_oracle.services.connection",
-    "FlextDbOracleServicePlugin": "flext_db_oracle.services.plugin",
-    "FlextDbOracleServiceQuery": "flext_db_oracle.services.query",
-    "FlextDbOracleServiceSchema": "flext_db_oracle.services.schema",
-    "FlextDbOracleServiceSinger": "flext_db_oracle.services.singer",
-    "FlextDbOracleServiceSqlBuilder": "flext_db_oracle.services.sql_builder",
+    "FlextDbOracleServiceBase": (
+        "flext_db_oracle.services.base",
+        "FlextDbOracleServiceBase",
+    ),
+    "FlextDbOracleServiceConnection": (
+        "flext_db_oracle.services.connection",
+        "FlextDbOracleServiceConnection",
+    ),
+    "FlextDbOracleServicePlugin": (
+        "flext_db_oracle.services.plugin",
+        "FlextDbOracleServicePlugin",
+    ),
+    "FlextDbOracleServiceQuery": (
+        "flext_db_oracle.services.query",
+        "FlextDbOracleServiceQuery",
+    ),
+    "FlextDbOracleServiceSchema": (
+        "flext_db_oracle.services.schema",
+        "FlextDbOracleServiceSchema",
+    ),
+    "FlextDbOracleServiceSinger": (
+        "flext_db_oracle.services.singer",
+        "FlextDbOracleServiceSinger",
+    ),
+    "FlextDbOracleServiceSqlBuilder": (
+        "flext_db_oracle.services.sql_builder",
+        "FlextDbOracleServiceSqlBuilder",
+    ),
     "base": "flext_db_oracle.services.base",
     "c": ("flext_core.constants", "FlextConstants"),
     "connection": "flext_db_oracle.services.connection",
