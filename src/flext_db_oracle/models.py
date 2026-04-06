@@ -14,7 +14,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import ClassVar
 
-from flext_cli import FlextCliModels
+from flext_cli import m as _cli_m
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -27,7 +27,7 @@ from flext_core import FlextModels
 from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
 
 
-class FlextDbOracleModels(FlextCliModels):
+class FlextDbOracleModels(_cli_m):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).

@@ -18,13 +18,13 @@ from collections.abc import Mapping, Sequence
 from typing import Literal
 
 import oracledb
-from flext_cli import FlextCliTypes
+from flext_cli import t as _cli_t
 from pydantic import TypeAdapter
 
 from flext_core import FlextTypes
 
 
-class FlextDbOracleTypes(FlextCliTypes):
+class FlextDbOracleTypes(_cli_t):
     """Oracle database-specific type definitions extending FlextTypes.
 
     Domain-specific type system for Oracle database operations.

@@ -15,7 +15,7 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from flext_cli import FlextCliConstants
+from flext_cli import c as _cli_c
 
 from flext_core import FlextConstants
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from flext_db_oracle import t
 
 
-class FlextDbOracleConstants(FlextCliConstants):
+class FlextDbOracleConstants(_cli_c):
     """Oracle database constants extending FlextConstants foundation.
 
     Usage:

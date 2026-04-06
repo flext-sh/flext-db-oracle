@@ -9,13 +9,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
-from flext_cli import FlextCliProtocols
+from flext_cli import p as _cli_p
 
 from flext_core import r
 from flext_db_oracle import FlextDbOracleModels as m, FlextDbOracleTypes as t
 
 
-class FlextDbOracleProtocols(FlextCliProtocols):
+class FlextDbOracleProtocols(_cli_p):
     """Oracle database protocols extending FlextProtocols.
 
     Extends FlextProtocols to inherit all foundation protocols (Result, Service, etc.)
