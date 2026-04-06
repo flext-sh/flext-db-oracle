@@ -15,13 +15,15 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
+from flext_cli import FlextCliConstants
+
 from flext_core import FlextConstants
 
 if TYPE_CHECKING:
-    from flext_db_oracle import FlextDbOracleTypes as t
+    from flext_db_oracle import t
 
 
-class FlextDbOracleConstants(FlextConstants):
+class FlextDbOracleConstants(FlextCliConstants):
     """Oracle database constants extending FlextConstants foundation.
 
     Usage:

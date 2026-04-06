@@ -38,7 +38,7 @@ def _workspace_root() -> Path:
 
 def _normalized_port_bindings(value: t.NormalizedValue) -> t.StrMapping:
     try:
-        return t.STR_MAPPING_ADAPTER.validate_python(value)
+        return t.Tests.STR_MAPPING_ADAPTER.validate_python(value)
     except ValidationError:
         return {}
 

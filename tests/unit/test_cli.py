@@ -209,14 +209,14 @@ class TestFlextDbOracleCli:
     def test_cli_service_initialization_success(self) -> None:
         """Test successful CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service, none=False)
-        tm.that(cli_service._container, none=False)
-        tm.that(cli_service.logger, none=False)
+        tm.that(isinstance(cli_service, FlextDbOracleCli), eq=True)
+        tm.that(cli_service._container is not None, eq=True)
+        tm.that(cli_service.logger is not None, eq=True)
 
     def test_cli_service_initialization_basic(self) -> None:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
-        tm.that(cli_service, none=False)
+        tm.that(isinstance(cli_service, FlextDbOracleCli), eq=True)
         tm.that(hasattr(cli_service, "logger"), eq=True)
 
 
@@ -358,7 +358,7 @@ class TestOutputFormatter:
         result = formatter.format_list_output(items, "Schemas", "json")
         tm.ok(result)
         output = result.value
-        data = t.CONTAINER_MAPPING_ADAPTER.validate_json(output)
+        data = t.Tests.CONTAINER_MAPPING_ADAPTER.validate_json(output)
         tm.that(data["title"], eq="Schemas")
         tm.that(data["items"], eq=["schema1", "schema2"])
 
@@ -404,7 +404,7 @@ class TestOutputFormatter:
         data: dict[str, t.Scalar] = {"key": "value", "number": 42}
         result = formatter.format_data(data, "json")
         tm.ok(result)
-        parsed_data = t.CONTAINER_MAPPING_ADAPTER.validate_json(result.value)
+        parsed_data = t.Tests.CONTAINER_MAPPING_ADAPTER.validate_json(result.value)
         tm.that(parsed_data["key"], eq="value")
         tm.that(parsed_data["number"], eq=42)
 

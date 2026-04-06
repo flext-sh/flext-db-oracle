@@ -16,21 +16,22 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from datetime import UTC, datetime
 from typing import override
 
-from flext_cli import FlextCliUtilities, cli
+from flext_cli import cli
 from pydantic import TypeAdapter, ValidationError
 
+from flext_core import FlextService
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
     c,
     m,
     r,
-    s,
     t,
+    u,
 )
 
 
-class FlextDbOracleCli(s[str]):
+class FlextDbOracleCli(FlextService[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
     Zero Tolerance COMPLIANCE:
@@ -136,20 +137,20 @@ class FlextDbOracleCli(s[str]):
                 match data:
                     case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
                         return r[str].ok(
-                            FlextCliUtilities.Cli.yaml_dump_str(
+                            u.Cli.yaml_dump_str(
                                 data.model_dump(mode="python"),
                             ),
                         )
                     case str() as text:
-                        return r[str].ok(FlextCliUtilities.Cli.yaml_dump_str(text))
+                        return r[str].ok(u.Cli.yaml_dump_str(text))
                     case [*_] as items:
-                        return r[str].ok(FlextCliUtilities.Cli.yaml_dump_str(items))
+                        return r[str].ok(u.Cli.yaml_dump_str(items))
                     case _:
                         serializable: Mapping[str, t.Scalar] = {
                             k: v for k, v in data.items() if v is not None
                         }
                         return r[str].ok(
-                            FlextCliUtilities.Cli.yaml_dump_str(serializable),
+                            u.Cli.yaml_dump_str(serializable),
                         )
             return r[str].ok(str(data))
 
@@ -197,7 +198,7 @@ class FlextDbOracleCli(s[str]):
             if output_format == "yaml":
                 data = m.DbOracle.OutputPayload(title=title, items=string_items)
                 return r[str].ok(
-                    FlextCliUtilities.Cli.yaml_dump_str(
+                    u.Cli.yaml_dump_str(
                         data.model_dump(mode="python"),
                     ),
                 )

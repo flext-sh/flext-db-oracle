@@ -10,12 +10,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_db_oracle import t
+from flext_db_oracle import m, t, u
 
 MAX_OUTPUT_LINES = 3
 
@@ -131,17 +130,16 @@ def run_cli_command(cmd: t.StrSequence) -> tuple[int, str, str]:
     """
 
     def _run() -> tuple[int, str, str]:
-        try:
-            process = subprocess.run(
-                cmd,
-                capture_output=True,
-                check=False,
-                timeout=30.0,
-                text=True,
-            )
-            return (process.returncode, process.stdout, process.stderr)
-        except Exception as e:
-            return (1, "", f"Command failed: {e}")
+        result = u.Cli.run_raw(cmd, timeout=30)
+        if result.is_success:
+            process = result.value
+            return (process.exit_code, process.stdout, process.stderr)
+        failed = m.Cli.CommandOutput(
+            stdout="",
+            stderr=result.error or "Command failed",
+            exit_code=1,
+        )
+        return (failed.exit_code, failed.stdout, failed.stderr)
 
     return _run()
 
