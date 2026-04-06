@@ -688,6 +688,7 @@ class TestDirectCoverageBoostConnection:
             username="invalid",
             password="invalid",
             service_name="invalid",
+            timeout=1,
         )
         connection = FlextDbOracleServices(config=bad_config)
         operations = [
@@ -873,6 +874,7 @@ class TestDirectCoverageBoostServices:
                 username="user",
                 password="pass",
                 ssl_server_cert_dn=None,
+                timeout=1,
             ),
             FlextDbOracleSettings(
                 host="localhost",
@@ -881,6 +883,7 @@ class TestDirectCoverageBoostServices:
                 username="a",
                 password="b",
                 ssl_server_cert_dn="test_dn",
+                timeout=1,
             ),
         ]
         for config in configs:
@@ -1181,6 +1184,7 @@ class TestFlextDbOracleConnectionSimple:
             username="test",
             password="test",
             service_name="TEST",
+            timeout=1,
         )
         self.connection = FlextDbOracleServices(config=self.config)
 

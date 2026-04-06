@@ -183,9 +183,21 @@ class FlextDbOracleUtilitiesDbOracle:
         return values[0] if values else "string"
 
     @staticmethod
-    def _sqlalchemy_create_engine(url: str) -> SAEngine:
-        """Create SQLAlchemy engine."""
-        return create_engine(url, pool_pre_ping=True, pool_recycle=3600, echo=False)
+    def _sqlalchemy_create_engine(
+        url: str,
+        connect_timeout: int | None = None,
+    ) -> SAEngine:
+        """Create SQLAlchemy engine with optional connection timeout."""
+        connect_args: dict[str, int] = {}
+        if connect_timeout is not None:
+            connect_args["tcp_connect_timeout"] = connect_timeout
+        return create_engine(
+            url,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            echo=False,
+            connect_args=connect_args,
+        )
 
     @staticmethod
     def _sqlalchemy_text(statement: str) -> TextClause:

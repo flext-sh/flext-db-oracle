@@ -48,7 +48,10 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 error=url_result.error or "Failed to build connection URL",
                 is_success=False,
             )
-        self._engine = self._sqlalchemy_create_engine(url_result.value)
+        self._engine = self._sqlalchemy_create_engine(
+            url_result.value,
+            connect_timeout=self.db_config.timeout,
+        )
         try:
             connect_ctx = self._engine_connect(self._engine)
             conn = self._context_enter(connect_ctx)
@@ -81,6 +84,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
                 if retry_url_result.is_success:
                     self._engine = self._sqlalchemy_create_engine(
                         retry_url_result.value,
+                        connect_timeout=self.db_config.timeout,
                     )
                     try:
                         connect_ctx = self._engine_connect(self._engine)
