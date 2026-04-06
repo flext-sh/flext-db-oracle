@@ -37,8 +37,8 @@ class TestFlextDbOracleApiRealFunctionality:
     def setup_method(self) -> None:
         """Setup test configuration and API instance."""
         self.config = FlextDbOracleSettings(
-            host="test_host",
-            port=1521,
+            host="127.0.0.1",
+            port=19999,
             service_name="TEST",
             username="test_user",
             password="test_password",
@@ -62,8 +62,8 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test config property returns correct configuration."""
         config = self.api.config
         tm.that(config is self.config, eq=True)
-        tm.that(config.host, eq="test_host")
-        tm.that(config.port, eq=1521)
+        tm.that(config.host, eq="127.0.0.1")
+        tm.that(config.port, eq=19999)
         tm.that(config.service_name, eq="TEST")
         tm.that(config.username, eq="test_user")
         tm.that(config.password, eq="test_password")
@@ -93,8 +93,8 @@ class TestFlextDbOracleApiRealFunctionality:
             config_dict: t.ContainerMapping = config_obj
         else:
             config_dict = {}
-        tm.that(config_dict["host"], eq="test_host")
-        tm.that(config_dict["port"], eq=1521)
+        tm.that(config_dict["host"], eq="127.0.0.1")
+        tm.that(config_dict["port"], eq=19999)
         tm.that(config_dict["service_name"], eq="TEST")
         tm.that(config_dict["username"], eq="test_user")
         tm.that("password" not in config_dict, eq=True)
@@ -388,7 +388,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_repr_method_disconnected_real(self) -> None:
         """Test __repr__ method when disconnected (default state)."""
         repr_str = repr(self.api)
-        expected = "FlextDbOracleApi(host=test_host, status=disconnected)"
+        expected = "FlextDbOracleApi(host=127.0.0.1, status=disconnected)"
         tm.that(expected, eq=repr_str)
 
     def test_api_creation_using_testbuilders_real(self) -> None:
@@ -472,7 +472,7 @@ class TestFlextDbOracleApiRealFunctionality:
         tm.that(len(repr_str) > 0, eq=True)
         tm.that(repr_str, has="FlextDbOracleApi")
         tm.that(
-            self.config.host in repr_str or "test_host" in repr_str,
+            self.config.host in repr_str or "127.0.0.1" in repr_str,
             eq=True,
         )
 
@@ -1495,8 +1495,8 @@ class TestFlextDbOracleApiWorking:
     def setup_method(self) -> None:
         """Setup test configuration."""
         self.config = FlextDbOracleSettings(
-            host="test_host",
-            port=1521,
+            host="127.0.0.1",
+            port=19999,
             service_name="TEST",
             username="test_user",
             password="test_password",
@@ -1512,8 +1512,8 @@ class TestFlextDbOracleApiWorking:
     def test_config_access(self) -> None:
         """Test config property access."""
         tm.that(self.api.config, none=False)
-        tm.that(self.api.config.host, eq="test_host")
-        tm.that(self.api.config.port, eq=1521)
+        tm.that(self.api.config.host, eq="127.0.0.1")
+        tm.that(self.api.config.port, eq=19999)
 
     def test_is_valid_method(self) -> None:
         """Test is_valid method."""
@@ -1880,17 +1880,18 @@ class TestDirectCoverageBoostServices:
         configs: list[r[FlextDbOracleSettings]] = [
             r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
-                    host="test_host",
-                    port=1521,
+                    host="127.0.0.1",
+                    port=19999,
                     service_name="TEST",
                     username="user",
                     password="pass",
                     ssl_server_cert_dn=None,
+                    timeout=1,
                 ),
             ),
             r[FlextDbOracleSettings].ok(
                 FlextDbOracleSettings(
-                    host="localhost",
+                    host="127.0.0.1",
                     port=1,
                     service_name="X",
                     username="a",

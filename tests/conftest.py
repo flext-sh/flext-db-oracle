@@ -226,12 +226,11 @@ def oracle_container(shared_oracle_container: str) -> str:
     return shared_oracle_container
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def ensure_shared_docker_container(shared_oracle_container: str) -> None:
-    """Ensure shared Docker container is started for ALL tests in the session.
+    """Ensure shared Docker container is started for tests that need it.
 
-    This fixture automatically starts the shared Oracle container if not running,
-    and ensures it's available for all unit and integration tests.
+    Request this fixture explicitly in tests or conftest that need Oracle.
     """
     _ = shared_oracle_container
 
@@ -308,7 +307,7 @@ def oracle_available(connected_oracle_api: FlextDbOracleApi | None) -> bool:
     return connected_oracle_api is not None
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def test_cleanup(connected_oracle_api: FlextDbOracleApi | None) -> Generator[None]:
     """Ensure test idempotency by cleaning up test data before and after tests."""
     if connected_oracle_api is not None:

@@ -683,11 +683,11 @@ class TestDirectCoverageBoostConnection:
     def test_connection_error_handling(self) -> None:
         """Test connection error handling paths."""
         bad_config = FlextDbOracleSettings(
-            host="invalid_host",
-            port=9999,
+            host="127.0.0.1",
+            port=19999,
             username="invalid",
             password="invalid",
-            service_name="invalid",
+            service_name="INVALID",
             timeout=1,
         )
         connection = FlextDbOracleServices(config=bad_config)
@@ -868,8 +868,8 @@ class TestDirectCoverageBoostServices:
         """Test services configuration and connection paths for complete coverage."""
         configs = [
             FlextDbOracleSettings(
-                host="test_host",
-                port=1521,
+                host="127.0.0.1",
+                port=19999,
                 service_name="TEST",
                 username="user",
                 password="pass",
@@ -877,7 +877,7 @@ class TestDirectCoverageBoostServices:
                 timeout=1,
             ),
             FlextDbOracleSettings(
-                host="localhost",
+                host="127.0.0.1",
                 port=1,
                 service_name="X",
                 username="a",
@@ -1178,8 +1178,8 @@ class TestFlextDbOracleConnectionSimple:
     def setup_method(self) -> None:
         """Setup test configuration."""
         self.config = FlextDbOracleSettings(
-            host="test",
-            port=1521,
+            host="127.0.0.1",
+            port=19999,
             name="TEST",
             username="test",
             password="test",

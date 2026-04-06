@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import socket
 import time
 from collections.abc import Generator
 from pathlib import Path
@@ -23,6 +24,10 @@ from pydantic import ValidationError
 from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import p, t
+
+# Prevent unit tests from hanging on DNS resolution for fake hostnames.
+# Without this, socket operations to unresolvable hosts block indefinitely.
+socket.setdefaulttimeout(2)
 
 logger: p.Logger = FlextLogger(__name__)
 
@@ -190,7 +195,7 @@ def oracle_container(shared_oracle_container: str | None) -> str | None:
 def real_oracle_config() -> FlextDbOracleSettings | None:
     """Provide real Oracle config if container is running."""
     if not _is_oracle_container_running():
-        return None
+        pytest.skip("Oracle container not running")
     return _get_oracle_config_from_container()
 
 
