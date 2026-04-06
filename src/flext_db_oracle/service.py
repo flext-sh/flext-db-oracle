@@ -6,7 +6,7 @@ Composition lives at the package boundary, not inside ``services/``.
 
 from __future__ import annotations
 
-from flext_db_oracle.services import (
+from flext_db_oracle import (
     FlextDbOracleServiceBase,
     FlextDbOracleServiceConnection,
     FlextDbOracleServicePlugin,
@@ -14,8 +14,8 @@ from flext_db_oracle.services import (
     FlextDbOracleServiceSchema,
     FlextDbOracleServiceSinger,
     FlextDbOracleServiceSqlBuilder,
+    FlextDbOracleSettings,
 )
-from flext_db_oracle.settings import FlextDbOracleSettings
 
 
 class FlextDbOracleServices(

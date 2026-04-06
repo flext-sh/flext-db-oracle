@@ -11,9 +11,11 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping
 
 from flext_core import r
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.services.base import FlextDbOracleServiceBase
-from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle import (
+    FlextDbOracleModels,
+    FlextDbOracleServiceBase,
+    FlextDbOracleTypes as t,
+)
 
 
 class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):

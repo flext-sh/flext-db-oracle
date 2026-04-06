@@ -23,8 +23,7 @@ from pydantic import (
 )
 
 from flext_core import FlextModels
-from flext_db_oracle.constants import FlextDbOracleConstants as c
-from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
 
 
 class FlextDbOracleModels(FlextModels):

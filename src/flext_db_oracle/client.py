@@ -18,11 +18,13 @@ from pydantic import Field, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
 from flext_core import r, s
-from flext_db_oracle.api import FlextDbOracleApi
-from flext_db_oracle.constants import FlextDbOracleConstants as c
-from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes as t
-from flext_db_oracle.utilities import FlextDbOracleUtilities as u
+from flext_db_oracle import (
+    FlextDbOracleApi,
+    FlextDbOracleConstants as c,
+    FlextDbOracleSettings,
+    FlextDbOracleTypes as t,
+    FlextDbOracleUtilities as u,
+)
 
 
 class FlextDbOracleClient(s[FlextDbOracleSettings]):

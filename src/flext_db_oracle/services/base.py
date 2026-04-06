@@ -26,9 +26,11 @@ from sqlalchemy import (
 from sqlalchemy.engine import CursorResult
 
 from flext_core import FlextService, r
-from flext_db_oracle.models import FlextDbOracleModels
-from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes as t
+from flext_db_oracle import (
+    FlextDbOracleModels,
+    FlextDbOracleSettings,
+    FlextDbOracleTypes as t,
+)
 
 
 class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):

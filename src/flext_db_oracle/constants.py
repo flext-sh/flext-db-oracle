@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, ClassVar, Final
 from flext_core import FlextConstants
 
 if TYPE_CHECKING:
-    from flext_db_oracle.typings import FlextDbOracleTypes as t
+    from flext_db_oracle import FlextDbOracleTypes as t
 
 
 class FlextDbOracleConstants(FlextConstants):

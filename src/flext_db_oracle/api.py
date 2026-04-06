@@ -20,15 +20,16 @@ from typing import Self, override
 import oracledb
 from pydantic import ValidationError
 
-from flext_core.result import FlextResult as r
-from flext_core.service import FlextService as s
-from flext_db_oracle.constants import FlextDbOracleConstants as c
-from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-from flext_db_oracle.models import FlextDbOracleModels as m
-from flext_db_oracle.service import FlextDbOracleServices
-from flext_db_oracle.settings import FlextDbOracleSettings
-from flext_db_oracle.typings import FlextDbOracleTypes as t
-from flext_db_oracle.utilities import FlextDbOracleUtilities as u
+from flext_core import FlextResult as r, FlextService as s
+from flext_db_oracle import (
+    FlextDbOracleConstants as c,
+    FlextDbOracleDispatcher,
+    FlextDbOracleModels as m,
+    FlextDbOracleServices,
+    FlextDbOracleSettings,
+    FlextDbOracleTypes as t,
+    FlextDbOracleUtilities as u,
+)
 
 OracleDatabaseError: type[Exception] = oracledb.DatabaseError
 OracleInterfaceError: type[Exception] = oracledb.InterfaceError

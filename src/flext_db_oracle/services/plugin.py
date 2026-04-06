@@ -16,10 +16,12 @@ from sqlalchemy.exc import (
 )
 
 from flext_core import r
-from flext_db_oracle.models import FlextDbOracleModels as m
-from flext_db_oracle.services.base import FlextDbOracleServiceBase
-from flext_db_oracle.typings import FlextDbOracleTypes as t
-from flext_db_oracle.utilities import FlextDbOracleUtilities as u
+from flext_db_oracle import (
+    FlextDbOracleModels as m,
+    FlextDbOracleServiceBase,
+    FlextDbOracleTypes as t,
+    FlextDbOracleUtilities as u,
+)
 
 
 class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):

@@ -14,8 +14,7 @@ from enum import StrEnum
 import pytest
 from flext_tests import tm
 
-from flext_db_oracle import FlextDbOracleApi
-from flext_db_oracle.settings import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import c, u
 
 
