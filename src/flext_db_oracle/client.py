@@ -592,7 +592,9 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                     raw_params
                 )
             except ValidationError:
-                normalized_params = {}
+                normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
+                    {},
+                )
             params_map = t.ConfigMap.model_validate({"root": normalized_params})
         query_params: t.ContainerValueMapping = {
             str(k): str(v) for k, v in params_map.root.items()

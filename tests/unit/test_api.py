@@ -838,7 +838,10 @@ class TestApiModule:
         test_query = self._TestDataHelper.create_test_query_data()
         if hasattr(api, "execute_sql"):
             query_params = test_query["params"]
-            params = query_params if isinstance(query_params, dict) else {}
+            tm.that(isinstance(query_params, dict), eq=True)
+            if not isinstance(query_params, dict):
+                pytest.fail("test query data must expose SQL params as a mapping")
+            params = {str(key): int(value) for key, value in query_params.items()}
             result: r[int] = api.execute_sql(str(test_query["query"]), params)
             tm.that(result, is_=r)
 

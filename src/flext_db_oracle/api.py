@@ -59,7 +59,8 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self._context_name = context_name or "oracle-api"
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
-        self._plugins: t.MutableContainerValueMapping = {}
+        plugins: dict[str, t.ContainerValue] = {}
+        self._plugins = plugins
         self._registry = self._plugins
 
     @override

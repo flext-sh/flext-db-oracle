@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
-from flext_cli import FlextInfraProtocols
+from flext_infra import FlextInfraProtocols
 
 from flext_core import r
 from flext_db_oracle import FlextDbOracleModels as m, FlextDbOracleTypes as t

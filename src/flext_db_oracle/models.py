@@ -14,7 +14,7 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import ClassVar
 
-from flext_cli import FlextInfraModels
+from flext_infra import FlextInfraModels
 from pydantic import (
     BaseModel,
     ConfigDict,
