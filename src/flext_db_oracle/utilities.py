@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from flext_cli import FlextCliUtilities
 
-from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
+from flext_db_oracle import FlextDbOracleUtilitiesDbOracle
 
 
 class FlextDbOracleUtilities(FlextCliUtilities):

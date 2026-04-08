@@ -11,7 +11,7 @@ from collections.abc import Mapping
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import FlextDbOracleModels
-from tests.typings import FlextDbOracleTestTypes
+from tests import FlextDbOracleTestTypes
 
 
 class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
