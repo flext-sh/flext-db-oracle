@@ -3,17 +3,19 @@
 
 from __future__ import annotations
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS = {
-    "FlextDbOracleServiceBase": ".base",
-    "FlextDbOracleServiceConnection": ".connection",
-    "FlextDbOracleServicePlugin": ".plugin",
-    "FlextDbOracleServiceQuery": ".query",
-    "FlextDbOracleServiceSchema": ".schema",
-    "FlextDbOracleServiceSinger": ".singer",
-    "FlextDbOracleServiceSqlBuilder": ".sql_builder",
-}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".base": ("FlextDbOracleServiceBase",),
+        ".connection": ("FlextDbOracleServiceConnection",),
+        ".plugin": ("FlextDbOracleServicePlugin",),
+        ".query": ("FlextDbOracleServiceQuery",),
+        ".schema": ("FlextDbOracleServiceSchema",),
+        ".singer": ("FlextDbOracleServiceSinger",),
+        ".sql_builder": ("FlextDbOracleServiceSqlBuilder",),
+    },
+)
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

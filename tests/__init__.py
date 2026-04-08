@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import typing as _t
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if _t.TYPE_CHECKING:
     from flext_core.decorators import FlextDecorators as d
@@ -28,24 +28,28 @@ if _t.TYPE_CHECKING:
         TestsFlextDbOracleUtilities,
         TestsFlextDbOracleUtilities as u,
     )
-_LAZY_IMPORTS = {
-    "TestsFlextDbOracleConstants": ".constants",
-    "TestsFlextDbOracleModels": ".models",
-    "TestsFlextDbOracleProtocols": ".protocols",
-    "TestsFlextDbOracleTypes": ".typings",
-    "TestsFlextDbOracleUtilities": ".utilities",
-    "c": (".constants", "TestsFlextDbOracleConstants"),
-    "d": ("flext_core.decorators", "FlextDecorators"),
-    "e": ("flext_core.exceptions", "FlextExceptions"),
-    "h": ("flext_core.handlers", "FlextHandlers"),
-    "m": (".models", "TestsFlextDbOracleModels"),
-    "p": (".protocols", "TestsFlextDbOracleProtocols"),
-    "r": ("flext_core.result", "FlextResult"),
-    "s": ("flext_core.service", "FlextService"),
-    "t": (".typings", "TestsFlextDbOracleTypes"),
-    "u": (".utilities", "TestsFlextDbOracleUtilities"),
-    "x": ("flext_core.mixins", "FlextMixins"),
-}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".constants": ("TestsFlextDbOracleConstants",),
+        ".models": ("TestsFlextDbOracleModels",),
+        ".protocols": ("TestsFlextDbOracleProtocols",),
+        ".typings": ("TestsFlextDbOracleTypes",),
+        ".utilities": ("TestsFlextDbOracleUtilities",),
+    },
+    alias_groups={
+        ".constants": (("c", "TestsFlextDbOracleConstants"),),
+        ".models": (("m", "TestsFlextDbOracleModels"),),
+        ".protocols": (("p", "TestsFlextDbOracleProtocols"),),
+        ".typings": (("t", "TestsFlextDbOracleTypes"),),
+        ".utilities": (("u", "TestsFlextDbOracleUtilities"),),
+        "flext_core.decorators": (("d", "FlextDecorators"),),
+        "flext_core.exceptions": (("e", "FlextExceptions"),),
+        "flext_core.handlers": (("h", "FlextHandlers"),),
+        "flext_core.mixins": (("x", "FlextMixins"),),
+        "flext_core.result": (("r", "FlextResult"),),
+        "flext_core.service": (("s", "FlextService"),),
+    },
+)
 
 __all__ = [
     "TestsFlextDbOracleConstants",
