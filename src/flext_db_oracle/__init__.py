@@ -15,7 +15,7 @@ if _t.TYPE_CHECKING:
 
     _utilities = _flext_db_oracle__utilities
     import flext_db_oracle.api as _flext_db_oracle_api
-    from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle, db_oracle
+    from flext_db_oracle._utilities import FlextDbOracleUtilitiesDbOracle
 
     api = _flext_db_oracle_api
     import flext_db_oracle.cli as _flext_db_oracle_cli
@@ -59,27 +59,15 @@ if _t.TYPE_CHECKING:
     )
 
     service = _flext_db_oracle_service
-    import flext_db_oracle.services as _flext_db_oracle_services
-    from flext_db_oracle.service import FlextDbOracleServices, s
-
-    services = _flext_db_oracle_services
     import flext_db_oracle.settings as _flext_db_oracle_settings
-    from flext_db_oracle.services import (
-        FlextDbOracleServiceBase,
-        FlextDbOracleServiceConnection,
-        FlextDbOracleServicePlugin,
-        FlextDbOracleServiceQuery,
-        FlextDbOracleServiceSchema,
-        FlextDbOracleServiceSinger,
-        FlextDbOracleServiceSqlBuilder,
-        base,
-        connection,
-        plugin,
-        query,
-        schema,
-        singer,
-        sql_builder,
-    )
+    from flext_db_oracle.service import FlextDbOracleServices, s
+    from flext_db_oracle.services.base import FlextDbOracleServiceBase
+    from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
+    from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
+    from flext_db_oracle.services.query import FlextDbOracleServiceQuery
+    from flext_db_oracle.services.schema import FlextDbOracleServiceSchema
+    from flext_db_oracle.services.singer import FlextDbOracleServiceSinger
+    from flext_db_oracle.services.sql_builder import FlextDbOracleServiceSqlBuilder
 
     settings = _flext_db_oracle_settings
     import flext_db_oracle.typings as _flext_db_oracle_typings
@@ -103,10 +91,7 @@ if _t.TYPE_CHECKING:
         FlextDbOracleUtilities as u,
     )
 _LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "flext_db_oracle._utilities",
-        "flext_db_oracle.services",
-    ),
+    ("flext_db_oracle._utilities",),
     {
         "FlextDbOracleApi": ("flext_db_oracle.api", "FlextDbOracleApi"),
         "FlextDbOracleCli": ("flext_db_oracle.cli", "FlextDbOracleCli"),
@@ -128,6 +113,34 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "FlextDbOracleProtocols": (
             "flext_db_oracle.protocols",
             "FlextDbOracleProtocols",
+        ),
+        "FlextDbOracleServiceBase": (
+            "flext_db_oracle.services.base",
+            "FlextDbOracleServiceBase",
+        ),
+        "FlextDbOracleServiceConnection": (
+            "flext_db_oracle.services.connection",
+            "FlextDbOracleServiceConnection",
+        ),
+        "FlextDbOracleServicePlugin": (
+            "flext_db_oracle.services.plugin",
+            "FlextDbOracleServicePlugin",
+        ),
+        "FlextDbOracleServiceQuery": (
+            "flext_db_oracle.services.query",
+            "FlextDbOracleServiceQuery",
+        ),
+        "FlextDbOracleServiceSchema": (
+            "flext_db_oracle.services.schema",
+            "FlextDbOracleServiceSchema",
+        ),
+        "FlextDbOracleServiceSinger": (
+            "flext_db_oracle.services.singer",
+            "FlextDbOracleServiceSinger",
+        ),
+        "FlextDbOracleServiceSqlBuilder": (
+            "flext_db_oracle.services.sql_builder",
+            "FlextDbOracleServiceSqlBuilder",
         ),
         "FlextDbOracleServices": ("flext_db_oracle.service", "FlextDbOracleServices"),
         "FlextDbOracleSettings": ("flext_db_oracle.settings", "FlextDbOracleSettings"),
@@ -163,7 +176,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
         "r": ("flext_core.result", "FlextResult"),
         "s": ("flext_db_oracle.service", "s"),
         "service": "flext_db_oracle.service",
-        "services": "flext_db_oracle.services",
         "settings": "flext_db_oracle.settings",
         "t": ("flext_db_oracle.typings", "FlextDbOracleTypes"),
         "typings": "flext_db_oracle.typings",
@@ -212,14 +224,11 @@ __all__ = [
     "__version_info__",
     "_utilities",
     "api",
-    "base",
     "c",
     "cli",
     "client",
-    "connection",
     "constants",
     "d",
-    "db_oracle",
     "dispatcher",
     "e",
     "exceptions",
@@ -227,17 +236,11 @@ __all__ = [
     "m",
     "models",
     "p",
-    "plugin",
     "protocols",
-    "query",
     "r",
     "s",
-    "schema",
     "service",
-    "services",
     "settings",
-    "singer",
-    "sql_builder",
     "t",
     "typings",
     "u",
