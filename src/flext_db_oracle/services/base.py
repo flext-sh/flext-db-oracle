@@ -23,7 +23,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import FlextService, r
+from flext_core import r, s
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleSettings,
@@ -31,7 +31,7 @@ from flext_db_oracle import (
 )
 
 
-class FlextDbOracleServiceBase(FlextService[FlextDbOracleSettings]):
+class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:

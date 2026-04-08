@@ -92,7 +92,7 @@ Clean Architecture provides the best foundation for enterprise database integrat
 
 ### FLEXT Ecosystem Alignment
 
-- Uses flext-core foundation patterns (r, FlextService, FlextContainer)
+- Uses flext-core foundation patterns (r, s, FlextContainer)
 - Follows established FLEXT naming conventions and patterns
 - Integrates with existing FLEXT CLI and logging infrastructure
 - Supports FLEXT's dependency injection and configuration patterns

@@ -19,7 +19,7 @@ from typing import override
 from flext_cli import cli
 from pydantic import TypeAdapter, ValidationError
 
-from flext_core import FlextService
+from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
@@ -31,7 +31,7 @@ from flext_db_oracle import (
 )
 
 
-class FlextDbOracleCli(FlextService[str]):
+class FlextDbOracleCli(s[str]):
     """Unified Oracle CLI Service using flext-cli exclusively.
 
     Zero Tolerance COMPLIANCE:

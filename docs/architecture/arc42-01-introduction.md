@@ -138,7 +138,7 @@
 #### Ecosystem Integration
 
 - **FLEXT ecosystem**: Mandatory compatibility with 32+ dependent projects
-- **flext-core integration**: Required usage of r[T], FlextService patterns
+- **flext-core integration**: Required usage of r[T], s patterns
 - **Zero custom implementations**: All Oracle operations through flext-db-oracle
 
 ### Business Constraints
@@ -370,7 +370,7 @@ result = (
 
 **r[T]**: Railway pattern implementation for composable error handling.
 
-**FlextService**: Base class for domain services with common functionality.
+**s**: Base class for domain services with common functionality.
 
 **FlextContainer**: Dependency injection container for service management.
 

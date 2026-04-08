@@ -19,7 +19,7 @@ from typing import Self, override
 
 from pydantic import ValidationError
 
-from flext_core import FlextResult as r, FlextService as s
+from flext_core import r, s
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOracleDispatcher,

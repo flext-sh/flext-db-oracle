@@ -1,6 +1,6 @@
 """Oracle Database-specific exceptions extending flext-core patterns.
 
-This module provides Oracle-specific exception classes that extend FlextExceptions
+This module provides Oracle-specific exception classes that extend e
 with database-specific error handling and metadata.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -10,19 +10,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_db_oracle import FlextDbOracleTypes as t
 
 
-class FlextDbOracleExceptions(FlextExceptions):
-    """Oracle database-specific exceptions extending FlextExceptions.
+class FlextDbOracleExceptions(e):
+    """Oracle database-specific exceptions extending e.
 
     Provides Oracle-specific exception types with database metadata
     and error categorization for Oracle database operations.
     """
 
-    class Error(FlextExceptions.BaseError):
-        """Base Oracle error extending FlextExceptions.BaseError."""
+    class Error(e.BaseError):
+        """Base Oracle error extending e.BaseError."""
 
         def __init__(
             self,
@@ -37,8 +37,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.oracle_error_code = oracle_error_code
             self.sql_state = sql_state
 
-    class OracleConnectionError(FlextExceptions.ConnectionError):
-        """Oracle connection error extending FlextExceptions.ConnectionError."""
+    class OracleConnectionError(e.ConnectionError):
+        """Oracle connection error extending e.ConnectionError."""
 
         def __init__(
             self,
@@ -53,8 +53,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.tns_error = tns_error
             self.connection_string = connection_string
 
-    class OracleMetadataError(FlextExceptions.OperationError):
-        """Oracle metadata error extending FlextExceptions.OperationError."""
+    class OracleMetadataError(e.OperationError):
+        """Oracle metadata error extending e.OperationError."""
 
         def __init__(
             self,
@@ -69,8 +69,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.object_name = object_name
             self.object_type = object_type
 
-    class ProcessingError(FlextExceptions.OperationError):
-        """Oracle processing error extending FlextExceptions.OperationError."""
+    class ProcessingError(e.OperationError):
+        """Oracle processing error extending e.OperationError."""
 
         def __init__(
             self,
@@ -85,8 +85,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.operation_type = operation_type
             self.processing_stage = processing_stage
 
-    class OracleQueryError(FlextExceptions.OperationError):
-        """Oracle query error extending FlextExceptions.OperationError."""
+    class OracleQueryError(e.OperationError):
+        """Oracle query error extending e.OperationError."""
 
         def __init__(
             self,
@@ -101,8 +101,8 @@ class FlextDbOracleExceptions(FlextExceptions):
             self.sql_text = sql_text
             self.bind_variables = bind_variables or {}
 
-    class OracleTimeoutError(FlextExceptions.TimeoutError):
-        """Oracle timeout error extending FlextExceptions.TimeoutError."""
+    class OracleTimeoutError(e.TimeoutError):
+        """Oracle timeout error extending e.TimeoutError."""
 
         def __init__(
             self,
