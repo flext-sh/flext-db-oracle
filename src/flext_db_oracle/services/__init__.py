@@ -36,13 +36,6 @@ _LAZY_IMPORTS = {
         "flext_db_oracle.services.sql_builder",
         "FlextDbOracleServiceSqlBuilder",
     ),
-    "base": "flext_db_oracle.services.base",
-    "connection": "flext_db_oracle.services.connection",
-    "plugin": "flext_db_oracle.services.plugin",
-    "query": "flext_db_oracle.services.query",
-    "schema": "flext_db_oracle.services.schema",
-    "singer": "flext_db_oracle.services.singer",
-    "sql_builder": "flext_db_oracle.services.sql_builder",
 }
 
 

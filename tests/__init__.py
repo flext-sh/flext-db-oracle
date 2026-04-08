@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import typing as _t
 
-from flext_core.lazy import install_lazy_exports, merge_lazy_imports
+from flext_core.lazy import install_lazy_exports
 
 if _t.TYPE_CHECKING:
     from flext_core.decorators import FlextDecorators as d
@@ -30,57 +30,24 @@ if _t.TYPE_CHECKING:
         TestsFlextDbOracleUtilities,
         TestsFlextDbOracleUtilities as u,
     )
-_LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "tests.e2e",
-        "tests.integration",
-        "tests.unit",
-    ),
-    {
-        "TestsFlextDbOracleConstants": (
-            "tests.constants",
-            "TestsFlextDbOracleConstants",
-        ),
-        "TestsFlextDbOracleModels": ("tests.models", "TestsFlextDbOracleModels"),
-        "TestsFlextDbOracleProtocols": (
-            "tests.protocols",
-            "TestsFlextDbOracleProtocols",
-        ),
-        "TestsFlextDbOracleTypes": ("tests.typings", "TestsFlextDbOracleTypes"),
-        "TestsFlextDbOracleUtilities": (
-            "tests.utilities",
-            "TestsFlextDbOracleUtilities",
-        ),
-        "c": ("tests.constants", "TestsFlextDbOracleConstants"),
-        "conftest": "tests.conftest",
-        "constants": "tests.constants",
-        "d": ("flext_core.decorators", "FlextDecorators"),
-        "e": ("flext_core.exceptions", "FlextExceptions"),
-        "e2e": "tests.e2e",
-        "exceptions": "tests.exceptions",
-        "h": ("flext_core.handlers", "FlextHandlers"),
-        "integration": "tests.integration",
-        "m": ("tests.models", "TestsFlextDbOracleModels"),
-        "models": "tests.models",
-        "p": ("tests.protocols", "TestsFlextDbOracleProtocols"),
-        "protocols": "tests.protocols",
-        "r": ("flext_core.result", "FlextResult"),
-        "s": ("flext_core.service", "FlextService"),
-        "t": ("tests.typings", "TestsFlextDbOracleTypes"),
-        "typings": "tests.typings",
-        "u": ("tests.utilities", "TestsFlextDbOracleUtilities"),
-        "unit": "tests.unit",
-        "utilities": "tests.utilities",
-        "x": ("flext_core.mixins", "FlextMixins"),
-    },
-)
-_ = _LAZY_IMPORTS.pop("cleanup_submodule_namespace", None)
-_ = _LAZY_IMPORTS.pop("install_lazy_exports", None)
-_ = _LAZY_IMPORTS.pop("lazy_getattr", None)
-_ = _LAZY_IMPORTS.pop("logger", None)
-_ = _LAZY_IMPORTS.pop("merge_lazy_imports", None)
-_ = _LAZY_IMPORTS.pop("output", None)
-_ = _LAZY_IMPORTS.pop("output_reporting", None)
+_LAZY_IMPORTS = {
+    "TestsFlextDbOracleConstants": ("tests.constants", "TestsFlextDbOracleConstants"),
+    "TestsFlextDbOracleModels": ("tests.models", "TestsFlextDbOracleModels"),
+    "TestsFlextDbOracleProtocols": ("tests.protocols", "TestsFlextDbOracleProtocols"),
+    "TestsFlextDbOracleTypes": ("tests.typings", "TestsFlextDbOracleTypes"),
+    "TestsFlextDbOracleUtilities": ("tests.utilities", "TestsFlextDbOracleUtilities"),
+    "c": ("tests.constants", "TestsFlextDbOracleConstants"),
+    "d": ("flext_core.decorators", "FlextDecorators"),
+    "e": ("flext_core.exceptions", "FlextExceptions"),
+    "h": ("flext_core.handlers", "FlextHandlers"),
+    "m": ("tests.models", "TestsFlextDbOracleModels"),
+    "p": ("tests.protocols", "TestsFlextDbOracleProtocols"),
+    "r": ("flext_core.result", "FlextResult"),
+    "s": ("flext_core.service", "FlextService"),
+    "t": ("tests.typings", "TestsFlextDbOracleTypes"),
+    "u": ("tests.utilities", "TestsFlextDbOracleUtilities"),
+    "x": ("flext_core.mixins", "FlextMixins"),
+}
 
 __all__ = [
     "TestsFlextDbOracleConstants",
@@ -89,25 +56,15 @@ __all__ = [
     "TestsFlextDbOracleTypes",
     "TestsFlextDbOracleUtilities",
     "c",
-    "conftest",
-    "constants",
     "d",
     "e",
-    "e2e",
-    "exceptions",
     "h",
-    "integration",
     "m",
-    "models",
     "p",
-    "protocols",
     "r",
     "s",
     "t",
-    "typings",
     "u",
-    "unit",
-    "utilities",
     "x",
 ]
 

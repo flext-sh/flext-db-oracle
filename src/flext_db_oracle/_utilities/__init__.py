@@ -12,7 +12,6 @@ _LAZY_IMPORTS = {
         "flext_db_oracle._utilities.db_oracle",
         "FlextDbOracleUtilitiesDbOracle",
     ),
-    "db_oracle": "flext_db_oracle._utilities.db_oracle",
 }
 
 
