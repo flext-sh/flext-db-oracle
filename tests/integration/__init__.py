@@ -24,15 +24,12 @@ if _t.TYPE_CHECKING:
     from flext_core.service import FlextService as s
     from flext_core.typings import FlextTypes as t
     from flext_core.utilities import FlextUtilities as u
-    from tests.integration.test_oracle import TestOracleIntegration, mock_oracle_config
 _LAZY_IMPORTS = {
-    "TestOracleIntegration": ("tests.integration.test_oracle", "TestOracleIntegration"),
     "c": ("flext_core.constants", "FlextConstants"),
     "d": ("flext_core.decorators", "FlextDecorators"),
     "e": ("flext_core.exceptions", "FlextExceptions"),
     "h": ("flext_core.handlers", "FlextHandlers"),
     "m": ("flext_core.models", "FlextModels"),
-    "mock_oracle_config": ("tests.integration.test_oracle", "mock_oracle_config"),
     "p": ("flext_core.protocols", "FlextProtocols"),
     "r": ("flext_core.result", "FlextResult"),
     "s": ("flext_core.service", "FlextService"),
@@ -43,13 +40,11 @@ _LAZY_IMPORTS = {
 }
 
 __all__ = [
-    "TestOracleIntegration",
     "c",
     "d",
     "e",
     "h",
     "m",
-    "mock_oracle_config",
     "p",
     "r",
     "s",

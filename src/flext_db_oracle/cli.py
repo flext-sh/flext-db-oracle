@@ -538,7 +538,3 @@ class FlextDbOracleCli(FlextService[str]):
             if error_msg.is_success:
                 formatter.display_message(error_msg.value)
         return r[str].fail(error_message)
-
-
-if __name__ == "__main__":
-    raise SystemExit(FlextDbOracleCli.run_main())

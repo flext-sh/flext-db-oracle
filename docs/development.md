@@ -432,15 +432,15 @@ print(f'Host: {config.oracle_host}:{config.oracle_port}')
 
 #### Import Failures in Test Files
 
-**Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
+**Issue**: `ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
 
 ```bash
 # Check what's available in flext-core test utilities
 PYTHONPATH=src python -c "from flext_tests import *; print(dir())"
 
 # Fix: Update test imports to use correct flext-core utilities
-# Replace: from flext_tests import FlextTestsBuilders
-# With: from flext_tests import FlextTestsMatchers  # or correct import
+# Replace: from flext_tests import TestsFlextBuilders
+# With: from flext_tests import TestsFlextMatchers  # or correct import
 ```
 
 #### Pydantic Deprecation Warnings

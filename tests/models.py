@@ -11,10 +11,10 @@ from collections.abc import Mapping
 from flext_tests import FlextTestsModels
 
 from flext_db_oracle import FlextDbOracleModels
-from tests import FlextDbOracleTestTypes
+from tests import TestsFlextDbOracleTypes
 
 
-class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
+class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
     """Test models for flext-db-oracle."""
 
     class DbOracle(FlextDbOracleModels.DbOracle):
@@ -37,7 +37,7 @@ class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
                 description: str
                 author: str
                 plugin_type: str
-                metadata: Mapping[str, FlextDbOracleTestTypes.ContainerValue]
+                metadata: Mapping[str, TestsFlextDbOracleTypes.ContainerValue]
 
                 @classmethod
                 def create(
@@ -48,8 +48,8 @@ class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
                     description: str,
                     author: str,
                     plugin_type: str,
-                    metadata: Mapping[str, FlextDbOracleTestTypes.ContainerValue],
-                ) -> FlextDbOracleTestModels.DbOracle.Tests.StubPluginEntity:
+                    metadata: Mapping[str, TestsFlextDbOracleTypes.ContainerValue],
+                ) -> TestsFlextDbOracleModels.DbOracle.Tests.StubPluginEntity:
                     """Create a stub plugin entity with the expected plugin API shape."""
                     return cls(
                         name=name,
@@ -61,5 +61,5 @@ class FlextDbOracleTestModels(FlextTestsModels, FlextDbOracleModels):
                     )
 
 
-m = FlextDbOracleTestModels
-__all__ = ["FlextDbOracleTestModels", "m"]
+m = TestsFlextDbOracleModels
+__all__ = ["TestsFlextDbOracleModels", "m"]

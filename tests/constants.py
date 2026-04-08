@@ -13,7 +13,7 @@ from flext_tests import FlextTestsConstants
 from flext_db_oracle import FlextDbOracleConstants
 
 
-class FlextDbOracleTestConstants(FlextTestsConstants, FlextDbOracleConstants):
+class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
     """Test constants for flext-db-oracle."""
 
     class DbOracle(FlextDbOracleConstants.DbOracle):
@@ -70,5 +70,5 @@ class FlextDbOracleTestConstants(FlextTestsConstants, FlextDbOracleConstants):
                 TEST_NULLABLE: Final[bool] = True
 
 
-c = FlextDbOracleTestConstants
-__all__ = ["FlextDbOracleTestConstants", "c"]
+c = TestsFlextDbOracleConstants
+__all__ = ["TestsFlextDbOracleConstants", "c"]

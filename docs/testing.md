@@ -69,7 +69,7 @@ ______________________________________________________________________
 
 #### 1. **Import Errors in Test Files**
 
-**Issue**: `ImportError: cannot import name 'FlextTestsBuilders' from 'flext_tests.matchers'`
+**Issue**: `ImportError: cannot import name 'TestsFlextBuilders' from 'flext_tests.matchers'`
 **Impact**: Major test files failing to import, blocking test execution
 **Files Affected**: `tests/unit/test_api.py` and potentially others
 **Root Cause**: Missing or renamed exports in flext-core test utilities

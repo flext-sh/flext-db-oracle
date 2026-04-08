@@ -18,7 +18,7 @@ from flext_db_oracle import FlextDbOracleUtilities
 from tests import m, t
 
 
-class FlextDbOracleTestUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
+class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
     """Test utilities for flext-db-oracle."""
 
     class DbOracle(FlextDbOracleUtilities.DbOracle):
@@ -132,5 +132,5 @@ class FlextDbOracleTestUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     return self._registry.get(plugin_name)
 
 
-u = FlextDbOracleTestUtilities
-__all__ = ["FlextDbOracleTestUtilities", "u"]
+u = TestsFlextDbOracleUtilities
+__all__ = ["TestsFlextDbOracleUtilities", "u"]

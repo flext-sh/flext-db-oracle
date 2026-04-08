@@ -13,7 +13,7 @@ from flext_tests import FlextTestsTypes, r
 from flext_db_oracle import FlextDbOracleTypes
 
 
-class FlextDbOracleTestTypes(FlextTestsTypes, FlextDbOracleTypes):
+class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
     """Test type aliases for flext-db-oracle."""
 
     class DbOracle(FlextDbOracleTypes.DbOracle):
@@ -32,5 +32,5 @@ class FlextDbOracleTestTypes(FlextTestsTypes, FlextDbOracleTypes):
             type ApiCoverageCallable = Callable[[], ApiCoverageReturn]
 
 
-t = FlextDbOracleTestTypes
-__all__ = ["FlextDbOracleTestTypes", "t"]
+t = TestsFlextDbOracleTypes
+__all__ = ["TestsFlextDbOracleTypes", "t"]
