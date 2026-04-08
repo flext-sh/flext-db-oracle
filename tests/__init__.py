@@ -10,52 +10,34 @@ import typing as _t
 from flext_core.lazy import install_lazy_exports, merge_lazy_imports
 
 if _t.TYPE_CHECKING:
-    import tests.conftest as _tests_conftest
-
-    conftest = _tests_conftest
-    import tests.constants as _tests_constants
-
-    constants = _tests_constants
-    import tests.e2e as _tests_e2e
-    from tests.constants import (
-        TestsFlextDbOracleConstants,
-        TestsFlextDbOracleConstants as c,
-    )
-
-    e2e = _tests_e2e
-    import tests.exceptions as _tests_exceptions
-
-    exceptions = _tests_exceptions
-    import tests.integration as _tests_integration
-
-    integration = _tests_integration
-    import tests.models as _tests_models
-
-    models = _tests_models
-    import tests.protocols as _tests_protocols
-    from tests.models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
-
-    protocols = _tests_protocols
-    import tests.typings as _tests_typings
-    from tests.protocols import (
-        TestsFlextDbOracleProtocols,
-        TestsFlextDbOracleProtocols as p,
-    )
-
-    typings = _tests_typings
-    import tests.unit as _tests_unit
-    from tests.typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
-
-    unit = _tests_unit
-    import tests.utilities as _tests_utilities
-
-    utilities = _tests_utilities
     from flext_core.decorators import FlextDecorators as d
     from flext_core.exceptions import FlextExceptions as e
     from flext_core.handlers import FlextHandlers as h
     from flext_core.mixins import FlextMixins as x
     from flext_core.result import FlextResult as r
     from flext_core.service import FlextService as s
+    from tests import (
+        conftest,
+        constants,
+        e2e,
+        exceptions,
+        integration,
+        models,
+        protocols,
+        typings,
+        unit,
+        utilities,
+    )
+    from tests.constants import (
+        TestsFlextDbOracleConstants,
+        TestsFlextDbOracleConstants as c,
+    )
+    from tests.models import TestsFlextDbOracleModels, TestsFlextDbOracleModels as m
+    from tests.protocols import (
+        TestsFlextDbOracleProtocols,
+        TestsFlextDbOracleProtocols as p,
+    )
+    from tests.typings import TestsFlextDbOracleTypes, TestsFlextDbOracleTypes as t
     from tests.utilities import (
         TestsFlextDbOracleUtilities,
         TestsFlextDbOracleUtilities as u,

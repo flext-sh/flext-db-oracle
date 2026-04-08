@@ -5,15 +5,8 @@
 
 from __future__ import annotations
 
-import typing as _t
-
 from flext_core.lazy import install_lazy_exports
 
-if _t.TYPE_CHECKING:
-    import flext_db_oracle._utilities.db_oracle as _flext_db_oracle__utilities_db_oracle
-
-    db_oracle = _flext_db_oracle__utilities_db_oracle
-    from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
 _LAZY_IMPORTS = {
     "FlextDbOracleUtilitiesDbOracle": (
         "flext_db_oracle._utilities.db_oracle",
@@ -22,10 +15,5 @@ _LAZY_IMPORTS = {
     "db_oracle": "flext_db_oracle._utilities.db_oracle",
 }
 
-__all__ = [
-    "FlextDbOracleUtilitiesDbOracle",
-    "db_oracle",
-]
 
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
