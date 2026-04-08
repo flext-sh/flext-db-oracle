@@ -8,10 +8,7 @@ from __future__ import annotations
 from flext_core.lazy import install_lazy_exports
 
 _LAZY_IMPORTS = {
-    "FlextDbOracleUtilitiesDbOracle": (
-        "flext_db_oracle._utilities.db_oracle",
-        "FlextDbOracleUtilitiesDbOracle",
-    ),
+    "FlextDbOracleUtilitiesDbOracle": ".db_oracle",
 }
 
 
