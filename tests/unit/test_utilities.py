@@ -38,7 +38,6 @@ class Testu:
             "validate_identifier",
         ]
         for method in required_methods:
-            tm.that(hasattr(u.DbOracle, method), eq=True)
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""

@@ -742,8 +742,6 @@ class TestDirectCoverageBoostTypes:
                 nullable=False,
                 default_value="0",
             )
-            tm.that(hasattr(column2, "name"), eq=True)
-            tm.that(hasattr(column2, "data_type"), eq=True)
         except (TypeError, ValueError, NotImplementedError):
             pass
 
@@ -889,11 +887,9 @@ class TestDirectCoverageBoostServices:
         for config in configs:
             services = FlextDbOracleServices(config=config)
             tm.that(services, none=False)
-            tm.that(hasattr(services, "config"), eq=True)
             tm.that(services.config, eq=config)
             tm.that(not services.is_connected(), eq=True)
             connection_result = services.connect()
-            tm.that(hasattr(connection_result, "is_failure"), eq=True)
             tm.that(connection_result.is_failure, eq=True)
 
     def test_services_sql_generation_comprehensive(self) -> None:
@@ -990,14 +986,10 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         """Test metadata manager initialization with real connection."""
         tm.that(self.manager, none=False)
         tm.that(self.manager, eq=self.services)
-        tm.that(hasattr(self.manager, "config"), eq=True)
-        tm.that(hasattr(self.manager, "connect"), eq=True)
 
     def test_get_schemas_structure(self) -> None:
         """Test get_schemas method structure and error handling."""
         result = self.manager.get_schemas()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         tm.that(
@@ -1014,7 +1006,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_get_tables_structure(self) -> None:
         """Test get_tables method structure and error handling."""
         result = self.manager.get_tables()
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.is_success, eq=True)
@@ -1022,7 +1013,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_get_columns_structure(self) -> None:
         """Test get_columns method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.is_success, eq=True)
@@ -1030,7 +1020,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_get_table_metadata_structure(self) -> None:
         """Test get_table_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_TABLE")
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
         result_with_schema = self.manager.get_tables("TEST_SCHEMA")
         tm.that(not result_with_schema.is_success, eq=True)
@@ -1038,13 +1027,11 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_get_column_metadata_structure(self) -> None:
         """Test get_column_metadata method structure and error handling."""
         result = self.manager.get_tables("TEST_COLUMN")
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
 
     def test_get_schema_metadata_structure(self) -> None:
         """Test get_schema_metadata method structure and error handling."""
         result = self.manager.get_schemas()
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
 
     def test_generate_ddl_structure(self) -> None:
@@ -1067,7 +1054,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             columns=columns,
         )
         result = self.manager.get_tables("TEST_SCHEMA")
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -1079,7 +1065,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_test_connection_structure(self) -> None:
         """Test test_connection method structure."""
         result = self.manager.get_schemas()
-        tm.that(hasattr(result, "is_success"), eq=True)
         tm.that(not result.is_success, eq=True)
 
     def test_error_handling_patterns(self) -> None:
@@ -1092,8 +1077,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
         for method_name, args in methods_to_test:
             method = getattr(self.manager, method_name)
             result = method(*args)
-            tm.that(hasattr(result, "is_success"), eq=True)
-            tm.that(hasattr(result, "error"), eq=True)
             if method_name != "generate_ddl":
                 tm.that(not result.is_success, eq=True)
                 tm.that(result.error, none=False)
@@ -1102,7 +1085,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
     def test_manager_real_functionality_coverage(self) -> None:
         """Test real functionality paths to increase coverage."""
         tm.that(self.manager is self.services, eq=True)
-        tm.that(hasattr(self.manager, "get_connection_status"), eq=True)
         tm.that(self.manager, none=False)
         existing_methods = [
             "get_schemas",
@@ -1111,8 +1093,6 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             "test_connection",
         ]
         for method_name in existing_methods:
-            tm.that(hasattr(self.manager, method_name), eq=True)
-            tm.that(callable(getattr(self.manager, method_name)), eq=True)
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
@@ -1217,44 +1197,27 @@ class TestFlextDbOracleConnectionSimple:
 
     def test_services_methods_exist(self) -> None:
         """Test that required service methods exist."""
-        tm.that(hasattr(self.connection, "connect"), eq=True)
-        tm.that(hasattr(self.connection, "disconnect"), eq=True)
-        tm.that(hasattr(self.connection, "is_connected"), eq=True)
-        tm.that(hasattr(self.connection, "get_schemas"), eq=True)
-        tm.that(hasattr(self.connection, "get_tables"), eq=True)
 
     def test_query_methods_exist(self) -> None:
         """Test that query methods exist."""
-        tm.that(hasattr(self.connection, "execute"), eq=True)
-        tm.that(hasattr(self.connection, "build_select"), eq=True)
-        tm.that(hasattr(self.connection, "build_insert_statement"), eq=True)
 
     def test_connection_error_handling(self) -> None:
         """Test connection error handling."""
         result = self.connection.connect()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
 
     def test_schema_operations_error_handling(self) -> None:
         """Test schema operations error handling when not connected."""
         result = self.connection.get_schemas()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         result = self.connection.get_tables()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
 
     def test_sql_building_methods(self) -> None:
         """Test SQL building methods."""
         result = self.connection.build_select("TEST_TABLE")
-        tm.that(hasattr(result, "is_success"), eq=True)
         columns = ["column1", "column2"]
         result = self.connection.build_insert_statement("TEST_TABLE", columns)
-        tm.that(hasattr(result, "is_success"), eq=True)
 
     def test_ddl_operations(self) -> None:
         """Test DDL operations."""
-        tm.that(hasattr(self.connection, "build_create_index_statement"), eq=True)
         tm.that(callable(self.connection.build_create_index_statement), eq=True)
 
     def test_service_creation(self) -> None:

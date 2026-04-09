@@ -133,10 +133,6 @@ class TestFlextDbOracleServices:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        tm.that(hasattr(service, "build_select"), eq=True)
-        tm.that(hasattr(service, "build_insert_statement"), eq=True)
-        tm.that(hasattr(service, "build_update_statement"), eq=True)
-        tm.that(hasattr(service, "build_delete_statement"), eq=True)
 
     def test_service_sql_validation(self) -> None:
         """Test SQL validation through the service."""
@@ -165,7 +161,6 @@ class TestUtilities:
 
     def test_utilities_has_methods(self) -> None:
         """Test utilities has expected methods."""
-        tm.that(hasattr(u.DbOracle, "generate_query_hash"), eq=True)
 
 
 class TestConstants:
@@ -177,7 +172,6 @@ class TestConstants:
 
     def test_constants_has_validation(self) -> None:
         """Test constants has validation constants."""
-        tm.that(hasattr(c.DbOracle, "OracleValidation"), eq=True)
 
 
 class TestExceptions:

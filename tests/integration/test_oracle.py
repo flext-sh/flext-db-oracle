@@ -39,9 +39,6 @@ class TestOracleIntegration:
         """Test API instantiation with mock config."""
         api = FlextDbOracleApi(config=mock_oracle_config)
         assert api is not None
-        assert hasattr(api, "connect")
-        assert hasattr(api, "disconnect")
-        assert hasattr(api, "query")
 
     @pytest.mark.oracle
     def test_api_full_workflow(

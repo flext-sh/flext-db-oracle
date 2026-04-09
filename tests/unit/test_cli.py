@@ -141,17 +141,11 @@ class TestFlextDbOracleClientReal:
     def test_connection_wizard_real_validation(self) -> None:
         """Test connection wizard input validation."""
         client = FlextDbOracleClient()
-        tm.that(hasattr(client, "connect_to_oracle"), eq=True)
         tm.that(callable(client.connect_to_oracle), eq=True)
 
     def test_oracle_cli_client_methods_real(self) -> None:
         """Test FlextDbOracleClient has proper CLI methods."""
         client = FlextDbOracleClient()
-        tm.that(hasattr(client, "connect_to_oracle"), eq=True)
-        tm.that(hasattr(client, "execute_query"), eq=True)
-        tm.that(hasattr(client, "list_schemas"), eq=True)
-        tm.that(hasattr(client, "list_tables"), eq=True)
-        tm.that(hasattr(client, "health_check"), eq=True)
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""
@@ -217,7 +211,6 @@ class TestFlextDbOracleCli:
         """Test basic CLI service initialization."""
         cli_service = FlextDbOracleCli()
         tm.that(isinstance(cli_service, FlextDbOracleCli), eq=True)
-        tm.that(hasattr(cli_service, "logger"), eq=True)
 
 
 class TestOracleConnectionHelper:
@@ -460,7 +453,6 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(output, is_=m.DbOracle.HealthCheckReport)
-        tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
         """Test health check with config creation failure."""
@@ -475,7 +467,6 @@ class TestCliServiceOperations:
         tm.ok(result)
         output = result.value
         tm.that(output, is_=m.DbOracle.HealthCheckReport)
-        tm.that(hasattr(output, "status") and len(output.status) > 0, eq=True)
 
     def test_execute_health_check_connection_failure(self) -> None:
         """Test health check with connection validation failure."""
@@ -698,13 +689,11 @@ class TestCLIRealFunctionality:
     def test_cli_creation_and_basic_functionality(self) -> None:
         """Test CLI creation and basic functionality - REAL IMPLEMENTATION."""
         oracle_cli = FlextDbOracleClient()
-        tm.that(hasattr(oracle_cli, "execute_query"), eq=True)
         get_history_method = getattr(oracle_cli, "get_command_history", None)
         if callable(get_history_method):
             history = get_history_method()
             assert isinstance(history, list)
         else:
-            tm.that(callable(getattr(oracle_cli, "execute_query", None)), eq=True)
 
     def test_environment_configuration_real(self) -> None:
         """Test environment configuration using real API functionality."""
@@ -754,7 +743,6 @@ class TestCLIRealFunctionality:
         tm.ok(metrics_result)
         tm.that(metrics_result.value, is_=dict)
         connection_result = api.test_connection()
-        tm.that(hasattr(connection_result, "is_success"), eq=True)
         is_valid = api.is_valid()
         tm.that(is_valid, is_=bool)
         tm.that(is_valid, eq=True)

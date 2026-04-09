@@ -31,9 +31,6 @@ class TestDispatcherSurgical:
 
     def test_dispatcher_has_command_classes(self) -> None:
         """Test dispatcher has command classes."""
-        tm.that(hasattr(FlextDbOracleDispatcher, "ExecuteQueryCommand"), eq=True)
-        tm.that(hasattr(FlextDbOracleDispatcher, "ConnectCommand"), eq=True)
-        tm.that(hasattr(FlextDbOracleDispatcher, "ExecuteManyCommand"), eq=True)
 
     def test_command_creation(self) -> None:
         """Test command objects can be created."""

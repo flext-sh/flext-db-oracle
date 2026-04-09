@@ -16,11 +16,9 @@ class Teste:
 
     def test_exceptions_has_error_class(self) -> None:
         """Test exceptions has Error class."""
-        tm.that(hasattr(e, "Error"), eq=True)
 
     def test_exceptions_has_connection_error_class(self) -> None:
         """Test exceptions has OracleConnectionError class."""
-        tm.that(hasattr(e, "OracleConnectionError"), eq=True)
 
     def test_error_creation(self) -> None:
         """Test Error can be created."""

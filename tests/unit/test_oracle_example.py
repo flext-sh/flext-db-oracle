@@ -101,7 +101,6 @@ class TestRealOracleConnection:
                 raise AssertionError(msg)
             fetch_data = result.value
             if fetch_data:
-                tm.that(hasattr(fetch_data, "__getitem__"), eq=True)
                 first_value = next(iter(fetch_data.values()))
                 tm.that(int(str(first_value)), eq=42)
         finally:

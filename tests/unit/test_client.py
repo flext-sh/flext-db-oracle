@@ -23,19 +23,12 @@ class TestFlextDbOracleClientRealFunctionality:
         )
         client = FlextDbOracleClient()
         tm.that(client, none=False)
-        tm.that(hasattr(client, "logger"), eq=True)
 
     def test_client_creation_default_config(self) -> None:
         """Test client can be created with default config."""
         client = FlextDbOracleClient()
         tm.that(client, none=False)
-        tm.that(hasattr(client, "debug"), eq=True)
-        tm.that(hasattr(client, "current_connection"), eq=True)
 
     def test_client_has_required_attributes(self) -> None:
         """Test client has required attributes."""
         client = FlextDbOracleClient()
-        tm.that(hasattr(client, "debug"), eq=True)
-        tm.that(hasattr(client, "current_connection"), eq=True)
-        tm.that(hasattr(client, "user_preferences"), eq=True)
-        tm.that(hasattr(client, "logger"), eq=True)

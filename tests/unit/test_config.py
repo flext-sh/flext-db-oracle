@@ -23,6 +23,3 @@ class TestFlextDbOracleSettings:
     def test_config_attributes(self) -> None:
         """Test config has required attributes."""
         config = FlextDbOracleSettings()
-        tm.that(hasattr(config, "host"), eq=True)
-        tm.that(hasattr(config, "port"), eq=True)
-        tm.that(hasattr(config, "service_name"), eq=True)

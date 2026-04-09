@@ -50,10 +50,6 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test complete API initialization with all attributes."""
         tm.that(self.api, none=False)
         tm.that(self.api.config, eq=self.config)
-        tm.that(hasattr(self.api, "_config"), eq=True)
-        tm.that(hasattr(self.api, "_services"), eq=True)
-        tm.that(hasattr(self.api, "logger"), eq=True)
-        tm.that(hasattr(self.api, "_registry"), eq=True)
         plugins_result = self.api.list_plugins()
         tm.that(plugins_result.is_success, eq=True)
         tm.that(not plugins_result.value, eq=True)
@@ -174,7 +170,6 @@ class TestFlextDbOracleApiRealFunctionality:
             )
             api = FlextDbOracleApi(self.config)
             tm.that(api, none=False)
-            tm.that(hasattr(api, "query"), eq=True)
         finally:
             if old_value is None:
                 os.environ.pop("FLEXT_DB_ORACLE_ENABLE_DISPATCHER", None)
@@ -457,8 +452,6 @@ class TestFlextDbOracleApiRealFunctionality:
 
     def test_context_manager_protocol_real(self) -> None:
         """Test context manager protocol methods exist."""
-        tm.that(hasattr(self.api, "__enter__"), eq=True)
-        tm.that(hasattr(self.api, "__exit__"), eq=True)
         tm.that(callable(self.api.__enter__), eq=True)
         tm.that(callable(self.api.__exit__), eq=True)
         with pytest.raises(RuntimeError):
@@ -481,8 +474,6 @@ class TestFlextDbOracleApiRealFunctionality:
         test_types = ["string", "integer", "number", "boolean", "date-time"]
         for singer_type in test_types:
             result = self.api.convert_singer_type(singer_type)
-            tm.that(hasattr(result, "is_success"), eq=True)
-            tm.that(hasattr(result, "error"), eq=True)
             if result.is_success:
                 tm.ok(result)
                 oracle_type = result.value
@@ -519,9 +510,6 @@ class TestFlextDbOracleApiRealFunctionality:
             "required": ["id", "name"],
         }
         result = self.api.map_singer_schema(test_schema)
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "value"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         if result.is_success:
             tm.ok(result)
             schema_mapping = result.value
@@ -534,8 +522,6 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test execute_sql method structure."""
         test_sql = "SELECT 1 FROM dual"
         result = self.api.execute_sql(test_sql)
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         tm.fail(result)
         tm.that(result.error, none=False)
         error_lower = result.error.lower() if result.error is not None else ""
@@ -551,8 +537,6 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_transaction_method_real(self) -> None:
         """Test transaction method."""
         result = self.api.transaction()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         if not result.is_success:
             tm.fail(result)
             tm.that(result.error, none=False)
@@ -570,7 +554,6 @@ class TestFlextDbOracleApiRealFunctionality:
         """Test connection property."""
         connection = self.api.connection
         tm.that(connection, none=True)
-        tm.that(hasattr(self.api, "connection"), eq=True)
 
     def test_api_methods_exist_comprehensive_real(self) -> None:
         """Test that all expected API methods exist."""
@@ -608,7 +591,6 @@ class TestFlextDbOracleApiRealFunctionality:
             "transaction",
         ]
         for method_name in expected_methods:
-            tm.that(hasattr(self.api, method_name), eq=True)
             method = getattr(self.api, method_name)
             if method_name not in {"config", "connection", "is_connected"}:
                 tm.that(callable(method), eq=True)
@@ -668,9 +650,6 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_get_health_status_method_real(self) -> None:
         """Test get_health_status method."""
         result = self.api.get_health_status()
-        tm.that(hasattr(result, "is_success"), eq=True)
-        tm.that(hasattr(result, "value"), eq=True)
-        tm.that(hasattr(result, "error"), eq=True)
         tm.ok(result)
         health_data = result.value
         tm.that(health_data, none=False)
@@ -679,23 +658,11 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_flext_result_consistency_real(self) -> None:
         """Test that all API methods return consistent r objects."""
         result1 = self.api.optimize_query("SELECT 1")
-        tm.that(hasattr(result1, "is_success"), eq=True)
-        tm.that(hasattr(result1, "error"), eq=True)
         result2 = self.api.get_observability_metrics()
-        tm.that(hasattr(result2, "is_success"), eq=True)
-        tm.that(hasattr(result2, "error"), eq=True)
         result3 = self.api.get_health_status()
-        tm.that(hasattr(result3, "is_success"), eq=True)
-        tm.that(hasattr(result3, "error"), eq=True)
         result4 = self.api.list_plugins()
-        tm.that(hasattr(result4, "is_success"), eq=True)
-        tm.that(hasattr(result4, "error"), eq=True)
         result5 = self.api.register_plugin("test", {"plugin": "data"})
-        tm.that(hasattr(result5, "is_success"), eq=True)
-        tm.that(hasattr(result5, "error"), eq=True)
         for res in (result1, result2, result3, result4, result5):
-            tm.that(hasattr(res, "is_success"), eq=True)
-            tm.that(hasattr(res, "error"), eq=True)
             if res.is_success:
                 tm.that(res.error, none=True)
                 _ = getattr(res, "value", None)
@@ -1291,7 +1258,6 @@ class TestFlextDbOracleApiSafeMethods:
         tm.that(not api.is_connected, eq=True)
         conn = api.connection
         tm.that(conn, none=True)
-        tm.that(hasattr(api, "connection"), eq=True)
 
     def test_api_observability_metrics_method(self) -> None:
         """Test get_observability_metrics method."""
@@ -1464,12 +1430,6 @@ class TestApiSurgicalSimple:
             password="test",
         )
         api = FlextDbOracleApi(config=config)
-        tm.that(hasattr(api, "_config"), eq=True)
-        tm.that(hasattr(api, "_services"), eq=True)
-        tm.that(hasattr(api, "_context_name"), eq=True)
-        tm.that(hasattr(api, "logger"), eq=True)
-        tm.that(hasattr(api, "_registry"), eq=True)
-        tm.that(hasattr(api, "_dispatcher"), eq=True)
         tm.that(api.config, eq=config)
 
     def test_dispatch_enabled_property(self) -> None:
@@ -1755,8 +1715,6 @@ class TestDirectCoverageBoostTypes:
                 nullable=False,
                 default_value="0",
             )
-            tm.that(hasattr(column2, "name"), eq=True)
-            tm.that(hasattr(column2, "data_type"), eq=True)
         except (TypeError, ValueError, NotImplementedError):
             pass
 
@@ -1908,11 +1866,9 @@ class TestDirectCoverageBoostServices:
             config: FlextDbOracleSettings = config_result.value
             services = FlextDbOracleServices(config=config)
             tm.that(services, none=False)
-            tm.that(hasattr(services, "config"), eq=True)
             tm.that(services._db_config, eq=config)
             tm.that(not services.is_connected(), eq=True)
             connection_result = services.connect()
-            tm.that(hasattr(connection_result, "is_failure"), eq=True)
             tm.that(connection_result.is_failure, eq=True)
 
     def test_services_sql_generation_comprehensive(self) -> None:

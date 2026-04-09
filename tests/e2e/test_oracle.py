@@ -120,7 +120,6 @@ class TestOracleE2E:
                 table_metadata = metadata_result.value
                 assert table_metadata["table_name"] == test_table_name
                 columns_obj = table_metadata["columns"]
-                assert hasattr(columns_obj, "__len__")
                 if isinstance(columns_obj, (list, tuple, dict, str)):
                     assert len(columns_obj) >= 4
                 columns_result = api.get_columns(test_table_name)
@@ -247,7 +246,6 @@ class TestOracleE2E:
         )
         api = FlextDbOracleApi(invalid_config)
         connect_result = api.connect()
-        assert hasattr(connect_result, "is_success")
         query_result = api.query("SELECT 1 FROM DUAL")
         if query_result.is_success:
             msg = "Query should fail without connection"

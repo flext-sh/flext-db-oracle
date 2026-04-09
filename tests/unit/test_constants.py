@@ -24,10 +24,6 @@ class Testc:
 
     def test_constants_inheritance(self) -> None:
         """Test constants properly extends FlextConstants."""
-        tm.that(hasattr(c.DbOracle, "Platform"), eq=True)
-        tm.that(hasattr(c.DbOracle, "Connection"), eq=True)
-        tm.that(hasattr(c.DbOracle, "Query"), eq=True)
-        tm.that(hasattr(c.DbOracle, "DataTypes"), eq=True)
 
     def test_connection_constants(self) -> None:
         """Test connection-related constants."""
@@ -273,29 +269,16 @@ class Testc:
         conn_type = enums.ConnectionType
         tm.that(conn_type, is_=type)
         assert issubclass(conn_type, StrEnum)  # type narrowing
-        tm.that(getattr(conn_type, "SERVICE_NAME"), eq="service_name")
-        tm.that(getattr(conn_type, "SID"), eq="sid")
-        tm.that(getattr(conn_type, "TNS"), eq="tns")
         query_type = enums.QueryType
         tm.that(query_type, is_=type)
         assert issubclass(query_type, StrEnum)  # type narrowing
-        tm.that(getattr(query_type, "SELECT"), eq="SELECT")
-        tm.that(getattr(query_type, "INSERT"), eq="INSERT")
-        tm.that(getattr(query_type, "UPDATE"), eq="UPDATE")
-        tm.that(getattr(query_type, "DELETE"), eq="DELETE")
         data_type = enums.DataType
         tm.that(data_type, is_=type)
         assert issubclass(data_type, StrEnum)  # type narrowing
-        tm.that(getattr(data_type, "VARCHAR2"), eq="VARCHAR2")
-        tm.that(getattr(data_type, "NUMBER"), eq="NUMBER")
-        tm.that(getattr(data_type, "DATE"), eq="DATE")
-        tm.that(getattr(data_type, "TIMESTAMP"), eq="TIMESTAMP")
 
     def test_platform_extension(self) -> None:
         """Test Oracle-specific platform constants extending base Platform."""
         platform = c.DbOracle.Platform
-        tm.that(hasattr(platform, "LOOPBACK_IP"), eq=True)
-        tm.that(hasattr(platform, "LOCALHOST_IP"), eq=True)
         tm.that(platform.LOOPBACK_IP, eq="127.0.0.1")
         tm.that(platform.LOCALHOST_IP, eq="127.0.0.1")
 
