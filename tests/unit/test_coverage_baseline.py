@@ -132,7 +132,7 @@ class TestFlextDbOracleServices:
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config)
+        FlextDbOracleServices(config=config)
 
     def test_service_sql_validation(self) -> None:
         """Test SQL validation through the service."""

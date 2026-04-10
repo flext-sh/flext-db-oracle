@@ -245,7 +245,7 @@ class TestOracleE2E:
             password="invalid_password",
         )
         api = FlextDbOracleApi(invalid_config)
-        connect_result = api.connect()
+        api.connect()
         query_result = api.query("SELECT 1 FROM DUAL")
         if query_result.is_success:
             msg = "Query should fail without connection"

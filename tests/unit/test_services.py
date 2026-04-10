@@ -736,7 +736,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            column2 = m.DbOracle.Column(
+            m.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
@@ -1092,7 +1092,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             "get_columns",
             "test_connection",
         ]
-        for method_name in existing_methods:
+        for _method_name in existing_methods:
+            pass
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""
@@ -1203,18 +1204,18 @@ class TestFlextDbOracleConnectionSimple:
 
     def test_connection_error_handling(self) -> None:
         """Test connection error handling."""
-        result = self.connection.connect()
+        self.connection.connect()
 
     def test_schema_operations_error_handling(self) -> None:
         """Test schema operations error handling when not connected."""
-        result = self.connection.get_schemas()
-        result = self.connection.get_tables()
+        self.connection.get_schemas()
+        self.connection.get_tables()
 
     def test_sql_building_methods(self) -> None:
         """Test SQL building methods."""
-        result = self.connection.build_select("TEST_TABLE")
+        self.connection.build_select("TEST_TABLE")
         columns = ["column1", "column2"]
-        result = self.connection.build_insert_statement("TEST_TABLE", columns)
+        self.connection.build_insert_statement("TEST_TABLE", columns)
 
     def test_ddl_operations(self) -> None:
         """Test DDL operations."""

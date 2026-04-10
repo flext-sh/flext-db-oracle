@@ -145,7 +145,7 @@ class TestFlextDbOracleClientReal:
 
     def test_oracle_cli_client_methods_real(self) -> None:
         """Test FlextDbOracleClient has proper CLI methods."""
-        client = FlextDbOracleClient()
+        FlextDbOracleClient()
 
     def test_client_real_error_handling(self) -> None:
         """Test real error handling in client methods."""
@@ -693,7 +693,6 @@ class TestCLIRealFunctionality:
         if callable(get_history_method):
             history = get_history_method()
             assert isinstance(history, list)
-        else:
 
     def test_environment_configuration_real(self) -> None:
         """Test environment configuration using real API functionality."""
@@ -742,7 +741,7 @@ class TestCLIRealFunctionality:
         metrics_result = api.get_observability_metrics()
         tm.ok(metrics_result)
         tm.that(metrics_result.value, is_=dict)
-        connection_result = api.test_connection()
+        api.test_connection()
         is_valid = api.is_valid()
         tm.that(is_valid, is_=bool)
         tm.that(is_valid, eq=True)

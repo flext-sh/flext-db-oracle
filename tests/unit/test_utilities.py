@@ -37,7 +37,8 @@ class Testu:
             "escape_oracle_identifier",
             "validate_identifier",
         ]
-        for method in required_methods:
+        for _method in required_methods:
+            pass
 
     def test_generate_query_hash_basic_select(self) -> None:
         """Test basic SELECT query hash generation."""

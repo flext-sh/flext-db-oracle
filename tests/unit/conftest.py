@@ -49,7 +49,6 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
         env_port_int = int(env_port)
         status_result = docker_control.get_container_status(container_name)
         if status_result.is_success:
-            status_value = status_result.value
             for container_port, host_port in ports.items():
                 if (
                     container_port.startswith("1521")
@@ -66,7 +65,6 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
     for _ in range(30):
         status_result = docker_control.get_container_status(container_name)
         if status_result.is_success:
-            status_value = status_result.value
             for container_port, host_port in ports.items():
                 if container_port.startswith("1521") and host_port.isdigit():
                     return int(host_port)

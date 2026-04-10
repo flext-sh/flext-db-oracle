@@ -16,7 +16,6 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from pydantic import (
     Field,
-    RootModel,
     StringConstraints,
     field_validator,
     model_validator,
@@ -29,44 +28,11 @@ from pydantic_settings import (
 )
 
 from flext_core import FlextSettings, r
-from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
-
-OracleIdentifier = Annotated[
-    str,
-    StringConstraints(
-        strip_whitespace=True,
-        to_upper=True,
-        max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
-    ),
-]
-
-
-class FlextDbOraclePassword(RootModel[str]):
-    """Password value object used by Oracle settings."""
-
-    root: str = Field(default="", description="Oracle database password")
-
-    @override
-    def __str__(self) -> str:
-        """Return wrapped password as plain string."""
-        return self.root
-
-    def get_secret_value(self) -> str:
-        """Return wrapped password for secret consumers."""
-        return self.root
-
-    @override
-    def __eq__(self, other: object) -> bool:
-        """Compare wrapped password value with wrappers and raw strings."""
-        if isinstance(other, FlextDbOraclePassword):
-            return self.root == other.root
-        if isinstance(other, str):
-            return self.root == other
-        return False
-
-    def __hash__(self) -> int:
-        """Return hash based on wrapped password value."""
-        return hash(self.root)
+from flext_db_oracle import (
+    FlextDbOracleConstants as c,
+    FlextDbOraclePassword,
+    FlextDbOracleTypes as t,
+)
 
 
 @FlextSettings.auto_register("db-oracle")
@@ -91,7 +57,14 @@ class FlextDbOracleSettings(FlextSettings):
         default=c.DbOracle.Connection.DEFAULT_PORT,
         description="Oracle database listener port",
     )
-    service_name: OracleIdentifier = Field(
+    service_name: Annotated[
+        str,
+        StringConstraints(
+            strip_whitespace=True,
+            to_upper=True,
+            max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+        ),
+    ] = Field(
         default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         description="Oracle service name for connection",
     )
@@ -115,7 +88,17 @@ class FlextDbOracleSettings(FlextSettings):
         default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
         description="Maximum connection pool size",
     )
-    sid: OracleIdentifier | None = Field(
+    sid: (
+        Annotated[
+            str,
+            StringConstraints(
+                strip_whitespace=True,
+                to_upper=True,
+                max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
+            ),
+        ]
+        | None
+    ) = Field(
         default=None,
         description="Oracle SID for legacy connections",
     )
@@ -253,10 +236,3 @@ class FlextDbOracleSettings(FlextSettings):
             return r[FlextDbOracleSettings].ok(settings)
         except ValueError as e:
             return r[FlextDbOracleSettings].fail(f"Invalid Oracle URL: {e}")
-
-
-__all__ = [
-    "FlextDbOraclePassword",
-    "FlextDbOracleSettings",
-    "OracleIdentifier",
-]

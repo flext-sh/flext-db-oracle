@@ -145,7 +145,8 @@ class TestFlextDbOracleMetadataManagerComprehensive:
             "get_columns",
             "test_connection",
         ]
-        for method_name in existing_methods:
+        for _method_name in existing_methods:
+            pass
 
     def test_ddl_generation_comprehensive(self) -> None:
         """Test comprehensive DDL generation functionality using model methods."""

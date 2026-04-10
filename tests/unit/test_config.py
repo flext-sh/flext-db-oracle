@@ -22,4 +22,4 @@ class TestFlextDbOracleSettings:
 
     def test_config_attributes(self) -> None:
         """Test config has required attributes."""
-        config = FlextDbOracleSettings()
+        FlextDbOracleSettings()

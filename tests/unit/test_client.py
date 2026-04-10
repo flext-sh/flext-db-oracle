@@ -31,4 +31,4 @@ class TestFlextDbOracleClientRealFunctionality:
 
     def test_client_has_required_attributes(self) -> None:
         """Test client has required attributes."""
-        client = FlextDbOracleClient()
+        FlextDbOracleClient()

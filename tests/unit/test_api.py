@@ -1709,7 +1709,7 @@ class TestDirectCoverageBoostTypes:
         except (TypeError, ValueError):
             pass
         try:
-            column2 = m.DbOracle.Column(
+            m.DbOracle.Column(
                 name="EDGE_COL",
                 data_type="NUMBER",
                 nullable=False,
