@@ -19,7 +19,6 @@ from pathlib import Path
 import oracledb
 import pytest
 from flext_tests import tk
-from pydantic import ValidationError
 
 from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
@@ -36,18 +35,13 @@ def _workspace_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _normalized_port_bindings(value: t.NormalizedValue) -> t.StrMapping:
-    try:
-        return t.Tests.STR_MAPPING_ADAPTER.validate_python(value)
-    except ValidationError:
-        return {}
-
-
 def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
     env_port = os.getenv("TEST_ORACLE_PORT")
     if env_port is not None and env_port.isdigit():
         env_port_int = int(env_port)
         status_result = docker_control.get_container_status(container_name)
+        status_value = status_result.value if status_result.is_success else None
+        ports: t.StrMapping = getattr(status_value, "ports", {}) or {}
         if status_result.is_success:
             for container_port, host_port in ports.items():
                 if (
@@ -64,6 +58,8 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
             fallback_port = configured_port
     for _ in range(30):
         status_result = docker_control.get_container_status(container_name)
+        status_value = status_result.value if status_result.is_success else None
+        ports = getattr(status_value, "ports", {}) or {}
         if status_result.is_success:
             for container_port, host_port in ports.items():
                 if container_port.startswith("1521") and host_port.isdigit():

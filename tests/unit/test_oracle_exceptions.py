@@ -14,8 +14,8 @@ from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleServices,
     FlextDbOracleSettings,
+    e,
 )
-from tests import e
 
 
 class TestRealOracleExceptionsCore:
