@@ -52,7 +52,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 env_port = os.getenv("TEST_ORACLE_PORT")
                 if env_port is not None and env_port.isdigit():
                     env_port_int = int(env_port)
-                    status_result = docker_control.get_container_status(container_name)
+                    status_result = docker_control.fetch_container_status(
+                        container_name,
+                    )
                     if status_result.success:
                         status_value = status_result.value
                         ports = cls.normalize_port_bindings(
@@ -72,7 +74,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     if isinstance(configured_port, int):
                         fallback_port = configured_port
                 for _ in range(30):
-                    status_result = docker_control.get_container_status(container_name)
+                    status_result = docker_control.fetch_container_status(
+                        container_name,
+                    )
                     if status_result.success:
                         status_value = status_result.value
                         ports = cls.normalize_port_bindings(

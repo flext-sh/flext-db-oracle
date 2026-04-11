@@ -68,12 +68,12 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     """Cleanup dirty containers BEFORE test session starts."""
     try:
         docker = tk(workspace_root=Path(__file__).resolve().parents[2])
-        dirty_containers = docker.get_dirty_containers()
+        dirty_containers = docker.dirty_containers
         if not dirty_containers:
             logger.debug("No dirty containers to clean")
             return
         container_name = "flext-oracle-db-test"
-        status_result = docker.get_container_status(container_name)
+        status_result = docker.fetch_container_status(container_name)
         if status_result.success:
             status = status_result.value
             if status.status == docker.ContainerStatus.RUNNING:
@@ -145,7 +145,7 @@ def shared_oracle_container(docker_control: tk) -> str:
     if not compose_file.startswith("/"):
         workspace_root = Path(__file__).resolve().parents[2]
         compose_file = str(workspace_root / compose_file)
-    is_dirty = docker_control.is_container_dirty(container_name)
+    is_dirty = docker_control.container_dirty(container_name)
     if is_dirty:
         logger.info(
             "Container %s is dirty, recreating with fresh volumes",
@@ -157,7 +157,7 @@ def shared_oracle_container(docker_control: tk) -> str:
                 f"Failed to recreate dirty container {container_name}: {cleanup_result.error}",
             )
     else:
-        status = docker_control.get_container_status(container_name)
+        status = docker_control.fetch_container_status(container_name)
         status_value = status.value if status.success else None
         status_name = getattr(status_value, "status", None)
         container_running = status.success and (

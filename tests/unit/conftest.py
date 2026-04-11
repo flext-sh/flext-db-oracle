@@ -21,7 +21,7 @@ import pytest
 from flext_tests import tk
 
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
-from tests import p, t
+from tests import p, t, u
 
 # Prevent unit tests from hanging on DNS resolution for fake hostnames.
 # Without this, socket operations to unresolvable hosts block indefinitely.
@@ -38,7 +38,7 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
     env_port = os.getenv("TEST_ORACLE_PORT")
     if env_port is not None and env_port.isdigit():
         env_port_int = int(env_port)
-        status_result = docker_control.get_container_status(container_name)
+        status_result = docker_control.fetch_container_status(container_name)
         status_value = status_result.value if status_result.success else None
         ports: t.StrMapping = getattr(status_value, "ports", {}) or {}
         if status_result.success:
@@ -56,7 +56,7 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
         if isinstance(configured_port, int):
             fallback_port = configured_port
     for _ in range(30):
-        status_result = docker_control.get_container_status(container_name)
+        status_result = docker_control.fetch_container_status(container_name)
         status_value = status_result.value if status_result.success else None
         ports = getattr(status_value, "ports", {}) or {}
         if status_result.success:
@@ -97,7 +97,7 @@ def _ensure_shared_oracle_container() -> str | None:
     compose_file = str(compose_file_value)
     if not compose_file.startswith("/"):
         compose_file = str(_workspace_root() / compose_file)
-    status = docker_control.get_container_status(container_name)
+    status = docker_control.fetch_container_status(container_name)
     status_value = status.value if status.success else None
     status_name = getattr(status_value, "status", None)
     container_running = status.success and (status_name == tk.ContainerStatus.RUNNING)
@@ -124,7 +124,7 @@ def _is_oracle_container_running() -> bool:
     """Check if Oracle container is running without heavy operations."""
     try:
         docker_control = tk(workspace_root=_workspace_root())
-        status_result = docker_control.get_container_status("flext-oracle-db-test")
+        status_result = docker_control.fetch_container_status("flext-oracle-db-test")
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         return False
     return status_result.success and (
