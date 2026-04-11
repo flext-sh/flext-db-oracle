@@ -468,3 +468,8 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return self._services.execute_query(sql).map(
             lambda data: self._convert_to_query_result(sql, data),
         )
+
+
+db_oracle = FlextDbOracleApi
+
+__all__ = ["FlextDbOracleApi", "db_oracle"]

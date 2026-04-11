@@ -32,3 +32,8 @@ class FlextDbOracleServices(
     def __init__(self, config: FlextDbOracleSettings) -> None:
         """Initialize the composed DB Oracle service facade."""
         FlextDbOracleServiceBase.__init__(self, config)
+
+
+s = FlextDbOracleServices
+
+__all__ = ["FlextDbOracleServices", "s"]

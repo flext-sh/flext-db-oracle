@@ -8,7 +8,7 @@ This example demonstrates Oracle configuration setup for SQLAlchemy 2.0.
 
 from __future__ import annotations
 
-from flext_db_oracle import FlextDbOracleSettings
+from flext_db_oracle import FlextDbOracleSettings, u
 
 logger = u.fetch_logger(__name__)
 
