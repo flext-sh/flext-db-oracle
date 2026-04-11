@@ -190,8 +190,8 @@ def demonstrate_comprehensive_usage():
         print(f"Configuration failed: {config_result.error}")
         return
 
-    config = config_result.value
-    api = FlextDbOracleApi(config)
+    settings = config_result.value
+    api = FlextDbOracleApi(settings)
 
     # Demonstrate complete workflow
     with api:
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 # Quick setup for local development
 def setup_local_development():
     """Setup local development environment."""
-    config = FlextDbOracleSettings(
+    settings = FlextDbOracleSettings(
         host="localhost",
         port=1521,
         service_name="XEPDB1",
@@ -344,7 +344,7 @@ def setup_local_development():
         pool_min=1,
         pool_max=5,
     )
-    return FlextDbOracleApi(config)
+    return FlextDbOracleApi(settings)
 ```
 
 #### **Testing and Validation**
@@ -353,8 +353,8 @@ def setup_local_development():
 # Configuration for testing scenarios
 def setup_testing_environment():
     """Setup testing environment with isolated database."""
-    config = FlextDbOracleSettings.from_env("TEST_ORACLE_")
-    api = FlextDbOracleApi(config, context_name="testing")
+    settings = FlextDbOracleSettings.from_env("TEST_ORACLE_")
+    api = FlextDbOracleApi(settings, context_name="testing")
 
     # Enable comprehensive logging for testing
     api.enable_debug_logging()
@@ -369,15 +369,15 @@ def setup_testing_environment():
 # Production-ready configuration with security
 def setup_production_environment():
     """Setup production environment with enterprise features."""
-    config = FlextDbOracleSettings.from_env("PROD_ORACLE_")
+    settings = FlextDbOracleSettings.from_env("PROD_ORACLE_")
 
     # Validate production configuration
-    validation_result = config.validate_domain_rules()
+    validation_result = settings.validate_domain_rules()
     if validation_result.is_failure:
-        raise RuntimeError(f"Invalid production config: {validation_result.error}")
+        raise RuntimeError(f"Invalid production settings: {validation_result.error}")
 
     # Create API with production settings
-    api = FlextDbOracleApi(config, context_name="production")
+    api = FlextDbOracleApi(settings, context_name="production")
 
     # Register monitoring plugins
 from flext_db_oracle import register_all_oracle_plugins

@@ -59,7 +59,7 @@ graph TB
     subgraph "Infrastructure Layer"
         CONNECTION[connection.py<br/>Connection Management<br/>SQLAlchemy Engine<br/>Pool Lifecycle]
         UTILITIES[utilities.py<br/>FlextDbOracleUtilities<br/>Helper Functions<br/>Common Operations]
-        CONFIG[config.py<br/>FlextDbOracleSettings<br/>Configuration Management<br/>Pydantic Settings]
+        CONFIG[settings.py<br/>FlextDbOracleSettings<br/>Configuration Management<br/>Pydantic Settings]
     end
 
     subgraph "Supporting Modules"
@@ -209,7 +209,7 @@ __all__ = [
 **Key Methods**:
 
 ```python
-def connect(self, config: OracleConfig) -> r[Connection]
+def connect(self, settings: OracleConfig) -> r[Connection]
 def execute_query(self, sql: str, params: t.ContainerMapping = None) -> r[QueryResult]
 def get_schema_info(self, schema: str) -> r[SchemaInfo]
 def begin_transaction(self) -> r[Transaction]
@@ -309,7 +309,7 @@ def rollback_transaction(self) -> r[bool]
 - Result set formatting and type conversion
 - String processing and validation helpers
 
-#### `config.py` (Configuration Management)
+#### `settings.py` (Configuration Management)
 
 **Lines**: ~700
 **Purpose**: Application configuration with Pydantic Settings

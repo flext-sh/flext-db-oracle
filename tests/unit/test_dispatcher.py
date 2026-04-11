@@ -20,12 +20,12 @@ class TestDispatcherSurgical:
 
     def test_dispatcher_creation(self) -> None:
         """Test dispatcher can be created."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="test-host",
             username="test-user",
             password="test-password",
         )
-        services = FlextDbOracleServices(config=config)
+        services = FlextDbOracleServices(settings=settings)
         dispatcher = FlextDbOracleDispatcher.build_dispatcher(services)
         tm.that(dispatcher, none=False)
 

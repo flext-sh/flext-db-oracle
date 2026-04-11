@@ -22,20 +22,20 @@ from tests import m, t
 class TestFlextDbOracleMetadataManagerComprehensive:
     """Comprehensive tests for metadata manager using real code paths."""
 
-    config: FlextDbOracleSettings
+    settings: FlextDbOracleSettings
     services: FlextDbOracleServices
     manager: FlextDbOracleServices
 
     def setup_method(self) -> None:
         """Setup test configuration."""
-        self.config = FlextDbOracleSettings(
+        self.settings = FlextDbOracleSettings(
             host="test",
             port=1521,
             service_name="TEST",
             username="test",
             password="test",
         )
-        self.services = FlextDbOracleServices(config=self.config)
+        self.services = FlextDbOracleServices(settings=self.settings)
         self.manager = self.services
 
     def test_metadata_manager_initialization(self) -> None:

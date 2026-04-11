@@ -51,7 +51,7 @@ package "flext-db-oracle Library" as library #White {
     package "Infrastructure Layer" as infrastructure #LightGray {
         rectangle "FlextDbOracleConnection\nSQLAlchemy Engine\nConnection Pool" as connection
         rectangle "FlextDbOracleUtilities\nHelper Functions\nCommon Operations" as utilities
-        rectangle "FlextDbOracleSettings\nConfiguration\nPydantic Settings" as config
+        rectangle "FlextDbOracleSettings\nConfiguration\nPydantic Settings" as settings
     }
 
     ' === CROSS-CUTTING CONCERNS ===
@@ -80,7 +80,7 @@ api --> container : injects
 cli --> client : delegates
 cli --> api : uses
 
-client --> config : configures
+client --> settings : configures
 client --> logger : logs
 
 services --> models : processes
@@ -90,7 +90,7 @@ services --> exceptions : raises
 
 connection --> utilities : helpers
 connection --> exceptions : errors
-connection --> config : settings
+connection --> settings : settings
 
 models --> exceptions : validation
 models --> constants : references

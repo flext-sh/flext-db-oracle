@@ -63,7 +63,7 @@ ______________________________________________________________________
 #### Critical Issues Identified
 
 - ❌ **Import Failures**: `TestsFlextBuilders` not found in flext-core test utilities
-- ❌ **Pydantic Deprecations**: Class-based config deprecated, needs ConfigDict migration
+- ❌ **Pydantic Deprecations**: Class-based settings deprecated, needs ConfigDict migration
 - ❌ **Constants Test Failures**: Network constants test failing (1 vs 1024)
 
 #### Immediate Actions Required

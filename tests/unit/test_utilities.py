@@ -362,18 +362,18 @@ class Testu:
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test FlextDbOracleSettings.from_env creates config from environment."""
+        """Test FlextDbOracleSettings.from_env creates settings from environment."""
         monkeypatch.setenv("FLEXT_DB_ORACLE_HOST", "test-host")
         monkeypatch.setenv("FLEXT_DB_ORACLE_PORT", "1522")
         monkeypatch.setenv("FLEXT_DB_ORACLE_USERNAME", "testuser")
         FlextDbOracleSettings.reset_for_testing()
         result = FlextDbOracleSettings.from_env("FLEXT_DB_ORACLE_")
         tm.ok(result)
-        config = result.value
-        tm.that(config, is_=FlextDbOracleSettings)
-        tm.that(config.host, eq="test-host")
-        tm.that(config.port, eq=1522)
-        tm.that(config.username, eq="testuser")
+        settings = result.value
+        tm.that(settings, is_=FlextDbOracleSettings)
+        tm.that(settings.host, eq="test-host")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.username, eq="testuser")
 
     def test_oracle_validation_validate_identifier_valid(self) -> None:
         """Test valid identifier validation."""

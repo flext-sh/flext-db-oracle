@@ -133,7 +133,7 @@ def _is_oracle_container_running() -> bool:
 
 
 def _get_oracle_config_from_container() -> FlextDbOracleSettings | None:
-    """Get Oracle config from shared container configuration."""
+    """Get Oracle settings from shared container configuration."""
     if not _is_oracle_container_running():
         return None
     host = os.getenv("TEST_ORACLE_HOST", "localhost")
@@ -182,7 +182,7 @@ def oracle_container(shared_oracle_container: str | None) -> str | None:
 
 @pytest.fixture
 def real_oracle_config() -> FlextDbOracleSettings | None:
-    """Provide real Oracle config if container is running."""
+    """Provide real Oracle settings if container is running."""
     if not _is_oracle_container_running():
         pytest.skip("Oracle container not running")
     return _get_oracle_config_from_container()
@@ -192,10 +192,10 @@ def real_oracle_config() -> FlextDbOracleSettings | None:
 def oracle_api(
     real_oracle_config: FlextDbOracleSettings | None,
 ) -> FlextDbOracleApi | None:
-    """Provide Oracle API with real config if available."""
+    """Provide Oracle API with real settings if available."""
     if real_oracle_config is None:
         pytest.skip("Oracle configuration unavailable for real API fixture")
-    return FlextDbOracleApi(config=real_oracle_config)
+    return FlextDbOracleApi(settings=real_oracle_config)
 
 
 @pytest.fixture
@@ -217,7 +217,7 @@ def connected_oracle_api(
 
 @pytest.fixture
 def mock_oracle_config() -> FlextDbOracleSettings:
-    """Provide mock Oracle config for tests."""
+    """Provide mock Oracle settings for tests."""
     return FlextDbOracleSettings(
         host="mock-host",
         port=1521,
@@ -232,7 +232,7 @@ def oracle_config(
     real_oracle_config: FlextDbOracleSettings | None,
     mock_oracle_config: FlextDbOracleSettings,
 ) -> FlextDbOracleSettings:
-    """Provide Oracle config - real if available, mock otherwise."""
+    """Provide Oracle settings - real if available, mock otherwise."""
     return real_oracle_config if real_oracle_config is not None else mock_oracle_config
 
 

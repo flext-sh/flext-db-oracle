@@ -175,7 +175,7 @@ class TestFlextDbOracleClientIntegration:
 
     def test_client_with_real_config_creation(self) -> None:
         """Test client operations with real configuration objects."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             name="XE",
@@ -185,13 +185,13 @@ class TestFlextDbOracleClientIntegration:
             ssl_server_cert_dn=None,
         )
         client = FlextDbOracleClient()
-        service_name = config.service_name or "default_service"
+        service_name = settings.service_name or "default_service"
         result = client.connect_to_oracle(
-            config.host,
-            config.port,
+            settings.host,
+            settings.port,
             service_name,
-            config.username,
-            config.password.get_secret_value() if config.password else None,
+            settings.username,
+            settings.password.get_secret_value() if settings.password else None,
         )
         tm.that(not result.success, eq=True)
         tm.that(result.error, is_=str)
@@ -217,7 +217,7 @@ class TestOracleConnectionHelper:
     """Test Oracle connection helper functionality."""
 
     def test_create_config_from_params_success(self) -> None:
-        """Test successful config creation from parameters."""
+        """Test successful settings creation from parameters."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="test-host",
             port=1522,
@@ -226,29 +226,29 @@ class TestOracleConnectionHelper:
             password="test_password",
         )
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="test-host")
-        tm.that(config.port, eq=1522)
-        tm.that(config.service_name, eq="TEST_SERVICE")
-        tm.that(config.username, eq="test_user")
-        tm.that(config.password, none=False)
-        if config.password is not None:
-            tm.that(config.password.get_secret_value(), eq="test_password")
+        settings = result.value
+        tm.that(settings.host, eq="test-host")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.service_name, eq="TEST_SERVICE")
+        tm.that(settings.username, eq="test_user")
+        tm.that(settings.password, none=False)
+        if settings.password is not None:
+            tm.that(settings.password.get_secret_value(), eq="test_password")
 
     def test_create_config_from_params_defaults(self) -> None:
-        """Test config creation with default parameters."""
+        """Test settings creation with default parameters."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             password="test_password",
         )
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="localhost")
-        tm.that(config.port, eq=1521)
-        tm.that(config.service_name, eq="XEPDB1")
-        tm.that(config.username, eq="system")
+        settings = result.value
+        tm.that(settings.host, eq="localhost")
+        tm.that(settings.port, eq=1521)
+        tm.that(settings.service_name, eq="XEPDB1")
+        tm.that(settings.username, eq="system")
 
     def test_create_config_from_params_no_password(self) -> None:
-        """Test config creation fails without password."""
+        """Test settings creation fails without password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="test-host",
             username="test_user",
@@ -257,7 +257,7 @@ class TestOracleConnectionHelper:
         tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_empty_password(self) -> None:
-        """Test config creation fails with empty password."""
+        """Test settings creation fails with empty password."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="test-host",
             username="test_user",
@@ -267,7 +267,7 @@ class TestOracleConnectionHelper:
         tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_validation_error(self) -> None:
-        """Test config creation handles validation errors."""
+        """Test settings creation handles validation errors."""
         result = FlextDbOracleCli._OracleConnectionHelper.create_config_from_params(
             host="",
             password="test_password",
@@ -277,7 +277,7 @@ class TestOracleConnectionHelper:
 
     def test_validate_connection_success(self) -> None:
         """Test successful connection validation."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -287,14 +287,14 @@ class TestOracleConnectionHelper:
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
             mock_connect.return_value = r[FlextDbOracleApi].ok(Mock())
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
-                config,
+                settings,
             )
         tm.ok(result)
         tm.that(result.value, eq=True)
 
     def test_validate_connection_failure(self) -> None:
         """Test connection validation failure handling."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="invalid-host",
             port=1521,
             service_name="INVALID",
@@ -304,7 +304,7 @@ class TestOracleConnectionHelper:
         with patch.object(FlextDbOracleApi, "connect") as mock_connect:
             mock_connect.return_value = r[FlextDbOracleApi].fail("Connection failed")
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
-                config,
+                settings,
             )
         tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Connection failed")
@@ -455,7 +455,7 @@ class TestCliServiceOperations:
         tm.that(output, is_=m.DbOracle.HealthCheckReport)
 
     def test_execute_health_check_config_creation_failure(self) -> None:
-        """Test health check with config creation failure."""
+        """Test health check with settings creation failure."""
         cli_service = FlextDbOracleCli()
         result = cli_service.execute_health_check(
             host="localhost",
@@ -718,7 +718,7 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host, none=False)
+            tm.that(api.settings.host, none=False)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -730,14 +730,14 @@ class TestCLIRealFunctionality:
 
     def test_api_observability_and_connection_real(self) -> None:
         """Test API observability and connection functionality - REAL IMPLEMENTATION."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TESTDB",
             username="test",
             password="test",
         )
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(settings)
         metrics_result = api.get_observability_metrics()
         tm.ok(metrics_result)
         tm.that(metrics_result.value, is_=dict)
@@ -795,22 +795,22 @@ class TestCLIRealFunctionality:
             "username": "param_user",
             "password": "param_pass",
         }
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host=str(config_data["host"]),
             port=int(str(config_data["port"])) if config_data.get("port") else 1521,
             service_name=str(config_data.get("service_name", "XE")),
             username=str(config_data["username"]),
             password=str(config_data["password"]),
         )
-        api = FlextDbOracleApi(config=config)
-        tm.that(api.config.host, eq="param_test_host")
-        tm.that(api.config.port, eq=1521)
-        tm.that(api.config.service_name, eq="PARAM_TEST")
-        tm.that(api.config.username, eq="param_user")
+        api = FlextDbOracleApi(settings=settings)
+        tm.that(api.settings.host, eq="param_test_host")
+        tm.that(api.settings.port, eq=1521)
+        tm.that(api.settings.service_name, eq="PARAM_TEST")
+        tm.that(api.settings.username, eq="param_user")
 
     def test_comprehensive_api_coverage_real(self) -> None:
         """Comprehensive API coverage test using real functionality - NO MOCKS."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="comprehensive_test",
             port=1521,
             name="COMP_TEST",
@@ -818,7 +818,7 @@ class TestCLIRealFunctionality:
             username="comp_user",
             password="comp_pass",
         )
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(settings)
         methods_to_test: Sequence[tuple[str, t.DbOracle.Tests.ApiCoverageCallable]] = [
             ("valid", api.valid),
             ("to_dict", api.to_dict),
@@ -860,8 +860,8 @@ class TestCLIRealFunctionality:
             api_result = FlextDbOracleApi.from_env()
             tm.ok(api_result)
             api = api_result.value
-            tm.that(api.config.host, none=False)
-            tm.that(api.config.port, is_=int)
+            tm.that(api.settings.host, none=False)
+            tm.that(api.settings.port, is_=int)
         finally:
             for key, original_value in original_env.items():
                 if original_value is None:
@@ -876,21 +876,21 @@ class TestCLIRealFunctionality:
             username="user",
             password="pass",
         )
-        url_api = FlextDbOracleApi(config=config_for_url)
-        tm.that(url_api.config.host, eq="host")
-        tm.that(url_api.config.port, eq=1521)
-        tm.that(url_api.config.service_name, eq="SERVICE")
+        url_api = FlextDbOracleApi(settings=config_for_url)
+        tm.that(url_api.settings.host, eq="host")
+        tm.that(url_api.settings.port, eq=1521)
+        tm.that(url_api.settings.service_name, eq="SERVICE")
 
     def test_plugin_system_real(self) -> None:
         """Test plugin system using real functionality - NO MOCKS."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="plugin_test",
             port=1521,
             service_name="PLUGIN_TEST",
             username="plugin_user",
             password="plugin_pass",
         )
-        api = FlextDbOracleApi(config)
+        api = FlextDbOracleApi(settings)
         test_plugin = {"name": "test_plugin", "version": "1.0.0"}
         register_result = api.register_plugin("test_plugin", test_plugin)
         tm.ok(register_result)

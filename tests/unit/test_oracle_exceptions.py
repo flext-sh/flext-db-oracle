@@ -30,7 +30,7 @@ class TestRealOracleExceptionsCore:
             username="invalid_user_12345",
             password="invalid_password_12345",
         )
-        connection = FlextDbOracleServices(config=invalid_config)
+        connection = FlextDbOracleServices(settings=invalid_config)
         result = connection.connect()
         if result.success:
             msg = "Connection with invalid credentials should fail"
@@ -65,7 +65,7 @@ class TestRealOracleExceptionsCore:
             password="testpass",
             timeout=1,
         )
-        connection = FlextDbOracleServices(config=unreachable_config)
+        connection = FlextDbOracleServices(settings=unreachable_config)
         result = connection.connect()
         if result.success:
             msg = "Connection to unreachable host should fail"
@@ -90,7 +90,7 @@ class TestRealOracleExceptionsCore:
         )
 
     def test_real_configuration_error_scenario(self) -> None:
-        """Test e.ConfigurationError with real invalid config."""
+        """Test e.ConfigurationError with real invalid settings."""
         try:
             invalid_config = FlextDbOracleSettings(
                 host="localhost",
@@ -100,10 +100,10 @@ class TestRealOracleExceptionsCore:
                 username="testuser",
                 password="testpass",
             )
-            connection = FlextDbOracleServices(config=invalid_config)
+            connection = FlextDbOracleServices(settings=invalid_config)
             result = connection.connect()
             if result.success:
-                msg = "Connection with invalid config should fail"
+                msg = "Connection with invalid settings should fail"
                 raise AssertionError(msg)
             error_msg = result.error or ""
             tm.that(
@@ -119,8 +119,8 @@ class TestRealOracleExceptionsCore:
     ) -> None:
         """Test e.OracleQueryError with real invalid SQL."""
         if real_oracle_config is None:
-            pytest.skip("Oracle real config unavailable")
-        connection = FlextDbOracleServices(config=real_oracle_config)
+            pytest.skip("Oracle real settings unavailable")
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
@@ -158,7 +158,7 @@ class TestRealOracleExceptionsCore:
     ) -> None:
         """Test e.TimeoutError with real long-running query."""
         if real_oracle_config is None:
-            pytest.skip("Oracle real config unavailable")
+            pytest.skip("Oracle real settings unavailable")
         timeout_config = FlextDbOracleSettings(
             host=real_oracle_config.host,
             port=real_oracle_config.port,
@@ -171,7 +171,7 @@ class TestRealOracleExceptionsCore:
             ),
             timeout=1,
         )
-        connection = FlextDbOracleServices(config=timeout_config)
+        connection = FlextDbOracleServices(settings=timeout_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
@@ -253,7 +253,7 @@ class TestRealOracleExceptionsAdvanced:
             )
 
     def test_real_validation_error_scenario(self) -> None:
-        """Test e.ValidationError with real config validation."""
+        """Test e.ValidationError with real settings validation."""
         invalid_configs = [
             {
                 "host": "",

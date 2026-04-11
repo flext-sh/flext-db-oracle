@@ -40,7 +40,7 @@ echo $ORACLE_USERNAME
 
 ### "Invalid username/password"
 
-Verify credentials in environment variables or config.
+Verify credentials in environment variables or settings.
 
 ### "Service name not found"
 

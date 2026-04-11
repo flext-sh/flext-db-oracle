@@ -49,13 +49,13 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     @override
     def __init__(
         self,
-        config: FlextDbOracleSettings,
+        settings: FlextDbOracleSettings,
         context_name: str | None = None,
     ) -> None:
         """Initialize API with Oracle configuration and complete flext-core integration."""
         super().__init__()
-        self._oracle_config = config
-        self._services = FlextDbOracleServices(config=self._oracle_config)
+        self._oracle_config = settings
+        self._services = FlextDbOracleServices(settings=self._oracle_config)
         self._context_name = context_name or "oracle-api"
         self._context = None
         self._dispatcher = FlextDbOracleDispatcher.build_dispatcher(self._services)
@@ -95,7 +95,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
 
     @property
     @override
-    def config(self) -> FlextDbOracleSettings:
+    def settings(self) -> FlextDbOracleSettings:
         """Get the configuration."""
         return self._oracle_config
 
@@ -120,26 +120,26 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return self._services
 
     @classmethod
-    def from_config(cls, config: FlextDbOracleSettings) -> FlextDbOracleApi:
+    def from_config(cls, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
         """Create API instance from an existing settings t.NormalizedValue."""
-        return cls(config=config)
+        return cls(settings=settings)
 
     @classmethod
     def _build_api_result(
         cls,
-        config: FlextDbOracleSettings,
+        settings: FlextDbOracleSettings,
     ) -> r[FlextDbOracleApi]:
         """Create API instance from validated settings."""
-        if not config.username:
+        if not settings.username:
             return r[FlextDbOracleApi].fail(
                 "Oracle username is required but not configured",
             )
-        password = config.password
+        password = settings.password
         if password is None or not str(password):
             return r[FlextDbOracleApi].fail(
                 "Oracle password is required but not configured",
             )
-        return r[FlextDbOracleApi].ok(cls(config=config))
+        return r[FlextDbOracleApi].ok(cls(settings=settings))
 
     @staticmethod
     def _normalize_parameters(
@@ -237,7 +237,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
 
     @override
     def execute(self, **_kwargs: t.Scalar) -> r[FlextDbOracleSettings]:
-        """Execute default domain service operation - return config."""
+        """Execute default domain service operation - return settings."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}",
         )
@@ -395,7 +395,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             return t.ConfigMap(root=dict(obj))
         return t.ConfigMap(
             root={
-                "config": self.oracle_config.model_dump(
+                "settings": self.oracle_config.model_dump(
                     exclude={"password"},
                     mode="python",
                 ),

@@ -29,7 +29,7 @@ Oracle database interface providing 36 methods for connection management, query 
 ### Connection Methods
 
 ```python
-api = FlextDbOracleApi(config)
+api = FlextDbOracleApi(settings)
 
 # Test connection
 result = api.test_connection() -> r[bool]
@@ -85,8 +85,8 @@ result = FlextDbOracleApi.from_env() -> r[FlextDbOracleApi]
 # Create from URL
 result = FlextDbOracleApi.from_url(url) -> r[FlextDbOracleApi]
 
-# Get current config
-config = api.config -> OracleConfig
+# Get current settings
+settings = api.settings -> OracleConfig
 ```
 
 ## OracleConfig
@@ -96,7 +96,7 @@ Configuration for Oracle database connections.
 ```python
 from flext_db_oracle import FlextDbOracleModels
 
-config = FlextDbOracleModels.OracleConfig(
+settings = FlextDbOracleModels.OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",

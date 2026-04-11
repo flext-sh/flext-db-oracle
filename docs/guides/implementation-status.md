@@ -214,7 +214,7 @@ ______________________________________________________________________
 
 ```python
 # All operations return r
-result = api.connect(config)
+result = api.connect(settings)
 if result.is_success:
     connection = result.unwrap()
 ```

@@ -84,14 +84,14 @@ result = cli.execute_health_check()
 api = FlextDbOracleApi.from_env()
 
 # Direct configuration
-config = OracleConfig(
+settings = OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",
     user="system",
     password="Oracle123",
 )
-api = FlextDbOracleApi(config)
+api = FlextDbOracleApi(settings)
 ```
 
 ## Available Operations

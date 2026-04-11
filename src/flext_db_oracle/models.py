@@ -31,7 +31,7 @@ class FlextDbOracleModels(FlextInfraModels):
     """Oracle database models using flext-core exclusively.
 
     Contains ONLY pure domain models (Entity, Value, AggregateRoot, etc.).
-    All config-like classes moved to config.py.
+    All settings-like classes moved to settings.py.
     All constants moved to constants.py.
     All types moved to typings.py.
     """
@@ -529,7 +529,7 @@ class FlextDbOracleModels(FlextInfraModels):
             )
 
         class CreateIndexConfig(FlextModels.Entity):
-            """Create index config using flext-core Entity."""
+            """Create index settings using flext-core Entity."""
 
             table_name: str = Field(description="Target table for the index")
             index_name: str = Field(description="Name of the index to create")
@@ -548,7 +548,7 @@ class FlextDbOracleModels(FlextInfraModels):
             )
 
         class MergeStatementConfig(FlextModels.Entity):
-            """Merge statement config using flext-core Entity."""
+            """Merge statement settings using flext-core Entity."""
 
             target_table: str = Field(description="Target table for MERGE operation")
             source_query: str = Field(description="Source query for MERGE data")

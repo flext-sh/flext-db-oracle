@@ -35,14 +35,14 @@ if config_result.is_success:
     api = FlextDbOracleApi(config_result.value)
 
 # Direct configuration
-config = FlextDbOracleModels.OracleConfig(
+settings = FlextDbOracleModels.OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",
     user="system",
     password="Oracle123",
 )
-api = FlextDbOracleApi(config)
+api = FlextDbOracleApi(settings)
 ```
 
 ## Connection Parameters

@@ -29,9 +29,9 @@ class FlextDbOracleServices(
 ):
     """Unified DB Oracle service facade via MRO composition."""
 
-    def __init__(self, config: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize the composed DB Oracle service facade."""
-        FlextDbOracleServiceBase.__init__(self, config)
+        FlextDbOracleServiceBase.__init__(self, settings)
 
 
 s = FlextDbOracleServices

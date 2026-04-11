@@ -52,7 +52,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle connection and disconnection."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         result = connection.connect()
         if result.failure:
             pytest.skip(f"Oracle connection unavailable: {result.error}")
@@ -67,7 +67,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle query execution."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
@@ -90,7 +90,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle fetch_one."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
@@ -111,7 +111,7 @@ class TestRealOracleConnection:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test real Oracle execute_many with temporary table."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
@@ -328,7 +328,7 @@ class TestRealOracleErrorHandling:
             username="invalid_user",
             password="invalid_password",
         )
-        connection = FlextDbOracleServices(config=invalid_config)
+        connection = FlextDbOracleServices(settings=invalid_config)
         result = connection.connect()
         tm.fail(result)
         error_msg = (result.error or "").lower()
@@ -350,7 +350,7 @@ class TestRealOracleErrorHandling:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test execution with invalid SQL."""
-        connection = FlextDbOracleServices(config=real_oracle_config)
+        connection = FlextDbOracleServices(settings=real_oracle_config)
         connect_result = connection.connect()
         if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")

@@ -76,7 +76,7 @@ ______________________________________________________________________
 
 #### 2. **Pydantic Deprecation Warnings**
 
-**Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
+**Issue**: `PydanticDeprecatedSince20: Support for class-based settings is deprecated`
 **Impact**: Warnings in production code, potential future breaking changes
 **Files Affected**: `src/flext_db_oracle/exceptions.py:28`
 **Root Cause**: Using deprecated Pydantic v1 style configuration
@@ -93,7 +93,7 @@ ______________________________________________________________________
 #### Immediate Actions Required
 
 1. **Fix flext-core Test Imports**: Update test files to use correct flext-core test utilities
-1. **Update Pydantic Configuration**: Migrate from deprecated class-based config to ConfigDict
+1. **Update Pydantic Configuration**: Migrate from deprecated class-based settings to ConfigDict
 1. **Validate Constants**: Ensure test expectations match actual constant values
 1. **Test Framework Audit**: Verify all test dependencies and imports
 

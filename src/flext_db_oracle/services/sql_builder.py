@@ -35,7 +35,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             if not isinstance(_config, Mapping):
-                return r[str].fail("Invalid CREATE INDEX config payload")
+                return r[str].fail("Invalid CREATE INDEX settings payload")
             raw_columns = _config.get("columns", [])
             columns_list: t.StrSequence = (
                 [str(col) for col in raw_columns]
@@ -53,22 +53,22 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 "tablespace": str(_config.get("tablespace", "")),
                 "parallel": parallel_value,
             }
-            config = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
+            settings = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
                 payload,
             )
-            if not config.columns:
+            if not settings.columns:
                 return r[str].fail("Index definition requires at least one column")
-            schema_prefix = f"{config.schema_name}." if config.schema_name else ""
-            unique_prefix = "UNIQUE " if config.unique else ""
-            columns = ", ".join(config.columns)
-            sql = f"CREATE {unique_prefix}INDEX {config.index_name} ON {schema_prefix}{config.table_name} ({columns})"
-            if config.tablespace:
-                sql = f"{sql} TABLESPACE {config.tablespace}"
-            if config.parallel > 1:
-                sql = f"{sql} PARALLEL {config.parallel}"
+            schema_prefix = f"{settings.schema_name}." if settings.schema_name else ""
+            unique_prefix = "UNIQUE " if settings.unique else ""
+            columns = ", ".join(settings.columns)
+            sql = f"CREATE {unique_prefix}INDEX {settings.index_name} ON {schema_prefix}{settings.table_name} ({columns})"
+            if settings.tablespace:
+                sql = f"{sql} TABLESPACE {settings.tablespace}"
+            if settings.parallel > 1:
+                sql = f"{sql} PARALLEL {settings.parallel}"
             return r[str].ok(sql)
         except ValidationError as e:
-            return r[str].fail(f"Invalid CREATE INDEX config: {e}")
+            return r[str].fail(f"Invalid CREATE INDEX settings: {e}")
 
     def build_delete_statement(
         self,

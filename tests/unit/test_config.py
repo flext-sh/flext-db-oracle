@@ -1,4 +1,4 @@
-"""Unit tests for flext_db_oracle.config module.
+"""Unit tests for flext_db_oracle.settings module.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,10 +16,10 @@ class TestFlextDbOracleSettings:
     """Test FlextDbOracleSettings functionality."""
 
     def test_config_creation(self) -> None:
-        """Test config can be created."""
-        config = FlextDbOracleSettings()
-        tm.that(config, none=False)
+        """Test settings can be created."""
+        settings = FlextDbOracleSettings()
+        tm.that(settings, none=False)
 
     def test_config_attributes(self) -> None:
-        """Test config has required attributes."""
+        """Test settings has required attributes."""
         FlextDbOracleSettings()

@@ -46,7 +46,7 @@ make setup
 from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 # Configure Oracle connection
-config = OracleConfig(
+settings = OracleConfig(
     host="localhost",
     port=1521,
     service_name="XEPDB1",
@@ -55,7 +55,7 @@ config = OracleConfig(
 )
 
 # Create API instance with FLEXT patterns
-api = FlextDbOracleApi(config)
+api = FlextDbOracleApi(settings)
 
 # Test connection using r pattern
 connection_result = api.test_connection()

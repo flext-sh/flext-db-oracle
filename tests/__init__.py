@@ -12,8 +12,9 @@ from flext_core.lazy import (
 )
 
 if _t.TYPE_CHECKING:
-    from flext_tests import d, e, h, r, s, td, tf, tk, tm, tv, x
+    from flext_tests import td, tf, tk, tm, tv
 
+    from flext_db_oracle import d, e, h, r, s, x
     from tests.constants import TestsFlextDbOracleConstants, c
     from tests.models import TestsFlextDbOracleModels, m
     from tests.protocols import TestsFlextDbOracleProtocols, p
@@ -47,18 +48,20 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextDbOracleUtilities",
                 "u",
             ),
-            "flext_tests": (
+            "flext_db_oracle": (
                 "d",
                 "e",
                 "h",
                 "r",
                 "s",
+                "x",
+            ),
+            "flext_tests": (
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
-                "x",
             ),
         },
     ),

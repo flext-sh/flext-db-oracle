@@ -154,7 +154,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         username: str | None = None,
         password: str | None = None,
     ) -> r[FlextDbOracleApi]:
-        """Connect to Oracle database with provided parameters or config defaults.
+        """Connect to Oracle database with provided parameters or settings defaults.
 
         Returns:
         r[FlextDbOracleApi]: API instance or error.
@@ -181,14 +181,14 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             actual_password: str | None = (
                 str(actual_password_raw) if actual_password_raw else None
             )
-            config: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
+            settings: FlextDbOracleSettings = FlextDbOracleSettings.model_validate({
                 "host": actual_host,
                 "port": actual_port,
                 "service_name": actual_service_name,
                 "username": actual_username,
                 "password": actual_password,
             })
-            api = FlextDbOracleApi(config=config)
+            api = FlextDbOracleApi(settings=settings)
             connect_result: r[FlextDbOracleApi] = api.connect()
             if connect_result.success:
                 self.current_connection = api

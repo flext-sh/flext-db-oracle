@@ -319,7 +319,7 @@ class Testm:
 
     def test_create_index_config_creation(self) -> None:
         """Test CreateIndexConfig creation."""
-        config = m.DbOracle.CreateIndexConfig(
+        settings = m.DbOracle.CreateIndexConfig(
             table_name="users",
             index_name="idx_users_email",
             columns=["email"],
@@ -328,28 +328,28 @@ class Testm:
             tablespace="users_idx",
             parallel=4,
         )
-        tm.that(config.table_name, eq="users")
-        tm.that(config.index_name, eq="idx_users_email")
-        tm.that(config.columns, eq=["email"])
-        tm.that(config.unique is True, eq=True)
-        tm.that(config.schema_name, eq="hr")
-        tm.that(config.tablespace, eq="users_idx")
-        tm.that(config.parallel, eq=4)
+        tm.that(settings.table_name, eq="users")
+        tm.that(settings.index_name, eq="idx_users_email")
+        tm.that(settings.columns, eq=["email"])
+        tm.that(settings.unique is True, eq=True)
+        tm.that(settings.schema_name, eq="hr")
+        tm.that(settings.tablespace, eq="users_idx")
+        tm.that(settings.parallel, eq=4)
 
     def test_merge_statement_config_creation(self) -> None:
         """Test MergeStatementConfig creation."""
-        config = m.DbOracle.MergeStatementConfig(
+        settings = m.DbOracle.MergeStatementConfig(
             target_table="users",
             source_query="SELECT id, name FROM temp_users",
             merge_conditions=["t.id = s.id"],
             update_columns=["name"],
             insert_columns=["id", "name"],
         )
-        tm.that(config.target_table, eq="users")
-        tm.that(config.source_query, eq="SELECT id, name FROM temp_users")
-        tm.that(config.merge_conditions, eq=["t.id = s.id"])
-        tm.that(config.update_columns, eq=["name"])
-        tm.that(config.insert_columns, eq=["id", "name"])
+        tm.that(settings.target_table, eq="users")
+        tm.that(settings.source_query, eq="SELECT id, name FROM temp_users")
+        tm.that(settings.merge_conditions, eq=["t.id = s.id"])
+        tm.that(settings.update_columns, eq=["name"])
+        tm.that(settings.insert_columns, eq=["id", "name"])
 
     def test_connection_status_real_oracle_integration(
         self,
@@ -440,19 +440,19 @@ class TestFlextDbOracleSettings:
     """Comprehensive test FlextDbOracleSettings functionality."""
 
     def test_config_creation_defaults(self) -> None:
-        """Test config creation with defaults."""
-        config = FlextDbOracleSettings()
-        tm.that(config.host, eq="localhost")
-        tm.that(config.port, eq=1521)
-        tm.that(config.name, eq="XE")
-        tm.that(config.service_name, eq="XEPDB1")
-        tm.that(config.username, eq="system")
-        tm.that(config.password, eq="")
-        tm.that(config.ssl_server_cert_dn, none=True)
+        """Test settings creation with defaults."""
+        settings = FlextDbOracleSettings()
+        tm.that(settings.host, eq="localhost")
+        tm.that(settings.port, eq=1521)
+        tm.that(settings.name, eq="XE")
+        tm.that(settings.service_name, eq="XEPDB1")
+        tm.that(settings.username, eq="system")
+        tm.that(settings.password, eq="")
+        tm.that(settings.ssl_server_cert_dn, none=True)
 
     def test_config_creation_with_values(self) -> None:
-        """Test config creation with custom values."""
-        config = FlextDbOracleSettings(
+        """Test settings creation with custom values."""
+        settings = FlextDbOracleSettings(
             host="oracle.example.com",
             port=1522,
             name="ORCL",
@@ -461,16 +461,16 @@ class TestFlextDbOracleSettings:
             password="secret123",
             ssl_server_cert_dn="CN=oracle.example.com",
         )
-        tm.that(config.host, eq="oracle.example.com")
-        tm.that(config.port, eq=1522)
-        tm.that(config.name, eq="ORCL")
-        tm.that(config.service_name, eq="ORCLPDB1")
-        tm.that(config.username, eq="app_user")
-        tm.that(config.password, eq="secret123")
-        tm.that(config.ssl_server_cert_dn, eq="CN=oracle.example.com")
+        tm.that(settings.host, eq="oracle.example.com")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.name, eq="ORCL")
+        tm.that(settings.service_name, eq="ORCLPDB1")
+        tm.that(settings.username, eq="app_user")
+        tm.that(settings.password, eq="secret123")
+        tm.that(settings.ssl_server_cert_dn, eq="CN=oracle.example.com")
 
     def test_config_from_env_no_env_vars(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test config creation from environment with no variables set."""
+        """Test settings creation from environment with no variables set."""
         env_vars_to_clear = [
             "FLEXT_TARGET_ORACLE_HOST",
             "ORACLE_HOST",
@@ -489,13 +489,13 @@ class TestFlextDbOracleSettings:
             monkeypatch.delenv(var, raising=False)
         result = FlextDbOracleSettings.from_env()
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="localhost")
-        tm.that(config.port, eq=1521)
-        tm.that(config.service_name, eq="XEPDB1")
+        settings = result.value
+        tm.that(settings.host, eq="localhost")
+        tm.that(settings.port, eq=1521)
+        tm.that(settings.service_name, eq="XEPDB1")
 
     def test_config_from_env_with_values(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test config creation from environment variables."""
+        """Test settings creation from environment variables."""
         for key in list(os.environ.keys()):
             if key.startswith("FLEXT_TARGET_ORACLE_"):
                 monkeypatch.delenv(key, raising=False)
@@ -508,19 +508,19 @@ class TestFlextDbOracleSettings:
         monkeypatch.setenv("ORACLE_SID", "ORCL")
         result = FlextDbOracleSettings.from_env()
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="db.example.com")
-        tm.that(config.port, eq=1522)
-        tm.that(config.service_name, eq="MYDB")
-        tm.that(config.username, eq="dbuser")
-        tm.that(config.password, eq="dbpass")
-        tm.that(config.name, eq="ORCL")
+        settings = result.value
+        tm.that(settings.host, eq="db.example.com")
+        tm.that(settings.port, eq=1522)
+        tm.that(settings.service_name, eq="MYDB")
+        tm.that(settings.username, eq="dbuser")
+        tm.that(settings.password, eq="dbpass")
+        tm.that(settings.name, eq="ORCL")
 
     def test_config_from_env_flext_prefix(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test config creation with FLEXT prefix environment variables."""
+        """Test settings creation with FLEXT prefix environment variables."""
         for key in list(os.environ.keys()):
             if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
                 monkeypatch.delenv(key, raising=False)
@@ -528,15 +528,15 @@ class TestFlextDbOracleSettings:
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
         result = FlextDbOracleSettings.from_env()
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="flext-db.example.com")
-        tm.that(config.username, eq="flext-user")
+        settings = result.value
+        tm.that(settings.host, eq="flext-db.example.com")
+        tm.that(settings.username, eq="flext-user")
 
     def test_config_from_env_mixed_prefixes(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test config creation with mixed prefixes."""
+        """Test settings creation with mixed prefixes."""
         for key in list(os.environ.keys()):
             if key.startswith(("ORACLE_", "FLEXT_TARGET_ORACLE_")):
                 monkeypatch.delenv(key, raising=False)
@@ -546,9 +546,9 @@ class TestFlextDbOracleSettings:
         monkeypatch.setenv("FLEXT_TARGET_ORACLE_USERNAME", "flext-user")
         result = FlextDbOracleSettings.from_env()
         tm.ok(result)
-        config = result.value
-        tm.that(config.host, eq="flext-host")
-        tm.that(config.username, eq="flext-user")
+        settings = result.value
+        tm.that(settings.host, eq="flext-host")
+        tm.that(settings.username, eq="flext-user")
 
     def test_config_from_env_port_conversion(
         self,
@@ -561,15 +561,15 @@ class TestFlextDbOracleSettings:
         monkeypatch.setenv("ORACLE_PORT", "1523")
         result = FlextDbOracleSettings.from_env()
         tm.ok(result)
-        config = result.value
-        tm.that(config.port, eq=1523)
-        tm.that(config.port, is_=int)
+        settings = result.value
+        tm.that(settings.port, eq=1523)
+        tm.that(settings.port, is_=int)
 
     def test_config_from_env_invalid_port(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test config creation with invalid port."""
+        """Test settings creation with invalid port."""
         for key in list(os.environ.keys()):
             if key.startswith("FLEXT_TARGET_ORACLE_"):
                 monkeypatch.delenv(key, raising=False)
@@ -579,20 +579,20 @@ class TestFlextDbOracleSettings:
         tm.that(result.error or "", has="port")
 
     def test_config_serialization(self) -> None:
-        """Test config serialization."""
-        config = FlextDbOracleSettings(
+        """Test settings serialization."""
+        settings = FlextDbOracleSettings(
             host="test.com",
             port=1522,
             username="user",
             password="pass",
         )
-        serialized = config.model_dump()
+        serialized = settings.model_dump()
         tm.that(serialized["host"], eq="test.com")
         tm.that(serialized["port"], eq=1522)
         tm.that(serialized["username"], eq="user")
 
     def test_config_equality(self) -> None:
-        """Test config equality comparison."""
+        """Test settings equality comparison."""
         config1 = FlextDbOracleSettings(host="localhost", port=1521)
         config2 = FlextDbOracleSettings(host="localhost", port=1521)
         config3 = FlextDbOracleSettings(host="remotehost", port=1521)
@@ -600,40 +600,40 @@ class TestFlextDbOracleSettings:
         tm.that(config1, ne=config3)
 
     def test_config_repr(self) -> None:
-        """Test config string representation."""
-        config = FlextDbOracleSettings(host="localhost", port=1521, username="system")
-        repr_str = repr(config)
+        """Test settings string representation."""
+        settings = FlextDbOracleSettings(host="localhost", port=1521, username="system")
+        repr_str = repr(settings)
         tm.that(repr_str, has="FlextDbOracleSettings")
         tm.that(repr_str, has="localhost")
         tm.that(repr_str, has="1521")
 
     def test_config_connection_string_components(self) -> None:
-        """Test that config has all components needed for connection string."""
-        config = FlextDbOracleSettings(
+        """Test that settings has all components needed for connection string."""
+        settings = FlextDbOracleSettings(
             host="oracle.example.com",
             port=1521,
             service_name="ORCLPDB1",
             username="appuser",
         )
-        tm.that(config.host, eq="oracle.example.com")
-        tm.that(config.port, eq=1521)
-        tm.that(config.service_name, eq="ORCLPDB1")
-        tm.that(config.username, eq="appuser")
-        tm.that(config.name, eq="XE")
+        tm.that(settings.host, eq="oracle.example.com")
+        tm.that(settings.port, eq=1521)
+        tm.that(settings.service_name, eq="ORCLPDB1")
+        tm.that(settings.username, eq="appuser")
+        tm.that(settings.name, eq="XE")
 
     def test_config_validation_through_creation(self) -> None:
-        """Test config validation through successful creation."""
-        config = FlextDbOracleSettings(
+        """Test settings validation through successful creation."""
+        settings = FlextDbOracleSettings(
             host="valid-host",
             port=1521,
             service_name="VALID_SERVICE",
             username="valid_user",
         )
-        tm.that(config.host, eq="valid-host")
-        tm.that(config.port, eq=1521)
+        tm.that(settings.host, eq="valid-host")
+        tm.that(settings.port, eq=1521)
 
     def test_config_immutable_defaults(self) -> None:
-        """Test that config defaults are properly set and don't change."""
+        """Test that settings defaults are properly set and don't change."""
         config1 = FlextDbOracleSettings()
         config2 = FlextDbOracleSettings()
         tm.that(config1.host, eq=config2.host)

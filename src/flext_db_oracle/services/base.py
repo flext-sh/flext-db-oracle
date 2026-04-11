@@ -63,20 +63,20 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
 
         root: int | str
 
-    def __init__(self, config: FlextDbOracleSettings) -> None:
+    def __init__(self, settings: FlextDbOracleSettings) -> None:
         """Initialize shared Oracle service state."""
         super().__init__()
-        self._db_config = config
-        self._config = config
+        self._db_config = settings
+        self._config = settings
 
     @property
     def db_config(self) -> FlextDbOracleSettings:
         """Return initialized Oracle database configuration."""
-        config = self._db_config
-        if config is None:
+        settings = self._db_config
+        if settings is None:
             msg = "Database configuration not initialized"
             raise RuntimeError(msg)
-        return config
+        return settings
 
     def connected(self) -> bool:
         """Check if the service has an active SQLAlchemy engine."""

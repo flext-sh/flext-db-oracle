@@ -25,7 +25,7 @@ class TestFlextDbOracleClientRealFunctionality:
         tm.that(client, none=False)
 
     def test_client_creation_default_config(self) -> None:
-        """Test client can be created with default config."""
+        """Test client can be created with default settings."""
         client = FlextDbOracleClient()
         tm.that(client, none=False)
 

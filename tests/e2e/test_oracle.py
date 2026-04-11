@@ -47,7 +47,7 @@ class TestOracleE2E:
         7. Table cleanup
         8. Disconnection
         """
-        with FlextDbOracleApi(config=real_oracle_config) as api:
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
             connection_test = api.test_connection()
             if connection_test.failure:
                 msg = "Connection"
@@ -163,7 +163,7 @@ class TestOracleE2E:
         real_oracle_config: FlextDbOracleSettings,
     ) -> None:
         """Test Singer type conversion in real Oracle environment."""
-        with FlextDbOracleApi(config=real_oracle_config) as api:
+        with FlextDbOracleApi(settings=real_oracle_config) as api:
             singer_types = [
                 ("string", "VARCHAR2(4000)"),
                 ("integer", "NUMBER(38)"),
@@ -222,14 +222,14 @@ class TestOracleE2E:
             assert config_result.success, (
                 f"Config creation failed: {config_result.error}"
             )
-            config = config_result.value
-            assert config.host == "e2e-test-host"
-            assert config.port == 1521
-            assert config.service_name == "E2EDB"
-            assert config.username == "e2e_user"
-            assert config.password == "e2e_password"
-            assert config.pool_min == 2
-            assert config.pool_max == 20
+            settings = config_result.value
+            assert settings.host == "e2e-test-host"
+            assert settings.port == 1521
+            assert settings.service_name == "E2EDB"
+            assert settings.username == "e2e_user"
+            assert settings.password == "e2e_password"
+            assert settings.pool_min == 2
+            assert settings.pool_max == 20
         finally:
             for key in test_env:
                 os.environ.pop(key, None)
@@ -289,7 +289,7 @@ class TestOracleE2E:
     ) -> None:
         """Test performance benchmarks for Oracle operations."""
         try:
-            with FlextDbOracleApi(config=real_oracle_config) as api:
+            with FlextDbOracleApi(settings=real_oracle_config) as api:
                 timed_result = api.query("SELECT 1 FROM DUAL")
                 if timed_result.success:
                     query_result = timed_result.value

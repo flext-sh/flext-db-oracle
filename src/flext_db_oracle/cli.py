@@ -68,14 +68,14 @@ class FlextDbOracleCli(s[str]):
                     "Password is required for Oracle connection",
                 )
             try:
-                config = FlextDbOracleSettings.model_validate({
+                settings = FlextDbOracleSettings.model_validate({
                     "host": host,
                     "port": port,
                     "service_name": service_name,
                     "username": username,
                     "password": password,
                 })
-                return r[FlextDbOracleSettings].ok(config)
+                return r[FlextDbOracleSettings].ok(settings)
             except (
                 t.DbOracle.OracleDatabaseError,
                 t.DbOracle.OracleInterfaceError,
@@ -88,14 +88,14 @@ class FlextDbOracleCli(s[str]):
                 )
 
         @staticmethod
-        def validate_connection(config: FlextDbOracleSettings) -> r[bool]:
+        def validate_connection(settings: FlextDbOracleSettings) -> r[bool]:
             """Validate Oracle database connection.
 
             Returns:
             r[bool]: True if connection valid, False otherwise.
 
             """
-            new_api = FlextDbOracleApi(config=config)
+            new_api = FlextDbOracleApi(settings=settings)
             connect_result = new_api.connect()
             if connect_result.failure:
                 error_text = connect_result.error or "Unknown connection error"
@@ -263,7 +263,7 @@ class FlextDbOracleCli(s[str]):
         """
         start_time = time.time()
         try:
-            config = FlextDbOracleSettings.model_validate({
+            settings = FlextDbOracleSettings.model_validate({
                 "host": host,
                 "port": port,
                 "service_name": service_name,
@@ -271,7 +271,7 @@ class FlextDbOracleCli(s[str]):
                 "password": password,
                 "timeout": timeout,
             })
-            api = FlextDbOracleApi(config=config)
+            api = FlextDbOracleApi(settings=settings)
             health_result = api.get_health_status()
             if health_result.failure:
                 return r[m.DbOracle.HealthCheckReport].fail(
@@ -338,15 +338,15 @@ class FlextDbOracleCli(s[str]):
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        config = config_result.value
-        validation_result = self._OracleConnectionHelper.validate_connection(config)
+        settings = config_result.value
+        validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         schemas_result = api.get_schemas()
         if schemas_result.failure:
             error_text = schemas_result.error or "Unknown schemas error"
@@ -398,15 +398,15 @@ class FlextDbOracleCli(s[str]):
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        config = config_result.value
-        validation_result = self._OracleConnectionHelper.validate_connection(config)
+        settings = config_result.value
+        validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
             error_msg = formatter.format_error_message(error_text)
             if error_msg.success:
                 formatter.display_message(error_msg.value)
             return r[str].fail(error_text)
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         tables_result = api.get_tables(schema)
         if tables_result.failure:
             error_text = tables_result.error or "Unknown tables error"
@@ -463,12 +463,12 @@ class FlextDbOracleCli(s[str]):
                 error_text,
                 f"Configuration failed: {error_text}",
             )
-        config = config_result.value
-        validation_result = self._OracleConnectionHelper.validate_connection(config)
+        settings = config_result.value
+        validation_result = self._OracleConnectionHelper.validate_connection(settings)
         if validation_result.failure:
             error_text = validation_result.error or "Unknown validation error"
             return self._handle_error_and_fail(formatter, error_text, error_text)
-        api = FlextDbOracleApi(config=config)
+        api = FlextDbOracleApi(settings=settings)
         query_result = api.query(sql)
         if query_result.failure:
             error_text = query_result.error or "Unknown query error"

@@ -44,18 +44,18 @@ class OperationTestError(Exception):
         self.error = error
 
 
-def pytest_configure(config: pytest.Config) -> None:
+def pytest_settingsure(settings: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
-    config.addinivalue_line("markers", "oracle: Oracle database integration tests")
-    config.addinivalue_line(
+    settings.addinivalue_line("markers", "oracle: Oracle database integration tests")
+    settings.addinivalue_line(
         "markers",
         "unit_pure: Pure unit tests with no external dependencies",
     )
-    config.addinivalue_line(
+    settings.addinivalue_line(
         "markers",
         "unit_integration: Unit tests that can use real Oracle when available",
     )
-    config.addinivalue_line(
+    settings.addinivalue_line(
         "markers",
         "slow: Slow-running tests that should be run separately",
     )
@@ -135,12 +135,12 @@ def docker_control() -> tk:
 def shared_oracle_container(docker_control: tk) -> str:
     """Start and maintain flext-oracle-db-test container using same pattern as flext-ldap."""
     container_name = "flext-oracle-db-test"
-    container_config = tk.SHARED_CONTAINERS.get(container_name)
-    if container_config is None:
+    container_settings = tk.SHARED_CONTAINERS.get(container_name)
+    if container_settings is None:
         pytest.skip(f"Container {container_name} not found in SHARED_CONTAINERS")
-    compose_file_value = container_config.get("compose_file")
+    compose_file_value = container_settings.get("compose_file")
     if compose_file_value is None:
-        pytest.skip(f"Container {container_name} missing compose_file config")
+        pytest.skip(f"Container {container_name} missing compose_file settings")
     compose_file = str(compose_file_value)
     if not compose_file.startswith("/"):
         workspace_root = Path(__file__).resolve().parents[2]
@@ -168,7 +168,7 @@ def shared_oracle_container(docker_control: tk) -> str:
                 "Container %s is not running (but not dirty), starting...",
                 container_name,
             )
-            service_name = str(container_config.get("service", ""))
+            service_name = str(container_settings.get("service", ""))
             compose_result = docker_control.compose_up(
                 compose_file,
                 service=service_name or None,
@@ -235,7 +235,7 @@ def ensure_shared_docker_container(shared_oracle_container: str) -> None:
 
 
 @pytest.fixture
-def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings:
+def real_oracle_settings(oracle_container: str | None) -> FlextDbOracleSettings:
     """Return real Oracle configuration for tests that can use it."""
     if oracle_container is None:
         pytest.skip("Oracle container unavailable")
@@ -252,10 +252,10 @@ def real_oracle_config(oracle_container: str | None) -> FlextDbOracleSettings:
 
 @pytest.fixture
 def oracle_api(
-    real_oracle_config: FlextDbOracleSettings,
+    real_oracle_settings: FlextDbOracleSettings,
 ) -> FlextDbOracleApi:
     """Return Oracle API for tests that can use it."""
-    return FlextDbOracleApi(config=real_oracle_config)
+    return FlextDbOracleApi(settings=real_oracle_settings)
 
 
 @pytest.fixture
@@ -280,8 +280,8 @@ def flext_domains() -> td:
 
 
 @pytest.fixture
-def mock_oracle_config() -> FlextDbOracleSettings:
-    """Provide mock Oracle config for tests when real Oracle is not available."""
+def mock_oracle_settings() -> FlextDbOracleSettings:
+    """Provide mock Oracle settings for tests when real Oracle is not available."""
     return FlextDbOracleSettings(
         host="mock-host",
         port=1521,
@@ -292,12 +292,16 @@ def mock_oracle_config() -> FlextDbOracleSettings:
 
 
 @pytest.fixture
-def oracle_config(
-    real_oracle_config: FlextDbOracleSettings | None,
-    mock_oracle_config: FlextDbOracleSettings,
+def oracle_settings(
+    real_oracle_settings: FlextDbOracleSettings | None,
+    mock_oracle_settings: FlextDbOracleSettings,
 ) -> FlextDbOracleSettings:
-    """Provide Oracle config - real if available, mock otherwise."""
-    return real_oracle_config if real_oracle_config is not None else mock_oracle_config
+    """Provide Oracle settings - real if available, mock otherwise."""
+    return (
+        real_oracle_settings
+        if real_oracle_settings is not None
+        else mock_oracle_settings
+    )
 
 
 @pytest.fixture

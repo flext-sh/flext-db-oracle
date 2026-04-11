@@ -82,7 +82,7 @@ make validate
 #### Current Issues
 
 - ❌ **Import Failures**: Major test files failing due to flext-core test utility issues
-- ❌ **Pydantic Deprecations**: Deprecated class-based config in production code
+- ❌ **Pydantic Deprecations**: Deprecated class-based settings in production code
 - ❌ **Constants Validation**: Test failures indicating potential constant misconfigurations
 - ❌ **CI/CD Pipeline**: Automated testing blocked by import failures
 
@@ -395,8 +395,8 @@ make oracle-connect
 # Check configuration
 PYTHONPATH=src poetry run python -c "
 from flext_db_oracle import FlextDbOracleSettings
-config = FlextDbOracleSettings()
-print(f'Host: {config.oracle_host}:{config.oracle_port}')
+settings = FlextDbOracleSettings()
+print(f'Host: {settings.oracle_host}:{settings.oracle_port}')
 "
 ```
 
@@ -445,7 +445,7 @@ PYTHONPATH=src python -c "from flext_tests import *; print(dir())"
 
 #### Pydantic Deprecation Warnings
 
-**Issue**: `PydanticDeprecatedSince20: Support for class-based config is deprecated`
+**Issue**: `PydanticDeprecatedSince20: Support for class-based settings is deprecated`
 
 ```bash
 # Current problematic code in src/flext_db_oracle/exceptions.py:28

@@ -19,10 +19,10 @@ def demonstrate_real_functionality() -> None:
     try:
         config_result = FlextDbOracleSettings.from_env()
         if config_result.success:
-            config = config_result.value
-            logger.info(f"✅ Configuration created: {config.host}:{config.port}")
+            settings = config_result.value
+            logger.info(f"✅ Configuration created: {settings.host}:{settings.port}")
         else:
-            config = FlextDbOracleSettings.model_validate(
+            settings = FlextDbOracleSettings.model_validate(
                 {
                     "host": "demo-host",
                     "username": "demo-user",
@@ -30,12 +30,12 @@ def demonstrate_real_functionality() -> None:
                 },
             )
             logger.info("✅ Demo configuration created")
-        logger.info(f"📋 Host: {config.host}")
-        logger.info(f"📋 Port: {config.port}")
-        logger.info(f"📋 Service: {config.service_name}")
-        username_display = str(config.username)[:3]
+        logger.info(f"📋 Host: {settings.host}")
+        logger.info(f"📋 Port: {settings.port}")
+        logger.info(f"📋 Service: {settings.service_name}")
+        username_display = str(settings.username)[:3]
         logger.info("📋 Username: %s***", username_display)
-        if config.host and config.port > 0:
+        if settings.host and settings.port > 0:
             logger.info("✅ Configuration is valid")
         else:
             logger.error("❌ Configuration is invalid")

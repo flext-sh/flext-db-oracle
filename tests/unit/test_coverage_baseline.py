@@ -54,24 +54,24 @@ class TestBasicModelCreation:
 
     def test_oracle_config_creation(self) -> None:
         """Test Oracle configuration model creation."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TEST",
             username="testuser",
             password="testpass",
         )
-        tm.that(config.host, eq="localhost")
-        tm.that(config.port, eq=1521)
-        tm.that(config.service_name, eq="TEST")
-        tm.that(config.username, eq="testuser")
-        tm.that(config.password, none=False)
-        if config.password is not None:
-            tm.that(config.password.get_secret_value(), eq="testpass")
+        tm.that(settings.host, eq="localhost")
+        tm.that(settings.port, eq=1521)
+        tm.that(settings.service_name, eq="TEST")
+        tm.that(settings.username, eq="testuser")
+        tm.that(settings.password, none=False)
+        if settings.password is not None:
+            tm.that(settings.password.get_secret_value(), eq="testpass")
 
     def test_oracle_config_with_ssl(self) -> None:
         """Test Oracle configuration with SSL settings."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="secure.example.com",
             port=2484,
             service_name="SECURE_DB",
@@ -79,7 +79,7 @@ class TestBasicModelCreation:
             password="secure_pass",
             ssl_cert_file="/path/to/cert.pem",
         )
-        tm.that(config.ssl_cert_file, eq="/path/to/cert.pem")
+        tm.that(settings.ssl_cert_file, eq="/path/to/cert.pem")
 
     def test_column_model_creation(self) -> None:
         """Test Column model creation."""
@@ -99,51 +99,51 @@ class TestFlextDbOracleServices:
     """Test main Oracle database services class."""
 
     def test_service_creation(self) -> None:
-        """Test service can be created with config."""
-        config = FlextDbOracleSettings(
+        """Test service can be created with settings."""
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TEST",
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(settings=settings)
         tm.that(service, none=False)
-        tm.that(service._db_config, eq=config)
+        tm.that(service._db_config, eq=settings)
 
     def test_service_is_not_connected_initially(self) -> None:
         """Test service is not connected when created."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TEST",
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(settings=settings)
         tm.that(service.connected() is False, eq=True)
 
     def test_service_has_sql_building_methods(self) -> None:
         """Test service has SQL building capabilities."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TEST",
             username="testuser",
             password="testpass",
         )
-        FlextDbOracleServices(config=config)
+        FlextDbOracleServices(settings=settings)
 
     def test_service_sql_validation(self) -> None:
         """Test SQL validation through the service."""
-        config = FlextDbOracleSettings(
+        settings = FlextDbOracleSettings(
             host="localhost",
             port=1521,
             service_name="TEST",
             username="testuser",
             password="testpass",
         )
-        service = FlextDbOracleServices(config=config)
+        service = FlextDbOracleServices(settings=settings)
         result = service.build_select("USERS", ["ID", "NAME"])
         tm.ok(result)
         sql = result.value
