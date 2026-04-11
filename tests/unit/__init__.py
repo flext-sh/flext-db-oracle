@@ -1,32 +1,33 @@
-# AUTO-GENERATED FILE — DO NOT EDIT MANUALLY.
-# Regenerate with: make gen
-#
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Unit package."""
 
 from __future__ import annotations
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS = {
-    "conftest": "tests.unit.conftest",
-    "test_api": "tests.unit.test_api",
-    "test_cli": "tests.unit.test_cli",
-    "test_client": "tests.unit.test_client",
-    "test_config": "tests.unit.test_config",
-    "test_constants": "tests.unit.test_constants",
-    "test_coverage_baseline": "tests.unit.test_coverage_baseline",
-    "test_dispatcher": "tests.unit.test_dispatcher",
-    "test_exceptions": "tests.unit.test_exceptions",
-    "test_fields": "tests.unit.test_fields",
-    "test_metadata": "tests.unit.test_metadata",
-    "test_models": "tests.unit.test_models",
-    "test_oracle_example": "tests.unit.test_oracle_example",
-    "test_oracle_exceptions": "tests.unit.test_oracle_exceptions",
-    "test_protocols": "tests.unit.test_protocols",
-    "test_services": "tests.unit.test_services",
-    "test_typings": "tests.unit.test_typings",
-    "test_utilities": "tests.unit.test_utilities",
-}
+_LAZY_IMPORTS = build_lazy_import_map(
+    {
+        ".conftest": ("conftest",),
+        ".exceptions": ("exceptions",),
+        ".test_api": ("test_api",),
+        ".test_cli": ("test_cli",),
+        ".test_client": ("test_client",),
+        ".test_config": ("test_config",),
+        ".test_constants": ("test_constants",),
+        ".test_coverage_baseline": ("test_coverage_baseline",),
+        ".test_dispatcher": ("test_dispatcher",),
+        ".test_exceptions": ("test_exceptions",),
+        ".test_fields": ("test_fields",),
+        ".test_metadata": ("test_metadata",),
+        ".test_models": ("test_models",),
+        ".test_oracle_example": ("test_oracle_example",),
+        ".test_oracle_exceptions": ("test_oracle_exceptions",),
+        ".test_protocols": ("test_protocols",),
+        ".test_services": ("test_services",),
+        ".test_typings": ("test_typings",),
+        ".test_utilities": ("test_utilities",),
+    },
+)
 
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
