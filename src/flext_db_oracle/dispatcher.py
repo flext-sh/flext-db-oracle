@@ -53,10 +53,10 @@ class FlextDbOracleDispatcher(s[None]):
         """Create connection-related handler functions."""
 
         def connect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
-            return services.connect().is_success
+            return services.connect().success
 
         def disconnect_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
-            return services.disconnect().is_success
+            return services.disconnect().success
 
         def connection_test_handler(
             _command_data: t.ContainerValue,
@@ -134,7 +134,7 @@ class FlextDbOracleDispatcher(s[None]):
                 sql = ""
                 parameters = t.ConfigMap(root={})
             result = services.execute_query(sql, parameters)
-            return len(result.value) if result.is_success else 0
+            return len(result.value) if result.success else 0
 
         def fetch_one_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, m.DbOracle.FetchOneCommand):
@@ -146,7 +146,7 @@ class FlextDbOracleDispatcher(s[None]):
                 sql = ""
                 parameters = t.ConfigMap(root={})
             result = services.fetch_one(sql, parameters)
-            return str(result.value) if result.is_success and result.value else ""
+            return str(result.value) if result.success and result.value else ""
 
         def execute_statement_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(
@@ -203,14 +203,14 @@ class FlextDbOracleDispatcher(s[None]):
 
         def get_schemas_handler(_cmd: t.ContainerValue) -> t.ContainerValue:
             result = services.get_schemas()
-            return ",".join(result.value) if result.is_success else ""
+            return ",".join(result.value) if result.success else ""
 
         def get_tables_handler(command: t.ContainerValue) -> t.ContainerValue:
             schema: str | None = None
             if isinstance(command, m.DbOracle.GetTablesCommand):
                 schema = command.schema_name
             result = services.get_tables(schema)
-            return ",".join(result.value) if result.is_success else ""
+            return ",".join(result.value) if result.success else ""
 
         def get_columns_handler(command: t.ContainerValue) -> t.ContainerValue:
             if isinstance(command, m.DbOracle.GetColumnsCommand):
@@ -220,9 +220,7 @@ class FlextDbOracleDispatcher(s[None]):
                 table = ""
                 schema = None
             result = services.get_columns(table, schema)
-            return (
-                ",".join(col.name for col in result.value) if result.is_success else ""
-            )
+            return ",".join(col.name for col in result.value) if result.success else ""
 
         return {
             m.DbOracle.GetSchemasCommand: (

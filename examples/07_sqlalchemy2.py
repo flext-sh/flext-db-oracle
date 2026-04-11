@@ -23,7 +23,7 @@ def create_oracle_config() -> FlextDbOracleSettings:
     """
     try:
         config_result = FlextDbOracleSettings.from_env()
-        if config_result.is_success:
+        if config_result.success:
             return config_result.value
     except (ValueError, OSError, RuntimeError):
         logger.debug("Could not load config from environment, using demo config")

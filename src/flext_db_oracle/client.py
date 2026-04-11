@@ -108,7 +108,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                     return client.health_check()
 
                 health_result: r[t.ConfigMap] = health_cmd()
-                if health_result.is_success:
+                if health_result.success:
                     return r[str].ok(f"Health check: {health_result.value}")
                 return r[str].fail(health_result.error or "Health check failed")
             if params:
@@ -190,7 +190,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             })
             api = FlextDbOracleApi(config=config)
             connect_result: r[FlextDbOracleApi] = api.connect()
-            if connect_result.is_success:
+            if connect_result.success:
                 self.current_connection = api
                 self.logger.info("Oracle connection established successfully")
                 return r[FlextDbOracleApi].ok(api)
@@ -377,7 +377,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """
         try:
             validation_result: r[bool] = self._validate_connection()
-            if validation_result.is_failure:
+            if validation_result.failure:
                 return r[t.ConfigMap].fail(
                     validation_result.error or "Connection validation failed",
                 )
@@ -386,7 +386,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             health_data = t.ConfigMap(
                 root={
                     "connection_status": c.CommonStatus.ACTIVE
-                    if self.current_connection.is_connected
+                    if self.current_connection.connected
                     else "inactive",
                     "host": self.current_connection.oracle_config.host,
                     "port": self.current_connection.oracle_config.port,
@@ -444,7 +444,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
 
         """
         validation_result: r[bool] = self._validate_connection()
-        if validation_result.is_failure:
+        if validation_result.failure:
             return r[t.ConfigMap].fail(validation_result.error or "Validation failed")
         return self._execute_operation(operation, **params)
 
@@ -614,7 +614,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """
         if not self.current_connection:
             return r[bool].fail("No active Oracle connection")
-        if not self.current_connection.is_connected:
+        if not self.current_connection.connected:
             return r[bool].fail("Oracle connection not active")
         return r[bool].ok(True)
 

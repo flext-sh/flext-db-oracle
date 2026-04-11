@@ -53,7 +53,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 if env_port is not None and env_port.isdigit():
                     env_port_int = int(env_port)
                     status_result = docker_control.get_container_status(container_name)
-                    if status_result.is_success:
+                    if status_result.success:
                         status_value = status_result.value
                         ports = cls.normalize_port_bindings(
                             getattr(status_value, "ports", {}),
@@ -73,7 +73,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                         fallback_port = configured_port
                 for _ in range(30):
                     status_result = docker_control.get_container_status(container_name)
-                    if status_result.is_success:
+                    if status_result.success:
                         status_value = status_result.value
                         ports = cls.normalize_port_bindings(
                             getattr(status_value, "ports", {}),
@@ -112,7 +112,7 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                     """Remove a plugin from the in-memory registry."""
                     if plugin_name not in self._registry:
                         return m.DbOracle.Tests.StubResult(
-                            is_failure=True,
+                            failure=True,
                             error=f"Plugin '{plugin_name}' not found",
                         )
                     del self._registry[plugin_name]

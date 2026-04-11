@@ -93,7 +93,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
             )
             format_hint = format_value if isinstance(format_value, str) else None
             conversion = self.convert_singer_type(field_def.type, format_hint)
-            if conversion.is_success:
+            if conversion.success:
                 mapping.root[field_name] = conversion.value
         normalized_mapping = {key: str(value) for key, value in mapping.root.items()}
         type_mapping = FlextDbOracleModels.DbOracle.TypeMapping.model_validate({

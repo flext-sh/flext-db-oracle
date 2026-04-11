@@ -121,7 +121,7 @@ class TestFlextDbOracleServices:
             password="testpass",
         )
         service = FlextDbOracleServices(config=config)
-        tm.that(service.is_connected() is False, eq=True)
+        tm.that(service.connected() is False, eq=True)
 
     def test_service_has_sql_building_methods(self) -> None:
         """Test service has SQL building capabilities."""

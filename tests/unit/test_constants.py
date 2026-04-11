@@ -334,7 +334,7 @@ class Testc:
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement("DROP TABLE test_data_types")
         tm.that(
-            result.is_success or ("already exists" in str(result.error).lower()),
+            result.success or ("already exists" in str(result.error).lower()),
             eq=True,
         )
 
@@ -393,7 +393,7 @@ class Testc:
             tm.that(reserved, has=word)
         for word in test_words[:3]:
             result = u.DbOracle.validate_identifier(word)
-            tm.that(result.is_failure, eq=True)
+            tm.that(result.failure, eq=True)
             assert result.error is not None
             tm.that(
                 "reserved word" in result.error,

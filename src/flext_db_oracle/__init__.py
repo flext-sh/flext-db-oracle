@@ -13,23 +13,19 @@ from flext_core.lazy import (
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
-    from flext_cli.base import s
+    from flext_cli import d, e, h, r, x
 
-    from flext_core.decorators import d
-    from flext_core.handlers import h
-    from flext_core.mixins import x
-    from flext_core.result import r
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi
     from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import FlextDbOracleClient
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-    from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
+    from flext_db_oracle.exceptions import FlextDbOracleExceptions
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
-    from flext_db_oracle.service import FlextDbOracleServices
+    from flext_db_oracle.service import FlextDbOracleServices, s
     from flext_db_oracle.services.base import FlextDbOracleServiceBase
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
@@ -65,10 +61,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "c",
             ),
             ".dispatcher": ("FlextDbOracleDispatcher",),
-            ".exceptions": (
-                "FlextDbOracleExceptions",
-                "e",
-            ),
+            ".exceptions": ("FlextDbOracleExceptions",),
             ".models": (
                 "FlextDbOracleModels",
                 "m",
@@ -78,7 +71,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleProtocols",
                 "p",
             ),
-            ".service": ("FlextDbOracleServices",),
+            ".service": (
+                "FlextDbOracleServices",
+                "s",
+            ),
             ".settings": ("FlextDbOracleSettings",),
             ".typings": (
                 "FlextDbOracleTypes",
@@ -88,11 +84,13 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleUtilities",
                 "u",
             ),
-            "flext_cli.base": ("s",),
-            "flext_core.decorators": ("d",),
-            "flext_core.handlers": ("h",),
-            "flext_core.mixins": ("x",),
-            "flext_core.result": ("r",),
+            "flext_cli": (
+                "d",
+                "e",
+                "h",
+                "r",
+                "x",
+            ),
         },
     ),
     exclude_names=(

@@ -103,7 +103,7 @@ class FlextDbOracleModels(FlextInfraModels):
                 frozen=False,
             )
 
-            is_connected: bool = Field(
+            connected: bool = Field(
                 default=False,
                 description="Whether connection is active",
             )
@@ -138,14 +138,14 @@ class FlextDbOracleModels(FlextInfraModels):
             @property
             def connection_age_seconds(self) -> float:
                 """Connection age in seconds."""
-                if self.is_connected:
+                if self.connected:
                     return (datetime.now(UTC) - self.last_activity).total_seconds()
                 return 0.0
 
             @property
             def connection_info(self) -> str:
                 """Connection information summary."""
-                if not self.is_connected:
+                if not self.connected:
                     return "Not connected"
                 parts = [
                     f"{k}={v}"
@@ -162,7 +162,7 @@ class FlextDbOracleModels(FlextInfraModels):
             @property
             def is_healthy(self) -> bool:
                 """Connection health status."""
-                if not self.is_connected:
+                if not self.connected:
                     return False
                 age_seconds = float((datetime.now(UTC) - self.last_activity).seconds)
                 return (
@@ -173,7 +173,7 @@ class FlextDbOracleModels(FlextInfraModels):
             @property
             def performance_info(self) -> str:
                 """Connection performance information."""
-                if not self.is_connected or self.connection_time <= 0:
+                if not self.connected or self.connection_time <= 0:
                     return "No performance data"
                 if (
                     self.connection_time
@@ -195,7 +195,7 @@ class FlextDbOracleModels(FlextInfraModels):
             @property
             def status_description(self) -> str:
                 """Human-readable status description."""
-                if self.is_connected:
+                if self.connected:
                     return "Connected"
                 return (
                     f"Disconnected: {self.error_message}"
@@ -226,10 +226,10 @@ class FlextDbOracleModels(FlextInfraModels):
                 self,
             ) -> FlextDbOracleModels.DbOracle.ConnectionStatus:
                 """Validate connection status consistency."""
-                if self.is_connected and not self.host:
+                if self.connected and not self.host:
                     msg = "Connected status requires host information"
                     raise ValueError(msg)
-                if self.is_connected and not (
+                if self.connected and not (
                     c.DbOracle.OracleNetwork.MIN_PORT
                     <= self.port
                     <= c.DbOracle.OracleNetwork.MAX_PORT

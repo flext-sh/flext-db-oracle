@@ -63,7 +63,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def is_connected(self) -> r[bool]:
+            def connected(self) -> r[bool]:
                 """Check if Oracle connection is active.
 
                 Returns:

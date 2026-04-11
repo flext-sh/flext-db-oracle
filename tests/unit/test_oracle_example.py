@@ -54,13 +54,13 @@ class TestRealOracleConnection:
         """Test real Oracle connection and disconnection."""
         connection = FlextDbOracleServices(config=real_oracle_config)
         result = connection.connect()
-        if result.is_failure:
+        if result.failure:
             pytest.skip(f"Oracle connection unavailable: {result.error}")
-        tm.that(connection.is_connected(), eq=True)
+        tm.that(connection.connected(), eq=True)
         disconnect_result = connection.disconnect()
-        if disconnect_result.is_failure:
+        if disconnect_result.failure:
             pytest.skip(f"Oracle disconnect failed: {disconnect_result.error}")
-        tm.that(not connection.is_connected(), eq=True)
+        tm.that(not connection.connected(), eq=True)
 
     def test_real_connection_execute_query(
         self,
@@ -69,11 +69,11 @@ class TestRealOracleConnection:
         """Test real Oracle query execution."""
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             result = connection.execute_query("SELECT 1 FROM DUAL")
-            if result.is_failure:
+            if result.failure:
                 msg = f"Query failed: {result.error}"
                 raise AssertionError(msg)
             query_data = result.value
@@ -92,11 +92,11 @@ class TestRealOracleConnection:
         """Test real Oracle fetch_one."""
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             result = connection.fetch_one("SELECT 42 FROM DUAL")
-            if result.is_failure:
+            if result.failure:
                 msg = f"Fetch one failed: {result.error}"
                 raise AssertionError(msg)
             fetch_data = result.value
@@ -113,7 +113,7 @@ class TestRealOracleConnection:
         """Test real Oracle execute_many with temporary table."""
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             with contextlib.suppress(Exception):
@@ -121,7 +121,7 @@ class TestRealOracleConnection:
             create_result = connection.execute_statement(
                 "\n                CREATE TABLE temp_test_table (\n                    id NUMBER,\n                    name VARCHAR2(100)\n                )\n            ",
             )
-            if create_result.is_failure:
+            if create_result.failure:
                 msg = f"Table creation failed: {create_result.error}"
                 raise AssertionError(msg)
             params_list: Sequence[t.ContainerValueMapping] = [
@@ -133,7 +133,7 @@ class TestRealOracleConnection:
                 "INSERT INTO temp_test_table (id, name) VALUES (:id, :name)",
                 params_list,
             )
-            if result.is_failure:
+            if result.failure:
                 msg = f"Execute many failed: {result.error}"
                 raise AssertionError(msg)
             many_result = result.value
@@ -155,10 +155,10 @@ class TestRealOracleApi:
         try:
             with FlextDbOracleApi(real_oracle_config) as api:
                 test_result = api.test_connection()
-                if test_result.is_failure:
+                if test_result.failure:
                     pytest.skip(f"Connection test failed: {test_result.error}")
                 query_result = api.query("SELECT 'Hello Oracle' FROM DUAL")
-                if query_result.is_failure:
+                if query_result.failure:
                     pytest.skip(f"Query failed: {query_result.error}")
                 query_data = query_result.value
                 if query_data:
@@ -176,7 +176,7 @@ class TestRealOracleApi:
     def test_real_api_get_schemas(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle schema listing using utilities."""
         schemas_result = connected_oracle_api.get_schemas()
-        if schemas_result.is_failure:
+        if schemas_result.failure:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
         schemas = schemas_result.value
@@ -193,7 +193,7 @@ class TestRealOracleApi:
     def test_real_api_get_tables(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle table listing using utilities."""
         tables_result = connected_oracle_api.get_tables()
-        if tables_result.is_failure:
+        if tables_result.failure:
             msg = f"Get tables failed: {tables_result.error}"
             raise AssertionError(msg)
         tables = tables_result.value
@@ -206,7 +206,7 @@ class TestRealOracleApi:
     def test_real_api_get_columns(self, connected_oracle_api: FlextDbOracleApi) -> None:
         """Test real Oracle column listing."""
         result = connected_oracle_api.get_columns("EMPLOYEES")
-        if result.is_failure:
+        if result.failure:
             msg = f"Get columns failed: {result.error}"
             raise AssertionError(msg)
         columns = result.value
@@ -224,7 +224,7 @@ class TestRealOracleApi:
     ) -> None:
         """Test real Oracle query with timing."""
         result = connected_oracle_api.query("SELECT COUNT(*) FROM EMPLOYEES")
-        if result.is_failure:
+        if result.failure:
             msg = f"Query with timing failed: {result.error}"
             raise AssertionError(msg)
         query_result = result.value
@@ -253,7 +253,7 @@ class TestRealOracleApi:
                     singer_type,
                     format_hint,
                 )
-            if result.is_failure:
+            if result.failure:
                 msg = f"Type conversion failed for {singer_type}: {result.error}"
                 raise AssertionError(msg)
             oracle_type = result.value
@@ -288,23 +288,23 @@ class TestRealOracleApi:
             ddl_parts.extend((", ".join(column_parts), ")"))
             ddl_sql = " ".join(ddl_parts)
             ddl_result = r[str].ok(ddl_sql)
-            if ddl_result.is_failure:
+            if ddl_result.failure:
                 msg = f"DDL generation failed: {ddl_result.error}"
                 raise AssertionError(msg)
             ddl_sql = ddl_result.value
             execute_result = connected_oracle_api.execute_sql(ddl_sql)
-            if execute_result.is_failure:
+            if execute_result.failure:
                 msg = f"DDL execution failed: {execute_result.error}"
                 raise AssertionError(msg)
             tables_result = connected_oracle_api.get_tables()
-            if tables_result.is_failure:
+            if tables_result.failure:
                 msg = f"Get tables failed: {tables_result.error}"
                 raise AssertionError(msg)
             tables_data = tables_result.value
             table_names = [str(t).upper() for t in tables_data]
             tm.that(table_names, has=table_name.upper())
             metadata_result = connected_oracle_api.get_tables(table_name)
-            if metadata_result.is_failure:
+            if metadata_result.failure:
                 msg = f"Get metadata failed: {metadata_result.error}"
                 raise AssertionError(msg)
             metadata = metadata_result.value
@@ -352,7 +352,7 @@ class TestRealOracleErrorHandling:
         """Test execution with invalid SQL."""
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             result = connection.execute_query(

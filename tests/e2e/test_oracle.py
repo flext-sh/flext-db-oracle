@@ -49,23 +49,23 @@ class TestOracleE2E:
         """
         with FlextDbOracleApi(config=real_oracle_config) as api:
             connection_test = api.test_connection()
-            if connection_test.is_failure:
+            if connection_test.failure:
                 msg = "Connection"
                 raise OperationTestError(msg, connection_test.error or "Unknown error")
             schemas_result = api.get_schemas()
-            if schemas_result.is_failure:
+            if schemas_result.failure:
                 msg = "Schema discovery"
                 raise OperationTestError(msg, schemas_result.error or "Unknown error")
             schemas = schemas_result.value
             assert schemas, "No schemas found"
             tables_result = api.get_tables()
-            if tables_result.is_failure:
+            if tables_result.failure:
                 msg = "Table listing"
                 raise OperationTestError(msg, tables_result.error or "Unknown error")
             test_table_name = "E2E_TEST_TABLE"
             create_sql = f"CREATE TABLE {test_table_name} (\n                ID NUMBER(10) NOT NULL PRIMARY KEY,\n                NAME VARCHAR2(100) NOT NULL,\n                EMAIL VARCHAR2(255),\n                CREATED_AT TIMESTAMP DEFAULT SYSDATE\n            )"
             execute_result = api.execute_sql(create_sql)
-            if execute_result.is_failure:
+            if execute_result.failure:
                 raise AssertionError(f"Table creation failed: {execute_result.error}")
             try:
                 test_data: list[dict[str, str | int | None]] = [
@@ -77,14 +77,14 @@ class TestOracleE2E:
                     email_value = f"'{data['email']}'" if data["email"] else "NULL"
                     insert_sql = f"INSERT INTO {test_table_name} (ID, NAME, EMAIL) VALUES ({data['id']}, '{data['name']}', {email_value})"
                     insert_result = api.execute_statement(insert_sql)
-                    if insert_result.is_failure:
+                    if insert_result.failure:
                         raise AssertionError(
                             f"Data insertion failed: {insert_result.error}",
                         )
                 select_result = api.query(
                     f"SELECT * FROM {test_table_name} ORDER BY ID",
                 )
-                if select_result.is_failure:
+                if select_result.failure:
                     raise AssertionError(f"Data query failed: {select_result.error}")
                 query_data = select_result.value
                 assert isinstance(query_data, list), (
@@ -94,7 +94,7 @@ class TestOracleE2E:
                 count_result = api.query(
                     f"SELECT COUNT(*) as row_count FROM {test_table_name}",
                 )
-                if count_result.is_failure:
+                if count_result.failure:
                     raise AssertionError(f"Count query failed: {count_result.error}")
                 count_data = count_result.value
                 assert isinstance(count_data, list), (
@@ -113,7 +113,7 @@ class TestOracleE2E:
                     f"Expected count 3, got {count_value}"
                 )
                 metadata_result = api.get_table_metadata(test_table_name)
-                if metadata_result.is_failure:
+                if metadata_result.failure:
                     raise AssertionError(
                         f"Metadata query failed: {metadata_result.error}",
                     )
@@ -123,24 +123,24 @@ class TestOracleE2E:
                 if isinstance(columns_obj, (list, tuple, dict, str)):
                     assert len(columns_obj) >= 4
                 columns_result = api.get_columns(test_table_name)
-                if columns_result.is_failure:
+                if columns_result.failure:
                     raise AssertionError(f"Column info failed: {columns_result.error}")
                 columns_info = columns_result.value
                 assert len(columns_info) >= 4
                 pk_result = api.get_primary_keys(test_table_name)
-                if pk_result.is_failure:
+                if pk_result.failure:
                     raise AssertionError(f"Primary key query failed: {pk_result.error}")
                 primary_keys = pk_result.value
                 assert "ID" in primary_keys, "ID should be primary key"
                 with api.transaction():
                     update_sql = f"UPDATE {test_table_name} SET EMAIL = 'bob@example.com' WHERE ID = 3"
                     update_result = api.execute_statement(update_sql)
-                    if update_result.is_failure:
+                    if update_result.failure:
                         raise AssertionError(f"Update failed: {update_result.error}")
                 verify_result = api.query(
                     f"SELECT EMAIL FROM {test_table_name} WHERE ID = 3",
                 )
-                if verify_result.is_failure:
+                if verify_result.failure:
                     raise AssertionError(
                         f"Verification query failed: {verify_result.error}",
                     )
@@ -174,7 +174,7 @@ class TestOracleE2E:
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)
-                if result.is_failure:
+                if result.failure:
                     raise AssertionError(
                         f"Type conversion failed for {singer_type}: {result.error}",
                     )
@@ -193,7 +193,7 @@ class TestOracleE2E:
                 },
             }
             schema_result = api.map_singer_schema(singer_schema)
-            if schema_result.is_failure:
+            if schema_result.failure:
                 raise AssertionError(f"Schema mapping failed: {schema_result.error}")
             mapped_schema = schema_result.value
             assert "id" in mapped_schema
@@ -219,7 +219,7 @@ class TestOracleE2E:
         os.environ.update(test_env)
         try:
             config_result = FlextDbOracleSettings.from_env()
-            assert config_result.is_success, (
+            assert config_result.success, (
                 f"Config creation failed: {config_result.error}"
             )
             config = config_result.value
@@ -247,12 +247,12 @@ class TestOracleE2E:
         api = FlextDbOracleApi(invalid_config)
         api.connect()
         query_result = api.query("SELECT 1 FROM DUAL")
-        if query_result.is_success:
+        if query_result.success:
             msg = "Query should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (query_result.error or "").lower()
         metadata_result = api.get_tables()
-        if metadata_result.is_success:
+        if metadata_result.success:
             msg = "Get tables should fail without connection"
             raise AssertionError(msg)
         assert "not connected to database" in (metadata_result.error or "").lower()
@@ -271,9 +271,9 @@ class TestOracleE2E:
                 result2 = api2.query("SELECT 'API2' as source FROM DUAL")
                 skip_tests = os.getenv("SKIP_E2E_TESTS", "true").lower() == "true"
                 if not skip_tests:
-                    if result1.is_failure:
+                    if result1.failure:
                         raise AssertionError(f"API1 query failed: {result1.error}")
-                    if result2.is_failure:
+                    if result2.failure:
                         raise AssertionError(f"API2 query failed: {result2.error}")
                 else:
                     assert result1 is not None
@@ -291,7 +291,7 @@ class TestOracleE2E:
         try:
             with FlextDbOracleApi(config=real_oracle_config) as api:
                 timed_result = api.query("SELECT 1 FROM DUAL")
-                if timed_result.is_success:
+                if timed_result.success:
                     query_result = timed_result.value
                     assert isinstance(query_result, list)
                     assert len(query_result) >= 0

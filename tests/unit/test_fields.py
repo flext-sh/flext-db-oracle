@@ -42,7 +42,7 @@ class TestFlextDbOracleFields:
     def test_connection_status_model_fields(self) -> None:
         """Test ConnectionStatus model has expected fields."""
         fields = m.DbOracle.ConnectionStatus.model_fields
-        assert "is_connected" in fields
+        assert "connected" in fields
         assert "error_message" in fields
 
     def test_query_result_model_fields(self) -> None:

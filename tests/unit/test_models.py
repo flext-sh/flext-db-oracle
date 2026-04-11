@@ -26,7 +26,7 @@ class Testm:
     def test_connection_status_creation_defaults(self) -> None:
         """Test ConnectionStatus creation with defaults."""
         status = m.DbOracle.ConnectionStatus()
-        tm.that(not status.is_connected, eq=True)
+        tm.that(not status.connected, eq=True)
         tm.that(status.error_message, eq="")
         tm.that(abs(status.connection_time - 0.0), lt=1e-9)
         tm.that(status.session_id, eq="")
@@ -40,7 +40,7 @@ class Testm:
         """Test ConnectionStatus creation with custom values."""
         now = datetime.now(UTC)
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             error_message="",
             connection_time=0.5,
             last_activity=now,
@@ -51,7 +51,7 @@ class Testm:
             username="system",
             db_version="19.3.0.0.0",
         )
-        tm.that(status.is_connected, eq=True)
+        tm.that(status.connected, eq=True)
         tm.that(abs(status.connection_time - 0.5), lt=1e-9)
         tm.that(status.session_id, eq="ABC123")
         tm.that(status.host, eq="localhost")
@@ -62,17 +62,17 @@ class Testm:
         """Test ConnectionStatus computed fields."""
         now = datetime.now(UTC)
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             last_activity=now,
             host="localhost",
             service_name="XEPDB1",
             username="system",
         )
         tm.that(status.status_description, eq="Connected")
-        status.is_connected = False
+        status.connected = False
         status.error_message = "Connection lost"
         tm.that(status.status_description, eq="Disconnected: Connection lost")
-        status.is_connected = True
+        status.connected = True
         status.error_message = ""
         tm.that(status.connection_age_seconds, gte=0)
         tm.that(status.is_healthy, eq=True)
@@ -84,7 +84,7 @@ class Testm:
     def test_connection_status_performance_info(self) -> None:
         """Test ConnectionStatus performance rating."""
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             host="localhost",
             connection_time=0.05,
         )
@@ -101,26 +101,26 @@ class Testm:
     def test_connection_status_validation(self) -> None:
         """Test ConnectionStatus validation."""
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             host="localhost",
             port=1521,
         )
         validated = m.DbOracle.ConnectionStatus.model_validate(
             status.model_dump(),
         )
-        tm.that(validated.is_connected, eq=True)
+        tm.that(validated.connected, eq=True)
         with pytest.raises(
             ValueError,
             match="Connected status requires host information",
         ):
             m.DbOracle.ConnectionStatus(
-                is_connected=True,
+                connected=True,
                 host="",
                 port=1521,
             )
         with pytest.raises(ValueError, match="less than or equal to"):
             m.DbOracle.ConnectionStatus(
-                is_connected=True,
+                connected=True,
                 host="localhost",
                 port=99999,
             )
@@ -131,7 +131,7 @@ class Testm:
         """Test ConnectionStatus field serialization."""
         now = datetime.now(UTC)
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             host="localhost",
             last_check=now,
             last_activity=now,
@@ -360,7 +360,7 @@ class Testm:
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         status = m.DbOracle.ConnectionStatus(
-            is_connected=True,
+            connected=True,
             host="localhost",
             port=1521,
             service_name="XEPDB1",
@@ -427,7 +427,7 @@ class Testm:
         if not oracle_available or connected_oracle_api is None:
             pytest.skip("Oracle not available for integration test")
         schemas_result = connected_oracle_api.get_schemas()
-        if schemas_result.is_success:
+        if schemas_result.success:
             schemas = schemas_result.value
             if schemas:
                 table = m.DbOracle.Table(name="dual", owner="SYS")

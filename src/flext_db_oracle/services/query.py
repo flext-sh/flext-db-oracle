@@ -37,10 +37,10 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         params_list: Sequence[t.ContainerValueMapping | t.ConfigMap],
     ) -> r[int]:
         """Execute SQL statement multiple times."""
-        if not self.is_connected():
+        if not self.connected():
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
-        if engine_result.is_failure:
+        if engine_result.failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
             connect_ctx = self._engine_connect(engine_result.value)
@@ -80,10 +80,10 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         params: t.ConfigMap | None = None,
     ) -> r[Sequence[t.Dict]]:
         """Execute SQL query and return results."""
-        if not self.is_connected():
+        if not self.connected():
             return r[Sequence[t.Dict]].fail("Not connected to database")
         engine_result = self._get_engine()
-        if engine_result.is_failure:
+        if engine_result.failure:
             return r[Sequence[t.Dict]].fail(
                 engine_result.error or "Failed to get database engine",
             )
@@ -113,10 +113,10 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
 
     def execute_statement(self, sql: str, params: t.ConfigMap | None = None) -> r[int]:
         """Execute SQL statement and return affected rows."""
-        if not self.is_connected():
+        if not self.connected():
             return r[int].fail("Not connected to database")
         engine_result = self._get_engine()
-        if engine_result.is_failure:
+        if engine_result.failure:
             return r[int].fail(engine_result.error or "Failed to get database engine")
         try:
             transaction_ctx = self._engine_begin(engine_result.value)

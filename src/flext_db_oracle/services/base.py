@@ -78,7 +78,7 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
             raise RuntimeError(msg)
         return config
 
-    def is_connected(self) -> bool:
+    def connected(self) -> bool:
         """Check if the service has an active SQLAlchemy engine."""
         return self._engine is not None
 
@@ -194,7 +194,7 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
     def _get_engine(self) -> r[SAEngine]:
         """Get database engine."""
         engine = self._engine
-        if engine is None or not self.is_connected():
+        if engine is None or not self.connected():
             return r[SAEngine].fail("Not connected to database")
         return r[SAEngine].ok(engine)
 

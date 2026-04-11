@@ -33,7 +33,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
     def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
-        status = "connected" if self.is_connected() else "disconnected"
+        status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
             metric_name: str(metric_value)
             for metric_name, metric_value in self._metrics.items()

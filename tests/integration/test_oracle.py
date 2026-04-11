@@ -50,23 +50,19 @@ class TestOracleIntegration:
         api = FlextDbOracleApi(config=oracle_config)
         if real_oracle_config is not None:
             connect_result = api.connect()
-            if connect_result.is_failure:
+            if connect_result.failure:
                 pytest.skip(f"Oracle container not available: {connect_result.error}")
             connected_api = connect_result.value
             test_result = connected_api.test_connection()
-            assert test_result.is_success, (
-                f"Connection test failed: {test_result.error}"
-            )
+            assert test_result.success, f"Connection test failed: {test_result.error}"
             schemas_result = connected_api.get_schemas()
-            assert schemas_result.is_success, (
-                f"Get schemas failed: {schemas_result.error}"
-            )
+            assert schemas_result.success, f"Get schemas failed: {schemas_result.error}"
             schemas = schemas_result.value
             assert schemas, "Should have at least one schema"
             tables_result = connected_api.get_tables()
-            assert tables_result.is_success, f"Get tables failed: {tables_result.error}"
+            assert tables_result.success, f"Get tables failed: {tables_result.error}"
             query_result = connected_api.query("SELECT SYSDATE FROM DUAL")
-            assert query_result.is_success, f"Query failed: {query_result.error}"
+            assert query_result.success, f"Query failed: {query_result.error}"
             query_data = query_result.value
             assert len(query_data) == 1, "Query should return exactly one row"
             connected_api.disconnect()
@@ -87,11 +83,11 @@ class TestOracleIntegration:
         if real_oracle_config is None:
             pytest.skip("Oracle container not available - skipping error handling test")
         connect_result = api.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
         connected_api = connect_result.value
         invalid_query_result = connected_api.query("INVALID SQL STATEMENT")
-        if invalid_query_result.is_success:
+        if invalid_query_result.success:
             msg = "Invalid SQL should fail"
             raise AssertionError(msg)
         error_msg = invalid_query_result.error or ""
@@ -99,7 +95,7 @@ class TestOracleIntegration:
         nonexistent_table_result = connected_api.query(
             "SELECT * FROM NONEXISTENT_TABLE_12345",
         )
-        if nonexistent_table_result.is_success:
+        if nonexistent_table_result.success:
             msg = "Query on non-existent table should fail"
             raise AssertionError(msg)
         connected_api.disconnect()
@@ -118,11 +114,11 @@ class TestOracleIntegration:
             )
         with api:
             test_result = api.test_connection()
-            if test_result.is_failure:
+            if test_result.failure:
                 msg = f"Connection test failed: {test_result.error}"
                 raise AssertionError(msg)
             query_result = api.query("SELECT 1 FROM DUAL")
-            if query_result.is_failure:
+            if query_result.failure:
                 msg = f"Query failed: {query_result.error}"
                 raise AssertionError(msg)
 
@@ -139,11 +135,11 @@ class TestOracleIntegration:
                 "Oracle container not available - skipping metadata operations test",
             )
         connect_result = api.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
         connected_api = connect_result.value
         schemas_result = connected_api.get_schemas()
-        if schemas_result.is_failure:
+        if schemas_result.failure:
             msg = f"Get schemas failed: {schemas_result.error}"
             raise AssertionError(msg)
         schemas = schemas_result.value
@@ -151,14 +147,14 @@ class TestOracleIntegration:
         if schemas:
             first_schema = schemas[0]
             tables_result = connected_api.get_tables(first_schema)
-            if tables_result.is_failure:
+            if tables_result.failure:
                 msg = f"Get tables failed: {tables_result.error}"
                 raise AssertionError(msg)
             tables = tables_result.value
             if tables:
                 table_name_str = str(tables[0])
                 columns_result = connected_api.get_columns(table_name_str)
-                if columns_result.is_failure:
+                if columns_result.failure:
                     msg = f"Get columns failed: {columns_result.error}"
                     raise AssertionError(msg)
                 columns = columns_result.value
@@ -180,11 +176,11 @@ class TestOracleIntegration:
         insert_result = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (1, 'Test User')",
         )
-        assert insert_result.is_success, f"Insert failed: {insert_result.error}"
+        assert insert_result.success, f"Insert failed: {insert_result.error}"
         query_result = connected_oracle_api.query(
             "SELECT id, name FROM test_table WHERE id = 1",
         )
-        assert query_result.is_success, f"Query failed: {query_result.error}"
+        assert query_result.success, f"Query failed: {query_result.error}"
         data = query_result.value
         assert len(data) == 1
         row = data[0].root if hasattr(data[0], "root") else data[0]
@@ -193,22 +189,22 @@ class TestOracleIntegration:
         update_result = connected_oracle_api.execute_statement(
             "UPDATE test_table SET name = 'Updated User' WHERE id = 1",
         )
-        assert update_result.is_success, f"Update failed: {update_result.error}"
+        assert update_result.success, f"Update failed: {update_result.error}"
         query_result = connected_oracle_api.query(
             "SELECT name FROM test_table WHERE id = 1",
         )
-        assert query_result.is_success
+        assert query_result.success
         data = query_result.value
         row = data[0].root if hasattr(data[0], "root") else data[0]
         assert str(row.get("NAME", row.get("name", ""))) == "Updated User"
         delete_result = connected_oracle_api.execute_statement(
             "DELETE FROM test_table WHERE id = 1",
         )
-        assert delete_result.is_success, f"Delete failed: {delete_result.error}"
+        assert delete_result.success, f"Delete failed: {delete_result.error}"
         query_result = connected_oracle_api.query(
             "SELECT COUNT(*) as count FROM test_table",
         )
-        assert query_result.is_success
+        assert query_result.success
         data = query_result.value
         row = data[0].root if hasattr(data[0], "root") else data[0]
         count_val = row.get("COUNT", row.get("count", row.get("COUNT(*)", "0")))
@@ -226,13 +222,13 @@ class TestOracleIntegration:
         insert_result = connected_oracle_api.execute_statement(
             "INSERT INTO test_table (id, name) VALUES (100, 'Transaction Test')",
         )
-        assert insert_result.is_success
+        assert insert_result.success
         commit_result = connected_oracle_api.execute_statement("COMMIT")
-        assert commit_result.is_success
+        assert commit_result.success
         query_result = connected_oracle_api.query(
             "SELECT name FROM test_table WHERE id = 100",
         )
-        assert query_result.is_success
+        assert query_result.success
         data = query_result.value
         assert len(data) == 1
         row = data[0].root if hasattr(data[0], "root") else data[0]
@@ -250,7 +246,7 @@ class TestOracleIntegration:
                 "Oracle container not available - skipping schema operations test",
             )
         schemas_result = connected_oracle_api.get_schemas()
-        assert schemas_result.is_success, f"Get schemas failed: {schemas_result.error}"
+        assert schemas_result.success, f"Get schemas failed: {schemas_result.error}"
         schemas = schemas_result.value
         assert isinstance(schemas, list)
         assert schemas
@@ -267,15 +263,15 @@ class TestOracleIntegration:
             pytest.skip("Oracle container not available - skipping performance test")
         api = FlextDbOracleApi(config=real_oracle_config)
         connect_result = api.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Failed to connect to Oracle: {connect_result.error}")
         connected_api = connect_result.value
         health_result = connected_api.get_health_status()
-        assert health_result.is_success, f"Health status failed: {health_result.error}"
+        assert health_result.success, f"Health status failed: {health_result.error}"
         status = health_result.value
-        assert status.is_connected is True
+        assert status.connected is True
         assert status.is_healthy is True
         assert status.status_description == "Connected"
         assert status.connection_age_seconds >= 0
         disconnect_result = connected_api.disconnect()
-        assert disconnect_result.is_success
+        assert disconnect_result.success

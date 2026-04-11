@@ -66,13 +66,13 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     @override
     def __repr__(self) -> str:
         """Return string representation of the API instance."""
-        status = "connected" if self.is_connected else "disconnected"
+        status = "connected" if self.connected else "disconnected"
         return f"FlextDbOracleApi(host={self._oracle_config.host}, status={status})"
 
     def __enter__(self) -> Self:
         """Context manager entry."""
         connect_result = self.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             msg = connect_result.error or "Failed to connect to Oracle database"
             raise RuntimeError(msg)
         return self
@@ -102,12 +102,12 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     @property
     def connection(self) -> FlextDbOracleServices | None:
         """Get connection t.NormalizedValue - public interface."""
-        return self._services if self._services.is_connected() else None
+        return self._services if self._services.connected() else None
 
     @property
-    def is_connected(self) -> bool:
+    def connected(self) -> bool:
         """Check if connected to the database."""
-        return self._services.is_connected()
+        return self._services.connected()
 
     @property
     def oracle_config(self) -> FlextDbOracleSettings:
@@ -164,7 +164,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         normalized: list[t.ConfigMap] = []
         for parameters in parameters_list:
             result = cls._normalize_parameters(parameters)
-            if result.is_failure:
+            if result.failure:
                 return r[Sequence[t.ConfigMap]].fail(
                     result.error or "Invalid bulk query parameters",
                 )
@@ -327,7 +327,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return self._services.get_tables(schema)
 
     @override
-    def is_valid(self) -> bool:
+    def valid(self) -> bool:
         """Check if API configuration is valid."""
         return self._oracle_config.port >= c.DbOracle.OracleNetwork.MIN_PORT and bool(
             self._oracle_config.service_name,
@@ -399,7 +399,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
                     exclude={"password"},
                     mode="python",
                 ),
-                "connected": self.is_connected,
+                "connected": self.connected,
                 "plugin_count": len(self._plugins),
             },
         )
@@ -408,7 +408,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         """Get transaction status information."""
         return r[t.ContainerValueMapping].ok(
             {
-                "connected": self._services.is_connected(),
+                "connected": self._services.connected(),
                 "transaction_available": True,
             },
         )

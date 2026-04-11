@@ -40,9 +40,9 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
     if env_port is not None and env_port.isdigit():
         env_port_int = int(env_port)
         status_result = docker_control.get_container_status(container_name)
-        status_value = status_result.value if status_result.is_success else None
+        status_value = status_result.value if status_result.success else None
         ports: t.StrMapping = getattr(status_value, "ports", {}) or {}
-        if status_result.is_success:
+        if status_result.success:
             for container_port, host_port in ports.items():
                 if (
                     container_port.startswith("1521")
@@ -58,9 +58,9 @@ def _resolve_oracle_test_port(docker_control: tk, container_name: str) -> int:
             fallback_port = configured_port
     for _ in range(30):
         status_result = docker_control.get_container_status(container_name)
-        status_value = status_result.value if status_result.is_success else None
+        status_value = status_result.value if status_result.success else None
         ports = getattr(status_value, "ports", {}) or {}
-        if status_result.is_success:
+        if status_result.success:
             for container_port, host_port in ports.items():
                 if container_port.startswith("1521") and host_port.isdigit():
                     return int(host_port)
@@ -99,18 +99,16 @@ def _ensure_shared_oracle_container() -> str | None:
     if not compose_file.startswith("/"):
         compose_file = str(_workspace_root() / compose_file)
     status = docker_control.get_container_status(container_name)
-    status_value = status.value if status.is_success else None
+    status_value = status.value if status.success else None
     status_name = getattr(status_value, "status", None)
-    container_running = status.is_success and (
-        status_name == tk.ContainerStatus.RUNNING
-    )
+    container_running = status.success and (status_name == tk.ContainerStatus.RUNNING)
     if not container_running:
         service_name = str(container_config.get("service", ""))
         compose_result = docker_control.compose_up(
             compose_file,
             service=service_name or None,
         )
-        if compose_result.is_failure:
+        if compose_result.failure:
             return None
     resolved_port = _resolve_oracle_test_port(docker_control, container_name)
     os.environ["TEST_ORACLE_HOST"] = "localhost"
@@ -130,7 +128,7 @@ def _is_oracle_container_running() -> bool:
         status_result = docker_control.get_container_status("flext-oracle-db-test")
     except (ConnectionError, TimeoutError, OSError, RuntimeError):
         return False
-    return status_result.is_success and (
+    return status_result.success and (
         getattr(status_result.value, "status", None) == tk.ContainerStatus.RUNNING
     )
 
@@ -209,7 +207,7 @@ def connected_oracle_api(
     if oracle_api is None:
         pytest.skip("Oracle API unavailable for connected fixture")
     connect_result = oracle_api.connect()
-    if connect_result.is_success:
+    if connect_result.success:
         connected_api = connect_result.value
         yield connected_api
         with contextlib.suppress(Exception):

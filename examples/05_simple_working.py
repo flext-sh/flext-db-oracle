@@ -19,7 +19,7 @@ def demonstrate_real_functionality() -> None:
     logger.info("=== FLEXT Oracle Example - Configuration Demo ===")
     try:
         config_result = FlextDbOracleSettings.from_env()
-        if config_result.is_success:
+        if config_result.success:
             config = config_result.value
             logger.info(f"✅ Configuration created: {config.host}:{config.port}")
         else:

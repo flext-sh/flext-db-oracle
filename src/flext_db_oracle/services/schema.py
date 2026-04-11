@@ -92,7 +92,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
                 sql = "\n                SELECT column_name\n                FROM user_constraints c, user_cons_columns cc\n                WHERE c.constraint_type = 'P'\n                AND c.constraint_name = cc.constraint_name\n                AND c.table_name = UPPER(:table_name)\n                ORDER BY cc.position\n                "
                 params = t.ConfigMap(root={"table_name": table_name})
             query_result = self.execute_query(sql, params)
-            if query_result.is_failure:
+            if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return [str(row.root["column_name"]) for row in query_result.value]
 
@@ -129,11 +129,11 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
 
         def _fetch_metadata() -> FlextDbOracleModels.DbOracle.TableMetadata:
             columns_result = self.get_columns(table_name, schema)
-            if columns_result.is_failure:
+            if columns_result.failure:
                 raise RuntimeError(columns_result.error or "Failed to get columns")
 
             pk_result = self.get_primary_keys(table_name, schema)
-            if pk_result.is_failure:
+            if pk_result.failure:
                 raise RuntimeError(pk_result.error or "Failed to get primary keys")
 
             return FlextDbOracleModels.DbOracle.TableMetadata(
@@ -173,7 +173,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             schema = f"{schema_name}." if schema_name else ""
             sql = f"SELECT COUNT(*) as count FROM {schema}{table_name}"  # nosec B608
             query_result = self.execute_query(sql)
-            if query_result.is_failure:
+            if query_result.failure:
                 raise RuntimeError(query_result.error or "Query execution failed")
             return self._parse_count_from_rows(query_result.value)
 

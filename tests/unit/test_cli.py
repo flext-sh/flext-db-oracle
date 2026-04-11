@@ -62,7 +62,7 @@ class TestFlextDbOracleClientReal:
             query_limit=2000,
             show_execution_time=False,
         )
-        tm.that(result.is_success, eq=True)
+        tm.that(result.success, eq=True)
         tm.that(client.user_preferences["default_output_format"], eq="json")
         tm.that(client.user_preferences["query_limit"], eq=2000)
         tm.that(client.user_preferences["show_execution_time"] is False, eq=True)
@@ -74,7 +74,7 @@ class TestFlextDbOracleClientReal:
             invalid_key="value",
             another_invalid="test",
         )
-        tm.that(result.is_success, eq=True)
+        tm.that(result.success, eq=True)
         assert not hasattr(client.user_preferences, "invalid_key")
         assert not hasattr(client.user_preferences, "another_invalid")
 
@@ -82,7 +82,7 @@ class TestFlextDbOracleClientReal:
         """Test connection methods without active connection."""
         client = FlextDbOracleClient()
         result = client.execute_query("SELECT 1 FROM DUAL")
-        tm.that(not result.is_success, eq=True)
+        tm.that(not result.success, eq=True)
         tm.that(result.error, none=False)
         tm.that(
             (
@@ -92,15 +92,15 @@ class TestFlextDbOracleClientReal:
             eq=True,
         )
         schemas_result = client.list_schemas()
-        tm.that(not schemas_result.is_success, eq=True)
+        tm.that(not schemas_result.success, eq=True)
         tm.that(schemas_result.error, none=False)
         tm.that((schemas_result.error or ""), has="No active Oracle connection")
         tables_result = client.list_tables()
-        tm.that(not tables_result.is_success, eq=True)
+        tm.that(not tables_result.success, eq=True)
         tm.that(tables_result.error, none=False)
         tm.that((tables_result.error or ""), has="No active Oracle connection")
         health_result = client.health_check()
-        tm.that(not health_result.is_success, eq=True)
+        tm.that(not health_result.success, eq=True)
         tm.that(health_result.error, none=False)
         tm.that((health_result.error or ""), has="No active Oracle connection")
 
@@ -114,7 +114,7 @@ class TestFlextDbOracleClientReal:
             username="invalid_user",
             password="invalid_password",
         )
-        tm.that(not result.is_success, eq=True)
+        tm.that(not result.success, eq=True)
         tm.that(bool(result.error), eq=True)
         tm.that(
             (
@@ -151,7 +151,7 @@ class TestFlextDbOracleClientReal:
         """Test real error handling in client methods."""
         client = FlextDbOracleClient()
         result = client.execute_query("")
-        tm.that(not result.is_success, eq=True)
+        tm.that(not result.success, eq=True)
         bad_result = client.configure_preferences(valid_key="")
         tm.that(bad_result, is_=r)
         tm.ok(bad_result)
@@ -193,7 +193,7 @@ class TestFlextDbOracleClientIntegration:
             config.username,
             config.password.get_secret_value() if config.password else None,
         )
-        tm.that(not result.is_success, eq=True)
+        tm.that(not result.success, eq=True)
         tm.that(result.error, is_=str)
 
 
@@ -253,7 +253,7 @@ class TestOracleConnectionHelper:
             host="test-host",
             username="test_user",
         )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_empty_password(self) -> None:
@@ -263,7 +263,7 @@ class TestOracleConnectionHelper:
             username="test_user",
             password="",
         )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Password is required")
 
     def test_create_config_from_params_validation_error(self) -> None:
@@ -272,7 +272,7 @@ class TestOracleConnectionHelper:
             host="",
             password="test_password",
         )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Configuration creation failed")
 
     def test_validate_connection_success(self) -> None:
@@ -306,7 +306,7 @@ class TestOracleConnectionHelper:
             result = FlextDbOracleCli._OracleConnectionHelper.validate_connection(
                 config,
             )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="Connection failed")
 
 
@@ -480,7 +480,7 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         assert result.error is not None
         tm.that(
             "Database unreachable" in result.error,
@@ -533,7 +533,7 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         assert result.error is not None
         tm.that(
             "Connection failed" in result.error,
@@ -558,7 +558,7 @@ class TestCliServiceOperations:
                 username="test_user",
                 password="test_password",
             )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         assert result.error is not None
         tm.that(
             "Schema query failed" in result.error,
@@ -653,7 +653,7 @@ class TestCliServiceOperations:
             password="test_password",
             sql="",
         )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="SQL query cannot be empty")
 
     def test_execute_query_whitespace_sql(self) -> None:
@@ -667,7 +667,7 @@ class TestCliServiceOperations:
             password="test_password",
             sql="   \n\t  ",
         )
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(str(result.error), has="SQL query cannot be empty")
 
 
@@ -742,9 +742,9 @@ class TestCLIRealFunctionality:
         tm.ok(metrics_result)
         tm.that(metrics_result.value, is_=dict)
         api.test_connection()
-        is_valid = api.is_valid()
-        tm.that(is_valid, is_=bool)
-        tm.that(is_valid, eq=True)
+        valid = api.valid()
+        tm.that(valid, is_=bool)
+        tm.that(valid, eq=True)
 
     def test_output_formatting_real(self) -> None:
         """Test output formatting using real functionality."""
@@ -769,7 +769,7 @@ class TestCLIRealFunctionality:
         )
         api = FlextDbOracleApi(invalid_config)
         query_result = api.query("SELECT 1 FROM DUAL")
-        tm.that(query_result.is_failure, eq=True)
+        tm.that(query_result.failure, eq=True)
         tm.that(query_result.error, none=False)
         tm.that(
             (
@@ -782,9 +782,9 @@ class TestCLIRealFunctionality:
             eq=True,
         )
         schemas_result = api.get_schemas()
-        tm.that(schemas_result.is_failure, eq=True)
+        tm.that(schemas_result.failure, eq=True)
         tables_result = api.get_tables()
-        tm.that(tables_result.is_failure, eq=True)
+        tm.that(tables_result.failure, eq=True)
 
     def test_parameter_processing_real(self) -> None:
         """Test parameter processing using real API functionality."""
@@ -820,7 +820,7 @@ class TestCLIRealFunctionality:
         )
         api = FlextDbOracleApi(config)
         methods_to_test: Sequence[tuple[str, t.DbOracle.Tests.ApiCoverageCallable]] = [
-            ("is_valid", api.is_valid),
+            ("valid", api.valid),
             ("to_dict", api.to_dict),
             ("get_observability_metrics", api.get_observability_metrics),
             ("optimize_query", lambda: api.optimize_query("SELECT * FROM test")),

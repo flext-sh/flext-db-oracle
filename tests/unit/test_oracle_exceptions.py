@@ -32,7 +32,7 @@ class TestRealOracleExceptionsCore:
         )
         connection = FlextDbOracleServices(config=invalid_config)
         result = connection.connect()
-        if result.is_success:
+        if result.success:
             msg = "Connection with invalid credentials should fail"
             raise AssertionError(msg)
         error_msg = (result.error or "").lower()
@@ -67,7 +67,7 @@ class TestRealOracleExceptionsCore:
         )
         connection = FlextDbOracleServices(config=unreachable_config)
         result = connection.connect()
-        if result.is_success:
+        if result.success:
             msg = "Connection to unreachable host should fail"
             raise AssertionError(msg)
         error_msg = (result.error or "").lower()
@@ -102,7 +102,7 @@ class TestRealOracleExceptionsCore:
             )
             connection = FlextDbOracleServices(config=invalid_config)
             result = connection.connect()
-            if result.is_success:
+            if result.success:
                 msg = "Connection with invalid config should fail"
                 raise AssertionError(msg)
             error_msg = result.error or ""
@@ -122,7 +122,7 @@ class TestRealOracleExceptionsCore:
             pytest.skip("Oracle real config unavailable")
         connection = FlextDbOracleServices(config=real_oracle_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             invalid_queries = [
@@ -173,14 +173,14 @@ class TestRealOracleExceptionsCore:
         )
         connection = FlextDbOracleServices(config=timeout_config)
         connect_result = connection.connect()
-        if connect_result.is_failure:
+        if connect_result.failure:
             pytest.skip(f"Oracle connection unavailable: {connect_result.error}")
         try:
             long_query = (
                 "SELECT * FROM (SELECT LEVEL FROM DUAL CONNECT BY LEVEL <= 100000)"
             )
             result = connection.execute_query(long_query)
-            if result.is_failure:
+            if result.failure:
                 error_msg = (result.error or "").lower()
                 tm.that(
                     any(
@@ -213,9 +213,9 @@ class TestRealOracleExceptionsAdvanced:
         for invalid_schema in invalid_schemas:
             if invalid_schema:
                 result = connected_oracle_api.get_tables(schema=invalid_schema)
-                tm.that(result.is_success or result.is_failure, eq=True)
+                tm.that(result.success or result.failure, eq=True)
         columns_result = connected_oracle_api.get_columns("NON_EXISTENT_TABLE_12345")
-        if columns_result.is_failure:
+        if columns_result.failure:
             msg = f"Get columns failed: {columns_result.error}"
             raise AssertionError(msg)
         tm.that(columns_result.value, is_=list)

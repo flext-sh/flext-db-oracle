@@ -26,7 +26,7 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
             class StubResult(FlextDbOracleModels.DbOracle.DbOracleDomainModel):
                 """Minimal result stub for dynamic integration tests."""
 
-                is_failure: bool = False
+                failure: bool = False
                 error: str = ""
 
             class StubPluginEntity(FlextDbOracleModels.DbOracle.DbOracleDomainModel):

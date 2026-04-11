@@ -75,7 +75,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             return
         container_name = "flext-oracle-db-test"
         status_result = docker.get_container_status(container_name)
-        if status_result.is_success:
+        if status_result.success:
             status = status_result.value
             if status.status == docker.ContainerStatus.RUNNING:
                 docker.mark_container_clean(container_name)
@@ -85,7 +85,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
                 )
                 return
         cleanup_result = docker.cleanup_dirty_containers()
-        if cleanup_result.is_failure:
+        if cleanup_result.failure:
             logger.warning(f"Dirty container cleanup failed: {cleanup_result.error}")
         else:
             cleaned = cleanup_result.value
@@ -153,15 +153,15 @@ def shared_oracle_container(docker_control: tk) -> str:
             container_name,
         )
         cleanup_result = docker_control.cleanup_dirty_containers()
-        if cleanup_result.is_failure:
+        if cleanup_result.failure:
             pytest.skip(
                 f"Failed to recreate dirty container {container_name}: {cleanup_result.error}",
             )
     else:
         status = docker_control.get_container_status(container_name)
-        status_value = status.value if status.is_success else None
+        status_value = status.value if status.success else None
         status_name = getattr(status_value, "status", None)
-        container_running = status.is_success and (
+        container_running = status.success and (
             status_name == tk.ContainerStatus.RUNNING
         )
         if not container_running:
@@ -174,7 +174,7 @@ def shared_oracle_container(docker_control: tk) -> str:
                 compose_file,
                 service=service_name or None,
             )
-            if compose_result.is_failure:
+            if compose_result.failure:
                 pytest.skip(
                     f"Failed to start container {container_name}: {compose_result.error}",
                 )
@@ -265,7 +265,7 @@ def connected_oracle_api(
 ) -> Generator[FlextDbOracleApi]:
     """Return Oracle API that is already connected."""
     connect_result = oracle_api.connect()
-    if connect_result.is_success:
+    if connect_result.success:
         connected_api = connect_result.value
         yield connected_api
         with contextlib.suppress(Exception):
@@ -366,7 +366,7 @@ def test_database_setup(
     for ddl in test_schema.values():
         try:
             result = connected_oracle_api.execute_statement(ddl)
-            if result.is_failure:
+            if result.failure:
                 pytest.skip(f"Could not create test schema: {result.error}")
         except (oracledb.Error, ConnectionError, OSError) as e:
             pytest.skip(f"Test setup failed: {e}")

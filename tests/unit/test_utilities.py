@@ -186,7 +186,7 @@ class Testu:
     def test_escape_oracle_identifier_with_quotes(self) -> None:
         """Test identifier with quotes fails (non-alnum chars)."""
         result = u.DbOracle.escape_oracle_identifier("user's")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Invalid Oracle identifier" in result.error,
             eq=True,
@@ -209,7 +209,7 @@ class Testu:
     def test_escape_oracle_identifier_with_dollar(self) -> None:
         """Test identifier with dollar sign fails ($ not alnum after _ strip)."""
         result = u.DbOracle.escape_oracle_identifier("user$table")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Invalid Oracle identifier" in result.error,
             eq=True,
@@ -218,7 +218,7 @@ class Testu:
     def test_escape_oracle_identifier_with_hash(self) -> None:
         """Test identifier with hash sign fails (# not alnum after _ strip)."""
         result = u.DbOracle.escape_oracle_identifier("user#table")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Invalid Oracle identifier" in result.error,
             eq=True,
@@ -227,7 +227,7 @@ class Testu:
     def test_escape_oracle_identifier_empty(self) -> None:
         """Test empty identifier."""
         result = u.DbOracle.escape_oracle_identifier("")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Empty Oracle identifier" in result.error,
             eq=True,
@@ -236,7 +236,7 @@ class Testu:
     def test_escape_oracle_identifier_whitespace_only(self) -> None:
         """Test whitespace-only identifier."""
         result = u.DbOracle.escape_oracle_identifier("   ")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Empty Oracle identifier" in result.error,
             eq=True,
@@ -245,7 +245,7 @@ class Testu:
     def test_escape_oracle_identifier_invalid_chars(self) -> None:
         """Test identifier with invalid characters."""
         result = u.DbOracle.escape_oracle_identifier("user@table")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Invalid Oracle identifier" in result.error,
             eq=True,
@@ -254,7 +254,7 @@ class Testu:
     def test_escape_oracle_identifier_with_spaces(self) -> None:
         """Test identifier with spaces."""
         result = u.DbOracle.escape_oracle_identifier("user table")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Invalid Oracle identifier" in result.error,
             eq=True,
@@ -384,7 +384,7 @@ class Testu:
     def test_oracle_validation_validate_identifier_empty(self) -> None:
         """Test empty identifier validation."""
         result = u.DbOracle.validate_identifier("")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(
             result.error is not None and "Empty" in result.error,
             eq=True,
@@ -394,7 +394,7 @@ class Testu:
         """Test identifier too long validation."""
         long_identifier = "A" * (c.DbOracle.OracleValidation.MAX_IDENTIFIER_LENGTH + 1)
         result = u.DbOracle.validate_identifier(long_identifier)
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(result.error is not None and "too long" in result.error, eq=True)
 
     def test_oracle_validation_validate_identifier_special_chars_pass(self) -> None:
@@ -406,7 +406,7 @@ class Testu:
     def test_oracle_validation_validate_identifier_reserved_word(self) -> None:
         """Test reserved word identifier validation."""
         result = u.DbOracle.validate_identifier("SELECT")
-        tm.that(result.is_failure, eq=True)
+        tm.that(result.failure, eq=True)
         tm.that(result.error is not None and "reserved" in result.error, eq=True)
 
     def test_oracle_validation_validate_identifier_lowercase_conversion(self) -> None:
@@ -433,10 +433,10 @@ class Testu:
         result = connected_oracle_api.execute_statement(ddl)
         with contextlib.suppress(Exception):
             connected_oracle_api.execute_statement(f"DROP TABLE {escaped_name}")
-        error_msg = str(result.error).lower() if result.is_failure else ""
+        error_msg = str(result.error).lower() if result.failure else ""
         table_exists = "already exists" in error_msg or "ora-00955" in error_msg
         tm.that(
-            result.is_success or table_exists,
+            result.success or table_exists,
             eq=True,
         )
 
