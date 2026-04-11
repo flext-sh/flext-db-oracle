@@ -46,7 +46,7 @@ else:
     error = result.error
 
 # FlextLogger usage
-logger = FlextLogger(__name__)
+logger = u.fetch_logger(__name__)
 logger.info("Oracle operation completed")
 ```
 

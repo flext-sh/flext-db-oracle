@@ -17,7 +17,6 @@ import oracledb
 import pytest
 from flext_tests import td, tk
 
-from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t, u
 
@@ -32,7 +31,7 @@ def db_oracle_settings(
     return settings_factory(FlextDbOracleSettings)
 
 
-logger = FlextLogger(__name__)
+logger = u.fetch_logger(__name__)
 
 
 class OperationTestError(Exception):

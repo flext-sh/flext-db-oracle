@@ -8,10 +8,9 @@ This example demonstrates basic configuration and setup functionality.
 
 from __future__ import annotations
 
-from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleSettings
 
-logger = FlextLogger(__name__)
+logger = u.fetch_logger(__name__)
 
 
 def demonstrate_real_functionality() -> None:

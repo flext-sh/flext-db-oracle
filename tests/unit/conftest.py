@@ -20,7 +20,6 @@ import oracledb
 import pytest
 from flext_tests import tk
 
-from flext_core import FlextLogger
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import p, t
 
@@ -28,7 +27,7 @@ from tests import p, t
 # Without this, socket operations to unresolvable hosts block indefinitely.
 socket.setdefaulttimeout(2)
 
-logger: p.Logger = FlextLogger(__name__)
+logger: p.Logger = u.fetch_logger(__name__)
 
 
 def _workspace_root() -> Path:

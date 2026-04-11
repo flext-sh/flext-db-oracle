@@ -13,15 +13,15 @@ from flext_core.lazy import (
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
-    from flext_cli import d, e, h, r, x
+    from flext_cli import d, h, r, x
 
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
-    from flext_db_oracle.api import FlextDbOracleApi
+    from flext_db_oracle.api import FlextDbOracleApi, db_oracle
     from flext_db_oracle.cli import FlextDbOracleCli
     from flext_db_oracle.client import FlextDbOracleClient
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
-    from flext_db_oracle.exceptions import FlextDbOracleExceptions
+    from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
@@ -53,7 +53,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "__version__",
                 "__version_info__",
             ),
-            ".api": ("FlextDbOracleApi",),
+            ".api": (
+                "FlextDbOracleApi",
+                "db_oracle",
+            ),
             ".cli": ("FlextDbOracleCli",),
             ".client": ("FlextDbOracleClient",),
             ".constants": (
@@ -61,7 +64,10 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "c",
             ),
             ".dispatcher": ("FlextDbOracleDispatcher",),
-            ".exceptions": ("FlextDbOracleExceptions",),
+            ".exceptions": (
+                "FlextDbOracleExceptions",
+                "e",
+            ),
             ".models": (
                 "FlextDbOracleModels",
                 "m",
@@ -86,7 +92,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
             ),
             "flext_cli": (
                 "d",
-                "e",
                 "h",
                 "r",
                 "x",
@@ -140,6 +145,7 @@ __all__ = [
     "__version_info__",
     "c",
     "d",
+    "db_oracle",
     "e",
     "h",
     "m",
