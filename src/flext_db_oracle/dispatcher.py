@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, ClassVar, override
 
-from flext_core import FlextContainer, FlextRegistry, r, s
+from flext_core import FlextContainer, r, s
 from flext_db_oracle import (
     FlextDbOracleModels as m,
     FlextDbOracleProtocols as p,
@@ -86,7 +86,6 @@ class FlextDbOracleDispatcher(s[None]):
             msg = "command_bus is not CommandBus"
             raise TypeError(msg)
         dispatcher = disp
-        _registry = FlextRegistry(dispatcher=dispatcher)
         function_map: MutableMapping[
             type,
             tuple[

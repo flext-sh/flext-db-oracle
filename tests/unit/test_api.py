@@ -919,9 +919,6 @@ class TestApiModule:
             password=str(config_data["password"]),
         )
         api = FlextDbOracleApi(settings=settings)
-        test_config = flext_domains.create_configuration()
-        test_config["host"] = "flext_test_host"
-        test_config["port"] = 1521
         test_query = flext_domains.create_payload()
         test_query["query"] = "SELECT * FROM flext_test_table"
         if hasattr(api, "connect"):
