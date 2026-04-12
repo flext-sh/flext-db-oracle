@@ -19,11 +19,11 @@ from flext_db_oracle import m, t, u
 MAX_OUTPUT_LINES = 3
 
 
-def _get_cli_examples() -> Sequence[t.ContainerMapping]:
+def _get_cli_examples() -> Sequence[t.RecursiveContainerMapping]:
     """Get CLI command examples - DRY pattern for example data.
 
     Returns:
-        Sequence[t.ContainerMapping]: List of CLI command examples with metadata.
+        Sequence[t.RecursiveContainerMapping]: List of CLI command examples with metadata.
 
     """
     return [
@@ -82,7 +82,7 @@ def _get_cli_examples() -> Sequence[t.ContainerMapping]:
     ]
 
 
-def _run_example_command(example: t.ContainerMapping) -> None:
+def _run_example_command(example: t.RecursiveContainerMapping) -> None:
     """Run a single CLI example command - DRY pattern."""
     if example.get("env_required") and (not _check_oracle_env()):
         return

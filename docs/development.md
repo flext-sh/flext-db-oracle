@@ -258,7 +258,7 @@ Achieving Pyrefly strict mode compliance across large, complex codebase with mul
 
 #### Solution Implemented
 
-- **100% Type Annotations**: No `t.NormalizedValue` types, complete type coverage
+- **100% Type Annotations**: No `t.RecursiveContainer` types, complete type coverage
 - **Pyrefly Strict Compliance**: Zero type checking errors
 - **Protocol Usage**: Structural typing for clean interfaces
 - **Generic Type Support**: Full support for `r[T]` generics
@@ -340,7 +340,7 @@ git commit -m "feat: description of changes"
 #### Type Safety (ZERO TOLERANCE)
 
 - **Pyrefly strict mode**: All `src/` code must pass without errors
-- **100% type annotations**: No `t.NormalizedValue` types allowed
+- **100% type annotations**: No `t.RecursiveContainer` types allowed
 - **Protocol compliance**: Structural typing over inheritance
 
 #### Code Quality (ZERO TOLERANCE)

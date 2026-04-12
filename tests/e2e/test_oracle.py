@@ -170,7 +170,7 @@ class TestOracleE2E:
                 ("number", "NUMBER"),
                 ("boolean", "NUMBER(1)"),
                 ("array", "VARCHAR2(255)"),
-                ("t.NormalizedValue", "VARCHAR2(255)"),
+                ("t.RecursiveContainer", "VARCHAR2(255)"),
             ]
             for singer_type, expected_oracle_type in singer_types:
                 result = api.convert_singer_type(singer_type)
@@ -188,7 +188,7 @@ class TestOracleE2E:
                     "name": {"type": "string"},
                     "email": {"type": "string"},
                     "is_active": {"type": "boolean"},
-                    "metadata": {"type": "t.NormalizedValue"},
+                    "metadata": {"type": "t.RecursiveContainer"},
                     "created_at": {"type": "string", "format": "date-time"},
                 },
             }

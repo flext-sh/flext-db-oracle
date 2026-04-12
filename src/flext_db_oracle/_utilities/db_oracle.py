@@ -200,7 +200,7 @@ class FlextDbOracleUtilitiesDbOracle:
 
     @staticmethod
     def _sqlalchemy_text(statement: str) -> TextClause:
-        """Build SQL text t.NormalizedValue."""
+        """Build SQL text t.RecursiveContainer."""
         return text(statement)
 
     @staticmethod

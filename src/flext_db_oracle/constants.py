@@ -101,7 +101,7 @@ class FlextDbOracleConstants(FlextCliConstants):
                 "number": "NUMBER",
                 "boolean": "NUMBER(1)",
                 "array": "CLOB",
-                "t.NormalizedValue": "CLOB",
+                "t.RecursiveContainer": "CLOB",
                 "date-time": "TIMESTAMP",
                 "date": "DATE",
                 "time": "TIMESTAMP",

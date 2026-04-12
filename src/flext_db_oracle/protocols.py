@@ -81,10 +81,10 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
             """
 
             def get_connection(self) -> r[t.ContainerValue]:
-                """Get current Oracle connection t.NormalizedValue.
+                """Get current Oracle connection t.RecursiveContainer.
 
                 Returns:
-                r: Connection t.NormalizedValue or error
+                r: Connection t.RecursiveContainer or error
 
                 """
                 ...

@@ -134,7 +134,7 @@ This abstraction strategy provides the best balance of encapsulation, performanc
 
 **Description**: Create query objects that encapsulate SQLAlchemy usage
 **Pros**: Clean separation; testable query objects; domain-specific query APIs
-**Cons**: Complex query t.NormalizedValue hierarchies; performance overhead; maintenance burden
+**Cons**: Complex query t.RecursiveContainer hierarchies; performance overhead; maintenance burden
 **Decision**: Considered but not selected - Single-entry-point provides better balance
 
 ### Option 4: CQRS with Separate Read/Write Models

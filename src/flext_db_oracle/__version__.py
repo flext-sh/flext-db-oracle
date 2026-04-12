@@ -11,7 +11,6 @@ SPDX-License-Identifier: Proprietary
 from __future__ import annotations
 
 import tomllib
-from collections.abc import Sequence
 from pathlib import Path
 
 _PYPROJECT_PATH = Path(__file__).resolve().parents[2] / "pyproject.toml"
@@ -24,7 +23,7 @@ __version__ = _PROJECT_METADATA["version"]
 _version_without_metadata = __version__.split("+", maxsplit=1)[0]
 _version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
 _base_parts = _version_base.split(".")
-_prerelease_parts: Sequence[str] = _prerelease.split(".") if _has_prerelease else []
+_prerelease_parts: t.StrSequence = _prerelease.split(".") if _has_prerelease else []
 __version_info__ = tuple(
     int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
 )

@@ -152,7 +152,7 @@ graph TB
 ```python
 class FlextDbOracleApi(s):
     def connect(self, settings: OracleConfig) -> r[Connection]
-    def execute_query(self, sql: str, params: t.ContainerMapping = None) -> r[QueryResult]
+    def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> r[QueryResult]
     def get_schema_info(self, schema: str) -> r[SchemaInfo]
     def close_connection(self) -> r[bool]
 ```
@@ -212,7 +212,7 @@ class OracleConfig(BaseModel):
 
 
 class QueryResult(BaseModel):
-    rows: List[List[t.NormalizedValue]]
+    rows: List[List[t.RecursiveContainer]]
     columns: t.StringList
     row_count: int
     execution_time: float

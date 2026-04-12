@@ -86,7 +86,7 @@ class TestFlextDbOracleApiRealFunctionality:
         config_obj = result["settings"]
         tm.that(config_obj, is_=dict)
         if isinstance(config_obj, dict):
-            config_dict: t.ContainerMapping = config_obj
+            config_dict: t.RecursiveContainerMapping = config_obj
         else:
             config_dict = {}
         tm.that(config_dict["host"], eq="127.0.0.1")
@@ -500,7 +500,7 @@ class TestFlextDbOracleApiRealFunctionality:
     def test_map_singer_schema_method_real(self) -> None:
         """Test map_singer_schema method."""
         test_schema: t.ContainerValueMapping = {
-            "type": "t.NormalizedValue",
+            "type": "t.RecursiveContainer",
             "properties": {
                 "id": {"type": "integer"},
                 "name": {"type": "string", "maxLength": 100},
@@ -683,7 +683,7 @@ class TestApiModule:
         """Nested helper class for test data creation."""
 
         @staticmethod
-        def create_test_oracle_config() -> t.ContainerMapping:
+        def create_test_oracle_config() -> t.RecursiveContainerMapping:
             """Create test Oracle configuration data."""
             return {
                 "host": "localhost",
@@ -1486,7 +1486,7 @@ class TestFlextDbOracleApiWorking:
         tm.that(api_from_config, is_=FlextDbOracleApi)
 
     def test_dict_serialization(self) -> None:
-        """Test t.ContainerMapping serialization methods."""
+        """Test t.RecursiveContainerMapping serialization methods."""
         as_dict = self.api.to_dict()
         tm.that(as_dict, none=False)
 
@@ -1878,7 +1878,7 @@ class TestDirectCoverageBoostServices:
             ssl_server_cert_dn=None,
         )
         services = FlextDbOracleServices(settings=settings)
-        sql_test_cases: list[dict[str, t.NormalizedValue]] = [
+        sql_test_cases: list[dict[str, t.RecursiveContainer]] = [
             {
                 "method": "build_select",
                 "args": ("test_table", ["id", "name"], {"id": 1}),
@@ -1902,7 +1902,7 @@ class TestDirectCoverageBoostServices:
                 result = method(*raw_args)
                 tm.that(result, none=False)
                 tm.ok(result)
-                sql_content: t.NormalizedValue = result.value
+                sql_content: t.RecursiveContainer = result.value
                 sql_text: str
                 if isinstance(sql_content, tuple):
                     sql_text = str(sql_content)

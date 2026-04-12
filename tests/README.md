@@ -105,7 +105,7 @@ tests/
 
 #### **Type Tests (`test_types.py`)**
 
-- Domain value t.NormalizedValue validation and immutability
+- Domain value t.RecursiveContainer validation and immutability
 - Type conversion and Oracle-specific mappings
 - Pydantic model validation and serialization
 - Domain rule enforcement
@@ -169,7 +169,7 @@ Our test suite follows Clean Architecture principles with clear separation of co
 - **Shared fixtures** in `conftest.py` eliminate duplication
 - **Parameterized tests** for testing multiple scenarios
 - **Helper functions** for common test operations
-- **Test data builders** for consistent test t.NormalizedValue creation
+- **Test data builders** for consistent test t.RecursiveContainer creation
 
 ## 🚀 Running Tests
 

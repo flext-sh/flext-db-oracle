@@ -99,7 +99,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
 
     @property
     def connection(self) -> FlextDbOracleServices | None:
-        """Get connection t.NormalizedValue - public interface."""
+        """Get connection t.RecursiveContainer - public interface."""
         return self._services if self._services.connected() else None
 
     @property
@@ -119,7 +119,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
 
     @classmethod
     def from_config(cls, settings: FlextDbOracleSettings) -> FlextDbOracleApi:
-        """Create API instance from an existing settings t.NormalizedValue."""
+        """Create API instance from an existing settings t.RecursiveContainer."""
         return cls(settings=settings)
 
     @classmethod
