@@ -20,8 +20,6 @@ from flext_tests import td, tk
 from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings
 from tests import t, u
 
-pytest_plugins = ["flext_tests.conftest_plugin"]
-
 
 @pytest.fixture
 def db_oracle_settings(

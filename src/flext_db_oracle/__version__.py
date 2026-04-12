@@ -12,6 +12,10 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_db_oracle import t
 
 _PYPROJECT_PATH = Path(__file__).resolve().parents[2] / "pyproject.toml"
 _PROJECT_METADATA = tomllib.loads(_PYPROJECT_PATH.read_text(encoding="utf-8"))[
