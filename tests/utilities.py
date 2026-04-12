@@ -70,9 +70,9 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
                 fallback_port = 1522
                 container_settings = tk.SHARED_CONTAINERS.get(container_name)
                 if container_settings is not None:
-                    settingsured_port = container_settings.get("port")
-                    if isinstance(settingsured_port, int):
-                        fallback_port = settingsured_port
+                    configured_port = container_settings.get("port")
+                    if isinstance(configured_port, int):
+                        fallback_port = configured_port
                 for _ in range(30):
                     status_result = docker_control.fetch_container_status(
                         container_name,

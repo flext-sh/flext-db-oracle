@@ -39,7 +39,7 @@ class TestFlextDbOracleServicesBasic:
         )
         service = FlextDbOracleServices(settings=settings)
         tm.that(service, none=False)
-        tm.that(service.settings, eq=settings)
+        tm.that(service.db_config, eq=settings)
 
     def test_service_initial_state(self) -> None:
         """Test service initial state is correct."""

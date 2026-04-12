@@ -44,18 +44,18 @@ class OperationTestError(Exception):
         self.error = error
 
 
-def pytest_settingsure(settings: pytest.Config) -> None:
+def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with Oracle container for ALL tests."""
-    settings.addinivalue_line("markers", "oracle: Oracle database integration tests")
-    settings.addinivalue_line(
+    config.addinivalue_line("markers", "oracle: Oracle database integration tests")
+    config.addinivalue_line(
         "markers",
         "unit_pure: Pure unit tests with no external dependencies",
     )
-    settings.addinivalue_line(
+    config.addinivalue_line(
         "markers",
         "unit_integration: Unit tests that can use real Oracle when available",
     )
-    settings.addinivalue_line(
+    config.addinivalue_line(
         "markers",
         "slow: Slow-running tests that should be run separately",
     )
@@ -248,6 +248,22 @@ def real_oracle_settings(oracle_container: str | None) -> FlextDbOracleSettings:
         service_name=os.getenv("TEST_ORACLE_SERVICE", "FLEXTDB"),
         ssl_server_cert_dn=None,
     )
+
+
+@pytest.fixture
+def real_oracle_config(
+    real_oracle_settings: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
+    """Backward-compatible alias for legacy fixture name used in some tests."""
+    return real_oracle_settings
+
+
+@pytest.fixture
+def oracle_config(
+    real_oracle_config: FlextDbOracleSettings,
+) -> FlextDbOracleSettings:
+    """Backward-compatible alias for integration tests using ``oracle_config``."""
+    return real_oracle_config
 
 
 @pytest.fixture
