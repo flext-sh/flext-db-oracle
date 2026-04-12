@@ -173,7 +173,7 @@ graph TB
 
 ```python
 # Key exports
-__all__ = [
+__all__: list[str] = [
     "FlextDbOracleApi",  # Main API
     "FlextDbOracleCli",  # CLI interface
     "FlextDbOracleClient",  # Client operations

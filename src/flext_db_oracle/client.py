@@ -13,17 +13,9 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import override
 
-from pydantic import Field, ValidationError
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_core import r, s
-from flext_db_oracle import (
-    FlextDbOracleApi,
-    FlextDbOracleConstants as c,
-    FlextDbOracleSettings,
-    FlextDbOracleTypes as t,
-    FlextDbOracleUtilities as u,
-)
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, r, s, t, u
 
 
 class FlextDbOracleClient(s[FlextDbOracleSettings]):
@@ -42,7 +34,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             if isinstance(value, t.ConfigMap):
                 return value
             return t.ConfigMap(root=dict(value))
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -50,12 +42,15 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """Validate list payload with Pydantic."""
         return t.FLAT_CONTAINER_LIST_ADAPTER.validate_python(value)
 
-    debug: bool = Field(default=False, description="Enable debug output")
-    current_connection: FlextDbOracleApi | None = Field(
-        default=None,
-        description="Active Oracle API connection instance",
+    debug: bool = u.Field(
+        False, description="Enable debug output", validate_default=True
     )
-    user_preferences: t.ConfigMap = Field(
+    current_connection: FlextDbOracleApi | None = u.Field(
+        None,
+        description="Active Oracle API connection instance",
+        validate_default=True,
+    )
+    user_preferences: t.ConfigMap = u.Field(
         default_factory=lambda: t.ConfigMap(
             root={
                 "default_output_format": "table",
@@ -319,7 +314,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                     health_map = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                         raw_value
                     )
-                except ValidationError:
+                except c.ValidationError:
                     return []
                 health = FlextDbOracleClient._validate_config_map(health_map)
                 if health is None:
@@ -591,7 +586,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                     raw_params
                 )
-            except ValidationError:
+            except c.ValidationError:
                 normalized_params = t.CONTAINER_VALUE_MAPPING_ADAPTER.validate_python(
                     {},
                 )

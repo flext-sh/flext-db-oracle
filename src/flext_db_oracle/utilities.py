@@ -23,4 +23,4 @@ class FlextDbOracleUtilities(FlextCliUtilities):
 
 u = FlextDbOracleUtilities
 
-__all__ = ["FlextDbOracleUtilities", "u"]
+__all__: list[str] = ["FlextDbOracleUtilities", "u"]

@@ -102,4 +102,4 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         return r[FlextDbOracleModels.DbOracle.TypeMapping].ok(type_mapping)
 
 
-__all__ = ["FlextDbOracleServiceSinger"]
+__all__: list[str] = ["FlextDbOracleServiceSinger"]

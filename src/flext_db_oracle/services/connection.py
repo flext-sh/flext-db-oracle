@@ -244,4 +244,4 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             return r[str].fail(f"Failed to build connection URL: {e}")
 
 
-__all__ = ["FlextDbOracleServiceConnection"]
+__all__: list[str] = ["FlextDbOracleServiceConnection"]

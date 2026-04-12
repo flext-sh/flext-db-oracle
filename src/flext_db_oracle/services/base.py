@@ -13,7 +13,6 @@ import contextlib
 import time
 from collections.abc import MutableMapping, MutableSequence, Sequence
 
-from pydantic import PrivateAttr, RootModel, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -23,15 +22,11 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import r, s
-from flext_db_oracle import (
-    FlextDbOracleModels,
-    FlextDbOracleSettings,
-    FlextDbOracleTypes as t,
-)
+from flext_core import c, m, r, s, u
+from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, t
 
 
-class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
+class FlextDbOracleServiceBase(s):
     """Base mixin providing static helpers and SQLAlchemy wrappers.
 
     All service mixins inherit from this base, which provides:
@@ -42,23 +37,21 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
     - Count parsing utilities
     """
 
-    _db_config: FlextDbOracleSettings | None = PrivateAttr(default=None)
-    _engine: SAEngine | None = PrivateAttr(default=None)
+    _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
+    _engine: SAEngine | None = u.PrivateAttr()
     _operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = (
-        PrivateAttr(
-            default_factory=lambda: list[
-                FlextDbOracleModels.DbOracle.OperationRecord
-            ](),
+        u.PrivateAttr(
+            default_factory=lambda: list[FlextDbOracleModels.DbOracle.OperationRecord]()
         )
     )
-    _plugins: MutableMapping[str, t.ContainerValue] = PrivateAttr(
-        default_factory=lambda: dict[str, t.ContainerValue](),
+    _plugins: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue]()
     )
-    _metrics: MutableMapping[str, t.ContainerValue] = PrivateAttr(
-        default_factory=lambda: dict[str, t.ContainerValue](),
+    _metrics: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
+        default_factory=lambda: dict[str, t.ContainerValue]()
     )
 
-    class _CountValue(RootModel[int | str]):
+    class _CountValue(m.RootModel[int | str]):
         """Pydantic root model for count value (int or numeric string)."""
 
         root: int | str
@@ -89,7 +82,7 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
             return None
         try:
             return t.ConfigMap.model_validate({"root": value})
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -111,7 +104,7 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
                 return 0
         try:
             validated = FlextDbOracleServiceBase._CountValue.model_validate(value).root
-        except ValidationError:
+        except c.ValidationError:
             return 0
         try:
             return int(validated)
@@ -132,7 +125,7 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
         """Normalize Singer type input to a single string value."""
         try:
             values = t.STR_SEQUENCE_ADAPTER.validate_python(value)
-        except ValidationError:
+        except c.ValidationError:
             return str(value)
         return values[0] if values else "string"
 
@@ -219,4 +212,4 @@ class FlextDbOracleServiceBase(s[FlextDbOracleSettings]):
         raise NotImplementedError(msg)
 
 
-__all__ = ["FlextDbOracleServiceBase"]
+__all__: list[str] = ["FlextDbOracleServiceBase"]

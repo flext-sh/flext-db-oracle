@@ -140,4 +140,4 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         return r[bool].ok(True)
 
 
-__all__ = ["FlextDbOracleServicePlugin"]
+__all__: list[str] = ["FlextDbOracleServicePlugin"]

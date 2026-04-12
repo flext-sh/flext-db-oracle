@@ -137,4 +137,4 @@ class TestsFlextDbOracleUtilities(FlextTestsUtilities, FlextDbOracleUtilities):
 
 
 u = TestsFlextDbOracleUtilities
-__all__ = ["TestsFlextDbOracleUtilities", "u"]
+__all__: list[str] = ["TestsFlextDbOracleUtilities", "u"]

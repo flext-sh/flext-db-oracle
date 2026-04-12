@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import override
 
-from pydantic import Field, RootModel
+from flext_core import m, u
 
 
-class FlextDbOraclePassword(RootModel[str]):
+class FlextDbOraclePassword(m.RootModel[str]):
     """Password value object used by Oracle settings."""
 
-    root: str = Field(default="", description="Oracle database password")
+    root: str = u.Field(default="", description="Oracle database password")
 
     @override
     def __str__(self) -> str:

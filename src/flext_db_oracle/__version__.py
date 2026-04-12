@@ -35,7 +35,7 @@ __author_email__ = _AUTHOR_METADATA["email"]
 __license__ = _PROJECT_METADATA["license"]
 _PROJECT_URLS = _PROJECT_METADATA.get("urls", {})
 __url__ = _PROJECT_URLS.get("Homepage", "")
-__all__ = [
+__all__: list[str] = [
     "__author__",
     "__author_email__",
     "__description__",

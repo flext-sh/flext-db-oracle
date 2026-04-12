@@ -71,4 +71,4 @@ class TestsFlextDbOracleConstants(FlextTestsConstants, FlextDbOracleConstants):
 
 
 c = TestsFlextDbOracleConstants
-__all__ = ["TestsFlextDbOracleConstants", "c"]
+__all__: list[str] = ["TestsFlextDbOracleConstants", "c"]

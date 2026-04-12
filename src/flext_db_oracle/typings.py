@@ -19,9 +19,8 @@ from typing import Literal
 
 import oracledb
 from flext_infra import FlextInfraTypes
-from pydantic import TypeAdapter
 
-from flext_core import FlextTypes
+from flext_core import FlextTypes, u
 
 
 class FlextDbOracleTypes(FlextInfraTypes):
@@ -189,20 +188,20 @@ class FlextDbOracleTypes(FlextInfraTypes):
         type CliScalar = FlextTypes.Scalar | None
         "CLI scalar type - Scalar value or None for optional CLI parameters."
 
-    CONTAINER_VALUE_ADAPTER: TypeAdapter[FlextTypes.ContainerValue] = TypeAdapter(
-        FlextTypes.ContainerValue,
+    CONTAINER_VALUE_ADAPTER: u.TypeAdapter[FlextTypes.ContainerValue] = u.TypeAdapter(
+        FlextTypes.ContainerValue
     )
-    CONTAINER_VALUE_MAPPING_ADAPTER: TypeAdapter[FlextTypes.ContainerValueMapping] = (
-        TypeAdapter(FlextTypes.ContainerValueMapping)
+    CONTAINER_VALUE_MAPPING_ADAPTER: u.TypeAdapter[FlextTypes.ContainerValueMapping] = (
+        u.TypeAdapter(FlextTypes.ContainerValueMapping)
     )
-    FLAT_CONTAINER_LIST_ADAPTER: TypeAdapter[FlextTypes.FlatContainerList] = (
-        TypeAdapter(FlextTypes.FlatContainerList)
+    FLAT_CONTAINER_LIST_ADAPTER: u.TypeAdapter[FlextTypes.FlatContainerList] = (
+        u.TypeAdapter(FlextTypes.FlatContainerList)
     )
-    STR_SEQUENCE_ADAPTER: TypeAdapter[FlextTypes.StrSequence] = TypeAdapter(
-        FlextTypes.StrSequence,
+    STR_SEQUENCE_ADAPTER: u.TypeAdapter[FlextTypes.StrSequence] = u.TypeAdapter(
+        FlextTypes.StrSequence
     )
 
 
 t = FlextDbOracleTypes
 
-__all__ = ["FlextDbOracleTypes", "t"]
+__all__: list[str] = ["FlextDbOracleTypes", "t"]

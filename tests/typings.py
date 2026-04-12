@@ -33,4 +33,4 @@ class TestsFlextDbOracleTypes(FlextTestsTypes, FlextDbOracleTypes):
 
 
 t = TestsFlextDbOracleTypes
-__all__ = ["TestsFlextDbOracleTypes", "t"]
+__all__: list[str] = ["TestsFlextDbOracleTypes", "t"]

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
-from typing import TYPE_CHECKING, ClassVar, override
+from typing import TYPE_CHECKING, override
 
 from flext_core import FlextContainer, r, s
 from flext_db_oracle import (
@@ -22,17 +22,6 @@ if TYPE_CHECKING:
 
 class FlextDbOracleDispatcher(s[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
-
-    ConnectCommand: ClassVar[type] = m.DbOracle.ConnectCommand
-    DisconnectCommand: ClassVar[type] = m.DbOracle.DisconnectCommand
-    TestConnectionCommand: ClassVar[type] = m.DbOracle.TestConnectionCommand
-    ExecuteQueryCommand: ClassVar[type] = m.DbOracle.ExecuteQueryCommand
-    FetchOneCommand: ClassVar[type] = m.DbOracle.FetchOneCommand
-    ExecuteStatementCommand: ClassVar[type] = m.DbOracle.ExecuteStatementCommand
-    ExecuteManyCommand: ClassVar[type] = m.DbOracle.ExecuteManyCommand
-    GetSchemasCommand: ClassVar[type] = m.DbOracle.GetSchemasCommand
-    GetTablesCommand: ClassVar[type] = m.DbOracle.GetTablesCommand
-    GetColumnsCommand: ClassVar[type] = m.DbOracle.GetColumnsCommand
 
     @override
     def execute(self) -> r[None]:
@@ -234,4 +223,4 @@ class FlextDbOracleDispatcher(s[None]):
         }
 
 
-__all__ = ["FlextDbOracleDispatcher"]
+__all__: list[str] = ["FlextDbOracleDispatcher"]

@@ -36,4 +36,4 @@ class FlextDbOracleServices(
 
 s = FlextDbOracleServices
 
-__all__ = ["FlextDbOracleServices", "s"]
+__all__: list[str] = ["FlextDbOracleServices", "s"]

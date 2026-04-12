@@ -62,4 +62,4 @@ class TestsFlextDbOracleModels(FlextTestsModels, FlextDbOracleModels):
 
 
 m = TestsFlextDbOracleModels
-__all__ = ["TestsFlextDbOracleModels", "m"]
+__all__: list[str] = ["TestsFlextDbOracleModels", "m"]

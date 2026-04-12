@@ -184,4 +184,4 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         return t.Dict(root={str(key): value for key, value in row.items()})
 
 
-__all__ = ["FlextDbOracleServiceQuery"]
+__all__: list[str] = ["FlextDbOracleServiceQuery"]

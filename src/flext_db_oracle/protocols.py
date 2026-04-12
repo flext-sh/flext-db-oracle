@@ -515,4 +515,4 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
 
 p = FlextDbOracleProtocols
 
-__all__ = ["FlextDbOracleProtocols", "p"]
+__all__: list[str] = ["FlextDbOracleProtocols", "p"]

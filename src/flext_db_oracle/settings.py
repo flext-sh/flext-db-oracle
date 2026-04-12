@@ -14,20 +14,7 @@ import os
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
-from pydantic import (
-    Field,
-    StringConstraints,
-    field_validator,
-    model_validator,
-)
-from pydantic_settings import (
-    BaseSettings,
-    EnvSettingsSource,
-    PydanticBaseSettingsSource,
-    SettingsConfigDict,
-)
-
-from flext_core import FlextSettings, r
+from flext_core import FlextSettings, m, r, u
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOraclePassword,
@@ -41,7 +28,7 @@ class FlextDbOracleSettings(FlextSettings):
 
     _singleton_enabled: ClassVar[bool] = False
 
-    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
+    model_config: ClassVar[c.SettingsConfigDict] = c.SettingsConfigDict(
         env_prefix=c.DbOracle.OracleEnvironment.PREFIX_ORACLE,
         case_sensitive=False,
         extra="ignore",
@@ -49,91 +36,99 @@ class FlextDbOracleSettings(FlextSettings):
         populate_by_name=True,
     )
 
-    host: str = Field(
-        default=c.DbOracle.OracleDefaults.DEFAULT_HOST,
+    host: str = u.Field(
+        c.DbOracle.OracleDefaults.DEFAULT_HOST,
         description="Oracle database host address",
+        validate_default=True,
     )
-    port: t.PortNumber = Field(
-        default=c.DbOracle.Connection.DEFAULT_PORT,
+    port: t.PortNumber = u.Field(
+        c.DbOracle.Connection.DEFAULT_PORT,
         description="Oracle database listener port",
+        validate_default=True,
     )
     service_name: Annotated[
         str,
-        StringConstraints(
+        t.StringConstraints(
             strip_whitespace=True,
             to_upper=True,
             max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
         ),
-    ] = Field(
-        default=c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
+    ] = u.Field(
+        c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
         description="Oracle service name for connection",
+        validate_default=True,
     )
-    username: str = Field(
-        default=c.DbOracle.Connection.DEFAULT_USERNAME,
+    username: str = u.Field(
+        c.DbOracle.Connection.DEFAULT_USERNAME,
         description="Oracle database username",
+        validate_default=True,
     )
-    password: FlextDbOraclePassword | None = Field(
+    password: FlextDbOraclePassword | None = u.Field(
         default_factory=lambda: FlextDbOraclePassword(""),
         description="Oracle database password",
     )
-    timeout: t.PositiveInt = Field(
-        default=c.DbOracle.Connection.DEFAULT_TIMEOUT,
+    timeout: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_TIMEOUT,
         description="Connection timeout in seconds",
+        validate_default=True,
     )
-    pool_min: t.PositiveInt = Field(
-        default=c.DbOracle.Connection.DEFAULT_POOL_MIN,
+    pool_min: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_POOL_MIN,
         description="Minimum connection pool size",
+        validate_default=True,
     )
-    pool_max: t.PositiveInt = Field(
-        default=c.DbOracle.Connection.DEFAULT_POOL_MAX,
+    pool_max: t.PositiveInt = u.Field(
+        c.DbOracle.Connection.DEFAULT_POOL_MAX,
         description="Maximum connection pool size",
+        validate_default=True,
     )
     sid: (
         Annotated[
             str,
-            StringConstraints(
+            t.StringConstraints(
                 strip_whitespace=True,
                 to_upper=True,
                 max_length=c.DbOracle.OracleValidation.MAX_ORACLE_IDENTIFIER_LENGTH,
             ),
         ]
         | None
-    ) = Field(
-        default=None,
-        description="Oracle SID for legacy connections",
+    ) = u.Field(
+        None, description="Oracle SID for legacy connections", validate_default=True
     )
-    name: str = Field(
-        default=c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
+    name: str = u.Field(
+        c.DbOracle.Connection.DEFAULT_DATABASE_NAME,
         description="Oracle database name identifier",
         validation_alias="DATABASE_NAME",
+        validate_default=True,
     )
-    ssl_cert_file: str | None = Field(
-        default=None,
-        description="Path to SSL certificate file",
+    ssl_cert_file: str | None = u.Field(
+        None, description="Path to SSL certificate file", validate_default=True
     )
-    ssl_server_cert_dn: str | None = Field(
-        default=None,
+    ssl_server_cert_dn: str | None = u.Field(
+        None,
         description="Distinguished name of server SSL certificate",
+        validate_default=True,
     )
-    enable_dispatcher: bool = Field(
-        default=False,
+    enable_dispatcher: bool = u.Field(
+        False,
         description="Enable dispatcher integration for CQRS patterns",
+        validate_default=True,
     )
 
     @classmethod
     @override
     def settings_customise_sources(
         cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        settings_cls: type[m.BaseSettings],
+        init_settings: u.PydanticBaseSettingsSource,
+        env_settings: u.PydanticBaseSettingsSource,
+        dotenv_settings: u.PydanticBaseSettingsSource,
+        file_secret_settings: u.PydanticBaseSettingsSource,
+    ) -> tuple[u.PydanticBaseSettingsSource, ...]:
         del settings_cls, env_settings, dotenv_settings, file_secret_settings
         return (init_settings,)
 
-    @field_validator("password", mode="before")
+    @u.field_validator("password", mode="before")
     @classmethod
     def _parse_password(
         cls,
@@ -145,7 +140,7 @@ class FlextDbOracleSettings(FlextSettings):
             return value
         return FlextDbOraclePassword(str(value))
 
-    @model_validator(mode="after")
+    @u.model_validator(mode="after")
     def validate_business_rules(self) -> Self:
         """Enforce host, username, and Oracle port constraints."""
         if self.ssl_server_cert_dn is None and self.ssl_cert_file is not None:
@@ -184,17 +179,15 @@ class FlextDbOracleSettings(FlextSettings):
         Pydantic handles all type coercion and validation natively.
         """
         try:
-            source = EnvSettingsSource(
-                settings_cls=cls,
-                env_prefix=prefix,
-                case_sensitive=False,
+            source = u.EnvSettingsSource(
+                settings_cls=cls, env_prefix=prefix, case_sensitive=False
             )
             values = {k: v for k, v in source().items() if v is not None}
             database_name = os.getenv(f"{prefix}DATABASE_NAME")
             if database_name is not None:
                 values["name"] = database_name
             if prefix == "ORACLE_":
-                flext_source = EnvSettingsSource(
+                flext_source = u.EnvSettingsSource(
                     settings_cls=cls,
                     env_prefix="FLEXT_TARGET_ORACLE_",
                     case_sensitive=False,

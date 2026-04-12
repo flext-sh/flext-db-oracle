@@ -17,8 +17,6 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
-from pydantic import ValidationError
-
 from flext_core import r, s
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
@@ -152,7 +150,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             return r[t.ConfigMap].ok(
                 t.ConfigMap.model_validate({"root": dict(parameters)}),
             )
-        except (TypeError, ValidationError) as error:
+        except (TypeError, c.ValidationError) as error:
             return r[t.ConfigMap].fail(f"Invalid query parameters: {error}")
 
     @classmethod
@@ -472,4 +470,4 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
 
 db_oracle = FlextDbOracleApi
 
-__all__ = ["FlextDbOracleApi", "db_oracle"]
+__all__: list[str] = ["FlextDbOracleApi", "db_oracle"]

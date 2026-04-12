@@ -7,7 +7,6 @@ import hashlib
 import os
 from enum import StrEnum
 
-from pydantic import RootModel, ValidationError
 from sqlalchemy import (
     Connection as SAConnection,
     Engine as SAEngine,
@@ -17,7 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import r
+from flext_core import m, r
 from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
 
 
@@ -34,12 +33,12 @@ class FlextDbOracleUtilitiesDbOracle:
 
     """
 
-    class StrictIntValue(RootModel[int]):
+    class StrictIntValue(m.RootModel[int]):
         """Strict integer parser via Pydantic validation."""
 
         root: int
 
-    class CountValue(RootModel[int | str]):
+    class CountValue(m.RootModel[int | str]):
         """Numeric value parser accepting int or numeric string."""
 
         root: int | str
@@ -128,7 +127,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return None
         try:
             return t.ConfigMap.model_validate({"root": value})
-        except ValidationError:
+        except c.ValidationError:
             return None
 
     @staticmethod
@@ -147,7 +146,7 @@ class FlextDbOracleUtilitiesDbOracle:
             return cls.StrictIntValue.model_validate(
                 value,
             ).root
-        except ValidationError:
+        except c.ValidationError:
             return 0
 
     @classmethod
@@ -164,7 +163,7 @@ class FlextDbOracleUtilitiesDbOracle:
             validated = cls.CountValue.model_validate(
                 value,
             ).root
-        except ValidationError:
+        except c.ValidationError:
             return 0
         try:
             return int(validated)
@@ -178,7 +177,7 @@ class FlextDbOracleUtilitiesDbOracle:
             values = t.STR_SEQUENCE_ADAPTER.validate_python(
                 value,
             )
-        except ValidationError:
+        except c.ValidationError:
             return str(value)
         return values[0] if values else "string"
 

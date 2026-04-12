@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 
-from pydantic import ValidationError
-
 from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
@@ -67,7 +65,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             if settings.parallel > 1:
                 sql = f"{sql} PARALLEL {settings.parallel}"
             return r[str].ok(sql)
-        except ValidationError as e:
+        except c.ValidationError as e:
             return r[str].fail(f"Invalid CREATE INDEX settings: {e}")
 
     def build_delete_statement(
@@ -183,4 +181,4 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         return r[str].ok(ddl)
 
 
-__all__ = ["FlextDbOracleServiceSqlBuilder"]
+__all__: list[str] = ["FlextDbOracleServiceSqlBuilder"]

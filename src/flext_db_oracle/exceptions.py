@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_core import e
-from flext_db_oracle import FlextDbOracleTypes as t
+from flext_db_oracle import t
 
 
 class FlextDbOracleExceptions(e):
@@ -120,4 +120,4 @@ class FlextDbOracleExceptions(e):
 
 e = FlextDbOracleExceptions
 
-__all__ = ["FlextDbOracleExceptions", "e"]
+__all__: list[str] = ["FlextDbOracleExceptions", "e"]

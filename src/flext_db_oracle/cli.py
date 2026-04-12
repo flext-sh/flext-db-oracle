@@ -17,7 +17,6 @@ from datetime import UTC, datetime
 from typing import override
 
 from flext_cli import cli
-from pydantic import TypeAdapter, ValidationError
 
 from flext_core import s
 from flext_db_oracle import (
@@ -80,7 +79,7 @@ class FlextDbOracleCli(s[str]):
                 t.DbOracle.OracleDatabaseError,
                 t.DbOracle.OracleInterfaceError,
                 ConnectionError,
-                ValidationError,
+                c.ValidationError,
                 ValueError,
             ) as e:
                 return r[FlextDbOracleSettings].fail(
@@ -131,7 +130,7 @@ class FlextDbOracleCli(s[str]):
                     case m.DbOracle.OutputPayload() | m.DbOracle.HealthCheckReport():
                         return r[str].ok(data.model_dump_json(indent=2))
                     case _:
-                        adapter = TypeAdapter(type(data))
+                        adapter = u.TypeAdapter(type(data))
                         return r[str].ok(adapter.dump_json(data, indent=2).decode())
             if output_format == "yaml":
                 match data:
@@ -186,7 +185,7 @@ class FlextDbOracleCli(s[str]):
                         try:
                             parsed_item = m.DbOracle.NamedItem.model_validate(item)
                             string_items.append(parsed_item.name)
-                        except ValidationError:
+                        except c.ValidationError:
                             string_items.append(str(item))
             if output_format == "table":
                 output_lines = [title, "=" * len(title)]

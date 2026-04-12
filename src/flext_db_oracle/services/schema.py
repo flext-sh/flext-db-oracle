@@ -205,4 +205,4 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         )
 
 
-__all__ = ["FlextDbOracleServiceSchema"]
+__all__: list[str] = ["FlextDbOracleServiceSchema"]
