@@ -11,17 +11,18 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 
-from flext_core import p, r
 from flext_db_oracle import (
-    FlextDbOracleConstants as c,
-    FlextDbOracleModels,
-    FlextDbOracleServiceBase,
-    FlextDbOracleTypes as t,
-    FlextDbOracleUtilities as u,
+    c,
+    m,
+    p,
+    r,
+    s,
+    t,
+    u,
 )
 
 
-class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
+class FlextDbOracleServiceSqlBuilder(s):
     """Mixin providing SQL statement builders for FlextDbOracleServices.
 
     Handles: build_create_index_statement, build_delete_statement,
@@ -51,7 +52,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
                 "tablespace": str(_config.get("tablespace", "")),
                 "parallel": parallel_value,
             }
-            settings = FlextDbOracleModels.DbOracle.CreateIndexConfig.model_validate(
+            settings = m.DbOracle.CreateIndexConfig.model_validate(
                 payload,
             )
             if not settings.columns:
@@ -137,16 +138,14 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     def create_table_ddl(
         self,
         table_name: str,
-        columns: Sequence[
-            FlextDbOracleModels.DbOracle.Column | t.ContainerValueMapping
-        ],
+        columns: Sequence[m.DbOracle.Column | t.ContainerValueMapping],
         schema: str | None = None,
     ) -> p.Result[str]:
         """Generate CREATE TABLE DDL - simplified."""
         col_defs: MutableSequence[str] = []
         primary_keys: MutableSequence[str] = []
         for col in columns:
-            if isinstance(col, FlextDbOracleModels.DbOracle.Column):
+            if isinstance(col, m.DbOracle.Column):
                 name = col.name or c.IDENTIFIER_UNKNOWN
                 data_type = col.data_type or "VARCHAR2(255)"
                 nullable = "" if col.nullable else " NOT NULL"

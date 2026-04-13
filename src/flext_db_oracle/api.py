@@ -17,32 +17,36 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
-from flext_core import p, r, s
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
+    FlextDbOracleServiceBase,
+    FlextDbOracleServiceConnection,
+    FlextDbOracleServicePlugin,
+    FlextDbOracleServiceQuery,
     FlextDbOracleServices,
+    FlextDbOracleServiceSchema,
+    FlextDbOracleServiceSinger,
+    FlextDbOracleServiceSqlBuilder,
     FlextDbOracleSettings,
     c,
     m,
+    p,
+    r,
     t,
     u,
 )
 
 
-class FlextDbOracleApi(s[FlextDbOracleSettings]):
-    """Oracle Database API with complete flext-core integration.
-
-    This API provides a unified interface to Oracle database operations,
-    integrating with flext-core components for proper error handling,
-    logging, service orchestration, and enterprise patterns.
-
-    Architecture:
-    - Extends s for domain service patterns
-    - Uses r railway pattern for error handling
-    - Integrates FlextContext, FlextBus for enterprise features
-    - Delegates to s for Oracle operations
-    - Optional FlextDispatcher integration for CQRS patterns
-    """
+class FlextDbOracleApi(
+    FlextDbOracleServicePlugin,
+    FlextDbOracleServiceSchema,
+    FlextDbOracleServiceSinger,
+    FlextDbOracleServiceSqlBuilder,
+    FlextDbOracleServiceQuery,
+    FlextDbOracleServiceConnection,
+    FlextDbOracleServiceBase,
+):
+    """Unified DB Oracle service facade via MRO composition."""
 
     @override
     def __init__(

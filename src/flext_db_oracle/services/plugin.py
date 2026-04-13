@@ -15,16 +15,17 @@ from sqlalchemy.exc import (
     OperationalError as SQLAlchemyOperationalError,
 )
 
-from flext_core import p, r
 from flext_db_oracle import (
-    FlextDbOracleModels as m,
-    FlextDbOracleServiceBase,
-    FlextDbOracleTypes as t,
-    FlextDbOracleUtilities as u,
+    m,
+    p,
+    r,
+    s,
+    t,
+    u,
 )
 
 
-class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
+class FlextDbOracleServicePlugin(s):
     """Mixin providing plugin, metrics, and operations for FlextDbOracleServices.
 
     Handles: register_plugin, unregister_plugin, get_plugin, list_plugins,
@@ -85,7 +86,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         """Register plugin in local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")
-        plugin_payload = FlextDbOracleServiceBase._validate_config_map(_plugin)
+        plugin_payload = self._validate_config_map(_plugin)
         if plugin_payload is None:
             return r[bool].fail("Plugin payload must be a mapping")
         self._plugins[_name] = _plugin

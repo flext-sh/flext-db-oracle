@@ -538,3 +538,8 @@ class FlextDbOracleCli(s[str]):
             if error_msg.success:
                 formatter.display_message(error_msg.value)
         return r[str].fail(error_message)
+
+
+cli = FlextDbOracleCli
+
+__all__ = ["FlextDbOracleCli", "cli"]

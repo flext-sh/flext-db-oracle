@@ -22,13 +22,14 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_core import p, r
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOracleModels as m,
     FlextDbOracleServiceBase,
     FlextDbOracleSettings,
     FlextDbOracleTypes as t,
+    p,
+    r,
 )
 
 

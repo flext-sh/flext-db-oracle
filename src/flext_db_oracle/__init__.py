@@ -13,20 +13,19 @@ from flext_core.lazy import (
 from flext_db_oracle.__version__ import *
 
 if _t.TYPE_CHECKING:
-    from flext_cli import d, h, r, x
+    from flext_cli import d, h, r, s, x
 
     from flext_db_oracle._utilities.db_oracle import FlextDbOracleUtilitiesDbOracle
     from flext_db_oracle.api import FlextDbOracleApi, db_oracle
-    from flext_db_oracle.cli import FlextDbOracleCli
-    from flext_db_oracle.client import FlextDbOracleClient
+    from flext_db_oracle.base import FlextDbOracleServiceBase
+    from flext_db_oracle.cli import FlextDbOracleCli, cli
+    from flext_db_oracle.client import FlextDbOracleClient, client
     from flext_db_oracle.constants import FlextDbOracleConstants, c
     from flext_db_oracle.dispatcher import FlextDbOracleDispatcher
     from flext_db_oracle.exceptions import FlextDbOracleExceptions, e
     from flext_db_oracle.models import FlextDbOracleModels, m
     from flext_db_oracle.password import FlextDbOraclePassword
     from flext_db_oracle.protocols import FlextDbOracleProtocols, p
-    from flext_db_oracle.service import FlextDbOracleServices, s
-    from flext_db_oracle.services.base import FlextDbOracleServiceBase
     from flext_db_oracle.services.connection import FlextDbOracleServiceConnection
     from flext_db_oracle.services.plugin import FlextDbOracleServicePlugin
     from flext_db_oracle.services.query import FlextDbOracleServiceQuery
@@ -57,8 +56,15 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleApi",
                 "db_oracle",
             ),
-            ".cli": ("FlextDbOracleCli",),
-            ".client": ("FlextDbOracleClient",),
+            ".base": ("FlextDbOracleServiceBase",),
+            ".cli": (
+                "FlextDbOracleCli",
+                "cli",
+            ),
+            ".client": (
+                "FlextDbOracleClient",
+                "client",
+            ),
             ".constants": (
                 "FlextDbOracleConstants",
                 "c",
@@ -77,10 +83,6 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "FlextDbOracleProtocols",
                 "p",
             ),
-            ".service": (
-                "FlextDbOracleServices",
-                "s",
-            ),
             ".settings": ("FlextDbOracleSettings",),
             ".typings": (
                 "FlextDbOracleTypes",
@@ -94,6 +96,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "d",
                 "h",
                 "r",
+                "s",
                 "x",
             ),
         },
@@ -134,7 +137,6 @@ __all__: list[str] = [
     "FlextDbOracleServiceSchema",
     "FlextDbOracleServiceSinger",
     "FlextDbOracleServiceSqlBuilder",
-    "FlextDbOracleServices",
     "FlextDbOracleSettings",
     "FlextDbOracleTypes",
     "FlextDbOracleUtilities",
@@ -148,6 +150,8 @@ __all__: list[str] = [
     "__version__",
     "__version_info__",
     "c",
+    "cli",
+    "client",
     "d",
     "db_oracle",
     "e",

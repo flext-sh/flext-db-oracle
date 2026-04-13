@@ -9,12 +9,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, override
 
-from flext_core import FlextContainer, p, r, s
-from flext_db_oracle import (
-    FlextDbOracleModels as m,
-    FlextDbOracleProtocols as p,
-    FlextDbOracleTypes as t,
-)
+from flext_core import FlextContainer
+from flext_db_oracle import m, p, r, s, t
 
 if TYPE_CHECKING:
     from flext_db_oracle import FlextDbOracleServices

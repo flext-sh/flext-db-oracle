@@ -20,11 +20,10 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_core import p, r
-from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleTypes as t
+from flext_db_oracle import p, r, s, t
 
 
-class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
+class FlextDbOracleServiceQuery(s):
     """Mixin providing query execution for FlextDbOracleServices.
 
     Handles: execute_query, execute_statement, execute_many,

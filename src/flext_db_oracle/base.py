@@ -22,8 +22,16 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import c, m, p, r, s, u
-from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, t
+from flext_core import s
+from flext_db_oracle import (
+    FlextDbOracleSettings,
+    c,
+    m,
+    p,
+    r,
+    t,
+    u,
+)
 
 
 class FlextDbOracleServiceBase(s):
@@ -39,10 +47,8 @@ class FlextDbOracleServiceBase(s):
 
     _db_config: FlextDbOracleSettings | None = u.PrivateAttr()
     _engine: SAEngine | None = u.PrivateAttr()
-    _operations: MutableSequence[FlextDbOracleModels.DbOracle.OperationRecord] = (
-        u.PrivateAttr(
-            default_factory=lambda: list[FlextDbOracleModels.DbOracle.OperationRecord]()
-        )
+    _operations: MutableSequence[m.DbOracle.OperationRecord] = u.PrivateAttr(
+        default_factory=lambda: list[m.DbOracle.OperationRecord]()
     )
     _plugins: MutableMapping[str, t.ContainerValue] = u.PrivateAttr(
         default_factory=lambda: dict[str, t.ContainerValue]()
@@ -212,4 +218,5 @@ class FlextDbOracleServiceBase(s):
         raise NotImplementedError(msg)
 
 
+s = FlextDbOracleServiceBase
 __all__: list[str] = ["FlextDbOracleServiceBase"]
