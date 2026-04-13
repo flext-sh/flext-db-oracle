@@ -16,8 +16,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import m, r
-from flext_db_oracle import FlextDbOracleConstants as c, FlextDbOracleTypes as t
+from flext_db_oracle import c, m, p, r, t
 
 
 class FlextDbOracleUtilitiesDbOracle:
@@ -65,7 +64,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return value.strip().lower() in {"1", "true", "yes", "on"}
 
     @staticmethod
-    def validate_identifier(identifier: str) -> r[bool]:
+    def validate_identifier(identifier: str) -> p.Result[bool]:
         """Validate an Oracle identifier."""
         if not identifier:
             return r[bool].fail("Empty Oracle identifier")
@@ -76,7 +75,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[bool].ok(True)
 
     @staticmethod
-    def escape_oracle_identifier(identifier: str) -> r[str]:
+    def escape_oracle_identifier(identifier: str) -> p.Result[str]:
         """Escape and validate an Oracle identifier for safe use."""
         if not identifier.strip():
             return r[str].fail("Empty Oracle identifier")
@@ -90,7 +89,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         result: t.ContainerValue,
         format_type: str = "table",
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Format a query result to string or JSON."""
         if format_type == "json":
             return r[str].ok(
@@ -101,7 +100,7 @@ class FlextDbOracleUtilitiesDbOracle:
         return r[str].ok(str(result))
 
     @staticmethod
-    def format_sql_for_oracle(sql: str) -> r[str]:
+    def format_sql_for_oracle(sql: str) -> p.Result[str]:
         """Normalize SQL string formatting for Oracle execution."""
         normalized = " ".join(sql.split())
         return r[str].ok(normalized)
@@ -111,7 +110,7 @@ class FlextDbOracleUtilitiesDbOracle:
         cls,
         query: str,
         params: t.ContainerValueMapping | None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Generate a SHA-256 hash for a query and its parameters."""
         sorted_params = dict(sorted((params or {}).items()))
         serialized = t.CONTAINER_VALUE_MAPPING_ADAPTER.dump_json(

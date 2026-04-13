@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 
-from flext_core import r
+from flext_core import p, r
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOracleModels,
@@ -29,7 +29,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
     create_table_ddl, drop_table_ddl.
     """
 
-    def build_create_index_statement(self, _config: t.ContainerValue) -> r[str]:
+    def build_create_index_statement(self, _config: t.ContainerValue) -> p.Result[str]:
         """Build Oracle CREATE INDEX statement from configuration."""
         try:
             if not isinstance(_config, Mapping):
@@ -73,7 +73,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         table_name: str,
         where_columns: t.StrSequence,
         schema: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Build DELETE statement - simplified."""
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
         schema_prefix = f"{schema}." if schema else ""
@@ -86,7 +86,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         columns: t.StrSequence,
         schema: str | None = None,
         returning_columns: t.StrSequence | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Build INSERT statement - simplified."""
         cols = ", ".join(columns)
         vals = ", ".join(f":{col}" for col in columns)
@@ -103,7 +103,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         columns: t.StrSequence | None = None,
         conditions: t.ConfigMap | t.ContainerValueMapping | None = None,
         schema_name: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Build SELECT query - simplified implementation."""
         typed_conditions = (
             conditions
@@ -126,7 +126,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         set_columns: t.StrSequence,
         where_columns: t.StrSequence,
         schema: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Build UPDATE statement - simplified."""
         sets = ", ".join(f"{col}=:{col}" for col in set_columns)
         wheres = " AND ".join(f"{col} = :{col}" for col in where_columns)
@@ -141,7 +141,7 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
             FlextDbOracleModels.DbOracle.Column | t.ContainerValueMapping
         ],
         schema: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Generate CREATE TABLE DDL - simplified."""
         col_defs: MutableSequence[str] = []
         primary_keys: MutableSequence[str] = []
@@ -174,7 +174,9 @@ class FlextDbOracleServiceSqlBuilder(FlextDbOracleServiceBase):
         ddl = f"CREATE TABLE {schema_prefix}{table_name} (\n  {', '.join(col_defs)}\n)"
         return r[str].ok(ddl)
 
-    def drop_table_ddl(self, table_name: str, schema: str | None = None) -> r[str]:
+    def drop_table_ddl(
+        self, table_name: str, schema: str | None = None
+    ) -> p.Result[str]:
         """Generate DROP TABLE DDL."""
         schema_prefix = f"{schema}." if schema else ""
         ddl = f"DROP TABLE {schema_prefix}{table_name}"

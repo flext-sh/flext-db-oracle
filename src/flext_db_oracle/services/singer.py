@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
 
-from flext_core import r
+from flext_core import p, r
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServiceBase,
@@ -28,7 +28,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         self,
         singer_type: str | t.StrSequence = "string",
         _format_hint: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Convert Singer type to Oracle type - simplified."""
         singer_type = self._normalize_singer_type(singer_type)
         if _format_hint == "date-time":
@@ -47,7 +47,7 @@ class FlextDbOracleServiceSinger(FlextDbOracleServiceBase):
         self,
         singer_schema: FlextDbOracleModels.DbOracle.SingerSchema
         | t.ContainerValueMapping,
-    ) -> r[FlextDbOracleModels.DbOracle.TypeMapping]:
+    ) -> p.Result[FlextDbOracleModels.DbOracle.TypeMapping]:
         """Map Singer schema to Oracle types - simplified."""
         raw_properties: t.ContainerValueMapping | None = None
         if isinstance(singer_schema, FlextDbOracleModels.DbOracle.SingerSchema):

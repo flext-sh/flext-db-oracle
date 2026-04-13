@@ -15,7 +15,7 @@ from typing import override
 
 from sqlalchemy.exc import OperationalError as SQLAlchemyOperationalError
 
-from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, r, s, t, u
+from flext_db_oracle import FlextDbOracleApi, FlextDbOracleSettings, c, p, r, s, t, u
 
 
 class FlextDbOracleClient(s[FlextDbOracleSettings]):
@@ -88,7 +88,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         return self._oracle_config
 
     @classmethod
-    def run_cli_command(cls, operation: str, **params: t.Scalar) -> r[str]:
+    def run_cli_command(cls, operation: str, **params: t.Scalar) -> p.Result[str]:
         """Run Oracle CLI command with proper error handling.
 
         Returns:
@@ -99,7 +99,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             client = cls()
             if operation == "health":
 
-                def health_cmd() -> r[t.ConfigMap]:
+                def health_cmd() -> p.Result[t.ConfigMap]:
                     return client.health_check()
 
                 health_result: r[t.ConfigMap] = health_cmd()
@@ -120,7 +120,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         ) as e:
             return r[str].fail(f"CLI command failed: {e}")
 
-    def configure_preferences(self, **preferences: t.Scalar) -> r[bool]:
+    def configure_preferences(self, **preferences: t.Scalar) -> p.Result[bool]:
         """Configure client preferences.
 
         Returns:
@@ -148,7 +148,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         service_name: str | None = None,
         username: str | None = None,
         password: str | None = None,
-    ) -> r[FlextDbOracleApi]:
+    ) -> p.Result[FlextDbOracleApi]:
         """Connect to Oracle database with provided parameters or settings defaults.
 
         Returns:
@@ -201,7 +201,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         ) as e:
             return r[FlextDbOracleApi].fail(f"Connection error: {e}")
 
-    def disconnect(self) -> r[bool]:
+    def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database.
 
         Returns:
@@ -215,7 +215,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         return r[bool].ok(True)
 
     @override
-    def execute(self) -> r[FlextDbOracleSettings]:
+    def execute(self) -> p.Result[FlextDbOracleSettings]:
         """Execute the main domain operation for Oracle client.
 
         Returns:
@@ -228,7 +228,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         self,
         sql: str,
         params: t.DbOracle.QueryParameters | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Execute SQL query with formatted output.
 
         Returns:
@@ -250,7 +250,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         )
         return self._format_and_display_result(operation_result, format_type)
 
-    def health_check(self) -> r[t.ConfigMap]:
+    def health_check(self) -> p.Result[t.ConfigMap]:
         """Perform Oracle health check.
 
         Returns:
@@ -259,7 +259,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         """
         return self._execute_health_check()
 
-    def list_schemas(self) -> r[str]:
+    def list_schemas(self) -> p.Result[str]:
         """List Oracle schemas with formatted output.
 
         Returns:
@@ -272,7 +272,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         )
         return self._format_and_display_result(operation_result, format_type)
 
-    def list_tables(self, schema: str | None = None) -> r[str]:
+    def list_tables(self, schema: str | None = None) -> p.Result[str]:
         """List Oracle tables with formatted output.
 
         Returns:
@@ -288,7 +288,9 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         )
         return self._format_and_display_result(operation_result, format_type)
 
-    def _adapt_data_for_table(self, data: t.ConfigMap) -> r[Sequence[t.ConfigMap]]:
+    def _adapt_data_for_table(
+        self, data: t.ConfigMap
+    ) -> p.Result[Sequence[t.ConfigMap]]:
         """Adapt data for table display.
 
         Returns:
@@ -363,7 +365,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         result_str += "\n".join(["|".join(row) for row in rows])
         return result_str
 
-    def _execute_health_check(self) -> r[t.ConfigMap]:
+    def _execute_health_check(self) -> p.Result[t.ConfigMap]:
         """Execute Oracle health check.
 
         Returns:
@@ -401,7 +403,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         self,
         operation: str,
         **params: t.Scalar | t.ConfigMap,
-    ) -> r[t.ConfigMap]:
+    ) -> p.Result[t.ConfigMap]:
         """Execute Oracle operation with error handling.
 
         Returns:
@@ -431,7 +433,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         self,
         operation: str,
         **params: t.Scalar | t.ConfigMap,
-    ) -> r[t.ConfigMap]:
+    ) -> p.Result[t.ConfigMap]:
         """Execute operation with validation chain.
 
         Returns:
@@ -447,7 +449,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
         self,
         operation_result: r[t.ConfigMap],
         format_type: str = "table",
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Format and display operation result.
 
         Returns:
@@ -464,7 +466,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             ),
         )
 
-    def _format_as_json(self, data: t.ConfigMap) -> r[str]:
+    def _format_as_json(self, data: t.ConfigMap) -> p.Result[str]:
         """Format data as JSON output.
 
         Returns:
@@ -480,7 +482,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             ),
         ).map_error(lambda e: f"JSON formatting failed: {e}")
 
-    def _format_as_table(self, data: t.ConfigMap) -> r[str]:
+    def _format_as_table(self, data: t.ConfigMap) -> p.Result[str]:
         """Format data as table output.
 
         Returns:
@@ -505,7 +507,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
     def _get_formatter_strategy(
         self,
         format_type: str,
-    ) -> r[Callable[[t.ConfigMap], r[str]]]:
+    ) -> p.Result[Callable[[t.ConfigMap], r[str]]]:
         """Get formatter strategy for output format.
 
         Returns:
@@ -535,7 +537,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
                 f"Formatter strategy error: {e}",
             )
 
-    def _handle_health_check_operation(self) -> r[t.ConfigMap]:
+    def _handle_health_check_operation(self) -> p.Result[t.ConfigMap]:
         """Handle health check operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
@@ -543,7 +545,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             lambda status: t.ConfigMap(root=status.model_dump()),
         )
 
-    def _handle_list_schemas_operation(self) -> r[t.ConfigMap]:
+    def _handle_list_schemas_operation(self) -> p.Result[t.ConfigMap]:
         """Handle list schemas operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
@@ -556,7 +558,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
     def _handle_list_tables_operation(
         self,
         **params: t.Scalar | t.ConfigMap,
-    ) -> r[t.ConfigMap]:
+    ) -> p.Result[t.ConfigMap]:
         """Handle list tables operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
@@ -570,7 +572,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
     def _handle_query_operation(
         self,
         **params: t.Scalar | t.ConfigMap,
-    ) -> r[t.ConfigMap]:
+    ) -> p.Result[t.ConfigMap]:
         """Handle query operation."""
         if self.current_connection is None:
             return r[t.ConfigMap].fail("No active database connection")
@@ -600,7 +602,7 @@ class FlextDbOracleClient(s[FlextDbOracleSettings]):
             ),
         )
 
-    def _validate_connection(self) -> r[bool]:
+    def _validate_connection(self) -> p.Result[bool]:
         """Validate current Oracle connection.
 
         Returns:

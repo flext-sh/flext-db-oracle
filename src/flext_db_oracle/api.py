@@ -17,7 +17,7 @@ from collections.abc import Sequence
 from datetime import UTC, datetime
 from typing import Self, override
 
-from flext_core import r, s
+from flext_core import p, r, s
 from flext_db_oracle import (
     FlextDbOracleDispatcher,
     FlextDbOracleServices,
@@ -126,7 +126,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     def _build_api_result(
         cls,
         settings: FlextDbOracleSettings,
-    ) -> r[FlextDbOracleApi]:
+    ) -> p.Result[FlextDbOracleApi]:
         """Create API instance from validated settings."""
         if not settings.username:
             return r[FlextDbOracleApi].fail(
@@ -142,7 +142,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     @staticmethod
     def _normalize_parameters(
         parameters: t.ContainerValueMapping | None = None,
-    ) -> r[t.ConfigMap]:
+    ) -> p.Result[t.ConfigMap]:
         """Normalize query parameters into the canonical ConfigMap contract."""
         if parameters is None:
             return r[t.ConfigMap].ok(t.ConfigMap(root={}))
@@ -157,7 +157,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     def _normalize_parameters_list(
         cls,
         parameters_list: Sequence[t.ContainerValueMapping],
-    ) -> r[Sequence[t.ConfigMap]]:
+    ) -> p.Result[Sequence[t.ConfigMap]]:
         """Normalize bulk query parameters into canonical ConfigMap values."""
         normalized: list[t.ConfigMap] = []
         for parameters in parameters_list:
@@ -170,7 +170,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return r[Sequence[t.ConfigMap]].ok(normalized)
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> r[FlextDbOracleApi]:
+    def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleApi]:
         """Create API instance from environment variables.
 
         Args:
@@ -200,7 +200,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         return FlextDbOracleSettings.from_env(prefix).flat_map(cls._build_api_result)
 
     @classmethod
-    def from_url(cls, url: str) -> r[FlextDbOracleApi]:
+    def from_url(cls, url: str) -> p.Result[FlextDbOracleApi]:
         """Create API instance from Oracle URL string.
 
         Args:
@@ -212,7 +212,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         """
         return FlextDbOracleSettings.from_url(url).flat_map(cls._build_api_result)
 
-    def connect(self) -> r[FlextDbOracleApi]:
+    def connect(self) -> p.Result[FlextDbOracleApi]:
         """Connect to Oracle database."""
         self.logger.info(
             "Connecting to Oracle database",
@@ -224,17 +224,17 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         singer_type: str | t.StrSequence,
         format_hint: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Convert Singer JSON Schema type to Oracle SQL type."""
         return self._services.convert_singer_type(singer_type, format_hint)
 
-    def disconnect(self) -> r[bool]:
+    def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database."""
         self.logger.info("Disconnecting from Oracle database")
         return self._services.disconnect()
 
     @override
-    def execute(self, **_kwargs: t.Scalar) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute default domain service operation - return settings."""
         return u.try_(lambda: self._oracle_config).map_error(
             lambda e: f"API execution failed: {e}",
@@ -244,7 +244,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters_list: Sequence[t.ContainerValueMapping],
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Execute a statement multiple times with different parameters."""
         self.logger.debug("Executing bulk statement", batch_size=len(parameters_list))
         return self._normalize_parameters_list(parameters_list).flat_map(
@@ -258,7 +258,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Execute an INSERT/UPDATE/DELETE statement and return rows affected."""
         return self.execute_statement(sql, parameters)
 
@@ -266,7 +266,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         sql: str | t.ContainerValue,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Execute SQL statement directly and return affected rows."""
         sql_text = str(sql)
         self.logger.debug("Executing SQL statement", statement_length=len(sql_text))
@@ -281,19 +281,19 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[Sequence[m.DbOracle.Column]]:
+    ) -> p.Result[Sequence[m.DbOracle.Column]]:
         """Get column information for specified table."""
         return self._services.get_columns(table, schema)
 
-    def get_health_status(self) -> r[m.DbOracle.ConnectionStatus]:
+    def get_health_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get database connection health status."""
         return self._services.get_connection_status()
 
-    def get_observability_metrics(self) -> r[t.ContainerValueMapping]:
+    def get_observability_metrics(self) -> p.Result[t.ContainerValueMapping]:
         """Get observability metrics for the connection."""
         return self._services.get_metrics().map(lambda metrics: metrics.model_dump())
 
-    def get_plugin(self, name: str) -> r[t.ContainerValue | None]:
+    def get_plugin(self, name: str) -> p.Result[t.ContainerValue | None]:
         """Get a registered plugin by name."""
         if name not in self._plugins:
             return r[t.ContainerValue | None].fail(f"Plugin '{name}' not found")
@@ -304,11 +304,11 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[t.StrSequence]:
+    ) -> p.Result[t.StrSequence]:
         """Get primary key column names for specified table."""
         return self._services.get_primary_keys(table, schema)
 
-    def get_schemas(self) -> r[t.StrSequence]:
+    def get_schemas(self) -> p.Result[t.StrSequence]:
         """Get list of available schemas."""
         return self._services.get_schemas()
 
@@ -316,11 +316,11 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         table: str,
         schema: str | None = None,
-    ) -> r[m.DbOracle.TableMetadata]:
+    ) -> p.Result[m.DbOracle.TableMetadata]:
         """Get complete table metadata including columns and constraints."""
         return self._services.get_table_metadata(table, schema)
 
-    def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
+    def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
         """Get list of tables in specified schema."""
         return self._services.get_tables(schema)
 
@@ -331,17 +331,17 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             self._oracle_config.service_name,
         )
 
-    def list_plugins(self) -> r[t.StrSequence]:
+    def list_plugins(self) -> p.Result[t.StrSequence]:
         """List all registered plugin names."""
         return r[t.StrSequence].ok(list(self._plugins.keys()))
 
-    def map_singer_schema(self, schema: t.ContainerValue) -> r[t.StrMapping]:
+    def map_singer_schema(self, schema: t.ContainerValue) -> p.Result[t.StrMapping]:
         """Map Singer JSON Schema to Oracle table schema."""
         if not isinstance(schema, dict):
             return r[t.StrMapping].fail("Schema must be a mapping")
         return self._services.map_singer_schema(schema).map(lambda value: value.mapping)
 
-    def optimize_query(self, sql: str) -> r[str]:
+    def optimize_query(self, sql: str) -> p.Result[str]:
         """Optimize a SQL query for Oracle."""
         return u.try_(
             lambda: " ".join(sql.split()),
@@ -352,7 +352,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> r[Sequence[t.Dict]]:
+    ) -> p.Result[Sequence[t.Dict]]:
         """Execute a SELECT query and return all results."""
         self.logger.debug("Executing query", query_length=len(sql))
         return self._normalize_parameters(parameters).flat_map(
@@ -366,7 +366,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
         self,
         sql: str,
         parameters: t.ContainerValueMapping | None = None,
-    ) -> r[t.Dict | None]:
+    ) -> p.Result[t.Dict | None]:
         """Execute a SELECT query and return first result or None."""
         return self._normalize_parameters(parameters).flat_map(
             lambda normalized_parameters: self._services.fetch_one(
@@ -375,12 +375,12 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             ),
         )
 
-    def register_plugin(self, name: str, plugin: t.ContainerValue) -> r[bool]:
+    def register_plugin(self, name: str, plugin: t.ContainerValue) -> p.Result[bool]:
         """Register a plugin in local API registry."""
         self._plugins[name] = plugin
         return r[bool].ok(True)
 
-    def test_connection(self) -> r[bool]:
+    def test_connection(self) -> p.Result[bool]:
         """Test Oracle database connection."""
         return self._services.test_connection()
 
@@ -402,7 +402,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             },
         )
 
-    def transaction(self) -> r[t.ContainerValueMapping]:
+    def transaction(self) -> p.Result[t.ContainerValueMapping]:
         """Get transaction status information."""
         return r[t.ContainerValueMapping].ok(
             {
@@ -411,7 +411,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
             },
         )
 
-    def unregister_plugin(self, name: str) -> r[bool]:
+    def unregister_plugin(self, name: str) -> p.Result[bool]:
         """Unregister a plugin from local API registry."""
         if name not in self._plugins:
             return r[bool].fail(f"Plugin '{name}' not found")
@@ -461,7 +461,7 @@ class FlextDbOracleApi(s[FlextDbOracleSettings]):
     def _execute_query_sql(
         self,
         sql: str,
-    ) -> r[m.DbOracle.QueryResult]:
+    ) -> p.Result[m.DbOracle.QueryResult]:
         """Execute SQL query and return results as QueryResult."""
         return self._services.execute_query(sql).map(
             lambda data: self._convert_to_query_result(sql, data),

@@ -209,12 +209,12 @@ __all__: list[str] = [
 **Key Methods**:
 
 ```python
-def connect(self, settings: OracleConfig) -> r[Connection]
-def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> r[QueryResult]
-def get_schema_info(self, schema: str) -> r[SchemaInfo]
-def begin_transaction(self) -> r[Transaction]
-def commit_transaction(self) -> r[bool]
-def rollback_transaction(self) -> r[bool]
+def connect(self, settings: OracleConfig) -> p.Result[Connection]
+def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> p.Result[QueryResult]
+def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]
+def begin_transaction(self) -> p.Result[Transaction]
+def commit_transaction(self) -> p.Result[bool]
+def rollback_transaction(self) -> p.Result[bool]
 ```
 
 ### Service Layer

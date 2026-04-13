@@ -151,14 +151,14 @@ from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
 from flext_core import FlextRegistry
-from flext_core import r
+from flext_core import r, p
 from flext_core import u
 from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
-def query_operation() -> r[List[Dict]]:
+def query_operation() -> p.Result[List[Dict]]:
     # No try/catch - explicit error handling
     connection_result = self._get_connection()
     if connection_result.is_failure:
@@ -249,11 +249,11 @@ engine = create_engine(
 ```python
 class OraclePlugin(ABC):
     @abstractmethod
-    def validate_query(self, sql: str) -> r[str]:
+    def validate_query(self, sql: str) -> p.Result[str]:
         """Validate and potentially modify SQL queries"""
 
     @abstractmethod
-    def monitor_performance(self, metrics: Dict) -> r[bool]:
+    def monitor_performance(self, metrics: Dict) -> p.Result[bool]:
         """Monitor query performance"""
 ```
 

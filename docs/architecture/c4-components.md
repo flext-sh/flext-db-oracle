@@ -151,10 +151,10 @@ graph TB
 
 ```python
 class FlextDbOracleApi(s):
-    def connect(self, settings: OracleConfig) -> r[Connection]
-    def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> r[QueryResult]
-    def get_schema_info(self, schema: str) -> r[SchemaInfo]
-    def close_connection(self) -> r[bool]
+    def connect(self, settings: OracleConfig) -> p.Result[Connection]
+    def execute_query(self, sql: str, params: t.RecursiveContainerMapping = None) -> p.Result[QueryResult]
+    def get_schema_info(self, schema: str) -> p.Result[SchemaInfo]
+    def close_connection(self) -> p.Result[bool]
 ```
 
 **Dependencies**: Services, Models, Connection, Exceptions, Logger, Container

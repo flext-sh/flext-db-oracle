@@ -14,7 +14,7 @@ import os
 from typing import Annotated, ClassVar, Self, override
 from urllib.parse import parse_qs, unquote, urlparse
 
-from flext_core import FlextSettings, m, r, u
+from flext_core import FlextSettings, m, p, r, u
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOraclePassword,
@@ -171,7 +171,7 @@ class FlextDbOracleSettings(FlextSettings):
             raise ValueError(msg)
 
     @classmethod
-    def from_env(cls, prefix: str = "ORACLE_") -> r[FlextDbOracleSettings]:
+    def from_env(cls, prefix: str = "ORACLE_") -> p.Result[FlextDbOracleSettings]:
         """Create settings from environment variables via Pydantic EnvSettingsSource.
 
         Reads env vars with the given prefix. When prefix is "ORACLE_",
@@ -203,7 +203,7 @@ class FlextDbOracleSettings(FlextSettings):
             return r[FlextDbOracleSettings].fail(f"Invalid environment settings: {e}")
 
     @classmethod
-    def from_url(cls, url: str) -> r[FlextDbOracleSettings]:
+    def from_url(cls, url: str) -> p.Result[FlextDbOracleSettings]:
         """Create settings from an Oracle connection URL."""
         parsed = urlparse(url)
         if parsed.scheme not in {"oracle", "oracle+oracledb"}:

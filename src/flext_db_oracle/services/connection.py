@@ -22,7 +22,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_core import r
+from flext_core import p, r
 from flext_db_oracle import (
     FlextDbOracleConstants as c,
     FlextDbOracleModels as m,
@@ -39,7 +39,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
     get_connection, get_connection_status, transaction, connected.
     """
 
-    def connect(self) -> r[Self]:
+    def connect(self) -> p.Result[Self]:
         """Establish Oracle database connection."""
         url_result = self._build_connection_url()
         if url_result.failure:
@@ -113,7 +113,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             self.logger.exception("Oracle connection failed")
             return r[Self](error=f"Connection failed: {e}", success=False)
 
-    def disconnect(self) -> r[bool]:
+    def disconnect(self) -> p.Result[bool]:
         """Disconnect from Oracle database."""
         engine = self._engine
         if engine is not None:
@@ -123,7 +123,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         return r[bool].ok(True)
 
     @override
-    def execute(self, **_kwargs: t.Scalar) -> r[FlextDbOracleSettings]:
+    def execute(self, **_kwargs: t.Scalar) -> p.Result[FlextDbOracleSettings]:
         """Execute main domain service operation - return settings."""
         test_result = self.test_connection()
         if test_result.success:
@@ -146,7 +146,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         finally:
             self._context_exit(connect_ctx)
 
-    def get_connection_status(self) -> r[m.DbOracle.ConnectionStatus]:
+    def get_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
         """Get connection status - simplified."""
         now = datetime.now(UTC)
         return r[m.DbOracle.ConnectionStatus].ok(
@@ -165,7 +165,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def health_check(self) -> r[m.DbOracle.HealthStatus]:
+    def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Perform health check."""
         return r[m.DbOracle.HealthStatus].ok(
             m.DbOracle.HealthStatus(
@@ -181,7 +181,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
             ),
         )
 
-    def test_connection(self) -> r[bool]:
+    def test_connection(self) -> p.Result[bool]:
         """Test Oracle database connection."""
         engine_result = self._get_engine()
         if engine_result.failure:
@@ -221,7 +221,7 @@ class FlextDbOracleServiceConnection(FlextDbOracleServiceBase):
         finally:
             self._context_exit(transaction_ctx)
 
-    def _build_connection_url(self) -> r[str]:
+    def _build_connection_url(self) -> p.Result[str]:
         """Build Oracle connection URL from configuration."""
         try:
             password = self.db_config.password

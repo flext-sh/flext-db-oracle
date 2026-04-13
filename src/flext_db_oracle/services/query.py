@@ -20,7 +20,7 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_core import r
+from flext_core import p, r
 from flext_db_oracle import FlextDbOracleServiceBase, FlextDbOracleTypes as t
 
 
@@ -35,7 +35,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params_list: Sequence[t.ContainerValueMapping | t.ConfigMap],
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Execute SQL statement multiple times."""
         if not self.connected():
             return r[int].fail("Not connected to database")
@@ -78,7 +78,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params: t.ConfigMap | None = None,
-    ) -> r[Sequence[t.Dict]]:
+    ) -> p.Result[Sequence[t.Dict]]:
         """Execute SQL query and return results."""
         if not self.connected():
             return r[Sequence[t.Dict]].fail("Not connected to database")
@@ -111,7 +111,9 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         ) as e:
             return r[Sequence[t.Dict]].fail(f"Query execution failed: {e}")
 
-    def execute_statement(self, sql: str, params: t.ConfigMap | None = None) -> r[int]:
+    def execute_statement(
+        self, sql: str, params: t.ConfigMap | None = None
+    ) -> p.Result[int]:
         """Execute SQL statement and return affected rows."""
         if not self.connected():
             return r[int].fail("Not connected to database")
@@ -146,7 +148,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str,
         params: t.ConfigMap | None = None,
-    ) -> r[t.Dict | None]:
+    ) -> p.Result[t.Dict | None]:
         """Execute query and return first result."""
         return self.execute_query(sql, params).map(
             lambda rows: rows[0] if rows else None,
@@ -156,7 +158,7 @@ class FlextDbOracleServiceQuery(FlextDbOracleServiceBase):
         self,
         sql: str = "",
         params: t.ConfigMap | t.ContainerValueMapping | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Generate query hash - simplified."""
         typed_params = (
             params

@@ -22,7 +22,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import CursorResult
 
-from flext_core import c, m, r, s, u
+from flext_core import c, m, p, r, s, u
 from flext_db_oracle import FlextDbOracleModels, FlextDbOracleSettings, t
 
 
@@ -184,7 +184,7 @@ class FlextDbOracleServiceBase(s):
         """Get current timestamp for operation tracking."""
         return str(int(time.time()))
 
-    def _get_engine(self) -> r[SAEngine]:
+    def _get_engine(self) -> p.Result[SAEngine]:
         """Get database engine."""
         engine = self._engine
         if engine is None or not self.connected():
@@ -205,7 +205,7 @@ class FlextDbOracleServiceBase(s):
         self,
         sql: str,
         params: t.ConfigMap | None = None,
-    ) -> r[Sequence[t.Dict]]:
+    ) -> p.Result[Sequence[t.Dict]]:
         """Execute a SQL query in composed service facades."""
         del sql, params
         msg = "execute_query requires the composed DB Oracle service facade"

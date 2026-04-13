@@ -11,7 +11,6 @@ from typing import Protocol, runtime_checkable
 
 from flext_infra import FlextInfraProtocols
 
-from flext_core import r
 from flext_db_oracle import FlextDbOracleModels as m, FlextDbOracleTypes as t
 
 
@@ -45,7 +44,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
         class Connection(Protocol):
             """Protocol for Oracle database connection operations."""
 
-            def connect(self) -> r[bool]:
+            def connect(self) -> p.Result[bool]:
                 """Establish Oracle database connection.
 
                 Returns:
@@ -54,7 +53,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def disconnect(self) -> r[bool]:
+            def disconnect(self) -> p.Result[bool]:
                 """Close Oracle database connection.
 
                 Returns:
@@ -63,7 +62,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def connected(self) -> r[bool]:
+            def connected(self) -> p.Result[bool]:
                 """Check if Oracle connection is active.
 
                 Returns:
@@ -80,7 +79,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
             must satisfy this protocol.
             """
 
-            def get_connection(self) -> r[t.ContainerValue]:
+            def get_connection(self) -> p.Result[t.ContainerValue]:
                 """Get current Oracle connection t.RecursiveContainer.
 
                 Returns:
@@ -89,15 +88,15 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def initialize(self) -> r[bool]:
+            def initialize(self) -> p.Result[bool]:
                 """Initialize the plugin."""
                 ...
 
-            def shutdown(self) -> r[bool]:
+            def shutdown(self) -> p.Result[bool]:
                 """Shutdown the plugin."""
                 ...
 
-            def test_connection(self) -> r[bool]:
+            def test_connection(self) -> p.Result[bool]:
                 """Test Oracle database connectivity.
 
                 Returns:
@@ -114,7 +113,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 sql: str,
                 params_list: Sequence[t.ContainerValueMapping],
-            ) -> r[int]:
+            ) -> p.Result[int]:
                 """Execute Oracle SQL statement with multiple parameter sets.
 
                 Args:
@@ -131,7 +130,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 sql: str,
                 params: t.ContainerValueMapping | None = None,
-            ) -> r[Sequence[t.Dict]]:
+            ) -> p.Result[Sequence[t.Dict]]:
                 """Execute Oracle SQL query.
 
                 Args:
@@ -148,7 +147,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 sql: str,
                 params: t.ContainerValueMapping | None = None,
-            ) -> r[bool]:
+            ) -> p.Result[bool]:
                 """Execute Oracle SQL statement.
 
                 Args:
@@ -165,7 +164,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 sql: str,
                 params: t.ContainerValueMapping | None = None,
-            ) -> r[t.Dict | None]:
+            ) -> p.Result[t.Dict | None]:
                 """Fetch single result from Oracle query.
 
                 Args:
@@ -186,7 +185,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> r[Sequence[m.DbOracle.Column]]:
+            ) -> p.Result[Sequence[m.DbOracle.Column]]:
                 """Get column information for Oracle table.
 
                 Args:
@@ -203,7 +202,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> r[t.StrSequence]:
+            ) -> p.Result[t.StrSequence]:
                 """Get primary key columns for Oracle table.
 
                 Args:
@@ -216,7 +215,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def get_schemas(self) -> r[t.StrSequence]:
+            def get_schemas(self) -> p.Result[t.StrSequence]:
                 """Get list of Oracle schemas.
 
                 Returns:
@@ -229,7 +228,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 table: str,
                 schema: str | None = None,
-            ) -> r[m.DbOracle.TableMetadata]:
+            ) -> p.Result[m.DbOracle.TableMetadata]:
                 """Get Oracle table metadata.
 
                 Args:
@@ -242,7 +241,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
+            def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
                 """Get list of tables in Oracle schema.
 
                 Args:
@@ -258,7 +257,9 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
         class SqlBuilder(Protocol):
             """Protocol for Oracle SQL statement building operations."""
 
-            def build_delete_statement(self, table: str, where_clause: str) -> r[str]:
+            def build_delete_statement(
+                self, table: str, where_clause: str
+            ) -> p.Result[str]:
                 """Build Oracle DELETE statement.
 
                 Args:
@@ -275,7 +276,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 self,
                 table: str,
                 data: t.ContainerValueMapping,
-            ) -> r[tuple[str, t.ContainerValueMapping]]:
+            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
                 """Build Oracle INSERT statement.
 
                 Args:
@@ -295,7 +296,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 where_clause: str | None = None,
                 order_by: str | None = None,
                 limit: int | None = None,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Build Oracle SELECT statement.
 
                 Args:
@@ -316,7 +317,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 table: str,
                 data: t.ContainerValueMapping,
                 where_clause: str,
-            ) -> r[tuple[str, t.ContainerValueMapping]]:
+            ) -> p.Result[tuple[str, t.ContainerValueMapping]]:
                 """Build Oracle UPDATE statement.
 
                 Args:
@@ -341,7 +342,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 index_name: str | None = None,
                 *,
                 unique: bool = False,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Build Oracle CREATE INDEX statement.
 
                 Args:
@@ -361,7 +362,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 table: str,
                 columns: Sequence[m.DbOracle.Column],
                 schema: str | None = None,
-            ) -> r[str]:
+            ) -> p.Result[str]:
                 """Generate Oracle CREATE TABLE DDL.
 
                 Args:
@@ -375,7 +376,9 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def drop_table_ddl(self, table: str, schema: str | None = None) -> r[str]:
+            def drop_table_ddl(
+                self, table: str, schema: str | None = None
+            ) -> p.Result[str]:
                 """Generate Oracle DROP TABLE DDL.
 
                 Args:
@@ -392,7 +395,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
         class MetricsCollector(Protocol):
             """Protocol for Oracle database metrics collection."""
 
-            def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
+            def get_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Get collected Oracle metrics.
 
                 Returns:
@@ -406,7 +409,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 name: str,
                 value: float,
                 tags: t.StrMapping | None = None,
-            ) -> r[bool]:
+            ) -> p.Result[bool]:
                 """Record Oracle database metric.
 
                 Args:
@@ -426,7 +429,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 duration: float,
                 *,
                 success: bool,
-            ) -> r[bool]:
+            ) -> p.Result[bool]:
                 """Track Oracle operation performance.
 
                 Args:
@@ -444,7 +447,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
         class PluginRegistry(Protocol):
             """Protocol for Oracle database plugin registry operations."""
 
-            def get_plugin(self, name: str) -> r[t.ContainerValue]:
+            def get_plugin(self, name: str) -> p.Result[t.ContainerValue]:
                 """Get Oracle database plugin by name.
 
                 Args:
@@ -456,7 +459,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def list_plugins(self) -> r[t.StrSequence]:
+            def list_plugins(self) -> p.Result[t.StrSequence]:
                 """List registered Oracle database plugins.
 
                 Returns:
@@ -465,7 +468,9 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def register_plugin(self, name: str, _plugin: t.ContainerValue) -> r[bool]:
+            def register_plugin(
+                self, name: str, _plugin: t.ContainerValue
+            ) -> p.Result[bool]:
                 """Register Oracle database plugin.
 
                 Args:
@@ -478,7 +483,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def unregister_plugin(self, name: str) -> r[bool]:
+            def unregister_plugin(self, name: str) -> p.Result[bool]:
                 """Unregister Oracle database plugin.
 
                 Args:
@@ -494,7 +499,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
         class HealthCheck(Protocol):
             """Protocol for Oracle database health check operations."""
 
-            def get_connection_status(self) -> r[m.DbOracle.ConnectionStatus]:
+            def get_connection_status(self) -> p.Result[m.DbOracle.ConnectionStatus]:
                 """Get Oracle connection status information.
 
                 Returns:
@@ -503,7 +508,7 @@ class FlextDbOracleProtocols(FlextInfraProtocols):
                 """
                 ...
 
-            def health_check(self) -> r[m.DbOracle.HealthStatus]:
+            def health_check(self) -> p.Result[m.DbOracle.HealthStatus]:
                 """Perform Oracle database health check.
 
                 Returns:

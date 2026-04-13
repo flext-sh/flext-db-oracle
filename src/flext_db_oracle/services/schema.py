@@ -17,12 +17,12 @@ from sqlalchemy.exc import (
     SQLAlchemyError,
 )
 
-from flext_core import r
 from flext_db_oracle import (
     FlextDbOracleModels,
     FlextDbOracleServiceBase,
-    FlextDbOracleTypes as t,
-    FlextDbOracleUtilities as u,
+    p,
+    t,
+    u,
 )
 
 
@@ -37,7 +37,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[Sequence[FlextDbOracleModels.DbOracle.Column]]:
+    ) -> p.Result[Sequence[FlextDbOracleModels.DbOracle.Column]]:
         """Get column information for Oracle table."""
         if schema_name:
             sql = "\nSELECT column_name, data_type, data_length, data_precision, data_scale, nullable\nFROM all_tab_columns\nWHERE table_name = UPPER(:table_name) AND owner = UPPER(:schema_name)\nORDER BY column_id\n"
@@ -73,7 +73,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[t.StrSequence]:
+    ) -> p.Result[t.StrSequence]:
         """Alias for get_primary_keys."""
         return self.get_primary_keys(table_name, schema_name)
 
@@ -81,7 +81,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> r[t.StrSequence]:
+    ) -> p.Result[t.StrSequence]:
         """Get primary key column names for specified table."""
 
         def _fetch_keys() -> t.StrSequence:
@@ -110,7 +110,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to get primary keys: {e}")
 
-    def get_schemas(self) -> r[t.StrSequence]:
+    def get_schemas(self) -> p.Result[t.StrSequence]:
         """Get list of Oracle schemas."""
         sql = "SELECT username as schema_name FROM all_users WHERE username NOT IN ('SYS', 'SYSTEM', 'ANONYMOUS', 'XDB', 'CTXSYS', 'MDSYS', 'WMSYS') ORDER BY username"
         return self.execute_query(sql).map(
@@ -124,7 +124,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema: str | None = None,
-    ) -> r[FlextDbOracleModels.DbOracle.TableMetadata]:
+    ) -> p.Result[FlextDbOracleModels.DbOracle.TableMetadata]:
         """Get complete table metadata."""
 
         def _fetch_metadata() -> FlextDbOracleModels.DbOracle.TableMetadata:
@@ -166,7 +166,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
         self,
         table_name: str,
         schema_name: str | None = None,
-    ) -> r[int]:
+    ) -> p.Result[int]:
         """Get row count - simplified."""
 
         def _fetch_count() -> int:
@@ -189,7 +189,7 @@ class FlextDbOracleServiceSchema(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to get row count: {e}")
 
-    def get_tables(self, schema: str | None = None) -> r[t.StrSequence]:
+    def get_tables(self, schema: str | None = None) -> p.Result[t.StrSequence]:
         """Get list of tables in Oracle schema."""
         if schema:
             sql = "SELECT table_name FROM all_tables WHERE owner = UPPER(:schema_name) ORDER BY table_name"

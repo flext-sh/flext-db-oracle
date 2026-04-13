@@ -57,7 +57,7 @@ Implement Railway Pattern error handling throughout flext-db-oracle using r\[T\]
 
 ```python
 # Railway Pattern with r[T]
-def enterprise_operation(settings: Config) -> r[Result]:
+def enterprise_operation(settings: Config) -> p.Result[Result]:
     return (
         validate_config(settings)
         .flat_map(lambda c: create_connection(c))

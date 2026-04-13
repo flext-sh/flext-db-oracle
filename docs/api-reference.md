@@ -32,13 +32,13 @@ Oracle database interface providing 36 methods for connection management, query 
 api = FlextDbOracleApi(settings)
 
 # Test connection
-result = api.test_connection() -> r[bool]
+result = api.test_connection() -> p.Result[bool]
 
 # Connect to database
-result = api.connect() -> r[Self]
+result = api.connect() -> p.Result[Self]
 
 # Disconnect from database
-result = api.disconnect() -> r[bool]
+result = api.disconnect() -> p.Result[bool]
 
 # Check connection status
 status = api.is_connected() -> bool
@@ -48,42 +48,42 @@ status = api.is_connected() -> bool
 
 ```python
 # Execute SELECT queries
-result = api.query(sql, parameters=None) -> r[Sequence[t.Dict]]
+result = api.query(sql, parameters=None) -> p.Result[Sequence[t.Dict]]
 
 # Execute single row SELECT
-result = api.query_one(sql, parameters=None) -> r[dict | None]
+result = api.query_one(sql, parameters=None) -> p.Result[dict | None]
 
 # Execute INSERT/UPDATE/DELETE
-result = api.execute(sql, parameters=None) -> r[int]
+result = api.execute(sql, parameters=None) -> p.Result[int]
 
 # Execute multiple statements
-result = api.execute_many(sql, parameters_list) -> r[int]
+result = api.execute_many(sql, parameters_list) -> p.Result[int]
 ```
 
 ### Schema Methods
 
 ```python
 # Get available schemas
-result = api.get_schemas() -> r[t.StringList]
+result = api.get_schemas() -> p.Result[t.StringList]
 
 # Get tables in schema
-result = api.get_tables(schema=None) -> r[Sequence[t.Dict]]
+result = api.get_tables(schema=None) -> p.Result[Sequence[t.Dict]]
 
 # Get column information
-result = api.get_columns(table, schema=None) -> r[Sequence[t.Dict]]
+result = api.get_columns(table, schema=None) -> p.Result[Sequence[t.Dict]]
 
 # Get table metadata
-result = api.get_table_metadata(table, schema=None) -> r[t.Dict]
+result = api.get_table_metadata(table, schema=None) -> p.Result[t.Dict]
 ```
 
 ### Configuration Methods
 
 ```python
 # Create from environment variables
-result = FlextDbOracleApi.from_env() -> r[FlextDbOracleApi]
+result = FlextDbOracleApi.from_env() -> p.Result[FlextDbOracleApi]
 
 # Create from URL
-result = FlextDbOracleApi.from_url(url) -> r[FlextDbOracleApi]
+result = FlextDbOracleApi.from_url(url) -> p.Result[FlextDbOracleApi]
 
 # Get current settings
 settings = api.settings -> OracleConfig

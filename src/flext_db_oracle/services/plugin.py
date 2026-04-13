@@ -15,7 +15,7 @@ from sqlalchemy.exc import (
     OperationalError as SQLAlchemyOperationalError,
 )
 
-from flext_core import r
+from flext_core import p, r
 from flext_db_oracle import (
     FlextDbOracleModels as m,
     FlextDbOracleServiceBase,
@@ -31,7 +31,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
     record_metric, get_metrics, track_operation, get_operations.
     """
 
-    def get_metrics(self) -> r[m.DbOracle.HealthStatus]:
+    def get_metrics(self) -> p.Result[m.DbOracle.HealthStatus]:
         """Get metrics status with observability integration."""
         status = "connected" if self.connected() else "disconnected"
         metrics_payload: t.StrMapping = {
@@ -50,13 +50,13 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
 
     def get_operations(
         self,
-    ) -> r[Sequence[m.DbOracle.OperationRecord]]:
+    ) -> p.Result[Sequence[m.DbOracle.OperationRecord]]:
         """Get tracked operations."""
         return r[Sequence[m.DbOracle.OperationRecord]].ok(
             list(self._operations),
         )
 
-    def get_plugin(self, _name: str) -> r[t.ContainerValue]:
+    def get_plugin(self, _name: str) -> p.Result[t.ContainerValue]:
         """Get plugin data from local service registry."""
         if not _name:
             return r[t.ContainerValue].fail("Plugin name is required")
@@ -64,7 +64,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             return r[t.ContainerValue].fail(f"Plugin '{_name}' not found")
         return r[t.ContainerValue].ok(self._plugins[_name])
 
-    def list_plugins(self) -> r[t.ConfigMap]:
+    def list_plugins(self) -> p.Result[t.ConfigMap]:
         """List plugin names from local service registry."""
         plugin_names = list(self._plugins.keys())
         return r[t.ConfigMap].ok(t.ConfigMap(root=dict.fromkeys(plugin_names, True)))
@@ -74,14 +74,14 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         _name: str,
         _value: float,
         _tags: t.ConfigMap | t.ContainerValueMapping | None = None,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Record metric in the local service metrics registry."""
         if not _name:
             return r[bool].fail("Metric name is required")
         self._metrics[_name] = _value
         return r[bool].ok(True)
 
-    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> r[bool]:
+    def register_plugin(self, _name: str, _plugin: t.ContainerValue) -> p.Result[bool]:
         """Register plugin in local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")
@@ -98,7 +98,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
         *,
         success: bool = True,
         metadata: t.ConfigMap | t.ContainerValueMapping | None = None,
-    ) -> r[bool]:
+    ) -> p.Result[bool]:
         """Track database operation for monitoring."""
 
         def _track() -> bool:
@@ -130,7 +130,7 @@ class FlextDbOracleServicePlugin(FlextDbOracleServiceBase):
             ),
         ).map_error(lambda e: f"Failed to track operation: {e}")
 
-    def unregister_plugin(self, _name: str) -> r[bool]:
+    def unregister_plugin(self, _name: str) -> p.Result[bool]:
         """Unregister plugin from local service registry."""
         if not _name:
             return r[bool].fail("Plugin name is required")

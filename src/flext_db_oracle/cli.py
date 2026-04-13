@@ -18,13 +18,14 @@ from typing import override
 
 from flext_cli import cli
 
-from flext_core import s
 from flext_db_oracle import (
     FlextDbOracleApi,
     FlextDbOracleSettings,
     c,
     m,
+    p,
     r,
+    s,
     t,
     u,
 )
@@ -55,7 +56,7 @@ class FlextDbOracleCli(s[str]):
             service_name: str = c.DbOracle.Connection.DEFAULT_SERVICE_NAME,
             username: str = c.DbOracle.OracleDefaults.DEFAULT_USERNAME,
             password: str | None = None,
-        ) -> r[FlextDbOracleSettings]:
+        ) -> p.Result[FlextDbOracleSettings]:
             """Create Oracle configuration from parameters.
 
             Returns:
@@ -87,7 +88,7 @@ class FlextDbOracleCli(s[str]):
                 )
 
         @staticmethod
-        def validate_connection(settings: FlextDbOracleSettings) -> r[bool]:
+        def validate_connection(settings: FlextDbOracleSettings) -> p.Result[bool]:
             """Validate Oracle database connection.
 
             Returns:
@@ -118,7 +119,7 @@ class FlextDbOracleCli(s[str]):
             | t.StrSequence
             | str,
             output_format: str,
-        ) -> r[str]:
+        ) -> p.Result[str]:
             """Format any data payload using simple formatters.
 
             Returns:
@@ -154,7 +155,7 @@ class FlextDbOracleCli(s[str]):
             return r[str].ok(str(data))
 
         @staticmethod
-        def format_error_message(error: str) -> r[str]:
+        def format_error_message(error: str) -> p.Result[str]:
             """Format error message using simple formatting.
 
             Returns:
@@ -169,7 +170,7 @@ class FlextDbOracleCli(s[str]):
             items: t.StrSequence | Sequence[m.DbOracle.NamedItem],
             title: str,
             output_format: str = "table",
-        ) -> r[str]:
+        ) -> p.Result[str]:
             """Format list output using simple formatters.
 
             Returns:
@@ -205,7 +206,7 @@ class FlextDbOracleCli(s[str]):
             return r[str].ok("\n".join(output_lines))
 
         @staticmethod
-        def format_success_message(message: str) -> r[str]:
+        def format_success_message(message: str) -> p.Result[str]:
             """Format success message using simple formatting.
 
             Returns:
@@ -216,7 +217,7 @@ class FlextDbOracleCli(s[str]):
             return r[str].ok(formatted_msg)
 
     @classmethod
-    def main(cls) -> r[str]:
+    def main(cls) -> p.Result[str]:
         """Execute main CLI entry point using flext-cli exclusively."""
         cli_service = cls()
         return cli_service.run_cli()
@@ -227,7 +228,7 @@ class FlextDbOracleCli(s[str]):
         return 0 if cls.main().success else 1
 
     @override
-    def execute(self, **_kwargs: str | float | bool) -> r[str]:
+    def execute(self, **_kwargs: str | float | bool) -> p.Result[str]:
         """Execute domain service - required by s.
 
         Returns:
@@ -245,7 +246,7 @@ class FlextDbOracleCli(s[str]):
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         timeout: int = c.DbOracle.Connection.DEFAULT_TIMEOUT,
-    ) -> r[m.DbOracle.HealthCheckReport]:
+    ) -> p.Result[m.DbOracle.HealthCheckReport]:
         """Execute complete health check for Oracle database connection.
 
         Args:
@@ -314,7 +315,7 @@ class FlextDbOracleCli(s[str]):
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Execute Oracle schemas listing.
 
         Returns:
@@ -374,7 +375,7 @@ class FlextDbOracleCli(s[str]):
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Execute Oracle tables listing for a schema.
 
         Returns:
@@ -434,7 +435,7 @@ class FlextDbOracleCli(s[str]):
         username: str = c.DbOracle.Connection.DEFAULT_USERNAME,
         password: str | None = None,
         output_format: str = "table",
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Execute SQL query against Oracle database.
 
         Returns:
@@ -491,7 +492,7 @@ class FlextDbOracleCli(s[str]):
             return r[str].ok(formatted_result.value)
         return r[str].ok(f"Query executed successfully with {row_count} rows")
 
-    def run_cli(self, args: t.StrSequence | None = None) -> r[str]:
+    def run_cli(self, args: t.StrSequence | None = None) -> p.Result[str]:
         """Run CLI with command line arguments simulation.
 
         Returns:
@@ -530,7 +531,7 @@ class FlextDbOracleCli(s[str]):
         formatter: type[_OutputFormatter],
         error_message: str,
         display_message: str | None = None,
-    ) -> r[str]:
+    ) -> p.Result[str]:
         """Handle error by displaying message and returning failure result."""
         if display_message:
             error_msg = formatter.format_error_message(display_message)

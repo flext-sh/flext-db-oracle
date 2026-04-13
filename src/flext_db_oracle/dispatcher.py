@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING, override
 
-from flext_core import FlextContainer, r, s
+from flext_core import FlextContainer, p, r, s
 from flext_db_oracle import (
     FlextDbOracleModels as m,
     FlextDbOracleProtocols as p,
@@ -24,7 +24,7 @@ class FlextDbOracleDispatcher(s[None]):
     """Unified Oracle Database Dispatcher with integrated command classes."""
 
     @override
-    def execute(self) -> r[None]:
+    def execute(self) -> p.Result[None]:
         """Execute dispatcher operation - returns None as this is a factory class."""
         return r[None].ok(None)
 
