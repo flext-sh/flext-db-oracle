@@ -14,7 +14,8 @@ from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
 from typing import ClassVar
 
-from flext_core import m, u
+from flext_cli import m, u
+
 from flext_db_oracle import c, t
 
 
