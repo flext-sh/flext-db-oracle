@@ -380,4 +380,4 @@ ______________________________________________________________________
 
 **Arc42 Section 1: Introduction and Goals**
 **flext-db-oracle v0.9.0**
-**Generated**: 2025-10-10
+**Generated**: 2026-04-14

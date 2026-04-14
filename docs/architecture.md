@@ -161,11 +161,11 @@ from flext_core import u
 def query_operation() -> p.Result[List[Dict]]:
     # No try/catch - explicit error handling
     connection_result = self._get_connection()
-    if connection_result.is_failure:
+    if connection_result.failure:
         return r[List[Dict]].fail(connection_result.error)
 
     query_result = self._execute_query(sql)
-    if query_result.is_failure:
+    if query_result.failure:
         return r[List[Dict]].fail(query_result.error)
 
     return r[List[Dict]].ok(query_result.value)
@@ -301,13 +301,13 @@ class OraclePlugin(ABC):
 
 ### Planned Improvements
 
-**Support** (v0.10.0):
+**Support** (v0.12.0-dev):
 
 - API methods using Python-oracledb support
 - FlextDbOracleApi parallel implementation
 - Backward compatibility maintained
 
-**DataFrame Integration** (v0.10.0):
+**DataFrame Integration** (v0.12.0-dev):
 
 - Zero-copy data interchange with Apache Arrow
 - Direct pandas/polars integration
@@ -321,7 +321,7 @@ class OraclePlugin(ABC):
 
 ______________________________________________________________________
 
-**Version**: 0.9.9 RC | **Updated**: September 17, 2025
+**Version**: 0.12.0-dev | **Updated**: April 14, 2026
 **Pattern**: Clean Architecture + Domain-Driven Design
 **Integration**: FLEXT Ecosystem Foundation
 

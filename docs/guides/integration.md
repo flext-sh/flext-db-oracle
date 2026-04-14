@@ -39,7 +39,7 @@ from flext_db_oracle import FlextDbOracleApi, OracleConfig
 
 # r error handling
 result = api.query("SELECT 1 FROM DUAL")
-if result.is_success:
+if result.success:
     data = result.value
 else:
     error = result.error
@@ -102,4 +102,4 @@ api = FlextDbOracleApi(settings)
 
 ______________________________________________________________________
 
-Updated: September 17, 2025 | Version: 0.9.9
+Updated: April 14, 2026 | Version: 0.12.0-dev

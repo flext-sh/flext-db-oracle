@@ -31,7 +31,7 @@
   - [Documentation Updates Needed](#documentation-updates-needed)
 <!-- TOC END -->
 
-**Last Updated**: 2025-10-10 | **Status**: Functional Foundation with Test Issues | **Coverage**: ~95% (Test Failures)
+**Last Updated**: 2026-04-14 | **Status**: Functional Foundation with Test Issues | **Coverage**: ~95% (Test Failures)
 
 ## 📊 Overall Project Status
 
@@ -215,7 +215,7 @@ ______________________________________________________________________
 ```python
 # All operations return r
 result = api.connect(settings)
-if result.is_success:
+if result.success:
     connection = result.unwrap()
 ```
 

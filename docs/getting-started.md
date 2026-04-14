@@ -59,7 +59,7 @@ api = FlextDbOracleApi(settings)
 
 # Test connection using r pattern
 connection_result = api.test_connection()
-if connection_result.is_success:
+if connection_result.success:
     print("✅ Connected to Oracle successfully")
 else:
     print(f"❌ Connection failed: {connection_result.error}")
@@ -75,7 +75,7 @@ result = api.query(
     "SELECT table_name FROM user_tables WHERE rownum <= :limit", {"limit": 5}
 )
 
-if result.is_success:
+if result.success:
     tables = result.unwrap()
     print(f"Found {len(tables)} tables")
     for table in tables:
@@ -87,13 +87,13 @@ if result.is_success:
 ```python
 # List available schemas
 schemas_result = api.get_schemas()
-if schemas_result.is_success:
+if schemas_result.success:
     schemas = schemas_result.unwrap()
     print(f"Available schemas: {schemas}")
 
 # Get tables in a schema
 tables_result = api.get_tables("SYSTEM")
-if tables_result.is_success:
+if tables_result.success:
     tables = tables_result.unwrap()
     print(f"SYSTEM schema has {len(tables)} tables")
 ```
@@ -140,7 +140,7 @@ from flext_db_oracle import FlextDbOracleApi
 
 # Load configuration from environment variables
 api_result = FlextDbOracleApi.from_env()
-if api_result.is_success:
+if api_result.success:
     api = api_result.unwrap()
     print("API configured from environment")
 ```
@@ -193,7 +193,7 @@ python -m flext_db_oracle.cli query "SELECT COUNT(*) FROM dual"
 
 ______________________________________________________________________
 
-**Version**: 0.9.9 RC | **Updated**: September 17, 2025
+**Version**: 0.12.0-dev | **Updated**: April 14, 2026
 **Part of**: FLEXT Ecosystem - Oracle Database Integration Foundation
 
 ## Related Documentation

@@ -31,7 +31,7 @@ from flext_db_oracle import FlextDbOracleModels
 
 # From environment
 config_result = FlextDbOracleModels.OracleConfig.from_env()
-if config_result.is_success:
+if config_result.success:
     api = FlextDbOracleApi(config_result.value)
 
 # Direct configuration
@@ -60,7 +60,7 @@ api = FlextDbOracleApi(settings)
 ```python
 # Test connection
 result = api.test_connection()
-if result.is_success:
+if result.success:
     print("Connected to Oracle")
 else:
     print(f"Connection failed: {result.error}")
@@ -84,4 +84,4 @@ For advanced configuration patterns, see the FLEXT workspace documentation.
 
 ______________________________________________________________________
 
-Updated: September 17, 2025 | Version: 0.9.9
+Updated: April 14, 2026 | Version: 0.12.0-dev

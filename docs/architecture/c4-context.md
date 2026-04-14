@@ -259,5 +259,5 @@ graph TB
 ______________________________________________________________________
 
 **C4 Context Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2025-10-10
+**Generated**: 2026-04-14
 **Framework**: C4 Model - Context Level

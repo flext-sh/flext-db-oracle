@@ -36,4 +36,4 @@ This documentation is part of the larger FLEXT Ecosystem Documentation hub. For 
 
 ______________________________________________________________________
 
-_Last Updated: 2025-10-05 | Version: 1.0.0_
+_Last Updated: 2026-04-14 | Version: 1.0.0_

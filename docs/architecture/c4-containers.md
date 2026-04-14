@@ -362,5 +362,5 @@ graph TB
 ______________________________________________________________________
 
 **C4 Container Diagram - flext-db-oracle v0.9.0**
-**Generated**: 2025-10-10
+**Generated**: 2026-04-14
 **Framework**: C4 Model - Container Level

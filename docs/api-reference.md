@@ -125,7 +125,7 @@ All methods return r for type-safe error handling.
 
 ```python
 result = api.query("SELECT 1 FROM DUAL")
-if result.is_success:
+if result.success:
     data = result.value
 else:
     error = result.error
@@ -140,7 +140,7 @@ else:
 
 ______________________________________________________________________
 
-Updated: September 17, 2025 | Version: 0.9.9
+Updated: April 14, 2026 | Version: 0.12.0-dev
 
 ## Related Documentation
 
